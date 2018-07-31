@@ -92,7 +92,7 @@ test_framework_darwin: test_framework_GRDB test_framework_GRDBCustom test_framew
 test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_framework_GRDBiOS
 test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRDBCustomSQLiteiOS
 test_framework_GRDBCipher: test_framework_GRDBCipherOSX test_framework_GRDBCipheriOS
-test_install: test_install_manual test_install_GRDBCipher test_install_SPM test_install_GRDB_CocoaPods test_install_GRDBCipher_CocoaPods test_CocoaPodsLint
+test_install: test_install_manual test_install_GRDBCipher test_install_SPM test_install_GRDB_CocoaPods test_install_GRDBFTS5_CocoaPods test_install_GRDBCipher_CocoaPods test_CocoaPodsLint
 
 test_framework_GRDBOSX:
 	$(XCODEBUILD) \
@@ -229,6 +229,24 @@ ifdef POD
 	  $(XCPRETTY)
 else
 	@echo CocoaPods must be installed for test_install_GRDB_CocoaPods
+	@exit 1
+endif
+
+test_install_GRDBFTS5_CocoaPods:
+ifdef POD
+	cd Tests/CocoaPods/GRDBFTS5MacOS && \
+	rm -rf GRDBFTS5MacOS.xcworkspace && \
+	rm -rf Pods && \
+	rm -rf Podfile.lock && \
+	$(POD) install && \
+	$(XCODEBUILD) \
+	  -workspace GRDBFTS5MacOS.xcworkspace \
+	  -scheme GRDBFTS5MacOS \
+	  -configuration Release \
+	  clean build \
+	  $(XCPRETTY)
+else
+	@echo CocoaPods must be installed for test_install_GRDBFTS5_CocoaPods
 	@exit 1
 endif
 
