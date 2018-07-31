@@ -1,4 +1,5 @@
 use_frameworks!
 
 target 'iOS'
-pod 'GRDB.swift', :git => 'https://github.com/groue/GRDB.swift', :branch => 'master'
+platform :ios, '9.0'
+pod 'GRDB.swift', :path => '../../..'
