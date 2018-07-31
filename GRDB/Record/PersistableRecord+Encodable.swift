@@ -28,6 +28,7 @@ private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEn
     mutating func encode(_ value: Float, forKey key: Key) throws { encode(value, key.stringValue) }
     mutating func encode(_ value: Double, forKey key: Key) throws { encode(value, key.stringValue) }
     mutating func encode(_ value: String, forKey key: Key) throws { encode(value, key.stringValue) }
+    mutating func encode(_ value: Encodable, forKey key: Key) throws { encode(value.encodeToString(), key.stringValue) }
 
     /// Encodes the given value for the given key.
     ///
@@ -191,6 +192,17 @@ private struct PersistableRecordEncoder : Encoder {
     /// - precondition: May not be called after a value has been encoded through a previous `self.singleValueContainer()` call.
     func singleValueContainer() -> SingleValueEncodingContainer {
         return DatabaseValueEncodingContainer(key: codingPath.last!, encode: encode)
+    }
+}
+
+public extension Encodable {
+    /// Encode model (self) into JSON string
+    func encodeToString() -> String? {
+        let json = try! JSONEncoder().encode(self)
+        if let content = String(data: json, encoding: .utf8) {
+            return content
+        }
+        return nil
     }
 }
 
