@@ -79,7 +79,12 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
             } else if dbValue.isNull {
                 return nil
             } else {
-                return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+                if let data = row.dataNoCopy(named: key.stringValue), let dataString = String(data: data, encoding: .utf8), JSONSerialization.isValidJSONObject([dataString]) {
+                    // If data is valid JSON then decode it into model
+                    return try JSONDecoder().decode(type.self, from: data)
+                } else {
+                    return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+                }
             }
         }
         
