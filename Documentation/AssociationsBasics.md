@@ -69,7 +69,7 @@ struct BookInfo {
 
 let books = try Book.fetchAll(db)
 let bookInfos = books.map { book -> BookInfo in
-    let author = try Author.fetchOne(key: book.authorId)
+    let author = try Author.fetchOne(db, key: book.authorId)
     return BookInfo(book: book, author: author)
 }
 ```
@@ -647,7 +647,7 @@ struct Author: PersistableRecord {
     static let books = hasMany(Book.self)
     
     /// The request for an author's books
-    var books: QueryInterfaceRequest<Author> {
+    var books: QueryInterfaceRequest<Book> {
         return request(for: Author.books)
     }
 }
@@ -1060,7 +1060,7 @@ let bookInfos = try BookInfo.fetchAll(db, request) // [BookInfo]
 
 ## The Structure of a Joined Request
 
-**Joined request define a tree of associated records identified by "association keys".**
+**Joined request defines a tree of associated records identified by "association keys".**
 
 Below, author and cover image are both associated to book, and country is associated to author:
 
@@ -1338,8 +1338,8 @@ This code compiles, but you'll get a runtime fatal error "Not implemented: chain
 ```swift
 // NOT IMPLEMENTED
 let request = Book
-    .including(Book.author) // key "author"
-    .including(Book.author) // key "author"
+    .including(required: Book.author) // key "author"
+    .including(required: Book.author) // key "author"
 ```
 
 This code compiles, but you'll get a runtime fatal error "The association key `author` is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.". Future versions of GRDB may allow such requests.
@@ -1349,8 +1349,8 @@ To join the same table twice, and make sure GRDB does not modify the fetched res
 ```swift
 // OK
 let request = Book
-    .including(Book.author.forKey("firstAuthor"))
-    .including(Book.author.forKey("secondAuthor"))
+    .including(required: Book.author.forKey("firstAuthor"))
+    .including(required: Book.author.forKey("secondAuthor"))
 ```
 
 
