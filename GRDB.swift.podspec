@@ -21,12 +21,12 @@ Pod::Spec.new do |s|
     ss.watchos.deployment_target = '2.0'
   end
   
-  # https://github.com/CocoaPods/CocoaPods/issues/7333
-  s.subspec 'FTS5' do |ss|
+  s.subspec '3.19.3' do |ss|
     ss.source_files = 'GRDB/**/*.swift', 'Support/*.h'
-    ss.ios.deployment_target = '11.4'
-    ss.osx.deployment_target = '10.13'
-    ss.watchos.deployment_target = '4.3'
+    # https://github.com/CocoaPods/CocoaPods/issues/7333
+    # ss.ios.deployment_target = '11.4'
+    # ss.osx.deployment_target = '10.13'
+    # ss.watchos.deployment_target = '4.3'
     ss.xcconfig = {
       'OTHER_SWIFT_FLAGS' => '$(inherited) -D SQLITE_ENABLE_FTS5',
     }
