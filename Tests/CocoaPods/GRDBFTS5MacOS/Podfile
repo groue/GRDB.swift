@@ -2,4 +2,4 @@ use_frameworks!
 
 target 'GRDBFTS5MacOS'
 platform :macos, '10.13'
-pod 'GRDB.swift/FTS5', :path => '../../..'
+pod 'GRDB.swift/3.19.3', :path => '../../..'
