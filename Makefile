@@ -95,9 +95,11 @@ test_framework_GRDBCipher: test_framework_GRDBCipherOSX test_framework_GRDBCiphe
 test_install: test_install_manual test_install_GRDBCipher test_install_SPM test_install_GRDB_CocoaPods test_install_GRDBFTS5_CocoaPods test_install_GRDBCipher_CocoaPods test_CocoaPodsLint
 
 test_framework_GRDBOSX:
+	# SQLITE_ENABLE_FTS5 requires macOS 10.13+
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBOSX \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
@@ -112,10 +114,12 @@ test_framework_GRDBWatchOS:
 test_framework_GRDBiOS: test_framework_GRDBiOS_maxTarget test_framework_GRDBiOS_minTarget
 
 test_framework_GRDBiOS_maxTarget:
+	# SQLITE_ENABLE_FTS5 requires iOS 11.4+
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
