@@ -12,13 +12,14 @@ Pod::Spec.new do |s|
   s.framework = 'Foundation'
   s.library = 'sqlite3'
   
+  s.ios.deployment_target = '8.0'
+  s.osx.deployment_target = '10.9'
+  s.watchos.deployment_target = '2.0'
+  
   s.default_subspec = 'default'
   
   s.subspec 'default' do |ss|
     ss.source_files = 'GRDB/**/*.swift', 'Support/*.h'
-    ss.ios.deployment_target = '8.0'
-    ss.osx.deployment_target = '10.9'
-    ss.watchos.deployment_target = '2.0'
   end
   
   s.subspec '3.19.3' do |ss|
