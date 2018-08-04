@@ -93,6 +93,7 @@ test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_fram
 test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRDBCustomSQLiteiOS
 test_framework_GRDBCipher: test_framework_GRDBCipherOSX test_framework_GRDBCipheriOS
 test_install: test_install_manual test_install_GRDBCipher test_install_SPM test_install_GRDB_CocoaPods test_install_GRDBFTS5_CocoaPods test_install_GRDBCipher_CocoaPods test_CocoaPodsLint
+test_CocoaPodsLint: test_CocoaPodsLint_GRDB test_CocoaPodsLint_GRDBCipher
 
 test_framework_GRDBOSX:
 	# SQLITE_ENABLE_FTS5 requires macOS 10.13+
@@ -272,11 +273,19 @@ else
 	@exit 1
 endif
 
-test_CocoaPodsLint:
+test_CocoaPodsLint_GRDB:
 ifdef POD
-	$(POD) lib lint --allow-warnings
+	$(POD) lib lint GRDB.swift.podspec --allow-warnings
 else
-	@echo CocoaPods must be installed for test_CocoaPodsLint
+	@echo CocoaPods must be installed for test_CocoaPodsLint_GRDB
+	@exit 1
+endif
+
+test_CocoaPodsLint_GRDBCipher:
+ifdef POD
+	$(POD) lib lint GRDBCipher.podspec --allow-warnings
+else
+	@echo CocoaPods must be installed for test_CocoaPodsLint_GRDBCipher
 	@exit 1
 endif
 
