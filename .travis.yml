@@ -134,8 +134,8 @@ jobs:
       install:
         - gem install cocoapods # Since Travis is not always on latest version
       env:
-        - TID=CocoaPods Lint GRDB.swift/default (Xcode 9.4)
-      script: make test_CocoaPodsLint_GRDB_default
+        - TID=CocoaPods Lint GRDB.swift (Xcode 9.4)
+      script: make test_CocoaPodsLint_GRDB
 
     # CocoaPods Lint (Xcode 9.4)
     - stage: Test Installation
@@ -143,8 +143,8 @@ jobs:
       install:
         - gem install cocoapods # Since Travis is not always on latest version
       env:
-        - TID=CocoaPods Lint GRDB.swift/3.19.3 (Xcode 9.4)
-      script: make test_CocoaPodsLint_GRDB_3.19.3
+        - TID=CocoaPods Lint GRDBPlus (Xcode 9.4)
+      script: make test_CocoaPodsLint_GRDBPlus
 
     # CocoaPods Lint (Xcode 9.4)
     - stage: Test Installation

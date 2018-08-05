@@ -177,7 +177,7 @@
 			);
 			inputPaths = (
 				"${SRCROOT}/Pods/Target Support Files/Pods-GRDBFTS5MacOS/Pods-GRDBFTS5MacOS-frameworks.sh",
-				"${BUILT_PRODUCTS_DIR}/GRDB.swift/GRDB.framework",
+				"${BUILT_PRODUCTS_DIR}/GRDBPlus/GRDB.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
