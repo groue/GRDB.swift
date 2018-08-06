@@ -5,7 +5,7 @@ GRDB 3 [![Swift](https://img.shields.io/badge/swift-4.1-orange.svg?style=flat)](
 
 **Latest release**: July 8, 2018 • version 3.2.0 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 2 to GRDB 3](Documentation/GRDB2MigrationGuide.md)
 
-**Requirements**: iOS 8.0+ / OSX 10.9+ / watchOS 2.0+ &bull; Swift 4.1+ / Xcode 9.3+
+**Requirements**: iOS 8.0+ / macOS 10.9+ / watchOS 2.0+ &bull; Swift 4.1+ / Xcode 9.3+
 
 | Swift version | GRDB version                                                |
 | ------------- | ----------------------------------------------------------- |
@@ -308,6 +308,8 @@ Installation
 See [Encryption](#encryption) for the installation procedure of GRDB with SQLCipher.
 
 See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite 3.24.0.
+
+See [Enabling FTS5 Support](#enabling-fts5-support) for the installation procedure of GRDB with support for the FTS5 full-text engine.
 
 
 ## CocoaPods
@@ -4425,6 +4427,7 @@ let books = try Book.fetchAll(db,
 ```
 
 - **[Choosing the Full-Text Engine](#choosing-the-full-text-engine)**
+- **[Enabling FTS5 Support](#enabling-fts5-support)**
 - **Create Full-Text Virtual Tables**: [FTS3/4](#create-fts3-and-fts4-virtual-tables), [FTS5](#create-fts5-virtual-tables)
 - **Choosing a Tokenizer**: [FTS3/4](#fts3-and-fts4-tokenizers), [FTS5](#fts5-tokenizers)
 - **Search Patterns**: [FTS3/4](#fts3pattern), [FTS5](#fts5pattern)
@@ -4479,7 +4482,7 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
 
 - **The location of the indexed text in your database schema.** Only FTS4 and FTS5 support "contentless" and "external content" tables.
 
-- **The SQLite library integrated in your application.** The version of SQLite that ships with iOS, macOS and watchOS support FTS3 and FTS4 out of the box, but not FTS5. To use FTS5, you'll need a [custom SQLite build](Documentation/CustomSQLiteBuilds.md) that activates the `SQLITE_ENABLE_FTS5` compilation option.
+- **The SQLite library integrated in your application.** The version of SQLite that ships with iOS, macOS and watchOS supports FTS3 and FTS4 out of the box, but not always FTS5. To use FTS5, see [Enabling FTS5 Support](#enabling-fts5-support).
 
 - See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more differences.
 
@@ -4694,6 +4697,27 @@ let documents = try Document.matching(pattern).fetchAll(db)
 // Search in a specific column:
 let documents = try Document.filter(Column("content").match(pattern)).fetchAll(db)
 ```
+
+
+### Enabling FTS5 Support
+
+When the FTS3 and FTS4 full-text engines don't suit your needs, you may want to use FTS5. See [Choosing the Full-Text Engine](#choosing-the-full-text-engine) to help you make a decision.
+
+The version of SQLite that ships with iOS, macOS and watchOS does not always support the FTS5 engine. To enable FTS5 support, you'll need to install GRDB with one of those installation techniques:
+    
+1. Use the GRDBPlus CocoaPod. It uses the system SQLite, and requires iOS 11.4+ / macOS 10.13+ / watchOS 4.3+:
+    
+    ```ruby
+    pod 'GRDBPlus'
+    ```
+
+2. Use the GRDBCipher CocoaPod. It uses SQLCipher (see [encryption](#encryption)), and requires iOS 8.0+ / macOS 10.9+ / watchOS 2.0+:
+    
+    ```ruby
+    pod 'GRDBCipher'
+    ```
+    
+3. Use a [custom SQLite build](Documentation/CustomSQLiteBuilds.md) and activate the `SQLITE_ENABLE_FTS5` compilation option.
 
 
 ### Create FTS5 Virtual Tables
@@ -6132,7 +6156,7 @@ try controller.performFetch()
 
 ## Encryption
 
-**GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4.1.**
+**GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4.2.**
 
 You can use [CocoaPods](http://cocoapods.org/) (version 1.2 or higher), and specify in your `Podfile`:
 
@@ -7429,7 +7453,7 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [Vladimir Babin](https://github.com/Chiliec), [@bellebethcooper](https://github.com/bellebethcooper), [Darren Clark](https://github.com/darrenclark), [Pascal Edmond](https://github.com/pakko972), [Andrey Fidrya](https://github.com/zmeyc), [Cristian Filipov](https://github.com/cfilipov), [Matt Greenfield](https://github.com/sobri909), [David Hart](https://github.com/hartbit), [@kluufger](https://github.com/kluufger), [Brad Lindsay](https://github.com/bfad), [@peter-ss](https://github.com/peter-ss), [Florent Pillet](http://github.com/fpillet), [@pocketpixels](https://github.com/pocketpixels), [Pierre-Loïc Raynaud](https://github.com/pierlo), [Stefano Rodriguez](https://github.com/sroddy), [Steven Schveighoffer](https://github.com/schveiguy), [@swiftlyfalling](https://github.com/swiftlyfalling), and [Kevin Wooten](https://github.com/kdubb) for their contributions, help, and feedback on GRDB.
+- [Vladimir Babin](https://github.com/Chiliec), [Marcel Ball](https://github.com/Marus), [@bellebethcooper](https://github.com/bellebethcooper), [Darren Clark](https://github.com/darrenclark), [Pascal Edmond](https://github.com/pakko972), [Andrey Fidrya](https://github.com/zmeyc), [Cristian Filipov](https://github.com/cfilipov), [Matt Greenfield](https://github.com/sobri909), [David Hart](https://github.com/hartbit), [@kluufger](https://github.com/kluufger), [Brad Lindsay](https://github.com/bfad), [@peter-ss](https://github.com/peter-ss), [Florent Pillet](http://github.com/fpillet), [@pocketpixels](https://github.com/pocketpixels), [Pierre-Loïc Raynaud](https://github.com/pierlo), [Stefano Rodriguez](https://github.com/sroddy), [Steven Schveighoffer](https://github.com/schveiguy), [@swiftlyfalling](https://github.com/swiftlyfalling), and [Kevin Wooten](https://github.com/kdubb) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [Mathieu "Kali" Poumeyrol](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
 

@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+## Next Version
+
+- [#393](https://github.com/groue/GRDB.swift/pull/393): Upgrade SQLCipher to 3.4.2, enable FTS5 on GRDBCipher and new pod GRDBPlus.
+
+### Documentation Diff
+
+- [Enabling FTS5 Support](README.md#enabling-fts5-support): Procedure for enabling FTS5 support in GRDB
+
+
 ## 3.2.0
 
 Released July 8, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.1.0...v3.2.0)

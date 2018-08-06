@@ -128,14 +128,59 @@ jobs:
         - TID=Manual Install (GRDBCipher, Xcode 9.4)
       script: make test_install_GRDBCipher
 
-    # Cocoapods Lint (Xcode 9.4)
+    # CocoaPods Lint (Xcode 9.4)
     - stage: Test Installation
       osx_image: xcode9.4
       install:
         - gem install cocoapods # Since Travis is not always on latest version
       env:
-        - TID=Cocoapods (Xcode 9.4)
-      script: make test_CocoaPodsLint
+        - TID=CocoaPods Lint GRDB.swift (Xcode 9.4)
+      script: make test_CocoaPodsLint_GRDB
+
+    # CocoaPods Lint (Xcode 9.4)
+    - stage: Test Installation
+      osx_image: xcode9.4
+      install:
+        - gem install cocoapods # Since Travis is not always on latest version
+      env:
+        - TID=CocoaPods Lint GRDBPlus (Xcode 9.4)
+      script: make test_CocoaPodsLint_GRDBPlus
+
+    # CocoaPods Lint (Xcode 9.4)
+    - stage: Test Installation
+      osx_image: xcode9.4
+      install:
+        - gem install cocoapods # Since Travis is not always on latest version
+      env:
+        - TID=CocoaPods Lint GRDBCipher (Xcode 9.4)
+      script: make test_CocoaPodsLint_GRDBCipher
+
+    # CocoaPods Install (Xcode 9.4)
+    - stage: Test Installation
+      osx_image: xcode9.4
+      install:
+        - gem install cocoapods # Since Travis is not always on latest version
+      env:
+        - TID=CocoaPods GRDB (Xcode 9.4)
+      script: make test_install_GRDB_CocoaPods
+
+    # CocoaPods Install (Xcode 9.4)
+    - stage: Test Installation
+      osx_image: xcode9.4
+      install:
+        - gem install cocoapods # Since Travis is not always on latest version
+      env:
+        - TID=CocoaPods GRDB+FTS5 (Xcode 9.4)
+      script: make test_install_GRDBFTS5_CocoaPods
+
+    # CocoaPods Install (Xcode 9.4)
+    - stage: Test Installation
+      osx_image: xcode9.4
+      install:
+        - gem install cocoapods # Since Travis is not always on latest version
+      env:
+        - TID=CocoaPods GRDBCipher (Xcode 9.4)
+      script: make test_install_GRDBCipher_CocoaPods
 
     # SPM Install (Xcode 9.4)
     - stage: Test Installation
