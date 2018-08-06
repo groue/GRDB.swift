@@ -4482,7 +4482,7 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
 
 - **The location of the indexed text in your database schema.** Only FTS4 and FTS5 support "contentless" and "external content" tables.
 
-- **The SQLite library integrated in your application.** The version of SQLite that ships with iOS, macOS and watchOS support FTS3 and FTS4 out of the box, but not always FTS5. To use FTS5, see [Enabling FTS5 Support](#enabling-fts5-support).
+- **The SQLite library integrated in your application.** The version of SQLite that ships with iOS, macOS and watchOS supports FTS3 and FTS4 out of the box, but not always FTS5. To use FTS5, see [Enabling FTS5 Support](#enabling-fts5-support).
 
 - See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more differences.
 
