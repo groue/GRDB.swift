@@ -309,6 +309,8 @@ See [Encryption](#encryption) for the installation procedure of GRDB with SQLCip
 
 See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite 3.24.0.
 
+See [Enabling FTS5 Support](#enabling-fts5-support) for the installation procedure of GRDB with support for the FTS5 full-text engine.
+
 
 ## CocoaPods
 
@@ -4425,6 +4427,7 @@ let books = try Book.fetchAll(db,
 ```
 
 - **[Choosing the Full-Text Engine](#choosing-the-full-text-engine)**
+- **[Enabling FTS5 Support](#enabling-fts5-support)**
 - **Create Full-Text Virtual Tables**: [FTS3/4](#create-fts3-and-fts4-virtual-tables), [FTS5](#create-fts5-virtual-tables)
 - **Choosing a Tokenizer**: [FTS3/4](#fts3-and-fts4-tokenizers), [FTS5](#fts5-tokenizers)
 - **Search Patterns**: [FTS3/4](#fts3pattern), [FTS5](#fts5pattern)
@@ -4479,21 +4482,7 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
 
 - **The location of the indexed text in your database schema.** Only FTS4 and FTS5 support "contentless" and "external content" tables.
 
-- **The SQLite library integrated in your application.** The version of SQLite that ships with iOS, macOS and watchOS support FTS3 and FTS4 out of the box, but not always FTS5. To use FTS5, you'll need to choose one of those special GRDB installations:
-    
-    1. Use the GRDBPlus CocoaPod. It uses the system SQLite, and requires iOS 11.4+ / macOS 10.13+ / watchOS 4.3+:
-        
-        ```ruby
-        pod 'GRDBPlus'
-        ```
-    
-    2. Use the GRDBCipher CocoaPod. It uses SQLCipher (see [encryption](#encryption)), and requires iOS 8.0+ / macOS 10.9+ / watchOS 2.0+:
-        
-        ```ruby
-        pod 'GRDBCipher'
-        ```
-        
-    1. Use a [custom SQLite build](Documentation/CustomSQLiteBuilds.md) and activate the `SQLITE_ENABLE_FTS5` compilation option.
+- **The SQLite library integrated in your application.** The version of SQLite that ships with iOS, macOS and watchOS support FTS3 and FTS4 out of the box, but not always FTS5. To use FTS5, see [Enabling FTS5 Support](#enabling-fts5-support).
 
 - See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more differences.
 
@@ -4708,6 +4697,27 @@ let documents = try Document.matching(pattern).fetchAll(db)
 // Search in a specific column:
 let documents = try Document.filter(Column("content").match(pattern)).fetchAll(db)
 ```
+
+
+### Enabling FTS5 Support
+
+When the FTS3 and FTS4 full-text engines don't suit your needs, you may want to use FTS5. See [Choosing the Full-Text Engine](#choosing-the-full-text-engine) to help you make a decision.
+
+The version of SQLite that ships with iOS, macOS and watchOS does not always support the FTS5 engine. To enable FTS5 support, you'll need to install GRDB with one of those installation techniques:
+    
+1. Use the GRDBPlus CocoaPod. It uses the system SQLite, and requires iOS 11.4+ / macOS 10.13+ / watchOS 4.3+:
+    
+    ```ruby
+    pod 'GRDBPlus'
+    ```
+
+2. Use the GRDBCipher CocoaPod. It uses SQLCipher (see [encryption](#encryption)), and requires iOS 8.0+ / macOS 10.9+ / watchOS 2.0+:
+    
+    ```ruby
+    pod 'GRDBCipher'
+    ```
+    
+3. Use a [custom SQLite build](Documentation/CustomSQLiteBuilds.md) and activate the `SQLITE_ENABLE_FTS5` compilation option.
 
 
 ### Create FTS5 Virtual Tables
