@@ -1,3 +1,5 @@
+import Foundation
+
 private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
     let decoder: RowDecoder
     
@@ -79,7 +81,17 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
             } else if dbValue.isNull {
                 return nil
             } else {
-                return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+                do {
+                    let natural = try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+                    return natural
+                } catch {
+                    if let data = row.dataNoCopy(named: key.stringValue), let dataString = String(data: data, encoding: .utf8), dataString.hasPrefix("[{") || dataString.hasPrefix("{"), dataString.hasSuffix("}]") || dataString.hasSuffix("}") {
+                        // If data looks like JSON data then decode it into model (nested model as JSON)
+                        return try JSONDecoder().decode(type.self, from: data)
+                    } else {
+                        fatalError("\(error)")
+                    }
+                }
             }
         }
         
@@ -116,7 +128,17 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                 // This allows decoding Date from String, or DatabaseValue from NULL.
                 return type.fromDatabaseValue(dbValue) as! T
             } else {
-                return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+                do {
+                    let natural = try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+                    return natural
+                } catch {
+                    if let data = row.dataNoCopy(named: key.stringValue), let dataString = String(data: data, encoding: .utf8), dataString.hasPrefix("[{") || dataString.hasPrefix("{"), dataString.hasSuffix("}]") || dataString.hasSuffix("}") {
+                        // If data looks like JSON data then decode it into model (nested model as JSON)
+                        return try JSONDecoder().decode(type.self, from: data)
+                    } else {
+                        fatalError("\(error)")
+                    }
+                }
             }
         }
         

@@ -1,3 +1,5 @@
+import Foundation
+
 private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEncodingContainerProtocol {
     let encode: (_ value: DatabaseValueConvertible?, _ key: String) -> Void
     
@@ -40,7 +42,21 @@ private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEn
             // This allows us to encode Date as String, for example.
             encode((value as! DatabaseValueConvertible), key.stringValue)
         } else {
-            try value.encode(to: PersistableRecordEncoder(codingPath: [key], encode: encode))
+            do {
+                 try value.encode(to: PersistableRecordEncoder(codingPath: [key], encode: encode))
+            } catch {
+                // If value.encode does not work e.g. "unkeyed encoding is not supported" then see if model can be stored as JSON
+                let encodeError = error
+                do {
+                    let json = try JSONEncoder().encode(value)
+                    guard let modelAsString = String(data: json, encoding: .utf8) else {
+                        throw JsonStringError.covertStringError("Error, could not make string out of JSON data")
+                    }
+                    return encode(modelAsString, key.stringValue)
+                } catch {
+                    fatalError("Encode error: \(encodeError), tried to encode to Json, got error: \(error)")
+                }
+            }
         }
     }
     
@@ -169,7 +185,7 @@ private struct PersistableRecordEncoder : Encoder {
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> {
         // Asked for a keyed type: top level required
         guard codingPath.isEmpty else {
-            fatalError("unkeyed encoding is not supported")
+            return KeyedEncodingContainer(ThrowingKeyedContainer(error: EncodingError.invalidValue(codingPath.isEmpty, EncodingError.Context(codingPath: codingPath, debugDescription: "unkeyed encoding is not supported"))))
         }
         return KeyedEncodingContainer(PersistableRecordKeyedEncodingContainer<Key>(encode: encode))
     }
@@ -180,7 +196,7 @@ private struct PersistableRecordEncoder : Encoder {
     /// - precondition: May not be called after a prior `self.container(keyedBy:)` call.
     /// - precondition: May not be called after a value has been encoded through a previous `self.singleValueContainer()` call.
     func unkeyedContainer() -> UnkeyedEncodingContainer {
-        fatalError("unkeyed encoding is not supported")
+        return ThrowingUnkeyedContainer(error: EncodingError.invalidValue(encode, EncodingError.Context(codingPath: [], debugDescription: "unkeyed encoding is not supported")))
     }
     
     /// Returns an encoding container appropriate for holding a single primitive value.
@@ -192,6 +208,92 @@ private struct PersistableRecordEncoder : Encoder {
     func singleValueContainer() -> SingleValueEncodingContainer {
         return DatabaseValueEncodingContainer(key: codingPath.last!, encode: encode)
     }
+}
+
+class ThrowingKeyedContainer<KeyType: CodingKey>: KeyedEncodingContainerProtocol {
+    let errorMessage: Error
+    var codingPath: [CodingKey] = []
+    
+    init(error: Error) {
+        errorMessage = error
+    }
+    
+    func encodeNil(forKey key: KeyType) throws { throw errorMessage }
+    func encode(_ value: Bool, forKey key: KeyType) throws { throw errorMessage }
+    func encode(_ value: Int, forKey key: KeyType) throws { throw errorMessage }
+    func encode(_ value: Int8, forKey key: KeyType) throws { throw errorMessage }
+    func encode(_ value: Int16, forKey key: KeyType) throws { throw errorMessage }
+    func encode(_ value: Int32, forKey key: KeyType) throws { throw errorMessage }
+    func encode(_ value: Int64, forKey key: KeyType) throws { throw errorMessage }
+    func encode(_ value: UInt, forKey key: KeyType) throws { throw errorMessage }
+    func encode(_ value: UInt8, forKey key: KeyType) throws { throw errorMessage }
+    func encode(_ value: UInt16, forKey key: KeyType) throws { throw errorMessage }
+    func encode(_ value: UInt32, forKey key: KeyType) throws { throw errorMessage }
+    func encode(_ value: UInt64, forKey key: KeyType) throws { throw errorMessage }
+    func encode(_ value: Float, forKey key: KeyType) throws { throw errorMessage }
+    func encode(_ value: Double, forKey key: KeyType) throws { throw errorMessage }
+    func encode(_ value: String, forKey key: KeyType) throws { throw errorMessage }
+    func encode<T>(_ value: T, forKey key: KeyType) throws where T : Encodable { throw errorMessage }
+
+    func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: KeyType) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
+        fatalError("Not implemented")
+    }
+    func nestedUnkeyedContainer(forKey key: KeyType) -> UnkeyedEncodingContainer {
+        fatalError("Not implemented")
+    }
+    func superEncoder() -> Encoder {
+        fatalError("Not implemented")
+    }
+    
+    func superEncoder(forKey key: KeyType) -> Encoder {
+        fatalError("Not implemented")
+    }
+}
+
+class ThrowingUnkeyedContainer: UnkeyedEncodingContainer {
+    let errorMessage: Error
+    var codingPath: [CodingKey] = []
+    var count: Int = 0
+    
+    init(error: Error) {
+        errorMessage = error
+    }
+    
+    func encode(_ value: Int) throws { throw errorMessage }
+    func encode(_ value: Int8) throws { throw errorMessage }
+    func encode(_ value: Int16) throws { throw errorMessage }
+    func encode(_ value: Int32) throws { throw errorMessage }
+    func encode(_ value: Int64) throws { throw errorMessage }
+    func encode(_ value: UInt) throws { throw errorMessage }
+    func encode(_ value: UInt8) throws { throw errorMessage }
+    func encode(_ value: UInt16) throws { throw errorMessage }
+    func encode(_ value: UInt32) throws { throw errorMessage }
+    func encode(_ value: UInt64) throws { throw errorMessage }
+    func encode(_ value: Float) throws { throw errorMessage }
+    func encode(_ value: Double) throws { throw errorMessage }
+    func encode(_ value: String) throws { throw errorMessage }
+    func encode<T>(_ value: T) throws where T : Encodable { throw errorMessage }
+    func encode(_ value: Bool) throws { throw errorMessage }
+    func encodeNil() throws { throw errorMessage }
+    
+    func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
+        fatalError("Not implemented")
+        
+    }
+    
+    func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
+        fatalError("Not implemented")
+        
+    }
+    
+    func superEncoder() -> Encoder {
+        fatalError("Not implemented")
+        
+    }
+}
+
+enum JsonStringError: Error {
+    case covertStringError(String)
 }
 
 extension MutablePersistableRecord where Self: Encodable {
