@@ -131,31 +131,50 @@
         
         static func api(_ db: Database) -> UnsafePointer<fts5_api> {
             #if GRDBCUSTOMSQLITE || GRDBCIPHER
-                let sqliteConnection = db.sqliteConnection
-                var statement: SQLiteStatement? = nil
-                var api: UnsafePointer<fts5_api>? = nil
-                let type: StaticString = "fts5_api_ptr"
-            
-                let code = sqlite3_prepare_v3(db.sqliteConnection, "SELECT fts5(?)", -1, 0, &statement, nil)
-                guard code == SQLITE_OK else {
-                    fatalError("FTS5 is not available")
-                }
-                defer { sqlite3_finalize(statement) }
-                type.utf8Start.withMemoryRebound(to: Int8.self, capacity: type.utf8CodeUnitCount) { typePointer in
-                    _ = sqlite3_bind_pointer(statement, 1, &api, typePointer, nil)
-                }
-                sqlite3_step(statement)
-                guard let result = api else {
-                    fatalError("FTS5 is not available")
-                }
-                return result
+                return api2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
             #else
-                // sqlite3_prepare_v3 and sqlite3_bind_pointer are not available yet.
-                guard let data = try! Data.fetchOne(db, "SELECT fts5()") else {
-                    fatalError("FTS5 is not available")
+                // Check for sqlite3_prepare_v3 and sqlite3_bind_pointer availability (SQLite 3.20.0)
+                if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
+                    return api2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
+                } else {
+                    return api1(db)
                 }
-                return data.withUnsafeBytes { $0.pointee }
             #endif
+        }
+        
+        private static func api1(_ db: Database) -> UnsafePointer<fts5_api> {
+            guard let data = try! Data.fetchOne(db, "SELECT fts5()") else {
+                fatalError("FTS5 is not available")
+            }
+            return data.withUnsafeBytes { $0.pointee }
+        }
+        
+        // Technique given by Jordan Rose:
+        // https://forums.swift.org/t/c-interoperability-combinations-of-library-and-os-versions/14029/4
+        private static func api2(
+            _ db: Database,
+            _ sqlite3_prepare_v3: @convention(c) (OpaquePointer?, UnsafePointer<Int8>?, Int32, UInt32, UnsafeMutablePointer<OpaquePointer?>?, UnsafeMutablePointer<UnsafePointer<Int8>?>?) -> Int32,
+            _ sqlite3_bind_pointer: @convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?, UnsafePointer<Int8>?, (@convention(c) (UnsafeMutableRawPointer?) -> Void)?) -> Int32)
+            -> UnsafePointer<fts5_api>
+        {
+            let sqliteConnection = db.sqliteConnection
+            var statement: SQLiteStatement? = nil
+            var api: UnsafePointer<fts5_api>? = nil
+            let type: StaticString = "fts5_api_ptr"
+            
+            let code = sqlite3_prepare_v3(db.sqliteConnection, "SELECT fts5(?)", -1, 0, &statement, nil)
+            guard code == SQLITE_OK else {
+                fatalError("FTS5 is not available")
+            }
+            defer { sqlite3_finalize(statement) }
+            type.utf8Start.withMemoryRebound(to: Int8.self, capacity: type.utf8CodeUnitCount) { typePointer in
+                _ = sqlite3_bind_pointer(statement, 1, &api, typePointer, nil)
+            }
+            sqlite3_step(statement)
+            guard let result = api else {
+                fatalError("FTS5 is not available")
+            }
+            return result
         }
     }
     
