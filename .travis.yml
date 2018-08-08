@@ -21,7 +21,7 @@ jobs:
       osx_image: xcode9.4
       env:
         - TID=GRDBOSX (Xcode 9.4, macOS)
-      script: make test_framework_GRDBOSX
+      script: make test_framework_GRDBOSX_maxSwift
 
     # Test GRDBWatchOS (Xcode 9.4)
     - stage: Test GRDB
@@ -37,7 +37,7 @@ jobs:
       osx_image: xcode9.4
       env:
         - TID=GRDBiOS (Xcode 9.4, iOS <MAX>)
-      script: make test_framework_GRDBiOS_maxTarget
+      script: make test_framework_GRDBiOS_maxTarget_maxSwift
 
     # Test GRDBiOS (Xcode 9.3, iOS <MINIMUM VERSION>))
     - stage: Test GRDB
