@@ -82,14 +82,20 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                 return nil
             } else {
                 do {
-                    let natural = try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
-                    return natural
+                    // This decoding will fail for types that need a keyed container,
+                    // because we're decoding a database value here (string, int, double, data, null, Codable)
+                    return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
                 } catch {
-                    if let data = row.dataNoCopy(named: key.stringValue), let dataString = String(data: data, encoding: .utf8), dataString.hasPrefix("[{") || dataString.hasPrefix("{"), dataString.hasSuffix("}]") || dataString.hasSuffix("}") {
-                        // If data looks like JSON data then decode it into model (nested model as JSON)
-                        return try JSONDecoder().decode(type.self, from: data)
-                    } else {
-                        fatalError("\(error)")
+                    switch error as! DecodingError {
+                    case .typeMismatch(_, let context):
+                        if context.debugDescription == "unkeyed decoding is not supported", let data = row.dataNoCopy(named: key.stringValue) {
+                            // Support for keyed containers ( [Codable] )
+                            return try JSONDecoder().decode(type.self, from: data)
+                        } else {
+                            throw(error)
+                        }
+                    default:
+                        throw(error)
                     }
                 }
             }
@@ -129,14 +135,20 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                 return type.fromDatabaseValue(dbValue) as! T
             } else {
                 do {
-                    let natural = try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
-                    return natural
+                    // This decoding will fail for types that need a keyed container,
+                    // because we're decoding a database value here (string, int, double, data, null, Codable)
+                    return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
                 } catch {
-                    if let data = row.dataNoCopy(named: key.stringValue), let dataString = String(data: data, encoding: .utf8), dataString.hasPrefix("[{") || dataString.hasPrefix("{"), dataString.hasSuffix("}]") || dataString.hasSuffix("}") {
-                        // If data looks like JSON data then decode it into model (nested model as JSON)
-                        return try JSONDecoder().decode(type.self, from: data)
-                    } else {
-                        fatalError("\(error)")
+                    switch error as! DecodingError {
+                    case .typeMismatch(_, let context):
+                        if context.debugDescription == "unkeyed decoding is not supported", let data = row.dataNoCopy(named: key.stringValue) {
+                            // Support for keyed containers ( [Codable] )
+                            return try JSONDecoder().decode(type.self, from: data)
+                        } else {
+                            throw(error)
+                        }
+                    default:
+                        throw(error)
                     }
                 }
             }

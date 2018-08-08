@@ -767,9 +767,9 @@ class PersistableRecordTests: GRDBTestCase {
 extension PersistableRecordTests {
     
     func testOptionalNestedStruct() throws {
-        struct NestedStruct : PersistableRecord, Codable {
-            let firstName = "Bob"
-            let lastName = "Dylan"
+        struct NestedStruct : Codable {
+            let firstName: String?
+            let lastName: String?
         }
         
         struct StructWithNestedType : PersistableRecord, Codable {
@@ -782,8 +782,9 @@ extension PersistableRecordTests {
             try db.create(table: "t1") { t in
                 t.column("nested", .text)
             }
-            
-            let value = StructWithNestedType(nested: NestedStruct())
+
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: nested)
             try value.insert(db)
             
             let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
@@ -795,8 +796,8 @@ extension PersistableRecordTests {
             if let data = string.data(using: .utf8) {
                 do {
                     let decoded = try JSONDecoder().decode(NestedStruct.self, from: data)
-                    XCTAssertEqual(NestedStruct().firstName, decoded.firstName)
-                    XCTAssertEqual(NestedStruct().lastName, decoded.lastName)
+                    XCTAssertEqual(nested.firstName, decoded.firstName)
+                    XCTAssertEqual(nested.lastName, decoded.lastName)
                 } catch {
                     XCTFail(error.localizedDescription)
                 }
@@ -807,9 +808,9 @@ extension PersistableRecordTests {
     }
     
     func testOptionalNestedStructNil() throws {
-        struct NestedStruct : PersistableRecord, Encodable {
-            let firstName = "Bob"
-            let lastName = "Dylan"
+        struct NestedStruct : Encodable {
+            let firstName: String?
+            let lastName: String?
         }
         
         struct StructWithNestedType : PersistableRecord, Encodable {
@@ -834,9 +835,9 @@ extension PersistableRecordTests {
     }
     
     func testOptionalNestedArrayStruct() throws {
-        struct NestedStruct : PersistableRecord, Codable {
-            let firstName = "Bob"
-            let lastName = "Dylan"
+        struct NestedStruct : Codable {
+            let firstName: String?
+            let lastName: String?
         }
         
         struct StructWithNestedType : PersistableRecord, Codable {
@@ -849,8 +850,9 @@ extension PersistableRecordTests {
             try db.create(table: "t1") { t in
                 t.column("nested", .text)
             }
-            
-            let value = StructWithNestedType(nested: [NestedStruct(), NestedStruct()])
+
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: [nested, nested])
             try value.insert(db)
             
             let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
@@ -863,10 +865,10 @@ extension PersistableRecordTests {
                 do {
                     let decoded = try JSONDecoder().decode([NestedStruct].self, from: data)
                     XCTAssertEqual(decoded.count, 2)
-                    XCTAssertEqual(NestedStruct().firstName, decoded.first!.firstName)
-                    XCTAssertEqual(NestedStruct().lastName, decoded.first!.lastName)
-                    XCTAssertEqual(NestedStruct().firstName, decoded.last!.firstName)
-                    XCTAssertEqual(NestedStruct().lastName, decoded.last!.lastName)
+                    XCTAssertEqual(nested.firstName, decoded.first!.firstName)
+                    XCTAssertEqual(nested.lastName, decoded.first!.lastName)
+                    XCTAssertEqual(nested.firstName, decoded.last!.firstName)
+                    XCTAssertEqual(nested.lastName, decoded.last!.lastName)
                 } catch {
                     XCTFail(error.localizedDescription)
                 }
@@ -877,9 +879,9 @@ extension PersistableRecordTests {
     }
     
     func testOptionalNestedArrayStructNil() throws {
-        struct NestedStruct : PersistableRecord, Encodable {
-            let firstName = "Bob"
-            let lastName = "Dylan"
+        struct NestedStruct : Encodable {
+            let firstName: String?
+            let lastName: String?
         }
         
         struct StructWithNestedType : PersistableRecord, Encodable {
@@ -904,9 +906,9 @@ extension PersistableRecordTests {
     }
     
     func testNonOptionalNestedStruct() throws {
-        struct NestedStruct : PersistableRecord, Codable {
-            let firstName = "Bob"
-            let lastName = "Dylan"
+        struct NestedStruct : Codable {
+            let firstName: String?
+            let lastName: String?
         }
         
         struct StructWithNestedType : PersistableRecord, Codable {
@@ -919,8 +921,9 @@ extension PersistableRecordTests {
             try db.create(table: "t1") { t in
                 t.column("nested", .text)
             }
-            
-            let value = StructWithNestedType(nested: NestedStruct())
+
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: nested)
             try value.insert(db)
             
             let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
@@ -932,8 +935,8 @@ extension PersistableRecordTests {
             if let data = string.data(using: .utf8) {
                 do {
                     let decoded = try JSONDecoder().decode(NestedStruct.self, from: data)
-                    XCTAssertEqual(NestedStruct().firstName, decoded.firstName)
-                    XCTAssertEqual(NestedStruct().lastName, decoded.lastName)
+                    XCTAssertEqual(nested.firstName, decoded.firstName)
+                    XCTAssertEqual(nested.lastName, decoded.lastName)
                 } catch {
                     XCTFail(error.localizedDescription)
                 }

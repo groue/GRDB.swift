@@ -46,15 +46,13 @@ private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEn
                  try value.encode(to: PersistableRecordEncoder(codingPath: [key], encode: encode))
             } catch {
                 // If value.encode does not work e.g. "unkeyed encoding is not supported" then see if model can be stored as JSON
-                let encodeError = error
                 do {
                     let json = try JSONEncoder().encode(value)
-                    guard let modelAsString = String(data: json, encoding: .utf8) else {
-                        throw JsonStringError.covertStringError("Error, could not make string out of JSON data")
-                    }
+                    //the Data from the encoder is guaranteed to convert to String
+                    let modelAsString = String(data: json, encoding: .utf8)!
                     return encode(modelAsString, key.stringValue)
                 } catch {
-                    fatalError("Encode error: \(encodeError), tried to encode to Json, got error: \(error)")
+                    throw(error)
                 }
             }
         }
@@ -185,7 +183,8 @@ private struct PersistableRecordEncoder : Encoder {
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> {
         // Asked for a keyed type: top level required
         guard codingPath.isEmpty else {
-            return KeyedEncodingContainer(ThrowingKeyedContainer(error: EncodingError.invalidValue(codingPath.isEmpty, EncodingError.Context(codingPath: codingPath, debugDescription: "unkeyed encoding is not supported"))))
+            let error = EncodingError.invalidValue(encode, EncodingError.Context(codingPath: codingPath, debugDescription: "unkeyed encoding is not supported"))
+            return KeyedEncodingContainer(ThrowingKeyedContainer(error: error))
         }
         return KeyedEncodingContainer(PersistableRecordKeyedEncodingContainer<Key>(encode: encode))
     }
@@ -196,7 +195,8 @@ private struct PersistableRecordEncoder : Encoder {
     /// - precondition: May not be called after a prior `self.container(keyedBy:)` call.
     /// - precondition: May not be called after a value has been encoded through a previous `self.singleValueContainer()` call.
     func unkeyedContainer() -> UnkeyedEncodingContainer {
-        return ThrowingUnkeyedContainer(error: EncodingError.invalidValue(encode, EncodingError.Context(codingPath: [], debugDescription: "unkeyed encoding is not supported")))
+        let error = EncodingError.invalidValue(encode, EncodingError.Context(codingPath: [], debugDescription: "unkeyed encoding is not supported"))
+        return ThrowingUnkeyedContainer(error: error)
     }
     
     /// Returns an encoding container appropriate for holding a single primitive value.

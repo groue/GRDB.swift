@@ -306,9 +306,9 @@ extension FetchableRecordDecodableTests {
 
 extension FetchableRecordDecodableTests {
     func testOptionalNestedStruct() throws {
-        struct NestedStruct : PersistableRecord, FetchableRecord, Codable {
-            let firstName = "Bob"
-            let lastName = "Dylan"
+        struct NestedStruct : Codable {
+            let firstName: String?
+            let lastName: String?
         }
         
         struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
@@ -321,8 +321,8 @@ extension FetchableRecordDecodableTests {
             try db.create(table: "t1") { t in
                 t.column("nested", .text)
             }
-            
-            let value = StructWithNestedType(nested: NestedStruct())
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: nested)
             try value.insert(db)
             
             let parentModel = try StructWithNestedType.fetchAll(db)
@@ -339,9 +339,9 @@ extension FetchableRecordDecodableTests {
     }
     
     func testOptionalNestedStructNil() throws {
-        struct NestedStruct : PersistableRecord, FetchableRecord, Codable {
-            let firstName = "Bob"
-            let lastName = "Dylan"
+        struct NestedStruct : Codable {
+            let firstName: String?
+            let lastName: String?
         }
         
         struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
@@ -365,9 +365,9 @@ extension FetchableRecordDecodableTests {
     }
     
     func testOptionalNestedArrayStruct() throws {
-        struct NestedStruct : PersistableRecord, FetchableRecord, Codable {
-            let firstName = "Bob"
-            let lastName = "Dylan"
+        struct NestedStruct : Codable {
+            let firstName: String?
+            let lastName: String?
         }
         
         struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
@@ -380,8 +380,9 @@ extension FetchableRecordDecodableTests {
             try db.create(table: "t1") { t in
                 t.column("nested", .text)
             }
-            
-            let value = StructWithNestedType(nested: [NestedStruct(), NestedStruct()])
+
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: [nested, nested])
             try value.insert(db)
             
             let parentModel = try StructWithNestedType.fetchAll(db)
@@ -401,9 +402,9 @@ extension FetchableRecordDecodableTests {
     }
     
     func testOptionalNestedArrayStructNil() throws {
-        struct NestedStruct : PersistableRecord, FetchableRecord, Codable {
-            let firstName = "Bob"
-            let lastName = "Dylan"
+        struct NestedStruct: Codable {
+            let firstName: String?
+            let lastName: String?
         }
         
         struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
@@ -427,9 +428,9 @@ extension FetchableRecordDecodableTests {
     }
     
     func testNonOptionalNestedStruct() throws {
-        struct NestedStruct : PersistableRecord, FetchableRecord, Codable {
-            let firstName = "Bob"
-            let lastName = "Dylan"
+        struct NestedStruct: Codable {
+            let firstName: String?
+            let lastName: String?
         }
         
         struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
@@ -442,8 +443,9 @@ extension FetchableRecordDecodableTests {
             try db.create(table: "t1") { t in
                 t.column("nested", .text)
             }
-            
-            let value = StructWithNestedType(nested: NestedStruct())
+
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: nested)
             try value.insert(db)
             
             let parentModel = try StructWithNestedType.fetchAll(db)
@@ -460,9 +462,9 @@ extension FetchableRecordDecodableTests {
     }
     
     func testNonOptionalNestedArrayStruct() throws {
-        struct NestedStruct : PersistableRecord, FetchableRecord, Codable {
-            let firstName = "Bob"
-            let lastName = "Dylan"
+        struct NestedStruct : Codable {
+            let firstName: String?
+            let lastName: String?
         }
         
         struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
@@ -475,8 +477,9 @@ extension FetchableRecordDecodableTests {
             try db.create(table: "t1") { t in
                 t.column("nested", .text)
             }
-            
-            let value = StructWithNestedType(nested: [NestedStruct(), NestedStruct()])
+
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: [nested, nested])
             try value.insert(db)
             
             let parentModel = try StructWithNestedType.fetchAll(db)
