@@ -83,14 +83,21 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
             } else {
                 do {
                     // This decoding will fail for types that need a keyed container,
-                    // because we're decoding a database value here (string, int, double, data, null, Codable)
-                    return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+                    // because we're decoding a database value here (string, int, double, data, null)
+                    // if we find a nested Decodable type then pass the string to JSON decoder
+                    let value = try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+                    if let _ = value as? Codable {
+                        // Support for nested ( Codable )
+                        return try JSONDecoder().decode(type.self, from: row.dataNoCopy(named: key.stringValue)!)
+                    } else {
+                        return value
+                    }
                 } catch {
                     switch error as! DecodingError {
                     case .typeMismatch(_, let context):
-                        if context.debugDescription == "unkeyed decoding is not supported", let data = row.dataNoCopy(named: key.stringValue) {
-                            // Support for keyed containers ( [Codable] )
-                            return try JSONDecoder().decode(type.self, from: data)
+                        if context.debugDescription == "unkeyed decoding is not supported" {
+                            // Support for nested keyed containers ( [Codable] )
+                            return try JSONDecoder().decode(type.self, from: row.dataNoCopy(named: key.stringValue)!)
                         } else {
                             throw(error)
                         }
@@ -136,14 +143,21 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
             } else {
                 do {
                     // This decoding will fail for types that need a keyed container,
-                    // because we're decoding a database value here (string, int, double, data, null, Codable)
-                    return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+                    // because we're decoding a database value here (string, int, double, data, null)
+                    // if we find a nested Decodable type then pass the string to JSON decoder
+                    let value = try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+                    if let _ = value as? Codable {
+                        // Support for nested ( Codable )
+                        return try JSONDecoder().decode(type.self, from: row.dataNoCopy(named: key.stringValue)!)
+                    } else {
+                        return value
+                    }
                 } catch {
                     switch error as! DecodingError {
                     case .typeMismatch(_, let context):
-                        if context.debugDescription == "unkeyed decoding is not supported", let data = row.dataNoCopy(named: key.stringValue) {
-                            // Support for keyed containers ( [Codable] )
-                            return try JSONDecoder().decode(type.self, from: data)
+                        if context.debugDescription == "unkeyed decoding is not supported" {
+                            // Support for nested keyed containers ( [Codable] )
+                            return try JSONDecoder().decode(type.self, from: row.dataNoCopy(named: key.stringValue)!)
                         } else {
                             throw(error)
                         }
