@@ -504,27 +504,27 @@ struct AdaptedRowImpl : RowImpl {
     func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value
     {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return try base.impl.fastDecode(Value.self, atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
+        return base.impl.fastDecode(Value.self, atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
     }
     
     func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value?
     {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return try base.impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
+        return base.impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
     }
     
     func dataNoCopy(
         atUncheckedIndex index:Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Data?
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Data?
     {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return try base.impl.dataNoCopy(atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
+        return base.impl.dataNoCopy(atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {

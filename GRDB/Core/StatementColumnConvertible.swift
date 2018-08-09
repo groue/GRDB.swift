@@ -81,7 +81,10 @@ public final class ColumnCursor<Value: DatabaseValueConvertible & StatementColum
             done = true
             return nil
         case SQLITE_ROW:
-            return require { try Value.decode(from: sqliteStatement, index: columnIndex, debugInfo: ValueConversionDebuggingInfo(statement: statement, columnIndex: Int(columnIndex))) }
+            return Value.decode(
+                from: sqliteStatement,
+                index: columnIndex,
+                debugInfo: ValueConversionDebuggingInfo(statement: statement, columnIndex: Int(columnIndex)))
         case let code:
             statement.database.selectStatementDidFail(statement)
             throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)

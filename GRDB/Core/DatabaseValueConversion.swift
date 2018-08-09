@@ -6,113 +6,115 @@
 
 // All primitive value conversion methods.
 
-/// An alternative to try!, preferred for conversion methods.
-@inline(__always)
-func require<T>(file: StaticString = #file, line: UInt = #line, block: () throws -> T) -> T {
-    do {
-        return try block()
-    } catch {
-        fatalError(String(describing: error), file: file, line: line)
-    }
-}
-
 /// A type that helps the user understanding value conversion errors
 struct ValueConversionDebuggingInfo {
-    private var _statement: SelectStatement?
-    private var _row: Row?
-    private var _columnIndex: Int?
-    private var _columnName: String?
-    
+    enum Source {
+        case statement(SelectStatement)
+        case sql(String, StatementArguments)
+        case row(Row)
+    }
+    enum Column {
+        case columnIndex(Int)
+        case columnName(String)
+    }
+    private var source: Source?
+    private var column: Column?
+
     init(statement: SelectStatement? = nil, row: Row? = nil, columnIndex: Int? = nil, columnName: String? = nil) {
-        _statement = statement
-        _row = row
-        _columnIndex = columnIndex
-        _columnName = columnName
+        fatalError("not implemented")
     }
     
-    var statement: SelectStatement? {
-        return _statement ?? _row?.statement
+    var sql: String? {
+        guard let source = source else { return nil }
+        switch source {
+        case .statement(let statement): return statement.sql
+        case .row(let row): return row.statement?.sql
+        case .sql(let sql, _): return sql
+        }
+    }
+    
+    var arguments: StatementArguments? {
+        guard let source = source else { return nil }
+        switch source {
+        case .statement(let statement): return statement.arguments
+        case .row(let row): return row.statement?.arguments
+        case .sql(_, let arguments): return arguments
+        }
     }
     
     var row: Row? {
-        return _row ?? _statement.map { Row(statement: $0) }
+        guard let source = source else { return nil }
+        switch source {
+        case .statement(let statement): return Row(statement: statement)
+        case .row(let row): return row
+        case .sql: return nil
+        }
     }
     
     var columnIndex: Int? {
-        if let columnIndex = _columnIndex {
-            return columnIndex
+        guard let column = column else { return nil }
+        switch column {
+        case .columnIndex(let index): return index
+        case .columnName(let name): return row?.index(ofColumn: name)
         }
-        if let columnName = _columnName, let row = row {
-            return row.index(ofColumn: columnName)
-        }
-        return nil
     }
     
     var columnName: String? {
-        if let columnName = _columnName {
-            return columnName
-        }
-        if let columnIndex = _columnIndex, let row = row {
-            let rowIndex = row.index(row.startIndex, offsetBy: columnIndex)
+        guard let column = column else { return nil }
+        switch column {
+        case .columnIndex(let index):
+            guard let row = row else { return nil }
+            let rowIndex = row.index(row.startIndex, offsetBy: index)
             return row[rowIndex].0
+        case .columnName(let name): return name
         }
-        return nil
     }
 }
 
-/// A conversion error
-struct ValueConversionError<T>: Error, CustomStringConvertible {
-    var dbValue: DatabaseValue
-    var debugInfo: ValueConversionDebuggingInfo
-    
-    var description: String {
-        var error = "could not convert database value \(dbValue) to \(T.self)"
-        var extras: [String] = []
-        if let columnName = debugInfo.columnName {
-            extras.append("column: `\(columnName)`")
-        }
-        if let columnIndex = debugInfo.columnIndex {
-            extras.append("column index: \(columnIndex)")
-        }
-        if let row = debugInfo.row {
-            extras.append("row: \(row)")
-        }
-        if let statement = debugInfo.statement {
-            extras.append("statement: `\(statement.sql)`")
-            if statement.arguments.isEmpty == false {
-                extras.append("arguments: \(statement.arguments)")
-            }
-        }
-        if extras.isEmpty == false {
-            error += " (" + extras.joined(separator: ", ") + ")"
-        }
-        return error
+/// The canonical conversion fatal error
+func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue, debugInfo: ValueConversionDebuggingInfo) -> Never {
+    var message = "could not convert database value \(dbValue) to \(T.self)"
+    var extras: [String] = []
+    if let columnName = debugInfo.columnName {
+        extras.append("column: `\(columnName)`")
     }
+    if let columnIndex = debugInfo.columnIndex {
+        extras.append("column index: \(columnIndex)")
+    }
+    if let row = debugInfo.row {
+        extras.append("row: \(row)")
+    }
+    if let sql = debugInfo.sql {
+        extras.append("statement: `\(sql)`")
+        if let arguments = debugInfo.arguments, arguments.isEmpty == false {
+            extras.append("arguments: \(arguments)")
+        }
+    }
+    if extras.isEmpty == false {
+        message += " (" + extras.joined(separator: ", ") + ")"
+    }
+    fatalError(message)
 }
 
 extension DatabaseValueConvertible {
     /// Performs lossless conversion from a database value.
-    ///
-    /// - throws: ValueConversionError<Self>
-    static func decode(from dbValue: DatabaseValue, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Self {
+    static func decode(from dbValue: DatabaseValue, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Self {
         if let value = fromDatabaseValue(dbValue) {
             return value
         } else {
-            throw ValueConversionError<Self>(dbValue: dbValue, debugInfo: debugInfo())
+            fatalConversionError(to: Self.self, from: dbValue, debugInfo: debugInfo())
         }
     }
     
     /// Performs lossless conversion from a database value.
-    ///
-    /// - throws: ValueConversionError<Self>
-    static func decodeIfPresent(from dbValue: DatabaseValue, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Self? {
+    static func decodeIfPresent(from dbValue: DatabaseValue, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Self? {
         // Use fromDatabaseValue before checking for null: this allows DatabaseValue to convert NULL to .null.
         if let value = fromDatabaseValue(dbValue) {
             return value
         } else if dbValue.isNull {
             return nil
         } else {
-            throw ValueConversionError<Self>(dbValue: dbValue, debugInfo: debugInfo())
+            fatalConversionError(to: Self.self, from: dbValue, debugInfo: debugInfo())
         }
     }
 }
@@ -120,12 +122,10 @@ extension DatabaseValueConvertible {
 extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     /// Performs lossless conversion from a statement value.
-    ///
-    /// - throws: ValueConversionError<Self>
     @inline(__always)
-    static func decode(from sqliteStatement: SQLiteStatement, index: Int32, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Self {
+    static func decode(from sqliteStatement: SQLiteStatement, index: Int32, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Self {
         if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
-            throw ValueConversionError<Self>(dbValue: .null, debugInfo: debugInfo())
+            fatalConversionError(to: Self.self, from: .null, debugInfo: debugInfo())
         }
         return self.init(sqliteStatement: sqliteStatement, index: index)
     }
@@ -146,41 +146,41 @@ extension Row {
     func decodeIfPresent<Value: DatabaseValueConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value?
     {
-        return try Value.decodeIfPresent(from: impl.databaseValue(atUncheckedIndex: index), debugInfo: debugInfo)
+        return Value.decodeIfPresent(from: impl.databaseValue(atUncheckedIndex: index), debugInfo: debugInfo)
     }
     
     @inline(__always)
     func decode<Value: DatabaseValueConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value
     {
-        return try Value.decode(from: impl.databaseValue(atUncheckedIndex: index), debugInfo: debugInfo)
+        return Value.decode(from: impl.databaseValue(atUncheckedIndex: index), debugInfo: debugInfo)
     }
     
     @inline(__always)
     func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value?
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value?
     {
         if let sqliteStatement = sqliteStatement {
             return Value.decodeIfPresent(from: sqliteStatement, index: Int32(index))
         }
-        return try impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
+        return impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
     }
     
     @inline(__always)
     func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) throws -> Value
+        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value
     {
         if let sqliteStatement = sqliteStatement {
-            return try Value.decode(from: sqliteStatement, index: Int32(index), debugInfo: debugInfo)
+            return Value.decode(from: sqliteStatement, index: Int32(index), debugInfo: debugInfo)
         }
-        return try impl.fastDecode(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
+        return impl.fastDecode(Value.self, atUncheckedIndex: index, debugInfo: debugInfo)
     }
 }
