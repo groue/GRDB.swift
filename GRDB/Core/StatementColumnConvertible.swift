@@ -84,7 +84,7 @@ public final class ColumnCursor<Value: DatabaseValueConvertible & StatementColum
             return Value.decode(
                 from: sqliteStatement,
                 index: columnIndex,
-                debugInfo: ValueConversionDebuggingInfo(statement: statement, columnIndex: Int(columnIndex)))
+                debugInfo: ValueConversionDebuggingInfo(.statement(statement), .columnIndex(Int(columnIndex))))
         case let code:
             statement.database.selectStatementDidFail(statement)
             throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)

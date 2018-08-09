@@ -356,7 +356,7 @@ public final class SelectStatement : Statement {
     /// Creates a cursor over the statement. This cursor does not produce any
     /// value, and is only intended to give access to the sqlite3_step()
     /// low-level function.
-    func cursor(arguments: StatementArguments? = nil) -> StatementCursor {
+    func makeCursor(arguments: StatementArguments? = nil) -> StatementCursor {
         return StatementCursor(statement: self, arguments: arguments)
     }
     
@@ -376,7 +376,7 @@ extension SelectStatement: AuthorizedStatement { }
 ///
 ///     try dbQueue.read { db in
 ///         let statement = db.makeSelectStatement("SELECT * FROM player")
-///         let cursor: StatementCursor = statement.cursor()
+///         let cursor: StatementCursor = statement.makeCursor()
 ///     }
 public final class StatementCursor: Cursor {
     public let statement: SelectStatement

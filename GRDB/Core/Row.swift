@@ -198,7 +198,7 @@ extension Row {
         return decodeIfPresent(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index))
+            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnIndex(index)))
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -218,7 +218,7 @@ extension Row {
         return fastDecodeIfPresent(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index))
+            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnIndex(index)))
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -233,7 +233,7 @@ extension Row {
         return decode(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index))
+            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnIndex(index)))
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -252,7 +252,7 @@ extension Row {
         return fastDecode(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index))
+            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnIndex(index)))
     }
     
     /// Returns Int64, Double, String, Data or nil, depending on the value
@@ -291,7 +291,7 @@ extension Row {
         return decodeIfPresent(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
+            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnName(columnName)))
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -313,7 +313,7 @@ extension Row {
         return fastDecodeIfPresent(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
+            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnName(columnName)))
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -333,7 +333,7 @@ extension Row {
         return decode(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
+            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnName(columnName)))
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -357,7 +357,7 @@ extension Row {
         return fastDecode(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
+            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnName(columnName)))
     }
     
     /// Returns Int64, Double, String, NSData or nil, depending on the value
@@ -443,7 +443,7 @@ extension Row {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range")
         return impl.dataNoCopy(
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index))
+            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnIndex(index)))
     }
     
     /// Returns the optional Data at given column.
@@ -463,7 +463,7 @@ extension Row {
         }
         return impl.dataNoCopy(
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(row: self, columnIndex: index, columnName: columnName))
+            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnName(columnName)))
     }
     
     /// Returns the optional `NSData` at given column.

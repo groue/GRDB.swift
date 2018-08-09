@@ -19,43 +19,55 @@ struct ValueConversionDebuggingInfo {
     }
     private var source: Source?
     private var column: Column?
-
-    init(statement: SelectStatement? = nil, row: Row? = nil, columnIndex: Int? = nil, columnName: String? = nil) {
-        fatalError("not implemented")
+    
+    init(_ source: Source? = nil, _ column: Column? = nil) {
+        self.source = source
+        self.column = column
     }
     
     var sql: String? {
         guard let source = source else { return nil }
         switch source {
-        case .statement(let statement): return statement.sql
-        case .row(let row): return row.statement?.sql
-        case .sql(let sql, _): return sql
+        case .statement(let statement):
+            return statement.sql
+        case .row(let row):
+            return row.statement?.sql
+        case .sql(let sql, _):
+            return sql
         }
     }
     
     var arguments: StatementArguments? {
         guard let source = source else { return nil }
         switch source {
-        case .statement(let statement): return statement.arguments
-        case .row(let row): return row.statement?.arguments
-        case .sql(_, let arguments): return arguments
+        case .statement(let statement):
+            return statement.arguments
+        case .row(let row):
+            return row.statement?.arguments
+        case .sql(_, let arguments):
+            return arguments
         }
     }
     
     var row: Row? {
         guard let source = source else { return nil }
         switch source {
-        case .statement(let statement): return Row(statement: statement)
-        case .row(let row): return row
-        case .sql: return nil
+        case .statement(let statement):
+            return Row(statement: statement)
+        case .row(let row):
+            return row
+        case .sql:
+            return nil
         }
     }
     
     var columnIndex: Int? {
         guard let column = column else { return nil }
         switch column {
-        case .columnIndex(let index): return index
-        case .columnName(let name): return row?.index(ofColumn: name)
+        case .columnIndex(let index):
+            return index
+        case .columnName(let name):
+            return row?.index(ofColumn: name)
         }
     }
     
@@ -66,13 +78,14 @@ struct ValueConversionDebuggingInfo {
             guard let row = row else { return nil }
             let rowIndex = row.index(row.startIndex, offsetBy: index)
             return row[rowIndex].0
-        case .columnName(let name): return name
+        case .columnName(let name):
+            return name
         }
     }
 }
 
-/// The canonical conversion fatal error
-func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue, debugInfo: ValueConversionDebuggingInfo) -> Never {
+/// The canonical conversion error message
+func conversionErrorMessage<T>(to: T.Type, from dbValue: DatabaseValue, debugInfo: ValueConversionDebuggingInfo) -> String {
     var message = "could not convert database value \(dbValue) to \(T.self)"
     var extras: [String] = []
     if let columnName = debugInfo.columnName {
@@ -93,7 +106,12 @@ func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue, debugInfo:
     if extras.isEmpty == false {
         message += " (" + extras.joined(separator: ", ") + ")"
     }
-    fatalError(message)
+    return message
+}
+
+/// The canonical conversion fatal error
+func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue, debugInfo: ValueConversionDebuggingInfo, file: StaticString = #file, line: UInt = #line) -> Never {
+    fatalError(conversionErrorMessage(to: T.self, from: dbValue, debugInfo: debugInfo), file: file, line: line)
 }
 
 extension DatabaseValueConvertible {
