@@ -15,20 +15,117 @@ private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
     /// - returns: A value of the requested type.
     /// - throws: `DecodingError.typeMismatch` if the encountered encoded value cannot be converted to the requested type.
     /// - throws: `DecodingError.valueNotFound` if the encountered encoded value is null.
-    func decode(_ type: Bool.Type) throws -> Bool { return Bool.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: Int.Type) throws -> Int { return Int.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: Int8.Type) throws -> Int8 { return Int8.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: Int16.Type) throws -> Int16 { return Int16.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: Int32.Type) throws -> Int32 { return Int32.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: Int64.Type) throws -> Int64 { return Int64.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: UInt.Type) throws -> UInt { return UInt.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: UInt8.Type) throws -> UInt8 { return UInt8.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: UInt16.Type) throws -> UInt16 { return UInt16.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: UInt32.Type) throws -> UInt32 { return UInt32.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: UInt64.Type) throws -> UInt64 { return UInt64.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: Float.Type) throws -> Float { return Float.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: Double.Type) throws -> Double { return Double.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
-    func decode(_ type: String.Type) throws -> String { return String.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) }
+    func decode(_ type: Bool.Type) throws -> Bool {
+        if let result = Bool.fromDatabaseValue(dbValue) {
+            return result
+        } else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+        }
+    }
+    
+    func decode(_ type: Int.Type) throws -> Int {
+        if let result = Int.fromDatabaseValue(dbValue) {
+            return result
+        } else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+        }
+    }
+    
+    func decode(_ type: Int8.Type) throws -> Int8 {
+        if let result = Int8.fromDatabaseValue(dbValue) {
+            return result
+        } else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+        }
+    }
+    
+    func decode(_ type: Int16.Type) throws -> Int16 {
+        if let result = Int16.fromDatabaseValue(dbValue) {
+            return result
+        } else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+        }
+    }
+    
+    func decode(_ type: Int32.Type) throws -> Int32 {
+        if let result = Int32.fromDatabaseValue(dbValue) {
+            return result
+        } else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+        }
+    }
+    
+    func decode(_ type: Int64.Type) throws -> Int64 {
+        if let result = Int64.fromDatabaseValue(dbValue) {
+            return result
+        } else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+        }
+    }
+    
+    func decode(_ type: UInt.Type) throws -> UInt {
+        if let result = UInt.fromDatabaseValue(dbValue) {
+            return result
+        } else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+        }
+    }
+    
+    func decode(_ type: UInt8.Type) throws -> UInt8 {
+        if let result = UInt8.fromDatabaseValue(dbValue) {
+            return result
+        } else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+        }
+    }
+    
+    func decode(_ type: UInt16.Type) throws -> UInt16 {
+        if let result = UInt16.fromDatabaseValue(dbValue) {
+            return result
+        } else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+        }
+    }
+    
+    func decode(_ type: UInt32.Type) throws -> UInt32 {
+        if let result = UInt32.fromDatabaseValue(dbValue) {
+            return result
+        } else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+        }
+    }
+    
+    func decode(_ type: UInt64.Type) throws -> UInt64 {
+        if let result = UInt64.fromDatabaseValue(dbValue) {
+            return result
+        } else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+        }
+    }
+    
+    func decode(_ type: Float.Type) throws -> Float {
+        if let result = Float.fromDatabaseValue(dbValue) {
+            return result
+        } else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+        }
+    }
+    
+    func decode(_ type: Double.Type) throws -> Double {
+        if let result = Double.fromDatabaseValue(dbValue) {
+            return result
+        } else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+        }
+    }
+    
+    func decode(_ type: String.Type) throws -> String {
+        if let result = String.fromDatabaseValue(dbValue) {
+            return result
+        } else {
+            throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+        }
+    }
     
     /// Decodes a single value of the given type.
     ///

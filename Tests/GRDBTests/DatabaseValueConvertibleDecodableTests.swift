@@ -8,7 +8,7 @@ import XCTest
 #endif
 
 class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
-    func testDatabaseValueConvertibleImplementationDerivedFromDecodable() {
+    func testDatabaseValueConvertibleImplementationDerivedFromDecodable() throws {
         struct Value : Decodable, DatabaseValueConvertible {
             let string: String
             
@@ -24,8 +24,24 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
             // static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? { ... }
         }
         
-        let value = Value.fromDatabaseValue("foo".databaseValue)!
-        XCTAssertEqual(value.string, "foo")
+        do {
+            // Success from DatabaseValue
+            let value = Value.fromDatabaseValue("foo".databaseValue)!
+            XCTAssertEqual(value.string, "foo")
+        }
+        do {
+            // Success from database
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let value = try Value.fetchOne(db, "SELECT 'foo'")!
+                XCTAssertEqual(value.string, "foo")
+            }
+        }
+        do {
+            // Failure from DatabaseValue
+            let value = Value.fromDatabaseValue(1.databaseValue)
+            XCTAssertNil(value)
+        }
     }
     
     func testCustomDatabaseValueConvertible() throws {
