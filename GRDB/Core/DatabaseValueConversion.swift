@@ -85,24 +85,38 @@ struct ValueConversionDebuggingInfo {
 }
 
 /// The canonical conversion error message
-func conversionErrorMessage<T>(to: T.Type, from dbValue: DatabaseValue, debugInfo: ValueConversionDebuggingInfo) -> String {
-    var message = "could not convert database value \(dbValue) to \(T.self)"
+///
+/// - parameter dbValue: nil means "missing column"
+func conversionErrorMessage<T>(to: T.Type, from dbValue: DatabaseValue?, debugInfo: ValueConversionDebuggingInfo) -> String {
+    var message: String
     var extras: [String] = []
-    if let columnName = debugInfo.columnName {
-        extras.append("column: `\(columnName)`")
+    
+    if let dbValue = dbValue {
+        message = "could not convert database value \(dbValue) to \(T.self)"
+        if let columnName = debugInfo.columnName {
+            extras.append("column: `\(columnName)`")
+        }
+        if let columnIndex = debugInfo.columnIndex {
+            extras.append("column index: \(columnIndex)")
+        }
+    } else {
+        message = "missing column"
+        if let columnName = debugInfo.columnName {
+            message += " \(columnName)"
+        }
     }
-    if let columnIndex = debugInfo.columnIndex {
-        extras.append("column index: \(columnIndex)")
-    }
+    
     if let row = debugInfo.row {
         extras.append("row: \(row)")
     }
+    
     if let sql = debugInfo.sql {
         extras.append("statement: `\(sql)`")
         if let arguments = debugInfo.arguments, arguments.isEmpty == false {
             extras.append("arguments: \(arguments)")
         }
     }
+    
     if extras.isEmpty == false {
         message += " (" + extras.joined(separator: ", ") + ")"
     }
@@ -110,7 +124,9 @@ func conversionErrorMessage<T>(to: T.Type, from dbValue: DatabaseValue, debugInf
 }
 
 /// The canonical conversion fatal error
-func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue, debugInfo: ValueConversionDebuggingInfo, file: StaticString = #file, line: UInt = #line) -> Never {
+///
+/// - parameter dbValue: nil means "missing column"
+func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue?, debugInfo: ValueConversionDebuggingInfo, file: StaticString = #file, line: UInt = #line) -> Never {
     fatalError(conversionErrorMessage(to: T.self, from: dbValue, debugInfo: debugInfo), file: file, line: line)
 }
 

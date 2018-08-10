@@ -351,8 +351,11 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value {
         guard let index = index(ofColumn: columnName) else {
-            // Programmer error
-            fatalError("no such column: \(columnName)")
+            // No such column
+            fatalConversionError(
+                to: Value.self,
+                from: nil,
+                debugInfo: ValueConversionDebuggingInfo(.row(self), .columnName(columnName)))
         }
         return fastDecode(
             Value.self,
