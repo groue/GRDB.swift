@@ -138,7 +138,11 @@ private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
             // Prefer DatabaseValueConvertible decoding over Decodable.
             // This allows custom database decoding, such as decoding Date from
             // String, for example.
-            return type.decode(from: dbValue, debugInfo: ValueConversionDebuggingInfo()) as! T
+            if let result = type.fromDatabaseValue(dbValue) {
+                return result as! T
+            } else {
+                throw DecodingError.dataCorruptedError(in: self, debugDescription: "value mismatch")
+            }
         } else {
             return try T(from: DatabaseValueDecoder(dbValue: dbValue, codingPath: codingPath))
         }

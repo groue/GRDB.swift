@@ -24,10 +24,28 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
             // static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? { ... }
         }
         
+        struct ValueWrapper : Decodable, DatabaseValueConvertible {
+            let value: Value
+            
+            init(from decoder: Decoder) throws {
+                value = try decoder.singleValueContainer().decode(Value.self)
+            }
+            
+            var databaseValue: DatabaseValue {
+                preconditionFailure("unused")
+            }
+            
+            // Infered, tested
+            // static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? { ... }
+        }
+        
         do {
             // Success from DatabaseValue
             let value = Value.fromDatabaseValue("foo".databaseValue)!
             XCTAssertEqual(value.string, "foo")
+            
+            let wrapper = ValueWrapper.fromDatabaseValue("foo".databaseValue)!
+            XCTAssertEqual(wrapper.value.string, "foo")
         }
         do {
             // Success from database
@@ -35,12 +53,18 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
             try dbQueue.inDatabase { db in
                 let value = try Value.fetchOne(db, "SELECT 'foo'")!
                 XCTAssertEqual(value.string, "foo")
+                
+                let wrapper = try ValueWrapper.fetchOne(db, "SELECT 'foo'")!
+                XCTAssertEqual(wrapper.value.string, "foo")
             }
         }
         do {
             // Failure from DatabaseValue
             let value = Value.fromDatabaseValue(1.databaseValue)
             XCTAssertNil(value)
+            
+            let wrapper = ValueWrapper.fromDatabaseValue(1.databaseValue)
+            XCTAssertNil(wrapper)
         }
     }
     
