@@ -54,7 +54,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                     to: String.self,
                     from: row["name"],
                     debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("name"))),
-                "missing column name (row: [unused:\"ignored\"])")
+                "could not read String from missing column `name` (row: [unused:\"ignored\"])")
             
             // _ = try Record.fetchOne(statement)
             try Row.fetchCursor(statement).forEach { row in
@@ -63,7 +63,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                         to: String.self,
                         from: row["name"],
                         debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("name"))),
-                    "missing column name (row: [unused:\"ignored\"], statement: `SELECT ? AS unused`, arguments: [\"ignored\"])")
+                    "could not read String from missing column `name` (row: [unused:\"ignored\"], statement: `SELECT ? AS unused`, arguments: [\"ignored\"])")
             }
         }
     }
@@ -74,16 +74,16 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         }
         
         struct Record: FetchableRecord {
-            var team: Value
+            var value: Value
             
             init(row: Row) {
-                team = row["team"]
+                value = row["value"]
             }
         }
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT NULL AS name, ? AS team")
+            let statement = try db.makeSelectStatement("SELECT 1, ? AS value")
             statement.arguments = ["invalid"]
             let row = try Row.fetchOne(statement)!
             
@@ -91,18 +91,41 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             XCTAssertEqual(
                 conversionErrorMessage(
                     to: Value.self,
-                    from: row["team"],
-                    debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("team"))),
-                "could not convert database value \"invalid\" to \(Value.self) (column: `team`, column index: 1, row: [name:NULL team:\"invalid\"])")
+                    from: row["value"],
+                    debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("value"))),
+                "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [1:1 value:\"invalid\"])")
             
             // _ = try Record.fetchOne(statement)
             try Row.fetchCursor(statement).forEach { row in
                 XCTAssertEqual(
                     conversionErrorMessage(
                         to: Value.self,
-                        from: row["team"],
-                        debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("team"))),
-                    "could not convert database value \"invalid\" to \(Value.self) (column: `team`, column index: 1, row: [name:NULL team:\"invalid\"], statement: `SELECT NULL AS name, ? AS team`, arguments: [\"invalid\"])")
+                        from: row["value"],
+                        debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("value"))),
+                    "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [1:1 value:\"invalid\"], statement: `SELECT 1, ? AS value`, arguments: [\"invalid\"])")
+            }
+        }
+        try dbQueue.read { db in
+            let statement = try db.makeSelectStatement("SELECT ? AS unused")
+            statement.arguments = ["ignored"]
+            let row = try Row.fetchOne(statement)!
+            
+            // _ = Record(row: row)
+            XCTAssertEqual(
+                conversionErrorMessage(
+                    to: Value.self,
+                    from: row["value"],
+                    debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("value"))),
+                "could not read \(Value.self) from missing column `value` (row: [unused:\"ignored\"])")
+            
+            // _ = try Record.fetchOne(statement)
+            try Row.fetchCursor(statement).forEach { row in
+                XCTAssertEqual(
+                    conversionErrorMessage(
+                        to: Value.self,
+                        from: row["value"],
+                        debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("value"))),
+                    "could not read \(Value.self) from missing column `value` (row: [unused:\"ignored\"], statement: `SELECT ? AS unused`, arguments: [\"ignored\"])")
             }
         }
     }
@@ -137,6 +160,29 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                     "could not convert database value NULL to String (column: `name`, column index: 0, row: [name:NULL team:\"invalid\"], statement: `SELECT NULL AS name, ? AS team`, arguments: [\"invalid\"])")
             }
         }
+        try dbQueue.read { db in
+            let statement = try db.makeSelectStatement("SELECT ? AS unused")
+            statement.arguments = ["ignored"]
+            let row = try Row.fetchOne(statement)!
+
+            // _ = Record(row: row)
+            XCTAssertEqual(
+                conversionErrorMessage(
+                    to: String.self,
+                    from: row["name"],
+                    debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("name"))),
+                "could not read String from missing column `name` (row: [unused:\"ignored\"])")
+            
+            // _ = try Record.fetchOne(statement)
+            try Row.fetchCursor(statement).forEach { row in
+                XCTAssertEqual(
+                    conversionErrorMessage(
+                        to: String.self,
+                        from: row["name"],
+                        debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("name"))),
+                    "could not read String from missing column `name` (row: [unused:\"ignored\"], statement: `SELECT ? AS unused`, arguments: [\"ignored\"])")
+            }
+        }
     }
     
     func testDecodableFetchableRecord2() throws {
@@ -145,12 +191,12 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         }
         
         struct Record: Decodable, FetchableRecord {
-            var team: Value
+            var value: Value
         }
 
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT NULL AS name, ? AS team")
+            let statement = try db.makeSelectStatement("SELECT NULL AS name, ? AS value")
             statement.arguments = ["invalid"]
             let row = try Row.fetchOne(statement)!
             
@@ -158,18 +204,41 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             XCTAssertEqual(
                 conversionErrorMessage(
                     to: Value.self,
-                    from: row["team"],
-                    debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("team"))),
-                "could not convert database value \"invalid\" to \(Value.self) (column: `team`, column index: 1, row: [name:NULL team:\"invalid\"])")
+                    from: row["value"],
+                    debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("value"))),
+                "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [name:NULL value:\"invalid\"])")
             
             // _ = try Record.fetchOne(statement)
             try Row.fetchCursor(statement).forEach { row in
                 XCTAssertEqual(
                     conversionErrorMessage(
                         to: Value.self,
-                        from: row["team"],
-                        debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("team"))),
-                    "could not convert database value \"invalid\" to \(Value.self) (column: `team`, column index: 1, row: [name:NULL team:\"invalid\"], statement: `SELECT NULL AS name, ? AS team`, arguments: [\"invalid\"])")
+                        from: row["value"],
+                        debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("value"))),
+                    "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [name:NULL value:\"invalid\"], statement: `SELECT NULL AS name, ? AS value`, arguments: [\"invalid\"])")
+            }
+        }
+        try dbQueue.read { db in
+            let statement = try db.makeSelectStatement("SELECT ? AS unused")
+            statement.arguments = ["ignored"]
+            let row = try Row.fetchOne(statement)!
+
+            // _ = Record(row: row)
+            XCTAssertEqual(
+                conversionErrorMessage(
+                    to: Value.self,
+                    from: row["value"],
+                    debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("value"))),
+                "could not read \(Value.self) from missing column `value` (row: [unused:\"ignored\"])")
+            
+            // _ = try Record.fetchOne(statement)
+            try Row.fetchCursor(statement).forEach { row in
+                XCTAssertEqual(
+                    conversionErrorMessage(
+                        to: Value.self,
+                        from: row["value"],
+                        debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("value"))),
+                    "could not read \(Value.self) from missing column `value` (row: [unused:\"ignored\"], statement: `SELECT ? AS unused`, arguments: [\"ignored\"])")
             }
         }
     }
@@ -180,12 +249,12 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         }
         
         struct Record: Decodable, FetchableRecord {
-            var team: Value
+            var value: Value
         }
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT NULL AS name, ? AS team")
+            let statement = try db.makeSelectStatement("SELECT NULL AS name, ? AS value")
             statement.arguments = ["invalid"]
             let row = try Row.fetchOne(statement)!
             
@@ -193,18 +262,41 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             XCTAssertEqual(
                 conversionErrorMessage(
                     to: Value.self,
-                    from: row["team"],
-                    debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("team"))),
-                "could not convert database value \"invalid\" to \(Value.self) (column: `team`, column index: 1, row: [name:NULL team:\"invalid\"])")
+                    from: row["value"],
+                    debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("value"))),
+                "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [name:NULL value:\"invalid\"])")
             
             // _ = try Record.fetchOne(statement)
             try Row.fetchCursor(statement).forEach { row in
                 XCTAssertEqual(
                     conversionErrorMessage(
                         to: Value.self,
-                        from: row["team"],
-                        debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("team"))),
-                    "could not convert database value \"invalid\" to \(Value.self) (column: `team`, column index: 1, row: [name:NULL team:\"invalid\"], statement: `SELECT NULL AS name, ? AS team`, arguments: [\"invalid\"])")
+                        from: row["value"],
+                        debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("value"))),
+                    "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [name:NULL value:\"invalid\"], statement: `SELECT NULL AS name, ? AS value`, arguments: [\"invalid\"])")
+            }
+        }
+        try dbQueue.read { db in
+            let statement = try db.makeSelectStatement("SELECT ? AS unused")
+            statement.arguments = ["ignored"]
+            let row = try Row.fetchOne(statement)!
+
+            // _ = Record(row: row)
+            XCTAssertEqual(
+                conversionErrorMessage(
+                    to: Value.self,
+                    from: row["value"],
+                    debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("value"))),
+                "could not read \(Value.self) from missing column `value` (row: [unused:\"ignored\"])")
+            
+            // _ = try Record.fetchOne(statement)
+            try Row.fetchCursor(statement).forEach { row in
+                XCTAssertEqual(
+                    conversionErrorMessage(
+                        to: Value.self,
+                        from: row["value"],
+                        debugInfo: ValueConversionDebuggingInfo(.row(row), .columnName("value"))),
+                    "could not read \(Value.self) from missing column `value` (row: [unused:\"ignored\"], statement: `SELECT ? AS unused`, arguments: [\"ignored\"])")
             }
         }
     }

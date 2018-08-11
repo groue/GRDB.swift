@@ -100,9 +100,9 @@ func conversionErrorMessage<T>(to: T.Type, from dbValue: DatabaseValue?, debugIn
             extras.append("column index: \(columnIndex)")
         }
     } else {
-        message = "missing column"
+        message = "could not read \(T.self) from missing column"
         if let columnName = debugInfo.columnName {
-            message += " \(columnName)"
+            message += " `\(columnName)`"
         }
     }
     
