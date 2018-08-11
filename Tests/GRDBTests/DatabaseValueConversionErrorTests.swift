@@ -20,6 +20,8 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         }
         
         let dbQueue = try makeDatabaseQueue()
+        
+        // conversion error
         try dbQueue.read { db in
             let statement = try db.makeSelectStatement("SELECT ? AS name")
             statement.arguments = [nil]
@@ -43,6 +45,8 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                     "could not convert database value NULL to String (column: `name`, column index: 0, row: [name:NULL], statement: `SELECT ? AS name`, arguments: [NULL])")
             }
         }
+        
+        // missing column
         try dbQueue.read { db in
             let statement = try db.makeSelectStatement("SELECT ? AS unused")
             statement.arguments = ["ignored"]
@@ -82,6 +86,8 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         }
         
         let dbQueue = try makeDatabaseQueue()
+        
+        // conversion error
         try dbQueue.read { db in
             let statement = try db.makeSelectStatement("SELECT 1, ? AS value")
             statement.arguments = ["invalid"]
@@ -105,6 +111,8 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                     "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [1:1 value:\"invalid\"], statement: `SELECT 1, ? AS value`, arguments: [\"invalid\"])")
             }
         }
+        
+        // missing column
         try dbQueue.read { db in
             let statement = try db.makeSelectStatement("SELECT ? AS unused")
             statement.arguments = ["ignored"]
@@ -137,6 +145,8 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         }
         
         let dbQueue = try makeDatabaseQueue()
+        
+        // conversion error
         try dbQueue.read { db in
             let statement = try db.makeSelectStatement("SELECT NULL AS name, ? AS team")
             statement.arguments = ["invalid"]
@@ -160,6 +170,8 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                     "could not convert database value NULL to String (column: `name`, column index: 0, row: [name:NULL team:\"invalid\"], statement: `SELECT NULL AS name, ? AS team`, arguments: [\"invalid\"])")
             }
         }
+        
+        // missing column
         try dbQueue.read { db in
             let statement = try db.makeSelectStatement("SELECT ? AS unused")
             statement.arguments = ["ignored"]
@@ -195,6 +207,8 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         }
 
         let dbQueue = try makeDatabaseQueue()
+        
+        // conversion error
         try dbQueue.read { db in
             let statement = try db.makeSelectStatement("SELECT NULL AS name, ? AS value")
             statement.arguments = ["invalid"]
@@ -218,6 +232,8 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                     "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [name:NULL value:\"invalid\"], statement: `SELECT NULL AS name, ? AS value`, arguments: [\"invalid\"])")
             }
         }
+        
+        // missing column
         try dbQueue.read { db in
             let statement = try db.makeSelectStatement("SELECT ? AS unused")
             statement.arguments = ["ignored"]
@@ -253,6 +269,8 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         }
         
         let dbQueue = try makeDatabaseQueue()
+        
+        // conversion error
         try dbQueue.read { db in
             let statement = try db.makeSelectStatement("SELECT NULL AS name, ? AS value")
             statement.arguments = ["invalid"]
@@ -276,6 +294,8 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                     "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [name:NULL value:\"invalid\"], statement: `SELECT NULL AS name, ? AS value`, arguments: [\"invalid\"])")
             }
         }
+        
+        // missing column
         try dbQueue.read { db in
             let statement = try db.makeSelectStatement("SELECT ? AS unused")
             statement.arguments = ["ignored"]

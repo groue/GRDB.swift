@@ -506,7 +506,6 @@ struct AdaptedRowImpl : RowImpl {
         atUncheckedIndex index: Int,
         debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value
     {
-        // TODO: expose the unadapted row and index in debugInfo. Test with a scoped row.
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
         return base.impl.fastDecode(Value.self, atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
     }
@@ -516,7 +515,6 @@ struct AdaptedRowImpl : RowImpl {
         atUncheckedIndex index: Int,
         debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value?
     {
-        // TODO: expose the unadapted row and index in debugInfo. Test with a scoped row.
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
         return base.impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
     }
@@ -525,7 +523,6 @@ struct AdaptedRowImpl : RowImpl {
         atUncheckedIndex index:Int,
         debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Data?
     {
-        // TODO: expose the unadapted row and index in debugInfo. Test with a scoped row.
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
         return base.impl.dataNoCopy(atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
     }
