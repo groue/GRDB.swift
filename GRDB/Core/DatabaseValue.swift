@@ -227,7 +227,7 @@ extension DatabaseValue {
     ///       conversion error
     @available(*, deprecated)
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T : DatabaseValueConvertible {
-        return T.decode(from: self, debugInfo: ValueConversionDebuggingInfo())
+        return T.decode(from: self, conversionContext: nil)
     }
     
     /// Converts the database value to the type Optional<T>.
@@ -251,7 +251,7 @@ extension DatabaseValue {
     ///       conversion error
     @available(*, deprecated)
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T : DatabaseValueConvertible {
-        return T.decodeIfPresent(from: self, debugInfo: ValueConversionDebuggingInfo())
+        return T.decodeIfPresent(from: self, conversionContext: nil)
     }
 }
 

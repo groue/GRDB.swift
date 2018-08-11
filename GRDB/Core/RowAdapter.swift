@@ -504,27 +504,24 @@ struct AdaptedRowImpl : RowImpl {
     func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value
+        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value
     {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.impl.fastDecode(Value.self, atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
+        return base.impl.fastDecode(Value.self, atUncheckedIndex: mappedIndex, conversionContext: conversionContext) // base.impl: Demeter violation
     }
     
     func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value?
+        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value?
     {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
+        return base.impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: mappedIndex, conversionContext: conversionContext) // base.impl: Demeter violation
     }
     
-    func dataNoCopy(
-        atUncheckedIndex index:Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Data?
-    {
+    func dataNoCopy(atUncheckedIndex index:Int, conversionContext: @autoclosure () -> ValueConversionContext?) -> Data? {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.impl.dataNoCopy(atUncheckedIndex: mappedIndex, debugInfo: debugInfo) // base.impl: Demeter violation
+        return base.impl.dataNoCopy(atUncheckedIndex: mappedIndex, conversionContext: conversionContext) // base.impl: Demeter violation
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {

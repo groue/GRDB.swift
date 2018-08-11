@@ -15,6 +15,15 @@ Release Notes
 +    @available(*, deprecated)
      func losslessConvert<T: DatabaseValueConvertible>(sql: String? = nil, arguments: StatementArguments? = nil) -> T?
  }
+
++final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor { }
++@available(*, deprecated, renamed: "FastDatabaseValueCursor")
++typealias ColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> = FastDatabaseValueCursor<Value>
+
++final class FastNullableDatabaseValueCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor { }
++@available(*, deprecated, renamed: "FastNullableDatabaseValueCursor")
++typealias NullableColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> = FastNullableDatabaseValueCursor<Value>
+
 ```
 
 ### Documentation Diff

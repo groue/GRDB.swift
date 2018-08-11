@@ -171,7 +171,7 @@ extension Row {
     /// in performance-critical code because it can avoid decoding database
     /// values.
     public func hasNull(atIndex index: Int) -> Bool {
-        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
+        let index = checkedIndex(index)
         return impl.hasNull(atUncheckedIndex: index)
     }
     
@@ -181,7 +181,7 @@ extension Row {
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
     public subscript(_ index: Int) -> DatabaseValueConvertible? {
-        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
+        let index = checkedIndex(index)
         return impl.databaseValue(atUncheckedIndex: index).storage.value
     }
     
@@ -194,11 +194,11 @@ extension Row {
     /// value is converted to the requested type `Value`. Should this conversion
     /// fail, a fatal error is raised.
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value? {
-        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
+        let index = checkedIndex(index)
         return decodeIfPresent(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnIndex(index)))
+            conversionContext: ValueConversionContext(self).atColumn(index))
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -214,11 +214,11 @@ extension Row {
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value? {
-        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
+        let index = checkedIndex(index)
         return fastDecodeIfPresent(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnIndex(index)))
+            conversionContext: ValueConversionContext(self).atColumn(index))
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -229,11 +229,11 @@ extension Row {
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value {
-        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
+        let index = checkedIndex(index)
         return decode(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnIndex(index)))
+            conversionContext: ValueConversionContext(self).atColumn(index))
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -248,11 +248,11 @@ extension Row {
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value {
-        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
+        let index = checkedIndex(index)
         return fastDecode(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnIndex(index)))
+            conversionContext: ValueConversionContext(self).atColumn(index))
     }
     
     /// Returns Int64, Double, String, Data or nil, depending on the value
@@ -291,7 +291,7 @@ extension Row {
         return decodeIfPresent(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnName(columnName)))
+            conversionContext: ValueConversionContext(self).atColumn(columnName))
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -313,7 +313,7 @@ extension Row {
         return fastDecodeIfPresent(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnName(columnName)))
+            conversionContext: ValueConversionContext(self).atColumn(columnName))
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -331,12 +331,12 @@ extension Row {
             fatalConversionError(
                 to: Value.self,
                 from: nil,
-                debugInfo: ValueConversionDebuggingInfo(.row(self), .columnName(columnName)))
+                conversionContext: ValueConversionContext(self).atColumn(columnName))
         }
         return decode(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnName(columnName)))
+            conversionContext: ValueConversionContext(self).atColumn(columnName))
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -358,12 +358,12 @@ extension Row {
             fatalConversionError(
                 to: Value.self,
                 from: nil,
-                debugInfo: ValueConversionDebuggingInfo(.row(self), .columnName(columnName)))
+                conversionContext: ValueConversionContext(self).atColumn(columnName))
         }
         return fastDecode(
             Value.self,
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnName(columnName)))
+            conversionContext: ValueConversionContext(self).atColumn(columnName))
     }
     
     /// Returns Int64, Double, String, NSData or nil, depending on the value
@@ -446,10 +446,10 @@ extension Row {
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
     public func dataNoCopy(atIndex index: Int) -> Data? {
-        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
+        let index = checkedIndex(index)
         return impl.dataNoCopy(
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnIndex(index)))
+            conversionContext: ValueConversionContext(self).atColumn(index))
     }
     
     /// Returns the optional Data at given column.
@@ -469,7 +469,7 @@ extension Row {
         }
         return impl.dataNoCopy(
             atUncheckedIndex: index,
-            debugInfo: ValueConversionDebuggingInfo(.row(self), .columnName(columnName)))
+            conversionContext: ValueConversionContext(self).atColumn(columnName))
     }
     
     /// Returns the optional `NSData` at given column.
@@ -485,6 +485,12 @@ extension Row {
     /// than the row's lifetime.
     public func dataNoCopy(_ column: ColumnExpression) -> Data? {
         return dataNoCopy(named: column.name)
+    }
+    
+    @inline(__always)
+    private func checkedIndex(_ index: Int, file: StaticString = #file, line: UInt = #line) -> Int {
+        GRDBPrecondition(index >= 0 && index < count, "row index out of range", file: file, line: line)
+        return index
     }
 }
 
@@ -940,8 +946,7 @@ extension Row {
     
     /// Accesses the (ColumnName, DatabaseValue) pair at given index.
     public subscript(position: RowIndex) -> (String, DatabaseValue) {
-        let index = position.index
-        GRDBPrecondition(index >= 0 && index < count, "row index out of range")
+        let index = checkedIndex(position.index)
         return (
             impl.columnName(atUncheckedIndex: index),
             impl.databaseValue(atUncheckedIndex: index))
@@ -1211,9 +1216,9 @@ protocol RowImpl {
     func columnName(atUncheckedIndex index: Int) -> String
     func hasNull(atUncheckedIndex index:Int) -> Bool
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
-    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value
-    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value?
-    func dataNoCopy(atUncheckedIndex index:Int, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Data?
+    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int, conversionContext: @autoclosure () -> ValueConversionContext?) -> Value
+    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int, conversionContext: @autoclosure () -> ValueConversionContext?) -> Value?
+    func dataNoCopy(atUncheckedIndex index:Int, conversionContext: @autoclosure () -> ValueConversionContext?) -> Data?
     
     /// Returns the index of the leftmost column that matches *name* (case-insensitive)
     func index(ofColumn name: String) -> Int?
@@ -1226,49 +1231,55 @@ protocol RowImpl {
 
 extension RowImpl {
     func copiedRow(_ row: Row) -> Row {
+        // unless customized, assume immutable row (see StatementRowImpl and AdaptedRowImpl for customization)
         return row
     }
     
     func unscopedRow(_ row: Row) -> Row {
+        // unless customized, assume unadapted row (see AdaptedRowImpl for customization)
         return row
     }
     
     func unadaptedRow(_ row: Row) -> Row {
+        // unless customized, assume unadapted row (see AdaptedRowImpl for customization)
         return row
     }
     
     var scopes: Row.ScopesView {
+        // unless customized, assume unuscoped row (see AdaptedRowImpl for customization)
         return Row.ScopesView()
     }
     
     func hasNull(atUncheckedIndex index:Int) -> Bool {
+        // unless customized, use slow check (see StatementRowImpl and AdaptedRowImpl for customization)
         return databaseValue(atUncheckedIndex: index).isNull
     }
     
     func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value
+        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value
     {
-        // default implementation is slow
-        return Value.decode(from: databaseValue(atUncheckedIndex: index), debugInfo: debugInfo)
+        // unless customized, use slow decoding (see StatementRowImpl and AdaptedRowImpl for customization)
+        return Value.decode(from: databaseValue(atUncheckedIndex: index), conversionContext: conversionContext)
     }
     
     func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value?
+        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value?
     {
-        // default implementation is slow
-        return Value.decodeIfPresent(from: databaseValue(atUncheckedIndex: index), debugInfo: debugInfo)
+        // unless customized, use slow decoding (see StatementRowImpl and AdaptedRowImpl for customization)
+        return Value.decodeIfPresent(from: databaseValue(atUncheckedIndex: index), conversionContext: conversionContext)
     }
     
-    func dataNoCopy(atUncheckedIndex index:Int, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Data? {
-        // default implementation copies
-        return Data.decodeIfPresent(from: databaseValue(atUncheckedIndex: index), debugInfo: debugInfo)
+    func dataNoCopy(atUncheckedIndex index:Int, conversionContext: @autoclosure () -> ValueConversionContext?) -> Data? {
+        // unless customized, copy data (see StatementRowImpl and AdaptedRowImpl for customization)
+        return Data.decodeIfPresent(from: databaseValue(atUncheckedIndex: index), conversionContext: conversionContext)
     }
 }
 
+// TODO: merge with StatementCopyRowImpl eventually?
 /// See Row.init(dictionary:)
 private struct ArrayRowImpl : RowImpl {
     let columns: [(String, DatabaseValue)]
@@ -1300,6 +1311,7 @@ private struct ArrayRowImpl : RowImpl {
 }
 
 
+// TODO: merge with ArrayRowImpl eventually?
 /// See Row.init(copiedFromStatementRef:sqliteStatement:)
 private struct StatementCopyRowImpl : RowImpl {
     let dbValues: ContiguousArray<DatabaseValue>
@@ -1343,7 +1355,7 @@ private struct StatementRowImpl : RowImpl {
     init(sqliteStatement: SQLiteStatement, statementRef: Unmanaged<SelectStatement>) {
         self.statementRef = statementRef
         self.sqliteStatement = sqliteStatement
-        // Optimize row["..."]
+        // Optimize row[columnName]
         let lowercaseColumnNames = (0..<sqlite3_column_count(sqliteStatement)).map { String(cString: sqlite3_column_name(sqliteStatement, Int32($0))).lowercased() }
         self.lowercaseColumnIndexes = Dictionary(
             lowercaseColumnNames
@@ -1361,11 +1373,11 @@ private struct StatementRowImpl : RowImpl {
     }
     
     func hasNull(atUncheckedIndex index:Int) -> Bool {
-        // Avoid extracting values, because this modifies the statement.
+        // Avoid extracting values, because this modifies the SQLite statement.
         return sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL
     }
     
-    func dataNoCopy(atUncheckedIndex index:Int, debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Data? {
+    func dataNoCopy(atUncheckedIndex index:Int, conversionContext: @autoclosure () -> ValueConversionContext?) -> Data? {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
             return nil
         }
@@ -1380,18 +1392,20 @@ private struct StatementRowImpl : RowImpl {
         return DatabaseValue(sqliteStatement: sqliteStatement, index: Int32(index))
     }
     
-    func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
         atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value
+        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value
     {
-        return Value.decode(from: sqliteStatement, index: Int32(index), debugInfo: debugInfo)
+        return Value.fastDecode(from: sqliteStatement, index: Int32(index), conversionContext: conversionContext)
     }
     
-    func fastOptionalValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
         atUncheckedIndex index: Int,
-        debugInfo: @autoclosure () -> ValueConversionDebuggingInfo) -> Value?
+        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value?
     {
-        return Value.decodeIfPresent(from: sqliteStatement, index: Int32(index))
+        return Value.fastDecodeIfPresent(from: sqliteStatement, index: Int32(index))
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {
