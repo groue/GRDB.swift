@@ -94,6 +94,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 XCTAssertEqual(i.int, 2)
                 XCTAssertTrue(i.fast)
                 XCTAssertTrue(try cursor.next() == nil) // end
+                XCTAssertTrue(try cursor.next() == nil) // past the end
             }
             do {
                 let sql = "SELECT 1 UNION ALL SELECT 2"
@@ -432,6 +433,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 XCTAssertTrue(i!.fast)
                 XCTAssertTrue(try cursor.next()! == nil)
                 XCTAssertTrue(try cursor.next() == nil) // end
+                XCTAssertTrue(try cursor.next() == nil) // past the end
             }
             do {
                 let sql = "SELECT 1 UNION ALL SELECT NULL"

@@ -195,10 +195,7 @@ extension Row {
     /// fail, a fatal error is raised.
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value? {
         let index = checkedIndex(index)
-        return decodeIfPresent(
-            Value.self,
-            atUncheckedIndex: index,
-            conversionContext: ValueConversionContext(self).atColumn(index))
+        return decodeIfPresent(Value.self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -215,10 +212,7 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value? {
         let index = checkedIndex(index)
-        return fastDecodeIfPresent(
-            Value.self,
-            atUncheckedIndex: index,
-            conversionContext: ValueConversionContext(self).atColumn(index))
+        return fastDecodeIfPresent(Value.self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -230,10 +224,7 @@ extension Row {
     /// SQLite value can not be converted to `Value`.
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value {
         let index = checkedIndex(index)
-        return decode(
-            Value.self,
-            atUncheckedIndex: index,
-            conversionContext: ValueConversionContext(self).atColumn(index))
+        return decode(Value.self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -249,10 +240,7 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value {
         let index = checkedIndex(index)
-        return fastDecode(
-            Value.self,
-            atUncheckedIndex: index,
-            conversionContext: ValueConversionContext(self).atColumn(index))
+        return fastDecode(Value.self, atUncheckedIndex: index)
     }
     
     /// Returns Int64, Double, String, Data or nil, depending on the value
@@ -288,10 +276,7 @@ extension Row {
         guard let index = index(ofColumn: columnName) else {
             return nil
         }
-        return decodeIfPresent(
-            Value.self,
-            atUncheckedIndex: index,
-            conversionContext: ValueConversionContext(self).atColumn(columnName))
+        return decodeIfPresent(Value.self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -310,10 +295,7 @@ extension Row {
         guard let index = index(ofColumn: columnName) else {
             return nil
         }
-        return fastDecodeIfPresent(
-            Value.self,
-            atUncheckedIndex: index,
-            conversionContext: ValueConversionContext(self).atColumn(columnName))
+        return fastDecodeIfPresent(Value.self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -333,10 +315,7 @@ extension Row {
                 from: nil,
                 conversionContext: ValueConversionContext(self).atColumn(columnName))
         }
-        return decode(
-            Value.self,
-            atUncheckedIndex: index,
-            conversionContext: ValueConversionContext(self).atColumn(columnName))
+        return decode(Value.self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -360,10 +339,7 @@ extension Row {
                 from: nil,
                 conversionContext: ValueConversionContext(self).atColumn(columnName))
         }
-        return fastDecode(
-            Value.self,
-            atUncheckedIndex: index,
-            conversionContext: ValueConversionContext(self).atColumn(columnName))
+        return fastDecode(Value.self, atUncheckedIndex: index)
     }
     
     /// Returns Int64, Double, String, NSData or nil, depending on the value
@@ -498,43 +474,52 @@ extension Row {
     @inline(__always)
     private func decode<Value: DatabaseValueConvertible>(
         _ type: Value.Type,
-        atUncheckedIndex index: Int,
-        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value
+        atUncheckedIndex index: Int) -> Value
     {
-        return Value.decode(from: impl.databaseValue(atUncheckedIndex: index), conversionContext: conversionContext)
+        return Value.decode(
+            from: impl.databaseValue(atUncheckedIndex: index),
+            conversionContext: ValueConversionContext(self).atColumn(index))
     }
     
     @inline(__always)
     private func decodeIfPresent<Value: DatabaseValueConvertible>(
         _ type: Value.Type,
-        atUncheckedIndex index: Int,
-        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value?
+        atUncheckedIndex index: Int) -> Value?
     {
-        return Value.decodeIfPresent(from: impl.databaseValue(atUncheckedIndex: index), conversionContext: conversionContext)
+        return Value.decodeIfPresent(
+            from: impl.databaseValue(atUncheckedIndex: index),
+            conversionContext: ValueConversionContext(self).atColumn(index))
     }
     
     @inline(__always)
     private func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
-        atUncheckedIndex index: Int,
-        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value
+        atUncheckedIndex index: Int) -> Value
     {
         if let sqliteStatement = sqliteStatement {
-            return Value.fastDecode(from: sqliteStatement, index: Int32(index), conversionContext: conversionContext)
+            return Value.fastDecode(
+                from: sqliteStatement,
+                index: Int32(index),
+                conversionContext: ValueConversionContext(self).atColumn(index))
         }
-        return impl.fastDecode(Value.self, atUncheckedIndex: index, conversionContext: conversionContext)
+        return impl.fastDecode(
+            Value.self,
+            atUncheckedIndex: index,
+            conversionContext: ValueConversionContext(self).atColumn(index))
     }
     
     @inline(__always)
     private func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
-        atUncheckedIndex index: Int,
-        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value?
+        atUncheckedIndex index: Int) -> Value?
     {
         if let sqliteStatement = sqliteStatement {
             return Value.fastDecodeIfPresent(from: sqliteStatement, index: Int32(index))
         }
-        return impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: index, conversionContext: conversionContext)
+        return impl.fastDecodeIfPresent(
+            Value.self,
+            atUncheckedIndex: index,
+            conversionContext: ValueConversionContext(self).atColumn(index))
     }
 }
 
@@ -675,12 +660,16 @@ public final class RowCursor : Cursor {
         self.statement = statement
         self.row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         self.sqliteStatement = statement.sqliteStatement
-        statement.cursorReset(arguments: arguments)
+        statement.reset(withArguments: arguments)
     }
     
     /// :nodoc:
     public func next() throws -> Row? {
-        if done { return nil }
+        if done {
+            // make sure this instance never yields a value again, even if the
+            // statement is reset by another cursor.
+            return nil
+        }
         switch sqlite3_step(sqliteStatement) {
         case SQLITE_DONE:
             done = true

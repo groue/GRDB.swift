@@ -28,6 +28,7 @@ class RowFetchTests: GRDBTestCase {
                 XCTAssertEqual(row["firstName"] as String, "Barbara")
                 XCTAssertEqual(row["lastName"] as String, "Gourde")
                 XCTAssertTrue(try cursor.next() == nil) // end
+                XCTAssertTrue(try cursor.next() == nil) // past the end
             }
             do {
                 let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
