@@ -37,7 +37,7 @@ puts <<-REPORT
 
 Below are performance benchmarks made on for [GRDB #{grdb_version}](https://github.com/groue/GRDB.swift), [FMDB #{fmdb_version}](https://github.com/ccgus/fmdb), and [SQLite.swift #{sqlite_swift_version}](https://github.com/stephencelis/SQLite.swift). They are compared to Core Data, [Realm #{realm_version}](https://realm.io) and the raw use of the SQLite C API from Swift.
 
-This report was generated on a MacBook Pro (15-inch, Late 2016), with Xcode 9.2, by running the following command:
+This report was generated on a MacBook Pro (15-inch, Late 2016), with Xcode 9.4.1, by running the following command:
 
 ```sh
 make test_performance | Tests/parsePerformanceTests.rb | Tests/generatePerformanceReport.rb
@@ -48,6 +48,7 @@ All tests use the default settings of each library. For each library, we:
 - Build and consume database rows with raw SQL and column indexes (aiming at the best performance)
 - Build and consume database rows with column names (sacrificing performance for maintainability)
 - Build and consume records values to and from database rows (aiming at the shortest code from database to records)
+- Build and consume records values to and from database rows, with help from the Codable standard protocol
 - Build and consume records values to and from database rows, with [change tracking](https://github.com/groue/GRDB.swift/blob/master/README.md#record-comparison) (records know if they have unsaved changes)
 
 As a bottom line, the raw SQLite C API is used as efficiently as possible, without any error checking.
@@ -63,6 +64,9 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
 | **Records**                      |      |            |      |              |           |       |
 | Fetch                            | #{formatted_samples(samples, 'FetchRecordStruct').join(" | ")} |
 | Insert                           | #{formatted_samples(samples, 'InsertRecordStruct').join(" | ")} |
+| **Codable Records**              |      |            |      |              |           |       |
+| Fetch                            | #{formatted_samples(samples, 'FetchRecordCodable').join(" | ")} |
+| Insert                           | #{formatted_samples(samples, 'InsertRecordCodable').join(" | ")} |
 | **Records with change tracking** |      |            |      |              |           |       |
 | Fetch                            | #{formatted_samples(samples, 'FetchRecordClass').join(" | ")} |
 | Insert                           | #{formatted_samples(samples, 'InsertRecordClass').join(" | ")} |
@@ -108,6 +112,18 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
     - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/InsertRecordStructTests.swift))
         
         This tests inserts 20000 records with the persistence method provided by GRDB's [PersistableRecord](https://github.com/groue/GRDB.swift/blob/master/README.md#persistablerecord-protocol) protocol.
+
+- **Codable Records**:
+
+    - **Fetch** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/FetchRecordCodableTests.swift))
+        
+        This test fetches an array of 100000 record objects initiated from rows of 10 ints.
+        
+        It builds records from GRDB's built-in support for the [Decodable standard protocols](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records).
+    
+    - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/InsertRecordCodableTests.swift))
+        
+        This tests inserts 20000 records with the persistence method provided by GRDB's built-in support for the [Encodable standard protocols](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records).
 
 - **Records with change tracking**:
 

@@ -374,6 +374,10 @@
 		56873BEC1F2CB400004D24B4 /* Fixits-1.2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */; };
 		56873BEF1F2CB400004D24B4 /* Fixits-1.2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */; };
 		56873BF21F2CB400004D24B4 /* Fixits-1.2.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */; };
+		5690AFD82120589A001530EA /* InsertRecordCodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690AFD72120589A001530EA /* InsertRecordCodableTests.swift */; };
+		5690AFD92120589A001530EA /* InsertRecordCodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690AFD72120589A001530EA /* InsertRecordCodableTests.swift */; };
+		5690AFDB212058CB001530EA /* FetchRecordCodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690AFDA212058CB001530EA /* FetchRecordCodableTests.swift */; };
+		5690AFDC212058CB001530EA /* FetchRecordCodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690AFDA212058CB001530EA /* FetchRecordCodableTests.swift */; };
 		5690C32A1D23E6D800E59934 /* FoundationDateComponentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690C3251D23E6D800E59934 /* FoundationDateComponentsTests.swift */; };
 		5690C33B1D23E7D200E59934 /* FoundationDateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690C3361D23E7D200E59934 /* FoundationDateTests.swift */; };
 		5690C3401D23E82A00E59934 /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690C33F1D23E82A00E59934 /* Data.swift */; };
@@ -961,6 +965,8 @@
 		568068301EBBA26100EFB8AA /* SQLRequestTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLRequestTests.swift; sourceTree = "<group>"; };
 		5687359E1CEDE16C009B9116 /* Betty.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Betty.jpeg; sourceTree = "<group>"; };
 		56873BEB1F2CB400004D24B4 /* Fixits-1.2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Fixits-1.2.swift"; sourceTree = "<group>"; };
+		5690AFD72120589A001530EA /* InsertRecordCodableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsertRecordCodableTests.swift; sourceTree = "<group>"; };
+		5690AFDA212058CB001530EA /* FetchRecordCodableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchRecordCodableTests.swift; sourceTree = "<group>"; };
 		5690C3251D23E6D800E59934 /* FoundationDateComponentsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationDateComponentsTests.swift; sourceTree = "<group>"; };
 		5690C3361D23E7D200E59934 /* FoundationDateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationDateTests.swift; sourceTree = "<group>"; };
 		5690C33F1D23E82A00E59934 /* Data.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Data.swift; sourceTree = "<group>"; };
@@ -1717,10 +1723,12 @@
 				56DE7B271C41302500861EB8 /* FetchNamedValuesTests.swift */,
 				56DE7B291C4130AF00861EB8 /* FetchPositionalValuesTests.swift */,
 				56DE7B2B1C41311900861EB8 /* FetchRecordClassTests.swift */,
+				5690AFDA212058CB001530EA /* FetchRecordCodableTests.swift */,
 				56D3BE701F4EB1900034C6D2 /* FetchRecordStructTests.swift */,
 				56DE7B251C412FDA00861EB8 /* InsertNamedValuesTests.swift */,
 				56DE7B231C412F7E00861EB8 /* InsertPositionalValuesTests.swift */,
 				56BB86121BA9886D001F9168 /* InsertRecordClassTests.swift */,
+				5690AFD72120589A001530EA /* InsertRecordCodableTests.swift */,
 				56D507821F6D7A4500AE1C5B /* InsertRecordStructTests.swift */,
 				56CA22211BB41565009A04C5 /* PerformanceTests.swift */,
 				56B8C2401CA1758F00510325 /* Realm.framework */,
@@ -2278,6 +2286,8 @@
 				56707201208A509C006AD95A /* DateParsingTests.swift in Sources */,
 				56DE7B2C1C41311900861EB8 /* FetchRecordClassTests.swift in Sources */,
 				56DE7B281C41302500861EB8 /* FetchNamedValuesTests.swift in Sources */,
+				5690AFD82120589A001530EA /* InsertRecordCodableTests.swift in Sources */,
+				5690AFDB212058CB001530EA /* FetchRecordCodableTests.swift in Sources */,
 				56D507831F6D7B2E00AE1C5B /* InsertRecordStructTests.swift in Sources */,
 				56DE7B241C412F7E00861EB8 /* InsertPositionalValuesTests.swift in Sources */,
 				560C98241C0E23BB00BF8471 /* PerformanceTests.swift in Sources */,
@@ -2300,10 +2310,12 @@
 				56D507841F6D7B2F00AE1C5B /* InsertRecordStructTests.swift in Sources */,
 				56439B3A1F4CA1DC0066043F /* FMDatabaseQueue.m in Sources */,
 				56439B3B1F4CA1DC0066043F /* FMDatabasePool.m in Sources */,
+				5690AFD92120589A001530EA /* InsertRecordCodableTests.swift in Sources */,
 				56439B3C1F4CA1DC0066043F /* PerformanceTests.swift in Sources */,
 				56D3BE721F4EB1A00034C6D2 /* FetchRecordStructTests.swift in Sources */,
 				56439B3D1F4CA1DC0066043F /* InsertNamedValuesTests.swift in Sources */,
 				56439B3E1F4CA1DC0066043F /* PerformanceModel.xcdatamodeld in Sources */,
+				5690AFDC212058CB001530EA /* FetchRecordCodableTests.swift in Sources */,
 				56439B3F1F4CA1DC0066043F /* FetchPositionalValuesTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
