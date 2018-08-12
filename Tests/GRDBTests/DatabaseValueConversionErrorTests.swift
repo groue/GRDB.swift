@@ -42,7 +42,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                         to: String.self,
                         from: row["name"],
                         conversionContext: ValueConversionContext(row).atColumn("name")),
-                    "could not convert database value NULL to String (column: `name`, column index: 0, row: [name:NULL], statement: `SELECT ? AS name`, arguments: [NULL])")
+                    "could not convert database value NULL to String (column: `name`, column index: 0, row: [name:NULL], sql: `SELECT ? AS name`, arguments: [NULL])")
             }
         }
         
@@ -67,7 +67,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                         to: String.self,
                         from: row["name"],
                         conversionContext: ValueConversionContext(row).atColumn("name")),
-                    "could not read String from missing column `name` (row: [unused:\"ignored\"], statement: `SELECT ? AS unused`, arguments: [\"ignored\"])")
+                    "could not read String from missing column `name` (row: [unused:\"ignored\"], sql: `SELECT ? AS unused`, arguments: [\"ignored\"])")
             }
         }
     }
@@ -108,7 +108,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                         to: Value.self,
                         from: row["value"],
                         conversionContext: ValueConversionContext(row).atColumn("value")),
-                    "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [1:1 value:\"invalid\"], statement: `SELECT 1, ? AS value`, arguments: [\"invalid\"])")
+                    "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [1:1 value:\"invalid\"], sql: `SELECT 1, ? AS value`, arguments: [\"invalid\"])")
             }
         }
         
@@ -133,7 +133,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                         to: Value.self,
                         from: row["value"],
                         conversionContext: ValueConversionContext(row).atColumn("value")),
-                    "could not read \(Value.self) from missing column `value` (row: [unused:\"ignored\"], statement: `SELECT ? AS unused`, arguments: [\"ignored\"])")
+                    "could not read \(Value.self) from missing column `value` (row: [unused:\"ignored\"], sql: `SELECT ? AS unused`, arguments: [\"ignored\"])")
             }
         }
     }
@@ -167,7 +167,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                         to: String.self,
                         from: row["name"],
                         conversionContext: ValueConversionContext(row).atColumn("name")),
-                    "could not convert database value NULL to String (column: `name`, column index: 0, row: [name:NULL team:\"invalid\"], statement: `SELECT NULL AS name, ? AS team`, arguments: [\"invalid\"])")
+                    "could not convert database value NULL to String (column: `name`, column index: 0, row: [name:NULL team:\"invalid\"], sql: `SELECT NULL AS name, ? AS team`, arguments: [\"invalid\"])")
             }
         }
         
@@ -192,7 +192,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                         to: String.self,
                         from: row["name"],
                         conversionContext: ValueConversionContext(row).atColumn("name")),
-                    "could not read String from missing column `name` (row: [unused:\"ignored\"], statement: `SELECT ? AS unused`, arguments: [\"ignored\"])")
+                    "could not read String from missing column `name` (row: [unused:\"ignored\"], sql: `SELECT ? AS unused`, arguments: [\"ignored\"])")
             }
         }
     }
@@ -229,7 +229,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                         to: Value.self,
                         from: row["value"],
                         conversionContext: ValueConversionContext(row).atColumn("value")),
-                    "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [name:NULL value:\"invalid\"], statement: `SELECT NULL AS name, ? AS value`, arguments: [\"invalid\"])")
+                    "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [name:NULL value:\"invalid\"], sql: `SELECT NULL AS name, ? AS value`, arguments: [\"invalid\"])")
             }
         }
         
@@ -254,7 +254,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                         to: Value.self,
                         from: row["value"],
                         conversionContext: ValueConversionContext(row).atColumn("value")),
-                    "could not read \(Value.self) from missing column `value` (row: [unused:\"ignored\"], statement: `SELECT ? AS unused`, arguments: [\"ignored\"])")
+                    "could not read \(Value.self) from missing column `value` (row: [unused:\"ignored\"], sql: `SELECT ? AS unused`, arguments: [\"ignored\"])")
             }
         }
     }
@@ -291,7 +291,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                         to: Value.self,
                         from: row["value"],
                         conversionContext: ValueConversionContext(row).atColumn("value")),
-                    "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [name:NULL value:\"invalid\"], statement: `SELECT NULL AS name, ? AS value`, arguments: [\"invalid\"])")
+                    "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [name:NULL value:\"invalid\"], sql: `SELECT NULL AS name, ? AS value`, arguments: [\"invalid\"])")
             }
         }
         
@@ -316,7 +316,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                         to: Value.self,
                         from: row["value"],
                         conversionContext: ValueConversionContext(row).atColumn("value")),
-                    "could not read \(Value.self) from missing column `value` (row: [unused:\"ignored\"], statement: `SELECT ? AS unused`, arguments: [\"ignored\"])")
+                    "could not read \(Value.self) from missing column `value` (row: [unused:\"ignored\"], sql: `SELECT ? AS unused`, arguments: [\"ignored\"])")
             }
         }
     }
@@ -337,7 +337,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                         to: String.self,
                         from: .null,
                         conversionContext: ValueConversionContext(statement).atColumn(0)),
-                    "could not convert database value NULL to String (column: `name`, column index: 0, row: [name:NULL team:\"invalid\"], statement: `SELECT NULL AS name, ? AS team`, arguments: [\"invalid\"])")
+                    "could not convert database value NULL to String (column: `name`, column index: 0, row: [name:NULL team:\"invalid\"], sql: `SELECT NULL AS name, ? AS team`, arguments: [\"invalid\"])")
             }
             
             // _ = row["name"] as String
@@ -378,7 +378,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                         to: Value.self,
                         from: DatabaseValue(sqliteStatement: statement.sqliteStatement, index: 0),
                         conversionContext: ValueConversionContext(statement).atColumn(0)),
-                    "could not convert database value NULL to \(Value.self) (column: `name`, column index: 0, row: [name:NULL team:\"invalid\"], statement: `SELECT NULL AS name, ? AS team`, arguments: [\"invalid\"])")
+                    "could not convert database value NULL to \(Value.self) (column: `name`, column index: 0, row: [name:NULL team:\"invalid\"], sql: `SELECT NULL AS name, ? AS team`, arguments: [\"invalid\"])")
             }
             
             // _ = try Value.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))
@@ -390,7 +390,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                         to: Value.self,
                         from: DatabaseValue(sqliteStatement: statement.sqliteStatement, index: Int32(columnIndex)),
                         conversionContext: ValueConversionContext(statement).atColumn(columnIndex)),
-                    "could not convert database value \"invalid\" to \(Value.self) (column: `team`, column index: 1, row: [name:NULL team:\"invalid\"], statement: `SELECT NULL AS name, ? AS team`, arguments: [\"invalid\"])")
+                    "could not convert database value \"invalid\" to \(Value.self) (column: `team`, column index: 1, row: [name:NULL team:\"invalid\"], sql: `SELECT NULL AS name, ? AS team`, arguments: [\"invalid\"])")
             }
             
             // _ = row["name"] as Value

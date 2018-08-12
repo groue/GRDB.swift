@@ -76,6 +76,14 @@ extension ValueConversionContext {
                 column: nil)
         }
     }
+    
+    init(sql: String, arguments: StatementArguments?) {
+        self.init(
+            row: nil,
+            sql: sql,
+            arguments: arguments,
+            column: nil)
+    }
 }
 
 /// The canonical conversion error message
@@ -105,7 +113,7 @@ func conversionErrorMessage<T>(to: T.Type, from dbValue: DatabaseValue?, convers
     }
     
     if let sql = conversionContext?.sql {
-        extras.append("statement: `\(sql)`")
+        extras.append("sql: `\(sql)`")
         if let arguments = conversionContext?.arguments, arguments.isEmpty == false {
             extras.append("arguments: \(arguments)")
         }

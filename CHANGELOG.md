@@ -3,19 +3,13 @@ Release Notes
 
 ## Next Version
 
+- Cursors of optimized values (Strint, Int, Date, etc.) have been renamed: use FastDatabaseValueCursor and FastNullableDatabaseValueCursor instead of the deprecated ColumnCursor and NullableColumnCursor.
 - [#384](https://github.com/groue/GRDB.swift/pull/384): Improve database value decoding diagnostics
 - [#393](https://github.com/groue/GRDB.swift/pull/393): Upgrade SQLCipher to 3.4.2, enable FTS5 on GRDBCipher and new pod GRDBPlus.
 
 ### API diff
 
 ```diff
- extension DatabaseValue {
-+    @available(*, deprecated)
-     func losslessConvert<T: DatabaseValueConvertible>(sql: String? = nil, arguments: StatementArguments? = nil) -> T
-+    @available(*, deprecated)
-     func losslessConvert<T: DatabaseValueConvertible>(sql: String? = nil, arguments: StatementArguments? = nil) -> T?
- }
-
 +final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor { }
 +@available(*, deprecated, renamed: "FastDatabaseValueCursor")
 +typealias ColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> = FastDatabaseValueCursor<Value>

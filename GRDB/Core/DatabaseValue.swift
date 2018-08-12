@@ -207,6 +207,7 @@ extension DatabaseValue {
 // MARK: - Lossless conversions
 
 extension DatabaseValue {
+    // TODO: deprecate and rename to DatabaseValue.decode(_:sql:arguments:)
     /// Converts the database value to the type T.
     ///
     ///     let dbValue = "foo".databaseValue
@@ -225,11 +226,11 @@ extension DatabaseValue {
     ///       conversion error
     ///     - arguments: Optional statement arguments that enhances the eventual
     ///       conversion error
-    @available(*, deprecated)
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T : DatabaseValueConvertible {
-        return T.decode(from: self, conversionContext: nil)
+        return T.decode(from: self, conversionContext: sql.map { ValueConversionContext(sql: $0, arguments: arguments) })
     }
     
+    // TODO: deprecate and rename to DatabaseValue.decodeIfPresent(_:sql:arguments:)
     /// Converts the database value to the type Optional<T>.
     ///
     ///     let dbValue = "foo".databaseValue
@@ -249,9 +250,8 @@ extension DatabaseValue {
     ///       conversion error
     ///     - arguments: Optional statement arguments that enhances the eventual
     ///       conversion error
-    @available(*, deprecated)
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T : DatabaseValueConvertible {
-        return T.decodeIfPresent(from: self, conversionContext: nil)
+        return T.decodeIfPresent(from: self, conversionContext: sql.map { ValueConversionContext(sql: $0, arguments: arguments) })
     }
 }
 
