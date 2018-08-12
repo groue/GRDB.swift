@@ -151,7 +151,7 @@ extension Row {
     ///     let row = try Row.fetchOne(db, "SELECT NULL, NULL")!
     ///     row.containsNonNullValue // false
     public var containsNonNullValue: Bool {
-        for i in (0..<count) where !hasNull(atIndex: i) {
+        for i in (0..<count) where !impl.hasNull(atUncheckedIndex: i) {
             return true
         }
         
@@ -487,10 +487,54 @@ extension Row {
         return dataNoCopy(named: column.name)
     }
     
+    // MARK: - Value Decoding Helpers
+    
     @inline(__always)
     private func checkedIndex(_ index: Int, file: StaticString = #file, line: UInt = #line) -> Int {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range", file: file, line: line)
         return index
+    }
+    
+    @inline(__always)
+    private func decode<Value: DatabaseValueConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int,
+        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value
+    {
+        return Value.decode(from: impl.databaseValue(atUncheckedIndex: index), conversionContext: conversionContext)
+    }
+    
+    @inline(__always)
+    private func decodeIfPresent<Value: DatabaseValueConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int,
+        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value?
+    {
+        return Value.decodeIfPresent(from: impl.databaseValue(atUncheckedIndex: index), conversionContext: conversionContext)
+    }
+    
+    @inline(__always)
+    private func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int,
+        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value
+    {
+        if let sqliteStatement = sqliteStatement {
+            return Value.fastDecode(from: sqliteStatement, index: Int32(index), conversionContext: conversionContext)
+        }
+        return impl.fastDecode(Value.self, atUncheckedIndex: index, conversionContext: conversionContext)
+    }
+    
+    @inline(__always)
+    private func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int,
+        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value?
+    {
+        if let sqliteStatement = sqliteStatement {
+            return Value.fastDecodeIfPresent(from: sqliteStatement, index: Int32(index))
+        }
+        return impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: index, conversionContext: conversionContext)
     }
 }
 
