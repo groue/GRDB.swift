@@ -27,8 +27,8 @@ end
 samples = JSON.parse(STDIN.read)
 grdb_version = info_plist_version('Support/Info.plist')
 fmdb_version = info_plist_version('Tests/Performance/fmdb/src/fmdb/Info.plist')
-sqlite_swift_version = info_plist_version('Tests/Performance/SQLite.swift/Sources/SQLite/Info.plist')
-realm_version = info_plist_version('Tests/Performance/Realm/build/osx/Realm.framework/Versions/A/Resources/Info.plist')
+sqlite_swift_version = '0.11.5' # not up-to-date: info_plist_version('Tests/Performance/SQLite.swift/Sources/SQLite/Info.plist')
+realm_version = '3.7.6' # not up-to-date: info_plist_version('Tests/Performance/Realm/build/osx/Realm.framework/Versions/A/Resources/Info.plist')
 
 puts <<-REPORT
 # Comparing the Performances of Swift SQLite libraries
