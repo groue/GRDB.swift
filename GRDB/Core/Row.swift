@@ -151,7 +151,7 @@ extension Row {
     ///     let row = try Row.fetchOne(db, "SELECT NULL, NULL")!
     ///     row.containsNonNullValue // false
     public var containsNonNullValue: Bool {
-        for i in (0..<count) where !impl.hasNull(atUncheckedIndex: i) {
+        for i in (0..<count) where !hasNull(atUncheckedIndex: i) {
             return true
         }
         
@@ -172,6 +172,11 @@ extension Row {
     /// values.
     public func hasNull(atIndex index: Int) -> Bool {
         let index = checkedIndex(index)
+        return hasNull(atUncheckedIndex: index)
+    }
+    
+    @inline(__always)
+    func hasNull(atUncheckedIndex index: Int) -> Bool {
         return impl.hasNull(atUncheckedIndex: index)
     }
     
@@ -195,7 +200,7 @@ extension Row {
     /// fail, a fatal error is raised.
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value? {
         let index = checkedIndex(index)
-        return decodeIfPresent(Value.self, atUncheckedIndex: index)
+        return Value.decodeIfPresent(from: self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -212,7 +217,7 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value? {
         let index = checkedIndex(index)
-        return fastDecodeIfPresent(Value.self, atUncheckedIndex: index)
+        return Value.fastDecodeIfPresent(from: self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -224,7 +229,7 @@ extension Row {
     /// SQLite value can not be converted to `Value`.
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value {
         let index = checkedIndex(index)
-        return decode(Value.self, atUncheckedIndex: index)
+        return Value.decode(from: self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -240,7 +245,7 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value {
         let index = checkedIndex(index)
-        return fastDecode(Value.self, atUncheckedIndex: index)
+        return Value.fastDecode(from: self, atUncheckedIndex: index)
     }
     
     /// Returns Int64, Double, String, Data or nil, depending on the value
@@ -276,7 +281,7 @@ extension Row {
         guard let index = index(ofColumn: columnName) else {
             return nil
         }
-        return decodeIfPresent(Value.self, atUncheckedIndex: index)
+        return Value.decodeIfPresent(from: self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -295,7 +300,7 @@ extension Row {
         guard let index = index(ofColumn: columnName) else {
             return nil
         }
-        return fastDecodeIfPresent(Value.self, atUncheckedIndex: index)
+        return Value.fastDecodeIfPresent(from: self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -315,7 +320,7 @@ extension Row {
                 from: nil,
                 conversionContext: ValueConversionContext(self).atColumn(columnName))
         }
-        return decode(Value.self, atUncheckedIndex: index)
+        return Value.decode(from: self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -339,7 +344,7 @@ extension Row {
                 from: nil,
                 conversionContext: ValueConversionContext(self).atColumn(columnName))
         }
-        return fastDecode(Value.self, atUncheckedIndex: index)
+        return Value.fastDecode(from: self, atUncheckedIndex: index)
     }
     
     /// Returns Int64, Double, String, NSData or nil, depending on the value
@@ -462,64 +467,80 @@ extension Row {
     public func dataNoCopy(_ column: ColumnExpression) -> Data? {
         return dataNoCopy(named: column.name)
     }
-    
-    // MARK: - Value Decoding Helpers
-    
+}
+
+// MARK: - Value Decoding Helpers
+
+extension Row {
     @inline(__always)
     private func checkedIndex(_ index: Int, file: StaticString = #file, line: UInt = #line) -> Int {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range", file: file, line: line)
         return index
     }
-    
+}
+
+/// Those methods should be declared on Row, and made generic on value type.
+/// But we want to support "dynamic type variable" in generic methods, as in
+/// FetchableRecord+Decodable.swift:
+///
+///     if let type = T.self as? DatabaseValueConvertible.Type {
+///         let value = type.decode(from: row, atUncheckedIndex: index)
+///     }
+///
+/// Swift compiler won't accept the `type` variable above to be used as a
+/// generic argument. But it accepts the methods declared below.
+extension DatabaseValueConvertible {
     @inline(__always)
-    private func decode<Value: DatabaseValueConvertible>(
-        _ type: Value.Type,
-        atUncheckedIndex index: Int) -> Value
-    {
-        return Value.decode(
-            from: impl.databaseValue(atUncheckedIndex: index),
-            conversionContext: ValueConversionContext(self).atColumn(index))
+    static func decode(from row: Row, atUncheckedIndex index: Int) -> Self {
+        return decode(
+            from: row.impl.databaseValue(atUncheckedIndex: index),
+            conversionContext: ValueConversionContext(row).atColumn(index))
     }
     
     @inline(__always)
-    private func decodeIfPresent<Value: DatabaseValueConvertible>(
-        _ type: Value.Type,
-        atUncheckedIndex index: Int) -> Value?
-    {
-        return Value.decodeIfPresent(
-            from: impl.databaseValue(atUncheckedIndex: index),
-            conversionContext: ValueConversionContext(self).atColumn(index))
+    static func decodeIfPresent(from row: Row, atUncheckedIndex index: Int) -> Self? {
+        return decodeIfPresent(
+            from: row.impl.databaseValue(atUncheckedIndex: index),
+            conversionContext: ValueConversionContext(row).atColumn(index))
     }
-    
+}
+
+/// Those methods should be declared on Row, and made generic on value type.
+/// But we want to support "dynamic type variable" in generic methods, as in
+/// FetchableRecord+Decodable.swift:
+///
+///     if let type = T.self as? (DatabaseValueConvertible & StatementColumnConvertible).Type {
+///         let value = type.fastDecode(from: row, atUncheckedIndex: index)
+///     }
+///
+/// Swift compiler won't accept the `type` variable above to be used as a
+/// generic argument. But it accepts the methods declared below.
+extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     @inline(__always)
-    private func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
-        _ type: Value.Type,
-        atUncheckedIndex index: Int) -> Value
-    {
-        if let sqliteStatement = sqliteStatement {
-            return Value.fastDecode(
+    static func fastDecode(from row: Row, atUncheckedIndex index: Int) -> Self {
+        if let sqliteStatement = row.sqliteStatement {
+            return fastDecode(
                 from: sqliteStatement,
                 index: Int32(index),
-                conversionContext: ValueConversionContext(self).atColumn(index))
+                conversionContext: ValueConversionContext(row).atColumn(index))
         }
-        return impl.fastDecode(
-            Value.self,
+        return row.impl.fastDecode(
+            Self.self,
             atUncheckedIndex: index,
-            conversionContext: ValueConversionContext(self).atColumn(index))
+            conversionContext: ValueConversionContext(row).atColumn(index))
     }
     
     @inline(__always)
-    private func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
-        _ type: Value.Type,
-        atUncheckedIndex index: Int) -> Value?
-    {
-        if let sqliteStatement = sqliteStatement {
-            return Value.fastDecodeIfPresent(from: sqliteStatement, index: Int32(index))
+    static func fastDecodeIfPresent(from row: Row, atUncheckedIndex index: Int) -> Self? {
+        if let sqliteStatement = row.sqliteStatement {
+            return fastDecodeIfPresent(
+                from: sqliteStatement,
+                index: Int32(index))
         }
-        return impl.fastDecodeIfPresent(
-            Value.self,
+        return row.impl.fastDecodeIfPresent(
+            Self.self,
             atUncheckedIndex: index,
-            conversionContext: ValueConversionContext(self).atColumn(index))
+            conversionContext: ValueConversionContext(row).atColumn(index))
     }
 }
 
