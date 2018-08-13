@@ -9,7 +9,7 @@ import Foundation
 #endif
 
 class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
-    func testDatabaseValueConvertibleImplementationDerivedFromEncodable() {
+    func testDatabaseValueConvertibleImplementationDerivedFromEncodable1() {
         struct Value : Encodable, DatabaseValueConvertible {
             let string: String
             
@@ -19,7 +19,7 @@ class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
             }
             
             static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {
-                preconditionFailure("unused")
+                preconditionFailure("not tested")
             }
             
             // Infered, tested
@@ -30,15 +30,78 @@ class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
         XCTAssertEqual(dbValue.storage.value as! String, "foo")
     }
     
-     func testEncodableRawRepresentable() {
-         // Test that the rawValue is encoded with DatabaseValueConvertible, not with Encodable
-         struct Value : RawRepresentable, Encodable, DatabaseValueConvertible {
-             let rawValue: Date
-         }
-         
-         let dbValue = Value(rawValue: Date()).databaseValue
-         XCTAssertTrue(dbValue.storage.value is String)
-     }
+    func testDatabaseValueConvertibleImplementationDerivedFromEncodable2() {
+        struct Value : Encodable, DatabaseValueConvertible {
+            let string: String
+            
+            func encode(to encoder: Encoder) throws {
+                var container = encoder.singleValueContainer()
+                try container.encode(string)
+            }
+            
+            static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {
+                preconditionFailure("not tested")
+            }
+        }
+        
+        struct Wrapper : Encodable, DatabaseValueConvertible {
+            let value: Value
+            
+            func encode(to encoder: Encoder) throws {
+                var container = encoder.singleValueContainer()
+                try container.encode(value)
+            }
+            
+            static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Wrapper? {
+                preconditionFailure("not tested")
+            }
+            
+            // Infered, tested
+            // var databaseValue: DatabaseValue { ... }
+        }
+        
+        let dbValue = Wrapper(value: Value(string: "foo")).databaseValue
+        XCTAssertEqual(dbValue.storage.value as! String, "foo")
+    }
+    
+    func testDatabaseValueConvertibleImplementationDerivedFromEncodable3() {
+        struct Wrapper : Encodable, DatabaseValueConvertible {
+            struct Nested : Encodable {
+                let string: String
+                
+                func encode(to encoder: Encoder) throws {
+                    var container = encoder.singleValueContainer()
+                    try container.encode(string)
+                }
+            }
+            let nested: Nested
+            
+            func encode(to encoder: Encoder) throws {
+                var container = encoder.singleValueContainer()
+                try container.encode(nested)
+            }
+            
+            static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Wrapper? {
+                preconditionFailure("not tested")
+            }
+            
+            // Infered, tested
+            // var databaseValue: DatabaseValue { ... }
+        }
+        
+        let dbValue = Wrapper(nested: Wrapper.Nested(string: "foo")).databaseValue
+        XCTAssertEqual(dbValue.storage.value as! String, "foo")
+    }
+    
+    func testEncodableRawRepresentable() {
+        // Test that the rawValue is encoded with DatabaseValueConvertible, not with Encodable
+        struct Value : RawRepresentable, Encodable, DatabaseValueConvertible {
+            let rawValue: Date
+        }
+        
+        let dbValue = Value(rawValue: Date()).databaseValue
+        XCTAssertTrue(dbValue.storage.value is String)
+    }
     
     func testEncodableRawRepresentableEnum() {
         // Make sure this kind of declaration is possible
@@ -63,7 +126,7 @@ extension DatabaseValueConvertibleEncodableTests {
             }
             
             static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {
-                preconditionFailure("unused")
+                preconditionFailure("not tested")
             }
             
             // Infered, tested
@@ -92,7 +155,7 @@ extension DatabaseValueConvertibleEncodableTests {
             }
             
             static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {
-                preconditionFailure("unused")
+                preconditionFailure("not tested")
             }
             
             // Infered, tested
@@ -116,7 +179,7 @@ extension DatabaseValueConvertibleEncodableTests {
             }
             
             static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {
-                preconditionFailure("unused")
+                preconditionFailure("not tested")
             }
             
             // Infered, tested

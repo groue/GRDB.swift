@@ -168,7 +168,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             _ = s1.wait(timeout: .distantFuture)
             try! dbPool.read { db in
                 // activate snapshot isolation so that foo table is visible during the whole read. Any read is enough.
-                try db.makeSelectStatement("SELECT * FROM sqlite_master").cursor().next()
+                try db.makeSelectStatement("SELECT * FROM sqlite_master").makeCursor().next()
                 // warm cache
                 _ = try db.primaryKey("foo")
                 // cache contains the primary key
