@@ -4,6 +4,8 @@
     import SQLite3
 #endif
 
+import Foundation
+
 // MARK: - Value Types
 
 /// Bool adopts DatabaseValueConvertible and StatementColumnConvertible.
@@ -456,10 +458,36 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     /// Returns a String initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> String? {
         switch dbValue.storage {
-        case .string(let string):
-            return string
-        default:
-            return nil
+        case .blob(let data): return String(data: data, encoding: .utf8)
+        case .string(let string): return string
+        default: return nil
+        }
+    }
+}
+
+/// Data is convertible to and from DatabaseValue.
+extension Data : DatabaseValueConvertible, StatementColumnConvertible {
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        if let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) {
+            let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
+            self.init(bytes: bytes, count: count) // copy bytes
+        } else {
+            self.init()
+        }
+    }
+
+    /// Returns a value that can be stored in the database.
+    public var databaseValue: DatabaseValue {
+        return DatabaseValue(storage: .blob(self))
+    }
+
+    /// Returns a Data initialized from *dbValue*, if it contains
+    /// a Blob.
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Data? {
+        switch dbValue.storage {
+        case .blob(let data): return data
+        case .string(let string): return string.data(using: .utf8)
+        default: return nil
         }
     }
 }

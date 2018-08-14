@@ -86,7 +86,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                     // because we're decoding a database value here (string, int, double, data, null)
                     // if we find a nested Decodable type then pass the string to JSON decoder
                     let value = try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
-                    if let _ = value as? Codable {
+                    if let _ = value as? Encodable {
                         // Support for nested ( Codable )
                         return try JSONDecoder().decode(type.self, from: row.dataNoCopy(named: key.stringValue)!)
                     } else {

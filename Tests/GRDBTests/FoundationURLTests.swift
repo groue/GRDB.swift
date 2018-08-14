@@ -48,7 +48,7 @@ class FoundationURLTests: GRDBTestCase {
         XCTAssertNil(URL.fromDatabaseValue(databaseValue_Null))
         XCTAssertNil(URL.fromDatabaseValue(databaseValue_Int64))
         XCTAssertNil(URL.fromDatabaseValue(databaseValue_Double))
-        XCTAssertNil(URL.fromDatabaseValue(databaseValue_Blob))
+        XCTAssertEqual(URL.fromDatabaseValue(databaseValue_Blob)!.absoluteString, "bar")
     }
     
 }
