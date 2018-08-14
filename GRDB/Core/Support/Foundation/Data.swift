@@ -25,6 +25,17 @@ extension Data : DatabaseValueConvertible, StatementColumnConvertible {
     /// a Blob.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Data? {
         guard case .blob(let data) = dbValue.storage else {
+            // Check to see if data is String, if so then pass is through JSONSerialization
+            // to confirm if contains JSON, if so then this is a nested type stored as JSON,
+            // so return string as Data so that it can be decoded
+            if let valueIsString = dbValue.storage.value as? String, let dataUtf8 = valueIsString.data(using: .utf8) {
+                do {
+                    try JSONSerialization.jsonObject(with: dataUtf8, options: [])
+                    return dataUtf8
+                } catch {
+                    return nil
+                }
+            }
             return nil
         }
         return data

@@ -548,5 +548,148 @@ extension FetchableRecordDecodableTests {
         }
 
     }
+    
+    // MARK: - JSON data in Detahced Rows
+    
+    func testDetachedRows() throws {
+        struct NestedStruct : PersistableRecord, FetchableRecord, Codable {
+            let firstName: String?
+            let lastName: String?
+        }
+        
+        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let nested: NestedStruct
+        }
+        
+        let row: Row = ["nested": """
+            {"firstName":"Bob","lastName":"Dylan"}
+            """]
+        
+        let model = StructWithNestedType(row: row)
+        XCTAssertEqual(model.nested.firstName, "Bob")
+        XCTAssertEqual(model.nested.lastName, "Dylan")
+    }
+    
+    func testArrayOfDetachedRowsAsData() throws {
+        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let name: String
+        }
+        
+        let jsonAsString = "{\"firstName\":\"Bob\",\"lastName\":\"Marley\"}"
+        let jsonAsData = jsonAsString.data(using: .utf8)
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("name", .text)
+            }
+            
+            let model = TestStruct(name: jsonAsString)
+            try model.insert(db)
+        }
+        
+        try dbQueue.read { db in
+            
+            // ... with an array of detached rows:
+            let array = try Row.fetchAll(db, "SELECT * FROM t1")
+            for row in array {
+                let data1: Data? = row["name"]
+                XCTAssertEqual(jsonAsData, data1)
+                let data = row.dataNoCopy(named: "name")
+                XCTAssertEqual(jsonAsData, data)
+            }
+        }
+    }
+    
+    func testArrayOfDetachedRowsAsString() throws {
+        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let name: String
+        }
+        
+        let jsonAsString = "{\"firstName\":\"Bob\",\"lastName\":\"Marley\"}"
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("name", .text)
+            }
+            
+            let model = TestStruct(name: jsonAsString)
+            try model.insert(db)
+        }
+        
+        try dbQueue.read { db in
+            
+            // ... with an array of detached rows:
+            let array = try Row.fetchAll(db, "SELECT * FROM t1")
+            for row in array {
+                let string: String? = row["name"]
+                XCTAssertEqual(jsonAsString, string)
+            }
+        }
+    }
+    
+    func testCursorRowsAsData() throws {
+        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let name: String
+        }
+        
+        let jsonAsString = "{\"firstName\":\"Bob\",\"lastName\":\"Marley\"}"
+        let jsonAsData = jsonAsString.data(using: .utf8)
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("name", .text)
+            }
+            
+            let model = TestStruct(name: jsonAsString)
+            try model.insert(db)
+        }
+        
+        try dbQueue.read { db in
+            // Compare cursor of low-level rows:
+            let cursor = try Row.fetchCursor(db, "SELECT * FROM t1")
+            while let row = try cursor.next() {
+                let data1: Data? = row["name"]
+                XCTAssertEqual(jsonAsData, data1)
+                let data = row.dataNoCopy(named: "name")
+                XCTAssertEqual(jsonAsData, data)
+            }
+        }
+    }
+    
+    func testCursorRowsAsString() throws {
+        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let name: String
+        }
+        
+        let jsonAsString = "{\"firstName\":\"Bob\",\"lastName\":\"Marley\"}"
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("name", .text)
+            }
+            
+            let model = TestStruct(name: jsonAsString)
+            try model.insert(db)
+        }
+        
+        try dbQueue.read { db in
+            // Compare cursor of low-level rows:
+            let cursor = try Row.fetchCursor(db, "SELECT * FROM t1")
+            while let row = try cursor.next() {
+                let string: String? = row["name"]
+                XCTAssertEqual(jsonAsString, string)
+            }
+        }
+    }
+
 
 }
