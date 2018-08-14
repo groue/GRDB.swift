@@ -497,4 +497,56 @@ extension FetchableRecordDecodableTests {
             XCTAssertEqual(firstNestedModelInArray.lastName, "Dylan")
         }
     }
+
+    func testCodableExampleCode() throws {
+        struct Player: PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let name: String
+            let score: Int
+            let scores: [Int]
+            let lastMedal: PlayerMedal
+            let medals: [PlayerMedal]
+            //let timeline: [String: PlayerMedal] // <- Conforms to Codable but is not supported by GRDB 
+        }
+
+        // A simple Codable that will be nested in a parent Codable
+        struct PlayerMedal : Codable {
+            let name: String?
+            let type: String?
+        }
+
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("name", .text)
+                t.column("score", .integer)
+                t.column("scores", .integer)
+                t.column("lastMedal", .text)
+                t.column("medals", .text)
+                //t.column("timeline", .text)
+            }
+
+            let medal1 = PlayerMedal(name: "First", type: "Gold")
+            let medal2 = PlayerMedal(name: "Second", type: "Silver")
+            //let timeline = ["Local Contest":medal1, "National Contest":medal2]
+            let value = Player(name: "PlayerName", score: 10, scores: [1,2,3,4,5], lastMedal: medal1, medals: [medal1, medal2])
+            try value.insert(db)
+
+            let parentModel = try Player.fetchAll(db)
+
+            guard let arrayOfNestedModel = parentModel.first?.medals, let firstNestedModelInArray = arrayOfNestedModel.first,  let secondNestedModelInArray = arrayOfNestedModel.last else {
+                XCTFail()
+                return
+            }
+
+            // Check there are two models in array
+            XCTAssertTrue(arrayOfNestedModel.count == 2)
+
+            // Check the nested model contains the expected values of first and last name
+            XCTAssertEqual(firstNestedModelInArray.name, "First")
+            XCTAssertEqual(secondNestedModelInArray.name, "Second")
+        }
+
+    }
+
 }

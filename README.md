@@ -2567,15 +2567,25 @@ struct Link : PersistableRecord {
 
 ## Codable Records
 
-[Swift Archival & Serialization](https://github.com/apple/swift-evolution/blob/master/proposals/0166-swift-archival-serialization.md) was introduced with Swift 4.
+[Swift Archival & Serialization](https://github.com/apple/swift-evolution/blob/master/proposals/0166-swift-archival-serialization.md) was introduced with Swift 4, GRDB supports all Codable conforming types with the exception of Dictionaries.
 
 GRDB provides default implementations for [`FetchableRecord.init(row:)`](#fetchablerecord-protocol) and [`PersistableRecord.encode(to:)`](#persistablerecord-protocol) for record types that also adopt an archival protocol (`Codable`, `Encodable` or `Decodable`). When all their properties are themselves codable, Swift generates the archiving methods, and you don't need to write them down:
 
 ```swift
-// Declare a plain Codable struct or class...
+// Declare a Codable struct or class, nested Codable objects as well as Sets, Arrays, and Optionals are supported with the exception of Dictionaries 
 struct Player: Codable {
     let name: String
     let score: Int
+    let scores: [Int]
+    let lastMedal: PlayerMedal
+    let medals: [PlayerMedal]
+    //let timeline: [String: PlayerMedal] // <- Conforms to Codable but is not supported by GRDB 
+    }
+    
+// A simple Codable that will be nested in a parent Codable
+struct PlayerMedal : Codable {
+    let name: String
+    let type: String
 }
 
 // Adopt Record protocols...
@@ -2588,13 +2598,12 @@ try dbQueue.write { db in
 }
 ```
 
-GRDB support for Codable works well with "flat" records, whose stored properties are all simple [values](#values) (Bool, Int, String, Date, Swift enums, etc.) For example, the following record is not flat:
+GRDB support for Codable works with standard library types like String, Int, and Double; and Foundation types like Date, Data, and URL, Apple lists conformance for : (Array, CGAffineTransform, CGPoint, CGRect, CGSize, CGVector, DateInterval, Decimal, Dictionary, MPMusicPlayerPlayParameters, Optional, Set) Anything else like say a CLLocationCoordinate2D will break conformity e.g.:
 
 ```swift
-// Can't take profit from Codable code generation:
 struct Place: FetchableRecord, PersistableRecord, Codable {
     var title: String
-    var coordinate: CLLocationCoordinate2D // <- Not a simple value!
+    var coordinate: CLLocationCoordinate2D // <- Does not conform to Codable
 }
 ```
 
