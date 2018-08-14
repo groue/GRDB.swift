@@ -268,7 +268,7 @@ class ThrowingKeyedContainer<KeyType: CodingKey>: KeyedEncodingContainerProtocol
     func encode<T>(_ value: T, forKey key: KeyType) throws where T : Encodable { throw errorMessage }
 
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: KeyType) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
-        fatalError("Not implemented")
+        return KeyedEncodingContainer(ThrowingKeyedContainer<NestedKey>(error: errorMessage))
     }
     func nestedUnkeyedContainer(forKey key: KeyType) -> UnkeyedEncodingContainer {
         fatalError("Not implemented")
@@ -309,7 +309,7 @@ class ThrowingUnkeyedContainer: UnkeyedEncodingContainer {
     func encodeNil() throws { throw errorMessage }
     
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
-        fatalError("Not implemented")
+        return KeyedEncodingContainer(ThrowingKeyedContainer<NestedKey>(error: errorMessage))
         
     }
     
