@@ -46,16 +46,22 @@ private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEn
                  try value.encode(to: PersistableRecordEncoder(codingPath: [key], encode: encode))
             } catch {
                 // If value.encode does not work e.g. "unkeyed encoding is not supported" then see if model can be stored as JSON
-                do {
-                    let encoder = JSONEncoder()
-                    if #available(watchOS 4.0, OSX 10.13, iOS 11.0, *) {
-                        encoder.outputFormatting = .sortedKeys
+                switch error as! EncodingError {
+                case .invalidValue(_, let context):
+                    if context.debugDescription == "unkeyed encoding is not supported" {
+                        // Support for keyed containers ( [Codable] )
+                        let encoder = JSONEncoder()
+                        if #available(watchOS 4.0, OSX 10.13, iOS 11.0, *) {
+                            encoder.outputFormatting = .sortedKeys
+                        }
+                        let json = try encoder.encode(value)
+                        //the Data from the encoder is guaranteed to convert to String
+                        let modelAsString = String(data: json, encoding: .utf8)!
+                        return encode(modelAsString, key.stringValue)
+                    } else {
+                        throw(error)
                     }
-                    let json = try encoder.encode(value)
-                    //the Data from the encoder is guaranteed to convert to String
-                    let modelAsString = String(data: json, encoding: .utf8)!
-                    return encode(modelAsString, key.stringValue)
-                } catch {
+                default:
                     throw(error)
                 }
             }
@@ -162,16 +168,22 @@ private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
                 try value.encode(to: PersistableRecordEncoder(codingPath: [key], encode: encode))
             } catch {
                 // If value.encode does not work e.g. "unkeyed encoding is not supported" then see if model can be stored as JSON
-                do {
-                    let encoder = JSONEncoder()
-                    if #available(watchOS 4.0, OSX 10.13, iOS 11.0, *) {
-                        encoder.outputFormatting = .sortedKeys
+                switch error as! EncodingError {
+                case .invalidValue(_, let context):
+                    if context.debugDescription == "unkeyed encoding is not supported" {
+                        // Support for keyed containers ( [Codable] )
+                        let encoder = JSONEncoder()
+                        if #available(watchOS 4.0, OSX 10.13, iOS 11.0, *) {
+                            encoder.outputFormatting = .sortedKeys
+                        }
+                        let json = try encoder.encode(value)
+                        //the Data from the encoder is guaranteed to convert to String
+                        let modelAsString = String(data: json, encoding: .utf8)!
+                        return encode(modelAsString, key.stringValue)
+                    } else {
+                        throw(error)
                     }
-                    let json = try encoder.encode(value)
-                    //the Data from the encoder is guaranteed to convert to String
-                    let modelAsString = String(data: json, encoding: .utf8)!
-                    return encode(modelAsString, key.stringValue)
-                } catch {
+                default:
                     throw(error)
                 }
             }
