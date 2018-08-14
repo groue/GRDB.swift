@@ -78,7 +78,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                 return type.fastDecodeIfPresent(from: row, atUncheckedIndex: index) as! T?
             } else if let type = T.self as? DatabaseValueConvertible.Type {
                 return type.decodeIfPresent(from: row, atUncheckedIndex: index) as! T?
-            } else if row.hasNull(atUncheckedIndex: index) {
+            } else if row.impl.hasNull(atUncheckedIndex: index) {
                 return nil
             } else {
                 return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))

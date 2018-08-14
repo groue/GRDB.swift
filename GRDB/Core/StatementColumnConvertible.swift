@@ -142,7 +142,7 @@ public final class FastNullableDatabaseValueCursor<Value: DatabaseValueConvertib
             done = true
             return nil
         case SQLITE_ROW:
-            return Value.fastDecodeIfPresent(from: sqliteStatement, index: columnIndex)
+            return Value.fastDecodeIfPresent(from: sqliteStatement, atUncheckedIndex: columnIndex)
         case let code:
             statement.database.selectStatementDidFail(statement)
             throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)

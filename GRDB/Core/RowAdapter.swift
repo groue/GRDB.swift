@@ -493,12 +493,12 @@ struct AdaptedRowImpl : RowImpl {
     
     func hasNull(atUncheckedIndex index: Int) -> Bool {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.hasNull(atUncheckedIndex: mappedIndex)
+        return base.impl.hasNull(atUncheckedIndex: mappedIndex)
     }
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.impl.databaseValue(atUncheckedIndex: mappedIndex) // base.impl: Demeter violation
+        return base.impl.databaseValue(atUncheckedIndex: mappedIndex)
     }
     
     func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
@@ -507,7 +507,7 @@ struct AdaptedRowImpl : RowImpl {
         conversionContext: @autoclosure () -> ValueConversionContext?) -> Value
     {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.impl.fastDecode(Value.self, atUncheckedIndex: mappedIndex, conversionContext: conversionContext) // base.impl: Demeter violation
+        return Value.fastDecode(from: base, atUncheckedIndex: mappedIndex)
     }
     
     func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
@@ -516,12 +516,14 @@ struct AdaptedRowImpl : RowImpl {
         conversionContext: @autoclosure () -> ValueConversionContext?) -> Value?
     {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.impl.fastDecodeIfPresent(Value.self, atUncheckedIndex: mappedIndex, conversionContext: conversionContext) // base.impl: Demeter violation
+        return Value.fastDecodeIfPresent(from: base, atUncheckedIndex: mappedIndex)
     }
     
     func dataNoCopy(atUncheckedIndex index:Int, conversionContext: @autoclosure () -> ValueConversionContext?) -> Data? {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.impl.dataNoCopy(atUncheckedIndex: mappedIndex, conversionContext: conversionContext) // base.impl: Demeter violation
+        return base.impl.dataNoCopy(
+            atUncheckedIndex: mappedIndex,
+            conversionContext: conversionContext)
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {
