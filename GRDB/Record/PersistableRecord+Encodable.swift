@@ -158,7 +158,23 @@ private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
             // This allows us to encode Date as String, for example.
             encode(dbValueConvertible.databaseValue, key.stringValue)
         } else {
-            try value.encode(to: PersistableRecordEncoder(codingPath: [key], encode: encode))
+            do {
+                try value.encode(to: PersistableRecordEncoder(codingPath: [key], encode: encode))
+            } catch {
+                // If value.encode does not work e.g. "unkeyed encoding is not supported" then see if model can be stored as JSON
+                do {
+                    let encoder = JSONEncoder()
+                    if #available(watchOS 4.0, OSX 10.13, iOS 11.0, *) {
+                        encoder.outputFormatting = .sortedKeys
+                    }
+                    let json = try encoder.encode(value)
+                    //the Data from the encoder is guaranteed to convert to String
+                    let modelAsString = String(data: json, encoding: .utf8)!
+                    return encode(modelAsString, key.stringValue)
+                } catch {
+                    throw(error)
+                }
+            }
         }
     }
 }
