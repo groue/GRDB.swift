@@ -428,7 +428,7 @@ A database queue serializes accesses to the database, which means that there is 
 
 - When you don't need to modify the database, prefer the `read` method. It prevents any modification to the database.
 
-- The `write` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are cancelled, the whole transaction is rollbacked, and the error is rethrown.
+- The `write` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are reverted, the whole transaction is rollbacked, and the error is rethrown.
     
     When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
 
@@ -506,7 +506,7 @@ Unlike [database queues](#database-queues), pools allow several threads to acces
 
 - Unlike reads, writes are serialized. There is never more than a single thread that is writing into the database.
 
-- The `write` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are cancelled, the whole transaction is rollbacked, and the error is rethrown.
+- The `write` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are reverted, the whole transaction is rollbacked, and the error is rethrown.
     
     When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
 
