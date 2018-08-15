@@ -697,6 +697,30 @@ extension FetchableRecordDecodableTests {
             }
         }
     }
-
-
+    
+    func testJSONDateEncodingStrategy() throws {
+        struct Record: FetchableRecord, Decodable {
+            let date: Date
+            let optionalDate: Date?
+            let dates: [Date]
+            let optionalDates: [Date?]
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = try Record.fetchOne(db, "SELECT ? AS date, ? AS optionalDate, ? AS dates, ? AS optionalDates", arguments: [
+                "1970-01-01 00:02:08.000",
+                "1970-01-01 00:02:08.000",
+                "[128000]",
+                "[null,128000]"
+            ])!
+            XCTAssertEqual(record.date.timeIntervalSince1970, 128)
+            XCTAssertEqual(record.optionalDate!.timeIntervalSince1970, 128)
+            XCTAssertEqual(record.dates.count, 1)
+            XCTAssertEqual(record.dates[0].timeIntervalSince1970, 128)
+            XCTAssertEqual(record.optionalDates.count, 2)
+            XCTAssertNil(record.optionalDates[0])
+            XCTAssertEqual(record.optionalDates[1]!.timeIntervalSince1970, 128)
+        }
+    }
 }
