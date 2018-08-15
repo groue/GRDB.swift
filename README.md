@@ -882,9 +882,9 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     - Blob SQLite values to Foundation Data.
     
     See [Values](#values) for more information on supported types (Bool, Int, String, Date, Swift enums, etc.)
-
+    
 - **NULL returns nil.**
-
+    
     ```swift
     let row = try Row.fetchOne(db, "SELECT NULL")!
     row[0] as Int? // nil
@@ -937,7 +937,7 @@ Generally speaking, you can extract the type you need, *provided it can be conve
     
     This extra verbosity is the consequence of having to deal with an untrusted database: you may consider fixing the content of your database instead. See [Fatal Errors](#fatal-errors) for more information.
     
-- **SQLite has a weak type system, and provides [convenience conversions](https://www.sqlite.org/c3ref/column_blob.html) that can turn Blob to String, String to Int, etc.**
+- **SQLite has a weak type system, and provides [convenience conversions](https://www.sqlite.org/c3ref/column_blob.html) that can turn String to Int, Double to Blob, etc.**
     
     GRDB will sometimes let those conversions go through:
     
