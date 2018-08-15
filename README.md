@@ -2572,14 +2572,14 @@ struct Link : PersistableRecord {
 GRDB provides default implementations for [`FetchableRecord.init(row:)`](#fetchablerecord-protocol) and [`PersistableRecord.encode(to:)`](#persistablerecord-protocol) for record types that also adopt an archival protocol (`Codable`, `Encodable` or `Decodable`). When all their properties are themselves codable, Swift generates the archiving methods, and you don't need to write them down:
 
 ```swift
-// Declare a Codable struct or class, nested Codable objects as well as Sets, Arrays, and Optionals are supported
+// Declare a Codable struct or class, nested Codable objects as well as Sets, Arrays, Dictionaries and Optionals are all supported
 struct Player: Codable {
     let name: String
     let score: Int
     let scores: [Int]
     let lastMedal: PlayerMedal
     let medals: [PlayerMedal]
-    //let timeline: [String: PlayerMedal]
+    let timeline: [String: PlayerMedal]
     }
     
 // A simple Codable that will be nested in a parent Codable
