@@ -506,7 +506,7 @@ extension FetchableRecordDecodableTests {
             let scores: [Int]
             let lastMedal: PlayerMedal
             let medals: [PlayerMedal]
-            //let timeline: [String: PlayerMedal] // <- Conforms to Codable but is not supported by GRDB 
+            let timeline: [String: PlayerMedal]
         }
 
         // A simple Codable that will be nested in a parent Codable
@@ -523,28 +523,35 @@ extension FetchableRecordDecodableTests {
                 t.column("scores", .integer)
                 t.column("lastMedal", .text)
                 t.column("medals", .text)
-                //t.column("timeline", .text)
+                t.column("timeline", .text)
             }
 
             let medal1 = PlayerMedal(name: "First", type: "Gold")
             let medal2 = PlayerMedal(name: "Second", type: "Silver")
-            //let timeline = ["Local Contest":medal1, "National Contest":medal2]
-            let value = Player(name: "PlayerName", score: 10, scores: [1,2,3,4,5], lastMedal: medal1, medals: [medal1, medal2])
+            let timeline = ["Local Contest": medal1, "National Contest": medal2]
+            let value = Player(name: "PlayerName", score: 10, scores: [1,2,3,4,5], lastMedal: medal1, medals: [medal1, medal2], timeline: timeline)
             try value.insert(db)
 
             let parentModel = try Player.fetchAll(db)
 
-            guard let arrayOfNestedModel = parentModel.first?.medals, let firstNestedModelInArray = arrayOfNestedModel.first,  let secondNestedModelInArray = arrayOfNestedModel.last else {
+            guard let first = parentModel.first, let firstNestedModelInArray = first.medals.first,  let secondNestedModelInArray = first.medals.last else {
                 XCTFail()
                 return
             }
 
             // Check there are two models in array
-            XCTAssertTrue(arrayOfNestedModel.count == 2)
+            XCTAssertTrue(first.medals.count == 2)
 
             // Check the nested model contains the expected values of first and last name
             XCTAssertEqual(firstNestedModelInArray.name, "First")
             XCTAssertEqual(secondNestedModelInArray.name, "Second")
+
+            XCTAssertEqual(first.name, "PlayerName")
+            XCTAssertEqual(first.score, 10)
+            XCTAssertEqual(first.scores, [1,2,3,4,5])
+            XCTAssertEqual(first.lastMedal.name, medal1.name)
+            XCTAssertEqual(first.timeline["Local Contest"]?.name, medal1.name)
+            XCTAssertEqual(first.timeline["National Contest"]?.name, medal2.name)
         }
 
     }
