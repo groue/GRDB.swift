@@ -131,6 +131,16 @@ func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue?, conversio
     fatalError(conversionErrorMessage(to: T.self, from: dbValue, conversionContext: conversionContext), file: file, line: line)
 }
 
+func fatalConversionError<T>(to: T.Type, sqliteStatement: SQLiteStatement, index: Int32) -> Never {
+    let sql = String(cString: sqlite3_sql(sqliteStatement))
+        .trimmingCharacters(in: statementSeparatorCharacterSet)
+    
+    fatalConversionError(
+        to: T.self,
+        from: DatabaseValue(sqliteStatement: sqliteStatement, index: index),
+        conversionContext: ValueConversionContext(sql: sql, arguments: nil))
+}
+
 // MARK: - DatabaseValueConvertible
 
 /// Lossless conversions from database values and rows

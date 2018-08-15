@@ -105,7 +105,7 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = Int(exactly: int64) {
             self = v
         } else {
-            fatalError("could not convert database value \(int64) to Int")
+            fatalConversionError(to: Int.self, sqliteStatement: sqliteStatement, index: index)
         }
     }
     
@@ -133,7 +133,7 @@ extension Int8: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = Int8(exactly: int64) {
             self = v
         } else {
-            fatalError("could not convert database value \(int64) to Int8")
+            fatalConversionError(to: Int8.self, sqliteStatement: sqliteStatement, index: index)
         }
     }
     
@@ -161,7 +161,7 @@ extension Int16: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = Int16(exactly: int64) {
             self = v
         } else {
-            fatalError("could not convert database value \(int64) to Int16")
+            fatalConversionError(to: Int16.self, sqliteStatement: sqliteStatement, index: index)
         }
     }
     
@@ -189,7 +189,7 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = Int32(exactly: int64) {
             self = v
         } else {
-            fatalError("could not convert database value \(int64) to Int32")
+            fatalConversionError(to: Int32.self, sqliteStatement: sqliteStatement, index: index)
         }
     }
     
@@ -249,7 +249,7 @@ extension UInt: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = UInt(exactly: int64) {
             self = v
         } else {
-            fatalError("could not convert database value \(int64) to UInt")
+            fatalConversionError(to: UInt.self, sqliteStatement: sqliteStatement, index: index)
         }
     }
     
@@ -277,7 +277,7 @@ extension UInt8: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = UInt8(exactly: int64) {
             self = v
         } else {
-            fatalError("could not convert database value \(int64) to UInt8")
+            fatalConversionError(to: UInt8.self, sqliteStatement: sqliteStatement, index: index)
         }
     }
     
@@ -305,7 +305,7 @@ extension UInt16: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = UInt16(exactly: int64) {
             self = v
         } else {
-            fatalError("could not convert database value \(int64) to UInt16")
+            fatalConversionError(to: UInt16.self, sqliteStatement: sqliteStatement, index: index)
         }
     }
     
@@ -333,7 +333,7 @@ extension UInt32: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = UInt32(exactly: int64) {
             self = v
         } else {
-            fatalError("could not convert database value \(int64) to UInt32")
+            fatalConversionError(to: UInt32.self, sqliteStatement: sqliteStatement, index: index)
         }
     }
     
@@ -361,7 +361,7 @@ extension UInt64: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = UInt64(exactly: int64) {
             self = v
         } else {
-            fatalError("could not convert database value \(int64) to UInt64")
+            fatalConversionError(to: UInt64.self, sqliteStatement: sqliteStatement, index: index)
         }
     }
     
@@ -445,6 +445,8 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        // Builds an invalid string when decoding a blob that contains
+        // invalid UTF8 data.
         self = String(cString: sqlite3_column_text(sqliteStatement, Int32(index))!)
     }
     
