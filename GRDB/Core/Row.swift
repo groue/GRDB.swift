@@ -1223,8 +1223,8 @@ protocol RowImpl {
 
 extension RowImpl {
     func copiedRow(_ row: Row) -> Row {
-        // unless customized, assume immutable row (see StatementRowImpl and AdaptedRowImpl for customization)
-        return row
+        // unless customized, assume unsafe and unadapted row
+        return Row(impl: ArrayRowImpl(columns: row.map { $0 }))
     }
     
     func unscopedRow(_ row: Row) -> Row {
@@ -1300,6 +1300,10 @@ private struct ArrayRowImpl : RowImpl {
         let lowercaseName = name.lowercased()
         return columns.index { (column, _) in column.lowercased() == lowercaseName }
     }
+    
+    func copiedRow(_ row: Row) -> Row {
+        return row
+    }
 }
 
 
@@ -1334,6 +1338,10 @@ private struct StatementCopyRowImpl : RowImpl {
     func index(ofColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
         return columnNames.index { $0.lowercased() == lowercaseName }
+    }
+    
+    func copiedRow(_ row: Row) -> Row {
+        return row
     }
 }
 
@@ -1461,5 +1469,9 @@ private struct EmptyRowImpl : RowImpl {
     
     func index(ofColumn name: String) -> Int? {
         return nil
+    }
+    
+    func copiedRow(_ row: Row) -> Row {
+        return row
     }
 }
