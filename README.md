@@ -2619,7 +2619,7 @@ try dbQueue.write { db in
 
 > :point_up: **Note**: Some codable values have a different way to encode and decode themselves in a standard archive vs. a database column. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
 
-> :point_up: **Note about JSON support**: GRDB uses the standard **[JSONDecoder](https://developer.apple.com/documentation/foundation/jsondecoder) and [JSONEncoder](https://developer.apple.com/documentation/foundation/jsonencoder) from Foundation. Data values are handled with the `.base64` strategy, Date with the `.millisecondsSince1970` strategy, and non conforming floats with the `.throw` strategy. Check Foundation documentation for more information.
+> :point_up: **Note about JSON support**: GRDB uses the standard [JSONDecoder](https://developer.apple.com/documentation/foundation/jsondecoder) and [JSONEncoder](https://developer.apple.com/documentation/foundation/jsonencoder) from Foundation. Data values are handled with the `.base64` strategy, Date with the `.millisecondsSince1970` strategy, and non conforming floats with the `.throw` strategy. Check Foundation documentation for more information.
 
 > :point_up: **Note about JSON support**: JSON encoding uses the `.sortedKeys` option when available (iOS 11.0+, macOS 10.13+, watchOS 4.0+). In previous operating system versions, the ordering of JSON keys may be unstable, and this may negatively impact [Record Comparison].
 
