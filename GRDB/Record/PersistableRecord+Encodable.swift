@@ -1,3 +1,5 @@
+import Foundation
+
 private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEncodingContainerProtocol {
     let encode: DatabaseValuePersistenceEncoder
     
