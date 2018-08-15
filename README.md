@@ -2567,25 +2567,15 @@ struct Link : PersistableRecord {
 
 ## Codable Records
 
-[Swift Archival & Serialization](https://github.com/apple/swift-evolution/blob/master/proposals/0166-swift-archival-serialization.md) was introduced with Swift 4, GRDB supports all Codable conforming types
+[Swift Archival & Serialization](https://github.com/apple/swift-evolution/blob/master/proposals/0166-swift-archival-serialization.md) was introduced with Swift 4.
 
 GRDB provides default implementations for [`FetchableRecord.init(row:)`](#fetchablerecord-protocol) and [`PersistableRecord.encode(to:)`](#persistablerecord-protocol) for record types that also adopt an archival protocol (`Codable`, `Encodable` or `Decodable`). When all their properties are themselves codable, Swift generates the archiving methods, and you don't need to write them down:
 
 ```swift
-// Declare a Codable struct or class, nested Codable objects as well as Sets, Arrays, Dictionaries and Optionals are all supported
+// Declare a Codable struct or class...
 struct Player: Codable {
-    let name: String
-    let score: Int
-    let scores: [Int]
-    let lastMedal: PlayerMedal
-    let medals: [PlayerMedal]
-    let timeline: [String: PlayerMedal]
-    }
-    
-// A simple Codable that will be nested in a parent Codable
-struct PlayerMedal : Codable {
-    let name: String
-    let type: String
+    var name: String
+    var score: Int
 }
 
 // Adopt Record protocols...
@@ -2598,69 +2588,41 @@ try dbQueue.write { db in
 }
 ```
 
-GRDB support for Codable works with standard library types like String, Int, and Double; and Foundation types like Date, Data, and URL, Apple lists conformance for : (Array, CGAffineTransform, CGPoint, CGRect, CGSize, CGVector, DateInterval, Decimal, Dictionary, MPMusicPlayerPlayParameters, Optional, Set) Anything else like say a CLLocationCoordinate2D will break conformity e.g.:
+When a record contains a codable property that is not a simple [value](#values) (Bool, Int, String, Date, Swift enums, etc.), that value is encoded and decoded as a **JSON string**. For example:
 
 ```swift
-struct Place: FetchableRecord, PersistableRecord, Codable {
-    var title: String
-    var coordinate: CLLocationCoordinate2D // <- Does not conform to Codable
+enum AchievementColor: String, Codable {
+    case bronze, silver, gold
+}
+
+struct Achievement: Codable {
+     var name: String
+     var color: AchievementColor
+}
+
+struct Player: Codable, FetchableRecord, PersistableRecord {
+    var name: String
+    var score: Int
+    var achievements: [Achievement]
+}
+
+try dbQueue.write { db in
+    // INSERT INTO player (name, score, achievements)
+    // VALUES (
+    //   'Arthur',
+    //   100,
+    //   '[{"color":"gold","name":"Use Codable Records"}]')
+    let achievement = Achievement(name: "Use Codable Records", color: .gold)
+    try Player(name: "Arthur", score: 100, achievements: [achievement]).insert(db)
 }
 ```
 
-Make it flat, as below, and you'll be granted with all Codable and GRDB advantages:
+> :point_up: **Note**: Some codable values have a different way to encode and decode themselves in a standard archive vs. a database column. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
 
-```swift
-struct Place: Codable {
-    // Stored properties are plain values:
-    var title: String
-    var latitude: CLLocationDegrees
-    var longitude: CLLocationDegrees
-    
-    // Complex property is computed:
-    var coordinate: CLLocationCoordinate2D {
-        get {
-            return CLLocationCoordinate2D(
-                latitude: latitude,
-                longitude: longitude)
-        }
-        set {
-            latitude = newValue.latitude
-            longitude = newValue.longitude
-        }
-    }
-}
+> :point_up: **Note about JSON support**: GRDB uses the standard **[JSONDecoder](https://developer.apple.com/documentation/foundation/jsondecoder) and [JSONEncoder](https://developer.apple.com/documentation/foundation/jsonencoder) from Foundation. Data values are handled with the `.base64` strategy, Date with the `.millisecondsSince1970` strategy, and non conforming floats with the `.throw` strategy. Check Foundation documentation for more information.
 
-// Free database support!
-extension Place: FetchableRecord, PersistableRecord { }
-```
+> :point_up: **Note about JSON support**: JSON encoding uses the `.sortedKeys` option when available (iOS 11.0+, macOS 10.13+, watchOS 4.0+). In previous operating system versions, the ordering of JSON keys may be unstable, and this may negatively impact [Record Comparison].
 
-GRDB ships with support for nested codable records, but this is a more complex topic. See [Associations](Documentation/AssociationsBasics.md) for more information.
-
-As documented with the [PersistableRecord] protocol, have your struct records use MutablePersistableRecord instead of PersistableRecord when they store their automatically incremented row id:
-
-```swift
-struct Place: Codable {
-    var id: Int64?      // <- the row id
-    var title: String
-    var latitude: CLLocationDegrees
-    var longitude: CLLocationDegrees
-    var coordinate: CLLocationCoordinate2D { ... }
-}
-
-extension Place: FetchableRecord, MutablePersistableRecord {
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        // Update id after insertion
-        id = rowID
-    }
-}
-
-var place = Place(id: nil, ...)
-try place.insert(db)
-place.id // A unique id
-```
-
-
-> :point_up: **Note**: Some values have a different way to encode and decode themselves in a standard archive vs. the database. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
 
 
 ## Record Class
