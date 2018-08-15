@@ -1835,7 +1835,7 @@ try dbQueue.read { db in
     // [IndexInfo], the indexes defined on the table
     try db.indexes(on: "player")
     
-    // Bool, true if column(s) is a unique key
+    // Bool, true if column(s) is a unique key (primary key or unique index)
     try db.table("player", hasUniqueKey: ["email"])
 }
 
