@@ -416,6 +416,35 @@ extension MutablePersistableRecordEncodableTests {
         }
     }
     
+    func testJSONDataEncodingStrategy() throws {
+        struct Record: PersistableRecord, Encodable {
+            let data: Data
+            let optionalData: Data?
+            let datas: [Data]
+            let optionalDatas: [Data?]
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "record") { t in
+                t.column("data", .text)
+                t.column("optionalData", .text)
+                t.column("datas", .text)
+                t.column("optionalDatas", .text)
+            }
+            
+            let data = "foo".data(using: .utf8)!
+            let record = Record(data: data, optionalData: data, datas: [data], optionalDatas: [nil, data])
+            try record.insert(db)
+            
+            let row = try Row.fetchOne(db, Record.all())!
+            XCTAssertEqual(row["data"], data)
+            XCTAssertEqual(row["optionalData"], data)
+            XCTAssertEqual(row["datas"], "[\"Zm9v\"]")
+            XCTAssertEqual(row["optionalDatas"], "[null,\"Zm9v\"]")
+        }
+    }
+
     func testJSONDateEncodingStrategy() throws {
         struct Record: PersistableRecord, Encodable {
             let date: Date
