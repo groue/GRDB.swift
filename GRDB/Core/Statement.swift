@@ -356,12 +356,12 @@ public final class SelectStatement : Statement {
     /// Creates a cursor over the statement. This cursor does not produce any
     /// value, and is only intended to give access to the sqlite3_step()
     /// low-level function.
-    func cursor(arguments: StatementArguments? = nil) -> StatementCursor {
+    func makeCursor(arguments: StatementArguments? = nil) -> StatementCursor {
         return StatementCursor(statement: self, arguments: arguments)
     }
     
     /// Utility function for cursors
-    func cursorReset(arguments: StatementArguments? = nil) {
+    func reset(withArguments arguments: StatementArguments? = nil) {
         SchedulingWatchdog.preconditionValidQueue(database)
         prepare(withArguments: arguments)
         reset()
@@ -371,12 +371,13 @@ public final class SelectStatement : Statement {
 // Hide AuthorizedStatement from Jazzy
 extension SelectStatement: AuthorizedStatement { }
 
+// TODO: remove public qualifier, or expose SelectStatement.makeCursor()
 /// A cursor that iterates a database statement without producing any value.
 /// For example:
 ///
 ///     try dbQueue.read { db in
 ///         let statement = db.makeSelectStatement("SELECT * FROM player")
-///         let cursor: StatementCursor = statement.cursor()
+///         let cursor: StatementCursor = statement.makeCursor()
 ///     }
 public final class StatementCursor: Cursor {
     public let statement: SelectStatement
@@ -387,12 +388,16 @@ public final class StatementCursor: Cursor {
     fileprivate init(statement: SelectStatement, arguments: StatementArguments? = nil) {
         self.statement = statement
         self.sqliteStatement = statement.sqliteStatement
-        statement.cursorReset(arguments: arguments)
+        statement.reset(withArguments: arguments)
     }
     
     /// :nodoc:
     public func next() throws -> Void? {
-        if done { return nil }
+        if done {
+            // make sure this instance never yields a value again, even if the
+            // statement is reset by another cursor.
+            return nil
+        }
         switch sqlite3_step(sqliteStatement) {
         case SQLITE_DONE:
             done = true

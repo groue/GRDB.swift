@@ -48,12 +48,16 @@ public final class RecordCursor<Record: FetchableRecord> : Cursor {
         self.statement = statement
         self.row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         self.sqliteStatement = statement.sqliteStatement
-        statement.cursorReset(arguments: arguments)
+        statement.reset(withArguments: arguments)
     }
     
     /// :nodoc:
     public func next() throws -> Record? {
-        if done { return nil }
+        if done {
+            // make sure this instance never yields a value again, even if the
+            // statement is reset by another cursor.
+            return nil
+        }
         switch sqlite3_step(sqliteStatement) {
         case SQLITE_DONE:
             done = true

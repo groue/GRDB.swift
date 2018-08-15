@@ -501,19 +501,29 @@ struct AdaptedRowImpl : RowImpl {
         return base.impl.databaseValue(atUncheckedIndex: mappedIndex)
     }
     
-    func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value {
+    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int,
+        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value
+    {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.impl.fastValue(atUncheckedIndex: mappedIndex)
+        return Value.fastDecode(from: base, atUncheckedIndex: mappedIndex)
     }
     
-    func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value? {
+    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int,
+        conversionContext: @autoclosure () -> ValueConversionContext?) -> Value?
+    {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.impl.fastValue(atUncheckedIndex: mappedIndex)
+        return Value.fastDecodeIfPresent(from: base, atUncheckedIndex: mappedIndex)
     }
-
-    func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
+    
+    func dataNoCopy(atUncheckedIndex index:Int, conversionContext: @autoclosure () -> ValueConversionContext?) -> Data? {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.impl.dataNoCopy(atUncheckedIndex: mappedIndex)
+        return base.impl.dataNoCopy(
+            atUncheckedIndex: mappedIndex,
+            conversionContext: conversionContext)
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {

@@ -70,15 +70,17 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     /// these states can be distinguished with a contains(_:) call.
     func decodeIfPresent<T>(_ type: T.Type, forKey key: Key) throws -> T? where T : Decodable {
         let row = decoder.row
-        
+        let keyName = key.stringValue
+
         // Column?
-        if row.hasColumn(key.stringValue) {
-            let dbValue: DatabaseValue = row[key.stringValue]
-            if let type = T.self as? DatabaseValueConvertible.Type {
-                // Prefer DatabaseValueConvertible decoding over Decodable.
-                // This allows decoding Date from String, or DatabaseValue from NULL.
-                return type.fromDatabaseValue(dbValue) as! T?
-            } else if dbValue.isNull {
+        if let index = row.index(ofColumn: keyName) {
+            // Prefer DatabaseValueConvertible decoding over Decodable.
+            // This allows decoding Date from String, or DatabaseValue from NULL.
+            if let type = T.self as? (DatabaseValueConvertible & StatementColumnConvertible).Type {
+                return type.fastDecodeIfPresent(from: row, atUncheckedIndex: index) as! T?
+            } else if let type = T.self as? DatabaseValueConvertible.Type {
+                return type.decodeIfPresent(from: row, atUncheckedIndex: index) as! T?
+            } else if row.impl.hasNull(atUncheckedIndex: index) {
                 return nil
             } else {
                 do {
@@ -109,7 +111,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
         }
         
         // Scope?
-        if let scopedRow = row.scopesTree[key.stringValue], scopedRow.containsNonNullValue {
+        if let scopedRow = row.scopesTree[keyName], scopedRow.containsNonNullValue {
             if let type = T.self as? FetchableRecord.Type {
                 // Prefer FetchableRecord decoding over Decodable.
                 // This allows custom row decoding
@@ -132,14 +134,16 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     /// - throws: `DecodingError.valueNotFound` if `self` has a null entry for the given key.
     func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
         let row = decoder.row
-        
+        let keyName = key.stringValue
+
         // Column?
-        if row.hasColumn(key.stringValue) {
-            let dbValue: DatabaseValue = row[key.stringValue]
-            if let type = T.self as? DatabaseValueConvertible.Type {
-                // Prefer DatabaseValueConvertible decoding over Decodable.
-                // This allows decoding Date from String, or DatabaseValue from NULL.
-                return type.fromDatabaseValue(dbValue) as! T
+        if let index = row.index(ofColumn: keyName) {
+            // Prefer DatabaseValueConvertible decoding over Decodable.
+            // This allows decoding Date from String, or DatabaseValue from NULL.
+            if let type = T.self as? (DatabaseValueConvertible & StatementColumnConvertible).Type {
+                return type.fastDecode(from: row, atUncheckedIndex: index) as! T
+            } else if let type = T.self as? DatabaseValueConvertible.Type {
+                return type.decode(from: row, atUncheckedIndex: index) as! T
             } else {
                 do {
                     // This decoding will fail for types that need a keyed container,
@@ -167,9 +171,9 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                 }
             }
         }
-        
+
         // Scope?
-        if let scopedRow = row.scopesTree[key.stringValue] {
+        if let scopedRow = row.scopesTree[keyName] {
             if let type = T.self as? FetchableRecord.Type {
                 // Prefer FetchableRecord decoding over Decodable.
                 // This allows custom row decoding
@@ -275,7 +279,7 @@ private struct RowSingleValueDecodingContainer: SingleValueDecodingContainer {
         if let type = T.self as? DatabaseValueConvertible.Type {
             // Prefer DatabaseValueConvertible decoding over Decodable.
             // This allows decoding Date from String, or DatabaseValue from NULL.
-            return type.fromDatabaseValue(row[column.stringValue]) as! T
+            return type.decode(from: row[column.stringValue], conversionContext: ValueConversionContext(row).atColumn(column.stringValue)) as! T
         } else {
             return try T(from: RowDecoder(row: row, codingPath: [column]))
         }

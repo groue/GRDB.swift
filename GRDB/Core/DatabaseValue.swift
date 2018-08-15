@@ -207,6 +207,7 @@ extension DatabaseValue {
 // MARK: - Lossless conversions
 
 extension DatabaseValue {
+    // TODO: deprecate and rename to DatabaseValue.decode(_:sql:arguments:)
     /// Converts the database value to the type T.
     ///
     ///     let dbValue = "foo".databaseValue
@@ -226,20 +227,10 @@ extension DatabaseValue {
     ///     - arguments: Optional statement arguments that enhances the eventual
     ///       conversion error
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T : DatabaseValueConvertible {
-        if let value = T.fromDatabaseValue(self) {
-            return value
-        }
-        // Failed conversion: this is data loss, a programmer error.
-        var error = "could not convert database value \(self) to \(T.self)"
-        if let sql = sql {
-            error += " with statement `\(sql)`"
-        }
-        if let arguments = arguments, !arguments.isEmpty {
-            error += " arguments \(arguments)"
-        }
-        fatalError(error)
+        return T.decode(from: self, conversionContext: sql.map { ValueConversionContext(sql: $0, arguments: arguments) })
     }
     
+    // TODO: deprecate and rename to DatabaseValue.decodeIfPresent(_:sql:arguments:)
     /// Converts the database value to the type Optional<T>.
     ///
     ///     let dbValue = "foo".databaseValue
@@ -260,25 +251,7 @@ extension DatabaseValue {
     ///     - arguments: Optional statement arguments that enhances the eventual
     ///       conversion error
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T : DatabaseValueConvertible {
-        // Use fromDatabaseValue first: this allows DatabaseValue to convert NULL to .null.
-        if let value = T.fromDatabaseValue(self) {
-            return value
-        }
-        if isNull {
-            // Failed conversion from null: ok
-            return nil
-        } else {
-            // Failed conversion from a non-null database value: this is data
-            // loss, a programmer error.
-            var error = "could not convert database value \(self) to \(T.self)"
-            if let sql = sql {
-                error += " with statement `\(sql)`"
-            }
-            if let arguments = arguments, !arguments.isEmpty {
-                error += " arguments \(arguments)"
-            }
-            fatalError(error)
-        }
+        return T.decodeIfPresent(from: self, conversionContext: sql.map { ValueConversionContext(sql: $0, arguments: arguments) })
     }
 }
 

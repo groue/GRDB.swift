@@ -120,7 +120,7 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
             }
         }
         
-        var cursor: ColumnCursor<Int>? = nil
+        var cursor: FastDatabaseValueCursor<Int>? = nil
         do {
             try! makeDatabaseQueue().inDatabase { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")

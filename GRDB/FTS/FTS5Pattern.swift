@@ -75,7 +75,7 @@
                         }
                     }
                     try db.makeSelectStatement("SELECT * FROM document WHERE document MATCH ?")
-                        .cursor(arguments: [rawPattern])
+                        .makeCursor(arguments: [rawPattern])
                         .next() // error on next() for invalid patterns
                 }
             } catch let error as DatabaseError {

@@ -55,25 +55,39 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible> : Cursor
     
     init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         self.statement = statement
-        // We'll read from leftmost column at index 0, unless adapter mangles columns
-        self.columnIndex = try Int32(adapter?.baseColumnIndex(atIndex: 0, layout: statement) ?? 0)
         self.sqliteStatement = statement.sqliteStatement
-        statement.cursorReset(arguments: arguments)
+        if let adapter = adapter {
+            // adapter may redefine the index of the leftmost column
+            self.columnIndex = try Int32(adapter.baseColumnIndex(atIndex: 0, layout: statement))
+        } else {
+            self.columnIndex = 0
+        }
+        statement.reset(withArguments: arguments)
     }
     
     /// :nodoc:
     public func next() throws -> Value? {
-        if done { return nil }
+        if done {
+            // make sure this instance never yields a value again, even if the
+            // statement is reset by another cursor.
+            return nil
+        }
         switch sqlite3_step(sqliteStatement) {
         case SQLITE_DONE:
             done = true
             return nil
         case SQLITE_ROW:
             let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: columnIndex)
-            return dbValue.losslessConvert() as Value
+            return Value.decode(
+                from: dbValue,
+                conversionContext: ValueConversionContext(statement).atColumn(Int(columnIndex)))
         case let code:
             statement.database.selectStatementDidFail(statement)
-            throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+            throw DatabaseError(
+                resultCode: code,
+                message: statement.database.lastErrorMessage,
+                sql: statement.sql,
+                arguments: statement.arguments)
         }
     }
 }
@@ -95,25 +109,39 @@ public final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible> 
     
     init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         self.statement = statement
-        // We'll read from leftmost column at index 0, unless adapter mangles columns
-        self.columnIndex = try Int32(adapter?.baseColumnIndex(atIndex: 0, layout: statement) ?? 0)
         self.sqliteStatement = statement.sqliteStatement
-        statement.cursorReset(arguments: arguments)
+        if let adapter = adapter {
+            // adapter may redefine the index of the leftmost column
+            self.columnIndex = try Int32(adapter.baseColumnIndex(atIndex: 0, layout: statement))
+        } else {
+            self.columnIndex = 0
+        }
+        statement.reset(withArguments: arguments)
     }
     
     /// :nodoc:
     public func next() throws -> Value?? {
-        if done { return nil }
+        if done {
+            // make sure this instance never yields a value again, even if the
+            // statement is reset by another cursor.
+            return nil
+        }
         switch sqlite3_step(sqliteStatement) {
         case SQLITE_DONE:
             done = true
             return nil
         case SQLITE_ROW:
             let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: columnIndex)
-            return dbValue.losslessConvert() as Value?
+            return Value.decodeIfPresent(
+                from: dbValue,
+                conversionContext: ValueConversionContext(statement).atColumn(Int(columnIndex)))
         case let code:
             statement.database.selectStatementDidFail(statement)
-            throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+            throw DatabaseError(
+                resultCode: code,
+                message: statement.database.lastErrorMessage,
+                sql: statement.sql,
+                arguments: statement.arguments)
         }
     }
 }
