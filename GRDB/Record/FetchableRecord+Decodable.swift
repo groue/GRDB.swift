@@ -89,11 +89,8 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                     // value here (string, int, double, data, null). If such an
                     // error happens, we'll switch to JSON decoding.
                     return try T(from: RowSingleValueDecoder(row: row, codingPath: codingPath + [key]))
-                } catch let error as DecodingError {
-                    if case .typeMismatch(_, let context) = error,
-                        context.debugDescription == "keyed decoding is not supported" || context.debugDescription == "unkeyed decoding is not supported",
-                        let data = row.dataNoCopy(atIndex: index)
-                    {
+                } catch let error as JSONDecodingRequiredError {
+                    if let data = row.dataNoCopy(atIndex: index) {
                         return try JSONDecoder().decode(type.self, from: data)
                     } else {
                         throw error
@@ -143,11 +140,8 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                     // value here (string, int, double, data, null). If such an
                     // error happens, we'll switch to JSON decoding.
                     return try T(from: RowSingleValueDecoder(row: row, codingPath: codingPath + [key]))
-                } catch let error as DecodingError {
-                    if case .typeMismatch(_, let context) = error,
-                        context.debugDescription == "keyed decoding is not supported" || context.debugDescription == "unkeyed decoding is not supported",
-                        let data = row.dataNoCopy(atIndex: index)
-                    {
+                } catch let error as JSONDecodingRequiredError {
+                    if let data = row.dataNoCopy(atIndex: index) {
                         return try JSONDecoder().decode(type.self, from: data)
                     } else {
                         throw error
@@ -288,15 +282,11 @@ private struct RowDecoder: Decoder {
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        throw DecodingError.typeMismatch(
-            UnkeyedDecodingContainer.self,
-            DecodingError.Context(codingPath: codingPath, debugDescription: "unkeyed decoding is not supported"))
+        throw JSONDecodingRequiredError()
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
-        throw DecodingError.typeMismatch(
-            RowDecoder.self,
-            DecodingError.Context(codingPath: codingPath, debugDescription: "single value decoding is not supported"))
+        throw JSONDecodingRequiredError()
     }
 }
 
@@ -314,21 +304,19 @@ private struct RowSingleValueDecoder: Decoder {
     var userInfo: [CodingUserInfoKey : Any] { return [:] }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
-        throw DecodingError.typeMismatch(
-            UnkeyedDecodingContainer.self,
-            DecodingError.Context(codingPath: codingPath, debugDescription: "keyed decoding is not supported"))
+        throw JSONDecodingRequiredError()
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        throw DecodingError.typeMismatch(
-            UnkeyedDecodingContainer.self,
-            DecodingError.Context(codingPath: codingPath, debugDescription: "unkeyed decoding is not supported"))
+        throw JSONDecodingRequiredError()
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
         return RowSingleValueDecodingContainer(row: row, codingPath: codingPath, column: codingPath.last!)
     }
 }
+
+private struct JSONDecodingRequiredError: Error { }
 
 extension FetchableRecord where Self: Decodable {
     /// Initializes a record from `row`.
