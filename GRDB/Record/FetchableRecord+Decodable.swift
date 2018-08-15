@@ -88,7 +88,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                     // value here (string, int, double, data, null). If such an
                     // error happens, we'll switch to JSON decoding.
                     return try T(from: RowSingleValueDecoder(row: row, columnIndex: index, codingPath: codingPath + [key]))
-                } catch is JSONDecodingRequiredError {
+                } catch is JSONRequiredError {
                     guard let data = row.dataNoCopy(atIndex: index) else {
                         fatalConversionError(to: T.self, from: row[index], conversionContext: ValueConversionContext(row).atColumn(index))
                     }
@@ -138,7 +138,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                     // value here (string, int, double, data, null). If such an
                     // error happens, we'll switch to JSON decoding.
                     return try T(from: RowSingleValueDecoder(row: row, columnIndex: index, codingPath: codingPath + [key]))
-                } catch is JSONDecodingRequiredError {
+                } catch is JSONRequiredError {
                     guard let data = row.dataNoCopy(atIndex: index) else {
                         fatalConversionError(to: T.self, from: row[index], conversionContext: ValueConversionContext(row).atColumn(index))
                     }
@@ -273,11 +273,11 @@ private struct RowDecoder: Decoder {
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        throw JSONDecodingRequiredError()
+        throw JSONRequiredError()
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
-        throw JSONDecodingRequiredError()
+        throw JSONRequiredError()
     }
 }
 
@@ -288,11 +288,11 @@ private struct RowSingleValueDecoder: Decoder {
     var userInfo: [CodingUserInfoKey : Any] { return [:] }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
-        throw JSONDecodingRequiredError()
+        throw JSONRequiredError()
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        throw JSONDecodingRequiredError()
+        throw JSONRequiredError()
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
@@ -301,7 +301,7 @@ private struct RowSingleValueDecoder: Decoder {
 }
 
 /// The error that triggers JSON decoding
-private struct JSONDecodingRequiredError: Error { }
+private struct JSONRequiredError: Error { }
 
 extension FetchableRecord where Self: Decodable {
     /// Initializes a record from `row`.
