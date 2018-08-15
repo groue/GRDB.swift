@@ -105,8 +105,6 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
         case SQLITE_FLOAT:
             storage = .double(sqlite3_value_double(sqliteValue))
         case SQLITE_TEXT:
-            // Builds an invalid string when decoding a blob that contains
-            // invalid UTF8 data.
             storage = .string(String(cString: sqlite3_value_text(sqliteValue)!))
         case SQLITE_BLOB:
             if let bytes = sqlite3_value_blob(sqliteValue) {
@@ -131,8 +129,6 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
         case SQLITE_FLOAT:
             storage = .double(sqlite3_column_double(sqliteStatement, Int32(index)))
         case SQLITE_TEXT:
-            // Builds an invalid string when decoding a blob that contains
-            // invalid UTF8 data.
             storage = .string(String(cString: sqlite3_column_text(sqliteStatement, Int32(index))))
         case SQLITE_BLOB:
             if let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) {

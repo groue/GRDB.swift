@@ -445,8 +445,6 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
-        // Builds an invalid string when decoding a blob that contains
-        // invalid UTF8 data.
         self = String(cString: sqlite3_column_text(sqliteStatement, Int32(index))!)
     }
     

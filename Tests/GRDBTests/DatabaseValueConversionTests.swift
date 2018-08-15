@@ -32,6 +32,7 @@ private extension DatabaseValue {
 private let emojiString = "'fooéı👨👨🏿🇫🇷🇨🇮'"
 private let emojiData = emojiString.data(using: .utf8)
 private let nonUTF8Data = Data(bytes: [0x80])
+private let invalidString = "\u{FFFD}" // decoded from nonUTF8Data
 
 class DatabaseValueConversionTests : GRDBTestCase {
     
@@ -284,9 +285,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
-            // FIXME? low-level StatementColumnConvertible currently decodes an invalid string
-//            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
-            try assertFailedDecoding(db, sql, String.self)
+            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: invalidString, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nonUTF8Data, expectedDatabaseValueConversion: nonUTF8Data)
             return .rollback
         }
@@ -528,9 +527,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
-            // FIXME? low-level StatementColumnConvertible currently decodes an invalid string
-//            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
-            try assertFailedDecoding(db, sql, String.self)
+            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: invalidString, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nonUTF8Data, expectedDatabaseValueConversion: nonUTF8Data)
             return .rollback
         }
@@ -700,9 +697,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
-            // FIXME? low-level StatementColumnConvertible currently decodes an invalid string
-//            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
-            try assertFailedDecoding(db, sql, String.self)
+            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: invalidString, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nonUTF8Data, expectedDatabaseValueConversion: nonUTF8Data)
             return .rollback
         }
@@ -918,9 +913,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
-            // FIXME? low-level StatementColumnConvertible currently decodes an invalid string
-//            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
-            try assertFailedDecoding(db, sql, String.self)
+            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: invalidString, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nonUTF8Data, expectedDatabaseValueConversion: nonUTF8Data)
             return .rollback
         }
