@@ -1,9 +1,7 @@
-import Foundation
-
 private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEncodingContainerProtocol {
-    let encode: (_ value: DatabaseValueConvertible?, _ key: String) -> Void
+    let encode: DatabaseValuePersistenceEncoder
     
-    init(encode: @escaping (_ value: DatabaseValueConvertible?, _ key: String) -> Void) {
+    init(encode: @escaping DatabaseValuePersistenceEncoder) {
         self.encode = encode
     }
     
@@ -37,33 +35,28 @@ private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEn
     /// - parameter key: The key to associate the value with.
     /// - throws: `EncodingError.invalidValue` if the given value is invalid in the current context for this format.
     mutating func encode<T>(_ value: T, forKey key: Key) throws where T : Encodable {
-        if T.self is DatabaseValueConvertible.Type {
+        if let dbValueConvertible = value as? DatabaseValueConvertible {
             // Prefer DatabaseValueConvertible encoding over Decodable.
             // This allows us to encode Date as String, for example.
-            encode((value as! DatabaseValueConvertible), key.stringValue)
+            encode(dbValueConvertible.databaseValue, key.stringValue)
         } else {
             do {
-                 try value.encode(to: PersistableRecordEncoder(codingPath: [key], encode: encode))
-            } catch {
-                // If value.encode does not work e.g. "unkeyed encoding is not supported" then see if model can be stored as JSON
-                switch error as! EncodingError {
-                case .invalidValue(_, let context):
-                    if context.debugDescription == "unkeyed encoding is not supported" {
-                        // Support for keyed containers ( [Codable] )
-                        let encoder = JSONEncoder()
-                        if #available(watchOS 4.0, OSX 10.13, iOS 11.0, *) {
-                            encoder.outputFormatting = .sortedKeys
-                        }
-                        let json = try encoder.encode(value)
-                        //the Data from the encoder is guaranteed to convert to String
-                        let modelAsString = String(data: json, encoding: .utf8)!
-                        return encode(modelAsString, key.stringValue)
-                    } else {
-                        throw(error)
-                    }
-                default:
-                    throw(error)
+                try value.encode(to: DatabaseValueEncoder(key: key, encode: encode))
+            } catch is JSONEncodingRequiredError {
+                // Encode to JSON
+                let encoder = JSONEncoder()
+                if #available(watchOS 4.0, OSX 10.13, iOS 11.0, *) {
+                    encoder.outputFormatting = .sortedKeys
                 }
+                let jsonData = try encoder.encode(value)
+                
+                // Store JSON String in the database for easier debugging and
+                // database inspection. Thanks to SQLite weak typing, we won't
+                // have any trouble decoding this string into data when we
+                // eventually perform JSON decoding.
+                // TODO: possible optimization: avoid this conversion to string, and store raw data bytes as an SQLite string
+                let jsonString = String(data: jsonData, encoding: .utf8)! // json data is guaranteed to convert to String
+                encode(jsonString, key.stringValue)
             }
         }
     }
@@ -122,10 +115,14 @@ private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEn
 }
 
 private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
-    let key: CodingKey
-    let encode: (_ value: DatabaseValueConvertible?, _ key: String) -> Void
-
     var codingPath: [CodingKey] { return [key] }
+    var key: CodingKey
+    var encode: DatabaseValuePersistenceEncoder
+    
+    init(key: CodingKey, encode: @escaping DatabaseValuePersistenceEncoder) {
+        self.key = key
+        self.encode = encode
+    }
     
     /// Encodes a null value.
     ///
@@ -165,168 +162,196 @@ private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
             encode(dbValueConvertible.databaseValue, key.stringValue)
         } else {
             do {
-                try value.encode(to: PersistableRecordEncoder(codingPath: [key], encode: encode))
-            } catch {
-                // If value.encode does not work e.g. "unkeyed encoding is not supported" then see if model can be stored as JSON
-                switch error as! EncodingError {
-                case .invalidValue(_, let context):
-                    if context.debugDescription == "unkeyed encoding is not supported" {
-                        // Support for keyed containers ( [Codable] )
-                        let encoder = JSONEncoder()
-                        if #available(watchOS 4.0, OSX 10.13, iOS 11.0, *) {
-                            encoder.outputFormatting = .sortedKeys
-                        }
-                        let json = try encoder.encode(value)
-                        //the Data from the encoder is guaranteed to convert to String
-                        let modelAsString = String(data: json, encoding: .utf8)!
-                        return encode(modelAsString, key.stringValue)
-                    } else {
-                        throw(error)
-                    }
-                default:
-                    throw(error)
+                try value.encode(to: DatabaseValueEncoder(key: key, encode: encode))
+            } catch is JSONEncodingRequiredError {
+                // Encode to JSON
+                let encoder = JSONEncoder()
+                if #available(watchOS 4.0, OSX 10.13, iOS 11.0, *) {
+                    encoder.outputFormatting = .sortedKeys
                 }
+                let jsonData = try encoder.encode(value)
+                
+                // Store JSON String in the database for easier debugging and
+                // database inspection. Thanks to SQLite weak typing, we won't
+                // have any trouble decoding this string into data when we
+                // eventually perform JSON decoding.
+                // TODO: possible optimization: avoid this conversion to string, and store raw data bytes as an SQLite string
+                let jsonString = String(data: jsonData, encoding: .utf8)! // json data is guaranteed to convert to String
+                encode(jsonString, key.stringValue)
             }
         }
     }
 }
 
-private struct PersistableRecordEncoder : Encoder {
-    /// The path of coding keys taken to get to this point in encoding.
-    /// A `nil` value indicates an unkeyed container.
-    var codingPath: [CodingKey]
+private struct DatabaseValueEncoder: Encoder {
+    var codingPath: [CodingKey] { return [key] }
+    var userInfo: [CodingUserInfoKey: Any] = [:]
+    var key: CodingKey
+    var encode: DatabaseValuePersistenceEncoder
     
-    /// Any contextual information set by the user for encoding.
-    var userInfo: [CodingUserInfoKey : Any] = [:]
+    init(key: CodingKey, encode: @escaping DatabaseValuePersistenceEncoder) {
+        self.key = key
+        self.encode = encode
+    }
+
+    func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
+        // Keyed values require JSON encoding.
+        // But we can't throw JSONEncodingRequiredError right here, unfortunately.
+        // So let's delegate JSONEncodingRequiredError throwing to a
+        // dedicated container.
+        return KeyedEncodingContainer(JSONEncodingRequiredKeyedContainer())
+    }
     
-    let encode: (_ value: DatabaseValueConvertible?, _ key: String) -> Void
+    func unkeyedContainer() -> UnkeyedEncodingContainer {
+        // Unkeyed values require JSON encoding.
+        // But we can't throw JSONEncodingRequiredError right here, unfortunately.
+        // So let's delegate JSONEncodingRequiredError throwing to a
+        // dedicated container.
+        return JSONEncodingRequiredUnkeyedContainer()
+    }
     
-    init(codingPath: [CodingKey], encode: @escaping (_ value: DatabaseValueConvertible?, _ key: String) -> Void) {
-        self.codingPath = codingPath
+    func singleValueContainer() -> SingleValueEncodingContainer {
+        return DatabaseValueEncodingContainer(key: key, encode: encode)
+    }
+}
+
+private struct PersistableRecordEncoder: Encoder {
+    var codingPath: [CodingKey] = []
+    var userInfo: [CodingUserInfoKey: Any] = [:]
+    var encode: DatabaseValuePersistenceEncoder
+    
+    init(encode: @escaping DatabaseValuePersistenceEncoder) {
         self.encode = encode
     }
     
-    /// Returns an encoding container appropriate for holding multiple values keyed by the given key type.
-    ///
-    /// - parameter type: The key type to use for the container.
-    /// - returns: A new keyed encoding container.
-    /// - precondition: May not be called after a prior `self.unkeyedContainer()` call.
-    /// - precondition: May not be called after a value has been encoded through a previous `self.singleValueContainer()` call.
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> {
-        // Asked for a keyed type: top level required
-        guard codingPath.isEmpty else {
-            let error = EncodingError.invalidValue(encode, EncodingError.Context(codingPath: codingPath, debugDescription: "unkeyed encoding is not supported"))
-            return KeyedEncodingContainer(ThrowingKeyedContainer(error: error))
-        }
         return KeyedEncodingContainer(PersistableRecordKeyedEncodingContainer<Key>(encode: encode))
     }
     
-    /// Returns an encoding container appropriate for holding multiple unkeyed values.
-    ///
-    /// - returns: A new empty unkeyed container.
-    /// - precondition: May not be called after a prior `self.container(keyedBy:)` call.
-    /// - precondition: May not be called after a value has been encoded through a previous `self.singleValueContainer()` call.
     func unkeyedContainer() -> UnkeyedEncodingContainer {
-        let error = EncodingError.invalidValue(encode, EncodingError.Context(codingPath: [], debugDescription: "unkeyed encoding is not supported"))
-        return ThrowingUnkeyedContainer(error: error)
+        fatalError("unkeyed encoding is not supported")
     }
     
-    /// Returns an encoding container appropriate for holding a single primitive value.
-    ///
-    /// - returns: A new empty single value container.
-    /// - precondition: May not be called after a prior `self.container(keyedBy:)` call.
-    /// - precondition: May not be called after a prior `self.unkeyedContainer()` call.
-    /// - precondition: May not be called after a value has been encoded through a previous `self.singleValueContainer()` call.
     func singleValueContainer() -> SingleValueEncodingContainer {
-        return DatabaseValueEncodingContainer(key: codingPath.last!, encode: encode)
+        fatalError("unkeyed encoding is not supported")
     }
 }
 
-class ThrowingKeyedContainer<KeyType: CodingKey>: KeyedEncodingContainerProtocol {
-    let errorMessage: Error
-    var codingPath: [CodingKey] = []
+private struct JSONEncodingRequiredEncoder: Encoder {
+    var codingPath: [CodingKey] { return [] }
+    var userInfo: [CodingUserInfoKey: Any] = [:]
     
-    init(error: Error) {
-        errorMessage = error
+    init() { }
+    
+    func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
+        return KeyedEncodingContainer(JSONEncodingRequiredKeyedContainer())
     }
     
-    func encodeNil(forKey key: KeyType) throws { throw errorMessage }
-    func encode(_ value: Bool, forKey key: KeyType) throws { throw errorMessage }
-    func encode(_ value: Int, forKey key: KeyType) throws { throw errorMessage }
-    func encode(_ value: Int8, forKey key: KeyType) throws { throw errorMessage }
-    func encode(_ value: Int16, forKey key: KeyType) throws { throw errorMessage }
-    func encode(_ value: Int32, forKey key: KeyType) throws { throw errorMessage }
-    func encode(_ value: Int64, forKey key: KeyType) throws { throw errorMessage }
-    func encode(_ value: UInt, forKey key: KeyType) throws { throw errorMessage }
-    func encode(_ value: UInt8, forKey key: KeyType) throws { throw errorMessage }
-    func encode(_ value: UInt16, forKey key: KeyType) throws { throw errorMessage }
-    func encode(_ value: UInt32, forKey key: KeyType) throws { throw errorMessage }
-    func encode(_ value: UInt64, forKey key: KeyType) throws { throw errorMessage }
-    func encode(_ value: Float, forKey key: KeyType) throws { throw errorMessage }
-    func encode(_ value: Double, forKey key: KeyType) throws { throw errorMessage }
-    func encode(_ value: String, forKey key: KeyType) throws { throw errorMessage }
-    func encode<T>(_ value: T, forKey key: KeyType) throws where T : Encodable { throw errorMessage }
+    func unkeyedContainer() -> UnkeyedEncodingContainer {
+        return JSONEncodingRequiredUnkeyedContainer()
+    }
+    
+    func singleValueContainer() -> SingleValueEncodingContainer {
+        return JSONEncodingRequiredSingleValueContainer()
+    }
+}
+
+private struct JSONEncodingRequiredKeyedContainer<KeyType: CodingKey>: KeyedEncodingContainerProtocol {
+    var codingPath: [CodingKey] { return [] }
+    
+    func encodeNil(forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Bool, forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Int, forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Int8, forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Int16, forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Int32, forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Int64, forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: UInt, forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: UInt8, forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: UInt16, forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: UInt32, forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: UInt64, forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Float, forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Double, forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: String, forKey key: KeyType) throws { throw JSONEncodingRequiredError() }
+    func encode<T>(_ value: T, forKey key: KeyType) throws where T : Encodable { throw JSONEncodingRequiredError() }
 
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: KeyType) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
-        return KeyedEncodingContainer(ThrowingKeyedContainer<NestedKey>(error: errorMessage))
+        return KeyedEncodingContainer(JSONEncodingRequiredKeyedContainer<NestedKey>())
     }
+    
     func nestedUnkeyedContainer(forKey key: KeyType) -> UnkeyedEncodingContainer {
-        fatalError("Not implemented")
+        return JSONEncodingRequiredUnkeyedContainer()
     }
+    
     func superEncoder() -> Encoder {
-        fatalError("Not implemented")
+        return JSONEncodingRequiredEncoder()
     }
     
     func superEncoder(forKey key: KeyType) -> Encoder {
-        fatalError("Not implemented")
+        return JSONEncodingRequiredEncoder()
     }
 }
 
-class ThrowingUnkeyedContainer: UnkeyedEncodingContainer {
-    let errorMessage: Error
-    var codingPath: [CodingKey] = []
-    var count: Int = 0
+private struct JSONEncodingRequiredUnkeyedContainer: UnkeyedEncodingContainer {
+    var codingPath: [CodingKey] { return [] }
+    var count: Int { return 0 }
     
-    init(error: Error) {
-        errorMessage = error
-    }
-    
-    func encode(_ value: Int) throws { throw errorMessage }
-    func encode(_ value: Int8) throws { throw errorMessage }
-    func encode(_ value: Int16) throws { throw errorMessage }
-    func encode(_ value: Int32) throws { throw errorMessage }
-    func encode(_ value: Int64) throws { throw errorMessage }
-    func encode(_ value: UInt) throws { throw errorMessage }
-    func encode(_ value: UInt8) throws { throw errorMessage }
-    func encode(_ value: UInt16) throws { throw errorMessage }
-    func encode(_ value: UInt32) throws { throw errorMessage }
-    func encode(_ value: UInt64) throws { throw errorMessage }
-    func encode(_ value: Float) throws { throw errorMessage }
-    func encode(_ value: Double) throws { throw errorMessage }
-    func encode(_ value: String) throws { throw errorMessage }
-    func encode<T>(_ value: T) throws where T : Encodable { throw errorMessage }
-    func encode(_ value: Bool) throws { throw errorMessage }
-    func encodeNil() throws { throw errorMessage }
+    func encodeNil() throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Bool) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Int) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Int8) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Int16) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Int32) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Int64) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: UInt) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: UInt8) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: UInt16) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: UInt32) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: UInt64) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Float) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: Double) throws { throw JSONEncodingRequiredError() }
+    func encode(_ value: String) throws { throw JSONEncodingRequiredError() }
+    func encode<T>(_ value: T) throws where T : Encodable { throw JSONEncodingRequiredError() }
     
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
-        return KeyedEncodingContainer(ThrowingKeyedContainer<NestedKey>(error: errorMessage))
-        
+        return KeyedEncodingContainer(JSONEncodingRequiredKeyedContainer<NestedKey>())
     }
     
     func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
-        fatalError("Not implemented")
-        
+        return self
     }
     
     func superEncoder() -> Encoder {
-        fatalError("Not implemented")
-        
+        return JSONEncodingRequiredEncoder()
     }
 }
 
-enum JsonStringError: Error {
-    case covertStringError(String)
+private struct JSONEncodingRequiredSingleValueContainer: SingleValueEncodingContainer {
+    var codingPath: [CodingKey] { return [] }
+
+    mutating func encodeNil() throws { throw JSONEncodingRequiredError() }
+    mutating func encode(_ value: Bool) throws { throw JSONEncodingRequiredError() }
+    mutating func encode(_ value: String) throws { throw JSONEncodingRequiredError() }
+    mutating func encode(_ value: Double) throws { throw JSONEncodingRequiredError() }
+    mutating func encode(_ value: Float) throws { throw JSONEncodingRequiredError() }
+    mutating func encode(_ value: Int) throws { throw JSONEncodingRequiredError() }
+    mutating func encode(_ value: Int8) throws { throw JSONEncodingRequiredError() }
+    mutating func encode(_ value: Int16) throws { throw JSONEncodingRequiredError() }
+    mutating func encode(_ value: Int32) throws { throw JSONEncodingRequiredError() }
+    mutating func encode(_ value: Int64) throws { throw JSONEncodingRequiredError() }
+    mutating func encode(_ value: UInt) throws { throw JSONEncodingRequiredError() }
+    mutating func encode(_ value: UInt8) throws { throw JSONEncodingRequiredError() }
+    mutating func encode(_ value: UInt16) throws { throw JSONEncodingRequiredError() }
+    mutating func encode(_ value: UInt32) throws { throw JSONEncodingRequiredError() }
+    mutating func encode(_ value: UInt64) throws { throw JSONEncodingRequiredError() }
+    mutating func encode<T>(_ value: T) throws where T : Encodable { throw JSONEncodingRequiredError() }
 }
+
+/// The error that triggers JSON encoding
+private struct JSONEncodingRequiredError: Error { }
+
+private typealias DatabaseValuePersistenceEncoder = (_ value: DatabaseValueConvertible?, _ key: String) -> Void
 
 extension MutablePersistableRecord where Self: Encodable {
     public func encode(to container: inout PersistenceContainer) {
@@ -334,9 +359,9 @@ extension MutablePersistableRecord where Self: Encodable {
         // SE-0035: https://github.com/apple/swift-evolution/blob/master/proposals/0035-limit-inout-capture.md
         //
         // So let's use it in a non-escaping closure:
-        func encode(_ encode: (_ value: DatabaseValueConvertible?, _ key: String) -> Void) {
+        func encode(_ encode: DatabaseValuePersistenceEncoder) {
             withoutActuallyEscaping(encode) { escapableEncode in
-                let encoder = PersistableRecordEncoder(codingPath: [], encode: escapableEncode)
+                let encoder = PersistableRecordEncoder(encode: escapableEncode)
                 try! self.encode(to: encoder)
             }
         }
