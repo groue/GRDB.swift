@@ -84,27 +84,19 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                 return nil
             } else {
                 do {
-                    // This decoding will fail for types that need a keyed container,
-                    // because we're decoding a database value here (string, int, double, data, null)
-                    // if we find a nested Decodable type then pass the string to JSON decoder
-                    let value = try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
-                    if let _ = value as? Encodable {
-                        // Support for nested ( Codable )
-                        return try JSONDecoder().decode(type.self, from: row.dataNoCopy(named: key.stringValue)!)
+                    // This decoding will fail for types that decode from keyed
+                    // or unkeyed containers, because we're decoding a single
+                    // value here (string, int, double, data, null). If such an
+                    // error happens, we'll switch to JSON decoding.
+                    return try T(from: RowSingleValueDecoder(row: row, codingPath: codingPath + [key]))
+                } catch let error as DecodingError {
+                    if case .typeMismatch(_, let context) = error,
+                        context.debugDescription == "keyed decoding is not supported" || context.debugDescription == "unkeyed decoding is not supported",
+                        let data = row.dataNoCopy(atIndex: index)
+                    {
+                        return try JSONDecoder().decode(type.self, from: data)
                     } else {
-                        return value
-                    }
-                } catch {
-                    switch error as! DecodingError {
-                    case .typeMismatch(_, let context):
-                        if context.debugDescription == "unkeyed decoding is not supported" {
-                            // Support for nested keyed containers ( [Codable] )
-                            return try JSONDecoder().decode(type.self, from: row.dataNoCopy(named: key.stringValue)!)
-                        } else {
-                            throw(error)
-                        }
-                    default:
-                        throw(error)
+                        throw error
                     }
                 }
             }
@@ -146,27 +138,19 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                 return type.decode(from: row, atUncheckedIndex: index) as! T
             } else {
                 do {
-                    // This decoding will fail for types that need a keyed container,
-                    // because we're decoding a database value here (string, int, double, data, null)
-                    // if we find a nested Decodable type then pass the string to JSON decoder
-                    let value = try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
-                    if let _ = value as? Codable {
-                        // Support for nested ( Codable )
-                        return try JSONDecoder().decode(type.self, from: row.dataNoCopy(named: key.stringValue)!)
+                    // This decoding will fail for types that decode from keyed
+                    // or unkeyed containers, because we're decoding a single
+                    // value here (string, int, double, data, null). If such an
+                    // error happens, we'll switch to JSON decoding.
+                    return try T(from: RowSingleValueDecoder(row: row, codingPath: codingPath + [key]))
+                } catch let error as DecodingError {
+                    if case .typeMismatch(_, let context) = error,
+                        context.debugDescription == "keyed decoding is not supported" || context.debugDescription == "unkeyed decoding is not supported",
+                        let data = row.dataNoCopy(atIndex: index)
+                    {
+                        return try JSONDecoder().decode(type.self, from: data)
                     } else {
-                        return value
-                    }
-                } catch {
-                    switch error as! DecodingError {
-                    case .typeMismatch(_, let context):
-                        if context.debugDescription == "unkeyed decoding is not supported" {
-                            // Support for nested keyed containers ( [Codable] )
-                            return try JSONDecoder().decode(type.self, from: row.dataNoCopy(named: key.stringValue)!)
-                        } else {
-                            throw(error)
-                        }
-                    default:
-                        throw(error)
+                        throw error
                     }
                 }
             }
@@ -279,9 +263,10 @@ private struct RowSingleValueDecodingContainer: SingleValueDecodingContainer {
         if let type = T.self as? DatabaseValueConvertible.Type {
             // Prefer DatabaseValueConvertible decoding over Decodable.
             // This allows decoding Date from String, or DatabaseValue from NULL.
+            // TODO: switch to more efficient decoding apis
             return type.decode(from: row[column.stringValue], conversionContext: ValueConversionContext(row).atColumn(column.stringValue)) as! T
         } else {
-            return try T(from: RowDecoder(row: row, codingPath: [column]))
+            return try T(from: RowSingleValueDecoder(row: row, codingPath: [column]))
         }
     }
 }
@@ -309,13 +294,39 @@ private struct RowDecoder: Decoder {
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
-        // Asked for a value type: column name required
-        guard let codingKey = codingPath.last else {
-            throw DecodingError.typeMismatch(
-                RowDecoder.self,
-                DecodingError.Context(codingPath: codingPath, debugDescription: "single value decoding requires a coding key"))
-        }
-        return RowSingleValueDecodingContainer(row: row, codingPath: codingPath, column: codingKey)
+        throw DecodingError.typeMismatch(
+            RowDecoder.self,
+            DecodingError.Context(codingPath: codingPath, debugDescription: "single value decoding is not supported"))
+    }
+}
+
+private struct RowSingleValueDecoder: Decoder {
+    let row: Row
+    
+    init(row: Row, codingPath: [CodingKey]) {
+        assert(!codingPath.isEmpty, "coding key required")
+        self.row = row
+        self.codingPath = codingPath
+    }
+    
+    // Decoder
+    let codingPath: [CodingKey]
+    var userInfo: [CodingUserInfoKey : Any] { return [:] }
+    
+    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
+        throw DecodingError.typeMismatch(
+            UnkeyedDecodingContainer.self,
+            DecodingError.Context(codingPath: codingPath, debugDescription: "keyed decoding is not supported"))
+    }
+    
+    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+        throw DecodingError.typeMismatch(
+            UnkeyedDecodingContainer.self,
+            DecodingError.Context(codingPath: codingPath, debugDescription: "unkeyed decoding is not supported"))
+    }
+    
+    func singleValueContainer() throws -> SingleValueDecodingContainer {
+        return RowSingleValueDecodingContainer(row: row, codingPath: codingPath, column: codingPath.last!)
     }
 }
 
