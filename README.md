@@ -430,7 +430,7 @@ A database queue serializes accesses to the database, which means that there is 
 
 - The `write` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are cancelled, the whole transaction is rollbacked, and the error is rethrown.
     
-    When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints) for more information.
+    When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
 
 **A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
@@ -508,7 +508,7 @@ Unlike [database queues](#database-queues), pools allow several threads to acces
 
 - The `write` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are cancelled, the whole transaction is rollbacked, and the error is rethrown.
     
-    When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints) for more information.
+    When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
 
 - Database pools can take [snapshots](#database-snapshots) of the database.
 
@@ -688,7 +688,7 @@ try Row.fetchOne(...)    // Row?
 
 ### Cursors
 
-**Whenever you consume several rows from the database, you can fetch a Cursor, or an Array**.
+**Whenever you consume several rows from the database, you can fetch an Array, or a Cursor**.
 
 The `fetchAll()` method returns a regular Swift array, that you iterate like all other arrays:
 
@@ -716,21 +716,55 @@ try dbQueue.read { db in
 
 Both arrays and cursors can iterate over database results. How do you choose one or the other? Look at the differences:
 
-- **Cursors can not be used on any thread**: you must consume a cursor on the dispatch queue it was created in, and you must not extract it. Arrays may be consumed on any thread:
+- **Cursors can not be used on any thread**: you must consume a cursor on the dispatch queue it was created in. Particularly, don't extract a cursor out of a database access method:
     
     ```swift
     // Wrong
-    let cursor = try dbQueue.read { try Player.fetchCursor($0, ...) }
-    while let player = try players.next() { ... }
+    let cursor = try dbQueue.read { db in
+        try Player.fetchCursor(db, ...)
+    }
+    while let player = try cursor.next() { ... }
+    ```
     
+    Conversely, arrays may be consumed on any thread:
+    
+    ```swift
     // OK
-    let array = try dbQueue.read { try Player.fetchAll($0, ...) }
-    for player in players { // use player }
+    let array = try dbQueue.read { db in
+        try Player.fetchAll(db, ...)
+    }
+    for player in array { ... }
     ```
     
 - **Cursors can be iterated only one time.** Arrays can be iterated many times.
+
 - **Cursors iterate database results in a lazy fashion**, and don't consume much memory. Arrays contain copies of database values, and may take a lot of memory when there are many fetched results.
-- **Cursors are granted with direct access to SQLite,** unlike arrays that have to take the time to copy database values. When you really care about performance, you may want to deal with cursors of raw rows at the lowest possible level: `Row.fetchCursor(...)`.
+
+- **Cursors are granted with direct access to SQLite,** unlike arrays that have to take the time to copy database values. If you look after extra performance, you may prefer cursors over arrays.
+
+- **Cursors adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/3.2/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.** As such, cursors come with many convenience methods: `compactMap`, `contains`, `dropFirst`, `dropLast`, `drop(while:)`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`, `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`, `suffix`:
+    
+    ```swift
+    // Prints all Github links
+    try URL
+        .fetchCursor(db, "SELECT url FROM link")
+        .filter { url in url.host == "github.com" }
+        .forEach { url in print(url) }
+    
+    // An efficient cursor of coordinates:
+    let locations = try Row.
+        .fetchCursor(db, "SELECT latitude, longitude FROM place")
+        .map { row in
+            CLLocationCoordinate2D(latitude: row[0], longitude: row[1])
+        }
+    
+    // Turn cursors to arrays or sets:
+    let array = try Array(cursor)
+    let set = try Set(cursor)
+    ```
+    
+    **Cursors are not Swift sequences.** That's because Swift sequences can't handle iteration errors, when reading SQLite results may fail at any time. SQL functions may throw errors. On iOS, [data protection](#data-protection) may block access to the database file in the background. On macOS, your application users may mess with the file system.
+
 - **Cursors require a little care**:
     
     - Don't modify the results during a cursor iteration:
@@ -744,37 +778,7 @@ Both arrays and cursors can iterate over database results. How do you choose one
     
     - Don't turn a cursor of `Row` into an array. You would not get the distinct rows you expect. To get a array of rows, use `Row.fetchAll(...)`. Generally speaking, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
 
-
 If you don't see, or don't care about the difference, use arrays. If you care about memory and performance, use cursors when appropriate.
-
-**All GRDB cursors adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/3.2/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.** As such, cursors come with many convenience methods: `compactMap`, `contains`, `dropFirst`, `dropLast`, `drop(while:)`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`, `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`, `suffix`:
-
-```swift
-// All URL hosts
-let hosts = try URL
-    .fetchCursor(db, "SELECT url FROM link")
-    .map { url in url.host }
-
-// Prints all Github links
-try URL
-    .fetchCursor(db, "SELECT url FROM link")
-    .filter { url in url.host == "github.com" }
-    .forEach { url in print(url) }
-
-// Turn a cursor into an array:
-let cursor = URL
-    .fetchCursor(db, "SELECT url FROM link")
-    .filter { url in url.host == "github.com" }
-let githubURLs = try Array(cursor) // [URL]
-
-// Turn a cursor into a set:
-let cursor = URL
-    .fetchCursor(db, "SELECT url FROM link")
-    .flatMap { url in url.host }
-let hosts = try Set(cursor) // Set<String>
-```
-
-**Cursors are not Swift sequences, though.** That's because Swift sequences can't handle iteration errors, when reading SQLite results may fail at any time. SQL functions may throw errors. On iOS, [data protection](#data-protection) may block access to the database file in the background. On MacOS, your application users may mess with the file system.
 
 
 ### Row Queries
