@@ -67,6 +67,13 @@ extension ValueConversionContext {
                 sql: statement.sql,
                 arguments: statement.arguments,
                 column: nil)
+        } else if let sqliteStatement = row.sqliteStatement {
+            let sql = String(cString: sqlite3_sql(sqliteStatement)).trimmingCharacters(in: statementSeparatorCharacterSet)
+            self.init(
+                row: row.copy(),
+                sql: sql,
+                arguments: nil,
+                column: nil)
         } else {
             self.init(
                 row: row.copy(),
@@ -132,13 +139,11 @@ func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue?, conversio
 }
 
 func fatalConversionError<T>(to: T.Type, sqliteStatement: SQLiteStatement, index: Int32) -> Never {
-    let sql = String(cString: sqlite3_sql(sqliteStatement))
-        .trimmingCharacters(in: statementSeparatorCharacterSet)
-    
+    let row = Row(sqliteStatement: sqliteStatement)
     fatalConversionError(
         to: T.self,
         from: DatabaseValue(sqliteStatement: sqliteStatement, index: index),
-        conversionContext: ValueConversionContext(sql: sql, arguments: nil))
+        conversionContext: ValueConversionContext(row).atColumn(Int(index)))
 }
 
 // MARK: - DatabaseValueConvertible

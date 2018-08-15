@@ -94,6 +94,15 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
         self.count = Int(sqlite3_column_count(sqliteStatement))
     }
     
+    /// Creates a row that maps an SQLite statement. Further calls to
+    /// sqlite3_step() modify the row.
+    init(sqliteStatement: SQLiteStatement) {
+        self.sqliteStatement = sqliteStatement
+        self.statementRef = nil
+        self.impl = SQLiteStatementRowImpl(sqliteStatement: sqliteStatement)
+        self.count = Int(sqlite3_column_count(sqliteStatement))
+    }
+    
     /// Creates a row that contain a copy of the current state of the
     /// SQLite statement. Further calls to sqlite3_step() do not modify the row.
     ///
@@ -1404,6 +1413,29 @@ private struct StatementRowImpl : RowImpl {
     
     func copiedRow(_ row: Row) -> Row {
         return Row(copiedFromSQLiteStatement: sqliteStatement, statementRef: statementRef)
+    }
+}
+
+// This one is not optimized at all, since it is only used in fatal conversion errors, so far
+private struct SQLiteStatementRowImpl : RowImpl {
+    let sqliteStatement: SQLiteStatement
+    var count: Int { return Int(sqlite3_column_count(sqliteStatement)) }
+    var isFetched: Bool { return true }
+    
+    func columnName(atUncheckedIndex index: Int) -> String {
+        return String(cString: sqlite3_column_name(sqliteStatement, Int32(index)))
+    }
+    
+    func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
+        return DatabaseValue(sqliteStatement: sqliteStatement, index: Int32(index))
+    }
+    
+    func index(ofColumn name: String) -> Int? {
+        let name = name.lowercased()
+        for index in 0..<count where columnName(atUncheckedIndex: index).lowercased() == name {
+            return index
+        }
+        return nil
     }
 }
 
