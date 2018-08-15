@@ -89,12 +89,11 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                     // value here (string, int, double, data, null). If such an
                     // error happens, we'll switch to JSON decoding.
                     return try T(from: RowSingleValueDecoder(row: row, codingPath: codingPath + [key]))
-                } catch let error as JSONDecodingRequiredError {
-                    if let data = row.dataNoCopy(atIndex: index) {
-                        return try JSONDecoder().decode(type.self, from: data)
-                    } else {
-                        throw error
+                } catch is JSONDecodingRequiredError {
+                    guard let data = row.dataNoCopy(atIndex: index) else {
+                        fatalConversionError(to: T.self, from: row[index], conversionContext: ValueConversionContext(row).atColumn(index))
                     }
+                    return try JSONDecoder().decode(type.self, from: data)
                 }
             }
         }
@@ -140,12 +139,11 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                     // value here (string, int, double, data, null). If such an
                     // error happens, we'll switch to JSON decoding.
                     return try T(from: RowSingleValueDecoder(row: row, codingPath: codingPath + [key]))
-                } catch let error as JSONDecodingRequiredError {
-                    if let data = row.dataNoCopy(atIndex: index) {
-                        return try JSONDecoder().decode(type.self, from: data)
-                    } else {
-                        throw error
+                } catch is JSONDecodingRequiredError {
+                    guard let data = row.dataNoCopy(atIndex: index) else {
+                        fatalConversionError(to: T.self, from: row[index], conversionContext: ValueConversionContext(row).atColumn(index))
                     }
+                    return try JSONDecoder().decode(type.self, from: data)
                 }
             }
         }
