@@ -424,16 +424,17 @@ let newPlaceCount = try dbQueue.write { db -> Int in
 }
 ```
 
+A database queue serializes accesses to the database, which means that there is never more than one thread that uses the database.
+
+- When you don't need to modify the database, prefer the `read` method. It prevents any modification to the database.
+
+- The `write` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are cancelled, the whole transaction is rollbacked, and the error is rethrown.
+    
+    When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints) for more information.
+
 **A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
 See [DemoApps/GRDBDemoiOS/AppDatabase.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/AppDatabase.swift) for a sample code that sets up a database queue on iOS.
-
-> :muscle: **Note to database experts**: The `write` and `read` database access methods generally help enforcing the [GRDB concurrency guarantees](#concurrency), and are highly recommended, even for skilled developers, because they lift most of the mental burden related to explicit SQLite transactions:
->
-> - `DatabaseQueue.write` wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, the whole transaction is rollbacked, and the error is rethrown.
-> - `DatabaseQueue.read` does not open any transaction, but enforces read-only access.
->
-> When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
 
 
 ### DatabaseQueue Configuration
@@ -495,13 +496,6 @@ let newPlaceCount = try dbPool.write { db -> Int in
 }
 ```
 
-**A database pool needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
-
-For a sample code that sets up a database pool on iOS, see [DemoApps/GRDBDemoiOS/AppDatabase.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/AppDatabase.swift), and replace DatabaseQueue with DatabasePool.
-
-
-### Database Pool Concurrency
-
 Unlike [database queues](#database-queues), pools allow several threads to access the database at the same time:
 
 - When you don't need to modify the database, prefer the `read` method, because several threads can perform reads in parallel.
@@ -512,13 +506,15 @@ Unlike [database queues](#database-queues), pools allow several threads to acces
 
 - Unlike reads, writes are serialized. There is never more than a single thread that is writing into the database.
 
-- The `write` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, the whole transaction is rollbacked, and the error is rethrown.
+- The `write` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are cancelled, the whole transaction is rollbacked, and the error is rethrown.
     
     When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints) for more information.
 
 - Database pools can take [snapshots](#database-snapshots) of the database.
 
-See the [Concurrency](#concurrency) chapter for more details about database pools, how they differ from database queues, and advanced use cases.
+**A database pool needs your application to follow rules in order to deliver its safety guarantees.** See the [Concurrency](#concurrency) chapter for more details about database pools, how they differ from database queues, and advanced use cases.
+
+For a sample code that sets up a database pool on iOS, see [DemoApps/GRDBDemoiOS/AppDatabase.swift](DemoApps/GRDBDemoiOS/GRDBDemoiOS/AppDatabase.swift), and replace DatabaseQueue with DatabasePool.
 
 
 ### DatabasePool Configuration
