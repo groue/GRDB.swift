@@ -2,12 +2,11 @@ import Foundation
 
 private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
     let decoder: RowDecoder
-    
+    var codingPath: [CodingKey] { return decoder.codingPath }
+
     init(decoder: RowDecoder) {
         self.decoder = decoder
     }
-    
-    var codingPath: [CodingKey] { return decoder.codingPath }
     
     /// All the keys the `Decoder` has for this container.
     ///
@@ -213,11 +212,10 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
 }
 
 private struct RowSingleValueDecodingContainer: SingleValueDecodingContainer {
-    let row: Row
+    var row: Row
+    var columnIndex: Int
     var codingPath: [CodingKey]
-    let column: CodingKey
-    let columnIndex: Int
-    
+
     /// Decodes a null value.
     ///
     /// - returns: Whether the encountered value was null.
@@ -260,21 +258,14 @@ private struct RowSingleValueDecodingContainer: SingleValueDecodingContainer {
         } else if let type = T.self as? DatabaseValueConvertible.Type {
             return type.decode(from: row, atUncheckedIndex: columnIndex) as! T
         } else {
-            return try T(from: RowSingleValueDecoder(row: row, columnIndex: columnIndex, codingPath: [column]))
+            return try T(from: RowSingleValueDecoder(row: row, columnIndex: columnIndex, codingPath: codingPath))
         }
     }
 }
 
 private struct RowDecoder: Decoder {
-    let row: Row
-    
-    init(row: Row, codingPath: [CodingKey]) {
-        self.row = row
-        self.codingPath = codingPath
-    }
-    
-    // Decoder
-    let codingPath: [CodingKey]
+    var row: Row
+    var codingPath: [CodingKey]
     var userInfo: [CodingUserInfoKey : Any] { return [:] }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
@@ -291,18 +282,9 @@ private struct RowDecoder: Decoder {
 }
 
 private struct RowSingleValueDecoder: Decoder {
-    let row: Row
-    let columnIndex: Int
-    
-    init(row: Row, columnIndex: Int, codingPath: [CodingKey]) {
-        assert(!codingPath.isEmpty, "coding key required")
-        self.row = row
-        self.columnIndex = columnIndex
-        self.codingPath = codingPath
-    }
-    
-    // Decoder
-    let codingPath: [CodingKey]
+    var row: Row
+    var columnIndex: Int
+    var codingPath: [CodingKey]
     var userInfo: [CodingUserInfoKey : Any] { return [:] }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
@@ -314,10 +296,11 @@ private struct RowSingleValueDecoder: Decoder {
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
-        return RowSingleValueDecodingContainer(row: row, codingPath: codingPath, column: codingPath.last!, columnIndex: columnIndex)
+        return RowSingleValueDecodingContainer(row: row, columnIndex: columnIndex, codingPath: codingPath)
     }
 }
 
+/// The error that triggers JSON decoding
 private struct JSONDecodingRequiredError: Error { }
 
 extension FetchableRecord where Self: Decodable {
