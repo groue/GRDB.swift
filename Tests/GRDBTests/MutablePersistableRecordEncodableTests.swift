@@ -415,4 +415,62 @@ extension MutablePersistableRecordEncodableTests {
             XCTAssertEqual(fetchedUUID, value.uuid)
         }
     }
+    
+    func testJSONDataEncodingStrategy() throws {
+        struct Record: PersistableRecord, Encodable {
+            let data: Data
+            let optionalData: Data?
+            let datas: [Data]
+            let optionalDatas: [Data?]
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "record") { t in
+                t.column("data", .text)
+                t.column("optionalData", .text)
+                t.column("datas", .text)
+                t.column("optionalDatas", .text)
+            }
+            
+            let data = "foo".data(using: .utf8)!
+            let record = Record(data: data, optionalData: data, datas: [data], optionalDatas: [nil, data])
+            try record.insert(db)
+            
+            let row = try Row.fetchOne(db, Record.all())!
+            XCTAssertEqual(row["data"], data)
+            XCTAssertEqual(row["optionalData"], data)
+            XCTAssertEqual(row["datas"], "[\"Zm9v\"]")
+            XCTAssertEqual(row["optionalDatas"], "[null,\"Zm9v\"]")
+        }
+    }
+
+    func testJSONDateEncodingStrategy() throws {
+        struct Record: PersistableRecord, Encodable {
+            let date: Date
+            let optionalDate: Date?
+            let dates: [Date]
+            let optionalDates: [Date?]
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "record") { t in
+                t.column("date", .text)
+                t.column("optionalDate", .text)
+                t.column("dates", .text)
+                t.column("optionalDates", .text)
+            }
+            
+            let date = Date(timeIntervalSince1970: 128)
+            let record = Record(date: date, optionalDate: date, dates: [date], optionalDates: [nil, date])
+            try record.insert(db)
+            
+            let row = try Row.fetchOne(db, Record.all())!
+            XCTAssertEqual(row["date"], "1970-01-01 00:02:08.000")
+            XCTAssertEqual(row["optionalDate"], "1970-01-01 00:02:08.000")
+            XCTAssertEqual(row["dates"], "[128000]")
+            XCTAssertEqual(row["optionalDates"], "[null,128000]")
+        }
+    }
 }

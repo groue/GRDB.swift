@@ -301,3 +301,453 @@ extension FetchableRecordDecodableTests {
         XCTAssertEqual(value.uuid, uuid)
     }
 }
+
+// MARK: - Custom nested Decodable types - nested saved as JSON
+
+extension FetchableRecordDecodableTests {
+    func testOptionalNestedStruct() throws {
+        struct NestedStruct : Codable {
+            let firstName: String?
+            let lastName: String?
+        }
+        
+        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let nested: NestedStruct?
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("nested", .text)
+            }
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: nested)
+            try value.insert(db)
+            
+            let parentModel = try StructWithNestedType.fetchAll(db)
+            
+            guard let nestedModel = parentModel.first?.nested else {
+                XCTFail()
+                return
+            }
+            
+            // Check the nested model contains the expected values of first and last name
+            XCTAssertEqual(nestedModel.firstName, "Bob")
+            XCTAssertEqual(nestedModel.lastName, "Dylan")
+        }
+    }
+    
+    func testOptionalNestedStructNil() throws {
+        struct NestedStruct : Codable {
+            let firstName: String?
+            let lastName: String?
+        }
+        
+        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let nested: NestedStruct?
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("nested", .text)
+            }
+            
+            let value = StructWithNestedType(nested: nil)
+            try value.insert(db)
+            
+            let parentModel = try StructWithNestedType.fetchAll(db)
+            
+            XCTAssertNil(parentModel.first?.nested)
+        }
+    }
+    
+    func testOptionalNestedArrayStruct() throws {
+        struct NestedStruct : Codable {
+            let firstName: String?
+            let lastName: String?
+        }
+        
+        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let nested: [NestedStruct]?
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("nested", .text)
+            }
+
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: [nested, nested])
+            try value.insert(db)
+            
+            let parentModel = try StructWithNestedType.fetchAll(db)
+            
+            guard let arrayOfNestedModel = parentModel.first?.nested, let firstNestedModelInArray = arrayOfNestedModel.first else {
+                XCTFail()
+                return
+            }
+            
+            // Check there are two models in array
+            XCTAssertTrue(arrayOfNestedModel.count == 2)
+            
+            // Check the nested model contains the expected values of first and last name
+            XCTAssertEqual(firstNestedModelInArray.firstName, "Bob")
+            XCTAssertEqual(firstNestedModelInArray.lastName, "Dylan")
+        }
+    }
+    
+    func testOptionalNestedArrayStructNil() throws {
+        struct NestedStruct: Codable {
+            let firstName: String?
+            let lastName: String?
+        }
+        
+        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let nested: [NestedStruct]?
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("nested", .text)
+            }
+            
+            let value = StructWithNestedType(nested: nil)
+            try value.insert(db)
+            
+            let parentModel = try StructWithNestedType.fetchAll(db)
+            
+            XCTAssertNil(parentModel.first?.nested)
+        }
+    }
+    
+    func testNonOptionalNestedStruct() throws {
+        struct NestedStruct: Codable {
+            let firstName: String?
+            let lastName: String?
+        }
+        
+        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let nested: NestedStruct
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("nested", .text)
+            }
+
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: nested)
+            try value.insert(db)
+            
+            let parentModel = try StructWithNestedType.fetchAll(db)
+            
+            guard let nestedModel = parentModel.first?.nested else {
+                XCTFail()
+                return
+            }
+            
+            // Check the nested model contains the expected values of first and last name
+            XCTAssertEqual(nestedModel.firstName, "Bob")
+            XCTAssertEqual(nestedModel.lastName, "Dylan")
+        }
+    }
+    
+    func testNonOptionalNestedArrayStruct() throws {
+        struct NestedStruct : Codable {
+            let firstName: String?
+            let lastName: String?
+        }
+        
+        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let nested: [NestedStruct]
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("nested", .text)
+            }
+
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: [nested, nested])
+            try value.insert(db)
+            
+            let parentModel = try StructWithNestedType.fetchAll(db)
+            
+            guard let arrayOfNestedModel = parentModel.first?.nested, let firstNestedModelInArray = arrayOfNestedModel.first else {
+                XCTFail()
+                return
+            }
+            
+            // Check there are two models in array
+            XCTAssertTrue(arrayOfNestedModel.count == 2)
+            
+            // Check the nested model contains the expected values of first and last name
+            XCTAssertEqual(firstNestedModelInArray.firstName, "Bob")
+            XCTAssertEqual(firstNestedModelInArray.lastName, "Dylan")
+        }
+    }
+
+    func testCodableExampleCode() throws {
+        struct Player: PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let name: String
+            let score: Int
+            let scores: [Int]
+            let lastMedal: PlayerMedal
+            let medals: [PlayerMedal]
+            let timeline: [String: PlayerMedal]
+        }
+
+        // A simple Codable that will be nested in a parent Codable
+        struct PlayerMedal : Codable {
+            let name: String?
+            let type: String?
+        }
+
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("name", .text)
+                t.column("score", .integer)
+                t.column("scores", .integer)
+                t.column("lastMedal", .text)
+                t.column("medals", .text)
+                t.column("timeline", .text)
+            }
+
+            let medal1 = PlayerMedal(name: "First", type: "Gold")
+            let medal2 = PlayerMedal(name: "Second", type: "Silver")
+            let timeline = ["Local Contest": medal1, "National Contest": medal2]
+            let value = Player(name: "PlayerName", score: 10, scores: [1,2,3,4,5], lastMedal: medal1, medals: [medal1, medal2], timeline: timeline)
+            try value.insert(db)
+
+            let parentModel = try Player.fetchAll(db)
+
+            guard let first = parentModel.first, let firstNestedModelInArray = first.medals.first,  let secondNestedModelInArray = first.medals.last else {
+                XCTFail()
+                return
+            }
+
+            // Check there are two models in array
+            XCTAssertTrue(first.medals.count == 2)
+
+            // Check the nested model contains the expected values of first and last name
+            XCTAssertEqual(firstNestedModelInArray.name, "First")
+            XCTAssertEqual(secondNestedModelInArray.name, "Second")
+
+            XCTAssertEqual(first.name, "PlayerName")
+            XCTAssertEqual(first.score, 10)
+            XCTAssertEqual(first.scores, [1,2,3,4,5])
+            XCTAssertEqual(first.lastMedal.name, medal1.name)
+            XCTAssertEqual(first.timeline["Local Contest"]?.name, medal1.name)
+            XCTAssertEqual(first.timeline["National Contest"]?.name, medal2.name)
+        }
+
+    }
+    
+    // MARK: - JSON data in Detahced Rows
+    
+    func testDetachedRows() throws {
+        struct NestedStruct : PersistableRecord, FetchableRecord, Codable {
+            let firstName: String?
+            let lastName: String?
+        }
+        
+        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let nested: NestedStruct
+        }
+        
+        let row: Row = ["nested": """
+            {"firstName":"Bob","lastName":"Dylan"}
+            """]
+        
+        let model = StructWithNestedType(row: row)
+        XCTAssertEqual(model.nested.firstName, "Bob")
+        XCTAssertEqual(model.nested.lastName, "Dylan")
+    }
+    
+    func testArrayOfDetachedRowsAsData() throws {
+        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let name: String
+        }
+        
+        let jsonAsString = "{\"firstName\":\"Bob\",\"lastName\":\"Marley\"}"
+        let jsonAsData = jsonAsString.data(using: .utf8)
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("name", .text)
+            }
+            
+            let model = TestStruct(name: jsonAsString)
+            try model.insert(db)
+        }
+        
+        try dbQueue.read { db in
+            
+            // ... with an array of detached rows:
+            let array = try Row.fetchAll(db, "SELECT * FROM t1")
+            for row in array {
+                let data1: Data? = row["name"]
+                XCTAssertEqual(jsonAsData, data1)
+                let data = row.dataNoCopy(named: "name")
+                XCTAssertEqual(jsonAsData, data)
+            }
+        }
+    }
+    
+    func testArrayOfDetachedRowsAsString() throws {
+        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let name: String
+        }
+        
+        let jsonAsString = "{\"firstName\":\"Bob\",\"lastName\":\"Marley\"}"
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("name", .text)
+            }
+            
+            let model = TestStruct(name: jsonAsString)
+            try model.insert(db)
+        }
+        
+        try dbQueue.read { db in
+            
+            // ... with an array of detached rows:
+            let array = try Row.fetchAll(db, "SELECT * FROM t1")
+            for row in array {
+                let string: String? = row["name"]
+                XCTAssertEqual(jsonAsString, string)
+            }
+        }
+    }
+    
+    func testCursorRowsAsData() throws {
+        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let name: String
+        }
+        
+        let jsonAsString = "{\"firstName\":\"Bob\",\"lastName\":\"Marley\"}"
+        let jsonAsData = jsonAsString.data(using: .utf8)
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("name", .text)
+            }
+            
+            let model = TestStruct(name: jsonAsString)
+            try model.insert(db)
+        }
+        
+        try dbQueue.read { db in
+            // Compare cursor of low-level rows:
+            let cursor = try Row.fetchCursor(db, "SELECT * FROM t1")
+            while let row = try cursor.next() {
+                let data1: Data? = row["name"]
+                XCTAssertEqual(jsonAsData, data1)
+                let data = row.dataNoCopy(named: "name")
+                XCTAssertEqual(jsonAsData, data)
+            }
+        }
+    }
+    
+    func testCursorRowsAsString() throws {
+        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let name: String
+        }
+        
+        let jsonAsString = "{\"firstName\":\"Bob\",\"lastName\":\"Marley\"}"
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("name", .text)
+            }
+            
+            let model = TestStruct(name: jsonAsString)
+            try model.insert(db)
+        }
+        
+        try dbQueue.read { db in
+            // Compare cursor of low-level rows:
+            let cursor = try Row.fetchCursor(db, "SELECT * FROM t1")
+            while let row = try cursor.next() {
+                let string: String? = row["name"]
+                XCTAssertEqual(jsonAsString, string)
+            }
+        }
+    }
+    
+    func testJSONDataEncodingStrategy() throws {
+        struct Record: FetchableRecord, Decodable {
+            let data: Data
+            let optionalData: Data?
+            let datas: [Data]
+            let optionalDatas: [Data?]
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let data = "foo".data(using: .utf8)!
+            let record = try Record.fetchOne(db, "SELECT ? AS data, ? AS optionalData, ? AS datas, ? AS optionalDatas", arguments: [
+                data,
+                data,
+                "[\"Zm9v\"]",
+                "[null, \"Zm9v\"]"
+            ])!
+            XCTAssertEqual(record.data, data)
+            XCTAssertEqual(record.optionalData!, data)
+            XCTAssertEqual(record.datas.count, 1)
+            XCTAssertEqual(record.datas[0], data)
+            XCTAssertEqual(record.optionalDatas.count, 2)
+            XCTAssertNil(record.optionalDatas[0])
+            XCTAssertEqual(record.optionalDatas[1]!, data)
+        }
+    }
+    
+    func testJSONDateEncodingStrategy() throws {
+        struct Record: FetchableRecord, Decodable {
+            let date: Date
+            let optionalDate: Date?
+            let dates: [Date]
+            let optionalDates: [Date?]
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = try Record.fetchOne(db, "SELECT ? AS date, ? AS optionalDate, ? AS dates, ? AS optionalDates", arguments: [
+                "1970-01-01 00:02:08.000",
+                "1970-01-01 00:02:08.000",
+                "[128000]",
+                "[null,128000]"
+                ])!
+            XCTAssertEqual(record.date.timeIntervalSince1970, 128)
+            XCTAssertEqual(record.optionalDate!.timeIntervalSince1970, 128)
+            XCTAssertEqual(record.dates.count, 1)
+            XCTAssertEqual(record.dates[0].timeIntervalSince1970, 128)
+            XCTAssertEqual(record.optionalDates.count, 2)
+            XCTAssertNil(record.optionalDates[0])
+            XCTAssertEqual(record.optionalDates[1]!.timeIntervalSince1970, 128)
+        }
+    }
+}

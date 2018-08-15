@@ -67,6 +67,13 @@ extension ValueConversionContext {
                 sql: statement.sql,
                 arguments: statement.arguments,
                 column: nil)
+        } else if let sqliteStatement = row.sqliteStatement {
+            let sql = String(cString: sqlite3_sql(sqliteStatement)).trimmingCharacters(in: statementSeparatorCharacterSet)
+            self.init(
+                row: row.copy(),
+                sql: sql,
+                arguments: nil,
+                column: nil)
         } else {
             self.init(
                 row: row.copy(),
@@ -129,6 +136,14 @@ func conversionErrorMessage<T>(to: T.Type, from dbValue: DatabaseValue?, convers
 /// - parameter dbValue: nil means "missing column", for consistency with (row["missing"] as DatabaseValue? == nil)
 func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue?, conversionContext: ValueConversionContext?, file: StaticString = #file, line: UInt = #line) -> Never {
     fatalError(conversionErrorMessage(to: T.self, from: dbValue, conversionContext: conversionContext), file: file, line: line)
+}
+
+func fatalConversionError<T>(to: T.Type, sqliteStatement: SQLiteStatement, index: Int32) -> Never {
+    let row = Row(sqliteStatement: sqliteStatement)
+    fatalConversionError(
+        to: T.self,
+        from: DatabaseValue(sqliteStatement: sqliteStatement, index: index),
+        conversionContext: ValueConversionContext(row).atColumn(Int(index)))
 }
 
 // MARK: - DatabaseValueConvertible

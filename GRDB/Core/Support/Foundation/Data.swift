@@ -24,9 +24,15 @@ extension Data : DatabaseValueConvertible, StatementColumnConvertible {
     /// Returns a Data initialized from *dbValue*, if it contains
     /// a Blob.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Data? {
-        guard case .blob(let data) = dbValue.storage else {
+        switch dbValue.storage {
+        case .blob(let data):
+            return data
+        case .string(let string):
+            // Implicit conversion from string to blob, just as SQLite does
+            // See https://www.sqlite.org/c3ref/column_blob.html
+            return string.data(using: .utf8)
+        default:
             return nil
         }
-        return data
     }
 }

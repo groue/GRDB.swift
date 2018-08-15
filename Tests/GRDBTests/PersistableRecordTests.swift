@@ -761,3 +761,285 @@ class PersistableRecordTests: GRDBTestCase {
         }
     }
 }
+
+// MARK: - Custom nested Codable types - nested saved as JSON
+
+extension PersistableRecordTests {
+    
+    func testOptionalNestedStruct() throws {
+        struct NestedStruct : Codable {
+            let firstName: String?
+            let lastName: String?
+        }
+        
+        struct StructWithNestedType : PersistableRecord, Codable {
+            static let databaseTableName = "t1"
+            let nested: NestedStruct?
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("nested", .text)
+            }
+
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: nested)
+            try value.insert(db)
+            
+            let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
+            
+            // Encodable has a default implementation which encodes a model to JSON as String.
+            // We expect here JSON in the form of a String
+            XCTAssert(dbValue.storage.value is String)
+            let string = dbValue.storage.value as! String
+            if let data = string.data(using: .utf8) {
+                do {
+                    let decoded = try JSONDecoder().decode(NestedStruct.self, from: data)
+                    XCTAssertEqual(nested.firstName, decoded.firstName)
+                    XCTAssertEqual(nested.lastName, decoded.lastName)
+                } catch {
+                    XCTFail(error.localizedDescription)
+                }
+            } else {
+                XCTFail("Failed to convert " + string)
+            }
+        }
+    }
+    
+    func testOptionalNestedStructNil() throws {
+        struct NestedStruct : Encodable {
+            let firstName: String?
+            let lastName: String?
+        }
+        
+        struct StructWithNestedType : PersistableRecord, Encodable {
+            static let databaseTableName = "t1"
+            let nested: NestedStruct?
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("nested", .text)
+            }
+            
+            let value = StructWithNestedType(nested: nil)
+            try value.insert(db)
+            
+            let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
+            
+            // We expect here nil
+            XCTAssertNil(dbValue.storage.value)
+        }
+    }
+    
+    func testOptionalNestedArrayStruct() throws {
+        struct NestedStruct : Codable {
+            let firstName: String?
+            let lastName: String?
+        }
+        
+        struct StructWithNestedType : PersistableRecord, Codable {
+            static let databaseTableName = "t1"
+            let nested: [NestedStruct]?
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("nested", .text)
+            }
+
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: [nested, nested])
+            try value.insert(db)
+            
+            let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
+            
+            // Encodable has a default implementation which encodes a model to JSON as String.
+            // We expect here JSON in the form of a String
+            XCTAssert(dbValue.storage.value is String)
+            let string = dbValue.storage.value as! String
+            if let data = string.data(using: .utf8) {
+                do {
+                    let decoded = try JSONDecoder().decode([NestedStruct].self, from: data)
+                    XCTAssertEqual(decoded.count, 2)
+                    XCTAssertEqual(nested.firstName, decoded.first!.firstName)
+                    XCTAssertEqual(nested.lastName, decoded.first!.lastName)
+                    XCTAssertEqual(nested.firstName, decoded.last!.firstName)
+                    XCTAssertEqual(nested.lastName, decoded.last!.lastName)
+                } catch {
+                    XCTFail(error.localizedDescription)
+                }
+            } else {
+                XCTFail("Failed to convert " + string)
+            }
+        }
+    }
+    
+    func testOptionalNestedArrayStructNil() throws {
+        struct NestedStruct : Encodable {
+            let firstName: String?
+            let lastName: String?
+        }
+        
+        struct StructWithNestedType : PersistableRecord, Encodable {
+            static let databaseTableName = "t1"
+            let nested: [NestedStruct]?
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("nested", .text)
+            }
+            
+            let value = StructWithNestedType(nested: nil)
+            try value.insert(db)
+            
+            let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
+            
+            // We expect here nil
+            XCTAssertNil(dbValue.storage.value)
+        }
+    }
+    
+    func testNonOptionalNestedStruct() throws {
+        struct NestedStruct : Codable {
+            let firstName: String
+            let lastName: String
+        }
+        
+        struct StructWithNestedType : PersistableRecord, Codable {
+            static let databaseTableName = "t1"
+            let nested: NestedStruct
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("nested", .text)
+            }
+
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: nested)
+            try value.insert(db)
+            
+            let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
+
+            // Encodable has a default implementation which encodes a model to JSON as String.
+            // We expect here JSON in the form of a String
+            XCTAssert(dbValue.storage.value is String)
+            let string = dbValue.storage.value as! String
+            if let data = string.data(using: .utf8) {
+                do {
+                    let decoded = try JSONDecoder().decode(NestedStruct.self, from: data)
+                    XCTAssertEqual(nested.firstName, decoded.firstName)
+                    XCTAssertEqual(nested.lastName, decoded.lastName)
+                } catch {
+                    XCTFail(error.localizedDescription)
+                }
+            } else {
+                    XCTFail("Failed to convert " + string)
+            }
+        }
+    }
+    
+    func testNonOptionalNestedArrayStruct() throws {
+        struct NestedStruct : Codable {
+            let firstName: String
+            let lastName: String
+        }
+        
+        struct StructWithNestedType : PersistableRecord, Codable {
+            static let databaseTableName = "t1"
+            let nested: [NestedStruct]
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("nested", .text)
+            }
+            
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: [nested])
+            try value.insert(db)
+            
+            let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
+            
+            // Encodable has a default implementation which encodes a model to JSON as String.
+            // We expect here JSON in the form of a String
+            XCTAssert(dbValue.storage.value is String)
+            let string = dbValue.storage.value as! String
+            if let data = string.data(using: .utf8) {
+                do {
+                    let decoded = try JSONDecoder().decode([NestedStruct].self, from: data)
+                    XCTAssertEqual(nested.firstName, decoded.first!.firstName)
+                    XCTAssertEqual(nested.lastName, decoded.first!.lastName)
+                } catch {
+                    XCTFail(error.localizedDescription)
+                }
+            } else {
+                XCTFail("Failed to convert " + string)
+            }
+        }
+    }
+    
+    func testStringStoredInArray() throws {
+        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let numbers: [String]
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("numbers", .text)
+            }
+            
+            let model = TestStruct(numbers: ["test1", "test2", "test3"])
+            try model.insert(db)
+            
+            // Encodable has a default implementation which encodes a model to JSON as String.
+            // We expect here JSON in the form of a String
+            
+            guard let fetchModel = try TestStruct.fetchOne(db) else {
+                XCTFail("Could not find record in db")
+                return
+            }
+
+            print(fetchModel.numbers.first!)
+             XCTAssertEqual(model.numbers, fetchModel.numbers)
+        }
+    }
+    
+    func testOptionalStringStoredInArray() throws {
+        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            let numbers: [String]?
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("numbers", .text)
+            }
+            
+            let model = TestStruct(numbers: ["test1", "test2", "test3"])
+            try model.insert(db)
+            
+            // Encodable has a default implementation which encodes a model to JSON as String.
+            // We expect here JSON in the form of a String
+            
+            guard let fetchModel = try TestStruct.fetchOne(db) else {
+                XCTFail("Could not find record in db")
+                return
+            }
+            
+            XCTAssertEqual(model.numbers, fetchModel.numbers)
+        }
+    }
+    
+}

@@ -55,7 +55,7 @@ class FoundationNSStringTests: GRDBTestCase {
         XCTAssertNil(NSString.fromDatabaseValue(databaseValue_Null))
         XCTAssertNil(NSString.fromDatabaseValue(databaseValue_Int64))
         XCTAssertNil(NSString.fromDatabaseValue(databaseValue_Double))
-        XCTAssertNil(NSString.fromDatabaseValue(databaseValue_Blob))
+        XCTAssertEqual(NSString.fromDatabaseValue(databaseValue_Blob), "bar")
     }
     
 }

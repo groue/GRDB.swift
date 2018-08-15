@@ -321,7 +321,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         }
     }
     
-    func testStatementColumnConvertible() throws {
+    func testStatementColumnConvertible1() throws {
         // Those tests are tightly coupled to GRDB decoding code.
         // Each test comes with one or several commented crashing code snippets that trigger it.
         let dbQueue = try makeDatabaseQueue()
@@ -355,6 +355,54 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                     from: row[0],
                     conversionContext: ValueConversionContext(row).atColumn(0)),
                 "could not convert database value NULL to String (column: `name`, column index: 0, row: [name:NULL team:\"invalid\"])")
+        }
+    }
+    
+    func testStatementColumnConvertible2() throws {
+        // Those tests are tightly coupled to GRDB decoding code.
+        // Each test comes with one or several commented crashing code snippets that trigger it.
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let statement = try db.makeSelectStatement("SELECT ? AS foo")
+            statement.arguments = [1000]
+            let row = try Row.fetchOne(statement)!
+            
+            // _ = try Row.fetchCursor(statement).map { $0["missing"] as Int8 }.next()
+            try Row.fetchCursor(statement).forEach { row in
+                XCTAssertEqual(
+                    conversionErrorMessage(
+                        to: Int8.self,
+                        from: nil,
+                        conversionContext: ValueConversionContext(row).atColumn("missing")),
+                    "could not read Int8 from missing column `missing` (row: [foo:1000], sql: `SELECT ? AS foo`, arguments: [1000])")
+            }
+            
+            // _ = try Int8.fetchAll(statement)
+            try statement.makeCursor().forEach {
+                let sqliteStatement = statement.sqliteStatement
+                XCTAssertEqual(
+                    conversionErrorMessage(
+                        to: Int8.self,
+                        from: DatabaseValue(sqliteStatement: sqliteStatement, index: 0),
+                        conversionContext: ValueConversionContext(Row(sqliteStatement: sqliteStatement)).atColumn(0)),
+                    "could not convert database value 1000 to Int8 (column: `foo`, column index: 0, row: [foo:1000], sql: `SELECT ? AS foo`)")
+            }
+            
+            // _ = row["name"] as Int8
+            XCTAssertEqual(
+                conversionErrorMessage(
+                    to: Int8.self,
+                    from: row["foo"],
+                    conversionContext: ValueConversionContext(row).atColumn("foo")),
+                "could not convert database value 1000 to Int8 (column: `foo`, column index: 0, row: [foo:1000])")
+            
+            // _ = row[0] as Int8
+            XCTAssertEqual(
+                conversionErrorMessage(
+                    to: Int8.self,
+                    from: row[0],
+                    conversionContext: ValueConversionContext(row).atColumn(0)),
+                "could not convert database value 1000 to Int8 (column: `foo`, column index: 0, row: [foo:1000])")
         }
     }
     

@@ -1,11 +1,12 @@
+import Foundation
+
 private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
     let decoder: RowDecoder
-    
+    var codingPath: [CodingKey] { return decoder.codingPath }
+
     init(decoder: RowDecoder) {
         self.decoder = decoder
     }
-    
-    var codingPath: [CodingKey] { return decoder.codingPath }
     
     /// All the keys the `Decoder` has for this container.
     ///
@@ -81,7 +82,18 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
             } else if row.impl.hasNull(atUncheckedIndex: index) {
                 return nil
             } else {
-                return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+                do {
+                    // This decoding will fail for types that decode from keyed
+                    // or unkeyed containers, because we're decoding a single
+                    // value here (string, int, double, data, null). If such an
+                    // error happens, we'll switch to JSON decoding.
+                    return try T(from: RowSingleValueDecoder(row: row, columnIndex: index, codingPath: codingPath + [key]))
+                } catch is JSONRequiredError {
+                    guard let data = row.dataNoCopy(atIndex: index) else {
+                        fatalConversionError(to: T.self, from: row[index], conversionContext: ValueConversionContext(row).atColumn(index))
+                    }
+                    return try makeJSONDecoder().decode(type.self, from: data)
+                }
             }
         }
         
@@ -120,7 +132,18 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
             } else if let type = T.self as? DatabaseValueConvertible.Type {
                 return type.decode(from: row, atUncheckedIndex: index) as! T
             } else {
-                return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+                do {
+                    // This decoding will fail for types that decode from keyed
+                    // or unkeyed containers, because we're decoding a single
+                    // value here (string, int, double, data, null). If such an
+                    // error happens, we'll switch to JSON decoding.
+                    return try T(from: RowSingleValueDecoder(row: row, columnIndex: index, codingPath: codingPath + [key]))
+                } catch is JSONRequiredError {
+                    guard let data = row.dataNoCopy(atIndex: index) else {
+                        fatalConversionError(to: T.self, from: row[index], conversionContext: ValueConversionContext(row).atColumn(index))
+                    }
+                    return try makeJSONDecoder().decode(type.self, from: data)
+                }
             }
         }
 
@@ -189,15 +212,15 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
 }
 
 private struct RowSingleValueDecodingContainer: SingleValueDecodingContainer {
-    let row: Row
+    var row: Row
+    var columnIndex: Int
     var codingPath: [CodingKey]
-    let column: CodingKey
-    
+
     /// Decodes a null value.
     ///
     /// - returns: Whether the encountered value was null.
     func decodeNil() -> Bool {
-        return row[column.stringValue] == nil
+        return row.hasNull(atIndex: columnIndex)
     }
 
     /// Decodes a single value of the given type.
@@ -206,20 +229,20 @@ private struct RowSingleValueDecodingContainer: SingleValueDecodingContainer {
     /// - returns: A value of the requested type.
     /// - throws: `DecodingError.typeMismatch` if the encountered encoded value cannot be converted to the requested type.
     /// - throws: `DecodingError.valueNotFound` if the encountered encoded value is null.
-    func decode(_ type: Bool.Type) throws -> Bool { return row[column.stringValue] }
-    func decode(_ type: Int.Type) throws -> Int { return row[column.stringValue] }
-    func decode(_ type: Int8.Type) throws -> Int8 { return row[column.stringValue] }
-    func decode(_ type: Int16.Type) throws -> Int16 { return row[column.stringValue] }
-    func decode(_ type: Int32.Type) throws -> Int32 { return row[column.stringValue] }
-    func decode(_ type: Int64.Type) throws -> Int64 { return row[column.stringValue] }
-    func decode(_ type: UInt.Type) throws -> UInt { return row[column.stringValue] }
-    func decode(_ type: UInt8.Type) throws -> UInt8 { return row[column.stringValue] }
-    func decode(_ type: UInt16.Type) throws -> UInt16 { return row[column.stringValue] }
-    func decode(_ type: UInt32.Type) throws -> UInt32 { return row[column.stringValue] }
-    func decode(_ type: UInt64.Type) throws -> UInt64 { return row[column.stringValue] }
-    func decode(_ type: Float.Type) throws -> Float { return row[column.stringValue] }
-    func decode(_ type: Double.Type) throws -> Double { return row[column.stringValue] }
-    func decode(_ type: String.Type) throws -> String { return row[column.stringValue] }
+    func decode(_ type: Bool.Type) throws -> Bool { return row[columnIndex] }
+    func decode(_ type: Int.Type) throws -> Int { return row[columnIndex] }
+    func decode(_ type: Int8.Type) throws -> Int8 { return row[columnIndex] }
+    func decode(_ type: Int16.Type) throws -> Int16 { return row[columnIndex] }
+    func decode(_ type: Int32.Type) throws -> Int32 { return row[columnIndex] }
+    func decode(_ type: Int64.Type) throws -> Int64 { return row[columnIndex] }
+    func decode(_ type: UInt.Type) throws -> UInt { return row[columnIndex] }
+    func decode(_ type: UInt8.Type) throws -> UInt8 { return row[columnIndex] }
+    func decode(_ type: UInt16.Type) throws -> UInt16 { return row[columnIndex] }
+    func decode(_ type: UInt32.Type) throws -> UInt32 { return row[columnIndex] }
+    func decode(_ type: UInt64.Type) throws -> UInt64 { return row[columnIndex] }
+    func decode(_ type: Float.Type) throws -> Float { return row[columnIndex] }
+    func decode(_ type: Double.Type) throws -> Double { return row[columnIndex] }
+    func decode(_ type: String.Type) throws -> String { return row[columnIndex] }
 
     /// Decodes a single value of the given type.
     ///
@@ -228,26 +251,21 @@ private struct RowSingleValueDecodingContainer: SingleValueDecodingContainer {
     /// - throws: `DecodingError.typeMismatch` if the encountered encoded value cannot be converted to the requested type.
     /// - throws: `DecodingError.valueNotFound` if the encountered encoded value is null.
     func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
-        if let type = T.self as? DatabaseValueConvertible.Type {
-            // Prefer DatabaseValueConvertible decoding over Decodable.
-            // This allows decoding Date from String, or DatabaseValue from NULL.
-            return type.decode(from: row[column.stringValue], conversionContext: ValueConversionContext(row).atColumn(column.stringValue)) as! T
+        // Prefer DatabaseValueConvertible decoding over Decodable.
+        // This allows decoding Date from String, or DatabaseValue from NULL.
+        if let type = T.self as? (DatabaseValueConvertible & StatementColumnConvertible).Type {
+            return type.fastDecode(from: row, atUncheckedIndex: columnIndex) as! T
+        } else if let type = T.self as? DatabaseValueConvertible.Type {
+            return type.decode(from: row, atUncheckedIndex: columnIndex) as! T
         } else {
-            return try T(from: RowDecoder(row: row, codingPath: [column]))
+            return try T(from: RowSingleValueDecoder(row: row, columnIndex: columnIndex, codingPath: codingPath))
         }
     }
 }
 
 private struct RowDecoder: Decoder {
-    let row: Row
-    
-    init(row: Row, codingPath: [CodingKey]) {
-        self.row = row
-        self.codingPath = codingPath
-    }
-    
-    // Decoder
-    let codingPath: [CodingKey]
+    var row: Row
+    var codingPath: [CodingKey]
     var userInfo: [CodingUserInfoKey : Any] { return [:] }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
@@ -255,20 +273,42 @@ private struct RowDecoder: Decoder {
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        throw DecodingError.typeMismatch(
-            UnkeyedDecodingContainer.self,
-            DecodingError.Context(codingPath: codingPath, debugDescription: "unkeyed decoding is not supported"))
+        throw JSONRequiredError()
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
-        // Asked for a value type: column name required
-        guard let codingKey = codingPath.last else {
-            throw DecodingError.typeMismatch(
-                RowDecoder.self,
-                DecodingError.Context(codingPath: codingPath, debugDescription: "single value decoding requires a coding key"))
-        }
-        return RowSingleValueDecodingContainer(row: row, codingPath: codingPath, column: codingKey)
+        throw JSONRequiredError()
     }
+}
+
+private struct RowSingleValueDecoder: Decoder {
+    var row: Row
+    var columnIndex: Int
+    var codingPath: [CodingKey]
+    var userInfo: [CodingUserInfoKey : Any] { return [:] }
+    
+    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
+        throw JSONRequiredError()
+    }
+    
+    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+        throw JSONRequiredError()
+    }
+    
+    func singleValueContainer() throws -> SingleValueDecodingContainer {
+        return RowSingleValueDecodingContainer(row: row, columnIndex: columnIndex, codingPath: codingPath)
+    }
+}
+
+/// The error that triggers JSON decoding
+private struct JSONRequiredError: Error { }
+
+func makeJSONDecoder() -> JSONDecoder {
+    let encoder = JSONDecoder()
+    encoder.dataDecodingStrategy = .base64
+    encoder.dateDecodingStrategy = .millisecondsSince1970
+    encoder.nonConformingFloatDecodingStrategy = .throw
+    return encoder
 }
 
 extension FetchableRecord where Self: Decodable {

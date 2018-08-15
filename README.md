@@ -2572,10 +2572,10 @@ struct Link : PersistableRecord {
 GRDB provides default implementations for [`FetchableRecord.init(row:)`](#fetchablerecord-protocol) and [`PersistableRecord.encode(to:)`](#persistablerecord-protocol) for record types that also adopt an archival protocol (`Codable`, `Encodable` or `Decodable`). When all their properties are themselves codable, Swift generates the archiving methods, and you don't need to write them down:
 
 ```swift
-// Declare a plain Codable struct or class...
+// Declare a Codable struct or class...
 struct Player: Codable {
-    let name: String
-    let score: Int
+    var name: String
+    var score: Int
 }
 
 // Adopt Record protocols...
@@ -2588,70 +2588,41 @@ try dbQueue.write { db in
 }
 ```
 
-GRDB support for Codable works well with "flat" records, whose stored properties are all simple [values](#values) (Bool, Int, String, Date, Swift enums, etc.) For example, the following record is not flat:
+When a record contains a codable property that is not a simple [value](#values) (Bool, Int, String, Date, Swift enums, etc.), that value is encoded and decoded as a **JSON string**. For example:
 
 ```swift
-// Can't take profit from Codable code generation:
-struct Place: FetchableRecord, PersistableRecord, Codable {
-    var title: String
-    var coordinate: CLLocationCoordinate2D // <- Not a simple value!
+enum AchievementColor: String, Codable {
+    case bronze, silver, gold
+}
+
+struct Achievement: Codable {
+     var name: String
+     var color: AchievementColor
+}
+
+struct Player: Codable, FetchableRecord, PersistableRecord {
+    var name: String
+    var score: Int
+    var achievements: [Achievement]
+}
+
+try dbQueue.write { db in
+    // INSERT INTO player (name, score, achievements)
+    // VALUES (
+    //   'Arthur',
+    //   100,
+    //   '[{"color":"gold","name":"Use Codable Records"}]')
+    let achievement = Achievement(name: "Use Codable Records", color: .gold)
+    try Player(name: "Arthur", score: 100, achievements: [achievement]).insert(db)
 }
 ```
 
-Make it flat, as below, and you'll be granted with all Codable and GRDB advantages:
+> :point_up: **Note**: Some codable values have a different way to encode and decode themselves in a standard archive vs. a database column. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
 
-```swift
-struct Place: Codable {
-    // Stored properties are plain values:
-    var title: String
-    var latitude: CLLocationDegrees
-    var longitude: CLLocationDegrees
-    
-    // Complex property is computed:
-    var coordinate: CLLocationCoordinate2D {
-        get {
-            return CLLocationCoordinate2D(
-                latitude: latitude,
-                longitude: longitude)
-        }
-        set {
-            latitude = newValue.latitude
-            longitude = newValue.longitude
-        }
-    }
-}
+> :point_up: **Note about JSON support**: GRDB uses the standard [JSONDecoder](https://developer.apple.com/documentation/foundation/jsondecoder) and [JSONEncoder](https://developer.apple.com/documentation/foundation/jsonencoder) from Foundation. Data values are handled with the `.base64` strategy, Date with the `.millisecondsSince1970` strategy, and non conforming floats with the `.throw` strategy. Check Foundation documentation for more information.
 
-// Free database support!
-extension Place: FetchableRecord, PersistableRecord { }
-```
+> :point_up: **Note about JSON support**: JSON encoding uses the `.sortedKeys` option when available (iOS 11.0+, macOS 10.13+, watchOS 4.0+). In previous operating system versions, the ordering of JSON keys may be unstable, and this may negatively impact [Record Comparison].
 
-GRDB ships with support for nested codable records, but this is a more complex topic. See [Associations](Documentation/AssociationsBasics.md) for more information.
-
-As documented with the [PersistableRecord] protocol, have your struct records use MutablePersistableRecord instead of PersistableRecord when they store their automatically incremented row id:
-
-```swift
-struct Place: Codable {
-    var id: Int64?      // <- the row id
-    var title: String
-    var latitude: CLLocationDegrees
-    var longitude: CLLocationDegrees
-    var coordinate: CLLocationCoordinate2D { ... }
-}
-
-extension Place: FetchableRecord, MutablePersistableRecord {
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        // Update id after insertion
-        id = rowID
-    }
-}
-
-var place = Place(id: nil, ...)
-try place.insert(db)
-place.id // A unique id
-```
-
-
-> :point_up: **Note**: Some values have a different way to encode and decode themselves in a standard archive vs. the database. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
 
 
 ## Record Class
@@ -7453,7 +7424,7 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [Vladimir Babin](https://github.com/Chiliec), [Marcel Ball](https://github.com/Marus), [@bellebethcooper](https://github.com/bellebethcooper), [Darren Clark](https://github.com/darrenclark), [Pascal Edmond](https://github.com/pakko972), [Andrey Fidrya](https://github.com/zmeyc), [Cristian Filipov](https://github.com/cfilipov), [Matt Greenfield](https://github.com/sobri909), [David Hart](https://github.com/hartbit), [@kluufger](https://github.com/kluufger), [Brad Lindsay](https://github.com/bfad), [@peter-ss](https://github.com/peter-ss), [Florent Pillet](http://github.com/fpillet), [@pocketpixels](https://github.com/pocketpixels), [Pierre-Loïc Raynaud](https://github.com/pierlo), [Stefano Rodriguez](https://github.com/sroddy), [Steven Schveighoffer](https://github.com/schveiguy), [@swiftlyfalling](https://github.com/swiftlyfalling), and [Kevin Wooten](https://github.com/kdubb) for their contributions, help, and feedback on GRDB.
+- [Vlad Alexa](https://github.com/valexa), [Vladimir Babin](https://github.com/Chiliec), [Marcel Ball](https://github.com/Marus), [@bellebethcooper](https://github.com/bellebethcooper), [Darren Clark](https://github.com/darrenclark), [Pascal Edmond](https://github.com/pakko972), [Andrey Fidrya](https://github.com/zmeyc), [Cristian Filipov](https://github.com/cfilipov), [Matt Greenfield](https://github.com/sobri909), [@gusrota](https://github.com/gusrota), [David Hart](https://github.com/hartbit), [@kluufger](https://github.com/kluufger), [Brad Lindsay](https://github.com/bfad), [@peter-ss](https://github.com/peter-ss), [Florent Pillet](http://github.com/fpillet), [@pocketpixels](https://github.com/pocketpixels), [Pierre-Loïc Raynaud](https://github.com/pierlo), [Stefano Rodriguez](https://github.com/sroddy), [Steven Schveighoffer](https://github.com/schveiguy), [@swiftlyfalling](https://github.com/swiftlyfalling), and [Kevin Wooten](https://github.com/kdubb) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [Mathieu "Kali" Poumeyrol](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
 

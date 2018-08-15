@@ -94,6 +94,15 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
         self.count = Int(sqlite3_column_count(sqliteStatement))
     }
     
+    /// Creates a row that maps an SQLite statement. Further calls to
+    /// sqlite3_step() modify the row.
+    init(sqliteStatement: SQLiteStatement) {
+        self.sqliteStatement = sqliteStatement
+        self.statementRef = nil
+        self.impl = SQLiteStatementRowImpl(sqliteStatement: sqliteStatement)
+        self.count = Int(sqlite3_column_count(sqliteStatement))
+    }
+    
     /// Creates a row that contain a copy of the current state of the
     /// SQLite statement. Further calls to sqlite3_step() do not modify the row.
     ///
@@ -1214,8 +1223,8 @@ protocol RowImpl {
 
 extension RowImpl {
     func copiedRow(_ row: Row) -> Row {
-        // unless customized, assume immutable row (see StatementRowImpl and AdaptedRowImpl for customization)
-        return row
+        // unless customized, assume unsafe and unadapted row
+        return Row(impl: ArrayRowImpl(columns: row.map { $0 }))
     }
     
     func unscopedRow(_ row: Row) -> Row {
@@ -1291,6 +1300,10 @@ private struct ArrayRowImpl : RowImpl {
         let lowercaseName = name.lowercased()
         return columns.index { (column, _) in column.lowercased() == lowercaseName }
     }
+    
+    func copiedRow(_ row: Row) -> Row {
+        return row
+    }
 }
 
 
@@ -1325,6 +1338,10 @@ private struct StatementCopyRowImpl : RowImpl {
     func index(ofColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
         return columnNames.index { $0.lowercased() == lowercaseName }
+    }
+    
+    func copiedRow(_ row: Row) -> Row {
+        return row
     }
 }
 
@@ -1407,6 +1424,29 @@ private struct StatementRowImpl : RowImpl {
     }
 }
 
+// This one is not optimized at all, since it is only used in fatal conversion errors, so far
+private struct SQLiteStatementRowImpl : RowImpl {
+    let sqliteStatement: SQLiteStatement
+    var count: Int { return Int(sqlite3_column_count(sqliteStatement)) }
+    var isFetched: Bool { return true }
+    
+    func columnName(atUncheckedIndex index: Int) -> String {
+        return String(cString: sqlite3_column_name(sqliteStatement, Int32(index)))
+    }
+    
+    func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
+        return DatabaseValue(sqliteStatement: sqliteStatement, index: Int32(index))
+    }
+    
+    func index(ofColumn name: String) -> Int? {
+        let name = name.lowercased()
+        for index in 0..<count where columnName(atUncheckedIndex: index).lowercased() == name {
+            return index
+        }
+        return nil
+    }
+}
+
 /// See Row.init()
 private struct EmptyRowImpl : RowImpl {
     var count: Int {
@@ -1429,5 +1469,9 @@ private struct EmptyRowImpl : RowImpl {
     
     func index(ofColumn name: String) -> Int? {
         return nil
+    }
+    
+    func copiedRow(_ row: Row) -> Row {
+        return row
     }
 }
