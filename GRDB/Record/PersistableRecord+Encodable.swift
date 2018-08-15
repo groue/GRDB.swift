@@ -50,12 +50,7 @@ private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEn
                 try value.encode(to: DatabaseValueEncoder(key: key, encode: encode))
             } catch is JSONRequiredError {
                 // Encode to JSON
-                let encoder = JSONEncoder()
-                if #available(watchOS 4.0, OSX 10.13, iOS 11.0, *) {
-                    // guarantee some stability in order to ease record comparison
-                    encoder.outputFormatting = .sortedKeys
-                }
-                let jsonData = try encoder.encode(value)
+                let jsonData = try makeJSONEncoder().encode(value)
                 
                 // Store JSON String in the database for easier debugging and
                 // database inspection. Thanks to SQLite weak typing, we won't
@@ -176,12 +171,7 @@ private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
                 try value.encode(to: DatabaseValueEncoder(key: key, encode: encode))
             } catch is JSONRequiredError {
                 // Encode to JSON
-                let encoder = JSONEncoder()
-                if #available(watchOS 4.0, OSX 10.13, iOS 11.0, *) {
-                    // guarantee some stability in order to ease record comparison
-                    encoder.outputFormatting = .sortedKeys
-                }
-                let jsonData = try encoder.encode(value)
+                let jsonData = try makeJSONEncoder().encode(value)
                 
                 // Store JSON String in the database for easier debugging and
                 // database inspection. Thanks to SQLite weak typing, we won't
@@ -364,6 +354,18 @@ private struct JSONRequiredSingleValueContainer: SingleValueEncodingContainer {
 private struct JSONRequiredError: Error { }
 
 private typealias DatabaseValuePersistenceEncoder = (_ value: DatabaseValueConvertible?, _ key: String) -> Void
+
+func makeJSONEncoder() -> JSONEncoder {
+    let encoder = JSONEncoder()
+    encoder.dataEncodingStrategy = .base64
+    encoder.dateEncodingStrategy = .millisecondsSince1970
+    encoder.nonConformingFloatEncodingStrategy = .throw
+    if #available(watchOS 4.0, OSX 10.13, iOS 11.0, *) {
+        // guarantee some stability in order to ease record comparison
+        encoder.outputFormatting = .sortedKeys
+    }
+    return encoder
+}
 
 extension MutablePersistableRecord where Self: Encodable {
     public func encode(to container: inout PersistenceContainer) {

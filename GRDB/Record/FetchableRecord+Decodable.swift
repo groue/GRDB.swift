@@ -92,7 +92,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                     guard let data = row.dataNoCopy(atIndex: index) else {
                         fatalConversionError(to: T.self, from: row[index], conversionContext: ValueConversionContext(row).atColumn(index))
                     }
-                    return try JSONDecoder().decode(type.self, from: data)
+                    return try makeJSONDecoder().decode(type.self, from: data)
                 }
             }
         }
@@ -142,7 +142,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                     guard let data = row.dataNoCopy(atIndex: index) else {
                         fatalConversionError(to: T.self, from: row[index], conversionContext: ValueConversionContext(row).atColumn(index))
                     }
-                    return try JSONDecoder().decode(type.self, from: data)
+                    return try makeJSONDecoder().decode(type.self, from: data)
                 }
             }
         }
@@ -302,6 +302,14 @@ private struct RowSingleValueDecoder: Decoder {
 
 /// The error that triggers JSON decoding
 private struct JSONRequiredError: Error { }
+
+func makeJSONDecoder() -> JSONDecoder {
+    let encoder = JSONDecoder()
+    encoder.dataDecodingStrategy = .base64
+    encoder.dateDecodingStrategy = .millisecondsSince1970
+    encoder.nonConformingFloatDecodingStrategy = .throw
+    return encoder
+}
 
 extension FetchableRecord where Self: Decodable {
     /// Initializes a record from `row`.
