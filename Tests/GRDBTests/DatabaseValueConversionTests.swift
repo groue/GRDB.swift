@@ -78,12 +78,27 @@ class DatabaseValueConversionTests : GRDBTestCase {
         
         do {
             // test T.fromDatabaseValue
-            let dbValueConversion = try T.fromDatabaseValue(DatabaseValue.fetchOne(db, sql)!)
+            let dbValue = try DatabaseValue.fetchOne(db, sql)!
+            let dbValueConversion = T.fromDatabaseValue(dbValue)
             XCTAssert(
                 dbValueConversion == expectedDatabaseValueConversion,
                 "unexpected SQLite conversion: \(stringRepresentation(dbValueConversion)) instead of \(stringRepresentation(expectedDatabaseValueConversion))",
                 file: file, line: line)
         }
+    }
+    
+    private func assertFailedDecoding<T: DatabaseValueConvertible>(
+        _ db: Database,
+        _ sql: String,
+        _ type: T.Type,
+        file: StaticString = #file,
+        line: UInt = #line) throws
+    {
+        // We can only test failed decoding from database value, since
+        // StatementColumnConvertible only supports optimistic decoding which
+        // never fails.
+        let dbValue = try DatabaseValue.fetchOne(db, sql)!
+        XCTAssertNil(T.fromDatabaseValue(dbValue), file: file, line: line)
     }
     
     // Datatypes In SQLite Version 3: https://www.sqlite.org/datatype3.html
@@ -269,7 +284,9 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            // FIXME? low-level StatementColumnConvertible currently decodes an invalid string
 //            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
+            try assertFailedDecoding(db, sql, String.self)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nonUTF8Data, expectedDatabaseValueConversion: nonUTF8Data)
             return .rollback
         }
@@ -411,9 +428,9 @@ class DatabaseValueConversionTests : GRDBTestCase {
             let sql = "SELECT realAffinity FROM `values`"
             XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .real)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: true, expectedDatabaseValueConversion: true)
-//            try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
-//            try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
-//            try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
+            try assertFailedDecoding(db, sql, Int.self)
+            try assertFailedDecoding(db, sql, Int32.self)
+            try assertFailedDecoding(db, sql, Int64.self)
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
             try assertDecoding(db, sql, String.self, expectedSQLiteConversion: "1.0e+20", expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: "1.0e+20".data(using: .utf8), expectedDatabaseValueConversion: nil)
@@ -459,9 +476,9 @@ class DatabaseValueConversionTests : GRDBTestCase {
             let sql = "SELECT realAffinity FROM `values`"
             XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .real)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: true, expectedDatabaseValueConversion: true)
-//            try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
-//            try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
-//            try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
+            try assertFailedDecoding(db, sql, Int.self)
+            try assertFailedDecoding(db, sql, Int32.self)
+            try assertFailedDecoding(db, sql, Int64.self)
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
             try assertDecoding(db, sql, String.self, expectedSQLiteConversion: "1.0e+20", expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: "1.0e+20".data(using: .utf8), expectedDatabaseValueConversion: nil)
@@ -511,7 +528,9 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            // FIXME? low-level StatementColumnConvertible currently decodes an invalid string
 //            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
+            try assertFailedDecoding(db, sql, String.self)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nonUTF8Data, expectedDatabaseValueConversion: nonUTF8Data)
             return .rollback
         }
@@ -681,7 +700,9 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            // FIXME? low-level StatementColumnConvertible currently decodes an invalid string
 //            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
+            try assertFailedDecoding(db, sql, String.self)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nonUTF8Data, expectedDatabaseValueConversion: nonUTF8Data)
             return .rollback
         }
@@ -797,9 +818,9 @@ class DatabaseValueConversionTests : GRDBTestCase {
             let sql = "SELECT \(columnName) FROM `values`"
             XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .real)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: true, expectedDatabaseValueConversion: true)
-//            try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
-//            try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
-//            try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
+            try assertFailedDecoding(db, sql, Int.self)
+            try assertFailedDecoding(db, sql, Int32.self)
+            try assertFailedDecoding(db, sql, Int64.self)
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
             try assertDecoding(db, sql, String.self, expectedSQLiteConversion: "1.0e+20", expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: "1.0e+20".data(using: .utf8), expectedDatabaseValueConversion: nil)
@@ -845,9 +866,9 @@ class DatabaseValueConversionTests : GRDBTestCase {
             let sql = "SELECT \(columnName) FROM `values`"
             XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .real)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: true, expectedDatabaseValueConversion: true)
-//            try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
-//            try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
-//            try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
+            try assertFailedDecoding(db, sql, Int.self)
+            try assertFailedDecoding(db, sql, Int32.self)
+            try assertFailedDecoding(db, sql, Int64.self)
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 1e20, expectedDatabaseValueConversion: 1e20)
             try assertDecoding(db, sql, String.self, expectedSQLiteConversion: "1.0e+20", expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: "1.0e+20".data(using: .utf8), expectedDatabaseValueConversion: nil)
@@ -897,7 +918,9 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int64.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Double.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
+            // FIXME? low-level StatementColumnConvertible currently decodes an invalid string
 //            try assertDecoding(db, sql, String.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
+            try assertFailedDecoding(db, sql, String.self)
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: nonUTF8Data, expectedDatabaseValueConversion: nonUTF8Data)
             return .rollback
         }
