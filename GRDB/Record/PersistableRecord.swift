@@ -323,7 +323,75 @@ public protocol MutablePersistableRecord : TableRecord {
     
     // MARK: - Encodable Support
     
+    /// When the PersistableRecord type also adopts the standard Encodable
+    /// protocol, you can use this dictionary to customize the encoding process
+    /// to database rows.
+    ///
+    /// For example:
+    ///
+    ///     // A key that holds a encoder's name
+    ///     let encoderName = CodingUserInfoKey(rawValue: "encoderName")!
+    ///
+    ///     // A PersistableRecord + Encodable record
+    ///     struct Player: PersistableRecord, Encodable {
+    ///         // Customize the encoder name when dedoding a database row
+    ///         static let encodingUserInfo: [CodingUserInfoKey: Any] = [encoderName: "GRDB"]
+    ///
+    ///         func encode(to encoder: Encoder) throws {
+    ///             // Print the encoder name
+    ///             print(encoder.userInfo[encoderName])
+    ///             ...
+    ///         }
+    ///     }
+    ///
+    ///     let player = Player(...)
+    ///
+    ///     // prints "GRDB"
+    ///     try player.insert(db)
+    ///
+    ///     // prints "JSON"
+    ///     let encoder = JSONEncoder()
+    ///     encoder.userInfo = [encoderName: "JSON"]
+    ///     let data = try encoder.encode(player)
     static var encodingUserInfo: [CodingUserInfoKey: Any] { get }
+    
+    /// When the PersistableRecord type also adopts the standard Encodable
+    /// protocol, you can use this dictionary to customize the encoding process
+    /// of nested properties to JSON database columns.
+    ///
+    /// For example:
+    ///
+    ///     // A key that holds a encoder's name
+    ///     let encoderName = CodingUserInfoKey(rawValue: "encoderName")!
+    ///
+    ///     // An Encodable type
+    ///     struct Achievement: Decodable {
+    ///         func encode(to encoder: Encoder) throws {
+    ///             // Print the encoder name
+    ///             print(encoder.userInfo[decoderName])
+    ///             ...
+    ///         }
+    ///     }
+    ///
+    ///     // A PersistableRecord + Encodable record
+    ///     struct Player: PersistableRecord, Encodable {
+    ///         // Achievement is stored as JSON in the "achievement" database column
+    ///         var achievement: Achievement
+    ///
+    ///         // Customize the decoder name when dedoding a JSON column
+    ///         static let JSONEncodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "JSON database column"]
+    ///     }
+    ///
+    ///     let achievement = Achievement(...)
+    ///     let player = Player(achievement: achievement)
+    ///
+    ///     // prints "JSON database column"
+    ///     try player.insert(db)
+    ///
+    ///     // prints "Raw JSON"
+    ///     let encoder = JSONEncoder()
+    ///     encoder.userInfo = [encoderName: "Raw JSON"]
+    ///     let achievementData = try encoder.encode(achievement)
     static var JSONEncodingUserInfo: [CodingUserInfoKey: Any] { get }
 }
 

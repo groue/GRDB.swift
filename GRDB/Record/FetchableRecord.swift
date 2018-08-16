@@ -36,7 +36,7 @@ public protocol FetchableRecord {
     // MARK: - Decodable Support
     
     /// When the FetchableRecord type also adopts the standard Decodable
-    /// protocol, you can use this dictionnary to customize the decoding process
+    /// protocol, you can use this dictionary to customize the decoding process
     /// from database rows.
     ///
     /// For example:
@@ -66,15 +66,15 @@ public protocol FetchableRecord {
     static var decodingUserInfo: [CodingUserInfoKey: Any] { get }
     
     /// When the FetchableRecord type also adopts the standard Decodable
-    /// protocol, you can use this dictionnary to customize the decoding process
-    /// of nested properties stored as JSON in database columns.
+    /// protocol, you can use this dictionary to customize the decoding process
+    /// of nested properties from JSON database columns.
     ///
     /// For example:
     ///
     ///     // A key that holds a decoder's name
     ///     let decoderName = CodingUserInfoKey(rawValue: "decoderName")!
     ///
-    ///     // A Decodable record
+    ///     // A Decodable type
     ///     struct Achievement: Decodable {
     ///         init(from decoder: Decoder) throws {
     ///             // Print the decoder name
