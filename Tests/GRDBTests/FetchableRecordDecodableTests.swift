@@ -751,3 +751,182 @@ extension FetchableRecordDecodableTests {
         }
     }
 }
+
+// MARK: - User Infos & Coding Keys
+
+private let testKey1 = CodingUserInfoKey(rawValue: "test1")!
+private let testKey2 = CodingUserInfoKey(rawValue: "test2")!
+
+extension FetchableRecordDecodableTests {
+    final class Nested: Decodable {
+        var name: String
+        var key: String?
+        var context: String?
+        
+        enum CodingKeys: String, CodingKey { case name }
+        
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            name = try container.decode(String.self, forKey: .name)
+            key = decoder.codingPath.last?.stringValue
+            context = decoder.userInfo[testKey2] as? String
+        }
+    }
+    
+    class Record: Decodable, FetchableRecord {
+        var nested: Nested
+        var key: String?
+        var context: String?
+        
+        enum CodingKeys: String, CodingKey { case nested }
+        
+        class var decodingUserInfo: [CodingUserInfoKey: Any] {
+            return [:]
+        }
+        
+        class var JSONDecodingUserInfo: [CodingUserInfoKey: Any] {
+            return [:]
+        }
+
+        required init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            nested = try container.decode(Nested.self, forKey: .nested)
+            key = decoder.codingPath.last?.stringValue
+            context = decoder.userInfo[testKey1] as? String
+        }
+    }
+    
+    class CustomizedRecord: Record {
+        override class var decodingUserInfo: [CodingUserInfoKey: Any] {
+            return [testKey1: "1", testKey2: "2"]
+        }
+        
+        override class var JSONDecodingUserInfo: [CodingUserInfoKey: Any] {
+            return [testKey1: "3", testKey2: "4"]
+        }
+        
+        required init(from decoder: Decoder) throws {
+            try super.init(from: decoder)
+        }
+    }
+    
+    // Used as a reference
+    func testFoundationBehavior() throws {
+        let json = """
+            { "nested": { "name": "foobar" } }
+            """.data(using: .utf8)!
+        
+        do {
+            let decoder = JSONDecoder()
+            let record = try decoder.decode(Record.self, from: json)
+            XCTAssertNil(record.key)
+            XCTAssertNil(record.context)
+            XCTAssertEqual(record.nested.name, "foobar")
+            XCTAssertEqual(record.nested.key, "nested")
+            XCTAssertNil(record.nested.context)
+        }
+        
+        do {
+            let decoder = JSONDecoder()
+            decoder.userInfo = [testKey1: "1", testKey2: "2"]
+            let record = try decoder.decode(Record.self, from: json)
+            XCTAssertNil(record.key)
+            XCTAssertEqual(record.context, "1")
+            XCTAssertEqual(record.nested.name, "foobar")
+            XCTAssertEqual(record.nested.key, "nested")
+            XCTAssertEqual(record.nested.context, "2")
+        }
+    }
+    
+    func testRecordWithScopedRowDecoding() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            func test(_ record: Record) {
+                XCTAssertNil(record.key)
+                XCTAssertNil(record.context)
+                XCTAssertEqual(record.nested.name, "foobar")
+                XCTAssertEqual(record.nested.key, "nested")
+                XCTAssertNil(record.nested.context)
+            }
+            
+            let adapter = EmptyRowAdapter().addingScopes(["nested": SuffixRowAdapter(fromIndex: 0)])
+            let request = SQLRequest<Void>("SELECT ? AS name", arguments: ["foobar"], adapter: adapter)
+            
+            let record = try Record.fetchOne(db, request)!
+            test(record)
+            
+            let row = try Row.fetchOne(db, request)!
+            test(Record(row: row))
+        }
+    }
+    
+    func testRecordWithJSONDecoding() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            func test(_ record: Record) {
+                XCTAssertNil(record.key)
+                XCTAssertNil(record.context)
+                XCTAssertEqual(record.nested.name, "foobar")
+                XCTAssertNil(record.nested.key)
+                XCTAssertNil(record.nested.context)
+            }
+            
+            let json = """
+                { "name": "foobar" }
+                """
+            let request = SQLRequest<Void>("SELECT ? AS nested", arguments: [json])
+            
+            let record = try Record.fetchOne(db, request)!
+            test(record)
+            
+            let row = try Row.fetchOne(db, request)!
+            test(Record(row: row))
+        }
+    }
+    
+    func testCustomizedRecordWithScopedRowDecoding() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            func test(_ record: Record) {
+                XCTAssertNil(record.key)
+                XCTAssertEqual(record.context, "1")
+                XCTAssertEqual(record.nested.name, "foobar")
+                XCTAssertEqual(record.nested.key, "nested")
+                XCTAssertEqual(record.nested.context, "2")
+            }
+            
+            let adapter = EmptyRowAdapter().addingScopes(["nested": SuffixRowAdapter(fromIndex: 0)])
+            let request = SQLRequest<Void>("SELECT ? AS name", arguments: ["foobar"], adapter: adapter)
+            
+            let record = try Record.fetchOne(db, request)!
+            test(record)
+            
+            let row = try Row.fetchOne(db, request)!
+            test(Record(row: row))
+        }
+    }
+    
+    func testCustomizedRecordWithJSONDecoding() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            func test(_ record: Record) {
+                XCTAssertNil(record.key)
+                XCTAssertEqual(record.context, "1")
+                XCTAssertEqual(record.nested.name, "foobar")
+                XCTAssertNil(record.nested.key)
+                XCTAssertEqual(record.nested.context, "4")
+            }
+            
+            let json = """
+                { "name": "foobar" }
+                """
+            let request = SQLRequest<Void>("SELECT ? AS nested", arguments: [json])
+            
+            let record = try Record.fetchOne(db, request)!
+            test(record)
+            
+            let row = try Row.fetchOne(db, request)!
+            test(Record(row: row))
+        }
+    }
+}
