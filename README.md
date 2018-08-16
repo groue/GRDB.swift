@@ -2336,42 +2336,42 @@ protocol TableRecord {
 }
 ```
 
-- The `databaseTableName` type property is the name of a database table. By default, it is derived from the type name:
-    
-    ```swift
-    struct Place: TableRecord { }
-    print(Place.databaseTableName) // prints "place"
-    ```
-    
-    For example:
-    
-    - Place: `place`
-    - Country: `country`
-    - PostalAddress: `postalAddress`
-    - HTTPRequest: `httpRequest`
-    - TOEFL: `toefl`
-    
-    You can still provide a custom table name:
-    
-    ```swift
-    struct Place: TableRecord {
-        static let databaseTableName = "location"
+The `databaseSelection` type property is optional, and documented in the [Columns Selected by a Request](#columns-selected-by-a-request) chapter.
+
+The `databaseTableName` type property is the name of a database table. By default, it is derived from the type name:
+
+```swift
+struct Place: TableRecord { }
+print(Place.databaseTableName) // prints "place"
+```
+
+For example:
+
+- Place: `place`
+- Country: `country`
+- PostalAddress: `postalAddress`
+- HTTPRequest: `httpRequest`
+- TOEFL: `toefl`
+
+You can still provide a custom table name:
+
+```swift
+struct Place: TableRecord {
+    static let databaseTableName = "location"
+}
+print(Place.databaseTableName) // prints "location"
+```
+
+Subclasses of the [Record](#record-class) class must always override their superclass's `databaseTableName` property:
+
+```swift
+class Place: Record {
+    override class var databaseTableName: String {
+        return "place"
     }
-    print(Place.databaseTableName) // prints "location"
-    ```
-    
-    Subclasses of the [Record](#record-class) class must always override their superclass's `databaseTableName` property:
-    
-    ```swift
-    class Place: Record {
-        override class var databaseTableName: String {
-            return "place"
-        }
-    }
-    print(Place.databaseTableName) // prints "place"
-    ```
-    
-- The `databaseSelection` type property is optional, and documented in the [Columns Selected by a Request](#columns-selected-by-a-request) chapter.
+}
+print(Place.databaseTableName) // prints "place"
+```
 
 When a type adopts both TableRecord and [FetchableRecord](#fetchablerecord-protocol), it can be fetched using the [query interface](#the-query-interface):
 
