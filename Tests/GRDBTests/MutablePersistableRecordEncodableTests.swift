@@ -480,7 +480,7 @@ extension MutablePersistableRecordEncodableTests {
 private let testKeyRoot = CodingUserInfoKey(rawValue: "test1")!
 private let testKeyNested = CodingUserInfoKey(rawValue: "test2")!
 
-@available(OSX 10.13, *)
+@available(OSX 10.13, iOS 11.0, *)
 extension MutablePersistableRecordEncodableTests {
     struct NestedKeyed: Encodable {
         var name: String
