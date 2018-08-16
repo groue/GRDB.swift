@@ -2279,7 +2279,7 @@ extension Place : FetchableRecord {
 }
 ```
 
-Rows also accept columns:
+Rows also accept column enums:
 
 ```swift
 extension Place : FetchableRecord {
@@ -2299,9 +2299,16 @@ extension Place : FetchableRecord {
 
 See [column values](#column-values) for more information about the `row[]` subscript.
 
-> :point_up: **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
->
-> :bulb: **Tip**: the `init(row:)` initializer can be automatically generated when your type adopts the standard `Decodable` protocol. See [Codable Records](#codable-records) for more information.
+When your record type adopts the standard Decodable protocol, you don't have to provide the implementation for `init(row:)`. See [Codable Records](#codable-records) for more information:
+
+```swift
+// That's all
+struct Player: Decodable, FetchableRecord {
+    var id: Int64
+    var name: String
+    var score: Int
+}
+```
 
 FetchableRecord allows adopting types to be fetched from SQL queries:
 
@@ -2312,6 +2319,8 @@ try Place.fetchOne(db, "SELECT ...", arguments:...)    // Place?
 ```
 
 See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods. See [StatementArguments](http://groue.github.io/GRDB.swift/docs/3.2/Structs/StatementArguments.html) for more information about the query arguments.
+
+> :point_up: **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
 > :point_up: **Note**: The `FetchableRecord.init(row:)` initializer fits the needs of most applications. But some application are more demanding than others. When FetchableRecord does not exactly provide the support you need, have a look at the [Customized Decoding of Database Rows](#customized-decoding-of-database-rows) chapter.
 
@@ -2428,8 +2437,6 @@ Yes, two protocols instead of one. Both grant exactly the same advantages. Here 
 
 The `encode(to:)` method defines which [values](#values) (Bool, Int, String, Date, Swift enums, etc.) are assigned to database columns.
 
-> :bulb: **Tip**: `encode(to:)` can be automatically generated when your type adopts the standard `Encodable` protocol. See [Codable Records](#codable-records) for more information.
-
 The optional `didInsert` method lets the adopting type store its rowID after successful insertion, and is only useful for tables that have an auto-incremented primary key. It is called from a protected dispatch queue, and serialized with all database updates.
 
 **To use the persistable protocols**, subclass the [Record](#record-class) class, or adopt one of them explicitly. For example:
@@ -2459,7 +2466,7 @@ try paris.insert(db)
 paris.id   // some value
 ```
 
-Persistence containers also accept columns:
+Persistence containers also accept column enums:
 
 ```swift
 extension Place : MutablePersistableRecord {
@@ -2472,6 +2479,21 @@ extension Place : MutablePersistableRecord {
         container[Columns.title] = title
         container[Columns.latitude] = coordinate.latitude
         container[Columns.longitude] = coordinate.longitude
+    }
+}
+```
+
+When your record type adopts the standard Encodable protocol, you don't have to provide the implementation for `encode(to:)`. See [Codable Records](#codable-records) for more information:
+
+```swift
+// That's all
+struct Player: Encodable, MutablePersistableRecord {
+    var id: Int64?
+    var name: String
+    var score: Int
+    
+    mutating func didInsert(with rowID: Int64, for column: String?) {
+        id = rowID
     }
 }
 ```
