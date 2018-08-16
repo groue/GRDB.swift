@@ -758,7 +758,7 @@ Both arrays and cursors can iterate over database results. How do you choose one
             CLLocationCoordinate2D(latitude: row[0], longitude: row[1])
         }
     
-    // Turn cursors to arrays or sets:
+    // Turn cursors into arrays or sets:
     let array = try Array(cursor)
     let set = try Set(cursor)
     ```
