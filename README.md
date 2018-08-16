@@ -2657,6 +2657,7 @@ struct Player: Codable, FetchableRecord, PersistableRecord {
 }
 
 let arthur = try dbQueue.read { db in
+    // SELECT * FROM player WHERE name = 'Arthur'
     try Player.filter(name: "Arthur").fetchOne($0)
 }
 ```
