@@ -2589,21 +2589,16 @@ struct Link : PersistableRecord {
 
 ## Codable Records
 
-[Swift Archival & Serialization](https://github.com/apple/swift-evolution/blob/master/proposals/0166-swift-archival-serialization.md) was introduced with Swift 4.
-
-GRDB provides default implementations for [`FetchableRecord.init(row:)`](#fetchablerecord-protocol) and [`PersistableRecord.encode(to:)`](#persistablerecord-protocol) for record types that also adopt an archival protocol (`Codable`, `Encodable` or `Decodable`). When all their properties are themselves codable, Swift generates the archiving methods, and you don't need to write them down:
+Record types that adopt an archival protocol ([Codable, Encodable or Decodable](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)) get free database support just by declaring conformance to the desired [record protocols](#record-protocols-overview):
 
 ```swift
-// Declare a Codable struct or class...
-struct Player: Codable {
+// Declare a record...
+struct Player: Codable, FetchableRecord, PersistableRecord {
     var name: String
     var score: Int
 }
 
-// Adopt Record protocols...
-extension Player: FetchableRecord, PersistableRecord { }
-
-// ...and you can save and fetch players:
+// ...and there you go:
 try dbQueue.write { db in
     try Player(name: "Arthur", score: 100).insert(db)
     let players = try Player.fetchAll(db)
@@ -2625,7 +2620,7 @@ struct Achievement: Codable {
 struct Player: Codable, FetchableRecord, PersistableRecord {
     var name: String
     var score: Int
-    var achievements: [Achievement]
+    var achievements: [Achievement] // encoded as JSON
 }
 
 try dbQueue.write { db in
@@ -2639,7 +2634,7 @@ try dbQueue.write { db in
 }
 ```
 
-If you declare an explicit `CodingKeys` enum, you can use coding keys as [query interface](#the-query-interface) columns, just by adding conformance to the ColumnExpression protocol:
+If you declare an explicit `CodingKeys` enum ([what is this?](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)), you can use coding keys as [query interface](#the-query-interface) columns, just by adding conformance to the ColumnExpression protocol:
 
 ```swift
 struct Player: Codable, FetchableRecord, PersistableRecord {
