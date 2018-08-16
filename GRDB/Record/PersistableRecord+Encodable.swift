@@ -355,7 +355,7 @@ private struct JSONRequiredError: Error { }
 
 private typealias DatabaseValuePersistenceEncoder = (_ value: DatabaseValueConvertible?, _ key: String) -> Void
 
-func makeJSONEncoder() -> JSONEncoder {
+private func makeJSONEncoder() -> JSONEncoder {
     let encoder = JSONEncoder()
     encoder.dataEncodingStrategy = .base64
     encoder.dateEncodingStrategy = .millisecondsSince1970

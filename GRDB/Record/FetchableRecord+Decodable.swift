@@ -303,7 +303,7 @@ private struct RowSingleValueDecoder: Decoder {
 /// The error that triggers JSON decoding
 private struct JSONRequiredError: Error { }
 
-func makeJSONDecoder() -> JSONDecoder {
+private func makeJSONDecoder() -> JSONDecoder {
     let encoder = JSONDecoder()
     encoder.dataDecodingStrategy = .base64
     encoder.dateDecodingStrategy = .millisecondsSince1970
