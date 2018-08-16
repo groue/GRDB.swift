@@ -87,7 +87,12 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                     // or unkeyed containers, because we're decoding a single
                     // value here (string, int, double, data, null). If such an
                     // error happens, we'll switch to JSON decoding.
-                    return try T(from: RowSingleValueDecoder(row: row, columnIndex: index, codingPath: codingPath + [key]))
+                    let singleValueDecoder = RowSingleValueDecoder(
+                        row: row,
+                        columnIndex: index,
+                        codingPath: codingPath + [key],
+                        userInfo: decoder.userInfo)
+                    return try T(from: singleValueDecoder)
                 } catch is JSONRequiredError {
                     guard let data = row.dataNoCopy(atIndex: index) else {
                         fatalConversionError(to: T.self, from: row[index], conversionContext: ValueConversionContext(row).atColumn(index))
@@ -142,7 +147,12 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                     // or unkeyed containers, because we're decoding a single
                     // value here (string, int, double, data, null). If such an
                     // error happens, we'll switch to JSON decoding.
-                    return try T(from: RowSingleValueDecoder(row: row, columnIndex: index, codingPath: codingPath + [key]))
+                    let singleValueDecoder = RowSingleValueDecoder(
+                        row: row,
+                        columnIndex: index,
+                        codingPath: codingPath + [key],
+                        userInfo: decoder.userInfo)
+                    return try T(from: singleValueDecoder)
                 } catch is JSONRequiredError {
                     guard let data = row.dataNoCopy(atIndex: index) else {
                         fatalConversionError(to: T.self, from: row[index], conversionContext: ValueConversionContext(row).atColumn(index))
@@ -239,6 +249,7 @@ private struct RowSingleValueDecodingContainer: SingleValueDecodingContainer {
     var row: Row
     var columnIndex: Int
     var codingPath: [CodingKey]
+    var userInfo: [CodingUserInfoKey: Any]
 
     /// Decodes a null value.
     ///
@@ -282,7 +293,12 @@ private struct RowSingleValueDecodingContainer: SingleValueDecodingContainer {
         } else if let type = T.self as? DatabaseValueConvertible.Type {
             return type.decode(from: row, atUncheckedIndex: columnIndex) as! T
         } else {
-            return try T(from: RowSingleValueDecoder(row: row, columnIndex: columnIndex, codingPath: codingPath))
+            let singleValueDecoder = RowSingleValueDecoder(
+                row: row,
+                columnIndex: columnIndex,
+                codingPath: codingPath,
+                userInfo: userInfo)
+            return try T(from: singleValueDecoder)
         }
     }
 }
@@ -290,8 +306,8 @@ private struct RowSingleValueDecodingContainer: SingleValueDecodingContainer {
 private struct RowDecoder: Decoder {
     var row: Row
     var codingPath: [CodingKey]
-    var userInfo: [CodingUserInfoKey : Any]
-    var JSONUserInfo: [CodingUserInfoKey : Any]
+    var userInfo: [CodingUserInfoKey: Any]
+    var JSONUserInfo: [CodingUserInfoKey: Any]
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
         return KeyedDecodingContainer(RowKeyedDecodingContainer<Key>(decoder: self))
@@ -310,7 +326,7 @@ private struct RowSingleValueDecoder: Decoder {
     var row: Row
     var columnIndex: Int
     var codingPath: [CodingKey]
-    var userInfo: [CodingUserInfoKey : Any] { return [:] }
+    var userInfo: [CodingUserInfoKey: Any]
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
         throw JSONRequiredError()
@@ -321,7 +337,11 @@ private struct RowSingleValueDecoder: Decoder {
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
-        return RowSingleValueDecodingContainer(row: row, columnIndex: columnIndex, codingPath: codingPath)
+        return RowSingleValueDecodingContainer(
+            row: row,
+            columnIndex: columnIndex,
+            codingPath: codingPath,
+            userInfo: userInfo)
     }
 }
 

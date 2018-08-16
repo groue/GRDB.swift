@@ -830,11 +830,11 @@ extension FetchableRecordDecodableTests {
     
     class CustomizedRecord: Record {
         override class var decodingUserInfo: [CodingUserInfoKey: Any] {
-            return [testKeyRoot: "root", testKeyNested: "nested"]
+            return [testKeyRoot: "GRDB root", testKeyNested: "GRDB column or scope"]
         }
         
         override class var JSONDecodingUserInfo: [CodingUserInfoKey: Any] {
-            return [testKeyRoot: "unused", testKeyNested: "JSON nested"]
+            return [testKeyRoot: "JSON root", testKeyNested: "JSON column"]
         }
         
         required init(from decoder: Decoder) throws {
@@ -892,14 +892,20 @@ extension FetchableRecordDecodableTests {
             func test(_ record: Record) {
                 XCTAssertNil(record.key)
                 XCTAssertNil(record.context)
+                
+                // scope
                 XCTAssertEqual(record.nestedKeyed.name, "foo")
-                XCTAssertEqual(record.nestedKeyed.key, "nestedKeyed") // scope
+                XCTAssertEqual(record.nestedKeyed.key, "nestedKeyed")
                 XCTAssertNil(record.nestedKeyed.context)
+                
+                // column
                 XCTAssertEqual(record.nestedSingle.name, "bar")
-                XCTAssertEqual(record.nestedSingle.key, "nestedSingle") // column
+                XCTAssertEqual(record.nestedSingle.key, "nestedSingle")
                 XCTAssertNil(record.nestedSingle.context)
+                
+                // JSON column
                 XCTAssertEqual(record.nestedUnkeyed.name, "baz")
-                XCTAssertNil(record.nestedUnkeyed.key) // JSON reset
+                XCTAssertNil(record.nestedUnkeyed.key)
                 XCTAssertNil(record.nestedUnkeyed.context)
             }
             
@@ -923,14 +929,20 @@ extension FetchableRecordDecodableTests {
             func test(_ record: Record) {
                 XCTAssertNil(record.key)
                 XCTAssertNil(record.context)
+                
+                // JSON column
                 XCTAssertEqual(record.nestedKeyed.name, "foo")
-                XCTAssertNil(record.nestedKeyed.key) // JSON reset
+                XCTAssertNil(record.nestedKeyed.key)
                 XCTAssertNil(record.nestedKeyed.context)
+                
+                // column
                 XCTAssertEqual(record.nestedSingle.name, "bar")
-                XCTAssertEqual(record.nestedSingle.key, "nestedSingle") // column
+                XCTAssertEqual(record.nestedSingle.key, "nestedSingle")
                 XCTAssertNil(record.nestedSingle.context)
+                
+                // JSON column
                 XCTAssertEqual(record.nestedUnkeyed.name, "baz")
-                XCTAssertNil(record.nestedUnkeyed.key) // JSON reset
+                XCTAssertNil(record.nestedUnkeyed.key)
                 XCTAssertNil(record.nestedUnkeyed.context)
             }
             
@@ -951,16 +963,22 @@ extension FetchableRecordDecodableTests {
         try dbQueue.read { db in
             func test(_ record: CustomizedRecord) {
                 XCTAssertNil(record.key)
-                XCTAssertEqual(record.context, "root")
+                XCTAssertEqual(record.context, "GRDB root")
+                
+                // scope
                 XCTAssertEqual(record.nestedKeyed.name, "foo")
-                XCTAssertEqual(record.nestedKeyed.key, "nestedKeyed") // scope
-                XCTAssertEqual(record.nestedKeyed.context, "nested")
+                XCTAssertEqual(record.nestedKeyed.key, "nestedKeyed")
+                XCTAssertEqual(record.nestedKeyed.context, "GRDB column or scope")
+                
+                // column
                 XCTAssertEqual(record.nestedSingle.name, "bar")
-                XCTAssertEqual(record.nestedSingle.key, "nestedSingle") // column
-                XCTAssertNil(record.nestedSingle.context)
+                XCTAssertEqual(record.nestedSingle.key, "nestedSingle")
+                XCTAssertEqual(record.nestedSingle.context, "GRDB column or scope")
+                
+                // JSON column
                 XCTAssertEqual(record.nestedUnkeyed.name, "baz")
-                XCTAssertNil(record.nestedUnkeyed.key) // JSON reset
-                XCTAssertEqual(record.nestedUnkeyed.context, "JSON nested")
+                XCTAssertNil(record.nestedUnkeyed.key)
+                XCTAssertEqual(record.nestedUnkeyed.context, "JSON column")
             }
             
             let adapter = SuffixRowAdapter(fromIndex: 1).addingScopes(["nestedKeyed": RangeRowAdapter(0..<1)])
@@ -982,16 +1000,22 @@ extension FetchableRecordDecodableTests {
         try dbQueue.read { db in
             func test(_ record: CustomizedRecord) {
                 XCTAssertNil(record.key)
-                XCTAssertEqual(record.context, "root")
+                XCTAssertEqual(record.context, "GRDB root")
+                
+                // JSON column
                 XCTAssertEqual(record.nestedKeyed.name, "foo")
-                XCTAssertNil(record.nestedKeyed.key) // JSON reset
-                XCTAssertEqual(record.nestedKeyed.context, "JSON nested")
+                XCTAssertNil(record.nestedKeyed.key)
+                XCTAssertEqual(record.nestedKeyed.context, "JSON column")
+                
+                // column
                 XCTAssertEqual(record.nestedSingle.name, "bar")
-                XCTAssertEqual(record.nestedSingle.key, "nestedSingle") // column
-                XCTAssertNil(record.nestedSingle.context)
+                XCTAssertEqual(record.nestedSingle.key, "nestedSingle")
+                XCTAssertEqual(record.nestedSingle.context, "GRDB column or scope")
+
+                // JSON column
                 XCTAssertEqual(record.nestedUnkeyed.name, "baz")
-                XCTAssertNil(record.nestedUnkeyed.key) // JSON reset
-                XCTAssertEqual(record.nestedUnkeyed.context, "JSON nested")
+                XCTAssertNil(record.nestedUnkeyed.key)
+                XCTAssertEqual(record.nestedUnkeyed.context, "JSON column")
             }
             
             let request = SQLRequest<Void>(

@@ -24,12 +24,16 @@
 /// FetchableRecord is adopted by Record.
 public protocol FetchableRecord {
     
+    // MARK: - Row Decoding
+    
     /// Creates a record from `row`.
     ///
     /// For performance reasons, the row argument may be reused during the
     /// iteration of a fetch query. If you want to keep the row for later use,
     /// make sure to store a copy: `self.row = row.copy()`.
     init(row: Row)
+    
+    // MARK: - Decodable Support
     
     /// When the FetchableRecord type also adopts the standard Decodable
     /// protocol, you can use this dictionnary to customize the decoding process
