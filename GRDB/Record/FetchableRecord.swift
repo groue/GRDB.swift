@@ -30,6 +30,82 @@ public protocol FetchableRecord {
     /// iteration of a fetch query. If you want to keep the row for later use,
     /// make sure to store a copy: `self.row = row.copy()`.
     init(row: Row)
+    
+    /// When the FetchableRecord type also adopts the standard Decodable
+    /// protocol, you can use this dictionnary to customize the decoding process
+    /// from database rows.
+    ///
+    /// For example:
+    ///
+    ///     // A key that holds a decoder's name
+    ///     let decoderName = CodingUserInfoKey(rawValue: "decoderName")!
+    ///
+    ///     // A FetchableRecord + Decodable record
+    ///     struct Player: FetchableRecord, Decodable {
+    ///         // Customize the decoder name when dedoding a database row
+    ///         static let decodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "GRDB"]
+    ///
+    ///         init(from decoder: Decoder) throws {
+    ///             // Print the decoder name
+    ///             print(decoder.userInfo[decoderName])
+    ///             ...
+    ///         }
+    ///     }
+    ///
+    ///     // prints "GRDB"
+    ///     let player = try Player.fetchOne(db, ...)
+    ///
+    ///     // prints "JSON"
+    ///     let decoder = JSONDecoder()
+    ///     decoder.userInfo = [decoderName: "JSON"]
+    ///     let player = try decoder.decode(Player.self, from: ...)
+    static var decodingUserInfo: [CodingUserInfoKey: Any] { get }
+    
+    /// When the FetchableRecord type also adopts the standard Decodable
+    /// protocol, you can use this dictionnary to customize the decoding process
+    /// of nested properties stored as JSON in database columns.
+    ///
+    /// For example:
+    ///
+    ///     // A key that holds a decoder's name
+    ///     let decoderName = CodingUserInfoKey(rawValue: "decoderName")!
+    ///
+    ///     // A Decodable record
+    ///     struct Achievement: Decodable {
+    ///         init(from decoder: Decoder) throws {
+    ///             // Print the decoder name
+    ///             print(decoder.userInfo[decoderName])
+    ///             ...
+    ///         }
+    ///     }
+    ///
+    ///     // A FetchableRecord + Decodable record
+    ///     struct Player: FetchableRecord, Decodable {
+    ///         // Achievement is stored as JSON in the "achievement" database column
+    ///         var achievement: Achievement
+    ///
+    ///         // Customize the decoder name when dedoding a JSON column
+    ///         static let JSONDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "JSON database column"]
+    ///     }
+    ///
+    ///     // prints "JSON database column"
+    ///     let player = try Player.fetchOne(db, ...)
+    ///
+    ///     // prints "Raw JSON"
+    ///     let decoder = JSONDecoder()
+    ///     decoder.userInfo = [decoderName: "Raw JSON"]
+    ///     let achievement = try decoder.decode(Achievement.self, from: ...)
+    static var JSONDecodingUserInfo: [CodingUserInfoKey: Any] { get }
+}
+
+extension FetchableRecord {
+    public static var decodingUserInfo: [CodingUserInfoKey: Any] {
+        return [:]
+    }
+    
+    public static var JSONDecodingUserInfo: [CodingUserInfoKey: Any] {
+        return [:]
+    }
 }
 
 /// A cursor of records. For example:

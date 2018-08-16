@@ -104,7 +104,12 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                 // This allows custom row decoding
                 return (type.init(row: scopedRow) as! T)
             } else {
-                return try T(from: RowDecoder(row: scopedRow, codingPath: codingPath + [key]))
+                let scopedDecoder = RowDecoder(
+                    row: scopedRow,
+                    codingPath: codingPath + [key],
+                    userInfo: decoder.userInfo,
+                    JSONUserInfo: decoder.JSONUserInfo)
+                return try T(from: scopedDecoder)
             }
         }
         
@@ -154,7 +159,12 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                 // This allows custom row decoding
                 return type.init(row: scopedRow) as! T
             } else {
-                return try T(from: RowDecoder(row: scopedRow, codingPath: codingPath + [key]))
+                let scopedDecoder = RowDecoder(
+                    row: scopedRow,
+                    codingPath: codingPath + [key],
+                    userInfo: decoder.userInfo,
+                    JSONUserInfo: decoder.JSONUserInfo)
+                return try T(from: scopedDecoder)
             }
         }
         
@@ -164,7 +174,12 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
             // This allows custom row decoding
             return type.init(row: row) as! T
         } else {
-            return try T(from: RowDecoder(row: row, codingPath: codingPath + [key]))
+            let baseDecoder = RowDecoder(
+                row: row,
+                codingPath: codingPath + [key],
+                userInfo: decoder.userInfo,
+                JSONUserInfo: decoder.JSONUserInfo)
+            return try T(from: baseDecoder)
         }
     }
     
@@ -208,6 +223,15 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
     /// - throws: `DecodingError.valueNotFound` if `self` has a null entry for the given key.
     public func superDecoder(forKey key: Key) throws -> Decoder {
         return decoder
+    }
+
+    private func makeJSONDecoder() -> JSONDecoder {
+        let encoder = JSONDecoder()
+        encoder.dataDecodingStrategy = .base64
+        encoder.dateDecodingStrategy = .millisecondsSince1970
+        encoder.nonConformingFloatDecodingStrategy = .throw
+        encoder.userInfo = decoder.JSONUserInfo
+        return encoder
     }
 }
 
@@ -266,7 +290,8 @@ private struct RowSingleValueDecodingContainer: SingleValueDecodingContainer {
 private struct RowDecoder: Decoder {
     var row: Row
     var codingPath: [CodingKey]
-    var userInfo: [CodingUserInfoKey : Any] { return [:] }
+    var userInfo: [CodingUserInfoKey : Any]
+    var JSONUserInfo: [CodingUserInfoKey : Any]
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
         return KeyedDecodingContainer(RowKeyedDecodingContainer<Key>(decoder: self))
@@ -303,17 +328,14 @@ private struct RowSingleValueDecoder: Decoder {
 /// The error that triggers JSON decoding
 private struct JSONRequiredError: Error { }
 
-private func makeJSONDecoder() -> JSONDecoder {
-    let encoder = JSONDecoder()
-    encoder.dataDecodingStrategy = .base64
-    encoder.dateDecodingStrategy = .millisecondsSince1970
-    encoder.nonConformingFloatDecodingStrategy = .throw
-    return encoder
-}
-
 extension FetchableRecord where Self: Decodable {
     /// Initializes a record from `row`.
     public init(row: Row) {
-        try! self.init(from: RowDecoder(row: row, codingPath: []))
+        let decoder = RowDecoder(
+            row: row,
+            codingPath: [],
+            userInfo: Self.decodingUserInfo,
+            JSONUserInfo: Self.JSONDecodingUserInfo)
+        try! self.init(from: decoder)
     }
 }
