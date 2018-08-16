@@ -3,15 +3,29 @@ Release Notes
 
 ## Next Version
 
+### Fixed
+
+- The `write` and `unsafeReentrantRead` DatabaseQueue methods used to have an incorrect `throws/rethrows` qualifier.
+
+
+### New
+
 - [#397](https://github.com/groue/GRDB.swift/pull/397): JSON encoding and decoding of codable record properties
 - [#393](https://github.com/groue/GRDB.swift/pull/393): Upgrade SQLCipher to 3.4.2, enable FTS5 on GRDBCipher and new pod GRDBPlus.
 - [#384](https://github.com/groue/GRDB.swift/pull/384): Improve database value decoding diagnostics
+- Cursors of optimized values (Strint, Int, Date, etc.) have been renamed: FastDatabaseValueCursor and FastNullableDatabaseValueCursor replace the deprecated ColumnCursor and NullableColumnCursor.
+
 
 ### API diff
 
-Cursors of optimized values (Strint, Int, Date, etc.) have been renamed: use FastDatabaseValueCursor and FastNullableDatabaseValueCursor instead of the deprecated ColumnCursor and NullableColumnCursor.
-
 ```diff
+ class DatabaseQueue {
+-    func write<T>(_ block: (Database) throws -> T) rethrows -> T {
++    func write<T>(_ block: (Database) throws -> T) throws -> T {
+-    func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
++    func unsafeReentrantRead<T>(_ block: (Database) throws -> T) rethrows -> T {
+ }
+
 +final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor { }
 +@available(*, deprecated, renamed: "FastDatabaseValueCursor")
 +typealias ColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> = FastDatabaseValueCursor<Value>
@@ -19,8 +33,8 @@ Cursors of optimized values (Strint, Int, Date, etc.) have been renamed: use Fas
 +final class FastNullableDatabaseValueCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor { }
 +@available(*, deprecated, renamed: "FastNullableDatabaseValueCursor")
 +typealias NullableColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> = FastNullableDatabaseValueCursor<Value>
-
 ```
+
 
 ### Documentation Diff
 

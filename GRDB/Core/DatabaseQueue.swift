@@ -191,7 +191,7 @@ extension DatabaseQueue {
     /// concurrency practices.
     ///
     /// :nodoc:
-    public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
+    public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try writer.reentrantSync(block)
     }
     
@@ -232,7 +232,7 @@ extension DatabaseQueue {
     ///
     /// - parameter block: A block that executes SQL statements.
     /// - throws: An eventual database error, or the error thrown by the block.
-    public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
+    public func write<T>(_ block: (Database) throws -> T) throws -> T {
         return try writer.sync { db in
             var result: T? = nil
             try db.inTransaction {
