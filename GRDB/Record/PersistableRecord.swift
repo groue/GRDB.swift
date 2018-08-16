@@ -320,6 +320,21 @@ public protocol MutablePersistableRecord : TableRecord {
     /// - returns: Whether the primary key matches a row in the database.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     func exists(_ db: Database) throws -> Bool
+    
+    // MARK: - Encodable Support
+    
+    static var encodingUserInfo: [CodingUserInfoKey: Any] { get }
+    static var JSONEncodingUserInfo: [CodingUserInfoKey: Any] { get }
+}
+
+extension MutablePersistableRecord {
+    public static var encodingUserInfo: [CodingUserInfoKey: Any] {
+        return [:]
+    }
+    
+    public static var JSONEncodingUserInfo: [CodingUserInfoKey: Any] {
+        return [:]
+    }
 }
 
 extension MutablePersistableRecord {

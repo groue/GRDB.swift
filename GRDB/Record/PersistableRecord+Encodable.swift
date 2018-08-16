@@ -2,9 +2,17 @@ import Foundation
 
 private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEncodingContainerProtocol {
     let encode: DatabaseValuePersistenceEncoder
-    
-    init(encode: @escaping DatabaseValuePersistenceEncoder) {
+    var userInfo: [CodingUserInfoKey: Any]
+    var JSONUserInfo: [CodingUserInfoKey: Any]
+
+    init(
+        encode: @escaping DatabaseValuePersistenceEncoder,
+        userInfo: [CodingUserInfoKey: Any],
+        JSONUserInfo: [CodingUserInfoKey: Any])
+    {
         self.encode = encode
+        self.userInfo = userInfo
+        self.JSONUserInfo = JSONUserInfo
     }
     
     /// The path of coding keys taken to get to this point in encoding.
@@ -47,10 +55,15 @@ private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEn
                 // or unkeyed containers, because we're encoding a single
                 // value here (string, int, double, data, null). If such an
                 // error happens, we'll switch to JSON encoding.
-                try value.encode(to: DatabaseValueEncoder(key: key, encode: encode))
+                let encoder = DatabaseValueEncoder(
+                    key: key,
+                    encode: encode,
+                    userInfo: userInfo,
+                    JSONUserInfo: JSONUserInfo)
+                try value.encode(to: encoder)
             } catch is JSONRequiredError {
                 // Encode to JSON
-                let jsonData = try makeJSONEncoder().encode(value)
+                let jsonData = try makeJSONEncoder(userInfo: JSONUserInfo).encode(value)
                 
                 // Store JSON String in the database for easier debugging and
                 // database inspection. Thanks to SQLite weak typing, we won't
@@ -120,10 +133,19 @@ private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
     var codingPath: [CodingKey] { return [key] }
     var key: CodingKey
     var encode: DatabaseValuePersistenceEncoder
-    
-    init(key: CodingKey, encode: @escaping DatabaseValuePersistenceEncoder) {
+    var userInfo: [CodingUserInfoKey: Any]
+    var JSONUserInfo: [CodingUserInfoKey: Any]
+
+    init(
+        key: CodingKey,
+        encode: @escaping DatabaseValuePersistenceEncoder,
+        userInfo: [CodingUserInfoKey: Any],
+        JSONUserInfo: [CodingUserInfoKey: Any])
+    {
         self.key = key
         self.encode = encode
+        self.userInfo = userInfo
+        self.JSONUserInfo = JSONUserInfo
     }
     
     /// Encodes a null value.
@@ -168,10 +190,15 @@ private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
                 // or unkeyed containers, because we're encoding a single
                 // value here (string, int, double, data, null). If such an
                 // error happens, we'll switch to JSON encoding.
-                try value.encode(to: DatabaseValueEncoder(key: key, encode: encode))
+                let encoder = DatabaseValueEncoder(
+                    key: key,
+                    encode: encode,
+                    userInfo: userInfo,
+                    JSONUserInfo: JSONUserInfo)
+                try value.encode(to: encoder)
             } catch is JSONRequiredError {
                 // Encode to JSON
-                let jsonData = try makeJSONEncoder().encode(value)
+                let jsonData = try makeJSONEncoder(userInfo: JSONUserInfo).encode(value)
                 
                 // Store JSON String in the database for easier debugging and
                 // database inspection. Thanks to SQLite weak typing, we won't
@@ -187,45 +214,71 @@ private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
 
 private struct DatabaseValueEncoder: Encoder {
     var codingPath: [CodingKey] { return [key] }
-    var userInfo: [CodingUserInfoKey: Any] = [:]
     var key: CodingKey
     var encode: DatabaseValuePersistenceEncoder
-    
-    init(key: CodingKey, encode: @escaping DatabaseValuePersistenceEncoder) {
+    var userInfo: [CodingUserInfoKey: Any]
+    var JSONUserInfo: [CodingUserInfoKey: Any]
+
+    init(
+        key: CodingKey,
+        encode: @escaping DatabaseValuePersistenceEncoder,
+        userInfo: [CodingUserInfoKey: Any],
+        JSONUserInfo: [CodingUserInfoKey: Any])
+    {
         self.key = key
         self.encode = encode
+        self.userInfo = userInfo
+        self.JSONUserInfo = JSONUserInfo
     }
 
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
         // Keyed values require JSON encoding: we need to throw
         // JSONRequiredError. Since we can't throw right from here, let's
         // delegate the job to a dedicated container.
-        return KeyedEncodingContainer(JSONRequiredKeyedContainer(codingPath: codingPath))
+        return KeyedEncodingContainer(JSONRequiredKeyedContainer(
+            codingPath: codingPath,
+            userInfo: userInfo))
     }
     
     func unkeyedContainer() -> UnkeyedEncodingContainer {
         // Keyed values require JSON encoding: we need to throw
         // JSONRequiredError. Since we can't throw right from here, let's
         // delegate the job to a dedicated container.
-        return JSONRequiredUnkeyedContainer(codingPath: codingPath)
+        return JSONRequiredUnkeyedContainer(
+            codingPath: codingPath,
+            userInfo: userInfo)
     }
     
     func singleValueContainer() -> SingleValueEncodingContainer {
-        return DatabaseValueEncodingContainer(key: key, encode: encode)
+        return DatabaseValueEncodingContainer(
+            key: key,
+            encode: encode,
+            userInfo: userInfo,
+            JSONUserInfo: JSONUserInfo)
     }
 }
 
 private struct PersistableRecordEncoder: Encoder {
     var codingPath: [CodingKey] = []
-    var userInfo: [CodingUserInfoKey: Any] = [:]
     var encode: DatabaseValuePersistenceEncoder
-    
-    init(encode: @escaping DatabaseValuePersistenceEncoder) {
+    var userInfo: [CodingUserInfoKey: Any]
+    var JSONUserInfo: [CodingUserInfoKey: Any]
+
+    init(
+        encode: @escaping DatabaseValuePersistenceEncoder,
+        userInfo: [CodingUserInfoKey: Any],
+        JSONUserInfo: [CodingUserInfoKey: Any])
+    {
         self.encode = encode
+        self.userInfo = userInfo
+        self.JSONUserInfo = JSONUserInfo
     }
     
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> {
-        return KeyedEncodingContainer(PersistableRecordKeyedEncodingContainer<Key>(encode: encode))
+        return KeyedEncodingContainer(PersistableRecordKeyedEncodingContainer<Key>(
+            encode: encode,
+            userInfo: userInfo,
+            JSONUserInfo: JSONUserInfo))
     }
     
     func unkeyedContainer() -> UnkeyedEncodingContainer {
@@ -239,18 +292,23 @@ private struct PersistableRecordEncoder: Encoder {
 
 private struct JSONRequiredEncoder: Encoder {
     var codingPath: [CodingKey]
-    var userInfo: [CodingUserInfoKey: Any] = [:]
+    var userInfo: [CodingUserInfoKey: Any]
     
-    init(codingPath: [CodingKey]) {
+    init(codingPath: [CodingKey], userInfo: [CodingUserInfoKey: Any]) {
         self.codingPath = codingPath
+        self.userInfo = userInfo
     }
     
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
-        return KeyedEncodingContainer(JSONRequiredKeyedContainer(codingPath: codingPath))
+        return KeyedEncodingContainer(JSONRequiredKeyedContainer(
+            codingPath: codingPath,
+            userInfo: userInfo))
     }
     
     func unkeyedContainer() -> UnkeyedEncodingContainer {
-        return JSONRequiredUnkeyedContainer(codingPath: codingPath)
+        return JSONRequiredUnkeyedContainer(
+            codingPath: codingPath,
+            userInfo: userInfo)
     }
     
     func singleValueContainer() -> SingleValueEncodingContainer {
@@ -260,7 +318,8 @@ private struct JSONRequiredEncoder: Encoder {
 
 private struct JSONRequiredKeyedContainer<KeyType: CodingKey>: KeyedEncodingContainerProtocol {
     var codingPath: [CodingKey]
-    
+    var userInfo: [CodingUserInfoKey: Any]
+
     func encodeNil(forKey key: KeyType) throws { throw JSONRequiredError() }
     func encode(_ value: Bool, forKey key: KeyType) throws { throw JSONRequiredError() }
     func encode(_ value: Int, forKey key: KeyType) throws { throw JSONRequiredError() }
@@ -279,24 +338,29 @@ private struct JSONRequiredKeyedContainer<KeyType: CodingKey>: KeyedEncodingCont
     func encode<T>(_ value: T, forKey key: KeyType) throws where T : Encodable { throw JSONRequiredError() }
 
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type, forKey key: KeyType) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
-        return KeyedEncodingContainer(JSONRequiredKeyedContainer<NestedKey>(codingPath: codingPath + [key]))
+        return KeyedEncodingContainer(JSONRequiredKeyedContainer<NestedKey>(
+            codingPath: codingPath + [key],
+            userInfo: userInfo))
     }
     
     func nestedUnkeyedContainer(forKey key: KeyType) -> UnkeyedEncodingContainer {
-        return JSONRequiredUnkeyedContainer(codingPath: codingPath)
+        return JSONRequiredUnkeyedContainer(
+            codingPath: codingPath,
+            userInfo: userInfo)
     }
     
     func superEncoder() -> Encoder {
-        return JSONRequiredEncoder(codingPath: codingPath)
+        return JSONRequiredEncoder(codingPath: codingPath, userInfo: userInfo)
     }
     
     func superEncoder(forKey key: KeyType) -> Encoder {
-        return JSONRequiredEncoder(codingPath: codingPath)
+        return JSONRequiredEncoder(codingPath: codingPath, userInfo: userInfo)
     }
 }
 
 private struct JSONRequiredUnkeyedContainer: UnkeyedEncodingContainer {
     var codingPath: [CodingKey]
+    var userInfo: [CodingUserInfoKey: Any]
     var count: Int { return 0 }
     
     func encodeNil() throws { throw JSONRequiredError() }
@@ -317,7 +381,9 @@ private struct JSONRequiredUnkeyedContainer: UnkeyedEncodingContainer {
     func encode<T>(_ value: T) throws where T : Encodable { throw JSONRequiredError() }
     
     func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type) -> KeyedEncodingContainer<NestedKey> where NestedKey : CodingKey {
-        return KeyedEncodingContainer(JSONRequiredKeyedContainer<NestedKey>(codingPath: codingPath))
+        return KeyedEncodingContainer(JSONRequiredKeyedContainer<NestedKey>(
+            codingPath: codingPath,
+            userInfo: userInfo))
     }
     
     func nestedUnkeyedContainer() -> UnkeyedEncodingContainer {
@@ -325,7 +391,7 @@ private struct JSONRequiredUnkeyedContainer: UnkeyedEncodingContainer {
     }
     
     func superEncoder() -> Encoder {
-        return JSONRequiredEncoder(codingPath: codingPath)
+        return JSONRequiredEncoder(codingPath: codingPath, userInfo: userInfo)
     }
 }
 
@@ -355,8 +421,9 @@ private struct JSONRequiredError: Error { }
 
 private typealias DatabaseValuePersistenceEncoder = (_ value: DatabaseValueConvertible?, _ key: String) -> Void
 
-private func makeJSONEncoder() -> JSONEncoder {
+private func makeJSONEncoder(userInfo: [CodingUserInfoKey: Any]) -> JSONEncoder {
     let encoder = JSONEncoder()
+    encoder.userInfo = userInfo
     encoder.dataEncodingStrategy = .base64
     encoder.dateEncodingStrategy = .millisecondsSince1970
     encoder.nonConformingFloatEncodingStrategy = .throw
@@ -369,13 +436,19 @@ private func makeJSONEncoder() -> JSONEncoder {
 
 extension MutablePersistableRecord where Self: Encodable {
     public func encode(to container: inout PersistenceContainer) {
+        let userInfo = Self.encodingUserInfo
+        let JSONUserInfo = Self.JSONEncodingUserInfo
+        
         // The inout container parameter won't enter an escaping closure since
         // SE-0035: https://github.com/apple/swift-evolution/blob/master/proposals/0035-limit-inout-capture.md
         //
         // So let's use it in a non-escaping closure:
         func encode(_ encode: DatabaseValuePersistenceEncoder) {
             withoutActuallyEscaping(encode) { escapableEncode in
-                let encoder = PersistableRecordEncoder(encode: escapableEncode)
+                let encoder = PersistableRecordEncoder(
+                    encode: escapableEncode,
+                    userInfo: userInfo,
+                    JSONUserInfo: JSONUserInfo)
                 try! self.encode(to: encoder)
             }
         }
