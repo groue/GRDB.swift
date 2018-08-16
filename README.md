@@ -2639,6 +2639,28 @@ try dbQueue.write { db in
 }
 ```
 
+If you declare an explicit `CodingKeys` enum, you can use coding keys as [query interface](#the-query-interface) columns, just by adding conformance to the ColumnExpression protocol:
+
+```swift
+struct Player: Codable, FetchableRecord, PersistableRecord {
+    var name: String
+    var score: Int
+    var achievements: [Achievement]
+    
+    private enum CodingKeys: String, CodingKey, ColumnExpression {
+        case name, score, achievements
+    }
+    
+    static func filter(name: String) -> QueryInterfaceRequest<Player> {
+        return filter(CodingKeys.name == name)
+    }
+}
+
+let arthur = try dbQueue.read { db in
+    try Player.filter(name: "Arthur").fetchOne($0)
+}
+```
+
 > :point_up: **Note**: Some codable values have a different way to encode and decode themselves in a standard archive vs. a database column. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
 
 > :point_up: **Note about JSON support**: GRDB uses the standard [JSONDecoder](https://developer.apple.com/documentation/foundation/jsondecoder) and [JSONEncoder](https://developer.apple.com/documentation/foundation/jsonencoder) from Foundation. Data values are handled with the `.base64` strategy, Date with the `.millisecondsSince1970` strategy, and non conforming floats with the `.throw` strategy. Check Foundation documentation for more information.

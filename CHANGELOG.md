@@ -39,7 +39,7 @@ Release Notes
 ### Documentation Diff
 
 - [Enabling FTS5 Support](README.md#enabling-fts5-support): Procedure for enabling FTS5 support in GRDB.
-- [Codable Records](README.md#codable-records): Documentation for JSON encoding of codable properties in records.
+- [Codable Records](README.md#codable-records): Updated documentation, for JSON encoding of codable record properties, and for the reuse of coding keys as database columns.
 
 
 ## 3.2.0
