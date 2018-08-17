@@ -1,3 +1,4 @@
+import Foundation
 #if SWIFT_PACKAGE
     import CSQLite
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
@@ -46,7 +47,7 @@ public protocol FetchableRecord {
     ///
     ///     // A FetchableRecord + Decodable record
     ///     struct Player: FetchableRecord, Decodable {
-    ///         // Customize the decoder name when dedoding a database row
+    ///         // Customize the decoder name when decoding a database row
     ///         static let decodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "GRDB"]
     ///
     ///         init(from decoder: Decoder) throws {
@@ -66,7 +67,7 @@ public protocol FetchableRecord {
     static var decodingUserInfo: [CodingUserInfoKey: Any] { get }
     
     /// When the FetchableRecord type also adopts the standard Decodable
-    /// protocol, you can use this dictionary to customize the decoding process
+    /// protocol, you can use this method to customize the decoding process
     /// of nested properties from JSON database columns.
     ///
     /// For example:
@@ -88,8 +89,12 @@ public protocol FetchableRecord {
     ///         // Achievement is stored as JSON in the "achievement" database column
     ///         var achievement: Achievement
     ///
-    ///         // Customize the decoder name when dedoding a JSON column
-    ///         static let JSONDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "JSON database column"]
+    ///         // Customize the decoder name when decoding a JSON column
+    ///         static func makeJSONDecoder(for column: String) -> JSONDecoder {
+    ///             let decoder = JSONDecoder()
+    ///             decoder.userInfo = [decoderName: "JSON database column"]
+    ///             return decoder
+    ///         }
     ///     }
     ///
     ///     // prints "JSON database column"
@@ -99,7 +104,14 @@ public protocol FetchableRecord {
     ///     let decoder = JSONDecoder()
     ///     decoder.userInfo = [decoderName: "Raw JSON"]
     ///     let achievement = try decoder.decode(Achievement.self, from: ...)
-    static var JSONDecodingUserInfo: [CodingUserInfoKey: Any] { get }
+    ///
+    /// The default implementation returns a JSONDecoder with the
+    /// following properties:
+    ///
+    /// - dataDecodingStrategy: .base64
+    /// - dateDecodingStrategy: .millisecondsSince1970
+    /// - nonConformingFloatDecodingStrategy: .throw
+    static func makeJSONDecoder(for column: String) -> JSONDecoder
 }
 
 extension FetchableRecord {
@@ -107,8 +119,17 @@ extension FetchableRecord {
         return [:]
     }
     
-    public static var JSONDecodingUserInfo: [CodingUserInfoKey: Any] {
-        return [:]
+    /// Returns a JSONDecoder with the following properties:
+    ///
+    /// - dataDecodingStrategy: .base64
+    /// - dateDecodingStrategy: .millisecondsSince1970
+    /// - nonConformingFloatDecodingStrategy: .throw
+    public static func makeJSONDecoder(for column: String) -> JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dataDecodingStrategy = .base64
+        decoder.dateDecodingStrategy = .millisecondsSince1970
+        decoder.nonConformingFloatDecodingStrategy = .throw
+        return decoder
     }
 }
 

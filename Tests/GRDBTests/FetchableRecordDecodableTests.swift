@@ -799,7 +799,7 @@ extension FetchableRecordDecodableTests {
         }
     }
     
-    class Record: Decodable, FetchableRecord {
+    struct Record: Decodable, FetchableRecord {
         var nestedKeyed: NestedKeyed
         var nestedSingle: NestedSingle
         var nestedUnkeyed: NestedUnkeyed
@@ -810,12 +810,25 @@ extension FetchableRecordDecodableTests {
             case nestedKeyed, nestedSingle, nestedUnkeyed
         }
         
-        class var decodingUserInfo: [CodingUserInfoKey: Any] {
-            return [:]
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            nestedKeyed = try container.decode(NestedKeyed.self, forKey: .nestedKeyed)
+            nestedSingle = try container.decode(NestedSingle.self, forKey: .nestedSingle)
+            nestedUnkeyed = try container.decode(NestedUnkeyed.self, forKey: .nestedUnkeyed)
+            key = decoder.codingPath.last?.stringValue
+            context = decoder.userInfo[testKeyRoot] as? String
         }
+    }
+    
+    class CustomizedRecord: Decodable, FetchableRecord {
+        var nestedKeyed: NestedKeyed
+        var nestedSingle: NestedSingle
+        var nestedUnkeyed: NestedUnkeyed
+        var key: String?
+        var context: String?
         
-        class var JSONDecodingUserInfo: [CodingUserInfoKey: Any] {
-            return [:]
+        enum CodingKeys: String, CodingKey {
+            case nestedKeyed, nestedSingle, nestedUnkeyed
         }
         
         required init(from decoder: Decoder) throws {
@@ -826,19 +839,15 @@ extension FetchableRecordDecodableTests {
             key = decoder.codingPath.last?.stringValue
             context = decoder.userInfo[testKeyRoot] as? String
         }
-    }
-    
-    class CustomizedRecord: Record {
-        override class var decodingUserInfo: [CodingUserInfoKey: Any] {
+
+        static var decodingUserInfo: [CodingUserInfoKey: Any] {
             return [testKeyRoot: "GRDB root", testKeyNested: "GRDB column or scope"]
         }
         
-        override class var JSONDecodingUserInfo: [CodingUserInfoKey: Any] {
-            return [testKeyRoot: "JSON root", testKeyNested: "JSON column"]
-        }
-        
-        required init(from decoder: Decoder) throws {
-            try super.init(from: decoder)
+        static func makeJSONDecoder(for column: String) -> JSONDecoder {
+            let decoder = JSONDecoder()
+            decoder.userInfo = [testKeyRoot: "JSON root", testKeyNested: "JSON column: \(column)"]
+            return decoder
         }
     }
     
@@ -978,7 +987,7 @@ extension FetchableRecordDecodableTests {
                 // JSON column
                 XCTAssertEqual(record.nestedUnkeyed.name, "baz")
                 XCTAssertNil(record.nestedUnkeyed.key)
-                XCTAssertEqual(record.nestedUnkeyed.context, "JSON column")
+                XCTAssertEqual(record.nestedUnkeyed.context, "JSON column: nestedUnkeyed")
             }
             
             let adapter = SuffixRowAdapter(fromIndex: 1).addingScopes(["nestedKeyed": RangeRowAdapter(0..<1)])
@@ -1005,7 +1014,7 @@ extension FetchableRecordDecodableTests {
                 // JSON column
                 XCTAssertEqual(record.nestedKeyed.name, "foo")
                 XCTAssertNil(record.nestedKeyed.key)
-                XCTAssertEqual(record.nestedKeyed.context, "JSON column")
+                XCTAssertEqual(record.nestedKeyed.context, "JSON column: nestedKeyed")
                 
                 // column
                 XCTAssertEqual(record.nestedSingle.name, "bar")
@@ -1015,7 +1024,7 @@ extension FetchableRecordDecodableTests {
                 // JSON column
                 XCTAssertEqual(record.nestedUnkeyed.name, "baz")
                 XCTAssertNil(record.nestedUnkeyed.key)
-                XCTAssertEqual(record.nestedUnkeyed.context, "JSON column")
+                XCTAssertEqual(record.nestedUnkeyed.context, "JSON column: nestedUnkeyed")
             }
             
             let request = SQLRequest<Void>(
