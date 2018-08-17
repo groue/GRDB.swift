@@ -29,6 +29,17 @@
     let lefts = Left.select(Left.Columns.id, Left.Columns.name)
     try Right.insert(lefts)
     ```
+- [ ] requestselect(..., as:)
+    
+    ```swift
+    // current
+    request
+        .select(Column("name"))
+        .asRequest(of: String.self)
+    
+    // new
+    request.select(Column("name"), as: String.self)
+    ```
 
 
 Swift 4.2
