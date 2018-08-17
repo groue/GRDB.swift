@@ -48,7 +48,7 @@ public protocol FetchableRecord {
     ///     // A FetchableRecord + Decodable record
     ///     struct Player: FetchableRecord, Decodable {
     ///         // Customize the decoder name when decoding a database row
-    ///         static let decodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "GRDB"]
+    ///         static let decodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "Database"]
     ///
     ///         init(from decoder: Decoder) throws {
     ///             // Print the decoder name
@@ -57,7 +57,7 @@ public protocol FetchableRecord {
     ///         }
     ///     }
     ///
-    ///     // prints "GRDB"
+    ///     // prints "Database"
     ///     let player = try Player.fetchOne(db, ...)
     ///
     ///     // prints "JSON"

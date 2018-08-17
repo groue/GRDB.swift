@@ -526,12 +526,12 @@ extension MutablePersistableRecordEncodableTests {
         }
     }
     
-    class Record: Encodable, MutablePersistableRecord {
+    struct Record: Encodable, MutablePersistableRecord {
         var nestedKeyed: NestedKeyed
         var nestedSingle: NestedSingle
         var nestedUnkeyed: NestedUnkeyed
         
-        required init(nestedKeyed: NestedKeyed, nestedSingle: NestedSingle, nestedUnkeyed: NestedUnkeyed) {
+        init(nestedKeyed: NestedKeyed, nestedSingle: NestedSingle, nestedUnkeyed: NestedUnkeyed) {
             self.nestedKeyed = nestedKeyed
             self.nestedSingle = nestedSingle
             self.nestedUnkeyed = nestedUnkeyed
@@ -539,14 +539,6 @@ extension MutablePersistableRecordEncodableTests {
         
         enum CodingKeys: String, CodingKey {
             case nestedKeyed, nestedSingle, nestedUnkeyed, key, context
-        }
-        
-        class var encodingUserInfo: [CodingUserInfoKey: Any] {
-            return [:]
-        }
-        
-        class var JSONEncodingUserInfo: [CodingUserInfoKey: Any] {
-            return [:]
         }
         
         func encode(to encoder: Encoder) throws {
@@ -559,13 +551,41 @@ extension MutablePersistableRecordEncodableTests {
         }
     }
     
-    class CustomizedRecord: Record {
-        override class var encodingUserInfo: [CodingUserInfoKey: Any] {
-            return [testKeyRoot: "GRDB root", testKeyNested: "GRDB nested"]
+    struct CustomizedRecord: Encodable, MutablePersistableRecord {
+        var nestedKeyed: NestedKeyed
+        var nestedSingle: NestedSingle
+        var nestedUnkeyed: NestedUnkeyed
+        
+        init(nestedKeyed: NestedKeyed, nestedSingle: NestedSingle, nestedUnkeyed: NestedUnkeyed) {
+            self.nestedKeyed = nestedKeyed
+            self.nestedSingle = nestedSingle
+            self.nestedUnkeyed = nestedUnkeyed
         }
         
-        override class var JSONEncodingUserInfo: [CodingUserInfoKey: Any] {
-            return [testKeyRoot: "JSON root", testKeyNested: "JSON nested"]
+        enum CodingKeys: String, CodingKey {
+            case nestedKeyed, nestedSingle, nestedUnkeyed, key, context
+        }
+        
+        static let encodingUserInfo: [CodingUserInfoKey: Any] = [
+            testKeyRoot: "GRDB root",
+            testKeyNested: "GRDB nested"]
+        
+        static func makeJSONEncoder(for column: String) -> JSONEncoder {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .sortedKeys
+            encoder.userInfo = [
+                testKeyRoot: "JSON root",
+                testKeyNested: "JSON nested: \(column)"]
+            return encoder
+        }
+        
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(nestedKeyed, forKey: .nestedKeyed)
+            try container.encode(nestedSingle, forKey: .nestedSingle)
+            try container.encode(nestedUnkeyed, forKey: .nestedUnkeyed)
+            try container.encodeIfPresent(encoder.codingPath.last?.stringValue, forKey: .key)
+            try container.encodeIfPresent(encoder.userInfo[testKeyRoot] as? String, forKey: .context)
         }
     }
     
@@ -673,9 +693,9 @@ extension MutablePersistableRecordEncodableTests {
             XCTAssertEqual(row, [
                 "context": "GRDB root",
                 "key": nil,
-                "nestedKeyed": "{\"context\":\"JSON nested\",\"name\":\"foo\"}",
+                "nestedKeyed": "{\"context\":\"JSON nested: nestedKeyed\",\"name\":\"foo\"}",
                 "nestedSingle": "bar,key:nestedSingle,context:GRDB nested",
-                "nestedUnkeyed": "[\"baz\",null,\"JSON nested\"]"])
+                "nestedUnkeyed": "[\"baz\",null,\"JSON nested: nestedUnkeyed\"]"])
         }
     }
 }

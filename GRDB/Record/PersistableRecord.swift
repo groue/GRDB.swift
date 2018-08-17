@@ -325,7 +325,7 @@ public protocol MutablePersistableRecord : TableRecord {
     
     /// When the PersistableRecord type also adopts the standard Encodable
     /// protocol, you can use this dictionary to customize the encoding process
-    /// to database rows.
+    /// into database rows.
     ///
     /// For example:
     ///
@@ -334,8 +334,8 @@ public protocol MutablePersistableRecord : TableRecord {
     ///
     ///     // A PersistableRecord + Encodable record
     ///     struct Player: PersistableRecord, Encodable {
-    ///         // Customize the encoder name when dedoding a database row
-    ///         static let encodingUserInfo: [CodingUserInfoKey: Any] = [encoderName: "GRDB"]
+    ///         // Customize the encoder name when encoding a database row
+    ///         static let encodingUserInfo: [CodingUserInfoKey: Any] = [encoderName: "Database"]
     ///
     ///         func encode(to encoder: Encoder) throws {
     ///             // Print the encoder name
@@ -346,7 +346,7 @@ public protocol MutablePersistableRecord : TableRecord {
     ///
     ///     let player = Player(...)
     ///
-    ///     // prints "GRDB"
+    ///     // prints "Database"
     ///     try player.insert(db)
     ///
     ///     // prints "JSON"
@@ -356,8 +356,8 @@ public protocol MutablePersistableRecord : TableRecord {
     static var encodingUserInfo: [CodingUserInfoKey: Any] { get }
     
     /// When the PersistableRecord type also adopts the standard Encodable
-    /// protocol, you can use this dictionary to customize the encoding process
-    /// of nested properties to JSON database columns.
+    /// protocol, you can use this method to customize the encoding process
+    /// of nested properties into JSON database columns.
     ///
     /// For example:
     ///
@@ -365,10 +365,10 @@ public protocol MutablePersistableRecord : TableRecord {
     ///     let encoderName = CodingUserInfoKey(rawValue: "encoderName")!
     ///
     ///     // An Encodable type
-    ///     struct Achievement: Decodable {
+    ///     struct Achievement: Encodable {
     ///         func encode(to encoder: Encoder) throws {
     ///             // Print the encoder name
-    ///             print(encoder.userInfo[decoderName])
+    ///             print(encoder.userInfo[encoderName])
     ///             ...
     ///         }
     ///     }
@@ -378,8 +378,12 @@ public protocol MutablePersistableRecord : TableRecord {
     ///         // Achievement is stored as JSON in the "achievement" database column
     ///         var achievement: Achievement
     ///
-    ///         // Customize the decoder name when dedoding a JSON column
-    ///         static let JSONEncodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "JSON database column"]
+    ///         // Customize the encoder name when encoding a JSON column
+    ///         static func makeJSONEncoder(for column: String) -> JSONEncoder {
+    ///             let encoder = JSONEncoder()
+    ///             encoder.userInfo = [encoderName: "JSON database column"]
+    ///             return encoder
+    ///         }
     ///     }
     ///
     ///     let achievement = Achievement(...)
@@ -392,7 +396,15 @@ public protocol MutablePersistableRecord : TableRecord {
     ///     let encoder = JSONEncoder()
     ///     encoder.userInfo = [encoderName: "Raw JSON"]
     ///     let achievementData = try encoder.encode(achievement)
-    static var JSONEncodingUserInfo: [CodingUserInfoKey: Any] { get }
+    ///
+    /// The default implementation returns a JSONEncoder with the
+    /// following properties:
+    ///
+    /// - dataEncodingStrategy: .base64
+    /// - dateEncodingStrategy: .millisecondsSince1970
+    /// - nonConformingFloatEncodingStrategy: .throw
+    /// - outputFormatting: .sortedKeys (iOS 11.0+, macOS 10.13+, watchOS 4.0+)
+    static func makeJSONEncoder(for column: String) -> JSONEncoder
 }
 
 extension MutablePersistableRecord {
@@ -400,8 +412,22 @@ extension MutablePersistableRecord {
         return [:]
     }
     
-    public static var JSONEncodingUserInfo: [CodingUserInfoKey: Any] {
-        return [:]
+    /// Returns a JSONEncoder with the following properties:
+    ///
+    /// - dataEncodingStrategy: .base64
+    /// - dateEncodingStrategy: .millisecondsSince1970
+    /// - nonConformingFloatEncodingStrategy: .throw
+    /// - outputFormatting: .sortedKeys (iOS 11.0+, macOS 10.13+, watchOS 4.0+)
+    public static func makeJSONEncoder(for column: String) -> JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dataEncodingStrategy = .base64
+        encoder.dateEncodingStrategy = .millisecondsSince1970
+        encoder.nonConformingFloatEncodingStrategy = .throw
+        if #available(watchOS 4.0, OSX 10.13, iOS 11.0, *) {
+            // guarantee some stability in order to ease record comparison
+            encoder.outputFormatting = .sortedKeys
+        }
+        return encoder
     }
 }
 

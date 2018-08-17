@@ -840,13 +840,15 @@ extension FetchableRecordDecodableTests {
             context = decoder.userInfo[testKeyRoot] as? String
         }
 
-        static var decodingUserInfo: [CodingUserInfoKey: Any] {
-            return [testKeyRoot: "GRDB root", testKeyNested: "GRDB column or scope"]
-        }
+        static let decodingUserInfo: [CodingUserInfoKey: Any] = [
+            testKeyRoot: "GRDB root",
+            testKeyNested: "GRDB column or scope"]
         
         static func makeJSONDecoder(for column: String) -> JSONDecoder {
             let decoder = JSONDecoder()
-            decoder.userInfo = [testKeyRoot: "JSON root", testKeyNested: "JSON column: \(column)"]
+            decoder.userInfo = [
+                testKeyRoot: "JSON root",
+                testKeyNested: "JSON column: \(column)"]
             return decoder
         }
     }
