@@ -1009,9 +1009,8 @@ extension PersistableRecordTests {
                 XCTFail("Could not find record in db")
                 return
             }
-
-            print(fetchModel.numbers.first!)
-             XCTAssertEqual(model.numbers, fetchModel.numbers)
+            
+            XCTAssertEqual(model.numbers, fetchModel.numbers)
         }
     }
     
