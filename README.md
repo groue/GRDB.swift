@@ -2620,11 +2620,18 @@ struct Player: Codable, FetchableRecord, PersistableRecord {
     static func filter(name: String) -> QueryInterfaceRequest<Player> {
         return filter(CodingKeys.name == name)
     }
+    
+    static var maximumScore: QueryInterfaceRequest<Int> {
+        return select(max(CodingKeys.score))
+    }
 }
 
-let arthur = try dbQueue.read { db in
+try dbQueue.read { db in
     // SELECT * FROM player WHERE name = 'Arthur'
-    try Player.filter(name: "Arthur").fetchOne($0)
+    let arthur = try Player.filter(name: "Arthur").fetchOne($0) // Player?
+    
+    // SELECT MAX(score) FROM player
+    let maxScore = try Player.maximumScore.fetchOne(db)         // Int?
 }
 ```
 
