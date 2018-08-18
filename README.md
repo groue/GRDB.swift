@@ -2628,7 +2628,7 @@ struct Player: Codable, FetchableRecord, PersistableRecord {
 
 try dbQueue.read { db in
     // SELECT * FROM player WHERE name = 'Arthur'
-    let arthur = try Player.filter(name: "Arthur").fetchOne($0) // Player?
+    let arthur = try Player.filter(name: "Arthur").fetchOne(db) // Player?
     
     // SELECT MAX(score) FROM player
     let maxScore = try Player.maximumScore.fetchOne(db)         // Int?
