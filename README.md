@@ -2622,7 +2622,7 @@ struct Player: Codable, FetchableRecord, PersistableRecord {
     }
     
     static var maximumScore: QueryInterfaceRequest<Int> {
-        return select(max(CodingKeys.score))
+        return select(max(CodingKeys.score)).asRequest(of: Int.self)
     }
 }
 
