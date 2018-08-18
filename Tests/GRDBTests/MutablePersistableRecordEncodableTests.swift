@@ -566,7 +566,7 @@ extension MutablePersistableRecordEncodableTests {
             case nestedKeyed, nestedSingle, nestedUnkeyed, key, context
         }
         
-        static let encodingUserInfo: [CodingUserInfoKey: Any] = [
+        static let databaseEncodingUserInfo: [CodingUserInfoKey: Any] = [
             testKeyRoot: "GRDB root",
             testKeyNested: "GRDB nested"]
         

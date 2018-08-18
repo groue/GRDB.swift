@@ -321,7 +321,7 @@ public protocol MutablePersistableRecord : TableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     func exists(_ db: Database) throws -> Bool
     
-    // MARK: - Encodable Support
+    // MARK: - Customizing the Format of Database Columns
     
     /// When the PersistableRecord type also adopts the standard Encodable
     /// protocol, you can use this dictionary to customize the encoding process
@@ -335,7 +335,7 @@ public protocol MutablePersistableRecord : TableRecord {
     ///     // A PersistableRecord + Encodable record
     ///     struct Player: PersistableRecord, Encodable {
     ///         // Customize the encoder name when encoding a database row
-    ///         static let encodingUserInfo: [CodingUserInfoKey: Any] = [encoderName: "Database"]
+    ///         static let databaseEncodingUserInfo: [CodingUserInfoKey: Any] = [encoderName: "Database"]
     ///
     ///         func encode(to encoder: Encoder) throws {
     ///             // Print the encoder name
@@ -353,49 +353,11 @@ public protocol MutablePersistableRecord : TableRecord {
     ///     let encoder = JSONEncoder()
     ///     encoder.userInfo = [encoderName: "JSON"]
     ///     let data = try encoder.encode(player)
-    static var encodingUserInfo: [CodingUserInfoKey: Any] { get }
+    static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] { get }
     
     /// When the PersistableRecord type also adopts the standard Encodable
-    /// protocol, you can use this method to customize the encoding process
-    /// of nested properties into JSON database columns.
-    ///
-    /// For example:
-    ///
-    ///     // A key that holds a encoder's name
-    ///     let encoderName = CodingUserInfoKey(rawValue: "encoderName")!
-    ///
-    ///     // An Encodable type
-    ///     struct Achievement: Encodable {
-    ///         func encode(to encoder: Encoder) throws {
-    ///             // Print the encoder name
-    ///             print(encoder.userInfo[encoderName])
-    ///             ...
-    ///         }
-    ///     }
-    ///
-    ///     // A PersistableRecord + Encodable record
-    ///     struct Player: PersistableRecord, Encodable {
-    ///         // Achievement is stored as JSON in the "achievement" database column
-    ///         var achievement: Achievement
-    ///
-    ///         // Customize the encoder name when encoding a JSON column
-    ///         static func makeJSONEncoder(for column: String) -> JSONEncoder {
-    ///             let encoder = JSONEncoder()
-    ///             encoder.userInfo = [encoderName: "JSON database column"]
-    ///             return encoder
-    ///         }
-    ///     }
-    ///
-    ///     let achievement = Achievement(...)
-    ///     let player = Player(achievement: achievement)
-    ///
-    ///     // prints "JSON database column"
-    ///     try player.insert(db)
-    ///
-    ///     // prints "Raw JSON"
-    ///     let encoder = JSONEncoder()
-    ///     encoder.userInfo = [encoderName: "Raw JSON"]
-    ///     let achievementData = try encoder.encode(achievement)
+    /// protocol, this method controls the encoding process of nested properties
+    /// into JSON database columns.
     ///
     /// The default implementation returns a JSONEncoder with the
     /// following properties:
@@ -404,11 +366,29 @@ public protocol MutablePersistableRecord : TableRecord {
     /// - dateEncodingStrategy: .millisecondsSince1970
     /// - nonConformingFloatEncodingStrategy: .throw
     /// - outputFormatting: .sortedKeys (iOS 11.0+, macOS 10.13+, watchOS 4.0+)
-    static func makeJSONEncoder(for column: String) -> JSONEncoder
+    ///
+    /// You can override those defaults:
+    ///
+    ///     struct Achievement: Encodable {
+    ///         var name: String
+    ///         var date: Date
+    ///     }
+    ///
+    ///     struct Player: Encodable, PersistableRecord {
+    ///         // stored in a JSON column
+    ///         var achievements: [Achievement]
+    ///
+    ///         static func makeDatabaseJSONEncoder(for column: String) -> JSONEncoder {
+    ///             let encoder = JSONEncoder()
+    ///             encoder.dateEncodingStrategy = .iso8601
+    ///             return encoder
+    ///         }
+    ///     }
+    static func makeDatabaseJSONEncoder(for column: String) -> JSONEncoder
 }
 
 extension MutablePersistableRecord {
-    public static var encodingUserInfo: [CodingUserInfoKey: Any] {
+    public static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] {
         return [:]
     }
     
@@ -418,7 +398,7 @@ extension MutablePersistableRecord {
     /// - dateEncodingStrategy: .millisecondsSince1970
     /// - nonConformingFloatEncodingStrategy: .throw
     /// - outputFormatting: .sortedKeys (iOS 11.0+, macOS 10.13+, watchOS 4.0+)
-    public static func makeJSONEncoder(for column: String) -> JSONEncoder {
+    public static func makeDatabaseJSONEncoder(for column: String) -> JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dataEncodingStrategy = .base64
         encoder.dateEncodingStrategy = .millisecondsSince1970

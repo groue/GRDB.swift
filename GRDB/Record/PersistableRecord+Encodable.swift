@@ -423,8 +423,8 @@ private typealias DatabaseValuePersistenceEncoder = (_ value: DatabaseValueConve
 
 extension MutablePersistableRecord where Self: Encodable {
     public func encode(to container: inout PersistenceContainer) {
-        let userInfo = Self.encodingUserInfo
-        let makeJSONEncoder = Self.makeJSONEncoder
+        let userInfo = Self.databaseEncodingUserInfo
+        let makeJSONEncoder = Self.makeDatabaseJSONEncoder
         
         // The inout container parameter won't enter an escaping closure since
         // SE-0035: https://github.com/apple/swift-evolution/blob/master/proposals/0035-limit-inout-capture.md

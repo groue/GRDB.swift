@@ -349,8 +349,8 @@ extension FetchableRecord where Self: Decodable {
         let decoder = RowDecoder(
             row: row,
             codingPath: [],
-            userInfo: Self.decodingUserInfo,
-            makeJSONDecoder: Self.makeJSONDecoder)
+            userInfo: Self.databaseDecodingUserInfo,
+            makeJSONDecoder: Self.makeDatabaseJSONDecoder)
         try! self.init(from: decoder)
     }
 }

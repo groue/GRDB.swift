@@ -840,7 +840,7 @@ extension FetchableRecordDecodableTests {
             context = decoder.userInfo[testKeyRoot] as? String
         }
 
-        static let decodingUserInfo: [CodingUserInfoKey: Any] = [
+        static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [
             testKeyRoot: "GRDB root",
             testKeyNested: "GRDB column or scope"]
         
