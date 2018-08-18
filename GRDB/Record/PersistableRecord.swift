@@ -1,3 +1,5 @@
+import Foundation
+
 extension Database.ConflictResolution {
     var invalidatesLastInsertedRowID: Bool {
         switch self {
