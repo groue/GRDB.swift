@@ -23,6 +23,17 @@ private class RecordEncoder<Record: MutablePersistableRecord>: Encoder {
     }
     
     func singleValueContainer() -> SingleValueEncodingContainer {
+        // @itaiferber on https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/11
+        //
+        // > Encoding a value into a single-value container is equivalent to
+        // > encoding the value directly into the encoder, with the primary
+        // > difference being the above: encoding into the encoder writes the
+        // > contents of a type into the encoder, while encoding to a
+        // > single-value container gives the encoder a chance to intercept the
+        // > type as a whole.
+        //
+        // Wait for somebody hitting this fatal error so that we can write a
+        // meaningful regression test.
         fatalError("single value encoding is not supported")
     }
     
