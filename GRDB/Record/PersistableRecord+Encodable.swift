@@ -13,12 +13,6 @@ private class RecordEncoder<Record: MutablePersistableRecord>: Encoder {
         _persistenceContainer = PersistenceContainer()
     }
     
-    /// Helper method
-    @inline(__always)
-    fileprivate func encode(_ value: DatabaseValueConvertible?, forKey key: CodingKey) {
-        _persistenceContainer[key.stringValue] = value
-    }
-    
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> {
         let container = KeyedContainer<Key>(recordEncoder: self)
         return KeyedEncodingContainer(container)
@@ -32,7 +26,13 @@ private class RecordEncoder<Record: MutablePersistableRecord>: Encoder {
         fatalError("single value encoding is not supported")
     }
     
-    struct KeyedContainer<Key: CodingKey> : KeyedEncodingContainerProtocol {
+    /// Helper method
+    @inline(__always)
+    fileprivate func encode(_ value: DatabaseValueConvertible?, forKey key: CodingKey) {
+        _persistenceContainer[key.stringValue] = value
+    }
+    
+    private struct KeyedContainer<Key: CodingKey> : KeyedEncodingContainerProtocol {
         var recordEncoder: RecordEncoder
         var userInfo: [CodingUserInfoKey: Any] { return Record.databaseEncodingUserInfo }
         
