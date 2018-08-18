@@ -3100,8 +3100,6 @@ Since those use cases are not well handled by FetchableRecord, don't try to impl
 Instead, please have a look at the [CustomizedDecodingOfDatabaseRows](Playgrounds/CustomizedDecodingOfDatabaseRows.playground/Contents.swift) playground. You'll run some sample code, and learn how to escape FetchableRecord when you need. And remember that leaving FetchableRecord will not deprive you of [query interface requests](#requests) and generally all SQL generation features of the [TableRecord] and [PersistableRecord] protocols.
 
 
-
-
 ## Examples of Record Definitions
 
 We will show below how to declare a record type for the following database table:
@@ -7574,7 +7572,7 @@ This protocol has been renamed [FetchableRecord] in GRDB 3.0.
 
 This protocol has been renamed [TableRecord] in GRDB 3.0.
 
-### Customized Decoding of Database Rows
+#### Customized Decoding of Database Rows
 
 This chapter has been renamed [Beyond FetchableRecord].
 
