@@ -11,6 +11,7 @@ Release Notes
 ### New
 
 - [#397](https://github.com/groue/GRDB.swift/pull/397): JSON encoding and decoding of codable record properties
+- [#399](https://github.com/groue/GRDB.swift/pull/399): Codable support: customize the `userInfo` context dictionary, and the format of JSON columns
 - [#393](https://github.com/groue/GRDB.swift/pull/393): Upgrade SQLCipher to 3.4.2, enable FTS5 on GRDBCipher and new pod GRDBPlus.
 - [#384](https://github.com/groue/GRDB.swift/pull/384): Improve database value decoding diagnostics
 - Cursors of optimized values (Strint, Int, Date, etc.) have been renamed: FastDatabaseValueCursor and FastNullableDatabaseValueCursor replace the deprecated ColumnCursor and NullableColumnCursor.
@@ -26,6 +27,16 @@ Release Notes
 +    func unsafeReentrantRead<T>(_ block: (Database) throws -> T) rethrows -> T {
  }
 
+ protocol FetchableRecord {
++    static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] { get }
++    static func makeDatabaseJSONDecoder(for column: String) -> JSONDecoder
+ }
+
+ protocol MutablePersistableRecord: TableRecord {
++    static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] { get }
++    static func makeDatabaseJSONEncoder(for column: String) -> JSONEncoder
+ }
+
 +final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor { }
 +@available(*, deprecated, renamed: "FastDatabaseValueCursor")
 +typealias ColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> = FastDatabaseValueCursor<Value>
@@ -39,7 +50,8 @@ Release Notes
 ### Documentation Diff
 
 - [Enabling FTS5 Support](README.md#enabling-fts5-support): Procedure for enabling FTS5 support in GRDB.
-- [Codable Records](README.md#codable-records): Updated documentation, for JSON encoding of codable record properties, and for the reuse of coding keys as database columns.
+- [Codable Records](README.md#codable-records): Updated documentation for JSON columns, tips, and customization options.
+- [Record Customization Options](README.md#record-customization-options): A new chapter that gather all your customization options.
 
 
 ## 3.2.0
