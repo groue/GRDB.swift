@@ -88,13 +88,13 @@ public protocol FetchableRecord {
     ///         // stored in a JSON column
     ///         var achievements: [Achievement]
     ///
-    ///         static func makeDatabaseJSONDecoder(for column: String) -> JSONDecoder {
+    ///         static func databaseJSONDecoder(for column: String) -> JSONDecoder {
     ///             let decoder = JSONDecoder()
     ///             decoder.dateDecodingStrategy = .iso8601
     ///             return decoder
     ///         }
     ///     }
-    static func makeDatabaseJSONDecoder(for column: String) -> JSONDecoder
+    static func databaseJSONDecoder(for column: String) -> JSONDecoder
 }
 
 extension FetchableRecord {
@@ -107,7 +107,7 @@ extension FetchableRecord {
     /// - dataDecodingStrategy: .base64
     /// - dateDecodingStrategy: .millisecondsSince1970
     /// - nonConformingFloatDecodingStrategy: .throw
-    public static func makeDatabaseJSONDecoder(for column: String) -> JSONDecoder {
+    public static func databaseJSONDecoder(for column: String) -> JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dataDecodingStrategy = .base64
         decoder.dateDecodingStrategy = .millisecondsSince1970

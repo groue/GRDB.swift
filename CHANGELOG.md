@@ -29,12 +29,12 @@ Release Notes
 
  protocol FetchableRecord {
 +    static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] { get }
-+    static func makeDatabaseJSONDecoder(for column: String) -> JSONDecoder
++    static func databaseJSONDecoder(for column: String) -> JSONDecoder
  }
 
  protocol MutablePersistableRecord: TableRecord {
 +    static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] { get }
-+    static func makeDatabaseJSONEncoder(for column: String) -> JSONEncoder
++    static func databaseJSONEncoder(for column: String) -> JSONEncoder
  }
 
 +final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor { }

@@ -380,13 +380,13 @@ public protocol MutablePersistableRecord : TableRecord {
     ///         // stored in a JSON column
     ///         var achievements: [Achievement]
     ///
-    ///         static func makeDatabaseJSONEncoder(for column: String) -> JSONEncoder {
+    ///         static func databaseJSONEncoder(for column: String) -> JSONEncoder {
     ///             let encoder = JSONEncoder()
     ///             encoder.dateEncodingStrategy = .iso8601
     ///             return encoder
     ///         }
     ///     }
-    static func makeDatabaseJSONEncoder(for column: String) -> JSONEncoder
+    static func databaseJSONEncoder(for column: String) -> JSONEncoder
 }
 
 extension MutablePersistableRecord {
@@ -400,7 +400,7 @@ extension MutablePersistableRecord {
     /// - dateEncodingStrategy: .millisecondsSince1970
     /// - nonConformingFloatEncodingStrategy: .throw
     /// - outputFormatting: .sortedKeys (iOS 11.0+, macOS 10.13+, watchOS 4.0+)
-    public static func makeDatabaseJSONEncoder(for column: String) -> JSONEncoder {
+    public static func databaseJSONEncoder(for column: String) -> JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dataEncodingStrategy = .base64
         encoder.dateEncodingStrategy = .millisecondsSince1970

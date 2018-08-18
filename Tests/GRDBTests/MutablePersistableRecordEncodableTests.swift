@@ -570,7 +570,7 @@ extension MutablePersistableRecordEncodableTests {
             testKeyRoot: "GRDB root",
             testKeyNested: "GRDB nested"]
         
-        static func makeJSONEncoder(for column: String) -> JSONEncoder {
+        static func databaseJSONEncoder(for column: String) -> JSONEncoder {
             let encoder = JSONEncoder()
             encoder.outputFormatting = .sortedKeys
             encoder.userInfo = [

@@ -3,16 +3,16 @@ import Foundation
 private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEncodingContainerProtocol {
     let encode: DatabaseValuePersistenceEncoder
     var userInfo: [CodingUserInfoKey: Any]
-    var makeJSONEncoder: (String) -> JSONEncoder
+    var JSONEncoder: (String) -> JSONEncoder
 
     init(
         encode: @escaping DatabaseValuePersistenceEncoder,
         userInfo: [CodingUserInfoKey: Any],
-        makeJSONEncoder: @escaping (String) -> JSONEncoder)
+        JSONEncoder: @escaping (String) -> JSONEncoder)
     {
         self.encode = encode
         self.userInfo = userInfo
-        self.makeJSONEncoder = makeJSONEncoder
+        self.JSONEncoder = JSONEncoder
     }
     
     /// The path of coding keys taken to get to this point in encoding.
@@ -59,11 +59,11 @@ private struct PersistableRecordKeyedEncodingContainer<Key: CodingKey> : KeyedEn
                     key: key,
                     encode: encode,
                     userInfo: userInfo,
-                    makeJSONEncoder: makeJSONEncoder)
+                    JSONEncoder: JSONEncoder)
                 try value.encode(to: encoder)
             } catch is JSONRequiredError {
                 // Encode to JSON
-                let jsonData = try makeJSONEncoder(key.stringValue).encode(value)
+                let jsonData = try JSONEncoder(key.stringValue).encode(value)
                 
                 // Store JSON String in the database for easier debugging and
                 // database inspection. Thanks to SQLite weak typing, we won't
@@ -134,18 +134,18 @@ private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
     var key: CodingKey
     var encode: DatabaseValuePersistenceEncoder
     var userInfo: [CodingUserInfoKey: Any]
-    var makeJSONEncoder: (String) -> JSONEncoder
+    var JSONEncoder: (String) -> JSONEncoder
 
     init(
         key: CodingKey,
         encode: @escaping DatabaseValuePersistenceEncoder,
         userInfo: [CodingUserInfoKey: Any],
-        makeJSONEncoder: @escaping (String) -> JSONEncoder)
+        JSONEncoder: @escaping (String) -> JSONEncoder)
     {
         self.key = key
         self.encode = encode
         self.userInfo = userInfo
-        self.makeJSONEncoder = makeJSONEncoder
+        self.JSONEncoder = JSONEncoder
     }
     
     /// Encodes a null value.
@@ -194,11 +194,11 @@ private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
                     key: key,
                     encode: encode,
                     userInfo: userInfo,
-                    makeJSONEncoder: makeJSONEncoder)
+                    JSONEncoder: JSONEncoder)
                 try value.encode(to: encoder)
             } catch is JSONRequiredError {
                 // Encode to JSON
-                let jsonData = try makeJSONEncoder(key.stringValue).encode(value)
+                let jsonData = try JSONEncoder(key.stringValue).encode(value)
                 
                 // Store JSON String in the database for easier debugging and
                 // database inspection. Thanks to SQLite weak typing, we won't
@@ -217,18 +217,18 @@ private struct DatabaseValueEncoder: Encoder {
     var key: CodingKey
     var encode: DatabaseValuePersistenceEncoder
     var userInfo: [CodingUserInfoKey: Any]
-    var makeJSONEncoder: (String) -> JSONEncoder
+    var JSONEncoder: (String) -> JSONEncoder
 
     init(
         key: CodingKey,
         encode: @escaping DatabaseValuePersistenceEncoder,
         userInfo: [CodingUserInfoKey: Any],
-        makeJSONEncoder: @escaping (String) -> JSONEncoder)
+        JSONEncoder: @escaping (String) -> JSONEncoder)
     {
         self.key = key
         self.encode = encode
         self.userInfo = userInfo
-        self.makeJSONEncoder = makeJSONEncoder
+        self.JSONEncoder = JSONEncoder
     }
 
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key : CodingKey {
@@ -254,7 +254,7 @@ private struct DatabaseValueEncoder: Encoder {
             key: key,
             encode: encode,
             userInfo: userInfo,
-            makeJSONEncoder: makeJSONEncoder)
+            JSONEncoder: JSONEncoder)
     }
 }
 
@@ -262,23 +262,23 @@ private struct PersistableRecordEncoder: Encoder {
     var codingPath: [CodingKey] = []
     var encode: DatabaseValuePersistenceEncoder
     var userInfo: [CodingUserInfoKey: Any]
-    var makeJSONEncoder: (String) -> JSONEncoder
+    var JSONEncoder: (String) -> JSONEncoder
 
     init(
         encode: @escaping DatabaseValuePersistenceEncoder,
         userInfo: [CodingUserInfoKey: Any],
-        makeJSONEncoder: @escaping (String) -> JSONEncoder)
+        JSONEncoder: @escaping (String) -> JSONEncoder)
     {
         self.encode = encode
         self.userInfo = userInfo
-        self.makeJSONEncoder = makeJSONEncoder
+        self.JSONEncoder = JSONEncoder
     }
     
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> {
         return KeyedEncodingContainer(PersistableRecordKeyedEncodingContainer<Key>(
             encode: encode,
             userInfo: userInfo,
-            makeJSONEncoder: makeJSONEncoder))
+            JSONEncoder: JSONEncoder))
     }
     
     func unkeyedContainer() -> UnkeyedEncodingContainer {
@@ -424,7 +424,7 @@ private typealias DatabaseValuePersistenceEncoder = (_ value: DatabaseValueConve
 extension MutablePersistableRecord where Self: Encodable {
     public func encode(to container: inout PersistenceContainer) {
         let userInfo = Self.databaseEncodingUserInfo
-        let makeJSONEncoder = Self.makeDatabaseJSONEncoder
+        let JSONEncoder = Self.databaseJSONEncoder
         
         // The inout container parameter won't enter an escaping closure since
         // SE-0035: https://github.com/apple/swift-evolution/blob/master/proposals/0035-limit-inout-capture.md
@@ -435,7 +435,7 @@ extension MutablePersistableRecord where Self: Encodable {
                 let encoder = PersistableRecordEncoder(
                     encode: escapableEncode,
                     userInfo: userInfo,
-                    makeJSONEncoder: makeJSONEncoder)
+                    JSONEncoder: JSONEncoder)
                 try! self.encode(to: encoder)
             }
         }

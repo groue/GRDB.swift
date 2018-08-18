@@ -2667,11 +2667,11 @@ You can customize the JSON format by implementing those methods:
 
 ```swift
 protocol FetchableRecord {
-    static func makeDatabaseJSONDecoder(for column: String) -> JSONDecoder
+    static func databaseJSONDecoder(for column: String) -> JSONDecoder
 }
 
 protocol MutablePersistableRecord {
-    static func makeDatabaseJSONEncoder(for column: String) -> JSONEncoder
+    static func databaseJSONEncoder(for column: String) -> JSONEncoder
 }
 ```
 
@@ -2683,13 +2683,13 @@ struct Player: Codable, FetchableRecord, PersistableRecord {
     var score: Int
     var achievements: [Achievement] // stored in a JSON column
     
-    static func makeDatabaseJSONDecoder(for column: String) -> JSONDecoder {
+    static func databaseJSONDecoder(for column: String) -> JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return decoder
     }
     
-    static func makeDatabaseJSONEncoder(for column: String) -> JSONEncoder {
+    static func databaseJSONEncoder(for column: String) -> JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         encoder.outputFormatting = .sortedKeys

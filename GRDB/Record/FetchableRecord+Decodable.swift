@@ -98,7 +98,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                         fatalConversionError(to: T.self, from: row[index], conversionContext: ValueConversionContext(row).atColumn(index))
                     }
                     return try decoder
-                        .makeJSONDecoder(keyName)
+                        .JSONDecoder(keyName)
                         .decode(type.self, from: data)
                 }
             }
@@ -115,7 +115,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                     row: scopedRow,
                     codingPath: codingPath + [key],
                     userInfo: decoder.userInfo,
-                    makeJSONDecoder: decoder.makeJSONDecoder)
+                    JSONDecoder: decoder.JSONDecoder)
                 return try T(from: scopedDecoder)
             }
         }
@@ -160,7 +160,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                         fatalConversionError(to: T.self, from: row[index], conversionContext: ValueConversionContext(row).atColumn(index))
                     }
                     return try decoder
-                        .makeJSONDecoder(keyName)
+                        .JSONDecoder(keyName)
                         .decode(type.self, from: data)
                 }
             }
@@ -177,7 +177,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                     row: scopedRow,
                     codingPath: codingPath + [key],
                     userInfo: decoder.userInfo,
-                    makeJSONDecoder: decoder.makeJSONDecoder)
+                    JSONDecoder: decoder.JSONDecoder)
                 return try T(from: scopedDecoder)
             }
         }
@@ -192,7 +192,7 @@ private struct RowKeyedDecodingContainer<Key: CodingKey>: KeyedDecodingContainer
                 row: row,
                 codingPath: codingPath + [key],
                 userInfo: decoder.userInfo,
-                makeJSONDecoder: decoder.makeJSONDecoder)
+                JSONDecoder: decoder.JSONDecoder)
             return try T(from: baseDecoder)
         }
     }
@@ -302,7 +302,7 @@ private struct RowDecoder: Decoder {
     var row: Row
     var codingPath: [CodingKey]
     var userInfo: [CodingUserInfoKey: Any]
-    var makeJSONDecoder: (String) -> JSONDecoder
+    var JSONDecoder: (String) -> JSONDecoder
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
         return KeyedDecodingContainer(RowKeyedDecodingContainer<Key>(decoder: self))
@@ -350,7 +350,7 @@ extension FetchableRecord where Self: Decodable {
             row: row,
             codingPath: [],
             userInfo: Self.databaseDecodingUserInfo,
-            makeJSONDecoder: Self.makeDatabaseJSONDecoder)
+            JSONDecoder: Self.databaseJSONDecoder)
         try! self.init(from: decoder)
     }
 }
