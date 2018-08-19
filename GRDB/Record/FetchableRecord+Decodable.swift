@@ -1,5 +1,12 @@
 import Foundation
 
+extension FetchableRecord where Self: Decodable {
+    public init(row: Row) {
+        let decoder = RowDecoder<Self>(row: row, codingPath: [])
+        try! self.init(from: decoder)
+    }
+}
+
 // MARK: - RowDecoder
 
 /// The decoder that decodes a record from a database row
@@ -292,10 +299,107 @@ extension ColumnDecoder: SingleValueDecodingContainer {
 /// The error that triggers JSON decoding
 private struct JSONRequiredError: Error { }
 
-extension FetchableRecord where Self: Decodable {
-    /// Initializes a record from `row`.
-    public init(row: Row) {
-        let decoder = RowDecoder<Self>(row: row, codingPath: [])
-        try! self.init(from: decoder)
+private extension DatabaseDateDecodingStrategy {
+    @inline(__always)
+    func decode(sqliteStatement: SQLiteStatement, index: Int32, conversionContext: @autoclosure () -> ValueConversionContext?) -> Date {
+        switch self {
+        case .deferredToDate:
+            return Date(sqliteStatement: sqliteStatement, index: index)
+        case .timeIntervalSinceReferenceDate:
+            let timeInterval = TimeInterval(sqliteStatement: sqliteStatement, index: index)
+            return Date(timeIntervalSinceReferenceDate: timeInterval)
+        case .timeIntervalSince1970:
+            let timeInterval = TimeInterval(sqliteStatement: sqliteStatement, index: index)
+            return Date(timeIntervalSince1970: timeInterval)
+        case .millisecondsSince1970:
+            let timeInterval = TimeInterval(sqliteStatement: sqliteStatement, index: index)
+            return Date(timeIntervalSince1970: timeInterval / 1000.0)
+        case .iso8601(let formatter):
+            let string = String(sqliteStatement: sqliteStatement, index: index)
+            guard let date = formatter.date(from: string) else {
+                fatalConversionError(
+                    to: Date.self,
+                    from: DatabaseValue(sqliteStatement: sqliteStatement, index: index),
+                    conversionContext: conversionContext())
+            }
+            return date
+        case .formatted(let formatter):
+            let string = String(sqliteStatement: sqliteStatement, index: index)
+            guard let date = formatter.date(from: string) else {
+                fatalConversionError(
+                    to: Date.self,
+                    from: DatabaseValue(sqliteStatement: sqliteStatement, index: index),
+                    conversionContext: conversionContext())
+            }
+            return date
+        case .custom(let format):
+            let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
+            guard let date = format(dbValue) else {
+                fatalConversionError(
+                    to: Date.self,
+                    from: dbValue,
+                    conversionContext: conversionContext())
+            }
+            return date
+        }
+    }
+    
+    @inline(__always)
+    func decodeIfPresent(sqliteStatement: SQLiteStatement, index: Int32, conversionContext: @autoclosure () -> ValueConversionContext?) -> Date? {
+        if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
+            return nil
+        }
+        return decode(sqliteStatement:sqliteStatement, index:index, conversionContext: conversionContext)
+    }
+    
+    @inline(__always)
+    func decode(from dbValue: DatabaseValue, conversionContext: @autoclosure () -> ValueConversionContext?) -> Date {
+        if let date = dateFromDatabaseValue(dbValue) {
+            return date
+        } else {
+            fatalConversionError(to: Date.self, from: dbValue, conversionContext: conversionContext())
+        }
+    }
+    
+    @inline(__always)
+    func decodeIfPresent(from dbValue: DatabaseValue, conversionContext: @autoclosure () -> ValueConversionContext?) -> Date? {
+        if dbValue.isNull {
+            return nil
+        } else if let date = dateFromDatabaseValue(dbValue) {
+            return date
+        } else {
+            fatalConversionError(to: Date.self, from: dbValue, conversionContext: conversionContext())
+        }
+    }
+    
+    // Returns nil if decoding fails
+    @inline(__always)
+    private func dateFromDatabaseValue(_ dbValue: DatabaseValue) -> Date? {
+        switch self {
+        case .deferredToDate:
+            return Date.fromDatabaseValue(dbValue)
+        case .timeIntervalSinceReferenceDate:
+            return TimeInterval
+                .fromDatabaseValue(dbValue)
+                .map { Date(timeIntervalSinceReferenceDate: $0) }
+        case .timeIntervalSince1970:
+            return TimeInterval
+                .fromDatabaseValue(dbValue)
+                .map { Date(timeIntervalSince1970: $0) }
+        case .millisecondsSince1970:
+            return TimeInterval
+                .fromDatabaseValue(dbValue)
+                .map { Date(timeIntervalSince1970: $0 / 1000.0) }
+        case .iso8601(let formatter):
+            return String
+                .fromDatabaseValue(dbValue)
+                .flatMap { formatter.date(from: $0) }
+        case .formatted(let formatter):
+            return String
+                .fromDatabaseValue(dbValue)
+                .flatMap { formatter.date(from: $0) }
+        case .custom(let format):
+            return format(dbValue)
+        }
     }
 }

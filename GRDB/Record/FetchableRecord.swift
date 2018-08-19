@@ -390,126 +390,51 @@ public final class RecordCursor<Record: FetchableRecord> : Cursor {
     }
 }
 
-// MARK: - DateDatabaseDecodingStrategy
+// MARK: - DatabaseDateDecodingStrategy
 
 /// The strategies available for formatting dates when decoding them from a
 /// database column.
 public enum DatabaseDateDecodingStrategy {
     /// The strategy that uses formatting from the Date structure.
     ///
-    /// See https://github.com/groue/GRDB.swift/blob/master/README.md#date-and-datecomponents
-    /// for details.
+    /// It decodes numeric values as a nunber of seconds since Epoch
+    /// (midnight UTC on January 1st, 1970).
+    ///
+    /// It decodes strings in the following formats, assuming UTC time zone.
+    /// Missing components are assumed to be zero.
+    ///
+    /// - `YYYY-MM-DD`
+    /// - `YYYY-MM-DD HH:MM`
+    /// - `YYYY-MM-DD HH:MM:SS`
+    /// - `YYYY-MM-DD HH:MM:SS.SSS`
+    /// - `YYYY-MM-DDTHH:MM`
+    /// - `YYYY-MM-DDTHH:MM:SS`
+    /// - `YYYY-MM-DDTHH:MM:SS.SSS`
     case deferredToDate
+    
+    /// Decodes numeric values as a number of seconds between the date and
+    /// midnight UTC on 1 January 2001
     case timeIntervalSinceReferenceDate
+    
+    /// Decodes numeric values as a number of seconds between the date and
+    /// midnight UTC on 1 January 1970
     case timeIntervalSince1970
+    
+    /// Decodes numeric values as a number of milliseconds between the date and
+    /// midnight UTC on 1 January 1970
     case millisecondsSince1970
+    
+    /// Decodes a String, according to the provided formatter
     @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
     case iso8601(ISO8601DateFormatter)
+    
+    /// Decodes a String, according to the provided formatter
     case formatted(DateFormatter)
+    
+    /// Decodes according to the user-provided function.
+    ///
+    /// If the database value  does not contain a suitable value, the function
+    /// must return nil (GRDB will interpret this nil result as a conversion
+    /// error, and react accordingly).
     case custom((DatabaseValue) -> Date?)
-}
-
-extension DatabaseDateDecodingStrategy {
-    @inline(__always)
-    func decode(sqliteStatement: SQLiteStatement, index: Int32, conversionContext: @autoclosure () -> ValueConversionContext?) -> Date {
-        switch self {
-        case .deferredToDate:
-            return Date(sqliteStatement: sqliteStatement, index: index)
-        case .timeIntervalSinceReferenceDate:
-            let timeInterval = TimeInterval(sqliteStatement: sqliteStatement, index: index)
-            return Date(timeIntervalSinceReferenceDate: timeInterval)
-        case .timeIntervalSince1970:
-            let timeInterval = TimeInterval(sqliteStatement: sqliteStatement, index: index)
-            return Date(timeIntervalSince1970: timeInterval)
-        case .millisecondsSince1970:
-            let timeInterval = TimeInterval(sqliteStatement: sqliteStatement, index: index)
-            return Date(timeIntervalSince1970: timeInterval / 1000.0)
-        case .iso8601(let formatter):
-            let string = String(sqliteStatement: sqliteStatement, index: index)
-            guard let date = formatter.date(from: string) else {
-                fatalConversionError(
-                    to: Date.self,
-                    from: DatabaseValue(sqliteStatement: sqliteStatement, index: index),
-                    conversionContext: conversionContext())
-            }
-            return date
-        case .formatted(let formatter):
-            let string = String(sqliteStatement: sqliteStatement, index: index)
-            guard let date = formatter.date(from: string) else {
-                fatalConversionError(
-                    to: Date.self,
-                    from: DatabaseValue(sqliteStatement: sqliteStatement, index: index),
-                    conversionContext: conversionContext())
-            }
-            return date
-        case .custom(let format):
-            let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
-            guard let date = format(dbValue) else {
-                fatalConversionError(
-                    to: Date.self,
-                    from: dbValue,
-                    conversionContext: conversionContext())
-            }
-            return date
-        }
-    }
-    
-    @inline(__always)
-    func decodeIfPresent(sqliteStatement: SQLiteStatement, index: Int32, conversionContext: @autoclosure () -> ValueConversionContext?) -> Date? {
-        if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
-            return nil
-        }
-        return decode(sqliteStatement:sqliteStatement, index:index, conversionContext: conversionContext)
-    }
-    
-    @inline(__always)
-    func decode(from dbValue: DatabaseValue, conversionContext: @autoclosure () -> ValueConversionContext?) -> Date {
-        if let date = dateFromDatabaseValue(dbValue) {
-            return date
-        } else {
-            fatalConversionError(to: Date.self, from: dbValue, conversionContext: conversionContext())
-        }
-    }
-    
-    @inline(__always)
-    func decodeIfPresent(from dbValue: DatabaseValue, conversionContext: @autoclosure () -> ValueConversionContext?) -> Date? {
-        if dbValue.isNull {
-            return nil
-        } else if let date = dateFromDatabaseValue(dbValue) {
-            return date
-        } else {
-            fatalConversionError(to: Date.self, from: dbValue, conversionContext: conversionContext())
-        }
-    }
-    
-    // Returns nil if decoding fails
-    @inline(__always)
-    private func dateFromDatabaseValue(_ dbValue: DatabaseValue) -> Date? {
-        switch self {
-        case .deferredToDate:
-            return Date.fromDatabaseValue(dbValue)
-        case .timeIntervalSinceReferenceDate:
-            return TimeInterval
-                .fromDatabaseValue(dbValue)
-                .map { Date(timeIntervalSinceReferenceDate: $0) }
-        case .timeIntervalSince1970:
-            return TimeInterval
-                .fromDatabaseValue(dbValue)
-                .map { Date(timeIntervalSince1970: $0) }
-        case .millisecondsSince1970:
-            return TimeInterval
-                .fromDatabaseValue(dbValue)
-                .map { Date(timeIntervalSince1970: $0 / 1000.0) }
-        case .iso8601(let formatter):
-            return String
-                .fromDatabaseValue(dbValue)
-                .flatMap { formatter.date(from: $0) }
-        case .formatted(let formatter):
-            return String
-                .fromDatabaseValue(dbValue)
-                .flatMap { formatter.date(from: $0) }
-        case .custom(let format):
-            return format(dbValue)
-        }
-    }
 }
