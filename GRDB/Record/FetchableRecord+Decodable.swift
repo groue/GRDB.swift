@@ -1,4 +1,9 @@
 import Foundation
+#if SWIFT_PACKAGE
+    import CSQLite
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
 
 extension FetchableRecord where Self: Decodable {
     public init(row: Row) {
