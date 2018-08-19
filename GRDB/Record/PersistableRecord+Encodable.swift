@@ -1,5 +1,13 @@
 import Foundation
 
+extension MutablePersistableRecord where Self: Encodable {
+    public func encode(to container: inout PersistenceContainer) {
+        let encoder = RecordEncoder<Self>()
+        try! encode(to: encoder)
+        container = encoder.persistenceContainer
+    }
+}
+
 // MARK: - RecordEncoder
 
 /// The encoder that encodes a record into GRDB's PersistenceContainer
@@ -11,12 +19,6 @@ private class RecordEncoder<Record: MutablePersistableRecord>: Encoder {
     
     init() {
         _persistenceContainer = PersistenceContainer()
-    }
-    
-    /// Helper method
-    @inline(__always)
-    fileprivate func encode(_ value: DatabaseValueConvertible?, forKey key: CodingKey) {
-        _persistenceContainer[key.stringValue] = value
     }
     
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> {
@@ -53,71 +55,47 @@ private class RecordEncoder<Record: MutablePersistableRecord>: Encoder {
         
         var codingPath: [CodingKey] { return [] }
         
-        func encode(_ value: Bool,   forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encode(_ value: Int,    forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encode(_ value: Int8,   forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encode(_ value: Int16,  forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encode(_ value: Int32,  forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encode(_ value: Int64,  forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encode(_ value: UInt,   forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encode(_ value: UInt8,  forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encode(_ value: UInt16, forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encode(_ value: UInt32, forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encode(_ value: UInt64, forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encode(_ value: Float,  forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encode(_ value: Double, forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encode(_ value: String, forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
+        func encode(_ value: Bool,   forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encode(_ value: Int,    forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encode(_ value: Int8,   forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encode(_ value: Int16,  forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encode(_ value: Int32,  forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encode(_ value: Int64,  forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encode(_ value: UInt,   forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encode(_ value: UInt8,  forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encode(_ value: UInt16, forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encode(_ value: UInt32, forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encode(_ value: UInt64, forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encode(_ value: Float,  forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encode(_ value: Double, forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encode(_ value: String, forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
         
         func encode<T>(_ value: T, forKey key: Key) throws where T : Encodable {
-            if let value = value as? DatabaseValueConvertible {
-                // Prefer DatabaseValueConvertible encoding over Decodable.
-                // This allows us to encode Date as String, for example.
-                recordEncoder.encode(value.databaseValue, forKey: key)
-            } else {
-                do {
-                    // This encoding will fail for types that encode into keyed
-                    // or unkeyed containers, because we're encoding a single
-                    // value here (string, int, double, data, null). If such an
-                    // error happens, we'll switch to JSON encoding.
-                    let encoder = ColumnEncoder(recordEncoder: recordEncoder, key: key)
-                    try value.encode(to: encoder)
-                } catch is JSONRequiredError {
-                    // Encode to JSON
-                    let jsonData = try Record.databaseJSONEncoder(for: key.stringValue).encode(value)
-                    
-                    // Store JSON String in the database for easier debugging and
-                    // database inspection. Thanks to SQLite weak typing, we won't
-                    // have any trouble decoding this string into data when we
-                    // eventually perform JSON decoding.
-                    // TODO: possible optimization: avoid this conversion to string, and store raw data bytes as an SQLite string
-                    let jsonString = String(data: jsonData, encoding: .utf8)! // force unwrap because json data is guaranteed to convert to String
-                    recordEncoder.encode(jsonString, forKey: key)
-                }
-            }
+            try recordEncoder.encode(value, forKey: key)
         }
         
-        func encodeNil(forKey key: Key) throws { recordEncoder.encode(nil, forKey: key) }
+        func encodeNil(forKey key: Key) throws { recordEncoder.persist(nil, forKey: key) }
         
-        func encodeIfPresent(_ value: Bool?,   forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encodeIfPresent(_ value: Int?,    forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encodeIfPresent(_ value: Int8?,   forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encodeIfPresent(_ value: Int16?,  forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encodeIfPresent(_ value: Int32?,  forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encodeIfPresent(_ value: Int64?,  forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encodeIfPresent(_ value: UInt?,   forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encodeIfPresent(_ value: UInt8?,  forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encodeIfPresent(_ value: UInt16?, forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encodeIfPresent(_ value: UInt32?, forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encodeIfPresent(_ value: UInt64?, forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encodeIfPresent(_ value: Float?,  forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encodeIfPresent(_ value: Double?, forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
-        func encodeIfPresent(_ value: String?, forKey key: Key) throws { recordEncoder.encode(value, forKey: key) }
+        func encodeIfPresent(_ value: Bool?,   forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encodeIfPresent(_ value: Int?,    forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encodeIfPresent(_ value: Int8?,   forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encodeIfPresent(_ value: Int16?,  forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encodeIfPresent(_ value: Int32?,  forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encodeIfPresent(_ value: Int64?,  forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encodeIfPresent(_ value: UInt?,   forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encodeIfPresent(_ value: UInt8?,  forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encodeIfPresent(_ value: UInt16?, forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encodeIfPresent(_ value: UInt32?, forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encodeIfPresent(_ value: UInt64?, forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encodeIfPresent(_ value: Float?,  forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encodeIfPresent(_ value: Double?, forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
+        func encodeIfPresent(_ value: String?, forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
         
         func encodeIfPresent<T>(_ value: T?, forKey key: Key) throws where T : Encodable {
             if let value = value {
-                try encode(value, forKey: key)
+                try recordEncoder.encode(value, forKey: key)
             } else {
-                recordEncoder.encode(nil, forKey: key)
+                recordEncoder.persist(nil, forKey: key)
             }
         }
         
@@ -135,6 +113,43 @@ private class RecordEncoder<Record: MutablePersistableRecord>: Encoder {
         
         func superEncoder(forKey key: Key) -> Encoder {
             fatalError("Not implemented")
+        }
+    }
+    
+    /// Helper methods
+    @inline(__always)
+    fileprivate func persist(_ value: DatabaseValueConvertible?, forKey key: CodingKey) {
+        _persistenceContainer[key.stringValue] = value
+    }
+    
+    @inline(__always)
+    fileprivate func encode<T>(_ value: T, forKey key: CodingKey) throws where T : Encodable {
+        if let date = value as? Date {
+            persist(Record.databaseDateEncodingStrategy.encode(date), forKey: key)
+        } else if let value = value as? DatabaseValueConvertible {
+            // Prefer DatabaseValueConvertible encoding over Decodable.
+            // This allows us to encode Date as String, for example.
+            persist(value.databaseValue, forKey: key)
+        } else {
+            do {
+                // This encoding will fail for types that encode into keyed
+                // or unkeyed containers, because we're encoding a single
+                // value here (string, int, double, data, null). If such an
+                // error happens, we'll switch to JSON encoding.
+                let encoder = ColumnEncoder(recordEncoder: self, key: key)
+                try value.encode(to: encoder)
+            } catch is JSONRequiredError {
+                // Encode to JSON
+                let jsonData = try Record.databaseJSONEncoder(for: key.stringValue).encode(value)
+                
+                // Store JSON String in the database for easier debugging and
+                // database inspection. Thanks to SQLite weak typing, we won't
+                // have any trouble decoding this string into data when we
+                // eventually perform JSON decoding.
+                // TODO: possible optimization: avoid this conversion to string, and store raw data bytes as an SQLite string
+                let jsonString = String(data: jsonData, encoding: .utf8)! // force unwrap because json data is guaranteed to convert to String
+                persist(jsonString, forKey: key)
+            }
         }
     }
 }
@@ -174,49 +189,25 @@ private struct ColumnEncoder<Record: MutablePersistableRecord>: Encoder {
 }
 
 extension ColumnEncoder: SingleValueEncodingContainer {
-    func encodeNil() throws { recordEncoder.encode(nil, forKey: key) }
+    func encodeNil() throws { recordEncoder.persist(nil, forKey: key) }
     
-    func encode(_ value: Bool  ) throws { recordEncoder.encode(value, forKey: key) }
-    func encode(_ value: Int   ) throws { recordEncoder.encode(value, forKey: key) }
-    func encode(_ value: Int8  ) throws { recordEncoder.encode(value, forKey: key) }
-    func encode(_ value: Int16 ) throws { recordEncoder.encode(value, forKey: key) }
-    func encode(_ value: Int32 ) throws { recordEncoder.encode(value, forKey: key) }
-    func encode(_ value: Int64 ) throws { recordEncoder.encode(value, forKey: key) }
-    func encode(_ value: UInt  ) throws { recordEncoder.encode(value, forKey: key) }
-    func encode(_ value: UInt8 ) throws { recordEncoder.encode(value, forKey: key) }
-    func encode(_ value: UInt16) throws { recordEncoder.encode(value, forKey: key) }
-    func encode(_ value: UInt32) throws { recordEncoder.encode(value, forKey: key) }
-    func encode(_ value: UInt64) throws { recordEncoder.encode(value, forKey: key) }
-    func encode(_ value: Float ) throws { recordEncoder.encode(value, forKey: key) }
-    func encode(_ value: Double) throws { recordEncoder.encode(value, forKey: key) }
-    func encode(_ value: String) throws { recordEncoder.encode(value, forKey: key) }
+    func encode(_ value: Bool  ) throws { recordEncoder.persist(value, forKey: key) }
+    func encode(_ value: Int   ) throws { recordEncoder.persist(value, forKey: key) }
+    func encode(_ value: Int8  ) throws { recordEncoder.persist(value, forKey: key) }
+    func encode(_ value: Int16 ) throws { recordEncoder.persist(value, forKey: key) }
+    func encode(_ value: Int32 ) throws { recordEncoder.persist(value, forKey: key) }
+    func encode(_ value: Int64 ) throws { recordEncoder.persist(value, forKey: key) }
+    func encode(_ value: UInt  ) throws { recordEncoder.persist(value, forKey: key) }
+    func encode(_ value: UInt8 ) throws { recordEncoder.persist(value, forKey: key) }
+    func encode(_ value: UInt16) throws { recordEncoder.persist(value, forKey: key) }
+    func encode(_ value: UInt32) throws { recordEncoder.persist(value, forKey: key) }
+    func encode(_ value: UInt64) throws { recordEncoder.persist(value, forKey: key) }
+    func encode(_ value: Float ) throws { recordEncoder.persist(value, forKey: key) }
+    func encode(_ value: Double) throws { recordEncoder.persist(value, forKey: key) }
+    func encode(_ value: String) throws { recordEncoder.persist(value, forKey: key) }
     
     func encode<T>(_ value: T) throws where T : Encodable {
-        if let value = value as? DatabaseValueConvertible {
-            // Prefer DatabaseValueConvertible encoding over Decodable.
-            // This allows us to encode Date as String, for example.
-            recordEncoder.encode(value.databaseValue, forKey: key)
-        } else {
-            do {
-                // This encoding will fail for types that encode into keyed
-                // or unkeyed containers, because we're encoding a single
-                // value here (string, int, double, data, null). If such an
-                // error happens, we'll switch to JSON encoding.
-                let encoder = ColumnEncoder(recordEncoder: recordEncoder, key: key)
-                try value.encode(to: encoder)
-            } catch is JSONRequiredError {
-                // Encode to JSON
-                let jsonData = try Record.databaseJSONEncoder(for: key.stringValue).encode(value)
-                
-                // Store JSON String in the database for easier debugging and
-                // database inspection. Thanks to SQLite weak typing, we won't
-                // have any trouble decoding this string into data when we
-                // eventually perform JSON decoding.
-                // TODO: possible optimization: avoid this conversion to string, and store raw data bytes as an SQLite string
-                let jsonString = String(data: jsonData, encoding: .utf8)! // force unwrap because json data is guaranteed to convert to String
-                recordEncoder.encode(jsonString, forKey: key)
-            }
-        }
+        try recordEncoder.encode(value, forKey: key)
     }
 }
 
@@ -323,10 +314,26 @@ extension JSONRequiredEncoder: UnkeyedEncodingContainer {
     }
 }
 
-extension MutablePersistableRecord where Self: Encodable {
-    public func encode(to container: inout PersistenceContainer) {
-        let encoder = RecordEncoder<Self>()
-        try! encode(to: encoder)
-        container = encoder.persistenceContainer
+private extension DatabaseDateEncodingStrategy {
+    @inline(__always)
+    func encode(_ date: Date) -> DatabaseValueConvertible? {
+        switch self {
+        case .deferredToDate:
+            return date.databaseValue
+        case .timeIntervalSinceReferenceDate:
+            return date.timeIntervalSinceReferenceDate
+        case .timeIntervalSince1970:
+            return date.timeIntervalSince1970
+        case .millisecondsSince1970:
+            return Int64(floor(1000.0 * date.timeIntervalSince1970))
+        case .secondsSince1970:
+            return Int64(floor(date.timeIntervalSince1970))
+        case .iso8601(let formatter):
+            return formatter.string(from: date)
+        case .formatted(let formatter):
+            return formatter.string(from: date)
+        case .custom(let format):
+            return format(date)
+        }
     }
 }

@@ -387,6 +387,12 @@ public protocol MutablePersistableRecord : TableRecord {
     ///         }
     ///     }
     static func databaseJSONEncoder(for column: String) -> JSONEncoder
+    
+    /// When the PersistableRecord type also adopts the standard Encodable
+    /// protocol, this property controls the encoding of date properties.
+    ///
+    /// Default value is .deferredToDate
+    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
 }
 
 extension MutablePersistableRecord {
@@ -410,6 +416,10 @@ extension MutablePersistableRecord {
             encoder.outputFormatting = .sortedKeys
         }
         return encoder
+    }
+    
+    public static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy {
+        return .deferredToDate
     }
 }
 
@@ -944,7 +954,44 @@ extension PersistableRecord {
             try insert(db)
         }
     }
+}
+
+
+// MARK: - DatabaseDateEncodingStrategy
+
+/// The strategies available for formatting dates when encoding them into a
+/// database column.
+public enum DatabaseDateEncodingStrategy {
+    /// The strategy that uses formatting from the Date structure.
+    ///
+    /// It encodes dates using the format "YYYY-MM-DD HH:MM:SS.SSS" in the UTC time zone.
+    case deferredToDate
     
+    /// Encodes a Double: the number of seconds between the date and
+    /// midnight UTC on 1 January 2001
+    case timeIntervalSinceReferenceDate
+    
+    /// Encodes a Double: the number of seconds between the date and
+    /// midnight UTC on 1 January 1970
+    case timeIntervalSince1970
+    
+    /// Encodes an Int64: the number of seconds between the date and
+    /// midnight UTC on 1 January 1970
+    case secondsSince1970
+    
+    /// Encodes an Int64: the number of milliseconds between the date and
+    /// midnight UTC on 1 January 1970
+    case millisecondsSince1970
+    
+    /// Encodes a String, according to the provided formatter
+    @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
+    case iso8601(ISO8601DateFormatter)
+    
+    /// Encodes a String, according to the provided formatter
+    case formatted(DateFormatter)
+    
+    /// Encodes the result of the user-provided function
+    case custom((Date) -> DatabaseValueConvertible?)
 }
 
 // MARK: - DAO
