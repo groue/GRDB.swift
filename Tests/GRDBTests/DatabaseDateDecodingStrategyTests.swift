@@ -13,24 +13,24 @@ private protocol StrategyProvider {
 }
 
 private enum StrategyDeferredToDate: StrategyProvider {
-    static var strategy: DatabaseDateDecodingStrategy = .deferredToDate
+    static let strategy: DatabaseDateDecodingStrategy = .deferredToDate
 }
 
 private enum StrategyTimeIntervalSinceReferenceDate: StrategyProvider {
-    static var strategy: DatabaseDateDecodingStrategy = .timeIntervalSinceReferenceDate
+    static let strategy: DatabaseDateDecodingStrategy = .timeIntervalSinceReferenceDate
 }
 
 private enum StrategyTimeIntervalSince1970: StrategyProvider {
-    static var strategy: DatabaseDateDecodingStrategy = .timeIntervalSince1970
+    static let strategy: DatabaseDateDecodingStrategy = .timeIntervalSince1970
 }
 
 private enum StrategyMillisecondsSince1970: StrategyProvider {
-    static var strategy: DatabaseDateDecodingStrategy = .millisecondsSince1970
+    static let strategy: DatabaseDateDecodingStrategy = .millisecondsSince1970
 }
 
 @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
 private enum StrategyIso8601Strategy: StrategyProvider {
-    static var strategy: DatabaseDateDecodingStrategy = .iso8601({
+    static let strategy: DatabaseDateDecodingStrategy = .iso8601({
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = .withInternetDateTime
         return formatter
@@ -38,7 +38,7 @@ private enum StrategyIso8601Strategy: StrategyProvider {
 }
 
 private enum StrategyFormatted: StrategyProvider {
-    static var strategy: DatabaseDateDecodingStrategy = .formatted({
+    static let strategy: DatabaseDateDecodingStrategy = .formatted({
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(secondsFromGMT: 0)!
@@ -49,7 +49,7 @@ private enum StrategyFormatted: StrategyProvider {
 }
 
 private enum StrategyCustom: StrategyProvider {
-    static var strategy: DatabaseDateDecodingStrategy = .custom { _ in
+    static let strategy: DatabaseDateDecodingStrategy = .custom { _ in
         return Date(timeIntervalSinceReferenceDate: 123456)
     }
 }
@@ -276,25 +276,27 @@ extension DatabaseDateDecodingStrategyTests {
 
 // MARK: - iso8601(ISO8601DateFormatter)
 
-@available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
 extension DatabaseDateDecodingStrategyTests {
     func testIso8601() throws {
-        try makeDatabaseQueue().read { db in
-            var calendar = Calendar(identifier: .gregorian)
-            calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-            
-            // Null
-            try testNullDecoding(db, strategy: StrategyIso8601Strategy.self)
-
-            // Date
-            try test(db, strategy: StrategyIso8601Strategy.self, databaseValue: "2018-08-19T17:18:07Z") { date in
-                XCTAssertEqual(calendar.component(.year, from: date), 2018)
-                XCTAssertEqual(calendar.component(.month, from: date), 8)
-                XCTAssertEqual(calendar.component(.day, from: date), 19)
-                XCTAssertEqual(calendar.component(.hour, from: date), 17)
-                XCTAssertEqual(calendar.component(.minute, from: date), 18)
-                XCTAssertEqual(calendar.component(.second, from: date), 7)
-                XCTAssertEqual(calendar.component(.nanosecond, from: date), 0)
+        // check ISO8601DateFormatter availabiliity
+        if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
+            try makeDatabaseQueue().read { db in
+                var calendar = Calendar(identifier: .gregorian)
+                calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+                
+                // Null
+                try testNullDecoding(db, strategy: StrategyIso8601Strategy.self)
+                
+                // Date
+                try test(db, strategy: StrategyIso8601Strategy.self, databaseValue: "2018-08-19T17:18:07Z") { date in
+                    XCTAssertEqual(calendar.component(.year, from: date), 2018)
+                    XCTAssertEqual(calendar.component(.month, from: date), 8)
+                    XCTAssertEqual(calendar.component(.day, from: date), 19)
+                    XCTAssertEqual(calendar.component(.hour, from: date), 17)
+                    XCTAssertEqual(calendar.component(.minute, from: date), 18)
+                    XCTAssertEqual(calendar.component(.second, from: date), 7)
+                    XCTAssertEqual(calendar.component(.nanosecond, from: date), 0)
+                }
             }
         }
     }

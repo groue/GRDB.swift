@@ -13,28 +13,28 @@ private protocol StrategyProvider {
 }
 
 private enum StrategyDeferredToDate: StrategyProvider {
-    static var strategy: DatabaseDateEncodingStrategy = .deferredToDate
+    static let strategy: DatabaseDateEncodingStrategy = .deferredToDate
 }
 
 private enum StrategyTimeIntervalSinceReferenceDate: StrategyProvider {
-    static var strategy: DatabaseDateEncodingStrategy = .timeIntervalSinceReferenceDate
+    static let strategy: DatabaseDateEncodingStrategy = .timeIntervalSinceReferenceDate
 }
 
 private enum StrategyTimeIntervalSince1970: StrategyProvider {
-    static var strategy: DatabaseDateEncodingStrategy = .timeIntervalSince1970
+    static let strategy: DatabaseDateEncodingStrategy = .timeIntervalSince1970
 }
 
 private enum StrategySecondsSince1970: StrategyProvider {
-    static var strategy: DatabaseDateEncodingStrategy = .secondsSince1970
+    static let strategy: DatabaseDateEncodingStrategy = .secondsSince1970
 }
 
 private enum StrategyMillisecondsSince1970: StrategyProvider {
-    static var strategy: DatabaseDateEncodingStrategy = .millisecondsSince1970
+    static let strategy: DatabaseDateEncodingStrategy = .millisecondsSince1970
 }
 
 @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
 private enum StrategyIso8601: StrategyProvider {
-    static var strategy: DatabaseDateEncodingStrategy = .iso8601({
+    static let strategy: DatabaseDateEncodingStrategy = .iso8601({
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = .withInternetDateTime
         return formatter
@@ -42,18 +42,18 @@ private enum StrategyIso8601: StrategyProvider {
 }
 
 private enum StrategyFormatted: StrategyProvider {
-    static var strategy: DatabaseDateEncodingStrategy = .formatted({
+    static let strategy: DatabaseDateEncodingStrategy = .formatted({
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(secondsFromGMT: 0)!
         formatter.dateStyle = .full
-        formatter.timeStyle = .full
+        formatter.timeStyle = .medium
         return formatter
         }())
 }
 
 private enum StrategyCustom: StrategyProvider {
-    static var strategy: DatabaseDateEncodingStrategy = .custom { _ in "custom" }
+    static let strategy: DatabaseDateEncodingStrategy = .custom { _ in "custom" }
 }
 
 private struct RecordWithDate<Strategy: StrategyProvider>: PersistableRecord, Encodable {
@@ -168,7 +168,7 @@ extension DatabaseDateEncodingStrategyTests {
             123456789,
             978307200000,
             978430656789,
-            ]) { test(strategy: StrategyMillisecondsSince1970.self, encodesDate: date, as: value) }
+            ] as [Int64]) { test(strategy: StrategyMillisecondsSince1970.self, encodesDate: date, as: value) }
     }
 }
 
@@ -177,14 +177,17 @@ extension DatabaseDateEncodingStrategyTests {
 @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
 extension DatabaseDateEncodingStrategyTests {
     func testIso8601() {
-        testNullEncoding(strategy: StrategyIso8601.self)
-        
-        for (date, value) in zip(testedDates, [
-            "1969-12-20T13:39:05Z",
-            "1970-01-02T10:17:36Z",
-            "2001-01-01T00:00:00Z",
-            "2001-01-02T10:17:36Z",
-            ]) { test(strategy: StrategyIso8601.self, encodesDate: date, as: value) }
+        // check ISO8601DateFormatter availabiliity
+        if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
+            testNullEncoding(strategy: StrategyIso8601.self)
+            
+            for (date, value) in zip(testedDates, [
+                "1969-12-20T13:39:05Z",
+                "1970-01-02T10:17:36Z",
+                "2001-01-01T00:00:00Z",
+                "2001-01-02T10:17:36Z",
+                ]) { test(strategy: StrategyIso8601.self, encodesDate: date, as: value) }
+        }
     }
 }
 
@@ -195,10 +198,10 @@ extension DatabaseDateEncodingStrategyTests {
         testNullEncoding(strategy: StrategyFormatted.self)
         
         for (date, value) in zip(testedDates, [
-            "Saturday, December 20, 1969 at 1:39:05 PM GMT",
-            "Friday, January 2, 1970 at 10:17:36 AM Greenwich Mean Time",
-            "Monday, January 1, 2001 at 12:00:00 AM Greenwich Mean Time",
-            "Tuesday, January 2, 2001 at 10:17:36 AM Greenwich Mean Time",
+            "Saturday, December 20, 1969 at 1:39:05 PM",
+            "Friday, January 2, 1970 at 10:17:36 AM",
+            "Monday, January 1, 2001 at 12:00:00 AM",
+            "Tuesday, January 2, 2001 at 10:17:36 AM",
             ]) { test(strategy: StrategyFormatted.self, encodesDate: date, as: value) }
     }
 }

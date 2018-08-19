@@ -329,7 +329,11 @@ private extension DatabaseDateEncodingStrategy {
         case .secondsSince1970:
             return Int64(floor(date.timeIntervalSince1970))
         case .iso8601(let formatter):
-            return formatter.string(from: date)
+            if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
+                return formatter.string(from: date)
+            } else {
+                fatalError("ISO8601DateFormatter is unavailable on this platform.")
+            }
         case .formatted(let formatter):
             return formatter.string(from: date)
         case .custom(let format):

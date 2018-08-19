@@ -315,14 +315,18 @@ private extension DatabaseDateDecodingStrategy {
             let timeInterval = TimeInterval(sqliteStatement: sqliteStatement, index: index)
             return Date(timeIntervalSince1970: timeInterval / 1000.0)
         case .iso8601(let formatter):
-            let string = String(sqliteStatement: sqliteStatement, index: index)
-            guard let date = formatter.date(from: string) else {
-                fatalConversionError(
-                    to: Date.self,
-                    from: DatabaseValue(sqliteStatement: sqliteStatement, index: index),
-                    conversionContext: conversionContext())
+            if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
+                let string = String(sqliteStatement: sqliteStatement, index: index)
+                guard let date = formatter.date(from: string) else {
+                    fatalConversionError(
+                        to: Date.self,
+                        from: DatabaseValue(sqliteStatement: sqliteStatement, index: index),
+                        conversionContext: conversionContext())
+                }
+                return date
+            } else {
+                fatalError("ISO8601DateFormatter is unavailable on this platform.")
             }
-            return date
         case .formatted(let formatter):
             let string = String(sqliteStatement: sqliteStatement, index: index)
             guard let date = formatter.date(from: string) else {
