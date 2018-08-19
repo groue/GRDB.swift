@@ -220,6 +220,123 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             "SELECT \"name\" FROM \"readers\"")
     }
     
+    func testSelectAs() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            
+            // select(..., as: String.self)
+            do {
+                // Type.select(..., as:)
+                do {
+                    // variadic
+                    do {
+                        let value = try Reader
+                            .select(Col.name, as: String.self)
+                            .fetchOne(db)!
+                        XCTAssertEqual(value, "Arthur")
+                    }
+                    // array
+                    do {
+                        let value = try Reader
+                            .select([Col.name], as: String.self)
+                            .fetchOne(db)!
+                        XCTAssertEqual(value, "Arthur")
+                    }
+                    // raw sql without argument
+                    do {
+                        let value = try Reader
+                            .select(sql: "name", as: String.self)
+                            .fetchOne(db)!
+                        XCTAssertEqual(value, "Arthur")
+                    }
+                }
+                // request.select(..., as:)
+                do {
+                    // variadic
+                    do {
+                        let value = try Reader
+                            .all()
+                            .select(Col.name, as: String.self)
+                            .fetchOne(db)!
+                        XCTAssertEqual(value, "Arthur")
+                    }
+                    // array
+                    do {
+                        let value = try Reader
+                            .all()
+                            .select([Col.name], as: String.self)
+                            .fetchOne(db)!
+                        XCTAssertEqual(value, "Arthur")
+                    }
+                    // raw sql without argument
+                    do {
+                        let value = try Reader
+                            .all()
+                            .select(sql: "name", as: String.self)
+                            .fetchOne(db)!
+                        XCTAssertEqual(value, "Arthur")
+                    }
+                }
+            }
+            
+            // select(..., as: Row.self)
+            do {
+                // Type.select(..., as:)
+                do {
+                    // variadic
+                    do {
+                        let value = try Reader
+                            .select(Col.name, Col.age, as: Row.self)
+                            .fetchOne(db)!
+                        XCTAssertEqual(value, ["name": "Arthur", "age": 42])
+                    }
+                    // array
+                    do {
+                        let value = try Reader
+                            .select([Col.name, Col.age], as: Row.self)
+                            .fetchOne(db)!
+                        XCTAssertEqual(value, ["name": "Arthur", "age": 42])
+                    }
+                    // raw sql with named argument
+                    do {
+                        let value = try Reader
+                            .select(sql: "name, :age AS age", arguments: ["age": 22], as: Row.self)
+                            .fetchOne(db)!
+                        XCTAssertEqual(value, ["name": "Arthur", "age": 22])
+                    }
+                }
+                // request.select(..., as:)
+                do {
+                    // variadic
+                    do {
+                        let value = try Reader
+                            .all()
+                            .select(Col.name, Col.age, as: Row.self)
+                            .fetchOne(db)!
+                        XCTAssertEqual(value, ["name": "Arthur", "age": 42])
+                    }
+                    // array
+                    do {
+                        let value = try Reader
+                            .all()
+                            .select([Col.name, Col.age], as: Row.self)
+                            .fetchOne(db)!
+                        XCTAssertEqual(value, ["name": "Arthur", "age": 42])
+                    }
+                    // raw sql with positional argument
+                    do {
+                        let value = try Reader
+                            .all()
+                            .select(sql: "name, ? AS age", arguments: [22], as: Row.self)
+                            .fetchOne(db)!
+                        XCTAssertEqual(value, ["name": "Arthur", "age": 22])
+                    }
+                }
+            }
+        }
+    }
+    
     
     // MARK: - Distinct
     
