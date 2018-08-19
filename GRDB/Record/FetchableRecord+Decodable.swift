@@ -88,14 +88,6 @@ private struct RowDecoder<Record: FetchableRecord>: Decoder {
             return nil
         }
         
-        /// Decodes a value of the given type for the given key.
-        ///
-        /// - parameter type: The type of value to decode.
-        /// - parameter key: The key that the decoded value is associated with.
-        /// - returns: A value of the requested type, if present for the given key and convertible to the requested type.
-        /// - throws: `DecodingError.typeMismatch` if the encountered encoded value is not convertible to the requested type.
-        /// - throws: `DecodingError.keyNotFound` if `self` does not have an entry for the given key.
-        /// - throws: `DecodingError.valueNotFound` if `self` has a null entry for the given key.
         func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T : Decodable {
             let row = decoder.row
             let keyName = key.stringValue
@@ -151,12 +143,6 @@ private struct RowDecoder<Record: FetchableRecord>: Decoder {
             return try decode(type, fromRow: row, codingPath: codingPath + [key])
         }
         
-        /// Returns the data stored for the given key as represented in a container keyed by the given key type.
-        ///
-        /// - parameter type: The key type to use for the container.
-        /// - parameter key: The key that the nested container is associated with.
-        /// - returns: A keyed decoding container view into `self`.
-        /// - throws: `DecodingError.typeMismatch` if the encountered stored value is not a keyed container.
         func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
             fatalError("not implemented")
         }
