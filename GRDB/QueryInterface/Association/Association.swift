@@ -59,7 +59,7 @@ public protocol Association: DerivableRequest {
 }
 
 extension Association {
-    /// Creates an association with a new set of selected columns.
+    /// Creates an association which selects *selection*.
     ///
     ///     struct Player: TableRecord {
     ///         static let team = belongsTo(Team.self)
