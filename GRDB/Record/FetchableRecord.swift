@@ -98,6 +98,8 @@ public protocol FetchableRecord {
     
     /// When the FetchableRecord type also adopts the standard Decodable
     /// protocol, this property controls the decoding of date properties.
+    ///
+    /// Default value is .deferredToDate
     static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
 }
 
