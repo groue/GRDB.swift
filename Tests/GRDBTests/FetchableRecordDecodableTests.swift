@@ -751,3 +751,293 @@ extension FetchableRecordDecodableTests {
         }
     }
 }
+
+// MARK: - User Infos & Coding Keys
+
+private let testKeyRoot = CodingUserInfoKey(rawValue: "test1")!
+private let testKeyNested = CodingUserInfoKey(rawValue: "test2")!
+
+extension FetchableRecordDecodableTests {
+    struct NestedKeyed: Decodable {
+        var name: String
+        var key: String?
+        var context: String?
+        
+        enum CodingKeys: String, CodingKey { case name }
+        
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            name = try container.decode(String.self, forKey: .name)
+            key = decoder.codingPath.last?.stringValue
+            context = decoder.userInfo[testKeyNested] as? String
+        }
+    }
+    
+    struct NestedSingle: Decodable {
+        var name: String
+        var key: String?
+        var context: String?
+        
+        init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            name = try container.decode(String.self)
+            key = decoder.codingPath.last?.stringValue
+            context = decoder.userInfo[testKeyNested] as? String
+        }
+    }
+    
+    struct NestedUnkeyed: Decodable {
+        var name: String
+        var key: String?
+        var context: String?
+        
+        init(from decoder: Decoder) throws {
+            var container = try decoder.unkeyedContainer()
+            name = try container.decode(String.self)
+            key = decoder.codingPath.last?.stringValue
+            context = decoder.userInfo[testKeyNested] as? String
+        }
+    }
+    
+    struct Record: Decodable, FetchableRecord {
+        var nestedKeyed: NestedKeyed
+        var nestedSingle: NestedSingle
+        var nestedUnkeyed: NestedUnkeyed
+        var key: String?
+        var context: String?
+        
+        enum CodingKeys: String, CodingKey {
+            case nestedKeyed, nestedSingle, nestedUnkeyed
+        }
+        
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            nestedKeyed = try container.decode(NestedKeyed.self, forKey: .nestedKeyed)
+            nestedSingle = try container.decode(NestedSingle.self, forKey: .nestedSingle)
+            nestedUnkeyed = try container.decode(NestedUnkeyed.self, forKey: .nestedUnkeyed)
+            key = decoder.codingPath.last?.stringValue
+            context = decoder.userInfo[testKeyRoot] as? String
+        }
+    }
+    
+    class CustomizedRecord: Decodable, FetchableRecord {
+        var nestedKeyed: NestedKeyed
+        var nestedSingle: NestedSingle
+        var nestedUnkeyed: NestedUnkeyed
+        var key: String?
+        var context: String?
+        
+        enum CodingKeys: String, CodingKey {
+            case nestedKeyed, nestedSingle, nestedUnkeyed
+        }
+        
+        required init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            nestedKeyed = try container.decode(NestedKeyed.self, forKey: .nestedKeyed)
+            nestedSingle = try container.decode(NestedSingle.self, forKey: .nestedSingle)
+            nestedUnkeyed = try container.decode(NestedUnkeyed.self, forKey: .nestedUnkeyed)
+            key = decoder.codingPath.last?.stringValue
+            context = decoder.userInfo[testKeyRoot] as? String
+        }
+
+        static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [
+            testKeyRoot: "GRDB root",
+            testKeyNested: "GRDB column or scope"]
+        
+        static func databaseJSONDecoder(for column: String) -> JSONDecoder {
+            let decoder = JSONDecoder()
+            decoder.userInfo = [
+                testKeyRoot: "JSON root",
+                testKeyNested: "JSON column: \(column)"]
+            return decoder
+        }
+    }
+    
+    // Used as a reference
+    func testFoundationBehavior() throws {
+        let json = """
+            {
+              "nestedKeyed": { "name": "foo" },
+              "nestedSingle": "bar",
+              "nestedUnkeyed": ["baz"]
+            }
+            """.data(using: .utf8)!
+        
+        do {
+            let decoder = JSONDecoder()
+            let record = try decoder.decode(Record.self, from: json)
+            XCTAssertNil(record.key)
+            XCTAssertNil(record.context)
+            XCTAssertEqual(record.nestedKeyed.name, "foo")
+            XCTAssertEqual(record.nestedKeyed.key, "nestedKeyed")
+            XCTAssertNil(record.nestedKeyed.context)
+            XCTAssertEqual(record.nestedSingle.name, "bar")
+            XCTAssertEqual(record.nestedSingle.key, "nestedSingle")
+            XCTAssertNil(record.nestedSingle.context)
+            XCTAssertEqual(record.nestedUnkeyed.name, "baz")
+            XCTAssertEqual(record.nestedUnkeyed.key, "nestedUnkeyed")
+            XCTAssertNil(record.nestedUnkeyed.context)
+        }
+        
+        do {
+            let decoder = JSONDecoder()
+            decoder.userInfo = [testKeyRoot: "root", testKeyNested: "nested"]
+            let record = try decoder.decode(Record.self, from: json)
+            XCTAssertNil(record.key)
+            XCTAssertEqual(record.context, "root")
+            XCTAssertEqual(record.nestedKeyed.name, "foo")
+            XCTAssertEqual(record.nestedKeyed.key, "nestedKeyed")
+            XCTAssertEqual(record.nestedKeyed.context, "nested")
+            XCTAssertEqual(record.nestedSingle.name, "bar")
+            XCTAssertEqual(record.nestedSingle.key, "nestedSingle")
+            XCTAssertEqual(record.nestedSingle.context, "nested")
+            XCTAssertEqual(record.nestedUnkeyed.name, "baz")
+            XCTAssertEqual(record.nestedUnkeyed.key, "nestedUnkeyed")
+            XCTAssertEqual(record.nestedUnkeyed.context, "nested")
+        }
+    }
+    
+    func testRecord1() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            func test(_ record: Record) {
+                XCTAssertNil(record.key)
+                XCTAssertNil(record.context)
+                
+                // scope
+                XCTAssertEqual(record.nestedKeyed.name, "foo")
+                XCTAssertEqual(record.nestedKeyed.key, "nestedKeyed")
+                XCTAssertNil(record.nestedKeyed.context)
+                
+                // column
+                XCTAssertEqual(record.nestedSingle.name, "bar")
+                XCTAssertEqual(record.nestedSingle.key, "nestedSingle")
+                XCTAssertNil(record.nestedSingle.context)
+                
+                // JSON column
+                XCTAssertEqual(record.nestedUnkeyed.name, "baz")
+                XCTAssertNil(record.nestedUnkeyed.key)
+                XCTAssertNil(record.nestedUnkeyed.context)
+            }
+            
+            let adapter = SuffixRowAdapter(fromIndex: 1).addingScopes(["nestedKeyed": RangeRowAdapter(0..<1)])
+            let request = SQLRequest<Void>(
+                "SELECT ? AS name, ? AS nestedSingle, ? AS nestedUnkeyed",
+                arguments: ["foo", "bar", "[\"baz\"]"],
+                adapter: adapter)
+            
+            let record = try Record.fetchOne(db, request)!
+            test(record)
+            
+            let row = try Row.fetchOne(db, request)!
+            test(Record(row: row))
+        }
+    }
+    
+    func testRecord2() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            func test(_ record: Record) {
+                XCTAssertNil(record.key)
+                XCTAssertNil(record.context)
+                
+                // JSON column
+                XCTAssertEqual(record.nestedKeyed.name, "foo")
+                XCTAssertNil(record.nestedKeyed.key)
+                XCTAssertNil(record.nestedKeyed.context)
+                
+                // column
+                XCTAssertEqual(record.nestedSingle.name, "bar")
+                XCTAssertEqual(record.nestedSingle.key, "nestedSingle")
+                XCTAssertNil(record.nestedSingle.context)
+                
+                // JSON column
+                XCTAssertEqual(record.nestedUnkeyed.name, "baz")
+                XCTAssertNil(record.nestedUnkeyed.key)
+                XCTAssertNil(record.nestedUnkeyed.context)
+            }
+            
+            let request = SQLRequest<Void>(
+                "SELECT ? AS nestedKeyed, ? AS nestedSingle, ? AS nestedUnkeyed",
+                arguments: ["{\"name\":\"foo\"}", "bar", "[\"baz\"]"])
+            
+            let record = try Record.fetchOne(db, request)!
+            test(record)
+            
+            let row = try Row.fetchOne(db, request)!
+            test(Record(row: row))
+        }
+    }
+    
+    func testCustomizedRecord1() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            func test(_ record: CustomizedRecord) {
+                XCTAssertNil(record.key)
+                XCTAssertEqual(record.context, "GRDB root")
+                
+                // scope
+                XCTAssertEqual(record.nestedKeyed.name, "foo")
+                XCTAssertEqual(record.nestedKeyed.key, "nestedKeyed")
+                XCTAssertEqual(record.nestedKeyed.context, "GRDB column or scope")
+                
+                // column
+                XCTAssertEqual(record.nestedSingle.name, "bar")
+                XCTAssertEqual(record.nestedSingle.key, "nestedSingle")
+                XCTAssertEqual(record.nestedSingle.context, "GRDB column or scope")
+                
+                // JSON column
+                XCTAssertEqual(record.nestedUnkeyed.name, "baz")
+                XCTAssertNil(record.nestedUnkeyed.key)
+                XCTAssertEqual(record.nestedUnkeyed.context, "JSON column: nestedUnkeyed")
+            }
+            
+            let adapter = SuffixRowAdapter(fromIndex: 1).addingScopes(["nestedKeyed": RangeRowAdapter(0..<1)])
+            let request = SQLRequest<Void>(
+                "SELECT ? AS name, ? AS nestedSingle, ? AS nestedUnkeyed",
+                arguments: ["foo", "bar", "[\"baz\"]"],
+                adapter: adapter)
+            
+            let record = try CustomizedRecord.fetchOne(db, request)!
+            test(record)
+            
+            let row = try Row.fetchOne(db, request)!
+            test(CustomizedRecord(row: row))
+        }
+    }
+    
+    func testCustomizedRecord2() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            func test(_ record: CustomizedRecord) {
+                XCTAssertNil(record.key)
+                XCTAssertEqual(record.context, "GRDB root")
+                
+                // JSON column
+                XCTAssertEqual(record.nestedKeyed.name, "foo")
+                XCTAssertNil(record.nestedKeyed.key)
+                XCTAssertEqual(record.nestedKeyed.context, "JSON column: nestedKeyed")
+                
+                // column
+                XCTAssertEqual(record.nestedSingle.name, "bar")
+                XCTAssertEqual(record.nestedSingle.key, "nestedSingle")
+                XCTAssertEqual(record.nestedSingle.context, "GRDB column or scope")
+
+                // JSON column
+                XCTAssertEqual(record.nestedUnkeyed.name, "baz")
+                XCTAssertNil(record.nestedUnkeyed.key)
+                XCTAssertEqual(record.nestedUnkeyed.context, "JSON column: nestedUnkeyed")
+            }
+            
+            let request = SQLRequest<Void>(
+                "SELECT ? AS nestedKeyed, ? AS nestedSingle, ? AS nestedUnkeyed",
+                arguments: ["{\"name\":\"foo\"}", "bar", "[\"baz\"]"])
+            
+            let record = try CustomizedRecord.fetchOne(db, request)!
+            test(record)
+            
+            let row = try Row.fetchOne(db, request)!
+            test(CustomizedRecord(row: row))
+        }
+    }
+}

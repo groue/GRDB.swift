@@ -2060,13 +2060,11 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 - [TableRecord Protocol](#tablerecord-protocol)
 - [PersistableRecord Protocol](#persistablerecord-protocol)
     - [Persistence Methods](#persistence-methods)
-    - [Customizing the Persistence Methods](#customizing-the-persistence-methods)
+    - [Customizing the Persistence Methods]
 - [Codable Records](#codable-records)
 - [Record Class](#record-class)
 - [Record Comparison]
-- [Conflict Resolution](#conflict-resolution)
-- [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
-- [Customized Decoding of Database Rows](#customized-decoding-of-database-rows)
+- [Record Customization Options]
 
 **Records in a Glance**
 
@@ -2175,9 +2173,7 @@ Details follow:
 - [Codable Records](#codable-records)
 - [Record Class](#record-class)
 - [Record Comparison]
-- [Conflict Resolution](#conflict-resolution)
-- [The Implicit RowID Primary Key](#the-implicit-rowid-primary-key)
-- [Customized Decoding of Database Rows](#customized-decoding-of-database-rows)
+- [Record Customization Options]
 - [Examples of Record Definitions](#examples-of-record-definitions)
 - [List of Record Methods](#list-of-record-methods)
 
@@ -2322,7 +2318,7 @@ See [fetching methods](#fetching-methods) for information about the `fetchCursor
 
 > :point_up: **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
-> :point_up: **Note**: The `FetchableRecord.init(row:)` initializer fits the needs of most applications. But some application are more demanding than others. When FetchableRecord does not exactly provide the support you need, have a look at the [Customized Decoding of Database Rows](#customized-decoding-of-database-rows) chapter.
+> :point_up: **Note**: The `FetchableRecord.init(row:)` initializer fits the needs of most applications. But some application are more demanding than others. When FetchableRecord does not exactly provide the support you need, have a look at the [Beyond FetchableRecord] chapter.
 
 
 ## TableRecord Protocol
@@ -2336,7 +2332,7 @@ protocol TableRecord {
 }
 ```
 
-The `databaseSelection` type property is optional, and documented in the [Columns Selected by a Request](#columns-selected-by-a-request) chapter.
+The `databaseSelection` type property is optional, and documented in the [Columns Selected by a Request] chapter.
 
 The `databaseTableName` type property is the name of a database table. By default, it is derived from the type name:
 
@@ -2605,7 +2601,44 @@ try dbQueue.write { db in
 }
 ```
 
-When a record contains a codable property that is not a simple [value](#values) (Bool, Int, String, Date, Swift enums, etc.), that value is encoded and decoded as a **JSON string**. For example:
+> :point_up: **Note**: Some codable values have a different way to encode and decode themselves in a standard archive vs. a database column. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
+
+> :point_up: **Note**: When your Codable record provides a custom implementation for `Decodable.init(from:)` or `Encodable.encode(to:)`, you may want to provide a `userInfo` context dictionary: see [The userInfo Dictionary].
+
+
+If you declare an explicit `CodingKeys` enum ([what is this?](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)), you can use coding keys as [query interface](#the-query-interface) columns, just by adding conformance to the ColumnExpression protocol:
+
+```swift
+struct Player: Codable, FetchableRecord, PersistableRecord {
+    var name: String
+    var score: Int
+    
+    private enum CodingKeys: String, CodingKey, ColumnExpression {
+        case name, score
+    }
+    
+    static func filter(name: String) -> QueryInterfaceRequest<Player> {
+        return filter(CodingKeys.name == name)
+    }
+    
+    static var maximumScore: QueryInterfaceRequest<Int> {
+        return select(max(CodingKeys.score)).asRequest(of: Int.self)
+    }
+}
+
+try dbQueue.read { db in
+    // SELECT * FROM player WHERE name = 'Arthur'
+    let arthur = try Player.filter(name: "Arthur").fetchOne(db) // Player?
+    
+    // SELECT MAX(score) FROM player
+    let maxScore = try Player.maximumScore.fetchOne(db)         // Int?
+}
+```
+
+
+### JSON Columns
+
+When a [Codable record](#codable-records) contains a property that is not a simple [value](#values) (Bool, Int, String, Date, Swift enums, etc.), that value is encoded and decoded as a **JSON string**. For example:
 
 ```swift
 enum AchievementColor: String, Codable {
@@ -2615,12 +2648,13 @@ enum AchievementColor: String, Codable {
 struct Achievement: Codable {
      var name: String
      var color: AchievementColor
+     var date: Date
 }
 
 struct Player: Codable, FetchableRecord, PersistableRecord {
     var name: String
     var score: Int
-    var achievements: [Achievement] // encoded as JSON
+    var achievements: [Achievement] // stored in a JSON column
 }
 
 try dbQueue.write { db in
@@ -2634,35 +2668,89 @@ try dbQueue.write { db in
 }
 ```
 
-If you declare an explicit `CodingKeys` enum ([what is this?](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)), you can use coding keys as [query interface](#the-query-interface) columns, just by adding conformance to the ColumnExpression protocol:
+GRDB uses the standard [JSONDecoder](https://developer.apple.com/documentation/foundation/jsondecoder) and [JSONEncoder](https://developer.apple.com/documentation/foundation/jsonencoder) from Foundation. By default, Data values are handled with the `.base64` strategy, Date with the `.millisecondsSince1970` strategy, and non conforming floats with the `.throw` strategy.
+
+You can customize the JSON format by implementing those methods:
+
+```swift
+protocol FetchableRecord {
+    static func databaseJSONDecoder(for column: String) -> JSONDecoder
+}
+
+protocol MutablePersistableRecord {
+    static func databaseJSONEncoder(for column: String) -> JSONEncoder
+}
+```
+
+For example, here is how the Player type can customize the json format of its "achievements" JSON column:
 
 ```swift
 struct Player: Codable, FetchableRecord, PersistableRecord {
     var name: String
     var score: Int
-    var achievements: [Achievement]
+    var achievements: [Achievement] // stored in a JSON column
     
-    private enum CodingKeys: String, CodingKey, ColumnExpression {
-        case name, score, achievements
+    static func databaseJSONDecoder(for column: String) -> JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
     }
     
-    static func filter(name: String) -> QueryInterfaceRequest<Player> {
-        return filter(CodingKeys.name == name)
+    static func databaseJSONEncoder(for column: String) -> JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.outputFormatting = .sortedKeys
+        return encoder
     }
-}
-
-let arthur = try dbQueue.read { db in
-    // SELECT * FROM player WHERE name = 'Arthur'
-    try Player.filter(name: "Arthur").fetchOne($0)
 }
 ```
 
-> :point_up: **Note**: Some codable values have a different way to encode and decode themselves in a standard archive vs. a database column. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
+> :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, and watchOS 4.0+. This option makes sure that the JSON output is stable, and this helps [Record Comparison] yield the expected results.
 
-> :point_up: **Note about JSON support**: GRDB uses the standard [JSONDecoder](https://developer.apple.com/documentation/foundation/jsondecoder) and [JSONEncoder](https://developer.apple.com/documentation/foundation/jsonencoder) from Foundation. Data values are handled with the `.base64` strategy, Date with the `.millisecondsSince1970` strategy, and non conforming floats with the `.throw` strategy. Check Foundation documentation for more information.
 
-> :point_up: **Note about JSON support**: JSON encoding uses the `.sortedKeys` option when available (iOS 11.0+, macOS 10.13+, watchOS 4.0+). In previous operating system versions, the ordering of JSON keys may be unstable, and this may negatively impact [Record Comparison].
+### The userInfo Dictionary
 
+Your [Codable records](#codable-records) can be stored in the database, but they may also have other purposes. In this case, you may need to customize their implementations of `Decodable.init(from:)` and `Encodable.encode(to:)`, depending on the context.
+
+The recommended way to provide such context is the `userInfo` dictionary. Implement those properties:
+
+```swift
+protocol FetchableRecord {
+    static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] { get }
+}
+
+protocol MutablePersistableRecord {
+    static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] { get }
+}
+```
+
+For example, here is how the Player type can customize its decoding:
+
+```swift
+// A key that holds a decoder's name
+let decoderName = CodingUserInfoKey(rawValue: "decoderName")!
+
+struct Player: FetchableRecord, Decodable {
+    init(from decoder: Decoder) throws {
+        // Print the decoder name
+        print(decoder.userInfo[decoderName])
+        ...
+    }
+}
+
+// prints "JSON"
+let decoder = JSONDecoder()
+decoder.userInfo = [decoderName: "JSON"]
+let player = try decoder.decode(Player.self, from: ...)
+
+extension Player: FetchableRecord {
+    // Customize the decoder name when decoding a database row
+    static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "Database"]
+}
+
+// prints "Database"
+let player = try Player.fetchOne(db, ...)
+```
 
 
 ## Record Class
@@ -2798,7 +2886,20 @@ player.databaseChanges    // ["score": 750]
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift).
 
 
-## Conflict Resolution
+## Record Customization Options
+
+GRDB records come with many default behaviors, that are designed to fit most situations. Many of those defaults can be customized for your specific needs:
+
+- [Columns Selected by a Request]: define which columns are selected by requests such as `Player.fetchAll(db)`.
+- [Customizing the Persistence Methods]: define what happens when you call a persistance method such as `player.insert(db)`
+- [Conflict Resolution]: Run `INSERT OR REPLACE` queries, and generally define what happens when a persistence method violates a unique index.
+- [The Implicit RowID Primary Key]: all about the special `rowid` column.
+- [JSON Columns]: control the format of JSON columns.
+- [The userInfo Dictionary]: adapt your Codable implementation for the database.
+- [Beyond FetchableRecord]: the FetchableRecord protocol is not the end of the story.
+
+
+### Conflict Resolution
 
 **Insertions and updates can create conflicts**: for example, a query may attempt to insert a duplicate row that violates a unique index.
 
@@ -2808,7 +2909,7 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
 
 **SQLite let you specify conflict policies at two different places:**
 
-- At the table level
+- In the definition of the database table:
     
     ```swift
     // CREATE TABLE player (
@@ -2826,7 +2927,7 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
     try db.execute("INSERT INTO player (email) VALUES (?)", arguments: ["arthur@example.com"])
     ```
     
-- At the query level:
+- In each modification query:
     
     ```swift
     // CREATE TABLE player (
@@ -2843,16 +2944,16 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
     try db.execute("INSERT OR REPLACE INTO player (email) VALUES (?)", arguments: ["arthur@example.com"])
     ```
 
-When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the MutablePersistableRecord or PersistableRecord protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods](#persistence-methods):
+When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the PersistableRecord protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods](#persistence-methods):
 
 ```swift
 protocol MutablePersistableRecord {
-    /// The policy that handles SQLite conflicts when records are inserted
-    /// or updated.
+    /// The policy that handles SQLite conflicts when records are
+    /// inserted or updated.
     ///
-    /// This property is optional: its default value uses the ABORT policy
-    /// for both insertions and updates, and has GRDB generate regular
-    /// INSERT and UPDATE queries.
+    /// This property is optional: its default value uses the ABORT
+    /// policy for both insertions and updates, so that GRDB generate
+    /// regular INSERT and UPDATE queries.
     static var persistenceConflictPolicy: PersistenceConflictPolicy { get }
 }
 
@@ -2868,13 +2969,13 @@ try player.insert(db)
 
 > :point_up: **Note**: the `ignore` policy does not play well at all with the `didInsert` method which notifies the rowID of inserted records. Choose your poison:
 >
-> - if you specify the `ignore` policy at the table level, don't implement the `didInsert` method: it will be called with some random id in case of failed insert.
+> - if you specify the `ignore` policy in the database table definition, don't implement the `didInsert` method: it will be called with some random id in case of failed insert.
 > - if you specify the `ignore` policy at the query level, the `didInsert` method is never called.
 >
-> :warning: **Warning**: [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) may delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](#transactionobserver-protocol) (this might change in a future release of SQLite).
+> :point_up: **Note**: The `replace` policy may have to delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](#transactionobserver-protocol) (this might change in a future release of SQLite).
 
 
-## The Implicit RowID Primary Key
+### The Implicit RowID Primary Key
 
 **All SQLite tables have a primary key.** Even when the primary key is not explicit:
 
@@ -2906,7 +3007,7 @@ try Book.deleteOne(db, key: 1)
 ```
 
 
-### Exposing the RowID Column
+#### Exposing the RowID Column
 
 **By default, a record type that wraps a table without any explicit primary key doesn't know about the hidden rowid column.**
 
@@ -2991,7 +3092,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
     ```
 
 
-## Customized Decoding of Database Rows
+### Beyond FetchableRecord
 
 **Some GRDB users eventually discover that the [FetchableRecord] protocol does not fit all situations.** Use cases that are not well handled by FetchableRecord include:
 
@@ -3321,7 +3422,6 @@ So don't miss the [SQL API](#sqlite-api).
 
 - [Database Schema](#database-schema)
 - [Requests](#requests)
-    - [Columns Selected by a Request](#columns-selected-by-a-request)
 - [Expressions](#expressions)
     - [SQL Operators](#sql-operators)
     - [SQL Functions](#sql-functions)
@@ -3553,15 +3653,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     The hidden `rowid` column can be selected as well [when you need it](#the-implicit-rowid-primary-key).
 
-- `select(expression, ...)` defines the selected columns.
-    
-    ```swift
-    // SELECT id, name FROM player
-    Player.select(idColumn, nameColumn)
-    
-    // SELECT MAX(score) AS maxScore FROM player
-    Player.select(max(scoreColumn).aliased("maxScore"))
-    ```
+- `select(...)` defines the selected columns. See [Columns Selected by a Request].
 
 - `distinct()` performs uniquing.
     
@@ -4290,7 +4382,7 @@ try request.fetchAll(db)    // [Player]
 
 See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods.
 
-The RowDecoder type associated with the FetchRequest does not have to be Row, DatabaseValueConvertible, or FetchableRecord. See the [Customized Decoding of Database Rows](#customized-decoding-of-database-rows) chapter for more information.
+The RowDecoder type associated with the FetchRequest does not have to be Row, DatabaseValueConvertible, or FetchableRecord. See the [Beyond FetchableRecord] chapter for more information.
 
 
 ## Migrations
@@ -5228,7 +5320,7 @@ Our introduction above has introduced important techniques. It uses [row adapter
 But we may want to make it more usable and robust:
 
 1. It's generally easier to consume records than raw rows.
-2. Joined records not always need all columns from a table (see `TableRecord.databaseSelection` in [Columns Selected by a Request](#columns-selected-by-a-request)).
+2. Joined records not always need all columns from a table (see `TableRecord.databaseSelection` in [Columns Selected by a Request]).
 3. Building row adapters is long and error prone.
 
 To address the first bullet, let's define a record that holds our player, optional team, and maximum score. Since it can decode database rows, it adopts the [FetchableRecord] protocol:
@@ -7487,7 +7579,19 @@ This protocol has been renamed [FetchableRecord] in GRDB 3.0.
 
 This protocol has been renamed [TableRecord] in GRDB 3.0.
 
+#### Customized Decoding of Database Rows
+
+This chapter has been renamed [Beyond FetchableRecord].
+
+[Beyond FetchableRecord]: #beyond-fetchablerecord
+[Columns Selected by a Request]: #columns-selected-by-a-request
+[Conflict Resolution]: #conflict-resolution
+[Customizing the Persistence Methods]: #customizing-the-persistence-methods
+[The Implicit RowID Primary Key]: #the-implicit-rowid-primary-key
+[The userInfo Dictionary]: #the-userinfo-dictionary
+[JSON Columns]: #json-columns
 [FetchableRecord]: #fetchablerecord-protocol
 [PersistableRecord]: #persistablerecord-protocol
 [Record Comparison]: #record-comparison
+[Record Customization Options]: #record-customization-options
 [TableRecord]: #tablerecord-protocol

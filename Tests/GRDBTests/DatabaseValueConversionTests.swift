@@ -57,9 +57,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
         do {
             // test T.fetchOne
             let sqliteConversion = try T.fetchOne(db, sql)
-            if let s = sqliteConversion as? String {
-                print(s.utf8.map { $0 })
-            }
             XCTAssert(
                 sqliteConversion == expectedSQLiteConversion,
                 "unexpected SQLite conversion: \(stringRepresentation(sqliteConversion)) instead of \(stringRepresentation(expectedSQLiteConversion))",

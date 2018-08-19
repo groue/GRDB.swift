@@ -1,3 +1,4 @@
+import Foundation
 #if SWIFT_PACKAGE
     import CSQLite
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
@@ -24,12 +25,95 @@
 /// FetchableRecord is adopted by Record.
 public protocol FetchableRecord {
     
+    // MARK: - Row Decoding
+    
     /// Creates a record from `row`.
     ///
     /// For performance reasons, the row argument may be reused during the
     /// iteration of a fetch query. If you want to keep the row for later use,
     /// make sure to store a copy: `self.row = row.copy()`.
     init(row: Row)
+    
+    // MARK: - Customizing the Format of Database Columns
+    
+    /// When the FetchableRecord type also adopts the standard Decodable
+    /// protocol, you can use this dictionary to customize the decoding process
+    /// from database rows.
+    ///
+    /// For example:
+    ///
+    ///     // A key that holds a decoder's name
+    ///     let decoderName = CodingUserInfoKey(rawValue: "decoderName")!
+    ///
+    ///     // A FetchableRecord + Decodable record
+    ///     struct Player: FetchableRecord, Decodable {
+    ///         // Customize the decoder name when decoding a database row
+    ///         static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "Database"]
+    ///
+    ///         init(from decoder: Decoder) throws {
+    ///             // Print the decoder name
+    ///             print(decoder.userInfo[decoderName])
+    ///             ...
+    ///         }
+    ///     }
+    ///
+    ///     // prints "Database"
+    ///     let player = try Player.fetchOne(db, ...)
+    ///
+    ///     // prints "JSON"
+    ///     let decoder = JSONDecoder()
+    ///     decoder.userInfo = [decoderName: "JSON"]
+    ///     let player = try decoder.decode(Player.self, from: ...)
+    static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] { get }
+    
+    /// When the FetchableRecord type also adopts the standard Decodable
+    /// protocol, this method controls the decoding process of nested properties
+    /// from JSON database columns.
+    ///
+    /// The default implementation returns a JSONDecoder with the
+    /// following properties:
+    ///
+    /// - dataDecodingStrategy: .base64
+    /// - dateDecodingStrategy: .millisecondsSince1970
+    /// - nonConformingFloatDecodingStrategy: .throw
+    ///
+    /// You can override those defaults:
+    ///
+    ///     struct Achievement: Decodable {
+    ///         var name: String
+    ///         var date: Date
+    ///     }
+    ///
+    ///     struct Player: Decodable, FetchableRecord {
+    ///         // stored in a JSON column
+    ///         var achievements: [Achievement]
+    ///
+    ///         static func databaseJSONDecoder(for column: String) -> JSONDecoder {
+    ///             let decoder = JSONDecoder()
+    ///             decoder.dateDecodingStrategy = .iso8601
+    ///             return decoder
+    ///         }
+    ///     }
+    static func databaseJSONDecoder(for column: String) -> JSONDecoder
+}
+
+extension FetchableRecord {
+    public static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] {
+        return [:]
+    }
+    
+    /// Returns a JSONDecoder with the following properties:
+    ///
+    /// - dataDecodingStrategy: .base64
+    /// - dateDecodingStrategy: .millisecondsSince1970
+    /// - nonConformingFloatDecodingStrategy: .throw
+    public static func databaseJSONDecoder(for column: String) -> JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dataDecodingStrategy = .base64
+        decoder.dateDecodingStrategy = .millisecondsSince1970
+        decoder.nonConformingFloatDecodingStrategy = .throw
+        return decoder
+    }
 }
 
 /// A cursor of records. For example:

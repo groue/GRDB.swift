@@ -474,3 +474,238 @@ extension MutablePersistableRecordEncodableTests {
         }
     }
 }
+
+// MARK: - User Infos & Coding Keys
+
+private let testKeyRoot = CodingUserInfoKey(rawValue: "test1")!
+private let testKeyNested = CodingUserInfoKey(rawValue: "test2")!
+
+extension MutablePersistableRecordEncodableTests {
+    struct NestedKeyed: Encodable {
+        var name: String
+        
+        enum CodingKeys: String, CodingKey { case name, key, context }
+        
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(name, forKey: .name)
+            try container.encodeIfPresent(encoder.codingPath.last?.stringValue, forKey: .key)
+            try container.encodeIfPresent(encoder.userInfo[testKeyNested] as? String, forKey: .context)
+        }
+    }
+    
+    struct NestedSingle: Encodable {
+        var name: String
+        
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
+            var value = name
+            value += ",key:\(encoder.codingPath.last?.stringValue ?? "nil")"
+            value += ",context:\(encoder.userInfo[testKeyNested] as? String ?? "nil")"
+            try container.encode(value)
+        }
+    }
+    
+    struct NestedUnkeyed: Encodable {
+        var name: String
+        
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.unkeyedContainer()
+            try container.encode(name)
+            if let key = encoder.codingPath.last?.stringValue {
+                try container.encode(key)
+            } else {
+                try container.encodeNil()
+            }
+            if let context = encoder.userInfo[testKeyNested] as? String {
+                try container.encode(context)
+            } else {
+                try container.encodeNil()
+            }
+        }
+    }
+    
+    struct Record: Encodable, MutablePersistableRecord {
+        var nestedKeyed: NestedKeyed
+        var nestedSingle: NestedSingle
+        var nestedUnkeyed: NestedUnkeyed
+        
+        init(nestedKeyed: NestedKeyed, nestedSingle: NestedSingle, nestedUnkeyed: NestedUnkeyed) {
+            self.nestedKeyed = nestedKeyed
+            self.nestedSingle = nestedSingle
+            self.nestedUnkeyed = nestedUnkeyed
+        }
+        
+        enum CodingKeys: String, CodingKey {
+            case nestedKeyed, nestedSingle, nestedUnkeyed, key, context
+        }
+        
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(nestedKeyed, forKey: .nestedKeyed)
+            try container.encode(nestedSingle, forKey: .nestedSingle)
+            try container.encode(nestedUnkeyed, forKey: .nestedUnkeyed)
+            try container.encodeIfPresent(encoder.codingPath.last?.stringValue, forKey: .key)
+            try container.encodeIfPresent(encoder.userInfo[testKeyRoot] as? String, forKey: .context)
+        }
+    }
+    
+    @available(OSX 10.13, iOS 11.0, *)
+    struct CustomizedRecord: Encodable, MutablePersistableRecord {
+        var nestedKeyed: NestedKeyed
+        var nestedSingle: NestedSingle
+        var nestedUnkeyed: NestedUnkeyed
+        
+        init(nestedKeyed: NestedKeyed, nestedSingle: NestedSingle, nestedUnkeyed: NestedUnkeyed) {
+            self.nestedKeyed = nestedKeyed
+            self.nestedSingle = nestedSingle
+            self.nestedUnkeyed = nestedUnkeyed
+        }
+        
+        enum CodingKeys: String, CodingKey {
+            case nestedKeyed, nestedSingle, nestedUnkeyed, key, context
+        }
+        
+        static let databaseEncodingUserInfo: [CodingUserInfoKey: Any] = [
+            testKeyRoot: "GRDB root",
+            testKeyNested: "GRDB nested"]
+        
+        static func databaseJSONEncoder(for column: String) -> JSONEncoder {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .sortedKeys
+            encoder.userInfo = [
+                testKeyRoot: "JSON root",
+                testKeyNested: "JSON nested: \(column)"]
+            return encoder
+        }
+        
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(nestedKeyed, forKey: .nestedKeyed)
+            try container.encode(nestedSingle, forKey: .nestedSingle)
+            try container.encode(nestedUnkeyed, forKey: .nestedUnkeyed)
+            try container.encodeIfPresent(encoder.codingPath.last?.stringValue, forKey: .key)
+            try container.encodeIfPresent(encoder.userInfo[testKeyRoot] as? String, forKey: .context)
+        }
+    }
+    
+    // Used as a reference
+    func testFoundationBehavior() throws {
+        // This test relies on .sortedKeys option
+        if #available(OSX 10.13, iOS 11.0, *) {
+            do {
+                let record = Record(
+                    nestedKeyed: NestedKeyed(name: "foo"),
+                    nestedSingle: NestedSingle(name: "bar"),
+                    nestedUnkeyed: NestedUnkeyed(name: "baz"))
+                
+                let encoder = JSONEncoder()
+                encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
+                let json = try String(data: encoder.encode(record), encoding: .utf8)!
+                XCTAssertEqual(json, """
+                    {
+                      "nestedKeyed" : {
+                        "key" : "nestedKeyed",
+                        "name" : "foo"
+                      },
+                      "nestedSingle" : "bar,key:nestedSingle,context:nil",
+                      "nestedUnkeyed" : [
+                        "baz",
+                        "nestedUnkeyed",
+                        null
+                      ]
+                    }
+                    """)
+            }
+            
+            do {
+                let record = Record(
+                    nestedKeyed: NestedKeyed(name: "foo"),
+                    nestedSingle: NestedSingle(name: "bar"),
+                    nestedUnkeyed: NestedUnkeyed(name: "baz"))
+                
+                let encoder = JSONEncoder()
+                encoder.userInfo = [testKeyRoot: "root", testKeyNested: "nested"]
+                encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
+                let json = try String(data: encoder.encode(record), encoding: .utf8)
+                XCTAssertEqual(json, """
+                    {
+                      "context" : "root",
+                      "nestedKeyed" : {
+                        "context" : "nested",
+                        "key" : "nestedKeyed",
+                        "name" : "foo"
+                      },
+                      "nestedSingle" : "bar,key:nestedSingle,context:nested",
+                      "nestedUnkeyed" : [
+                        "baz",
+                        "nestedUnkeyed",
+                        "nested"
+                      ]
+                    }
+                    """)
+            }
+        }
+    }
+    
+    func testRecord() throws {
+        // This test relies on .sortedKeys option
+        if #available(OSX 10.13, iOS 11.0, *) {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { db in
+                try db.create(table: "record") { t in
+                    t.column("context")
+                    t.column("key")
+                    t.column("nestedKeyed")
+                    t.column("nestedSingle")
+                    t.column("nestedUnkeyed")
+                }
+                
+                var record = Record(
+                    nestedKeyed: NestedKeyed(name: "foo"),
+                    nestedSingle: NestedSingle(name: "bar"),
+                    nestedUnkeyed: NestedUnkeyed(name: "baz"))
+                try record.insert(db)
+                
+                let row = try Row.fetchOne(db, Record.all())!
+                XCTAssertEqual(row, [
+                    "context": nil,
+                    "key": nil,
+                    "nestedKeyed": "{\"name\":\"foo\"}",
+                    "nestedSingle": "bar,key:nestedSingle,context:nil",
+                    "nestedUnkeyed": "[\"baz\",null,null]"])
+            }
+        }
+    }
+    
+    func testCustomizedRecord() throws {
+        // This test relies on .sortedKeys option
+        if #available(OSX 10.13, iOS 11.0, *) {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { db in
+                try db.create(table: "customizedRecord") { t in
+                    t.column("context")
+                    t.column("key")
+                    t.column("nestedKeyed")
+                    t.column("nestedSingle")
+                    t.column("nestedUnkeyed")
+                }
+                
+                var record = CustomizedRecord(
+                    nestedKeyed: NestedKeyed(name: "foo"),
+                    nestedSingle: NestedSingle(name: "bar"),
+                    nestedUnkeyed: NestedUnkeyed(name: "baz"))
+                try record.insert(db)
+                
+                let row = try Row.fetchOne(db, CustomizedRecord.all())!
+                XCTAssertEqual(row, [
+                    "context": "GRDB root",
+                    "key": nil,
+                    "nestedKeyed": "{\"context\":\"JSON nested: nestedKeyed\",\"name\":\"foo\"}",
+                    "nestedSingle": "bar,key:nestedSingle,context:GRDB nested",
+                    "nestedUnkeyed": "[\"baz\",null,\"JSON nested: nestedUnkeyed\"]"])
+            }
+        }
+    }
+}
+
