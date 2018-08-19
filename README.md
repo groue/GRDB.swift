@@ -1810,7 +1810,8 @@ SQLite has the opportunity to perform additional optimizations when aggregates a
 
 ```swift
 // SELECT maxLength("name") FROM player
-Int.fetchOne(db, Player.select(maxLength.apply(nameColumn))) // Int?
+let request = Player.select(maxLength.apply(nameColumn))
+try Int.fetchOne(db, request) // Int?
 ```
 
 
@@ -2622,7 +2623,7 @@ struct Player: Codable, FetchableRecord, PersistableRecord {
     }
     
     static var maximumScore: QueryInterfaceRequest<Int> {
-        return select(max(CodingKeys.score)).asRequest(of: Int.self)
+        return select(max(CodingKeys.score), as: Int.self)
     }
 }
 
@@ -3425,7 +3426,7 @@ So don't miss the [SQL API](#sqlite-api).
 - [Expressions](#expressions)
     - [SQL Operators](#sql-operators)
     - [SQL Functions](#sql-functions)
-- [Fetching from Requests](#fetching-from-requests)
+- [Fetching from Requests]
 - [Fetching by Key](#fetching-by-key)
 - [Fetching Aggregated Values](#fetching-aggregated-values)
 - [Delete Requests](#delete-requests)
@@ -3478,7 +3479,7 @@ try db.create(table: "example", temporary: true, ifNotExists: true) { t in
 
 > :bulb: **Tip**: database table names should be singular, and camel-cased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`, 'httpRequest'.
 >
-> This will help you using [Associations](Documentation/AssociationsBasics.md) when you need them. Database table names that follow another naming convention are totally OK, but you will need to perform extra configuration.
+> This will help you using [Associations] when you need them. Database table names that follow another naming convention are totally OK, but you will need to perform extra configuration.
 
 **Add regular columns** with their name and eventual type (text, integer, double, numeric, boolean, blob, date and datetime) - see [SQLite data types](https://www.sqlite.org/datatype3.html):
 
@@ -3653,13 +3654,18 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     The hidden `rowid` column can be selected as well [when you need it](#the-implicit-rowid-primary-key).
 
-- `select(...)` defines the selected columns. See [Columns Selected by a Request].
+- `select(...)` and `select(..., as:)` defines the selected columns. See [Columns Selected by a Request].
+    
+    ```swift
+    // SELECT name FROM player
+    Player.select(nameColumn, as: String.self)
+    ```
 
 - `distinct()` performs uniquing.
     
     ```swift
     // SELECT DISTINCT name FROM player
-    Player.select(nameColumn).distinct()
+    Player.select(nameColumn, as: String.self).distinct()
     ```
 
 - `filter(expression)` applies conditions.
@@ -3814,17 +3820,14 @@ let request = Player.all()
 
 **The selection can be changed for each individual requests, or for all requests built from a given type.**
 
-To specify the selection of a specific request, use the `select` method:
+When the selection of a particular request does not fit the origin record, use the `select(...)` or `select(..., as:)` method (see [Fetching from Requests] for detailed information):
 
 ```swift
-// SELECT id, name FROM player
-let request = Player.select(Column("id"), Column("name"))
-
-// SELECT *, rowid FROM player
-let request = Player.select(AllColumns(), Column.rowID)
+let request = Player.select(max(Column("score")))
+let maxScore: Int? = try Int.fetchOne(db, request)
 ```
 
-To specify the default selection for all requests built from a type, define the `databaseSelection` property:
+To specify the default selection for a record type, define the `databaseSelection` property:
 
 ```swift
 struct RestrictedPlayer : TableRecord {
@@ -4040,7 +4043,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Player.select(f.apply(nameColumn))
     ```
 
-    
+
 ## Fetching from Requests
 
 Once you have a request, you can fetch the records at the origin of the request:
@@ -4055,8 +4058,6 @@ try request.fetchAll(db)    // [Player]
 try request.fetchOne(db)    // Player?
 ```
 
-See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods.
-
 For example:
 
 ```swift
@@ -4064,29 +4065,71 @@ let allPlayers = try Player.fetchAll(db)                            // [Player]
 let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db) // Player?
 ```
 
+See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods.
 
-**When the selected columns don't fit the source type**, change your target: any other type that adopts the [FetchableRecord] protocol, plain [database rows](#fetching-rows), and even [values](#values):
+**You sometimes want to fetch other values**.
+
+The simplest way is to use the request as an argument to a fetching method of the desired type:
 
 ```swift
+// Fetch an Int
 let request = Player.select(max(scoreColumn))
 let maxScore = try Int.fetchOne(db, request) // Int?
 
+// Fetch a Row
 let request = Player.select(min(scoreColumn), max(scoreColumn))
 let row = try Row.fetchOne(db, request)!     // Row
 let minScore = row[0] as Int?
 let maxScore = row[1] as Int?
 ```
 
-You may also use the `asRequest(of:)` method, which lets you alter the type of the request itself, and feed database observation tools like [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
+When you also want to use database observation tools such as [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you have to go one step further, and change the type of the request:
 
-```swift
-let request = Player.select(max(scoreColumn)).asRequest(of: Int.self)
-request.rx
-    .fetchOne(in: dbQueue)
-    .subscribe(onNext: { maxScore: Int? in
-        print("Maximum score has changed")
-    })
-```
+- When you change the selection, prefer the `select(..., as:)` method:
+    
+    ```swift
+    // A request of Int
+    let request = Player.select(max(scoreColumn), as: Int.self)
+    
+    // Simple fetch
+    let maxScore = try dbQueue.read { db in
+        try request.fetchOne(db) // Int?
+    }
+    
+    // Observe with RxGRDB
+    request.rx
+        .fetchOne(in: dbQueue)
+        .subscribe(onNext: { maxScore: Int? in
+            print("The maximum score has changed")
+        })
+    ```
+
+- Otherwise, use `asRequest(of:)`. Here is an example that uses [Associations]:
+    
+    ```swift
+    struct BookInfo: FetchableRecord, Decodable {
+        var book: Book
+        var author: Author
+    }
+    
+    // A request of BookInfo
+    let request = Book
+        .including(required: Book.author)
+        .asRequest(of: BookInfo.self)
+    
+    // Simple fetch
+    let bookInfos = try dbQueue.read { db in
+        try request.fetchAll(db) // [BookInfo]
+    }
+    
+    // Observe with FetchedRecordsController
+    let controller = FetchedRecordsController(
+        dbQueue,
+        request: request,
+        isSameRecord: { (bookInfo1, bookInfo2) in
+            bookInfo1.book.id == bookInfo2.book.id
+        })
+    ```
 
 
 ## Fetching By Key
@@ -4342,13 +4385,20 @@ let request = Player.all()
     try Player.filter(color: .red).fetchAll(db)
     ```
     
-- The `asRequest(of:)` method changes the type fetched by the request:
+- The `asRequest(of:)` method changes the type fetched by the request. It is useful, for example, when you use [Associations]:
 
     ```swift
-    // Int?
-    let maxScore = Player.select(max(Column("score")))
-        .asRequest(of: Int.self)
-        .fetchOne(db)
+    struct BookInfo: FetchableRecord, Decodable {
+        var book: Book
+        var author: Author
+    }
+    
+    let request = Book
+        .including(required: Book.author)
+        .asRequest(of: BookInfo.self)
+    
+    // [BookInfo]
+    try request.fetchAll(db)
     ```
 
 - The `adapted(_:)` method eases the consumption of complex rows with [row adapters](#row-adapters). See [Joined Queries Support](#joined-queries-support) for some sample code that uses this method.
@@ -5191,7 +5241,7 @@ LEFT JOIN round ON ...
 GROUP BY ...
 ```
 
-We will not talk about *generating* joined queries, which is covered in [Associations](Documentation/AssociationsBasics.md).
+We will not talk about the *generation* of joined queries, which is covered in [Associations].
 
 **So what are we talking about?**
 
@@ -6652,7 +6702,7 @@ try String.fetchOne(db, "SELECT \(uppercased.name)('Jérôme')")
 
 Those unicode-aware string functions are also readily available in the [query interface](#sql-functions):
 
-```
+```swift
 Player.select(nameColumn.uppercased)
 ```
 
@@ -7240,6 +7290,8 @@ try Player.select(idColumn, nameColumn).fetchAll(db)
 
 If your Player type can't be built without other columns (it has non-optional properties for other columns), *do define and use a different type*.
 
+See [Columns Selected by a Request] for more information.
+
 
 **Don't fetch rows you don't use**
 
@@ -7583,10 +7635,12 @@ This protocol has been renamed [TableRecord] in GRDB 3.0.
 
 This chapter has been renamed [Beyond FetchableRecord].
 
+[Associations]: Documentation/AssociationsBasics.md
 [Beyond FetchableRecord]: #beyond-fetchablerecord
 [Columns Selected by a Request]: #columns-selected-by-a-request
 [Conflict Resolution]: #conflict-resolution
 [Customizing the Persistence Methods]: #customizing-the-persistence-methods
+[Fetching from Requests]: #fetching-from-requests
 [The Implicit RowID Primary Key]: #the-implicit-rowid-primary-key
 [The userInfo Dictionary]: #the-userinfo-dictionary
 [JSON Columns]: #json-columns
