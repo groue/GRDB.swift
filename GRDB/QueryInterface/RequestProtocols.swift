@@ -2,7 +2,7 @@
 
 /// The protocol for all requests that can refine their selection.
 public protocol SelectionRequest {
-    /// Creates a request with a new set of selected columns.
+    /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM player
     ///     var request = Player.all()
@@ -18,7 +18,7 @@ public protocol SelectionRequest {
 }
 
 extension SelectionRequest {
-    /// Creates a request with a new set of selected columns.
+    /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM player
     ///     var request = Player.all()
@@ -34,7 +34,7 @@ extension SelectionRequest {
         return select(selection)
     }
     
-    /// Creates a request with a new set of selected columns.
+    /// Creates a request which selects *sql*.
     ///
     ///     // SELECT id, email FROM player
     ///     var request = Player.all()

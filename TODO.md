@@ -40,7 +40,13 @@
     // new
     request.select(Column("name"), as: String.self)
     ```
-
+- [ ] select values from a JSON column:
+    
+    ```swift
+    let nesteds = try Record
+        .select(Column("nested"), as: Nested.self)
+        .fetchAll(db)
+    ```
 
 Swift 4.2
 
