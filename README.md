@@ -3654,7 +3654,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     The hidden `rowid` column can be selected as well [when you need it](#the-implicit-rowid-primary-key).
 
-- `select(...)` and `select(..., as:)` defines the selected columns. See [Columns Selected by a Request].
+- `select(...)` and `select(..., as:)` define the selected columns. See [Columns Selected by a Request].
     
     ```swift
     // SELECT name FROM player
@@ -3820,14 +3820,14 @@ let request = Player.all()
 
 **The selection can be changed for each individual requests, or for all requests built from a given type.**
 
-When the selection of a particular request does not fit the origin record, use the `select(...)` or `select(..., as:)` method (see [Fetching from Requests] for detailed information):
+The `select(...)` and `select(..., as:)` methods change the selection of a single request (see [Fetching from Requests] for detailed information):
 
 ```swift
 let request = Player.select(max(Column("score")))
 let maxScore: Int? = try Int.fetchOne(db, request)
 ```
 
-To specify the default selection for a record type, define the `databaseSelection` property:
+The default selection for a record type is controlled by the `databaseSelection` property:
 
 ```swift
 struct RestrictedPlayer : TableRecord {
