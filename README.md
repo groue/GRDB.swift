@@ -2607,7 +2607,7 @@ try dbQueue.write { db in
 ```
 
 - [JSON Columns]
-- [Date Coding Strategies](#date-coding-strategies)
+- [Date Coding Strategies]
 - [The userInfo Dictionary]
 - [Tip: Use CodingKeys as Columns](#tip-use-codingkeys-as-columns)
 
@@ -2950,6 +2950,7 @@ GRDB records come with many default behaviors, that are designed to fit most sit
 - [Conflict Resolution]: Run `INSERT OR REPLACE` queries, and generally define what happens when a persistence method violates a unique index.
 - [The Implicit RowID Primary Key]: all about the special `rowid` column.
 - [JSON Columns]: control the format of JSON columns.
+- [Date Coding Strategies]: control the format of Date properties in your Codable records.
 - [The userInfo Dictionary]: adapt your Codable implementation for the database.
 - [Beyond FetchableRecord]: the FetchableRecord protocol is not the end of the story.
 
@@ -7695,6 +7696,7 @@ This chapter has been renamed [Beyond FetchableRecord].
 [Columns Selected by a Request]: #columns-selected-by-a-request
 [Conflict Resolution]: #conflict-resolution
 [Customizing the Persistence Methods]: #customizing-the-persistence-methods
+[Date Coding Strategies]: #date-coding-strategies
 [Fetching from Requests]: #fetching-from-requests
 [The Implicit RowID Primary Key]: #the-implicit-rowid-primary-key
 [The userInfo Dictionary]: #the-userinfo-dictionary
