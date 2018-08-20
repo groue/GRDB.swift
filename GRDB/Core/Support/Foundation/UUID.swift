@@ -1,4 +1,9 @@
 import Foundation
+#if SWIFT_PACKAGE
+    import CSQLite
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
 
 #if !os(Linux)
 /// NSUUID adopts DatabaseValueConvertible
@@ -14,9 +19,19 @@ extension NSUUID: DatabaseValueConvertible {
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
         switch dbValue.storage {
         case .blob(let data) where data.count == 16:
-            return data.withUnsafeBytes {
-                self.init(uuidBytes: $0)
-            }
+            // The code below works in debug configuration, but crashes in
+            // release configuration (Xcode 9.4.1)
+            
+//            return data.withUnsafeBytes {
+//                self.init(uuidBytes: $0)
+//            }
+            
+            // Workaround (involves a useless copy)
+            let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: 16)
+            _ = data.copyBytes(to: buffer)
+            let uuid = self.init(uuidBytes: UnsafePointer(buffer.baseAddress!))
+            buffer.deallocate()
+            return uuid
         case .string(let string):
             return self.init(uuidString: string)
         default:
