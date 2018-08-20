@@ -2748,17 +2748,24 @@ let player = try Player.fetchOne(db, ...)
 
 ### Tip: Use CodingKeys as Columns
 
-If you declare an explicit `CodingKeys` enum ([what is this?](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)), you can use coding keys as [query interface](#the-query-interface) columns, just by adding conformance to the ColumnExpression protocol:
+If you declare an explicit `CodingKeys` enum ([what is this?](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)), you can instruct GRDB to use those coding keys as database columns:
 
 ```swift
 struct Player: Codable, FetchableRecord, PersistableRecord {
     var name: String
     var score: Int
     
+    // Add ColumnExpression conformance
     private enum CodingKeys: String, CodingKey, ColumnExpression {
         case name, score
     }
-    
+}
+```
+
+This allows your record to build requests with the [query interface](#the-query-interface):
+
+```swift
+extension Player {
     static func filter(name: String) -> QueryInterfaceRequest<Player> {
         return filter(CodingKeys.name == name)
     }
@@ -2767,7 +2774,12 @@ struct Player: Codable, FetchableRecord, PersistableRecord {
         return select(max(CodingKeys.score), as: Int.self)
     }
 }
+```
 
+Those requests can both fetch...
+
+```swift
+// Fetch values
 try dbQueue.read { db in
     // SELECT * FROM player WHERE name = 'Arthur'
     let arthur = try Player.filter(name: "Arthur").fetchOne(db) // Player?
@@ -2775,6 +2787,17 @@ try dbQueue.read { db in
     // SELECT MAX(score) FROM player
     let maxScore = try Player.maximumScore.fetchOne(db)         // Int?
 }
+```
+
+... and feed database observation tools such as [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
+
+```swift
+// Observe changes
+Player.maximumScore.rx
+    .fetchOne(in: dbQueue)
+    .subscribe(onNext: { maxScore: Int? in
+        print("The maximum score has changed")
+    })
 ```
 
 
