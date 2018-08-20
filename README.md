@@ -2661,29 +2661,6 @@ protocol MutablePersistableRecord {
 }
 ```
 
-For example, here is how the Player type can customize the json format of its "achievements" JSON column:
-
-```swift
-struct Player: Codable, FetchableRecord, PersistableRecord {
-    var name: String
-    var score: Int
-    var achievements: [Achievement] // stored in a JSON column
-    
-    static func databaseJSONDecoder(for column: String) -> JSONDecoder {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return decoder
-    }
-    
-    static func databaseJSONEncoder(for column: String) -> JSONEncoder {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        encoder.outputFormatting = .sortedKeys
-        return encoder
-    }
-}
-```
-
 > :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, and watchOS 4.0+. This option makes sure that the JSON output is stable. This stability is required for [Record Comparison] to work as expected, and database observation tools such as [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) to accurately recognize changed records.
 
 
