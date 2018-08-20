@@ -34,11 +34,7 @@ private enum StrategyMillisecondsSince1970: StrategyProvider {
 
 @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
 private enum StrategyIso8601: StrategyProvider {
-    static let strategy: DatabaseDateEncodingStrategy = .iso8601({
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = .withInternetDateTime
-        return formatter
-        }())
+    static let strategy: DatabaseDateEncodingStrategy = .iso8601
 }
 
 private enum StrategyFormatted: StrategyProvider {

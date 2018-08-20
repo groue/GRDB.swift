@@ -444,9 +444,9 @@ public enum DatabaseDateDecodingStrategy {
     /// midnight UTC on 1 January 1970
     case millisecondsSince1970
     
-    /// Decodes a String, according to the provided formatter
+    /// Decodes dates according to the ISO 8601 standards
     @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
-    case iso8601(ISO8601DateFormatter)
+    case iso8601
     
     /// Decodes a String, according to the provided formatter
     case formatted(DateFormatter)

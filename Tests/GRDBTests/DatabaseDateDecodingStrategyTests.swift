@@ -29,12 +29,8 @@ private enum StrategyMillisecondsSince1970: StrategyProvider {
 }
 
 @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
-private enum StrategyIso8601Strategy: StrategyProvider {
-    static let strategy: DatabaseDateDecodingStrategy = .iso8601({
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = .withInternetDateTime
-        return formatter
-        }())
+private enum StrategyIso8601: StrategyProvider {
+    static let strategy: DatabaseDateDecodingStrategy = .iso8601
 }
 
 private enum StrategyFormatted: StrategyProvider {
@@ -285,10 +281,10 @@ extension DatabaseDateDecodingStrategyTests {
                 calendar.timeZone = TimeZone(secondsFromGMT: 0)!
                 
                 // Null
-                try testNullDecoding(db, strategy: StrategyIso8601Strategy.self)
+                try testNullDecoding(db, strategy: StrategyIso8601.self)
                 
                 // Date
-                try test(db, strategy: StrategyIso8601Strategy.self, databaseValue: "2018-08-19T17:18:07Z") { date in
+                try test(db, strategy: StrategyIso8601.self, databaseValue: "2018-08-19T17:18:07Z") { date in
                     XCTAssertEqual(calendar.component(.year, from: date), 2018)
                     XCTAssertEqual(calendar.component(.month, from: date), 8)
                     XCTAssertEqual(calendar.component(.day, from: date), 19)
