@@ -445,7 +445,7 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
-        self = String(cString: sqlite3_column_text(sqliteStatement, Int32(index))!)
+        self = String(cString: sqlite3_column_text(sqliteStatement, index)!)
     }
     
     /// Returns a value that can be stored in the database.
