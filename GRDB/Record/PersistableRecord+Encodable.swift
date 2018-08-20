@@ -126,9 +126,10 @@ private class RecordEncoder<Record: MutablePersistableRecord>: Encoder {
     fileprivate func encode<T>(_ value: T, forKey key: CodingKey) throws where T : Encodable {
         if let date = value as? Date {
             persist(Record.databaseDateEncodingStrategy.encode(date), forKey: key)
+        } else if let uuid = value as? UUID {
+            persist(Record.databaseUUIDEncodingStrategy.encode(uuid), forKey: key)
         } else if let value = value as? DatabaseValueConvertible {
             // Prefer DatabaseValueConvertible encoding over Decodable.
-            // This allows us to encode Date as String, for example.
             persist(value.databaseValue, forKey: key)
         } else {
             do {
@@ -338,6 +339,18 @@ private extension DatabaseDateEncodingStrategy {
             return formatter.string(from: date)
         case .custom(let format):
             return format(date)
+        }
+    }
+}
+
+private extension DatabaseUUIDEncodingStrategy {
+    @inline(__always)
+    func encode(_ uuid: UUID) -> DatabaseValueConvertible? {
+        switch self {
+        case .deferredToUUID:
+            return uuid.databaseValue
+        case .string:
+            return uuid.uuidString
         }
     }
 }

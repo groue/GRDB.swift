@@ -402,6 +402,21 @@ public protocol MutablePersistableRecord : TableRecord {
     ///         var registrationDate: Date // encoded as an epoch timestamp
     ///     }
     static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
+    
+    /// When the PersistableRecord type also adopts the standard Encodable
+    /// protocol, this property controls the encoding of UUID properties.
+    ///
+    /// Default value is .deferredToUUID
+    ///
+    /// For example:
+    ///
+    ///     struct Player: PersistableProtocol, Encodable {
+    ///         static let databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy = .string
+    ///
+    ///         // encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
+    ///         var uuid: UUID
+    ///     }
+    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
 }
 
 extension MutablePersistableRecord {
@@ -409,12 +424,6 @@ extension MutablePersistableRecord {
         return [:]
     }
     
-    /// Returns a JSONEncoder with the following properties:
-    ///
-    /// - dataEncodingStrategy: .base64
-    /// - dateEncodingStrategy: .millisecondsSince1970
-    /// - nonConformingFloatEncodingStrategy: .throw
-    /// - outputFormatting: .sortedKeys (iOS 11.0+, macOS 10.13+, watchOS 4.0+)
     public static func databaseJSONEncoder(for column: String) -> JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dataEncodingStrategy = .base64
@@ -429,6 +438,10 @@ extension MutablePersistableRecord {
     
     public static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy {
         return .deferredToDate
+    }
+    
+    public static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy {
+        return .deferredToUUID
     }
 }
 
@@ -1010,6 +1023,29 @@ public enum DatabaseDateEncodingStrategy {
     
     /// Encodes the result of the user-provided function
     case custom((Date) -> DatabaseValueConvertible?)
+}
+
+// MARK: - DatabaseUUIDEncodingStrategy
+
+/// DatabaseUUIDEncodingStrategy specifies how FetchableRecord types that also
+/// adopt the standard Encodable protocol encode their UUID properties.
+///
+/// For example:
+///
+///     struct Player: PersistableProtocol, Encodable {
+///         static let databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy = .string
+///
+///         // encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
+///         var uuid: UUID
+///     }
+public enum DatabaseUUIDEncodingStrategy {
+    /// The strategy that uses formatting from the UUID type.
+    ///
+    /// It can encodes UUIDs as 16-bytes data blobs.
+    case deferredToUUID
+    
+    /// Encode UUIDs as strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
+    case string
 }
 
 // MARK: - DAO
