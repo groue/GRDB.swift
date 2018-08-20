@@ -3155,7 +3155,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
 
 **Some GRDB users eventually discover that the [FetchableRecord] protocol does not fit all situations.** Use cases that are not well handled by FetchableRecord include:
 
-- Your application needs polymorphic row decoding: it decodes some class or another, depending on the values contained in a database row.
+- Your application needs polymorphic row decoding: it decodes some type or another, depending on the values contained in a database row.
 
 - Your application needs to decode rows with a context: each decoded value should be initialized with some extra value that does not come from the database.
 
