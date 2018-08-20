@@ -1313,7 +1313,9 @@ let amount = NSDecimalNumber(value: integerAmount).multiplying(byPowerOf10: -2) 
 
 ### UUID
 
-**UUID** can be stored and fetched from the database just like other [values](#values). GRDB stores uuids as 16-bytes data blobs.
+**UUID** can be stored and fetched from the database just like other [values](#values).
+
+GRDB stores uuids as 16-bytes data blobs, and decodes them from both 16-bytes data blobs and strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F".
 
 
 ### Swift Enums
