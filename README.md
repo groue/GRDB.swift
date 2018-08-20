@@ -2947,10 +2947,10 @@ GRDB records come with many default behaviors, that are designed to fit most sit
 
 - [Columns Selected by a Request]: define which columns are selected by requests such as `Player.fetchAll(db)`.
 - [Customizing the Persistence Methods]: define what happens when you call a persistance method such as `player.insert(db)`
-- [Conflict Resolution]: Run `INSERT OR REPLACE` queries, and generally define what happens when a persistence method violates a unique index.
-- [The Implicit RowID Primary Key]: all about the special `rowid` column.
 - [JSON Columns]: control the format of JSON columns.
 - [Date Coding Strategies]: control the format of Date properties in your Codable records.
+- [Conflict Resolution]: Run `INSERT OR REPLACE` queries, and generally define what happens when a persistence method violates a unique index.
+- [The Implicit RowID Primary Key]: all about the special `rowid` column.
 - [The userInfo Dictionary]: adapt your Codable implementation for the database.
 - [Beyond FetchableRecord]: the FetchableRecord protocol is not the end of the story.
 
