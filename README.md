@@ -2609,7 +2609,7 @@ try dbQueue.write { db in
 ```
 
 - [JSON Columns]
-- [Date Coding Strategies]
+- [Date and UUID Coding Strategies]
 - [The userInfo Dictionary]
 - [Tip: Use CodingKeys as Columns](#tip-use-codingkeys-as-columns)
 
@@ -2663,11 +2663,13 @@ protocol MutablePersistableRecord {
 > :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, and watchOS 4.0+. This option makes sure that the JSON output is stable. This stability is required for [Record Comparison] to work as expected, and database observation tools such as [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) to accurately recognize changed records.
 
 
-### Date Coding Strategies
+### Date and UUID Coding Strategies
 
-By default, [Codable Records] encode their date properties in the "YYYY-MM-DD HH:MM:SS.SSS" format, in the UTC time zone (see [Date and DateComponents](#date-and-datecomponents) for more information about the default handling of dates).
+By default, [Codable Records] encode and decode their Date and UUID properties as described in the general [Date and DateComponents](#date-and-datecomponents) and [UUID](#uuid) chapters.
 
-This behavior can be overridden:
+To sum up: dates encode themselves in the "YYYY-MM-DD HH:MM:SS.SSS" format, in the UTC time zone, and decode a variety of date formats and timestamps. UUIDs encode themselves as 16-bytes data blobs, and decode both 16-bytes data blobs and strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F".
+
+Those behaviors can be overridden:
 
 ```swift
 protocol FetchableRecord {
@@ -2676,10 +2678,11 @@ protocol FetchableRecord {
 
 protocol MutablePersistableRecord {
     static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
+    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
 }
 ```
 
-See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseDateDecodingStrategy.html) and [DatabaseDateEncodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseDateEncodingStrategy.html) for more information.
+See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseDateDecodingStrategy.html), [DatabaseDateEncodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseDateEncodingStrategy.html), and [DatabaseUUIDEncodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseUUIDEncodingStrategy.html) for more information.
 
 
 ### The userInfo Dictionary
@@ -2936,7 +2939,7 @@ GRDB records come with many default behaviors, that are designed to fit most sit
 [Codable Records] have a few extra options:
 
 - [JSON Columns]: control the format of JSON columns.
-- [Date Coding Strategies]: control the format of Date properties in your Codable records.
+- [Date and UUID Coding Strategies]: control the format of Date and UUID properties in your Codable records.
 - [The userInfo Dictionary]: adapt your Codable implementation for the database.
 
 
@@ -7681,7 +7684,7 @@ This chapter has been renamed [Beyond FetchableRecord].
 [Columns Selected by a Request]: #columns-selected-by-a-request
 [Conflict Resolution]: #conflict-resolution
 [Customizing the Persistence Methods]: #customizing-the-persistence-methods
-[Date Coding Strategies]: #date-coding-strategies
+[Date and UUID Coding Strategies]: #date-and-uuid-coding-strategies
 [Fetching from Requests]: #fetching-from-requests
 [The Implicit RowID Primary Key]: #the-implicit-rowid-primary-key
 [The userInfo Dictionary]: #the-userinfo-dictionary
