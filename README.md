@@ -2669,13 +2669,11 @@ This behavior can be overridden:
 
 ```swift
 protocol FetchableRecord {
-    static var databaseDateDecodingStrategy:
-        DatabaseDateDecodingStrategy { get }
+    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
 }
 
 protocol MutablePersistableRecord {
-    static var databaseDateEncodingStrategy:
-        DatabaseDateEncodingStrategy { get }
+    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
 }
 ```
 
