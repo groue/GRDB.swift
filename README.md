@@ -2212,7 +2212,7 @@ Details follow:
     }
     ```
     
-    > :bulb: **Tip**: FetchableRecord can derive its implementation from the standard [Decodable](https://developer.apple.com/documentation/swift/decodable) protocol. See [Codable Records] for more information.
+    > :bulb: **Tip**: FetchableRecord can derive its implementation from the standard Decodable protocol. See [Codable Records] for more information.
     
     FetchableRecord can decode database rows, but it is not able to build SQL requests for you. For that, you also need TableRecord:
     
@@ -2246,7 +2246,7 @@ Details follow:
     
     A persistable record can also [compare](#record-comparison) itself against other records, and avoid useless database updates.
     
-    > :bulb: **Tip**: PersistableRecord can derive its implementation from the standard [Encodable](https://developer.apple.com/documentation/swift/encodable) protocol. See [Codable Records] for more information.
+    > :bulb: **Tip**: PersistableRecord can derive its implementation from the standard Encodable protocol. See [Codable Records] for more information.
 
 
 ## FetchableRecord Protocol
