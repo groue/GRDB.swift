@@ -2663,7 +2663,7 @@ protocol MutablePersistableRecord {
 
 ### Date Coding Strategies
 
-By default, [Codable Records] encode their date properties in the "YYYY-MM-DD HH:MM:SS.SSS" in the UTC time zone (see [Date and DateComponents](#date-and-datecomponents) for more information about the default handling of dates).
+By default, [Codable Records] encode their date properties in the "YYYY-MM-DD HH:MM:SS.SSS" format, in the UTC time zone (see [Date and DateComponents](#date-and-datecomponents) for more information about the default handling of dates).
 
 This behavior can be overridden:
 
@@ -2686,7 +2686,7 @@ See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/E
 
 Your [Codable Records] can be stored in the database, but they may also have other purposes. In this case, you may need to customize their implementations of `Decodable.init(from:)` and `Encodable.encode(to:)`, depending on the context.
 
-The recommended way to provide such context is the `userInfo` dictionary. Implement those properties:
+The standard way to provide such context is the `userInfo` dictionary. Implement those properties:
 
 ```swift
 protocol FetchableRecord {
@@ -2698,7 +2698,7 @@ protocol MutablePersistableRecord {
 }
 ```
 
-For example, here is how the Player type can customize its decoding:
+For example, here is a Player type that customizes its decoding:
 
 ```swift
 // A key that holds a decoder's name
@@ -2707,22 +2707,30 @@ let decoderName = CodingUserInfoKey(rawValue: "decoderName")!
 struct Player: FetchableRecord, Decodable {
     init(from decoder: Decoder) throws {
         // Print the decoder name
-        print(decoder.userInfo[decoderName])
+        let decoderName = decoder.userInfo[decoderName] as? String
+        print("Decoded from \(decoderName ?? "nil")")
         ...
     }
 }
+```
 
-// prints "JSON"
+You can have a specific decoding from JSON...
+
+```swift
+// prints "Decoded from JSON"
 let decoder = JSONDecoder()
 decoder.userInfo = [decoderName: "JSON"]
-let player = try decoder.decode(Player.self, from: ...)
+let player = try decoder.decode(Player.self, from: jsonData)
+```
 
+... and another one from database rows:
+
+```swift
 extension Player: FetchableRecord {
-    // Customize the decoder name when decoding a database row
-    static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "Database"]
+    static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "database row"]
 }
 
-// prints "Database"
+// prints "Decoded from database row"
 let player = try Player.fetchOne(db, ...)
 ```
 
