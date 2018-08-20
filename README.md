@@ -2618,9 +2618,9 @@ enum AchievementColor: String, Codable {
 }
 
 struct Achievement: Codable {
-     var name: String
-     var color: AchievementColor
-     var date: Date
+    var name: String
+    var color: AchievementColor
+    var date: Date
 }
 
 struct Player: Codable, FetchableRecord, PersistableRecord {
@@ -2629,14 +2629,17 @@ struct Player: Codable, FetchableRecord, PersistableRecord {
     var achievements: [Achievement] // stored in a JSON column
 }
 
-try dbQueue.write { db in
+try! dbQueue.write { db in
     // INSERT INTO player (name, score, achievements)
     // VALUES (
     //   'Arthur',
     //   100,
-    //   '[{"color":"gold","name":"Use Codable Records"}]')
-    let achievement = Achievement(name: "Use Codable Records", color: .gold)
-    try Player(name: "Arthur", score: 100, achievements: [achievement]).insert(db)
+    //   '[{"color":"gold",
+    //      "date":1534746534010.4429,
+    //      "name":"Use Codable Records"}]')
+    let achievement = Achievement(name: "Use Codable Records", color: .gold, date: Date())
+    let player = Player(name: "Arthur", score: 100, achievements: [achievement])
+    try player.insert(db)
 }
 ```
 
