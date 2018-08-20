@@ -2062,7 +2062,7 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 - [PersistableRecord Protocol](#persistablerecord-protocol)
     - [Persistence Methods](#persistence-methods)
     - [Customizing the Persistence Methods]
-- [Codable Records](#codable-records)
+- [Codable Records]
 - [Record Class](#record-class)
 - [Record Comparison]
 - [Record Customization Options]
@@ -2171,7 +2171,7 @@ Details follow:
 - [FetchableRecord Protocol](#fetchablerecord-protocol)
 - [TableRecord Protocol](#tablerecord-protocol)
 - [PersistableRecord Protocol](#persistablerecord-protocol)
-- [Codable Records](#codable-records)
+- [Codable Records]
 - [Record Class](#record-class)
 - [Record Comparison]
 - [Record Customization Options]
@@ -2300,7 +2300,7 @@ extension Place : FetchableRecord {
 
 See [column values](#column-values) for more information about the `row[]` subscript.
 
-When your record type adopts the standard Decodable protocol, you don't have to provide the implementation for `init(row:)`. See [Codable Records](#codable-records) for more information:
+When your record type adopts the standard Decodable protocol, you don't have to provide the implementation for `init(row:)`. See [Codable Records] for more information:
 
 ```swift
 // That's all
@@ -2484,7 +2484,7 @@ extension Place : MutablePersistableRecord {
 }
 ```
 
-When your record type adopts the standard Encodable protocol, you don't have to provide the implementation for `encode(to:)`. See [Codable Records](#codable-records) for more information:
+When your record type adopts the standard Encodable protocol, you don't have to provide the implementation for `encode(to:)`. See [Codable Records] for more information:
 
 ```swift
 // That's all
@@ -2689,7 +2689,7 @@ struct Player: Codable, FetchableRecord, PersistableRecord {
 
 ### Date Coding Strategies
 
-By default, [Codable records](#codable-records) encode their date properties in the "YYYY-MM-DD HH:MM:SS.SSS" in the UTC time zone (see [Date and DateComponents](#date-and-datecomponents) for more information about the default handling of dates).
+By default, [Codable Records] encode their date properties in the "YYYY-MM-DD HH:MM:SS.SSS" in the UTC time zone (see [Date and DateComponents](#date-and-datecomponents) for more information about the default handling of dates).
 
 This behavior can be overridden:
 
@@ -2710,7 +2710,7 @@ See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/E
 
 ### The userInfo Dictionary
 
-Your [Codable records](#codable-records) can be stored in the database, but they may also have other purposes. In this case, you may need to customize their implementations of `Decodable.init(from:)` and `Encodable.encode(to:)`, depending on the context.
+Your [Codable Records] can be stored in the database, but they may also have other purposes. In this case, you may need to customize their implementations of `Decodable.init(from:)` and `Encodable.encode(to:)`, depending on the context.
 
 The recommended way to provide such context is the `userInfo` dictionary. Implement those properties:
 
@@ -3185,7 +3185,7 @@ Each one of the three examples below is correct. You will pick one or the other 
 
 This is the shortest way to define a record type.
 
-See the [Record Protocols Overview](#record-protocols-overview), and [Codable Records](#codable-records) for more information.
+See the [Record Protocols Overview](#record-protocols-overview), and [Codable Records] for more information.
 
 ```swift
 struct Place: Codable {
@@ -5613,7 +5613,7 @@ PlayerInfo.all()
 
 ### Splitting Rows, the Codable Way
 
-[Codable Records](#codable-records) build on top of the standard Decodable protocol in order to decode database rows.
+[Codable Records] build on top of the standard Decodable protocol in order to decode database rows.
 
 You can consume complex joined queries with Codable records as well. As a demonstration, we'll rewrite the [above](#splitting-rows-the-request-way) sample code:
 
@@ -7691,6 +7691,7 @@ This chapter has been renamed [Beyond FetchableRecord].
 
 [Associations]: Documentation/AssociationsBasics.md
 [Beyond FetchableRecord]: #beyond-fetchablerecord
+[Codable Records]: #codable-records
 [Columns Selected by a Request]: #columns-selected-by-a-request
 [Conflict Resolution]: #conflict-resolution
 [Customizing the Persistence Methods]: #customizing-the-persistence-methods
