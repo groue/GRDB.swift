@@ -100,6 +100,15 @@ public protocol FetchableRecord {
     /// protocol, this property controls the decoding of date properties.
     ///
     /// Default value is .deferredToDate
+    ///
+    /// For example:
+    ///
+    ///     struct Player: FetchableRecord, Decodable {
+    ///         static let databaseDateDecodingStrategy: DatabaseDateDecodingStrategy = .timeIntervalSince1970
+    ///
+    ///         var name: String
+    ///         var registrationDate: Date // decoded from epoch timestamp
+    ///     }
     static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
 }
 
@@ -394,8 +403,17 @@ public final class RecordCursor<Record: FetchableRecord> : Cursor {
 
 // MARK: - DatabaseDateDecodingStrategy
 
-/// The strategies available for formatting dates when decoding them from a
-/// database column.
+/// DatabaseDateDecodingStrategy specifies how FetchableRecord types that also
+/// adopt the standard Decodable protocol decode their date properties.
+///
+/// For example:
+///
+///     struct Player: FetchableRecord, Decodable {
+///         static let databaseDateDecodingStrategy: DatabaseDateDecodingStrategy = .timeIntervalSince1970
+///
+///         var name: String
+///         var registrationDate: Date // decoded from epoch timestamp
+///     }
 public enum DatabaseDateDecodingStrategy {
     /// The strategy that uses formatting from the Date structure.
     ///

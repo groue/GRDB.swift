@@ -2602,39 +2602,10 @@ try dbQueue.write { db in
 }
 ```
 
-> :point_up: **Note**: Some codable values have a different way to encode and decode themselves in a standard archive vs. a database column. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
-
-> :point_up: **Note**: When your Codable record provides a custom implementation for `Decodable.init(from:)` or `Encodable.encode(to:)`, you may want to provide a `userInfo` context dictionary: see [The userInfo Dictionary].
-
-
-If you declare an explicit `CodingKeys` enum ([what is this?](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)), you can use coding keys as [query interface](#the-query-interface) columns, just by adding conformance to the ColumnExpression protocol:
-
-```swift
-struct Player: Codable, FetchableRecord, PersistableRecord {
-    var name: String
-    var score: Int
-    
-    private enum CodingKeys: String, CodingKey, ColumnExpression {
-        case name, score
-    }
-    
-    static func filter(name: String) -> QueryInterfaceRequest<Player> {
-        return filter(CodingKeys.name == name)
-    }
-    
-    static var maximumScore: QueryInterfaceRequest<Int> {
-        return select(max(CodingKeys.score), as: Int.self)
-    }
-}
-
-try dbQueue.read { db in
-    // SELECT * FROM player WHERE name = 'Arthur'
-    let arthur = try Player.filter(name: "Arthur").fetchOne(db) // Player?
-    
-    // SELECT MAX(score) FROM player
-    let maxScore = try Player.maximumScore.fetchOne(db)         // Int?
-}
-```
+- [JSON Columns]
+- [Date Coding Strategies](#date-coding-strategies)
+- [The userInfo Dictionary]
+- [Tip: Use CodingKeys as Columns](#tip-use-codingkeys-as-columns)
 
 
 ### JSON Columns
@@ -2709,6 +2680,27 @@ struct Player: Codable, FetchableRecord, PersistableRecord {
 > :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, and watchOS 4.0+. This option makes sure that the JSON output is stable. This stability is required for [Record Comparison] to work as expected, and database observation tools such as [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) to accurately recognize changed records.
 
 
+### Date Coding Strategies
+
+By default, [Codable records](#codable-records) encode their date properties in the "YYYY-MM-DD HH:MM:SS.SSS" in the UTC time zone (see [Date and DateComponents](#date-and-datecomponents) for more information about the default handling of dates).
+
+This behavior can be overridden:
+
+```swift
+protocol FetchableRecord {
+    static var databaseDateDecodingStrategy:
+        DatabaseDateDecodingStrategy { get }
+}
+
+protocol MutablePersistableRecord {
+    static var databaseDateEncodingStrategy:
+        DatabaseDateEncodingStrategy { get }
+}
+```
+
+See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseDateDecodingStrategy.html) and [DatabaseDateEncodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseDateEncodingStrategy.html) for more information.
+
+
 ### The userInfo Dictionary
 
 Your [Codable records](#codable-records) can be stored in the database, but they may also have other purposes. In this case, you may need to customize their implementations of `Decodable.init(from:)` and `Encodable.encode(to:)`, depending on the context.
@@ -2751,6 +2743,38 @@ extension Player: FetchableRecord {
 
 // prints "Database"
 let player = try Player.fetchOne(db, ...)
+```
+
+
+### Tip: Use CodingKeys as Columns
+
+If you declare an explicit `CodingKeys` enum ([what is this?](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)), you can use coding keys as [query interface](#the-query-interface) columns, just by adding conformance to the ColumnExpression protocol:
+
+```swift
+struct Player: Codable, FetchableRecord, PersistableRecord {
+    var name: String
+    var score: Int
+    
+    private enum CodingKeys: String, CodingKey, ColumnExpression {
+        case name, score
+    }
+    
+    static func filter(name: String) -> QueryInterfaceRequest<Player> {
+        return filter(CodingKeys.name == name)
+    }
+    
+    static var maximumScore: QueryInterfaceRequest<Int> {
+        return select(max(CodingKeys.score), as: Int.self)
+    }
+}
+
+try dbQueue.read { db in
+    // SELECT * FROM player WHERE name = 'Arthur'
+    let arthur = try Player.filter(name: "Arthur").fetchOne(db) // Player?
+    
+    // SELECT MAX(score) FROM player
+    let maxScore = try Player.maximumScore.fetchOne(db)         // Int?
+}
 ```
 
 

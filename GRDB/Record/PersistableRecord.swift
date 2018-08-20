@@ -392,6 +392,15 @@ public protocol MutablePersistableRecord : TableRecord {
     /// protocol, this property controls the encoding of date properties.
     ///
     /// Default value is .deferredToDate
+    ///
+    /// For example:
+    ///
+    ///     struct Player: PersistableRecord, Encodable {
+    ///         static let databaseDateEncodingStrategy: DatabaseDateEncodingStrategy = .timeIntervalSince1970
+    ///
+    ///         var name: String
+    ///         var registrationDate: Date // encoded as an epoch timestamp
+    ///     }
     static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
 }
 
@@ -959,8 +968,17 @@ extension PersistableRecord {
 
 // MARK: - DatabaseDateEncodingStrategy
 
-/// The strategies available for formatting dates when encoding them into a
-/// database column.
+/// DatabaseDateEncodingStrategy specifies how PersistableRecord types that also
+/// adopt the standard Encodable protocol encode their date properties.
+///
+/// For example:
+///
+///     struct Player: PersistableRecord, Encodable {
+///         static let databaseDateEncodingStrategy: DatabaseDateEncodingStrategy = .timeIntervalSince1970
+///
+///         var name: String
+///         var registrationDate: Date // encoded as an epoch timestamp
+///     }
 public enum DatabaseDateEncodingStrategy {
     /// The strategy that uses formatting from the Date structure.
     ///
