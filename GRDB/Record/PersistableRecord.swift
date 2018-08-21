@@ -995,7 +995,8 @@ extension PersistableRecord {
 public enum DatabaseDateEncodingStrategy {
     /// The strategy that uses formatting from the Date structure.
     ///
-    /// It encodes dates using the format "YYYY-MM-DD HH:MM:SS.SSS" in the UTC time zone.
+    /// It encodes dates using the format "YYYY-MM-DD HH:MM:SS.SSS" in the
+    /// UTC time zone.
     case deferredToDate
     
     /// Encodes a Double: the number of seconds between the date and
@@ -1041,10 +1042,10 @@ public enum DatabaseDateEncodingStrategy {
 public enum DatabaseUUIDEncodingStrategy {
     /// The strategy that uses formatting from the UUID type.
     ///
-    /// It can encodes UUIDs as 16-bytes data blobs.
+    /// It encodes UUIDs as 16-bytes data blobs.
     case deferredToUUID
     
-    /// Encode UUIDs as strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
+    /// Encodes UUIDs as strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
     case string
 }
 

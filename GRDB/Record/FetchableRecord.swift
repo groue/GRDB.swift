@@ -421,7 +421,7 @@ public enum DatabaseDateDecodingStrategy {
     /// (midnight UTC on January 1st, 1970).
     ///
     /// It decodes strings in the following formats, assuming UTC time zone.
-    /// Missing components are assumed to be zero.
+    /// Missing components are assumed to be zero:
     ///
     /// - `YYYY-MM-DD`
     /// - `YYYY-MM-DD HH:MM`

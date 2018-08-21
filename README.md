@@ -2690,7 +2690,9 @@ protocol MutablePersistableRecord {
 }
 ```
 
-See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseDateDecodingStrategy.html), [DatabaseDateEncodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseDateEncodingStrategy.html), and [DatabaseUUIDEncodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseUUIDEncodingStrategy.html) for more information.
+See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseDateDecodingStrategy.html), [DatabaseDateEncodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseDateEncodingStrategy.html), and [DatabaseUUIDEncodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseUUIDEncodingStrategy.html) to learn about all available strategies.
+
+> :point_up: **Note**: there is no customization of uuid decoding, because UUID can already decode all its encoded variants (16-bytes blobs, and uuid strings).
 
 
 ### The userInfo Dictionary
@@ -2719,7 +2721,7 @@ struct Player: FetchableRecord, Decodable {
     init(from decoder: Decoder) throws {
         // Print the decoder name
         let decoderName = decoder.userInfo[decoderName] as? String
-        print("Decoded from \(decoderName ?? "nil")")
+        print("Decoded from \(decoderName ?? "unknown decoder")")
         ...
     }
 }
@@ -2744,6 +2746,8 @@ extension Player: FetchableRecord {
 // prints "Decoded from database row"
 let player = try Player.fetchOne(db, ...)
 ```
+
+> :point_up: **Note**: make sure the `databaseDecodingUserInfo` and `databaseEncodingUserInfo` properties are explicitly declared as `[CodingUserInfoKey: Any]`. If they are not, the Swift compiler may silently miss the protocol requirement, resulting in sticky empty userInfo.
 
 
 ### Tip: Use Coding Keys as Columns
@@ -3898,7 +3902,7 @@ let request = RestrictedPlayer.all()
 let request = ExtendedPlayer.all()
 ```
 
-> :point_up: **Note**: make sure the `databaseSelection` property is explicitly declared as `[SQLSelectable]`. If it is not, the Swift compiler may infer a type which may silently miss the protocol requirement, resulting in sticky `SELECT *` requests. To verify your setup, see the [How do I print a request as SQL?](#how-do-i-print-a-request-as-sql) FAQ.
+> :point_up: **Note**: make sure the `databaseSelection` property is explicitly declared as `[SQLSelectable]`. If it is not, the Swift compiler may silently miss the protocol requirement, resulting in sticky `SELECT *` requests. To verify your setup, see the [How do I print a request as SQL?](#how-do-i-print-a-request-as-sql) FAQ.
 
 
 ## Expressions
