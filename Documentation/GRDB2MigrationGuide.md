@@ -172,7 +172,7 @@ extension Player {
 }
 ```
 
-When your record adops the Codable protocol, you can use its [coding keys](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types) as columns:
+When your record adopts the Codable protocol, you can use its [coding keys](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types) as columns:
 
 ```swift
 // GRDB 3
