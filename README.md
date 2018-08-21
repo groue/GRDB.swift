@@ -2608,10 +2608,18 @@ try dbQueue.write { db in
 }
 ```
 
+Codable records encode and decode their properties according to their own implementation of the Encodable and Decodable protocols. Yet databases have specific requirements:
+
+- A property prefers its database representation when it has one (all [values](#values) that adopt the [DatabaseValueConvertible](#custom-value-types) protocol).
+- You can customize the encoding and decoding of dates and uuids.
+- Complex properties (arrays, dictionaries, nested structs, etc.) are stored as JSON.
+
+For more information about Codable records, see:
+
 - [JSON Columns]
 - [Date and UUID Coding Strategies]
 - [The userInfo Dictionary]
-- [Tip: Use CodingKeys as Columns](#tip-use-codingkeys-as-columns)
+- [Tip: Use Coding Keys as Columns](#tip-use-coding-keys-as-columns)
 
 
 ### JSON Columns
@@ -2738,7 +2746,7 @@ let player = try Player.fetchOne(db, ...)
 ```
 
 
-### Tip: Use CodingKeys as Columns
+### Tip: Use Coding Keys as Columns
 
 If you declare an explicit `CodingKeys` enum ([what is this?](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)), you can instruct GRDB to use those coding keys as database columns:
 

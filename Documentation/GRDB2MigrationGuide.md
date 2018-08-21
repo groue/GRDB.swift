@@ -160,9 +160,45 @@ struct Player: FetchableRecord, TableRecord {
         score = row[Columns.score]
     }
 }
+
+extension Player {
+    static func filter(name: String) -> QueryInterfaceRequest<Player> {
+        return filter(Columns.name == name)
+    }
+    
+    static var maximumScore: QueryInterfaceRequest<Int> {
+        return select(max(Columns.score), as: Int.self)
+    }
+}
 ```
 
-GRDB can apply additional optimizations on expressions that adopt ColumnExpression, so conform to this protocol when you define a custom column type:
+When your record adops the Codable protocol, you can use its [coding keys](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types) as columns:
+
+```swift
+// GRDB 3
+struct Player: Codable, FetchableRecord, PersistableRecord {
+    var id: Int64
+    var name: String
+    var score: Int
+    
+    // Add ColumnExpression conformance
+    private enum CodingKeys: String, CodingKey, ColumnExpression {
+        case id, name, score
+    }
+}
+
+extension Player {
+    static func filter(name: String) -> QueryInterfaceRequest<Player> {
+        return filter(CodingKeys.name == name)
+    }
+    
+    static var maximumScore: QueryInterfaceRequest<Int> {
+        return select(max(CodingKeys.score), as: Int.self)
+    }
+}
+```
+
+GRDB can apply additional optimizations on expressions that adopt ColumnExpression, so conform to this protocol whenever you define a custom column type:
 
 ```swift
 struct TypedColumn: ColumnExpression {
