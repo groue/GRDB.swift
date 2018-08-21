@@ -8,47 +8,51 @@ import XCTest
 #endif
 
 class FoundationNSUUIDTests: GRDBTestCase {
-    
-    func testNSUUIDDatabaseRoundTrip() throws {
-        let dbQueue = try makeDatabaseQueue()
-        func roundTrip(_ value: NSUUID) throws -> Bool {
-            guard let back = try dbQueue.inDatabase({ try NSUUID.fetchOne($0, "SELECT ?", arguments: [value]) }) else {
-                XCTFail()
-                return false
+    private func assert(_ value: DatabaseValueConvertible?, isDecodedAs expectedUUID: NSUUID?) throws {
+        try makeDatabaseQueue().read { db in
+            if let expectedUUID = expectedUUID {
+                let decodedUUID = try NSUUID.fetchOne(db, "SELECT ?", arguments: [value])
+                XCTAssertEqual(decodedUUID, expectedUUID)
+            } else if value == nil {
+                let decodedUUID = try Optional<NSUUID>.fetchAll(db, "SELECT NULL")[0]
+                XCTAssertNil(decodedUUID)
             }
-            return back == value
         }
         
-        XCTAssertTrue(try roundTrip(NSUUID(uuidString: "56e7d8d3-e9e4-48b6-968e-8d102833af00")!))
-        XCTAssertTrue(try roundTrip(NSUUID()))
+        let decodedUUID = NSUUID.fromDatabaseValue(value?.databaseValue ?? .null)
+        XCTAssertEqual(decodedUUID, expectedUUID)
     }
     
-    func testNSUUIDDatabaseValueRoundTrip() {
-        
-        func roundTrip(_ value: NSUUID) -> Bool {
-            let dbValue = value.databaseValue
-            guard let back = NSUUID.fromDatabaseValue(dbValue) else {
-                XCTFail("Failed to convert from DatabaseValue to NSUUID")
-                return false
-            }
-            return back.isEqual(value)
+    private func assertRoundTrip(_ uuid: UUID) throws {
+        let string = uuid.uuidString
+        var uuid_t = uuid.uuid
+        let data = withUnsafeBytes(of: &uuid_t) {
+            Data(bytes: $0.baseAddress!, count: $0.count)
         }
-        
-        XCTAssertTrue(roundTrip(NSUUID(uuidString: "56e7d8d3-e9e4-48b6-968e-8d102833af00")!))
-        XCTAssertTrue(roundTrip(NSUUID()))
+        try assert(string, isDecodedAs: uuid as NSUUID)
+        try assert(string.lowercased(), isDecodedAs: uuid as NSUUID)
+        try assert(string.uppercased(), isDecodedAs: uuid as NSUUID)
+        try assert(uuid, isDecodedAs: uuid as NSUUID)
+        try assert(uuid as NSUUID, isDecodedAs: uuid as NSUUID)
+        try assert(data, isDecodedAs: uuid as NSUUID)
     }
     
-    func testNSUUIDFromDatabaseValueFailure() {
-        let databaseValue_Null = DatabaseValue.null
-        let databaseValue_Int64 = Int64(1).databaseValue
-        let databaseValue_Double = Double(100000.1).databaseValue
-        let databaseValue_String = "56e7d8d3-e9e4-48b6-968e-8d102833af00".databaseValue
-        let databaseValue_badBlob = "bar".data(using: .utf8)!.databaseValue
-        XCTAssertNil(NSUUID.fromDatabaseValue(databaseValue_Null))
-        XCTAssertNil(NSUUID.fromDatabaseValue(databaseValue_Int64))
-        XCTAssertNil(NSUUID.fromDatabaseValue(databaseValue_Double))
-        XCTAssertNil(NSUUID.fromDatabaseValue(databaseValue_String))
-        XCTAssertNil(NSUUID.fromDatabaseValue(databaseValue_badBlob))
+    func testSuccess() throws {
+        try assertRoundTrip(UUID(uuidString: "56e7d8d3-e9e4-48b6-968e-8d102833af00")!)
+        try assertRoundTrip(UUID())
+        try assert("abcdefghijklmnop".data(using: .utf8)!, isDecodedAs: NSUUID(uuidString: "61626364-6566-6768-696A-6B6C6D6E6F70"))
     }
     
+    func testFailure() throws {
+        try assert(nil, isDecodedAs: nil)
+        try assert(DatabaseValue.null, isDecodedAs: nil)
+        try assert(1, isDecodedAs: nil)
+        try assert(100000.1, isDecodedAs: nil)
+        try assert("56e7d8d3e9e448b6968e8d102833af0", isDecodedAs: nil)
+        try assert("56e7d8d3-e9e4-48b6-968e-8d102833af0!", isDecodedAs: nil)
+        try assert("foo", isDecodedAs: nil)
+        try assert("bar".data(using: .utf8)!, isDecodedAs: nil)
+        try assert("abcdefghijklmno".data(using: .utf8)!, isDecodedAs: nil)
+        try assert("abcdefghijklmnopq".data(using: .utf8)!, isDecodedAs: nil)
+    }
 }

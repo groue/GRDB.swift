@@ -95,6 +95,21 @@ public protocol FetchableRecord {
     ///         }
     ///     }
     static func databaseJSONDecoder(for column: String) -> JSONDecoder
+    
+    /// When the FetchableRecord type also adopts the standard Decodable
+    /// protocol, this property controls the decoding of date properties.
+    ///
+    /// Default value is .deferredToDate
+    ///
+    /// For example:
+    ///
+    ///     struct Player: FetchableRecord, Decodable {
+    ///         static let databaseDateDecodingStrategy: DatabaseDateDecodingStrategy = .timeIntervalSince1970
+    ///
+    ///         var name: String
+    ///         var registrationDate: Date // decoded from epoch timestamp
+    ///     }
+    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
 }
 
 extension FetchableRecord {
@@ -114,44 +129,9 @@ extension FetchableRecord {
         decoder.nonConformingFloatDecodingStrategy = .throw
         return decoder
     }
-}
-
-/// A cursor of records. For example:
-///
-///     struct Player : FetchableRecord { ... }
-///     try dbQueue.read { db in
-///         let players: RecordCursor<Player> = try Player.fetchCursor(db, "SELECT * FROM player")
-///     }
-public final class RecordCursor<Record: FetchableRecord> : Cursor {
-    private let statement: SelectStatement
-    private let row: Row // Reused for performance
-    private let sqliteStatement: SQLiteStatement
-    private var done = false
     
-    init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
-        self.statement = statement
-        self.row = try Row(statement: statement).adapted(with: adapter, layout: statement)
-        self.sqliteStatement = statement.sqliteStatement
-        statement.reset(withArguments: arguments)
-    }
-    
-    /// :nodoc:
-    public func next() throws -> Record? {
-        if done {
-            // make sure this instance never yields a value again, even if the
-            // statement is reset by another cursor.
-            return nil
-        }
-        switch sqlite3_step(sqliteStatement) {
-        case SQLITE_DONE:
-            done = true
-            return nil
-        case SQLITE_ROW:
-            return Record(row: row)
-        case let code:
-            statement.database.selectStatementDidFail(statement)
-            throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
-        }
+    public static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy {
+        return .deferredToDate
     }
 }
 
@@ -329,6 +309,8 @@ extension FetchableRecord {
     }
 }
 
+// MARK: - FetchRequest
+
 extension FetchRequest where RowDecoder: FetchableRecord {
     
     // MARK: Fetching Records
@@ -376,4 +358,103 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
         return try RowDecoder.fetchOne(db, self)
     }
+}
+
+// MARK: - RecordCursor
+
+/// A cursor of records. For example:
+///
+///     struct Player : FetchableRecord { ... }
+///     try dbQueue.read { db in
+///         let players: RecordCursor<Player> = try Player.fetchCursor(db, "SELECT * FROM player")
+///     }
+public final class RecordCursor<Record: FetchableRecord> : Cursor {
+    private let statement: SelectStatement
+    private let row: Row // Reused for performance
+    private let sqliteStatement: SQLiteStatement
+    private var done = false
+    
+    init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
+        self.statement = statement
+        self.row = try Row(statement: statement).adapted(with: adapter, layout: statement)
+        self.sqliteStatement = statement.sqliteStatement
+        statement.reset(withArguments: arguments)
+    }
+    
+    /// :nodoc:
+    public func next() throws -> Record? {
+        if done {
+            // make sure this instance never yields a value again, even if the
+            // statement is reset by another cursor.
+            return nil
+        }
+        switch sqlite3_step(sqliteStatement) {
+        case SQLITE_DONE:
+            done = true
+            return nil
+        case SQLITE_ROW:
+            return Record(row: row)
+        case let code:
+            statement.database.selectStatementDidFail(statement)
+            throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+        }
+    }
+}
+
+// MARK: - DatabaseDateDecodingStrategy
+
+/// DatabaseDateDecodingStrategy specifies how FetchableRecord types that also
+/// adopt the standard Decodable protocol decode their date properties.
+///
+/// For example:
+///
+///     struct Player: FetchableRecord, Decodable {
+///         static let databaseDateDecodingStrategy: DatabaseDateDecodingStrategy = .timeIntervalSince1970
+///
+///         var name: String
+///         var registrationDate: Date // decoded from epoch timestamp
+///     }
+public enum DatabaseDateDecodingStrategy {
+    /// The strategy that uses formatting from the Date structure.
+    ///
+    /// It decodes numeric values as a nunber of seconds since Epoch
+    /// (midnight UTC on January 1st, 1970).
+    ///
+    /// It decodes strings in the following formats, assuming UTC time zone.
+    /// Missing components are assumed to be zero:
+    ///
+    /// - `YYYY-MM-DD`
+    /// - `YYYY-MM-DD HH:MM`
+    /// - `YYYY-MM-DD HH:MM:SS`
+    /// - `YYYY-MM-DD HH:MM:SS.SSS`
+    /// - `YYYY-MM-DDTHH:MM`
+    /// - `YYYY-MM-DDTHH:MM:SS`
+    /// - `YYYY-MM-DDTHH:MM:SS.SSS`
+    case deferredToDate
+    
+    /// Decodes numeric values as a number of seconds between the date and
+    /// midnight UTC on 1 January 2001
+    case timeIntervalSinceReferenceDate
+    
+    /// Decodes numeric values as a number of seconds between the date and
+    /// midnight UTC on 1 January 1970
+    case timeIntervalSince1970
+    
+    /// Decodes numeric values as a number of milliseconds between the date and
+    /// midnight UTC on 1 January 1970
+    case millisecondsSince1970
+    
+    /// Decodes dates according to the ISO 8601 standards
+    @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
+    case iso8601
+    
+    /// Decodes a String, according to the provided formatter
+    case formatted(DateFormatter)
+    
+    /// Decodes according to the user-provided function.
+    ///
+    /// If the database value  does not contain a suitable value, the function
+    /// must return nil (GRDB will interpret this nil result as a conversion
+    /// error, and react accordingly).
+    case custom((DatabaseValue) -> Date?)
 }

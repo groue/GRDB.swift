@@ -121,18 +121,18 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
 
     /// Returns a DatabaseValue initialized from a raw SQLite statement pointer.
     init(sqliteStatement: SQLiteStatement, index: Int32) {
-        switch sqlite3_column_type(sqliteStatement, Int32(index)) {
+        switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_NULL:
             storage = .null
         case SQLITE_INTEGER:
-            storage = .int64(sqlite3_column_int64(sqliteStatement, Int32(index)))
+            storage = .int64(sqlite3_column_int64(sqliteStatement, index))
         case SQLITE_FLOAT:
-            storage = .double(sqlite3_column_double(sqliteStatement, Int32(index)))
+            storage = .double(sqlite3_column_double(sqliteStatement, index))
         case SQLITE_TEXT:
-            storage = .string(String(cString: sqlite3_column_text(sqliteStatement, Int32(index))))
+            storage = .string(String(cString: sqlite3_column_text(sqliteStatement, index)))
         case SQLITE_BLOB:
-            if let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) {
-                let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
+            if let bytes = sqlite3_column_blob(sqliteStatement, index) {
+                let count = Int(sqlite3_column_bytes(sqliteStatement, index))
                 storage = .blob(Data(bytes: bytes, count: count)) // copy bytes
             } else {
                 storage = .blob(Data())

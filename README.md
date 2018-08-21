@@ -1313,7 +1313,9 @@ let amount = NSDecimalNumber(value: integerAmount).multiplying(byPowerOf10: -2) 
 
 ### UUID
 
-**UUID** can be stored and fetched from the database just like other [values](#values). GRDB stores uuids as 16-bytes data blobs.
+**UUID** can be stored and fetched from the database just like other [values](#values).
+
+GRDB stores uuids as 16-bytes data blobs, and decodes them from both 16-bytes data blobs and strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F".
 
 
 ### Swift Enums
@@ -2062,7 +2064,7 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 - [PersistableRecord Protocol](#persistablerecord-protocol)
     - [Persistence Methods](#persistence-methods)
     - [Customizing the Persistence Methods]
-- [Codable Records](#codable-records)
+- [Codable Records]
 - [Record Class](#record-class)
 - [Record Comparison]
 - [Record Customization Options]
@@ -2171,7 +2173,7 @@ Details follow:
 - [FetchableRecord Protocol](#fetchablerecord-protocol)
 - [TableRecord Protocol](#tablerecord-protocol)
 - [PersistableRecord Protocol](#persistablerecord-protocol)
-- [Codable Records](#codable-records)
+- [Codable Records]
 - [Record Class](#record-class)
 - [Record Comparison]
 - [Record Customization Options]
@@ -2212,7 +2214,9 @@ Details follow:
     }
     ```
     
-    FetchableRecord is not able to build SQL requests for you, though. For that, you also need TableRecord:
+    > :bulb: **Tip**: FetchableRecord can derive its implementation from the standard Decodable protocol. See [Codable Records] for more information.
+    
+    FetchableRecord can decode database rows, but it is not able to build SQL requests for you. For that, you also need TableRecord:
     
 - [TableRecord] is able to **generate SQL queries**:
     
@@ -2243,6 +2247,8 @@ Details follow:
     ```
     
     A persistable record can also [compare](#record-comparison) itself against other records, and avoid useless database updates.
+    
+    > :bulb: **Tip**: PersistableRecord can derive its implementation from the standard Encodable protocol. See [Codable Records] for more information.
 
 
 ## FetchableRecord Protocol
@@ -2296,7 +2302,7 @@ extension Place : FetchableRecord {
 
 See [column values](#column-values) for more information about the `row[]` subscript.
 
-When your record type adopts the standard Decodable protocol, you don't have to provide the implementation for `init(row:)`. See [Codable Records](#codable-records) for more information:
+When your record type adopts the standard Decodable protocol, you don't have to provide the implementation for `init(row:)`. See [Codable Records] for more information:
 
 ```swift
 // That's all
@@ -2480,7 +2486,7 @@ extension Place : MutablePersistableRecord {
 }
 ```
 
-When your record type adopts the standard Encodable protocol, you don't have to provide the implementation for `encode(to:)`. See [Codable Records](#codable-records) for more information:
+When your record type adopts the standard Encodable protocol, you don't have to provide the implementation for `encode(to:)`. See [Codable Records] for more information:
 
 ```swift
 // That's all
@@ -2602,39 +2608,18 @@ try dbQueue.write { db in
 }
 ```
 
-> :point_up: **Note**: Some codable values have a different way to encode and decode themselves in a standard archive vs. a database column. For example, [Date](#date-and-datecomponents) saves itself as a numerical timestamp (archive) or a string (database). When such an ambiguity happens, GRDB always favors customized database encoding and decoding.
+Codable records encode and decode their properties according to their own implementation of the Encodable and Decodable protocols. Yet databases have specific requirements:
 
-> :point_up: **Note**: When your Codable record provides a custom implementation for `Decodable.init(from:)` or `Encodable.encode(to:)`, you may want to provide a `userInfo` context dictionary: see [The userInfo Dictionary].
+- A property prefers its database representation when it has one (all [values](#values) that adopt the [DatabaseValueConvertible](#custom-value-types) protocol).
+- You can customize the encoding and decoding of dates and uuids.
+- Complex properties (arrays, dictionaries, nested structs, etc.) are stored as JSON.
 
+For more information about Codable records, see:
 
-If you declare an explicit `CodingKeys` enum ([what is this?](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)), you can use coding keys as [query interface](#the-query-interface) columns, just by adding conformance to the ColumnExpression protocol:
-
-```swift
-struct Player: Codable, FetchableRecord, PersistableRecord {
-    var name: String
-    var score: Int
-    
-    private enum CodingKeys: String, CodingKey, ColumnExpression {
-        case name, score
-    }
-    
-    static func filter(name: String) -> QueryInterfaceRequest<Player> {
-        return filter(CodingKeys.name == name)
-    }
-    
-    static var maximumScore: QueryInterfaceRequest<Int> {
-        return select(max(CodingKeys.score), as: Int.self)
-    }
-}
-
-try dbQueue.read { db in
-    // SELECT * FROM player WHERE name = 'Arthur'
-    let arthur = try Player.filter(name: "Arthur").fetchOne(db) // Player?
-    
-    // SELECT MAX(score) FROM player
-    let maxScore = try Player.maximumScore.fetchOne(db)         // Int?
-}
-```
+- [JSON Columns]
+- [Date and UUID Coding Strategies]
+- [The userInfo Dictionary]
+- [Tip: Use Coding Keys as Columns](#tip-use-coding-keys-as-columns)
 
 
 ### JSON Columns
@@ -2647,9 +2632,8 @@ enum AchievementColor: String, Codable {
 }
 
 struct Achievement: Codable {
-     var name: String
-     var color: AchievementColor
-     var date: Date
+    var name: String
+    var color: AchievementColor
 }
 
 struct Player: Codable, FetchableRecord, PersistableRecord {
@@ -2658,14 +2642,15 @@ struct Player: Codable, FetchableRecord, PersistableRecord {
     var achievements: [Achievement] // stored in a JSON column
 }
 
-try dbQueue.write { db in
+try! dbQueue.write { db in
     // INSERT INTO player (name, score, achievements)
     // VALUES (
     //   'Arthur',
     //   100,
     //   '[{"color":"gold","name":"Use Codable Records"}]')
     let achievement = Achievement(name: "Use Codable Records", color: .gold)
-    try Player(name: "Arthur", score: 100, achievements: [achievement]).insert(db)
+    let player = Player(name: "Arthur", score: 100, achievements: [achievement])
+    try player.insert(db)
 }
 ```
 
@@ -2683,37 +2668,38 @@ protocol MutablePersistableRecord {
 }
 ```
 
-For example, here is how the Player type can customize the json format of its "achievements" JSON column:
+> :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, and watchOS 4.0+. This option makes sure that the JSON output is stable. This stability is required for [Record Comparison] to work as expected, and database observation tools such as [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) to accurately recognize changed records.
+
+
+### Date and UUID Coding Strategies
+
+By default, [Codable Records] encode and decode their Date and UUID properties as described in the general [Date and DateComponents](#date-and-datecomponents) and [UUID](#uuid) chapters.
+
+To sum up: dates encode themselves in the "YYYY-MM-DD HH:MM:SS.SSS" format, in the UTC time zone, and decode a variety of date formats and timestamps. UUIDs encode themselves as 16-bytes data blobs, and decode both 16-bytes data blobs and strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F".
+
+Those behaviors can be overridden:
 
 ```swift
-struct Player: Codable, FetchableRecord, PersistableRecord {
-    var name: String
-    var score: Int
-    var achievements: [Achievement] // stored in a JSON column
-    
-    static func databaseJSONDecoder(for column: String) -> JSONDecoder {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return decoder
-    }
-    
-    static func databaseJSONEncoder(for column: String) -> JSONEncoder {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        encoder.outputFormatting = .sortedKeys
-        return encoder
-    }
+protocol FetchableRecord {
+    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
+}
+
+protocol MutablePersistableRecord {
+    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
+    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
 }
 ```
 
-> :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, and watchOS 4.0+. This option makes sure that the JSON output is stable, and this helps [Record Comparison] yield the expected results.
+See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseDateDecodingStrategy.html), [DatabaseDateEncodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseDateEncodingStrategy.html), and [DatabaseUUIDEncodingStrategy](https://groue.github.io/GRDB.swift/docs/3.2/Enums/DatabaseUUIDEncodingStrategy.html) to learn about all available strategies.
+
+> :point_up: **Note**: there is no customization of uuid decoding, because UUID can already decode all its encoded variants (16-bytes blobs, and uuid strings).
 
 
 ### The userInfo Dictionary
 
-Your [Codable records](#codable-records) can be stored in the database, but they may also have other purposes. In this case, you may need to customize their implementations of `Decodable.init(from:)` and `Encodable.encode(to:)`, depending on the context.
+Your [Codable Records] can be stored in the database, but they may also have other purposes. In this case, you may need to customize their implementations of `Decodable.init(from:)` and `Encodable.encode(to:)`, depending on the context.
 
-The recommended way to provide such context is the `userInfo` dictionary. Implement those properties:
+The standard way to provide such context is the `userInfo` dictionary. Implement those properties:
 
 ```swift
 protocol FetchableRecord {
@@ -2725,7 +2711,7 @@ protocol MutablePersistableRecord {
 }
 ```
 
-For example, here is how the Player type can customize its decoding:
+For example, here is a Player type that customizes its decoding:
 
 ```swift
 // A key that holds a decoder's name
@@ -2734,23 +2720,88 @@ let decoderName = CodingUserInfoKey(rawValue: "decoderName")!
 struct Player: FetchableRecord, Decodable {
     init(from decoder: Decoder) throws {
         // Print the decoder name
-        print(decoder.userInfo[decoderName])
+        let decoderName = decoder.userInfo[decoderName] as? String
+        print("Decoded from \(decoderName ?? "unknown decoder")")
         ...
     }
 }
+```
 
-// prints "JSON"
+You can have a specific decoding from JSON...
+
+```swift
+// prints "Decoded from JSON"
 let decoder = JSONDecoder()
 decoder.userInfo = [decoderName: "JSON"]
-let player = try decoder.decode(Player.self, from: ...)
+let player = try decoder.decode(Player.self, from: jsonData)
+```
 
+... and another one from database rows:
+
+```swift
 extension Player: FetchableRecord {
-    // Customize the decoder name when decoding a database row
-    static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "Database"]
+    static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "database row"]
 }
 
-// prints "Database"
+// prints "Decoded from database row"
 let player = try Player.fetchOne(db, ...)
+```
+
+> :point_up: **Note**: make sure the `databaseDecodingUserInfo` and `databaseEncodingUserInfo` properties are explicitly declared as `[CodingUserInfoKey: Any]`. If they are not, the Swift compiler may silently miss the protocol requirement, resulting in sticky empty userInfo.
+
+
+### Tip: Use Coding Keys as Columns
+
+If you declare an explicit `CodingKeys` enum ([what is this?](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)), you can instruct GRDB to use those coding keys as database columns:
+
+```swift
+struct Player: Codable, FetchableRecord, PersistableRecord {
+    var name: String
+    var score: Int
+    
+    // Add ColumnExpression conformance
+    private enum CodingKeys: String, CodingKey, ColumnExpression {
+        case name, score
+    }
+}
+```
+
+This allows your record to build requests with the [query interface](#the-query-interface):
+
+```swift
+extension Player {
+    static func filter(name: String) -> QueryInterfaceRequest<Player> {
+        return filter(CodingKeys.name == name)
+    }
+    
+    static var maximumScore: QueryInterfaceRequest<Int> {
+        return select(max(CodingKeys.score), as: Int.self)
+    }
+}
+```
+
+Those requests can both fetch...
+
+```swift
+// Fetch values
+try dbQueue.read { db in
+    // SELECT * FROM player WHERE name = 'Arthur'
+    let arthur = try Player.filter(name: "Arthur").fetchOne(db) // Player?
+    
+    // SELECT MAX(score) FROM player
+    let maxScore = try Player.maximumScore.fetchOne(db)         // Int?
+}
+```
+
+... and feed database observation tools such as [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
+
+```swift
+// Observe changes
+Player.maximumScore.rx
+    .fetchOne(in: dbQueue)
+    .subscribe(onNext: { maxScore: Int? in
+        print("The maximum score has changed")
+    })
 ```
 
 
@@ -2891,13 +2942,17 @@ For an efficient algorithm which synchronizes the content of a database table wi
 
 GRDB records come with many default behaviors, that are designed to fit most situations. Many of those defaults can be customized for your specific needs:
 
-- [Columns Selected by a Request]: define which columns are selected by requests such as `Player.fetchAll(db)`.
 - [Customizing the Persistence Methods]: define what happens when you call a persistance method such as `player.insert(db)`
 - [Conflict Resolution]: Run `INSERT OR REPLACE` queries, and generally define what happens when a persistence method violates a unique index.
 - [The Implicit RowID Primary Key]: all about the special `rowid` column.
-- [JSON Columns]: control the format of JSON columns.
-- [The userInfo Dictionary]: adapt your Codable implementation for the database.
+- [Columns Selected by a Request]: define which columns are selected by requests such as `Player.fetchAll(db)`.
 - [Beyond FetchableRecord]: the FetchableRecord protocol is not the end of the story.
+
+[Codable Records] have a few extra options:
+
+- [JSON Columns]: control the format of JSON columns.
+- [Date and UUID Coding Strategies]: control the format of Date and UUID properties in your Codable records.
+- [The userInfo Dictionary]: adapt your Codable implementation for the database.
 
 
 ### Conflict Resolution
@@ -3097,7 +3152,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
 
 **Some GRDB users eventually discover that the [FetchableRecord] protocol does not fit all situations.** Use cases that are not well handled by FetchableRecord include:
 
-- Your application needs polymorphic row decoding: it decodes some class or another, depending on the values contained in a database row.
+- Your application needs polymorphic row decoding: it decodes some type or another, depending on the values contained in a database row.
 
 - Your application needs to decode rows with a context: each decoded value should be initialized with some extra value that does not come from the database.
 
@@ -3131,7 +3186,7 @@ Each one of the three examples below is correct. You will pick one or the other 
 
 This is the shortest way to define a record type.
 
-See the [Record Protocols Overview](#record-protocols-overview), and [Codable Records](#codable-records) for more information.
+See the [Record Protocols Overview](#record-protocols-overview), and [Codable Records] for more information.
 
 ```swift
 struct Place: Codable {
@@ -3847,7 +3902,7 @@ let request = RestrictedPlayer.all()
 let request = ExtendedPlayer.all()
 ```
 
-> :point_up: **Note**: make sure the `databaseSelection` property is explicitly declared as `[SQLSelectable]`. If it is not, the Swift compiler may infer a type which may silently miss the protocol requirement, resulting in sticky `SELECT *` requests. To verify your setup, see the [How do I print a request as SQL?](#how-do-i-print-a-request-as-sql) FAQ.
+> :point_up: **Note**: make sure the `databaseSelection` property is explicitly declared as `[SQLSelectable]`. If it is not, the Swift compiler may silently miss the protocol requirement, resulting in sticky `SELECT *` requests. To verify your setup, see the [How do I print a request as SQL?](#how-do-i-print-a-request-as-sql) FAQ.
 
 
 ## Expressions
@@ -5559,7 +5614,7 @@ PlayerInfo.all()
 
 ### Splitting Rows, the Codable Way
 
-[Codable Records](#codable-records) build on top of the standard Decodable protocol in order to decode database rows.
+[Codable Records] build on top of the standard Decodable protocol in order to decode database rows.
 
 You can consume complex joined queries with Codable records as well. As a demonstration, we'll rewrite the [above](#splitting-rows-the-request-way) sample code:
 
@@ -7637,9 +7692,11 @@ This chapter has been renamed [Beyond FetchableRecord].
 
 [Associations]: Documentation/AssociationsBasics.md
 [Beyond FetchableRecord]: #beyond-fetchablerecord
+[Codable Records]: #codable-records
 [Columns Selected by a Request]: #columns-selected-by-a-request
 [Conflict Resolution]: #conflict-resolution
 [Customizing the Persistence Methods]: #customizing-the-persistence-methods
+[Date and UUID Coding Strategies]: #date-and-uuid-coding-strategies
 [Fetching from Requests]: #fetching-from-requests
 [The Implicit RowID Primary Key]: #the-implicit-rowid-primary-key
 [The userInfo Dictionary]: #the-userinfo-dictionary

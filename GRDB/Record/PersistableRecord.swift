@@ -387,6 +387,36 @@ public protocol MutablePersistableRecord : TableRecord {
     ///         }
     ///     }
     static func databaseJSONEncoder(for column: String) -> JSONEncoder
+    
+    /// When the PersistableRecord type also adopts the standard Encodable
+    /// protocol, this property controls the encoding of date properties.
+    ///
+    /// Default value is .deferredToDate
+    ///
+    /// For example:
+    ///
+    ///     struct Player: PersistableRecord, Encodable {
+    ///         static let databaseDateEncodingStrategy: DatabaseDateEncodingStrategy = .timeIntervalSince1970
+    ///
+    ///         var name: String
+    ///         var registrationDate: Date // encoded as an epoch timestamp
+    ///     }
+    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
+    
+    /// When the PersistableRecord type also adopts the standard Encodable
+    /// protocol, this property controls the encoding of UUID properties.
+    ///
+    /// Default value is .deferredToUUID
+    ///
+    /// For example:
+    ///
+    ///     struct Player: PersistableProtocol, Encodable {
+    ///         static let databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy = .string
+    ///
+    ///         // encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
+    ///         var uuid: UUID
+    ///     }
+    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
 }
 
 extension MutablePersistableRecord {
@@ -394,12 +424,6 @@ extension MutablePersistableRecord {
         return [:]
     }
     
-    /// Returns a JSONEncoder with the following properties:
-    ///
-    /// - dataEncodingStrategy: .base64
-    /// - dateEncodingStrategy: .millisecondsSince1970
-    /// - nonConformingFloatEncodingStrategy: .throw
-    /// - outputFormatting: .sortedKeys (iOS 11.0+, macOS 10.13+, watchOS 4.0+)
     public static func databaseJSONEncoder(for column: String) -> JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dataEncodingStrategy = .base64
@@ -410,6 +434,14 @@ extension MutablePersistableRecord {
             encoder.outputFormatting = .sortedKeys
         }
         return encoder
+    }
+    
+    public static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy {
+        return .deferredToDate
+    }
+    
+    public static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy {
+        return .deferredToUUID
     }
 }
 
@@ -944,7 +976,77 @@ extension PersistableRecord {
             try insert(db)
         }
     }
+}
+
+
+// MARK: - DatabaseDateEncodingStrategy
+
+/// DatabaseDateEncodingStrategy specifies how PersistableRecord types that also
+/// adopt the standard Encodable protocol encode their date properties.
+///
+/// For example:
+///
+///     struct Player: PersistableRecord, Encodable {
+///         static let databaseDateEncodingStrategy: DatabaseDateEncodingStrategy = .timeIntervalSince1970
+///
+///         var name: String
+///         var registrationDate: Date // encoded as an epoch timestamp
+///     }
+public enum DatabaseDateEncodingStrategy {
+    /// The strategy that uses formatting from the Date structure.
+    ///
+    /// It encodes dates using the format "YYYY-MM-DD HH:MM:SS.SSS" in the
+    /// UTC time zone.
+    case deferredToDate
     
+    /// Encodes a Double: the number of seconds between the date and
+    /// midnight UTC on 1 January 2001
+    case timeIntervalSinceReferenceDate
+    
+    /// Encodes a Double: the number of seconds between the date and
+    /// midnight UTC on 1 January 1970
+    case timeIntervalSince1970
+    
+    /// Encodes an Int64: the number of seconds between the date and
+    /// midnight UTC on 1 January 1970
+    case secondsSince1970
+    
+    /// Encodes an Int64: the number of milliseconds between the date and
+    /// midnight UTC on 1 January 1970
+    case millisecondsSince1970
+    
+    /// Encodes dates according to the ISO 8601 and RFC 3339 standards
+    @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
+    case iso8601
+    
+    /// Encodes a String, according to the provided formatter
+    case formatted(DateFormatter)
+    
+    /// Encodes the result of the user-provided function
+    case custom((Date) -> DatabaseValueConvertible?)
+}
+
+// MARK: - DatabaseUUIDEncodingStrategy
+
+/// DatabaseUUIDEncodingStrategy specifies how FetchableRecord types that also
+/// adopt the standard Encodable protocol encode their UUID properties.
+///
+/// For example:
+///
+///     struct Player: PersistableProtocol, Encodable {
+///         static let databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy = .string
+///
+///         // encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
+///         var uuid: UUID
+///     }
+public enum DatabaseUUIDEncodingStrategy {
+    /// The strategy that uses formatting from the UUID type.
+    ///
+    /// It encodes UUIDs as 16-bytes data blobs.
+    case deferredToUUID
+    
+    /// Encodes UUIDs as strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
+    case string
 }
 
 // MARK: - DAO
