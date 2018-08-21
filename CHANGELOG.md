@@ -3,6 +3,13 @@ Release Notes
 
 ## Next Version
 
+This release focuses on enhancing the relationships between [Codable records](README.md#codable-records) and the database, with JSON columns, customized date formats, and better diagnostics when things go wrong.
+
+Other notable enhancements are:
+
+- Support for the FTS5 full-text engine when available in the operating system (iOS 11.4+ / macOS 10.13+ / watchOS 4.3+)
+
+
 ### Fixed
 
 - The `write` and `unsafeReentrantRead` DatabaseQueue methods used to have an incorrect `throws/rethrows` qualifier.
@@ -10,12 +17,21 @@ Release Notes
 
 ### New
 
-- [#397](https://github.com/groue/GRDB.swift/pull/397): Codable records: JSON encoding and decoding of codable record properties
+- [#397](https://github.com/groue/GRDB.swift/pull/397) by [@gusrota](https://github.com/gusrota) and [@valexa](https://github.com/valexa): Codable records: JSON encoding and decoding of codable record properties
 - [#399](https://github.com/groue/GRDB.swift/pull/399): Codable records: customize the `userInfo` context dictionary, and the format of JSON columns
+- [#403](https://github.com/groue/GRDB.swift/pull/403): Codable records: customize date and uuid format
 - [#401](https://github.com/groue/GRDB.swift/pull/401): Query Interface: set the selection and the fetched type in a single method call
 - [#393](https://github.com/groue/GRDB.swift/pull/393): Upgrade SQLCipher to 3.4.2, enable FTS5 on GRDBCipher and new pod GRDBPlus.
 - [#384](https://github.com/groue/GRDB.swift/pull/384): Improve database value decoding diagnostics
 - Cursors of optimized values (Strint, Int, Date, etc.) have been renamed: FastDatabaseValueCursor and FastNullableDatabaseValueCursor replace the deprecated ColumnCursor and NullableColumnCursor.
+
+
+### Documentation Diff
+
+- [Enabling FTS5 Support](README.md#enabling-fts5-support): Procedure for enabling FTS5 support in GRDB.
+- [Codable Records](README.md#codable-records): Updated documentation for JSON columns, customized date and uuid formats, and other customization options.
+- [Record Customization Options](README.md#record-customization-options): A new chapter that gathers all your customization options.
+- [Fetching from Requests](README.md#fetching-from-requests): Enhanced documentation about requests that don't fetch their origin record (such as aggregates, or associated records).
 
 
 ### API diff
@@ -36,11 +52,14 @@ Enhancements to Codable support:
 ```diff
  protocol FetchableRecord {
 +    static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] { get }
++    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
 +    static func databaseJSONDecoder(for column: String) -> JSONDecoder
  }
 
  protocol MutablePersistableRecord: TableRecord {
 +    static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] { get }
++    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
++    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
 +    static func databaseJSONEncoder(for column: String) -> JSONEncoder
  }
 ```
@@ -72,14 +91,6 @@ Deprecations:
 +@available(*, deprecated, renamed: "FastNullableDatabaseValueCursor")
 +typealias NullableColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> = FastNullableDatabaseValueCursor<Value>
 ```
-
-
-### Documentation Diff
-
-- [Enabling FTS5 Support](README.md#enabling-fts5-support): Procedure for enabling FTS5 support in GRDB.
-- [Codable Records](README.md#codable-records): Updated documentation for JSON columns, tips, and customization options.
-- [Record Customization Options](README.md#record-customization-options): A new chapter that gather all your customization options.
-- [Fetching from Requests](README.md#fetching-from-requests): Enhanced documentation about requests that don't fetch their origin record (such as aggregates, or associated records).
 
 
 ## 3.2.0
