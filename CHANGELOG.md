@@ -21,7 +21,7 @@ Other notable enhancements are:
 - [#399](https://github.com/groue/GRDB.swift/pull/399): Codable records: customize the `userInfo` context dictionary, and the format of JSON columns
 - [#403](https://github.com/groue/GRDB.swift/pull/403): Codable records: customize date and uuid format
 - [#401](https://github.com/groue/GRDB.swift/pull/401): Query Interface: set the selection and the fetched type in a single method call
-- [#393](https://github.com/groue/GRDB.swift/pull/393): Upgrade SQLCipher to 3.4.2, enable FTS5 on GRDBCipher and new pod GRDBPlus.
+- [#393](https://github.com/groue/GRDB.swift/pull/393) by [@Marus](https://github.com/Marus): Upgrade SQLCipher to 3.4.2, enable FTS5 on GRDBCipher and new pod GRDBPlus.
 - [#384](https://github.com/groue/GRDB.swift/pull/384): Improve database value decoding diagnostics
 - Cursors of optimized values (Strint, Int, Date, etc.) have been renamed: FastDatabaseValueCursor and FastNullableDatabaseValueCursor replace the deprecated ColumnCursor and NullableColumnCursor.
 
