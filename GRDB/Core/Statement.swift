@@ -951,7 +951,7 @@ struct StatementCache {
             return statement
         }
         
-        #if GRDBCUSTOMSQLITE
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
             // http://www.sqlite.org/c3ref/c_prepare_persistent.html#sqlitepreparepersistent
             // > The SQLITE_PREPARE_PERSISTENT flag is a hint to the query
             // > planner that the prepared statement will be retained for a long
@@ -961,6 +961,8 @@ struct StatementCache {
             //
             // However SQLITE_PREPARE_PERSISTENT was only introduced in
             // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
+            //
+            // TODO: use SQLITE_PREPARE_PERSISTENT if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *)
             let statement = try db.makeUpdateStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         #else
             let statement = try db.makeUpdateStatement(sql)
