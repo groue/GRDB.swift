@@ -371,6 +371,20 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (id <> 1)")
     }
     
+    func testFilterLiteralWithMixedArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest
+                .filter(sql: "age > :age", arguments: ["age": 20])
+                .filter(sql: "name = ?", arguments: ["arthur"])),
+            "SELECT * FROM \"readers\" WHERE ((age > 20) AND (name = 'arthur'))")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest
+                .filter(sql: "age > ?", arguments: [20])
+                .filter(sql: "name = :name", arguments: ["name": "arthur"])),
+            "SELECT * FROM \"readers\" WHERE ((age > 20) AND (name = 'arthur'))")
+    }
+
     func testFilter() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(

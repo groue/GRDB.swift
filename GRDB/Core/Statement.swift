@@ -586,13 +586,21 @@ extension UpdateStatement: AuthorizedStatement { }
 ///
 /// ## Mixed Arguments
 ///
-/// When a statement consumes a mix of named and positional arguments, it
-/// prefers named arguments over positional ones. For example:
+/// It is possible to mix named and positional arguments. Yet this is usually
+/// confusing, and it is best to avoid this practice:
 ///
 ///     let sql = "SELECT ?2 AS two, :foo AS foo, ?1 AS one, :foo AS foo2, :bar AS bar"
-///     let row = try Row.fetchOne(db, sql, arguments: [1, 2, "bar"] + ["foo": "foo"])!
+///     var arguments: StatementArguments = [1, 2, "bar"] + ["foo": "foo"]
+///     let row = try Row.fetchOne(db, sql, arguments: arguments)!
 ///     print(row)
 ///     // Prints [two:2 foo:"foo" one:1 foo2:"foo" bar:"bar"]
+///
+/// Mixed arguments exist as a support for requests like the following:
+///
+///     let players = try Player
+///         .filter(sql: "team = :team", arguments: ["team": "Blue"])
+///         .filter(sql: "score > ?", arguments: [1000])
+///         .fetchAll(db)
 public struct StatementArguments: CustomStringConvertible, Equatable, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
     private(set) var values: [DatabaseValue] = []
     private(set) var namedValues: [String: DatabaseValue] = [:]
