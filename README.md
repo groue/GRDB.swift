@@ -581,20 +581,42 @@ try dbQueue.write { db in
         """)
     
     try db.execute(
-        "INSERT INTO player (name, score) VALUES (:name, :score)",
-        arguments: ["name": "Barbara", "score": 1000])
+        "INSERT INTO player (name, score) VALUES (?, ?)",
+        arguments: ["Barbara", 1000])
     
-    // Join multiple statements with a semicolon:
-    try db.execute("""
-        INSERT INTO player (name, score) VALUES (?, ?);
-        INSERT INTO player (name, score) VALUES (?, ?)
-        """, arguments: ["Arthur", 750, "Barbara", 1000])
+    try db.execute(
+        "UPDATE player SET score = :score WHERE id = :id",
+        arguments: ["score": 1000, "id": 1])
+    }
 }
 ```
 
-The `?` and colon-prefixed keys like `:name` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.).
+The `?` and colon-prefixed keys like `:score` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [StatementArguments](http://groue.github.io/GRDB.swift/docs/3.2/Structs/StatementArguments.html) for a detailed documentation of SQLite arguments.
 
-Never ever embed values directly in your SQL strings, and always use arguments instead. See [Avoiding SQL Injection](#avoiding-sql-injection) for more information.
+**Never ever embed values directly in your SQL strings**, and always use arguments instead. See [Avoiding SQL Injection](#avoiding-sql-injection) for more information:
+
+```swift
+// WRONG
+let id = 123
+let name = textField.text
+try db.execute("UPDATE player SET name = '\(name)' WHERE id = \(id)")
+
+// CORRECT
+try db.execute(
+    "UPDATE player SET name = :name WHERE id = :id",
+    arguments: ["name": name, "id": id])
+```
+
+**Join multiple statements with a semicolon**:
+
+```swift
+try db.execute("""
+    INSERT INTO player (name, score) VALUES (?, ?);
+    INSERT INTO player (name, score) VALUES (?, ?)
+    """, arguments: ["Arthur", 750, "Barbara", 1000])
+```
+
+When you want to make sure that a single statement is executed, use [Prepared Statements](#prepared-statements).
 
 **After an INSERT statement**, you can get the row ID of the inserted row:
 
