@@ -2631,7 +2631,7 @@ try dbQueue.write { db in
 
 Codable records encode and decode their properties according to their own implementation of the Encodable and Decodable protocols. Yet databases have specific requirements:
 
-- A property prefers its database representation when it has one (all [values](#values) that adopt the [DatabaseValueConvertible](#custom-value-types) protocol).
+- Properties are always coded according to their preferred database representation, when they have one (all [values](#values) that adopt the [DatabaseValueConvertible](#custom-value-types) protocol).
 - You can customize the encoding and decoding of dates and uuids.
 - Complex properties (arrays, dictionaries, nested structs, etc.) are stored as JSON.
 
