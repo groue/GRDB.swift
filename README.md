@@ -981,7 +981,7 @@ You get DatabaseValue just like other value types:
 
 ```swift
 let dbValue: DatabaseValue = row[0]
-let dbValue: DatabaseValue = row["name"]
+let dbValue: DatabaseValue? = row["name"] // nil if and only if column does not exist
 
 // Check for NULL:
 dbValue.isNull // Bool
@@ -1020,13 +1020,6 @@ let dbValue: DatabaseValue = row[0]
 let string = String.fromDatabaseValue(dbValue) // "Mom’s birthday"
 let int    = Int.fromDatabaseValue(dbValue)    // nil
 let date   = Date.fromDatabaseValue(dbValue)   // nil
-```
-
-This turns out useful when you process untrusted databases. Compare:
-
-```swift
-let date: Date? = row[0]  // fatal error: could not convert "Mom’s birthday" to Date.
-let date = Date.fromDatabaseValue(row[0]) // nil
 ```
 
 
