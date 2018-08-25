@@ -785,7 +785,7 @@ Both arrays and cursors can iterate over database results. How do you choose one
     let set = try Set(cursor)
     ```
     
-    **Cursors are not Swift sequences.** That's because Swift sequences can't handle iteration errors, when reading SQLite results may fail at any time. SQL functions may throw errors. On iOS, [data protection](#data-protection) may block access to the database file in the background. On macOS, your application users may mess with the file system.
+- **Cursors are not Swift sequences.** That's because Swift sequences can't handle iteration errors, when reading SQLite results may fail at any time. SQL functions may throw errors. On iOS, [data protection](#data-protection) may block access to the database file in the background. On macOS, your application users may mess with the file system.
 
 - **Cursors require a little care**:
     
