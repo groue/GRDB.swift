@@ -1205,7 +1205,7 @@ The non-copied data does not live longer than the iteration step: make sure that
 
 [**Date**](#date) and [**DateComponents**](#datecomponents) can be stored and fetched from the database.
 
-Here is the support provided by GRDB for the various [date formats](https://www.sqlite.org/lang_datefunc.html) supported by SQLite:
+Here is how GRDB supports the various [date formats](https://www.sqlite.org/lang_datefunc.html) supported by SQLite:
 
 | SQLite format                | Date         | DateComponents |
 |:---------------------------- |:------------:|:--------------:|
@@ -1236,6 +1236,7 @@ try db.execute(
     "INSERT INTO player (creationDate, ...) VALUES (?, ...)",
     arguments: [Date(), ...])
 
+let row = try Row.fetchOne(db, ...)!
 let creationDate: Date = row["creationDate"]
 ```
 
@@ -1247,8 +1248,19 @@ Dates are stored using the format "YYYY-MM-DD HH:MM:SS.SSS" in the UTC time zone
 > - Comparable with the SQLite keyword CURRENT_TIMESTAMP (`WHERE date > CURRENT_TIMESTAMP` works)
 > - Able to feed [SQLite date & time functions](https://www.sqlite.org/lang_datefunc.html)
 > - Precise enough
-> 
-> Yet this format may not fit your needs. For example, you may want to store dates as timestamps. In this case, store and load Doubles instead of Date, and perform the required conversions.
+
+When the default format does not fit your needs, customize date conversions. For example:
+
+```swift
+try db.execute(
+    "INSERT INTO player (creationDate, ...) VALUES (?, ...)",
+    arguments: [Date().timeIntervalSinceReferenceDate, ...])
+
+let row = try Row.fetchOne(db, ...)!
+let creationDate = Date(timeIntervalSinceReferenceDate: row["creationDate"])
+```
+
+See [Codable Records] for more date customization options.
 
 
 #### DateComponents
