@@ -1158,19 +1158,13 @@ let urls = try URL.fetchAll(db, "SELECT url FROM link")  // [URL]
 Use values in [Records](#records):
 
 ```swift
-class Link : Record {
+struct Link: FetchableRecord {
     var url: URL
     var isVerified: Bool
     
-    required init(row: Row) {
+    init(row: Row) {
         url = row["url"]
         isVerified = row["verified"]
-        super.init(row: row)
-    }
-    
-    override func encode(to container: inout PersistenceContainer) {
-        container["url"] = url
-        container["verified"] = isVerified
     }
 }
 ```
@@ -1179,7 +1173,7 @@ Use values in the [query interface](#the-query-interface):
 
 ```swift
 let url: URL = ...
-let link = try Link.filter(urlColumn == url).fetchOne(db)
+let link = try Link.filter(Column("url") == url).fetchOne(db)
 ```
 
 
