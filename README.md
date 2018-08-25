@@ -888,14 +888,14 @@ row[...] as Int
 row[...] as Int?
 ```
 
-> :warning: **Warning**: avoid the `as!` and `as?` operators, because they misbehave in the context of type inference (see [rdar://21676393](http://openradar.appspot.com/radar?id=4951414862249984)):
+> :warning: **Warning**: avoid the `as!` and `as?` operators:
 > 
 > ```swift
 > if let int = row[...] as? Int { ... } // BAD - doesn't work
 > if let int = row[...] as Int? { ... } // GOOD
 > ```
 
-Generally speaking, you can extract the type you need, *provided it can be converted from the underlying SQLite value*:
+Generally speaking, you can extract the type you need, provided it can be converted from the underlying SQLite value:
 
 - **Successful conversions include:**
     
