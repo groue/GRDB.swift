@@ -1467,18 +1467,32 @@ try dbPool.writeWithoutTransaction { db in
 }
 ```
 
-**Writing outside of any transaction can be dangerous.** In our credit/debit example, you may successfully insert a credit, but fail inserting the debit, and end up with unbalanced accounts (oops).
+**Writing outside of any transaction is dangerous,** for two reasons:
 
-Furthermore, outside of any transaction, database pool concurrent reads may see an inconsistent state of the database:
+- In our credit/debit example, you may successfully insert a credit, but fail inserting the debit, and end up with unbalanced accounts (oops).
 
-```swift
-// UNSAFE CONCURRENCY
-try dbPool.writeWithoutTransaction { db in
-    try Credit(destinationAccout, amount).insert(db)
-    // <- Concurrent dbPool.read sees a partial db update here
-    try Debit(sourceAccount, amount).insert(db)
-}
-```
+    ```swift
+    // UNSAFE DATABASE INTEGRITY
+    try dbQueue.inDatabase { db in // or dbPool.writeWithoutTransaction
+        try Credit(destinationAccout, amount).insert(db) // may succeed
+        try Debit(sourceAccount, amount).insert(db)      // may fail
+    }
+    ```
+    
+    Transactions avoid this kind of bug.
+    
+- [Database pool](#database-pools) concurrent reads can see an inconsistent state of the database:
+    
+    ```swift
+    // UNSAFE CONCURRENCY
+    try dbPool.writeWithoutTransaction { db in
+        try Credit(destinationAccout, amount).insert(db)
+        // <- Concurrent dbPool.read sees a partial db update here
+        try Debit(sourceAccount, amount).insert(db)
+    }
+    ```
+    
+    Transactions avoid this kind of bug, too.
 
 To open explicit transactions, use one of the `Database.inTransaction`, `DatabaseQueue.inTransaction`, or `DatabasePool.writeInTransaction` methods:
 
