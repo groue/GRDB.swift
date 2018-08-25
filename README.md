@@ -2135,7 +2135,7 @@ try player.insert(db)
 To fetch records from the database, call a [fetching methods](#fetching-methods):
 
 ```swift
-let arthur = try Player.fetchOne(db,            // [Player]
+let arthur = try Player.fetchOne(db,            // Player?
     "SELECT * FROM players WHERE name = ?",
     arguments: ["Arthur"])
 
