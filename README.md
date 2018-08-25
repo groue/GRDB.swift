@@ -2076,7 +2076,7 @@ Records
 
 ```swift
 try dbQueue.write { db in
-    if let place = try Place.fetchOne(db, key: 1) {
+    if var place = try Place.fetchOne(db, key: 1) {
         place.isFavorite = true
         try place.update(db)
     }
@@ -2087,7 +2087,7 @@ Of course, you need to open a [database connection](#database-connections), and 
 
 Your custom structs and classes can adopt each protocol individually, and opt in to focused sets of features. Or you can subclass the `Record` class, and get the full toolkit in one go: fetching methods, persistence methods, and record comparison. See the [list of record methods](#list-of-record-methods) for an overview.
 
-> :point_up: **Note**: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, and do not auto-update. This is both a purpose, and a consequence of protocol-oriented programming. You should read [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3) for a general introduction.
+> :point_up: **Note**: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, do not auto-update, and do not lazy-load. This is both a purpose, and a consequence of protocol-oriented programming. You should read [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3) for a general introduction.
 >
 > :bulb: **Tip**: after you have read this chapter, check the [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) Guide.
 
@@ -2120,54 +2120,56 @@ Your custom structs and classes can adopt each protocol individually, and opt in
 
 ### Inserting Records
 
-To insert a record in the database, subclass the [Record](#record-class) class or adopt the [PersistableRecord] protocol, and call the `insert` method:
+To insert a record in the database, call the `insert` method:
 
 ```swift
-class Player : Record { ... }
-
 let player = Player(name: "Arthur", email: "arthur@example.com")
 try player.insert(db)
 ```
 
+:point_right: `insert` is available for subclasses of the [Record](#record-class) class, and all types that adopt the [PersistableRecord] protocol.
+
 
 ### Fetching Records
 
-[Record](#record-class) subclasses and types that adopt the [FetchableRecord] protocol can be fetched from the database:
+To fetch records from the database, call a [fetching methods](#fetching-methods):
 
 ```swift
-class Player : Record { ... }
-let players = try Player.fetchAll(db, "SELECT ...", arguments: ...) // [Player]
-```
+let arthur = try Player.fetchOne(db,            // [Player]
+    "SELECT * FROM players WHERE name = ?",
+    arguments: ["Arthur"])
 
-Add the [TableRecord] protocol and you can stop writing SQL:
-
-```swift
-let spain = try Country.fetchOne(db, key: "ES") // Country?
-let players = try Player                        // [Player]
-    .filter(Column("email") != nil)
-    .order(Column("name"))
+let bestPlayers = try Player                    // [Player]
+    .order(Column("score").desc)
+    .limit(10)
     .fetchAll(db)
+    
+let spain = try Country.fetchOne(db, key: "ES") // Country?
 ```
 
-See [fetching methods](#fetching-methods), and the [query interface](#the-query-interface).
+:point_right: Fetching from raw SQL is available for subclasses of the [Record](#record-class) class, and all types that adopt the [FetchableRecord] protocol.
+
+:point_right: Fetching without SQL, using the [query interface](#the-query-interface), is available for subclasses of the [Record](#record-class) class, and all types that adopt both [FetchableRecord] and [TableRecord] protocol.
 
 
 ### Updating Records
 
-[Record](#record-class) subclasses and types that adopt the [PersistableRecord] protocol can be updated in the database:
+To update a record in the database, call the `update` method:
 
 ```swift
-let player = try Player.fetchOne(db, key: 1)!
-player.score = 1000
-try player.update(db)
+if let player = try Player.fetchOne(db, key: 1) 
+    player.score = 1000
+    try player.update(db)
+}
 ```
 
 It is possible to [avoid useless updates](#record-comparison):
 
 ```swift
-let player = try Player.fetchOne(db, key: 1)!
-player.score = 1000
-try player.updateChanges(db) // does nothing if score has not changed
+if let player = try Player.fetchOne(db, key: 1) {
+    player.score = 1000
+    try player.updateChanges(db) // does nothing if score has not changed
+}
 ```
 
 For batch updates, execute an [SQL query](#executing-updates):
@@ -2176,17 +2178,20 @@ For batch updates, execute an [SQL query](#executing-updates):
 try db.execute("UPDATE player SET synchronized = 1")
 ```
 
+:point_right: update methods are available for subclasses of the [Record](#record-class) class, and all types that adopt the [PersistableRecord] protocol.
+
 
 ### Deleting Records
 
-[Record](#record-class) subclasses and types that adopt the [PersistableRecord] protocol can be deleted from the database:
+To delete a record in the database, call the `delete` method:
 
 ```swift
-let player = try Player.fetchOne(db, key: 1)!
-try player.delete(db)
+if let player = try Player.fetchOne(db, key: 1) {
+    try player.delete(db)
+}
 ```
 
-Such records can also delete according to primary key or any unique index:
+You can also delete by primary key, or any unique index:
 
 ```swift
 try Player.deleteOne(db, key: 1)
@@ -2197,17 +2202,27 @@ try Country.deleteAll(db, keys: ["FR", "US"])
 For batch deletes, execute an [SQL query](#executing-updates), or see the [query interface](#the-query-interface):
 
 ```swift
-try Player.filter(emailColumn == nil).deleteAll(db)
+try Player
+    .filter(Column("email") == nil)
+    .deleteAll(db)
 ```
+
+:point_right: delete methods are available for subclasses of the [Record](#record-class) class, and all types that adopt the [PersistableRecord] protocol.
 
 
 ### Counting Records
 
-[Record](#record-class) subclasses and types that adopt the [TableRecord] protocol can be counted:
+To count records, call the `fetchCount` method:
 
 ```swift
-let playerWithEmailCount = try Player.filter(emailColumn != nil).fetchCount(db)  // Int
+let playerCount: Int = try Player.fetchCount(db)
+
+let playerWithEmailCount: Int = try Player
+    .filter(Column("email") == nil)
+    .fetchCount(db)
 ```
+
+:point_right: `fetchCount` is available for subclasses of the [Record](#record-class) class, and all types that adopt the [TableRecord] protocol.
 
 
 Details follow:
