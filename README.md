@@ -7093,8 +7093,11 @@ The correct solution is the `readFromCurrentState` method, which must be called 
 ```swift
 // CORRECT
 try dbPool.writeWithoutTransaction { db in
-    // Increment the number of players
-    try Player(...).insert(db)
+    try db.inTransaction {
+        // increment the number of players
+        try Player(...).insert(db)
+        return .commit
+    }
     
     // <- not in a transaction here
     try dbPool.readFromCurrentState { db
@@ -7158,7 +7161,12 @@ When you want to control the latest committed changes seen by a snapshot, create
 
 ```swift
 let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshot in
-    try Player.deleteAll()
+    try db.inTransaction {
+        // delete all players
+        try Player.deleteAll()
+        return .commit
+    }
+    
     // <- not in a transaction here
     return dbPool.makeSnapshot()
 }
