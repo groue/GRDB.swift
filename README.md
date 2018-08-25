@@ -7047,7 +7047,7 @@ Despite the common [guarantees and rules](#guarantees-and-rules) shared by [data
 
 ![DatabaseQueueScheduling](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabaseQueueScheduling.svg)
 
-**Database pools** also serialize all writes. But they allow concurrent reads and writes. On top of that, reads are isolated from concurrent writes. This gives a very different picture:
+**Database pools** also serialize all writes. But they allow concurrent reads and writes, and isolate reads so that they don't see changes performed by other threads. This gives a very different picture:
 
 ![DatabasePoolScheduling](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabasePoolScheduling.svg)
 
