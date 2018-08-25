@@ -1369,7 +1369,7 @@ while let row = try rows.next() {
 }
 ```
 
-**When a database value does not match any enum case**, you get a fatal error. This fatal error can be avoided with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
+**When a database value does not match any enum case**, you get a fatal error. This fatal error can be avoided with the [DatabaseValue](#databasevalue) type:
 
 ```swift
 let row = try Row.fetchOne(db, "SELECT 'syrah'")!
@@ -1377,7 +1377,15 @@ let row = try Row.fetchOne(db, "SELECT 'syrah'")!
 row[0] as String  // "syrah"
 row[0] as Grape?  // fatal error: could not convert "syrah" to Grape.
 row[0] as Grape   // fatal error: could not convert "syrah" to Grape.
-Grape.fromDatabaseValue(row[0])  // nil
+
+let dbValue: DatabaseValue = row[0]
+if dbValue.isNull {
+    // Handle NULL
+} else if let grape = Grape.fromDatabaseValue(dbValue) {
+    // Handle valid grape
+} else {
+    // Handle unknown grape
+}
 ```
 
 
