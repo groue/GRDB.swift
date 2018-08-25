@@ -7043,19 +7043,17 @@ Those guarantees hold as long as you follow three rules:
 
 Despite the common [guarantees and rules](#guarantees-and-rules) shared by [database queues](#database-queues) and [pools](#database-pools), those two database accessors don't have the same behavior.
 
-**Database queues** serialize all database accesses, reads, and writes. There is never more than one thread that uses the database. In the image on the left below, we see how three threads can see the database:
+**Database queues** serialize all database accesses, reads, and writes. There is never more than one thread that uses the database. In the image below, we see how three threads can see the database as time passes:
 
-| Database Queue | Database Pool |
-| -------------- | ------------- |
-| ![Database Queue Scheduling](Documentation/Images/DatabaseQueueScheduling.png) | ![Database Pool Scheduling](Documentation/Images/DatabasePoolScheduling.png) |
+![DatabaseQueueScheduling](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabaseQueueScheduling.svg)
 
-**Database pools** serialize all writes, but allow concurrent reads and writes. On top of that, reads are guaranteed an immutable view of the database. This gives a very different picture (on the right).
+**Database pools** also serialize all writes. But they allow concurrent reads and writes. On top of that, reads are isolated from concurrent writes. This gives a very different picture:
 
-See, at the bottom of the image, how two threads can see different database states at the same time.
+![DatabasePoolScheduling](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabasePoolScheduling.svg)
 
-Because of this behavior, one has to understand that all database pool reads may load *stale data*. Fortunately, the consequences of stale data can easily be alleviated by [database observation](#database-changes-observation), where GRDB *shines*.
+See how two threads can see different database states at the same time. This may sound scary. Fortunately, the consequences of stale data can be easily alleviated with [database observation](#database-changes-observation), where GRDB *shines*.
 
-**It is highly recommended**, before you use database pools, that you grab general information about SQLite [WAL mode](https://www.sqlite.org/wal.html), [snapshot isolation](https://sqlite.org/isolation.html), and GRDB [database observation](#database-changes-observation). They all fit very well together.
+**It is recommended**, before you use database pools, that you grab general information about SQLite [WAL mode](https://www.sqlite.org/wal.html), [snapshot isolation](https://sqlite.org/isolation.html), and GRDB [database observation](#database-changes-observation). They all fit very well together.
 
 
 ### Advanced DatabasePool
