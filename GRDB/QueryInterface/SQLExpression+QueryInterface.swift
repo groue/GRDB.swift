@@ -30,7 +30,7 @@ extension SQLExpression {
 ///
 ///     SQLExpressionLiteral("1 + 2")
 ///
-/// The SQL literal may contain `?` and colon-prefixed tokens:
+/// The SQL literal may contain `?` and colon-prefixed arguments:
 ///
 ///     SQLExpressionLiteral("? + ?", arguments: [1, 2])
 ///     SQLExpressionLiteral(":one + :two", arguments: ["one": 1, "two": 2])
@@ -42,7 +42,7 @@ public struct SQLExpressionLiteral : SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
-    /// Eventual arguments that feed the `?` and colon-prefixed tokens in the
+    /// Eventual arguments that feed the `?` and colon-prefixed arguments in the
     /// SQL literal
     public let arguments: StatementArguments?
     

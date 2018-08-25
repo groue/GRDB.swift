@@ -1,5 +1,6 @@
 // MARK: - SQL Ordering Support
 
+/// :nodoc:
 extension SQLSpecificExpressible {
     
     /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
@@ -20,6 +21,7 @@ extension SQLSpecificExpressible {
 
 // MARK: - SQL Selection Support
 
+/// :nodoc:
 extension SQLSpecificExpressible {
     
     /// Returns a value that can be used as an argument to QueryInterfaceRequest.select()
@@ -33,6 +35,7 @@ extension SQLSpecificExpressible {
 
 // MARK: - SQL Collations Support
 
+/// :nodoc:
 extension SQLSpecificExpressible {
     
     /// Returns a collated expression.

@@ -21,6 +21,7 @@ public protocol SQLCollection {
 
 // MARK: Default Implementations
 
+/// :nodoc:
 extension SQLCollection {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///

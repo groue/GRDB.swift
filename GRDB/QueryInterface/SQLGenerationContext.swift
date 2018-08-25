@@ -1,5 +1,9 @@
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
 /// SQLGenerationContext is responsible for preventing SQL injection and
 /// disambiguating table names when GRDB generates SQL queries.
+///
+/// :nodoc:
 public struct SQLGenerationContext {
     private(set) var arguments: StatementArguments?
     private var resolvedNames: [TableAlias: String]
