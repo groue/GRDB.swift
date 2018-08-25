@@ -1025,7 +1025,7 @@ let date   = Date.fromDatabaseValue(dbValue)   // nil
 
 #### Rows as Dictionaries
 
-Row adopts the standard [Collection](https://developer.apple.com/reference/swift/collection) protocol, and can be seen as a dictionary of [DatabaseValue](#databasevalue):
+Row adopts the standard [RandomAccessCollection](https://developer.apple.com/documentation/swift/randomaccesscollection) protocol, and can be seen as a dictionary of [DatabaseValue](#databasevalue):
 
 ```swift
 // All the (columnName, dbValue) tuples, from left to right:
