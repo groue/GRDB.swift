@@ -2566,19 +2566,19 @@ struct Player: Encodable, MutablePersistableRecord {
 
 ```swift
 // Instance methods
-try place.save(db)                     // Inserts or updates
+try place.save(db)                     // INSERT or UPDATE
 try place.insert(db)                   // INSERT
 try place.update(db)                   // UPDATE
 try place.update(db, columns: ...)     // UPDATE
 try place.updateChanges(db, from: ...) // Maybe UPDATE
 try place.updateChanges(db)            // Maybe UPDATE (Record class only)
 try place.delete(db)                   // DELETE
-place.exists(db)
+try place.exists(db)
 
 // Type methods
-Place.deleteAll(db)                    // DELETE
-Place.deleteAll(db, keys:...)          // DELETE
-Place.deleteOne(db, key:...)           // DELETE
+try Place.deleteAll(db)                    // DELETE
+try Place.deleteAll(db, keys:...)          // DELETE
+try Place.deleteOne(db, key:...)           // DELETE
 ```
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling).
