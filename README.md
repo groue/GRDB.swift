@@ -7051,9 +7051,36 @@ Despite the common [guarantees and rules](#guarantees-and-rules) shared by [data
 
 ![DatabasePoolScheduling](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabasePoolScheduling.svg)
 
-See how two threads can see different database states at the same time. This may sound scary. Fortunately, the consequences of stale data can be easily alleviated with [database observation](#database-changes-observation), where GRDB *shines*.
+See how, with database pools, two threads can see different database states at the same time.
 
-**It is recommended**, before you use database pools, that you grab general information about SQLite [WAL mode](https://www.sqlite.org/wal.html), [snapshot isolation](https://sqlite.org/isolation.html), and GRDB [database observation](#database-changes-observation). They all fit very well together.
+This may sound scary. But don't freak out:
+
+First of all, you can use the database as the *single source of truth* with the `write` database access method, which always grants exclusive access to the database file:
+
+```swift
+try dbQueue.write { db in // or dbPool.write
+    // exclusive access to the database file
+}
+```
+
+And you can alleviate the consequences of obsolete data with [database observation](#database-changes-observation), which automatically notifies of database changes. For example, with RxGRDB:
+
+```swift
+// Observe Player of id 1:
+Player.filter(key: 1).rx
+    .fetchAll(in: dbQueue) // or fetchAll(in: dbPool)
+    .subscribe(onNext: { player: Player? in
+        // Player has changed: update the view.
+        updateView(with: player)
+        
+        // While we're updating the view on the main thread, other
+        // threads can modify the database. But when this happens,
+        // this closure is guaranteed to be called again, with a
+        // refreshed player.
+    })
+```
+
+For more information about database pools, grab information about SQLite [WAL mode](https://www.sqlite.org/wal.html) and [snapshot isolation](https://sqlite.org/isolation.html).
 
 
 ### Advanced DatabasePool
