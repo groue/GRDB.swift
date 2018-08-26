@@ -1,4 +1,4 @@
-#if !os(Linux)
+#if canImport(CoreGraphics)
 import CoreGraphics
 
 /// CGFloat adopts DatabaseValueConvertible
