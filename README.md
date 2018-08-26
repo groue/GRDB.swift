@@ -2941,7 +2941,7 @@ if try newPlayer.updateChanges(db, from: oldPlayer) {
 }
 ```
 
-> :point_up: **Note**: The comparison is performed of the database representation of records. As long as your record type adopts a PersistableRecord protocol, you don't need to care about Equatable.
+> :point_up: **Note**: The comparison is performed on the database representation of records. As long as your record type adopts a PersistableRecord protocol, you don't need to care about Equatable.
 
 The [Record](#record-class) class is able to compare against itself, and knows if it has changes that have not been saved since it was last fetched or persisted:
 
