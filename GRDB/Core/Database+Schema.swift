@@ -577,9 +577,10 @@ struct SchemaInfo: Equatable {
         var name: String
         var tbl_name: String?
         
-        // TODO: remove when Hashable conformance is synthesized
-        var hashValue: Int {
-            return type.hashValue ^ name.hashValue ^ (tbl_name?.hashValue ?? 0)
-        }
+        #if !swift(>=4.2)
+            var hashValue: Int {
+                return type.hashValue ^ name.hashValue ^ (tbl_name?.hashValue ?? 0)
+            }
+        #endif
     }
 }

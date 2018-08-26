@@ -235,10 +235,17 @@ public class TableAlias: Hashable {
         return expression.qualifiedExpression(with: self)
     }
     
+    #if swift(>=4.2)
+    /// :nodoc:
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(root))
+    }
+    #else
     /// :nodoc:
     public var hashValue: Int {
         return ObjectIdentifier(root).hashValue
     }
+    #endif
     
     /// :nodoc:
     public static func == (lhs: TableAlias, rhs: TableAlias) -> Bool {

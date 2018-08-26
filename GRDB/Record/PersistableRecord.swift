@@ -1185,8 +1185,9 @@ private struct InsertQuery: Hashable {
     let tableName: String
     let insertedColumns: [String]
     
-    // TODO: remove when Swift can generate it
+    #if !swift(>=4.2)
     var hashValue: Int { return tableName.hashValue }
+    #endif
 }
 
 extension InsertQuery {
@@ -1218,8 +1219,9 @@ private struct UpdateQuery: Hashable {
     let updatedColumns: [String]
     let conditionColumns: [String]
     
-    // TODO: remove when Swift can generate it
+    #if !swift(>=4.2)
     var hashValue: Int { return tableName.hashValue }
+    #endif
 }
 
 extension UpdateQuery {
