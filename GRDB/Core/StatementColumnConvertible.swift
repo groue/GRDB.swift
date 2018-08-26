@@ -89,10 +89,7 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
             done = true
             return nil
         case SQLITE_ROW:
-            return Value.fastDecode(
-                from: sqliteStatement,
-                index: columnIndex,
-                conversionContext: ValueConversionContext(statement).atColumn(Int(columnIndex)))
+            return Value.fastDecode(from: sqliteStatement, index: columnIndex)
         case let code:
             statement.database.selectStatementDidFail(statement)
             throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)

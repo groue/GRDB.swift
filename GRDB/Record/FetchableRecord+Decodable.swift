@@ -185,8 +185,7 @@ private struct RowDecoder<Record: FetchableRecord>: Decoder {
             if let sqliteStatement = row.sqliteStatement {
                 return Record.databaseDateDecodingStrategy.decodeIfPresent(
                     sqliteStatement: sqliteStatement,
-                    index: Int32(index),
-                    conversionContext: ValueConversionContext(row).atColumn(index))
+                    index: Int32(index))
             } else {
                 return Record.databaseDateDecodingStrategy.decodeIfPresent(
                     from: row[index],
@@ -199,8 +198,7 @@ private struct RowDecoder<Record: FetchableRecord>: Decoder {
             if let sqliteStatement = row.sqliteStatement {
                 return Record.databaseDateDecodingStrategy.decode(
                     sqliteStatement: sqliteStatement,
-                    index: Int32(index),
-                    conversionContext: ValueConversionContext(row).atColumn(index))
+                    index: Int32(index))
             } else {
                 return Record.databaseDateDecodingStrategy.decode(
                     from: row[index],
@@ -313,7 +311,7 @@ fileprivate var iso8601Formatter: ISO8601DateFormatter = {
 
 private extension DatabaseDateDecodingStrategy {
     @inline(__always)
-    func decode(sqliteStatement: SQLiteStatement, index: Int32, conversionContext: @autoclosure () -> ValueConversionContext?) -> Date {
+    func decode(sqliteStatement: SQLiteStatement, index: Int32) -> Date {
         switch self {
         case .deferredToDate:
             return Date(sqliteStatement: sqliteStatement, index: index)
@@ -330,10 +328,7 @@ private extension DatabaseDateDecodingStrategy {
             if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
                 let string = String(sqliteStatement: sqliteStatement, index: index)
                 guard let date = iso8601Formatter.date(from: string) else {
-                    fatalConversionError(
-                        to: Date.self,
-                        from: DatabaseValue(sqliteStatement: sqliteStatement, index: index),
-                        conversionContext: conversionContext())
+                    fatalConversionError(to: Date.self, sqliteStatement: sqliteStatement, index: index)
                 }
                 return date
             } else {
@@ -342,30 +337,24 @@ private extension DatabaseDateDecodingStrategy {
         case .formatted(let formatter):
             let string = String(sqliteStatement: sqliteStatement, index: index)
             guard let date = formatter.date(from: string) else {
-                fatalConversionError(
-                    to: Date.self,
-                    from: DatabaseValue(sqliteStatement: sqliteStatement, index: index),
-                    conversionContext: conversionContext())
+                fatalConversionError(to: Date.self, sqliteStatement: sqliteStatement, index: index)
             }
             return date
         case .custom(let format):
             let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
             guard let date = format(dbValue) else {
-                fatalConversionError(
-                    to: Date.self,
-                    from: dbValue,
-                    conversionContext: conversionContext())
+                fatalConversionError(to: Date.self, sqliteStatement: sqliteStatement, index: index)
             }
             return date
         }
     }
     
     @inline(__always)
-    func decodeIfPresent(sqliteStatement: SQLiteStatement, index: Int32, conversionContext: @autoclosure () -> ValueConversionContext?) -> Date? {
+    func decodeIfPresent(sqliteStatement: SQLiteStatement, index: Int32) -> Date? {
         if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
             return nil
         }
-        return decode(sqliteStatement:sqliteStatement, index:index, conversionContext: conversionContext)
+        return decode(sqliteStatement: sqliteStatement, index: index)
     }
     
     @inline(__always)

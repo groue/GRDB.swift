@@ -191,9 +191,12 @@ extension DatabaseValueConvertible {
 /// Lossless conversions from database values and rows
 extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     @inline(__always)
-    static func fastDecode(from sqliteStatement: SQLiteStatement, index: Int32, conversionContext: @autoclosure () -> ValueConversionContext?) -> Self {
+    static func fastDecode(from sqliteStatement: SQLiteStatement, index: Int32) -> Self {
         if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
-            fatalConversionError(to: Self.self, from: .null, conversionContext: conversionContext())
+            fatalConversionError(
+                to: Self.self,
+                from: .null,
+                conversionContext: ValueConversionContext(Row(sqliteStatement: sqliteStatement)).atColumn(Int(index)))
         }
         return self.init(sqliteStatement: sqliteStatement, index: index)
     }
@@ -201,15 +204,9 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     @inline(__always)
     static func fastDecode(from row: Row, atUncheckedIndex index: Int) -> Self {
         if let sqliteStatement = row.sqliteStatement {
-            return fastDecode(
-                from: sqliteStatement,
-                index: Int32(index),
-                conversionContext: ValueConversionContext(row).atColumn(index))
+            return fastDecode(from: sqliteStatement, index: Int32(index))
         }
-        return row.impl.fastDecode(
-            Self.self,
-            atUncheckedIndex: index,
-            conversionContext: ValueConversionContext(row).atColumn(index))
+        return row.impl.fastDecode(Self.self, atUncheckedIndex: index)
     }
     
     @inline(__always)
@@ -223,13 +220,8 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     @inline(__always)
     static func fastDecodeIfPresent(from row: Row, atUncheckedIndex index: Int) -> Self? {
         if let sqliteStatement = row.sqliteStatement {
-            return fastDecodeIfPresent(
-                from: sqliteStatement,
-                atUncheckedIndex: Int32(index))
+            return fastDecodeIfPresent(from: sqliteStatement, atUncheckedIndex: Int32(index))
         }
-        return row.impl.fastDecodeIfPresent(
-            Self.self,
-            atUncheckedIndex: index,
-            conversionContext: ValueConversionContext(row).atColumn(index))
+        return row.impl.fastDecodeIfPresent(Self.self, atUncheckedIndex: index)
     }
 }
