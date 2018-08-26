@@ -36,6 +36,7 @@
         .select(Column("nested"), as: Nested.self)
         .fetchAll(db)
     ```
+- [ ] Consider renaming dbQueue.inDatabase, dbPool.writeWithoutTransaction -> dbQueue/Pool.exclusive
 
 Swift 4.2
 
