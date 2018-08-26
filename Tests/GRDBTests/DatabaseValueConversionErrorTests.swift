@@ -35,6 +35,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                     conversionContext: ValueConversionContext(row).atColumn("name")),
                 "could not convert database value NULL to String (column: `name`, column index: 0, row: [name:NULL])")
             
+            // TODO: this test is obsolete since 566f42e8d07e57a0d9c4aec452e3ad7ed15dd59b
             // _ = try Record.fetchOne(statement)
             try Row.fetchCursor(statement).forEach { row in
                 XCTAssertEqual(
@@ -160,6 +161,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                     conversionContext: ValueConversionContext(row).atColumn("name")),
                 "could not convert database value NULL to String (column: `name`, column index: 0, row: [name:NULL team:\"invalid\"])")
             
+            // TODO: this test is obsolete since 566f42e8d07e57a0d9c4aec452e3ad7ed15dd59b
             // _ = try Record.fetchOne(statement)
             try Row.fetchCursor(statement).forEach { row in
                 XCTAssertEqual(
@@ -276,6 +278,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             statement.arguments = ["invalid"]
             let row = try Row.fetchOne(statement)!
             
+            // TODO: this test is obsolete since 566f42e8d07e57a0d9c4aec452e3ad7ed15dd59b
             // _ = Record(row: row)
             XCTAssertEqual(
                 conversionErrorMessage(
@@ -284,6 +287,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                     conversionContext: ValueConversionContext(row).atColumn("value")),
                 "could not convert database value \"invalid\" to \(Value.self) (column: `value`, column index: 1, row: [name:NULL value:\"invalid\"])")
             
+            // TODO: this test is obsolete since 566f42e8d07e57a0d9c4aec452e3ad7ed15dd59b
             // _ = try Record.fetchOne(statement)
             try Row.fetchCursor(statement).forEach { row in
                 XCTAssertEqual(
@@ -330,6 +334,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             statement.arguments = ["invalid"]
             let row = try Row.fetchOne(statement)!
             
+            // TODO: this test is obsolete since 566f42e8d07e57a0d9c4aec452e3ad7ed15dd59b
             // _ = try String.fetchAll(statement)
             try statement.makeCursor().forEach {
                 XCTAssertEqual(
@@ -388,7 +393,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                     "could not convert database value 1000 to Int8 (column: `foo`, column index: 0, row: [foo:1000], sql: `SELECT ? AS foo`)")
             }
             
-            // _ = row["name"] as Int8
+            // _ = row["foo"] as Int8
             XCTAssertEqual(
                 conversionErrorMessage(
                     to: Int8.self,
