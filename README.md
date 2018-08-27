@@ -2127,12 +2127,12 @@ let player = Player(name: "Arthur", email: "arthur@example.com")
 try player.insert(db)
 ```
 
-:point_right: `insert` is available for subclasses of the [Record](#record-class) class, and all types that adopt the [PersistableRecord] protocol.
+:point_right: `insert` is available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol.
 
 
 ### Fetching Records
 
-To fetch records from the database, call a [fetching methods](#fetching-methods):
+To fetch records from the database, call a [fetching method](#fetching-methods):
 
 ```swift
 let arthur = try Player.fetchOne(db,            // Player?
@@ -2147,9 +2147,9 @@ let bestPlayers = try Player                    // [Player]
 let spain = try Country.fetchOne(db, key: "ES") // Country?
 ```
 
-:point_right: Fetching from raw SQL is available for subclasses of the [Record](#record-class) class, and all types that adopt the [FetchableRecord] protocol.
+:point_right: Fetching from raw SQL is available for subclasses of the [Record](#record-class) class, and types that adopt the [FetchableRecord] protocol.
 
-:point_right: Fetching without SQL, using the [query interface](#the-query-interface), is available for subclasses of the [Record](#record-class) class, and all types that adopt both [FetchableRecord] and [TableRecord] protocol.
+:point_right: Fetching without SQL, using the [query interface](#the-query-interface), is available for subclasses of the [Record](#record-class) class, and types that adopt both [FetchableRecord] and [TableRecord] protocol.
 
 
 ### Updating Records
@@ -2178,7 +2178,7 @@ For batch updates, execute an [SQL query](#executing-updates):
 try db.execute("UPDATE player SET synchronized = 1")
 ```
 
-:point_right: update methods are available for subclasses of the [Record](#record-class) class, and all types that adopt the [PersistableRecord] protocol.
+:point_right: update methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol.
 
 
 ### Deleting Records
@@ -2207,7 +2207,7 @@ try Player
     .deleteAll(db)
 ```
 
-:point_right: delete methods are available for subclasses of the [Record](#record-class) class, and all types that adopt the [PersistableRecord] protocol.
+:point_right: delete methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol.
 
 
 ### Counting Records
@@ -2222,7 +2222,7 @@ let playerWithEmailCount: Int = try Player
     .fetchCount(db)
 ```
 
-:point_right: `fetchCount` is available for subclasses of the [Record](#record-class) class, and all types that adopt the [TableRecord] protocol.
+:point_right: `fetchCount` is available for subclasses of the [Record](#record-class) class, and types that adopt the [TableRecord] protocol.
 
 
 Details follow:
