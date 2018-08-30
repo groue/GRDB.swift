@@ -6065,7 +6065,7 @@ After `stopObservingDatabaseChangesUntilNextTransaction()`, the `databaseDidChan
 
 You start by building regions from requests.
 
-```
+```swift
 try dbQueue.write { db in
     let teamRegion = try Team.filter(key: 1).databaseRegion(db)
     let playersRegion = try SQLRequest<Player>("SELECT * FROM player").databaseRegion(db)
