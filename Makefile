@@ -182,8 +182,9 @@ test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
 	  $(XCPRETTY)
 
 test_framework_GRDBCustomSQLiteiOS: test_framework_GRDBCustomSQLiteiOS_maxTarget test_framework_GRDBCustomSQLiteiOS_minTarget
+test_framework_GRDBCustomSQLiteiOS_maxTarget: test_framework_GRDBCustomSQLiteiOS_maxTarget_maxSwift test_framework_GRDBCustomSQLiteiOS_maxTarget_minSwift
 
-test_framework_GRDBCustomSQLiteiOS_maxTarget: SQLiteCustom
+test_framework_GRDBCustomSQLiteiOS_maxTarget_maxSwift: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustomSQLiteiOS \
@@ -191,6 +192,17 @@ test_framework_GRDBCustomSQLiteiOS_maxTarget: SQLiteCustom
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
+
+test_framework_GRDBCustomSQLiteiOS_maxTarget_minSwift: SQLiteCustom
+ifdef MIN_SWIFT_VERSION
+	$(XCODEBUILD) \
+	  -project GRDBCustom.xcodeproj \
+	  -scheme GRDBCustomSQLiteiOS \
+	  -destination $(MAX_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
+endif
 
 test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
 	$(XCODEBUILD) \
