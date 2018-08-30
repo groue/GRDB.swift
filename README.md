@@ -5850,6 +5850,7 @@ protocol TransactionObserver : class {
 - [Database Changes And Transactions](#database-changes-and-transactions)
 - [Filtering Database Events](#filtering-database-events)
 - [Observation Extent](#observation-extent)
+- [DatabaseRegion](#databaseregion)
 - [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)
 
 
