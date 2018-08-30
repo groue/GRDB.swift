@@ -5737,7 +5737,8 @@ PlayerInfo.all()
 > :bulb: In this chapter, we have learned how to use the `Decodable` protocol and its associated `CodingKeys` enum in order to dry up our code.
 
 
-## Database Changes Observation
+Database Changes Observation
+============================
 
 **SQLite notifies its host application of changes performed to the database, as well of transaction commits and rollbacks.**
 
@@ -5756,7 +5757,7 @@ GRDB puts this SQLite feature to some good use, and lets you observe the databas
 Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
 
 
-### After Commit Hook
+## After Commit Hook
 
 When your application needs to make sure a specific database transaction has been successfully committed before it executes some work, use the `Database.afterNextTransactionCommit(_:)` method.
 
@@ -5815,7 +5816,7 @@ try dbQueue.write { db in
 ```
 
 
-### TransactionObserver Protocol
+## TransactionObserver Protocol
 
 The `TransactionObserver` protocol lets you **observe database changes and transactions**:
 
@@ -5854,7 +5855,7 @@ protocol TransactionObserver : class {
 - [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)
 
 
-#### Activate a Transaction Observer
+### Activate a Transaction Observer
 
 **To activate a transaction observer, add it to the database queue or pool:**
 
@@ -5866,7 +5867,7 @@ dbQueue.add(transactionObserver: observer)
 By default, database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated. See [Observation Extent](#observation-extent) for more options.
 
 
-#### Database Changes And Transactions
+### Database Changes And Transactions
 
 **A transaction observer is notified of all database changes**: inserts, updates and deletes. This includes indirect changes triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions), and [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
@@ -5944,7 +5945,7 @@ do {
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
 
 
-#### Filtering Database Events
+### Filtering Database Events
 
 **Transaction observers can avoid being notified of database changes they are not interested in.**
 
@@ -6001,7 +6002,7 @@ class PureTransactionObserver: TransactionObserver {
 For more information about event filtering, see [DatabaseRegion](#databaseregion).
 
 
-#### Observation Extent
+### Observation Extent
 
 **You can specify how long an observer is notified of database changes and transactions.**
 
@@ -6062,15 +6063,13 @@ class PlayerObserver: TransactionObserver {
 After `stopObservingDatabaseChangesUntilNextTransaction()`, the `databaseDidChange(with:)` method will not be notified of any change for the remaining duration of the current transaction. This helps GRDB optimize database observation.
 
 
-#### DatabaseRegion
+### DatabaseRegion
 
-**[DatabaseRegion](https://groue.github.io/GRDB.swift/docs/3.2/Structs/DatabaseRegion.html) is a type that helps observing changes in [query interface requests](#requests)**.
+**[DatabaseRegion](https://groue.github.io/GRDB.swift/docs/3.2/Structs/DatabaseRegion.html) is a type that helps observing changes in the results of a database [request](#requests)**.
 
-Observing regions helps you spot changes in the results of any request. Yet changes may be notified even though the request results are the same. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
+A request knows which database modifications can impact its results. It can communicate this information to a transaction observer by the way of a database region.
 
-For example, if you track `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
-
-To observe regions, you start by building them from requests:
+You start by building regions:
 
 ```swift
 try dbQueue.write { db in
@@ -6079,14 +6078,14 @@ try dbQueue.write { db in
     let maxScoreRegion = try Player.select(max(Column("score"))).databaseRegion(db)
 ```
 
-You can also group regions:
+You can group regions:
 
 ```swift
     let region = teamRegion.union(playersRegion).union(maxScoreRegion)
 }
 ```
 
-Regions provide support for the `observes(eventsOfKind:)` and `databaseDidChange(with:)` methods of transaction observers. For example:
+Those regions provide support for the `observes(eventsOfKind:)` and `databaseDidChange(with:)` methods of transaction observers. For example:
 
 ```swift
 // A region observer
@@ -6130,8 +6129,12 @@ try dbQueue.write { db in
 }
 ```
 
+Beware that a region notifies *potential* changes, not *actual* changes in the results of a request. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
 
-#### Support for SQLite Pre-Update Hooks
+For example, if you observe the region of `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
+
+
+### Support for SQLite Pre-Update Hooks
 
 A [custom SQLite build](Documentation/CustomSQLiteBuilds.md) can activate [SQLite "preupdate hooks"](https://sqlite.org/c3ref/preupdate_count.html). In this case, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
 
@@ -6492,7 +6495,8 @@ try controller.performFetch()
 > ```
 
 
-## Encryption
+Encryption
+==========
 
 **GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4.2.**
 
