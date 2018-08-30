@@ -5750,6 +5750,7 @@ GRDB puts this SQLite feature to some good use, and lets you observe the databas
     - [Database Changes And Transactions](#database-changes-and-transactions)
     - [Filtering Database Events](#filtering-database-events)
     - [Observation Extent](#observation-extent)
+    - [DatabaseRegion](#databaseregion)
     - [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)
 - [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of changes in a query results, plus UITableView animations
 - [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB): Automated tracking of changes in a query results, based on [RxSwift](https://github.com/ReactiveX/RxSwift)
