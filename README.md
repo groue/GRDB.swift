@@ -6061,9 +6061,13 @@ After `stopObservingDatabaseChangesUntilNextTransaction()`, the `databaseDidChan
 
 #### DatabaseRegion
 
-**[DatabaseRegion](https://groue.github.io/GRDB.swift/docs/3.2/Structs/DatabaseRegion.html) is a type that helps observing [query interface request](#requests)**.
+**[DatabaseRegion](https://groue.github.io/GRDB.swift/docs/3.2/Structs/DatabaseRegion.html) is a type that helps observing changes in [query interface request](#requests)**.
 
-You start by building regions from requests.
+Observing regions helps you spot changes in the results of any request. Yet changes may be notified even though the request results are the same. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
+
+For example, if you track `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
+
+To observe regions, you start by building them from requests:
 
 ```swift
 try dbQueue.write { db in
@@ -6072,14 +6076,14 @@ try dbQueue.write { db in
     let maxScoreRegion = Player.select(max(Column("score"))).databaseRegion(db)
 ```
 
-You can also group them:
+You can also group regions:
 
 ```swift
     let region = teamRegion.union(playersRegion).union(maxScoreRegion)
 }
 ```
 
-Regions help provide support for the `observes(eventsOfKind:)` and `databaseDidChange(with:)` methods of transaction observers. For example:
+Regions provide support for the `observes(eventsOfKind:)` and `databaseDidChange(with:)` methods of transaction observers. For example:
 
 ```swift
 // A region observer
