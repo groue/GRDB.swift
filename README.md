@@ -4469,7 +4469,7 @@ The `prepare` method returns a prepared statement and an optional row adapter. T
 
 The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
 
-The `databaseRegion` method is involved in [database observation](#database-changes-observation). It is given a default implementation, based on the statement returned by `prepare`. For more information, see [DatabaseRegion](https://groue.github.io/GRDB.swift/docs/3.2/Structs/DatabaseRegion.html), and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB).
+The `databaseRegion` method is involved in [database observation](#database-changes-observation). It is given a default implementation, based on the statement returned by `prepare`. For more information, see [DatabaseRegion](#databaseregion), and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB).
 
 The FetchRequest protocol is adopted, for example, by [query interface requests](#requests):
 
@@ -5997,60 +5997,6 @@ class PureTransactionObserver: TransactionObserver {
 }
 ```
 
-Filtering of interesting database events can also be defined with [DatabaseRegion](https://groue.github.io/GRDB.swift/docs/3.2/Structs/DatabaseRegion.html), a type dedicated to [query interface request](#requests) observation. For example:
-
-```swift
-class DatabaseRegionObserver: TransactionObserver {
-    let region: DatabaseRegion
-    var regionChanged = false
-    
-    init(region: DatabaseRegion) {
-        self.region = region
-    }
-    
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return region.isModified(byEventsOfKind: eventKind)
-    }
-    
-    func databaseDidChange(with event: DatabaseEvent) {
-        regionChanged = region.isModified(by: event)
-    }
-    
-    func databaseDidRollback(_ db: Database) {
-        regionChanged = false
-    }
-    
-    func databaseDidCommit(_ db: Database) {
-        if regionChanged {
-            // handle change
-        }
-        regionChanged = false
-    }
-}
-
-// Observe any database request:
-let request = Player.all()
-let request = Player.filter(key: 1)
-let request = Player.select(max(scoreColumn), as: Int.self)
-let request = SQLRequest<Row>("SELECT ...")
-try dbQueue.write { db in
-    let region = try request.databaseRegion(db)
-    let observer = DatabaseRegionObserver(region: region)
-    db.add(transactionObserver: observer)
-}
-
-// Observe several requests at the same time:
-let request1 = Player.all()
-let request2 = Team.all()
-try dbQueue.write { db in
-    let region1 = try request1.databaseRegion(db)
-    let region2 = try request2.databaseRegion(db)
-    let region = region1.union(region2)
-    let observer = DatabaseRegionObserver(region: region)
-    db.add(transactionObserver: observer)
-}
-```
-
 
 #### Observation Extent
 
@@ -6111,6 +6057,71 @@ class PlayerObserver: TransactionObserver {
 ```
 
 After `stopObservingDatabaseChangesUntilNextTransaction()`, the `databaseDidChange(with:)` method will not be notified of any change for the remaining duration of the current transaction. This helps GRDB optimize database observation.
+
+
+#### DatabaseRegion
+
+**[DatabaseRegion](https://groue.github.io/GRDB.swift/docs/3.2/Structs/DatabaseRegion.html) is a type that helps observing [query interface request](#requests)**.
+
+You start by building regions from requests.
+
+```
+try dbQueue.write { db in
+    let teamRegion = try Team.filter(key: 1).databaseRegion(db)
+    let playersRegion = try SQLRequest<Player>("SELECT * FROM player").databaseRegion(db)
+    let maxScoreRegion = Player.select(max(Column("score"))).databaseRegion(db)
+```
+
+You can also group them:
+
+```swift
+    let region = teamRegion.union(playersRegion).union(maxScoreRegion)
+}
+```
+
+Regions help provide support for the `observes(eventsOfKind:)` and `databaseDidChange(with:)` methods of transaction observers. For example:
+
+```swift
+// A region observer
+class DatabaseRegionObserver: TransactionObserver {
+    let region: DatabaseRegion
+    var regionChanged = false
+    
+    init(region: DatabaseRegion) {
+        self.region = region
+    }
+    
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        return region.isModified(byEventsOfKind: eventKind)
+    }
+    
+    func databaseDidChange(with event: DatabaseEvent) {
+        if region.isModified(by: event) {
+            regionChanged = true
+            stopObservingDatabaseChangesUntilNextTransaction()
+        }
+    }
+    
+    func databaseDidRollback(_ db: Database) {
+        regionChanged = false
+    }
+    
+    func databaseDidCommit(_ db: Database) {
+        if regionChanged {
+            regionChanged = false
+            
+            // You'll customize your handling of changes here:
+            print("Region changes have been committed.")
+        }
+    }
+}
+
+// Observe a region
+try dbQueue.write { db in
+    observer = DatabaseRegionObserver(region: region)
+    db.add(transactionObserver: observer)
+}
+```
 
 
 #### Support for SQLite Pre-Update Hooks
