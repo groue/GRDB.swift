@@ -6073,7 +6073,7 @@ To observe regions, you start by building them from requests:
 try dbQueue.write { db in
     let teamRegion = try Team.filter(key: 1).databaseRegion(db)
     let playersRegion = try SQLRequest<Player>("SELECT * FROM player").databaseRegion(db)
-    let maxScoreRegion = Player.select(max(Column("score"))).databaseRegion(db)
+    let maxScoreRegion = try Player.select(max(Column("score"))).databaseRegion(db)
 ```
 
 You can also group regions:
