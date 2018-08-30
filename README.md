@@ -6028,10 +6028,11 @@ class DatabaseRegionObserver: TransactionObserver {
     }
 }
 
-// Observe any request:
+// Observe any database request:
 let request = Player.all()
 let request = Player.filter(key: 1)
 let request = Player.select(max(scoreColumn), as: Int.self)
+let request = SQLRequest<Row>("SELECT ...")
 try dbQueue.write { db in
     let region = try request.databaseRegion(db)
     let observer = DatabaseRegionObserver(region: region)
