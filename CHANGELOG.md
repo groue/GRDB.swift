@@ -32,6 +32,7 @@ Other notable enhancements are:
 - [Codable Records](README.md#codable-records): Updated documentation for JSON columns, customized date and uuid formats, and other customization options.
 - [Record Customization Options](README.md#record-customization-options): A new chapter that gathers all your customization options.
 - [Fetching from Requests](README.md#fetching-from-requests): Enhanced documentation about requests that don't fetch their origin record (such as aggregates, or associated records).
+- [DatabaseRegion](README.md#databaseregion): Database regions help you observe the database.
 
 
 ### API diff
