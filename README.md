@@ -5821,10 +5821,6 @@ The `TransactionObserver` protocol lets you **observe database changes and trans
 
 ```swift
 protocol TransactionObserver : class {
-    /// Filters database changes that should be notified the the
-    /// `databaseDidChange(with:)` method.
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
-    
     /// Notifies a database change:
     /// - event.kind (insert, update, or delete)
     /// - event.tableName
@@ -5834,6 +5830,10 @@ protocol TransactionObserver : class {
     /// this method call. If you need to keep it longer, store a copy:
     /// event.copy().
     func databaseDidChange(with event: DatabaseEvent)
+    
+    /// Filters the database changes that should be notified to the
+    /// `databaseDidChange(with:)` method.
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
     
     /// An opportunity to rollback pending changes by throwing an error.
     func databaseWillCommit() throws
@@ -5994,6 +5994,59 @@ class PureTransactionObserver: TransactionObserver {
     func databaseWillCommit() throws { /* Called before commit */ }
     func databaseDidRollback(_ db: Database) { /* Called on rollback */ }
     func databaseDidCommit(_ db: Database) { /* Called on commit */ }
+}
+```
+
+Filtering of interesting database events can also be defined with [DatabaseRegion](https://groue.github.io/GRDB.swift/docs/3.2/Structs/DatabaseRegion.html), a type dedicated to [query interface request](#requests) observation. For example:
+
+```swift
+class DatabaseRegionObserver: TransactionObserver {
+    let region: DatabaseRegion
+    var regionChanged = false
+    
+    init(region: DatabaseRegion) {
+        self.region = region
+    }
+    
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        return region.isModified(byEventsOfKind: eventKind)
+    }
+    
+    func databaseDidChange(with event: DatabaseEvent) {
+        regionChanged = region.isModified(by: event)
+    }
+    
+    func databaseDidRollback(_ db: Database) {
+        regionChanged = false
+    }
+    
+    func databaseDidCommit(_ db: Database) {
+        if regionChanged {
+            // handle change
+        }
+        regionChanged = false
+    }
+}
+
+// Observe any request:
+let request = Player.all()
+let request = Player.filter(key: 1)
+let request = Player.select(max(scoreColumn), as: Int.self)
+try dbQueue.write { db in
+    let region = try request.databaseRegion(db)
+    let observer = DatabaseRegionObserver(region: region)
+    db.add(transactionObserver: observer)
+}
+
+// Observe several requests at the same time:
+let request1 = Player.all()
+let request2 = Team.all()
+try dbQueue.write { db in
+    let region1 = try request1.databaseRegion(db)
+    let region2 = try request2.databaseRegion(db)
+    let region = region1.union(region2)
+    let observer = DatabaseRegionObserver(region: region)
+    db.add(transactionObserver: observer)
 }
 ```
 
