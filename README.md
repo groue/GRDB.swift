@@ -5998,6 +5998,8 @@ class PureTransactionObserver: TransactionObserver {
 }
 ```
 
+For more information about event filtering, see [DatabaseRegion](#databaseregion).
+
 
 #### Observation Extent
 
@@ -6062,7 +6064,7 @@ After `stopObservingDatabaseChangesUntilNextTransaction()`, the `databaseDidChan
 
 #### DatabaseRegion
 
-**[DatabaseRegion](https://groue.github.io/GRDB.swift/docs/3.2/Structs/DatabaseRegion.html) is a type that helps observing changes in [query interface request](#requests)**.
+**[DatabaseRegion](https://groue.github.io/GRDB.swift/docs/3.2/Structs/DatabaseRegion.html) is a type that helps observing changes in [query interface requests](#requests)**.
 
 Observing regions helps you spot changes in the results of any request. Yet changes may be notified even though the request results are the same. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
 
