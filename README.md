@@ -6092,7 +6092,7 @@ Regions provide support for the `observes(eventsOfKind:)` and `databaseDidChange
 // A region observer
 class DatabaseRegionObserver: TransactionObserver {
     let region: DatabaseRegion
-    var regionChanged = false
+    var regionModified = false
     
     init(region: DatabaseRegion) {
         self.region = region
@@ -6104,18 +6104,18 @@ class DatabaseRegionObserver: TransactionObserver {
     
     func databaseDidChange(with event: DatabaseEvent) {
         if region.isModified(by: event) {
-            regionChanged = true
+            regionModified = true
             stopObservingDatabaseChangesUntilNextTransaction()
         }
     }
     
     func databaseDidRollback(_ db: Database) {
-        regionChanged = false
+        regionModified = false
     }
     
     func databaseDidCommit(_ db: Database) {
-        if regionChanged {
-            regionChanged = false
+        if regionModified {
+            regionModified = false
             
             // You'll customize your handling of changes here:
             print("Region changes have been committed.")
