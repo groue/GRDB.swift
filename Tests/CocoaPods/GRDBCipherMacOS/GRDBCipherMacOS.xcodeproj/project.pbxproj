@@ -176,7 +176,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-GRDBCipherMacOS/Pods-GRDBCipherMacOS-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-GRDBCipherMacOS/Pods-GRDBCipherMacOS-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/GRDBCipher/GRDBCipher.framework",
 				"${BUILT_PRODUCTS_DIR}/SQLCipher/SQLCipher.framework",
 			);
@@ -187,7 +187,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-GRDBCipherMacOS/Pods-GRDBCipherMacOS-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-GRDBCipherMacOS/Pods-GRDBCipherMacOS-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -344,7 +344,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipherMacOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -364,7 +364,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCipherMacOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};
