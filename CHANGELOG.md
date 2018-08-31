@@ -7,6 +7,7 @@ This release focuses on enhancing the relationships between [Codable records](RE
 
 Other notable enhancements are:
 
+- Support for Swift 4.2 and Xcode 10
 - Support for the FTS5 full-text engine when available in the operating system (iOS 11.4+ / macOS 10.13+ / watchOS 4.3+)
 
 
