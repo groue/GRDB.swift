@@ -140,7 +140,7 @@ extension PlayersViewController {
         return cell
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         // Delete the player
         let player = playersController.record(at: indexPath)
         try! dbQueue.write { db in
