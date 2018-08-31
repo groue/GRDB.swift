@@ -32,17 +32,24 @@ public final class DatabaseCollation {
     }
 }
 
-extension DatabaseCollation : Hashable {
+extension DatabaseCollation: Hashable {
+    // Collation equality is based on the sqlite3_strnicmp SQLite function.
+    // (see https://www.sqlite.org/c3ref/create_collation.html). Computing
+    // a hash value that honors the Swift Hashable contract (value equality
+    // implies hash equality) is thus non trivial. But it's not that
+    // important, since this hashValue is only used when one adds
+    // or removes a collation from a database connection.
+    #if swift(>=4.2)
+    /// :nodoc:
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(0)
+    }
+    #else
     /// :nodoc:
     public var hashValue: Int {
-        // Collation equality is based on the sqlite3_strnicmp SQLite function.
-        // (see https://www.sqlite.org/c3ref/create_collation.html). Computing
-        // a hash value that honors the Swift Hashable contract (value equality
-        // implies hash equality) is thus non trivial. But it's not that
-        // important, since this hashValue is only used when one adds
-        // or removes a collation from a database connection.
         return 0
     }
+    #endif
     
     /// Two collations are equal if they share the same name (case insensitive)
     /// :nodoc:

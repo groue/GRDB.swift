@@ -45,10 +45,19 @@ XCPRETTY_PATH := $(shell command -v xcpretty 2> /dev/null)
 TEST_ACTIONS = clean build build-for-testing test-without-building
 
 # When adding support for an Xcode version, look for available devices with `instruments -s devices`
-ifeq ($(XCODEVERSION),9.4)
+ifeq ($(XCODEVERSION),10.0)
+  MIN_SWIFT_VERSION = 4.0
+  MAX_SWIFT_VERSION = 4.2
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=12.0"
+  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
+else ifeq ($(XCODEVERSION),9.4)
+  # MIN_SWIFT_VERSION undefined: only check MAX_SWIFT_VERSION
+  MAX_SWIFT_VERSION = 4.0
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.4"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
 else ifeq ($(XCODEVERSION),9.3)
+  # MIN_SWIFT_VERSION undefined: only check MAX_SWIFT_VERSION
+  MAX_SWIFT_VERSION = 4.0
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.3"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
 else
@@ -95,40 +104,72 @@ test_framework_GRDBCipher: test_framework_GRDBCipherOSX test_framework_GRDBCiphe
 test_install: test_install_manual test_install_GRDBCipher test_install_SPM test_install_GRDB_CocoaPods test_install_GRDBFTS5_CocoaPods test_install_GRDBCipher_CocoaPods test_CocoaPodsLint
 test_CocoaPodsLint: test_CocoaPodsLint_GRDB test_CocoaPodsLint_GRDBPlus test_CocoaPodsLint_GRDBCipher
 
-test_framework_GRDBOSX:
+test_framework_GRDBOSX: test_framework_GRDBOSX_maxSwift test_framework_GRDBOSX_minSwift
+
+test_framework_GRDBOSX_maxSwift:
 	# SQLITE_ENABLE_FTS5 requires macOS 10.13+
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBOSX \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
+
+test_framework_GRDBOSX_minSwift:
+ifdef MIN_SWIFT_VERSION
+	# SQLITE_ENABLE_FTS5 requires macOS 10.13+
+	$(XCODEBUILD) \
+	  -project GRDB.xcodeproj \
+	  -scheme GRDBOSX \
+	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5' \
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
+endif
 
 test_framework_GRDBWatchOS:
 	# XCTest is not supported for watchOS: we only make sure that the framework builds.
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBWatchOS \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  clean build \
 	  $(XCPRETTY)
 
 test_framework_GRDBiOS: test_framework_GRDBiOS_maxTarget test_framework_GRDBiOS_minTarget
+test_framework_GRDBiOS_maxTarget: test_framework_GRDBiOS_maxTarget_maxSwift test_framework_GRDBiOS_maxTarget_minSwift
 
-test_framework_GRDBiOS_maxTarget:
+test_framework_GRDBiOS_maxTarget_maxSwift:
 	# SQLITE_ENABLE_FTS5 requires iOS 11.4+
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
+
+test_framework_GRDBiOS_maxTarget_minSwift:
+ifdef MIN_SWIFT_VERSION
+	# SQLITE_ENABLE_FTS5 requires iOS 11.4+
+	$(XCODEBUILD) \
+	  -project GRDB.xcodeproj \
+	  -scheme GRDBiOS \
+	  -destination $(MAX_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5' \
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
+endif
 
 test_framework_GRDBiOS_minTarget:
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBiOS \
 	  -destination $(MIN_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
@@ -136,24 +177,39 @@ test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustomSQLiteOSX \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
 test_framework_GRDBCustomSQLiteiOS: test_framework_GRDBCustomSQLiteiOS_maxTarget test_framework_GRDBCustomSQLiteiOS_minTarget
+test_framework_GRDBCustomSQLiteiOS_maxTarget: test_framework_GRDBCustomSQLiteiOS_maxTarget_maxSwift test_framework_GRDBCustomSQLiteiOS_maxTarget_minSwift
 
-test_framework_GRDBCustomSQLiteiOS_maxTarget: SQLiteCustom
+test_framework_GRDBCustomSQLiteiOS_maxTarget_maxSwift: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustomSQLiteiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
+
+test_framework_GRDBCustomSQLiteiOS_maxTarget_minSwift: SQLiteCustom
+ifdef MIN_SWIFT_VERSION
+	$(XCODEBUILD) \
+	  -project GRDBCustom.xcodeproj \
+	  -scheme GRDBCustomSQLiteiOS \
+	  -destination $(MAX_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
+endif
 
 test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustomSQLiteiOS \
 	  -destination $(MIN_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
@@ -161,6 +217,7 @@ test_framework_GRDBCipherOSX: SQLCipher
 	$(XCODEBUILD) \
 	  -project GRDBCipher.xcodeproj \
 	  -scheme GRDBCipherOSX \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
@@ -171,6 +228,7 @@ test_framework_GRDBCipheriOS_maxTarget: SQLCipher
 	  -project GRDBCipher.xcodeproj \
 	  -scheme GRDBCipheriOS \
 	  -destination $(MAX_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
@@ -179,6 +237,7 @@ test_framework_GRDBCipheriOS_minTarget: SQLCipher
 	  -project GRDBCipher.xcodeproj \
 	  -scheme GRDBCipheriOS \
 	  -destination $(MIN_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 

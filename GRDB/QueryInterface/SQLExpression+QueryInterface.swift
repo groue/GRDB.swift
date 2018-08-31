@@ -121,20 +121,6 @@ public struct SQLUnaryOperator : Hashable {
         self.sql = sql
         self.needsRightSpace = needsRightSpace
     }
-    
-    /// The hash value
-    ///
-    /// :nodoc:
-    public var hashValue: Int {
-        return sql.hashValue
-    }
-    
-    /// Equality operator
-    ///
-    /// :nodoc:
-    public static func == (lhs: SQLUnaryOperator, rhs: SQLUnaryOperator) -> Bool {
-        return lhs.sql == rhs.sql
-    }
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -227,15 +213,17 @@ public struct SQLBinaryOperator : Hashable {
         return SQLBinaryOperator(negatedSQL, negated: sql)
     }
     
-    /// The hash value
+    #if !swift(>=4.2)
+    /// :nodoc:
     public var hashValue: Int {
-        return sql.hashValue
+        return sql.hashValue ^ (negatedSQL?.hashValue ?? 0)
     }
     
-    /// Equality operator
+    /// :nodoc:
     public static func == (lhs: SQLBinaryOperator, rhs: SQLBinaryOperator) -> Bool {
-        return lhs.sql == rhs.sql
+        return lhs.sql == rhs.sql && lhs.negatedSQL == rhs.negatedSQL
     }
+    #endif
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)

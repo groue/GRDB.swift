@@ -313,11 +313,17 @@ public final class DatabaseFunction: Hashable {
 }
 
 extension DatabaseFunction {
-    /// The hash value
+    #if swift(>=4.2)
+    /// :nodoc:
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(identity)
+    }
+    #else
     /// :nodoc:
     public var hashValue: Int {
         return identity.hashValue
     }
+    #endif
     
     /// Two functions are equal if they share the same name and arity.
     /// :nodoc:

@@ -985,12 +985,22 @@ extension Row {
 
 // Hashable
 extension Row {
-    /// The hash value
+    #if swift(>=4.2)
+    /// :nodoc:
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(count)
+        for (column, dbValue) in self {
+            hasher.combine(column)
+            hasher.combine(dbValue)
+        }
+    }
+    #else
     /// :nodoc:
     public var hashValue: Int {
         return columnNames.reduce(0) { (acc, column) in acc ^ column.hashValue } ^
             databaseValues.reduce(0) { (acc, dbValue) in acc ^ dbValue.hashValue }
     }
+    #endif
 }
 
 // CustomStringConvertible & CustomDebugStringConvertible
