@@ -1,14 +1,16 @@
 Release Notes
 =============
 
-## Next Version
+## 3.3.0-beta1
+
+Released August 31, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.2.0...v3.3.0-beta1)
 
 This release focuses on enhancing the relationships between [Codable records](README.md#codable-records) and the database, with JSON columns, customized date formats, and better diagnostics when things go wrong.
 
 Other notable enhancements are:
 
-- Support for Swift 4.2 and Xcode 10
-- Support for the FTS5 full-text engine when available in the operating system (iOS 11.4+ / macOS 10.13+ / watchOS 4.3+)
+- Support for Swift 4.2 and Xcode 10 (Xcode 9.3 is still supported).
+- Support for the FTS5 full-text engine when available in the operating system (iOS 11.4+ / macOS 10.13+ / watchOS 4.3+).
 
 
 ### Fixed
@@ -24,6 +26,7 @@ Other notable enhancements are:
 - [#401](https://github.com/groue/GRDB.swift/pull/401): Query Interface: set the selection and the fetched type in a single method call
 - [#393](https://github.com/groue/GRDB.swift/pull/393) by [@Marus](https://github.com/Marus): Upgrade SQLCipher to 3.4.2, enable FTS5 on GRDBCipher and new pod GRDBPlus.
 - [#384](https://github.com/groue/GRDB.swift/pull/384): Improve database value decoding diagnostics
+- [#396](https://github.com/groue/GRDB.swift/pull/396): Support for Xcode 10 and Swift 4.2
 - Cursors of optimized values (Strint, Int, Date, etc.) have been renamed: FastDatabaseValueCursor and FastNullableDatabaseValueCursor replace the deprecated ColumnCursor and NullableColumnCursor.
 
 
