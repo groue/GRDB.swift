@@ -34,7 +34,7 @@ If not, your questions are welcome in the [GRDB forums](https://forums.swift.org
 
 ### Suggest an Enhancement
 
-Your idea may already be listed in the list of [Suggested Contributions].
+Your idea may already be listed in [Suggested Contributions], waiting for someone to pick it up.
 
 If not, contact [@groue](http://twitter.com/groue) on Twitter, or [open a new issue](https://github.com/groue/GRDB.swift/issues/new).
 
