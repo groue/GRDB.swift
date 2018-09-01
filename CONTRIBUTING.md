@@ -87,7 +87,7 @@ Legend:
 
 ### Associations
 
-:thought_balloon: Design Challenge, :muscle: Hard
+:thought_balloon: Design Challenge, :muscle: Hard, :fire: Experimental
 
 Associations can be enhanced in several ways. See the "Known Issues" and "Future Directions" chapter of the [Associations Guide](Documentation/AssociationsBasics.md)
 
@@ -103,7 +103,7 @@ I would be a nice improvement if GRDB Carthage builds were made robust.
 
 ### CloudKit
 
-:thought_balloon: Design Challenge, :question: Unknown Difficulty
+:thought_balloon: Design Challenge, :question: Unknown Difficulty, :fire: Experimental
 
 Integration with [CloudKit](https://developer.apple.com/icloud/cloudkit/) is a rich, interesting, and useful topic.
 
@@ -267,7 +267,7 @@ It would be nice to be able to integrate GRDB as a static library.
 
 ### Typed Expressions
 
-:thought_balloon: Design Challenge, :muscle: Hard
+:thought_balloon: Design Challenge, :muscle: Hard, :fire: Experimental
 
 The compiler currently does not spot type mistakes in query interface requests:
 
