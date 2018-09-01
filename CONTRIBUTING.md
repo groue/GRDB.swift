@@ -133,7 +133,7 @@ This can be explained:
 
 - Some developers disregard potential multi-threading bugs such as data races, even if the fix is "easy". Such bugs may never happen during the development of an application. They may only impact a few users in production. It is always easier not to think about them.
 
-- Databases are often seen as plain CRUD tools, and some developers are not familiar with topics like isolation or transactions. This is especially true of developers who have experience in a managed ORM such as Core Data or Realm, or web frameworks like Rails or Django: switching to an unmanaged relational database is not an easy task.
+- Databases are often seen as plain CRUD tools, and some developers are not familiar with topics like isolation or transactions. This is especially true for developers who have experience in a managed ORM such as Core Data or Realm, or web frameworks like Rails or Django: switching to an unmanaged relational database is not an easy task.
 
 - Not all applications need to be multi-threaded.
 
