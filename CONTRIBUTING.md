@@ -248,7 +248,7 @@ This improvement most certainly depends on a refreshing of the [FetchedRecordsCo
 
 :muscle: Hard :hammer: Tooling
 
-Swift on Linux is currently focused on the server (Vapor, Perfect, Kitura). While server support is a [non-goal](#non-goals) of GRDB, there exists Linux GUI applications, too. Linux is thus a desired platform.
+Swift on Linux is currently focused on the server (Vapor, Perfect, Kitura). While general server support is a [non-goal](#non-goals) of GRDB, there exists read-only servers, and Linux GUI applications, too. Linux is thus a desired platform.
 
 
 ### More SQL Generation
