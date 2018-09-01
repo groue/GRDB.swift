@@ -1,7 +1,9 @@
 Contributing to GRDB
 ====================
 
-Thanks for passing by! This guide is a set of tips and guidelines for contributing to the GitHub repository [groue/GRDB.swift](https://github.com/groue/GRDB.swift).
+**Thank you for coming!**
+
+This guide is a set of tips and guidelines for contributing to the GitHub repository [groue/GRDB.swift](https://github.com/groue/GRDB.swift).
 
 - [Report Bugs]
 - [Ask Questions]
