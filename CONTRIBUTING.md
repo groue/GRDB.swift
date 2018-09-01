@@ -82,6 +82,7 @@ The ideas, in alphabetical order:
 - [FetchedRecordsController Diffing Algorithm]
 - [FetchedRecordsController Support for Any Request]
 - [FetchedRecordsController Support for Sections]
+- [Full Text Search Demo Application]
 - [JSON]
 - [Linux]
 - [More SQL Generation]
@@ -252,6 +253,19 @@ This limitation does not apply to [RxGRDB], the reactive sibling of FetchedRecor
 This improvement most certainly depends on a refreshing of the [FetchedRecordsController Diffing Algorithm].
 
 
+### Full Text Search Demo Application
+
+:baby: Starter Task
+
+There exists a GRDB demo app for the FTS5 full-text engine: [WWDCCompanion](https://github.com/groue/WWDCCompanion).
+
+This application downloads the transcripts of WWDC sessions, and lets its user type keywords and find matching sessions, sorted by relevance.
+
+The problem is that this demo app breaks every year :sweat_smile:
+
+We'd need instead to index a stable corpus, in order to ease the maintenance of this demo app.
+
+
 ### JSON
 
 :bowtie: Public API Challenge :baby: Starter Task
@@ -348,6 +362,7 @@ Features that blur this focus are non-goals:
 [FetchedRecordsController Diffing Algorithm]: #fetchedrecordscontroller-diffing-algorithm
 [FetchedRecordsController Support for Any Request]: #fetchedrecordscontroller-support-for-any-request
 [FetchedRecordsController Support for Sections]: #fetchedrecordscontroller-support-for-sections
+[Full Text Search Demo Application]: #full-text-search-demo-application
 [How is the Library Organized?]: Documentation/LibraryOrganization.md
 [How is the Repository Organized?]: Documentation/RepositoryOrganization.md
 [JSON]: #json
