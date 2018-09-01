@@ -82,6 +82,7 @@ Legend:
 - :pencil: Documentation
 - :fire: Experimental
 - :thought_balloon: Design Challenge
+- :hammer: Tooling
 - :question: Unknown Difficulty
 
 
@@ -183,7 +184,7 @@ General documentation can always be improved so that it reaches its goal: helpin
 - Audience: documentation should talk to several populations of developers, from beginners who need positive guidance, to SQLite experts who need to build trust.
 - Typos
 - Inaccuracies
-- Etc
+- etc.
 
 Inline documentation, the one which is embedded right into the source code and is displayed by Xcode when one alt-clicks an identifier, deserves the same care.
 
@@ -241,7 +242,7 @@ This improvement most certainly depends on a refreshing of the [FetchedRecordsCo
 
 ### Linux
 
-:muscle: Hard
+:muscle: Hard, :hammer: Tooling
 
 Swift on Linux is currently focused on the server (Vapor, Perfect, Kitura). While server support is a [non-goal](#non-goals) of GRDB, there exists Linux GUI applications, too. Linux is thus a desired platform.
 
@@ -252,7 +253,7 @@ Swift on Linux is currently focused on the server (Vapor, Perfect, Kitura). Whil
 
 There are several SQL statements that GRDB can not currently build:
 
-- [UPSERT](https://www.sqlite.org/lang_UPSERT.html).
+- [UPSERT](https://www.sqlite.org/lang_UPSERT.html)
 - [INSERT INTO ... SELECT ...](https://www.sqlite.org/lang_insert.html)
 - [WITH RECURSIVE ...](https://www.sqlite.org/lang_with.html)
 - [More ideas](https://www.sqlite.org/lang.html)
@@ -260,7 +261,7 @@ There are several SQL statements that GRDB can not currently build:
 
 ### Static Library
 
-:question: Unknown Difficulty
+:question: Unknown Difficulty, :hammer: Tooling
 
 It would be nice to be able to integrate GRDB as a static library.
 
