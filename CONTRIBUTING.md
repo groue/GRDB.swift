@@ -150,7 +150,7 @@ These challenges are improvement opportunities:
 
 [Database Observation](README#database-changes-observation) is currently available in three flavors:
 
-- The [TransactionObserver] protocol: versatile, but low-level and challenging in terms of concurrency, especially when used in conjunction with database pools.
+- The [TransactionObserver](README.md#transactionobserver-protocol) protocol: versatile, but low-level and challenging in terms of concurrency, especially when used in conjunction with database pools.
 
 - [FetchedRecordsController]: high-level and easier to use.
 
