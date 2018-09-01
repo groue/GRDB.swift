@@ -77,6 +77,7 @@ The ideas, in alphabetical order:
 - [Concurrency]
 - [Database Observation]
 - [Date and Time Functions]
+- [Decode NSDecimalNumber from Text Columns]
 - [Documentation]
 - [FetchedRecordsController Diffing Algorithm]
 - [FetchedRecordsController Support for Any Request]
@@ -174,7 +175,21 @@ For more ideas, see:
 - [SQLite Aggregate Functions](https://www.sqlite.org/lang_aggfunc.html)
 - [SQLite JSON functions](https://www.sqlite.org/json1.html) and [JSON], below.
 
-Functions are defined in [GRDB/QueryInterface/Support/SQLFunctions.swift](https://github.com/groue/GRDB.swift/blob/v3.2.0/GRDB/QueryInterface/Support/SQLFunctions.swift).
+Functions are defined in [GRDB/QueryInterface/Support/SQLFunctions.swift](https://github.com/groue/GRDB.swift/blob/master/GRDB/QueryInterface/Support/SQLFunctions.swift).
+
+
+### Decode NSDecimalNumber from Text Columns
+
+:baby: Starter Task
+
+NSDecimalNumber currently only decodes integer and float decimal values. It would be nice if NSDecimalNumber would decode text values as well:
+
+```swift
+let number = try NSDecimalNumber.fetchOne(db, "SELECT '12.3'")!
+print(number) // prints 12.3
+```
+
+NSNumber and NSDecimalNumber support is found in [GRDB/Core/Support/Foundation/NSNumber.swift](https://github.com/groue/GRDB.swift/blob/master/GRDB/Core/Support/Foundation/NSNumber.swift)
 
 
 ### Documentation
@@ -257,6 +272,7 @@ Swift on Linux is currently focused on the server (Vapor, Perfect, Kitura). Whil
 
 There are several SQLite features that GRDB could natively support:
 
+- [ATTACH DATABASE](https://www.sqlite.org/lang_attach.html)
 - [UPSERT](https://www.sqlite.org/lang_UPSERT.html)
 - [INSERT INTO ... SELECT ...](https://www.sqlite.org/lang_insert.html)
 - [WITH RECURSIVE ...](https://www.sqlite.org/lang_with.html)
@@ -326,6 +342,7 @@ Features that blur this focus are non-goals:
 [Codable Records]: README.md#codable-records
 [Database Observation]: #database-observation
 [Date and Time Functions]: #date-and-time-functions
+[Decode NSDecimalNumber from Text Columns]: #decode-nsdecimalnumber-from-text-columns
 [Documentation]: #documentation
 [FetchedRecordsController]: README.md#fetchedrecordscontroller
 [FetchedRecordsController Diffing Algorithm]: #fetchedrecordscontroller-diffing-algorithm
