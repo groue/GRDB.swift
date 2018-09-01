@@ -255,7 +255,7 @@ This improvement most certainly depends on a refreshing of the [FetchedRecordsCo
 
 ### Full Text Search Demo Application
 
-:baby: Starter Task
+:baby: Starter Task :pencil: Documentation
 
 There exists a GRDB demo app for the FTS5 full-text engine: [WWDCCompanion](https://github.com/groue/WWDCCompanion).
 
