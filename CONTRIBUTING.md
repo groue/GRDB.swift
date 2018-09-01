@@ -1,7 +1,7 @@
 Contributing to GRDB
 ====================
 
-Thanks for passing by! This guide is a set of tips and guidelines for contributing to the Github repository [groue/GRDB.swift](https://github.com/groue/GRDB.swift).
+Thanks for passing by! This guide is a set of tips and guidelines for contributing to the GitHub repository [groue/GRDB.swift](https://github.com/groue/GRDB.swift).
 
 - [Report Bugs]
 - [Ask Questions]
@@ -45,7 +45,7 @@ The information you are looking for is maybe already available. Check out:
 - the [general documentation](README.md#documentation)
 - the [answered questions](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=label%3Aquestion+)
 
-If not, your questions are welcome in the [GRDB forums](https://forums.swift.org/c/related-projects/grdb), or in a new [Github issue](https://github.com/groue/GRDB.swift/issues/new). 
+If not, your questions are welcome in the [GRDB forums](https://forums.swift.org/c/related-projects/grdb), or in a new [GitHub issue](https://github.com/groue/GRDB.swift/issues/new). 
 
 
 ### Suggest an Enhancement
@@ -75,13 +75,26 @@ When you have specific development or support needs, and are willing to financia
 
 You'll find below various ideas for enhancing and extending GRDB, in various areas. Your ideas can be added to this list: [Suggest an Enhancement].
 
+Legend:
+
+- :baby: Starter task
+- :muscle: Hard
+- :pencil: Documentation
+- :fire: Experimental
+- :thought_balloon: Design Challenge
+- :question: Unknown Difficulty
+
 
 ### Associations
+
+:thought_balloon: Design Challenge, :muscle: Hard
 
 Associations can be enhanced in several ways. See the "Known Issues" and "Future Directions" chapter of the [Associations Guide](Documentation/AssociationsBasics.md)
 
 
 ### Carthage
+
+:question: Unknown Difficulty
 
 [Carthage](https://github.com/Carthage/Carthage) can build GRDB frameworks, but it can also inexplicably fail. This installation method is thus currently **unsupported**, which means that support has to be found directly in the [Carthage repo](https://github.com/Carthage/Carthage/issues), or on [Stack Overflow](http://stackoverflow.com). See [#262](https://github.com/groue/GRDB.swift/pull/262) for more information.
 
@@ -90,12 +103,16 @@ I would be a nice improvement if GRDB Carthage builds were made robust.
 
 ### CloudKit
 
+:thought_balloon: Design Challenge, :question: Unknown Difficulty
+
 Integration with [CloudKit](https://developer.apple.com/icloud/cloudkit/) is a rich, interesting, and useful topic.
 
 It is likely that CloudKit support would exist in a separate companion library.
 
 
 ### Concurrency
+
+:thought_balloon: Design Challenge, :muscle: Hard, :pencil: Documentation
 
 GRDB has a strong focus on safe concurrency. Not only safe as "does not crash", but safe as "actively protects your application data". The topic is discussed in (too) many places:
 
@@ -124,6 +141,8 @@ These challenges are improvement opportunities:
 
 ### Database Observation
 
+:muscle: Hard
+
 [Database Observation](README#database-changes-observation) is currently available in three flavors:
 
 - The [TransactionObserver] protocol: versatile, but low-level and challenging in terms of concurrency, especially when used in conjunction with database pools.
@@ -140,6 +159,8 @@ Suggested contributions are:
 
 ### Date and Time Functions
 
+:baby: Starter task
+
 Believe it or not, no one has ever asked support for SQLite [Date And Time Functions](https://www.sqlite.org/lang_datefunc.html). There is surely room for a nice Swift API that makes them available.
 
 For more ideas, see:
@@ -152,6 +173,8 @@ Functions are defined in [GRDB/QueryInterface/Support/SQLFunctions.swift](https:
 
 
 ### Documentation
+
+:pencil: Documentation
 
 General documentation can always be improved so that it reaches its goal: helping developers building applications.
 
@@ -169,6 +192,8 @@ If you are a good writer, your help will be very warmly welcomed.
 
 ### FetchedRecordsController Diffing Algorithm
 
+:muscle: Hard
+
 [FetchedRecordsController] uses a Levenshtein-based diffing algorithm which has a terrible algorithmic complexity. This makes this very useful class unable to deal with more than hundreds of elements.
 
 There exists much more efficient O(n) diffing algorithms that would lift this limitation.
@@ -181,6 +206,8 @@ Starting points:
 
 
 ### FetchedRecordsController Support for Any Request
+
+:muscle: Hard
 
 [FetchedRecordsController] is able to deal with records, but not with raw rows or values:
 
@@ -198,6 +225,8 @@ This limitation does not apply to [RxGRDB], the reactive sibling of FetchedRecor
 
 ### FetchedRecordsController Support for Sections
 
+:muscle: Hard
+
 [FetchedRecordsController] mimics the API of Core Data's [NSFetchedResultsController](https://developer.apple.com/documentation/coredata/nsfetchedresultscontroller), but does not yet support table and collection view sections.
 
 This improvement most certainly depends on a refreshing of the [FetchedRecordsController Diffing Algorithm].
@@ -205,15 +234,21 @@ This improvement most certainly depends on a refreshing of the [FetchedRecordsCo
 
 ### JSON
 
+:thought_balloon: Design Challenge, :baby: Starter task
+
 [Codable Records] are granted with automatic JSON encoding and decoding of their complex properties. But there is still room for improvements. For example, could we put the [SQLite JSON1 extension](https://www.sqlite.org/json1.html) to some good use?
 
 
 ### Linux
 
+:muscle: Hard
+
 Swift on Linux is currently focused on the server (Vapor, Perfect, Kitura). While server support is a [non-goal](#non-goals) of GRDB, there exists Linux GUI applications, too. Linux is thus a desired platform.
 
 
 ### More SQL Generation
+
+:thought_balloon: Design Challenge, :question: Unknown Difficulty
 
 There are several SQL statements that GRDB can not currently build:
 
@@ -225,10 +260,14 @@ There are several SQL statements that GRDB can not currently build:
 
 ### Static Library
 
+:question: Unknown Difficulty
+
 It would be nice to be able to integrate GRDB as a static library.
 
 
 ### Typed Expressions
+
+:thought_balloon: Design Challenge, :muscle: Hard
 
 The compiler currently does not spot type mistakes in query interface requests:
 
@@ -252,7 +291,7 @@ It would be interesting to see what typed expressions could bring to GRDB.
 
 GRDB is a "toolkit for SQLite databases, with a focus on application development".
 
-This very particular focus is the reason why GRDB can provide key features such as sharp multi-threading, database observation, and first-class support for raw SQL.
+This definition is the reason why GRDB can provide key features such as sharp multi-threading, database observation, and first-class support for raw SQL.
 
 Features that blur this focus are non-goals:
 
@@ -286,4 +325,4 @@ Features that blur this focus are non-goals:
 [Submit a Pull Request]: #submit-a-pull-request
 [Suggest an Enhancement]: #suggest-an-enhancement
 [Suggested Contributions]: #suggested-contributions
-[Typed Expressions]: #type-expressions
+[Typed Expressions]: #typed-expressions
