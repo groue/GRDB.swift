@@ -92,7 +92,7 @@ The ideas, in alphabetical order:
 
 ### Associations
 
-:bowtie: Public API Challenge, :muscle: Hard, :fire: Experimental
+:bowtie: Public API Challenge :muscle: Hard :fire: Experimental
 
 Associations can be enhanced in several ways. See the "Known Issues" and "Future Directions" chapter of the [Associations Guide](Documentation/AssociationsBasics.md)
 
@@ -108,7 +108,7 @@ I would be a nice improvement if GRDB Carthage builds were made robust.
 
 ### CloudKit
 
-:bowtie: Public API Challenge, :question: Unknown Difficulty, :fire: Experimental
+:bowtie: Public API Challenge :question: Unknown Difficulty :fire: Experimental
 
 Integration with [CloudKit](https://developer.apple.com/icloud/cloudkit/) is a rich, interesting, and useful topic.
 
@@ -117,7 +117,7 @@ It is likely that CloudKit support would exist in a separate companion library.
 
 ### Concurrency
 
-:bowtie: Public API Challenge, :muscle: Hard, :pencil: Documentation
+:bowtie: Public API Challenge :muscle: Hard :pencil: Documentation
 
 GRDB has a strong focus on safe concurrency. Not only safe as "does not crash", but safe as "actively protects your application data". The topic is discussed in (too) many places:
 
@@ -179,7 +179,7 @@ Functions are defined in [GRDB/QueryInterface/Support/SQLFunctions.swift](https:
 
 ### Documentation
 
-:baby: Starter Task, :pencil: Documentation
+:baby: Starter Task :pencil: Documentation
 
 General documentation can always be improved so that it reaches its goal: helping developers building applications.
 
@@ -239,21 +239,21 @@ This improvement most certainly depends on a refreshing of the [FetchedRecordsCo
 
 ### JSON
 
-:bowtie: Public API Challenge, :baby: Starter Task
+:bowtie: Public API Challenge :baby: Starter Task
 
 [Codable Records] are granted with automatic JSON encoding and decoding of their complex properties. But there is still room for improvements. For example, could we put the [SQLite JSON1 extension](https://www.sqlite.org/json1.html) to some good use?
 
 
 ### Linux
 
-:muscle: Hard, :hammer: Tooling
+:muscle: Hard :hammer: Tooling
 
 Swift on Linux is currently focused on the server (Vapor, Perfect, Kitura). While server support is a [non-goal](#non-goals) of GRDB, there exists Linux GUI applications, too. Linux is thus a desired platform.
 
 
 ### More SQL Generation
 
-:bowtie: Public API Challenge, :question: Unknown Difficulty
+:bowtie: Public API Challenge :question: Unknown Difficulty
 
 There are several SQLite features that GRDB could nativeely support:
 
@@ -266,7 +266,7 @@ There are several SQLite features that GRDB could nativeely support:
 
 ### SQL Console in the Debugger
 
-:question: Unknown Difficulty, :hammer: Tooling
+:question: Unknown Difficulty :hammer: Tooling
 
 Sometimes one needs, in lldb, a console similar to the [Command Line Shell For SQLite](https://www.sqlite.org/cli.html).
 
@@ -280,14 +280,14 @@ See issue [#302](https://github.com/groue/GRDB.swift/issues/302).
 
 ### Static Library
 
-:question: Unknown Difficulty, :hammer: Tooling
+:question: Unknown Difficulty :hammer: Tooling
 
 It would be nice to be able to integrate GRDB as a static library.
 
 
 ### Typed Expressions
 
-:bowtie: Public API Challenge, :muscle: Hard, :fire: Experimental
+:bowtie: Public API Challenge :muscle: Hard :fire: Experimental
 
 The compiler currently does not spot type mistakes in query interface requests:
 
