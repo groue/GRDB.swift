@@ -255,7 +255,7 @@ Swift on Linux is currently focused on the server (Vapor, Perfect, Kitura). Whil
 
 :bowtie: Public API Challenge :question: Unknown Difficulty
 
-There are several SQLite features that GRDB could nativeely support:
+There are several SQLite features that GRDB could natively support:
 
 - [UPSERT](https://www.sqlite.org/lang_UPSERT.html)
 - [INSERT INTO ... SELECT ...](https://www.sqlite.org/lang_insert.html)
