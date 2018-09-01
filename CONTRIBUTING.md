@@ -61,7 +61,7 @@ You'll find below various ideas for enhancing and extending GRDB, in various are
 
 Legend:
 
-- :baby: **Starter task**: get familiar with GRDB internals
+- :baby: **Starter Task**: get familiar with GRDB internals
 - :muscle: **Hard**: there are implementation challenges
 - :pencil: **Documentation**
 - :fire: **Experimental**: let's invent the future!
@@ -164,7 +164,7 @@ Suggested contributions are:
 
 ### Date and Time Functions
 
-:baby: Starter task
+:baby: Starter Task
 
 Believe it or not, no one has ever asked support for SQLite [Date And Time Functions](https://www.sqlite.org/lang_datefunc.html). There is surely room for a nice Swift API that makes them available.
 
@@ -179,7 +179,7 @@ Functions are defined in [GRDB/QueryInterface/Support/SQLFunctions.swift](https:
 
 ### Documentation
 
-:pencil: Documentation
+:baby: Starter Task, :pencil: Documentation
 
 General documentation can always be improved so that it reaches its goal: helping developers building applications.
 
@@ -239,7 +239,7 @@ This improvement most certainly depends on a refreshing of the [FetchedRecordsCo
 
 ### JSON
 
-:bowtie: Public API Challenge, :baby: Starter task
+:bowtie: Public API Challenge, :baby: Starter Task
 
 [Codable Records] are granted with automatic JSON encoding and decoding of their complex properties. But there is still room for improvements. For example, could we put the [SQLite JSON1 extension](https://www.sqlite.org/json1.html) to some good use?
 
