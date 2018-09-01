@@ -1,0 +1,289 @@
+Contributing to GRDB
+====================
+
+Thanks for passing by! This guide is a set of tips and guidelines for contributing to the Github repository [groue/GRDB.swift](https://github.com/groue/GRDB.swift).
+
+- [Report Bugs]
+- [Ask Questions]
+- [Suggest an Enhancement]
+- [Submit a Pull Request]
+- [Sponsoring and Professional Support]
+
+**[Suggested Contributions]** (in alphabetical order)
+
+- [Associations]
+- [Carthage]
+- [CloudKit]
+- [Concurrency]
+- [Database Observation]
+- [Date and Time Functions]
+- [Documentation]
+- [FetchedRecordsController Diffing Algorithm]
+- [FetchedRecordsController Support for Any Request]
+- [FetchedRecordsController Support for Sections]
+- [JSON]
+- [Linux]
+- [More SQL Generation]
+- [Static Library]
+- [Typed Expressions]
+
+**[Non-Goals]**
+
+
+### Report Bugs
+
+Please make sure the bug is not already reported by searching existing [issues](https://github.com/groue/GRDB.swift/issues).
+
+If you're unable to find an existing issue addressing the problem, [open a new one](https://github.com/groue/GRDB.swift/issues/new). Be sure to include a title and clear description, as much relevant information as possible, and a code sample or an executable test case demonstrating the expected behavior that is not occurring.
+
+
+### Ask Questions
+
+The information you are looking for is maybe already available. Check out:
+
+- the [FAQ](README.md#faq)
+- the [general documentation](README.md#documentation)
+- the [answered questions](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=label%3Aquestion+)
+
+If not, your questions are welcome in the [GRDB forums](https://forums.swift.org/c/related-projects/grdb), or in a new [Github issue](https://github.com/groue/GRDB.swift/issues/new). 
+
+
+### Suggest an Enhancement
+
+Your idea may already be listed in the list of [Suggested Contributions].
+
+If not, contact [@groue](http://twitter.com/groue) on Twitter, or [open a new issue](https://github.com/groue/GRDB.swift/issues/new).
+
+
+### Submit a Pull Request
+
+Discuss your idea first, so that your changes have a good chance of being merged in.
+
+Submit your pull request against the `develop` branch.
+
+Pull requests that include tests for modified and new functionalities, inline documentation, and relevant updates to the main README.md are merged faster, because you won't have to wait for somebody else to complete your contribution.
+
+
+### Sponsoring and Professional Support
+
+GRDB is free. It is openly developed by its contributors, on their free time, according to their will, needs, and availability. It is not controlled by any company.
+
+When you have specific development or support needs, and are willing to financially contribute to GRDB, please send an email to [Gwendal Roué](mailto:gr@pierlis.com) so that we can enter a regular business relationship through the [Pierlis](http://pierlis.com/) company, based in Paris, France.
+
+
+## Suggested Contributions
+
+You'll find below various ideas for enhancing and extending GRDB, in various areas. Your ideas can be added to this list: [Suggest an Enhancement].
+
+
+### Associations
+
+Associations can be enhanced in several ways. See the "Known Issues" and "Future Directions" chapter of the [Associations Guide](Documentation/AssociationsBasics.md)
+
+
+### Carthage
+
+[Carthage](https://github.com/Carthage/Carthage) can build GRDB frameworks, but it can also inexplicably fail. This installation method is thus currently **unsupported**, which means that support has to be found directly in the [Carthage repo](https://github.com/Carthage/Carthage/issues), or on [Stack Overflow](http://stackoverflow.com). See [#262](https://github.com/groue/GRDB.swift/pull/262) for more information.
+
+I would be a nice improvement if GRDB Carthage builds were made robust.
+
+
+### CloudKit
+
+Integration with [CloudKit](https://developer.apple.com/icloud/cloudkit/) is a rich, interesting, and useful topic.
+
+It is likely that CloudKit support would exist in a separate companion library.
+
+
+### Concurrency
+
+GRDB has a strong focus on safe concurrency. Not only safe as "does not crash", but safe as "actively protects your application data". The topic is discussed in (too) many places:
+
+- [Concurrency Guide](README.md#concurrency)
+- [Why Adopt GRDB?](https://github.com/groue/GRDB.swift/blob/master/Documentation/WhyAdoptGRDB.md#strong-and-clear-multi-threading-guarantees)
+- [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
+- [Good Practices for Designing Record Types](https://github.com/groue/GRDB.swift/blob/master/Documentation/GoodPracticesForDesigningRecordTypes.md#fetch-in-time)
+- [Comparison between GRDB and Core Data concurrency](https://github.com/groue/GRDB.swift/issues/405)
+
+Despite this abundant documention, I regularly meet developers who don't think about eventual multi-threading gotchas, and don't design their application against them.
+
+Indeed, there are several challenges at play here:
+
+- Some developers disregard potential multi-threading bugs such as data races, even if the fix is "easy". Such bugs may never happen during the development of an application. They may only impact a few users in production. It is always easier not to think about them.
+
+- Databases are often seen as plain CRUD tools, and some developers are not familiar with topics like isolation or transactions. This is especially true of developers who have experience in a managed ORM such as Core Data or Realm, or web frameworks like Rails or Django: switching to an unmanaged relational database is not an easy task.
+
+- Not all applications need to be multi-threaded.
+
+These challenges are improvement opportunities:
+
+- Better documentation of GRDB concurrency
+
+- The introduction of an "ultra-safe" concurrency mode. Maybe something that restricts all database accesses to the main thread, like [FCModel](https://github.com/marcoarment/FCModel). Maybe in a separate companion library.
+
+
+### Database Observation
+
+[Database Observation](README#database-changes-observation) is currently available in three flavors:
+
+- The [TransactionObserver] protocol: versatile, but low-level and challenging in terms of concurrency, especially when used in conjunction with database pools.
+
+- [FetchedRecordsController]: high-level and easier to use.
+
+- [RxGRDB]: high-level and easier to use, depends on [RxSwift](https://github.com/ReactiveX/RxSwift).
+
+Suggested contributions are:
+
+- Enhancements to FetchedRecordsController (see below).
+- More choices of reactive engines.
+
+
+### Date and Time Functions
+
+Believe it or not, no one has ever asked support for SQLite [Date And Time Functions](https://www.sqlite.org/lang_datefunc.html). There is surely room for a nice Swift API that makes them available.
+
+For more ideas, see:
+
+- [SQLite Core Functions](https://www.sqlite.org/lang_corefunc.html)
+- [SQLite Aggregate Functions](https://www.sqlite.org/lang_aggfunc.html)
+- [SQLite JSON functions](https://www.sqlite.org/json1.html) and [JSON], below.
+
+Functions are defined in [GRDB/QueryInterface/Support/SQLFunctions.swift](https://github.com/groue/GRDB.swift/blob/v3.2.0/GRDB/QueryInterface/Support/SQLFunctions.swift).
+
+
+### Documentation
+
+General documentation can always be improved so that it reaches its goal: helping developers building applications.
+
+- English: the documentation has mostly been written by [@groue](http://github.com/groue) who is not a native English speaker.
+- Clarity: any chapter that is not crystal clear should be enhanced.
+- Audience: documentation should talk to several populations of developers, from beginners who need positive guidance, to SQLite experts who need to build trust.
+- Typos
+- Inaccuracies
+- Etc
+
+Inline documentation, the one which is embedded right into the source code and is displayed by Xcode when one alt-clicks an identifier, deserves the same care.
+
+If you are a good writer, your help will be very warmly welcomed.
+
+
+### FetchedRecordsController Diffing Algorithm
+
+[FetchedRecordsController] uses a Levenshtein-based diffing algorithm which has a terrible algorithmic complexity. This makes this very useful class unable to deal with more than hundreds of elements.
+
+There exists much more efficient O(n) diffing algorithms that would lift this limitation.
+
+Starting points:
+
+- [RxSwiftCommunity/RxDataSources](https://github.com/RxSwiftCommunity/RxDataSources)
+- [ra1028/DifferenceKit](https://github.com/ra1028/DifferenceKit)
+- [tonyarnold/Differ](https://github.com/tonyarnold/Differ)
+
+
+### FetchedRecordsController Support for Any Request
+
+[FetchedRecordsController] is able to deal with records, but not with raw rows or values:
+
+```swift
+// Supported by FetchedRecordsController
+let recordRequest = Player.all()
+
+// Not supported by FetchedRecordsController
+let stringRequest = Player.select(Column("name"), as: String.self)
+let rowRequest = SQLRequest<Row>("SELECT ...")
+```
+
+This limitation does not apply to [RxGRDB], the reactive sibling of FetchedRecordsController. It would be nice if FetchedRecordsController would become just as versatile.
+
+
+### FetchedRecordsController Support for Sections
+
+[FetchedRecordsController] mimics the API of Core Data's [NSFetchedResultsController](https://developer.apple.com/documentation/coredata/nsfetchedresultscontroller), but does not yet support table and collection view sections.
+
+This improvement most certainly depends on a refreshing of the [FetchedRecordsController Diffing Algorithm].
+
+
+### JSON
+
+[Codable Records] are granted with automatic JSON encoding and decoding of their complex properties. But there is still room for improvements. For example, could we put the [SQLite JSON1 extension](https://www.sqlite.org/json1.html) to some good use?
+
+
+### Linux
+
+Swift on Linux is currently focused on the server (Vapor, Perfect, Kitura). While server support is a [non-goal](#non-goals) of GRDB, there exists Linux GUI applications, too. Linux is thus a desired platform.
+
+
+### More SQL Generation
+
+There are several SQL statements that GRDB can not currently build:
+
+- [UPSERT](https://www.sqlite.org/lang_UPSERT.html).
+- [INSERT INTO ... SELECT ...](https://www.sqlite.org/lang_insert.html)
+- [WITH RECURSIVE ...](https://www.sqlite.org/lang_with.html)
+- [More ideas](https://www.sqlite.org/lang.html)
+
+
+### Static Library
+
+It would be nice to be able to integrate GRDB as a static library.
+
+
+### Typed Expressions
+
+The compiler currently does not spot type mistakes in query interface requests:
+
+```swift
+Player.filter(Column("name") == "Arthur") // OK
+Player.filter(Column("name") == 1)        // Sure
+Player.filter(Column("name") == Date())   // Legit
+```
+
+This weak typing also prevents natural-looking swift code to produce the expected results:
+
+```swift
+// Performs arithmetic additions instead of string concatenation
+Player.select(Column("firstName") + " " + Column("lastName"))
+```
+
+It would be interesting to see what typed expressions could bring to GRDB.
+
+
+## Non-Goals
+
+GRDB is a "toolkit for SQLite databases, with a focus on application development".
+
+This very particular focus is the reason why GRDB can provide key features such as sharp multi-threading, database observation, and first-class support for raw SQL.
+
+Features that blur this focus are non-goals:
+
+- Support for MySQL, PostgreSQL, or other database engines
+- Support for Servers
+
+
+[Ask Questions]: #ask-questions
+[Associations]: #associations
+[Carthage]: #carthage
+[CloudKit]: #cloudkit
+[Codable Records]: README.md#codable-records
+[Database Observation]: #database-observation
+[Date and Time Functions]: #date-and-time-functions
+[Documentation]: #documentation
+[FetchedRecordsController]: README.md#fetchedrecordscontroller
+[FetchedRecordsController Diffing Algorithm]: #fetchedrecordscontroller-diffing-algorithm
+[FetchedRecordsController Support for Any Request]: #fetchedrecordscontroller-support-for-any-request
+[FetchedRecordsController Support for Sections]: #fetchedrecordscontroller-support-for-sections
+[How is the Library Organized?]: Documentation/LibraryOrganization.md
+[How is the Repository Organized?]: Documentation/RepositoryOrganization.md
+[JSON]: #json
+[Linux]: #linux
+[More SQL Generation]: #more-sql-generation
+[Non-Goals]: #non-goals
+[Report Bugs]: #report-bugs
+[RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
+[Concurrency]: #concurrency
+[Static Library]: #static-library
+[Sponsoring and Professional Support]: #sponsoring-and-professional-support
+[Submit a Pull Request]: #submit-a-pull-request
+[Suggest an Enhancement]: #suggest-an-enhancement
+[Suggested Contributions]: #suggested-contributions
+[Typed Expressions]: #type-expressions
