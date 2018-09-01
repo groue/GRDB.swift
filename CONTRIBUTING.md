@@ -83,6 +83,7 @@ The ideas, in alphabetical order:
 - [Linux]
 - [More SQL Generation]
 - [SQL Console in the Debugger]
+- [SQLCipher in a Shared App Container]
 - [Static Library]
 - [Typed Expressions]
 
@@ -252,11 +253,12 @@ Swift on Linux is currently focused on the server (Vapor, Perfect, Kitura). Whil
 
 :bowtie: Public API Challenge, :question: Unknown Difficulty
 
-There are several SQL statements that GRDB can not currently build:
+There are several SQLite features that GRDB could nativeely support:
 
 - [UPSERT](https://www.sqlite.org/lang_UPSERT.html)
 - [INSERT INTO ... SELECT ...](https://www.sqlite.org/lang_insert.html)
 - [WITH RECURSIVE ...](https://www.sqlite.org/lang_with.html)
+- [RTree](https://sqlite.org/rtree.html)
 - [More ideas](https://www.sqlite.org/lang.html)
 
 
@@ -265,6 +267,13 @@ There are several SQL statements that GRDB can not currently build:
 :question: Unknown Difficulty, :hammer: Tooling
 
 Sometimes one needs, in lldb, a console similar to the [Command Line Shell For SQLite](https://www.sqlite.org/cli.html).
+
+
+### SQLCipher in a Shared App Container
+
+:question: Unknown Difficulty
+
+See issue [#302](https://github.com/groue/GRDB.swift/issues/302).
 
 
 ### Static Library
@@ -332,6 +341,7 @@ Features that blur this focus are non-goals:
 [Static Library]: #static-library
 [Sponsoring and Professional Support]: #sponsoring-and-professional-support
 [SQL Console in the Debugger]: #sql-console-in-the-debugger
+[SQLCipher in a Shared App Container]: #sqlcipher-in-a-shared-app-container
 [Submit a Pull Request]: #submit-a-pull-request
 [Suggest an Enhancement]: #suggest-an-enhancement
 [Suggested Contributions]: #suggested-contributions
