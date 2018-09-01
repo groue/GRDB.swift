@@ -129,7 +129,7 @@ GRDB has a strong focus on safe concurrency. Not only safe as "does not crash", 
 
 Despite this abundant documention, I regularly meet developers who don't think about eventual multi-threading gotchas, and don't design their application against them.
 
-Indeed, there are several challenges at play here:
+This can be explained:
 
 - Some developers disregard potential multi-threading bugs such as data races, even if the fix is "easy". Such bugs may never happen during the development of an application. They may only impact a few users in production. It is always easier not to think about them.
 
@@ -137,7 +137,7 @@ Indeed, there are several challenges at play here:
 
 - Not all applications need to be multi-threaded.
 
-These challenges are improvement opportunities:
+And this creates improvement opportunities:
 
 - Better documentation of GRDB concurrency
 
