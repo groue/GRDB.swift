@@ -297,7 +297,7 @@ Player.filter(Column("name") == 1)        // Sure
 Player.filter(Column("name") == Date())   // Legit
 ```
 
-This weak typing also prevents natural-looking swift code to produce the expected results:
+This weak typing also prevents natural-looking Swift code from producing the expected results:
 
 ```swift
 // Performs arithmetic additions instead of string concatenation
