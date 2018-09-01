@@ -8,26 +8,8 @@ Thanks for passing by! This guide is a set of tips and guidelines for contributi
 - [Suggest an Enhancement]
 - [Submit a Pull Request]
 - [Sponsoring and Professional Support]
-
-**[Suggested Contributions]** (in alphabetical order)
-
-- [Associations]
-- [Carthage]
-- [CloudKit]
-- [Concurrency]
-- [Database Observation]
-- [Date and Time Functions]
-- [Documentation]
-- [FetchedRecordsController Diffing Algorithm]
-- [FetchedRecordsController Support for Any Request]
-- [FetchedRecordsController Support for Sections]
-- [JSON]
-- [Linux]
-- [More SQL Generation]
-- [Static Library]
-- [Typed Expressions]
-
-**[Non-Goals]**
+- [Suggested Contributions]
+- [Non-Goals]
 
 
 ### Report Bugs
@@ -77,18 +59,37 @@ You'll find below various ideas for enhancing and extending GRDB, in various are
 
 Legend:
 
-- :baby: Starter task
-- :muscle: Hard
-- :pencil: Documentation
-- :fire: Experimental
-- :thought_balloon: Design Challenge
-- :hammer: Tooling
-- :question: Unknown Difficulty
+- :baby: **Starter task**: get familiar with GRDB internals
+- :muscle: **Hard**: there are implementation challenges
+- :pencil: **Documentation**
+- :fire: **Experimental**: let's invent the future!
+- :bowtie: **Public API Challenge**: we'll need a very good public API
+- :hammer: **Tooling**: GRDB and its environment
+- :question: **Unknown Difficulty**
+
+The ideas, in alphabetical order:
+
+- [Associations]
+- [Carthage]
+- [CloudKit]
+- [Concurrency]
+- [Database Observation]
+- [Date and Time Functions]
+- [Documentation]
+- [FetchedRecordsController Diffing Algorithm]
+- [FetchedRecordsController Support for Any Request]
+- [FetchedRecordsController Support for Sections]
+- [JSON]
+- [Linux]
+- [More SQL Generation]
+- [SQL Console in the Debugger]
+- [Static Library]
+- [Typed Expressions]
 
 
 ### Associations
 
-:thought_balloon: Design Challenge, :muscle: Hard, :fire: Experimental
+:bowtie: Public API Challenge, :muscle: Hard, :fire: Experimental
 
 Associations can be enhanced in several ways. See the "Known Issues" and "Future Directions" chapter of the [Associations Guide](Documentation/AssociationsBasics.md)
 
@@ -104,7 +105,7 @@ I would be a nice improvement if GRDB Carthage builds were made robust.
 
 ### CloudKit
 
-:thought_balloon: Design Challenge, :question: Unknown Difficulty, :fire: Experimental
+:bowtie: Public API Challenge, :question: Unknown Difficulty, :fire: Experimental
 
 Integration with [CloudKit](https://developer.apple.com/icloud/cloudkit/) is a rich, interesting, and useful topic.
 
@@ -113,7 +114,7 @@ It is likely that CloudKit support would exist in a separate companion library.
 
 ### Concurrency
 
-:thought_balloon: Design Challenge, :muscle: Hard, :pencil: Documentation
+:bowtie: Public API Challenge, :muscle: Hard, :pencil: Documentation
 
 GRDB has a strong focus on safe concurrency. Not only safe as "does not crash", but safe as "actively protects your application data". The topic is discussed in (too) many places:
 
@@ -235,7 +236,7 @@ This improvement most certainly depends on a refreshing of the [FetchedRecordsCo
 
 ### JSON
 
-:thought_balloon: Design Challenge, :baby: Starter task
+:bowtie: Public API Challenge, :baby: Starter task
 
 [Codable Records] are granted with automatic JSON encoding and decoding of their complex properties. But there is still room for improvements. For example, could we put the [SQLite JSON1 extension](https://www.sqlite.org/json1.html) to some good use?
 
@@ -249,7 +250,7 @@ Swift on Linux is currently focused on the server (Vapor, Perfect, Kitura). Whil
 
 ### More SQL Generation
 
-:thought_balloon: Design Challenge, :question: Unknown Difficulty
+:bowtie: Public API Challenge, :question: Unknown Difficulty
 
 There are several SQL statements that GRDB can not currently build:
 
@@ -257,6 +258,13 @@ There are several SQL statements that GRDB can not currently build:
 - [INSERT INTO ... SELECT ...](https://www.sqlite.org/lang_insert.html)
 - [WITH RECURSIVE ...](https://www.sqlite.org/lang_with.html)
 - [More ideas](https://www.sqlite.org/lang.html)
+
+
+### SQL Console in the Debugger
+
+:question: Unknown Difficulty, :hammer: Tooling
+
+Sometimes one needs, in lldb, a console similar to the [Command Line Shell For SQLite](https://www.sqlite.org/cli.html).
 
 
 ### Static Library
@@ -268,7 +276,7 @@ It would be nice to be able to integrate GRDB as a static library.
 
 ### Typed Expressions
 
-:thought_balloon: Design Challenge, :muscle: Hard, :fire: Experimental
+:bowtie: Public API Challenge, :muscle: Hard, :fire: Experimental
 
 The compiler currently does not spot type mistakes in query interface requests:
 
@@ -323,6 +331,7 @@ Features that blur this focus are non-goals:
 [Concurrency]: #concurrency
 [Static Library]: #static-library
 [Sponsoring and Professional Support]: #sponsoring-and-professional-support
+[SQL Console in the Debugger]: #sql-console-in-the-debugger
 [Submit a Pull Request]: #submit-a-pull-request
 [Suggest an Enhancement]: #suggest-an-enhancement
 [Suggested Contributions]: #suggested-contributions
