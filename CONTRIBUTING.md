@@ -116,9 +116,10 @@ Integration with [CloudKit](https://developer.apple.com/icloud/cloudkit/) is a r
 
 It is likely that CloudKit support would exist in a separate companion library.
 
-Starting point:
+Starting points:
 
 - [mentrena/SyncKit](https://github.com/mentrena/SyncKit)
+- [Sorix/CloudCore](https://github.com/Sorix/CloudCore)
 
 
 ### Concurrency
