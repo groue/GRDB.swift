@@ -11,7 +11,7 @@ Write documentation and tests if you can, because if nobody else has the time to
 Ask for help and guidance when needed.
 -->
 
-- [ ] This pull request is submitted against the `develop` branch.
+- [ ] This pull request is submitted against the `development` branch.
 - [ ] Inline documentation has been updated.
 - [ ] README.md or another dedicated guide has been updated.
 - [ ] Changes are tested, for all flavors of GRDB, GRDBCipher, and GRDBCustomSQLite.
