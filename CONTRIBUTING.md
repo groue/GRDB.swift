@@ -122,6 +122,8 @@ Starting points:
 - [mentrena/SyncKit](https://github.com/mentrena/SyncKit)
 - [nofelmahmood/Seam](https://github.com/nofelmahmood/Seam)
 - [Sorix/CloudCore](https://github.com/Sorix/CloudCore)
+- [Synchronizing data with CloudKit](https://medium.com/@guilhermerambo/synchronizing-data-with-cloudkit-94c6246a3fda)
+- WWDC CloudKit sessions, including [CloudKit Best Practices](https://developer.apple.com/videos/play/wwdc2016/231/)
 
 
 ### Concurrency
