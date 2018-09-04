@@ -118,7 +118,9 @@ It is likely that CloudKit support would exist in a separate companion library.
 
 Starting points:
 
+- [caiyue1993/IceCream](https://github.com/caiyue1993/IceCream)
 - [mentrena/SyncKit](https://github.com/mentrena/SyncKit)
+- [nofelmahmood/Seam](https://github.com/nofelmahmood/Seam)
 - [Sorix/CloudCore](https://github.com/Sorix/CloudCore)
 
 
