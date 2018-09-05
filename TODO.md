@@ -21,8 +21,23 @@
 - [ ] UPSERT https://www.sqlite.org/lang_UPSERT.html
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0075-import-test.md
 - [ ] Avoid code duplication: https://forums.swift.org/t/c-interoperability-combinations-of-library-and-os-versions/14029/4
-- [ ] Expose FTS5 in regular GRDB: https://github.com/groue/GRDB.swift/issues/373
 - [ ] Allow joining methods on DerivableRequest
+- [ ] Support for "INSERT INTO ... SELECT ...". For example:
+    
+    ```swift
+    // INSERT INTO rigth (id, name) SELECT id, name FROM left
+    let lefts = Left.select(Left.Columns.id, Left.Columns.name)
+    try Right.insert(lefts)
+    ```
+- [ ] select values from a JSON column:
+    
+    ```swift
+    let nesteds = try Record
+        .select(Column("nested"), as: Nested.self)
+        .fetchAll(db)
+    ```
+- [ ] Consider renaming dbQueue.inDatabase, dbPool.writeWithoutTransaction -> dbQueue/Pool.exclusive
+- [ ] FetchedRecordsController diff algorithm: check https://github.com/RxSwiftCommunity/RxDataSources/issues/256
 
 Swift 4.2
 

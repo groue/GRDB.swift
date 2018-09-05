@@ -1,0 +1,5 @@
+use_frameworks!
+
+target 'GRDBFTS5MacOS'
+platform :macos, '10.13'
+pod 'GRDBPlus', :path => '../../..'

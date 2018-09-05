@@ -72,7 +72,7 @@ public protocol DatabaseWriter : DatabaseReader {
     ///
     /// For example:
     ///
-    ///     try writer.write { db in
+    ///     try writer.writeWithoutTransaction { db in
     ///         try db.execute("DELETE FROM player")
     ///         try writer.readFromCurrentState { db in
     ///             // Guaranteed to be zero

@@ -48,6 +48,6 @@ class FoundationDataTests: GRDBTestCase {
         XCTAssertNil(Data.fromDatabaseValue(databaseValue_Null))
         XCTAssertNil(Data.fromDatabaseValue(databaseValue_Int64))
         XCTAssertNil(Data.fromDatabaseValue(databaseValue_Double))
-        XCTAssertNil(Data.fromDatabaseValue(databaseValue_String))
+        XCTAssertEqual(Data.fromDatabaseValue(databaseValue_String), "foo".data(using: .utf8))
     }
 }

@@ -35,7 +35,7 @@ public class DatabaseSnapshot : DatabaseReader {
             
             // Take snapshot
             // See DatabasePool.readFromCurrentState for a complete discussion
-            try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").cursor().next()
+            try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").makeCursor().next()
         }
     }
     

@@ -47,7 +47,7 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     
     // MARK: Request Derivation
 
-    /// Creates a request with a new set of selected columns.
+    /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM player
     ///     var request = Player.all()
@@ -63,6 +63,42 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
         return QueryInterfaceRequest(query: query.select(selection))
     }
     
+    /// Creates a request which selects *selection*, and fetches values of
+    /// type *type*.
+    ///
+    ///     try dbQueue.read { db in
+    ///         // SELECT max(score) FROM player
+    ///         let request = Player.all().select([max(Column("score"))], as: Int.self)
+    ///         let maxScore: Int? = try request.fetchOne(db)
+    ///     }
+    public func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+        return QueryInterfaceRequest<RowDecoder>(query: query.select(selection))
+    }
+    
+    /// Creates a request which selects *selection*, and fetches values of
+    /// type *type*.
+    ///
+    ///     try dbQueue.read { db in
+    ///         // SELECT max(score) FROM player
+    ///         let request = Player.all().select(max(Column("score")), as: Int.self)
+    ///         let maxScore: Int? = try request.fetchOne(db)
+    ///     }
+    public func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+        return select(selection, as: type)
+    }
+    
+    /// Creates a request which selects *sql*, and fetches values of
+    /// type *type*.
+    ///
+    ///     try dbQueue.read { db in
+    ///         // SELECT max(score) FROM player
+    ///         let request = Player.all().select(sql: "max(score)", as: Int.self)
+    ///         let maxScore: Int? = try request.fetchOne(db)
+    ///     }
+    public func select<RowDecoder>(sql: String, arguments: StatementArguments? = nil, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+        return select(SQLSelectionLiteral(sql, arguments: arguments), as: type)
+    }
+
     /// Creates a request which returns distinct rows.
     ///
     ///     // SELECT DISTINCT * FROM player
@@ -256,6 +292,42 @@ extension TableRecord {
         return all().select(sql: sql, arguments: arguments)
     }
     
+    /// Creates a request which selects *selection*, and fetches values of
+    /// type *type*.
+    ///
+    ///     try dbQueue.read { db in
+    ///         // SELECT max(score) FROM player
+    ///         let request = Player.select([max(Column("score"))], as: Int.self)
+    ///         let maxScore: Int? = try request.fetchOne(db)
+    ///     }
+    public static func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+        return all().select(selection, as: type)
+    }
+    
+    /// Creates a request which selects *selection*, and fetches values of
+    /// type *type*.
+    ///
+    ///     try dbQueue.read { db in
+    ///         // SELECT max(score) FROM player
+    ///         let request = Player.select(max(Column("score")), as: Int.self)
+    ///         let maxScore: Int? = try request.fetchOne(db)
+    ///     }
+    public static func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+        return all().select(selection, as: type)
+    }
+    
+    /// Creates a request which selects *sql*, and fetches values of
+    /// type *type*.
+    ///
+    ///     try dbQueue.read { db in
+    ///         // SELECT max(score) FROM player
+    ///         let request = Player.select(sql: "max(score)", as: Int.self)
+    ///         let maxScore: Int? = try request.fetchOne(db)
+    ///     }
+    public static func select<RowDecoder>(sql: String, arguments: StatementArguments? = nil, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+        return all().select(sql: sql, arguments: arguments, as: type)
+    }
+
     /// Creates a request with the provided *predicate*.
     ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'

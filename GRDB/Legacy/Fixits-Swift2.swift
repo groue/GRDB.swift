@@ -184,6 +184,7 @@ public typealias TransactionObserverType = TransactionObserver
 @available(*, unavailable, renamed:"Column")
 public typealias SQLColumn = Column
 
+/// :nodoc:
 extension SQLSpecificExpressible {
     @available(*, unavailable, renamed:"capitalized")
     public var capitalizedString: SQLExpression { get { return capitalized } }
@@ -195,6 +196,7 @@ extension SQLSpecificExpressible {
     public var uppercaseString: SQLExpression { get { return uppercased } }
 }
 
+/// :nodoc:
 @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
 extension SQLSpecificExpressible {
     @available(*, unavailable, renamed:"localizedCapitalized")

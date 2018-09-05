@@ -54,9 +54,10 @@ public class Statement {
         
         var sqliteStatement: SQLiteStatement? = nil
         // sqlite3_prepare_v3 was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
-        #if GRDBCUSTOMSQLITE
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
             let code = sqlite3_prepare_v3(database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags), &sqliteStatement, statementEnd)
         #else
+            // TODO: use sqlite3_prepare_v3 if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *)
             let code = sqlite3_prepare_v2(database.sqliteConnection, statementStart, -1, &sqliteStatement, statementEnd)
         #endif
         
@@ -356,12 +357,12 @@ public final class SelectStatement : Statement {
     /// Creates a cursor over the statement. This cursor does not produce any
     /// value, and is only intended to give access to the sqlite3_step()
     /// low-level function.
-    func cursor(arguments: StatementArguments? = nil) -> StatementCursor {
+    func makeCursor(arguments: StatementArguments? = nil) -> StatementCursor {
         return StatementCursor(statement: self, arguments: arguments)
     }
     
     /// Utility function for cursors
-    func cursorReset(arguments: StatementArguments? = nil) {
+    func reset(withArguments arguments: StatementArguments? = nil) {
         SchedulingWatchdog.preconditionValidQueue(database)
         prepare(withArguments: arguments)
         reset()
@@ -371,12 +372,13 @@ public final class SelectStatement : Statement {
 // Hide AuthorizedStatement from Jazzy
 extension SelectStatement: AuthorizedStatement { }
 
+// TODO: remove public qualifier, or expose SelectStatement.makeCursor()
 /// A cursor that iterates a database statement without producing any value.
 /// For example:
 ///
 ///     try dbQueue.read { db in
 ///         let statement = db.makeSelectStatement("SELECT * FROM player")
-///         let cursor: StatementCursor = statement.cursor()
+///         let cursor: StatementCursor = statement.makeCursor()
 ///     }
 public final class StatementCursor: Cursor {
     public let statement: SelectStatement
@@ -387,12 +389,16 @@ public final class StatementCursor: Cursor {
     fileprivate init(statement: SelectStatement, arguments: StatementArguments? = nil) {
         self.statement = statement
         self.sqliteStatement = statement.sqliteStatement
-        statement.cursorReset(arguments: arguments)
+        statement.reset(withArguments: arguments)
     }
     
     /// :nodoc:
     public func next() throws -> Void? {
-        if done { return nil }
+        if done {
+            // make sure this instance never yields a value again, even if the
+            // statement is reset by another cursor.
+            return nil
+        }
         switch sqlite3_step(sqliteStatement) {
         case SQLITE_DONE:
             done = true
@@ -580,13 +586,21 @@ extension UpdateStatement: AuthorizedStatement { }
 ///
 /// ## Mixed Arguments
 ///
-/// When a statement consumes a mix of named and positional arguments, it
-/// prefers named arguments over positional ones. For example:
+/// It is possible to mix named and positional arguments. Yet this is usually
+/// confusing, and it is best to avoid this practice:
 ///
 ///     let sql = "SELECT ?2 AS two, :foo AS foo, ?1 AS one, :foo AS foo2, :bar AS bar"
-///     let row = try Row.fetchOne(db, sql, arguments: [1, 2, "bar"] + ["foo": "foo"])!
+///     var arguments: StatementArguments = [1, 2, "bar"] + ["foo": "foo"]
+///     let row = try Row.fetchOne(db, sql, arguments: arguments)!
 ///     print(row)
 ///     // Prints [two:2 foo:"foo" one:1 foo2:"foo" bar:"bar"]
+///
+/// Mixed arguments exist as a support for requests like the following:
+///
+///     let players = try Player
+///         .filter(sql: "team = :team", arguments: ["team": "Blue"])
+///         .filter(sql: "score > ?", arguments: [1000])
+///         .fetchAll(db)
 public struct StatementArguments: CustomStringConvertible, Equatable, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
     private(set) var values: [DatabaseValue] = []
     private(set) var namedValues: [String: DatabaseValue] = [:]
@@ -902,79 +916,5 @@ extension StatementArguments {
             return "\(String(reflecting: key)): \(value)"
         }
         return "[" + (namedValuesDescriptions + valuesDescriptions).joined(separator: ", ") + "]"
-    }
-}
-
-/// A thread-unsafe statement cache
-struct StatementCache {
-    unowned let db: Database
-    private var selectStatements: [String: SelectStatement] = [:]
-    private var updateStatements: [String: UpdateStatement] = [:]
-    
-    init(database: Database) {
-        self.db = database
-    }
-    
-    mutating func selectStatement(_ sql: String) throws -> SelectStatement {
-        if let statement = selectStatements[sql] {
-            return statement
-        }
-        
-        #if GRDBCUSTOMSQLITE
-            // http://www.sqlite.org/c3ref/c_prepare_persistent.html#sqlitepreparepersistent
-            // > The SQLITE_PREPARE_PERSISTENT flag is a hint to the query
-            // > planner that the prepared statement will be retained for a long
-            // > time and probably reused many times.
-            //
-            // This looks like a perfect match for cached statements.
-            //
-            // However SQLITE_PREPARE_PERSISTENT was only introduced in
-            // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
-            let statement = try db.makeSelectStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
-        #else
-            let statement = try db.makeSelectStatement(sql)
-        #endif
-        selectStatements[sql] = statement
-        return statement
-    }
-
-    mutating func updateStatement(_ sql: String) throws -> UpdateStatement {
-        if let statement = updateStatements[sql] {
-            return statement
-        }
-        
-        #if GRDBCUSTOMSQLITE
-            // http://www.sqlite.org/c3ref/c_prepare_persistent.html#sqlitepreparepersistent
-            // > The SQLITE_PREPARE_PERSISTENT flag is a hint to the query
-            // > planner that the prepared statement will be retained for a long
-            // > time and probably reused many times.
-            //
-            // This looks like a perfect match for cached statements.
-            //
-            // However SQLITE_PREPARE_PERSISTENT was only introduced in
-            // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
-            let statement = try db.makeUpdateStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
-        #else
-            let statement = try db.makeUpdateStatement(sql)
-        #endif
-        updateStatements[sql] = statement
-        return statement
-    }
-    
-    mutating func clear() {
-        updateStatements = [:]
-        selectStatements = [:]
-    }
-    
-    mutating func remove(_ statement: SelectStatement) {
-        if let index = selectStatements.index(where: { $0.1 === statement }) {
-            selectStatements.remove(at: index)
-        }
-    }
-    
-    mutating func remove(_ statement: UpdateStatement) {
-        if let index = updateStatements.index(where: { $0.1 === statement }) {
-            updateStatements.remove(at: index)
-        }
     }
 }

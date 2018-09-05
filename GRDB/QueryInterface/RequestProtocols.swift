@@ -1,8 +1,10 @@
 // MARK: - SelectionRequest
 
 /// The protocol for all requests that can refine their selection.
+///
+/// :nodoc:
 public protocol SelectionRequest {
-    /// Creates a request with a new set of selected columns.
+    /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM player
     ///     var request = Player.all()
@@ -17,8 +19,9 @@ public protocol SelectionRequest {
     func select(_ selection: [SQLSelectable]) -> Self
 }
 
+/// :nodoc:
 extension SelectionRequest {
-    /// Creates a request with a new set of selected columns.
+    /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM player
     ///     var request = Player.all()
@@ -34,7 +37,7 @@ extension SelectionRequest {
         return select(selection)
     }
     
-    /// Creates a request with a new set of selected columns.
+    /// Creates a request which selects *sql*.
     ///
     ///     // SELECT id, email FROM player
     ///     var request = Player.all()
@@ -54,6 +57,8 @@ extension SelectionRequest {
 // MARK: - FilteredRequest
 
 /// The protocol for all requests that can be filtered.
+///
+/// :nodoc:
 public protocol FilteredRequest {
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
@@ -64,6 +69,7 @@ public protocol FilteredRequest {
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self
 }
 
+/// :nodoc:
 extension FilteredRequest {
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
@@ -98,6 +104,8 @@ extension FilteredRequest {
 // MARK: - TableRequest {
 
 /// The protocol for all requests that feed from a database table
+///
+/// :nodoc:
 public protocol TableRequest {
     /// The name of the database table
     var databaseTableName: String { get }
@@ -122,6 +130,7 @@ public protocol TableRequest {
     func aliased(_ alias: TableAlias) -> Self
 }
 
+/// :nodoc:
 extension TableRequest where Self: FilteredRequest {
     
     /// Creates a request with the provided primary key *predicate*.
@@ -202,6 +211,7 @@ extension TableRequest where Self: FilteredRequest {
     }
 }
 
+/// :nodoc:
 extension TableRequest where Self: OrderedRequest {
     /// Creates a request ordered by primary key.
     public func orderByPrimaryKey() -> Self {
@@ -215,6 +225,8 @@ extension TableRequest where Self: OrderedRequest {
 // MARK: - AggregatingRequest
 
 /// The protocol for all requests that can aggregate.
+///
+/// :nodoc:
 public protocol AggregatingRequest {
     /// Creates a request grouped according to *expressions*.
     func group(_ expressions: [SQLExpressible]) -> Self
@@ -224,6 +236,7 @@ public protocol AggregatingRequest {
     func having(_ predicate: SQLExpressible) -> Self
 }
 
+/// :nodoc:
 extension AggregatingRequest {
     /// Creates a request grouped according to *expressions*.
     public func group(_ expressions: SQLExpressible...) -> Self {
@@ -255,6 +268,8 @@ extension AggregatingRequest {
 // MARK: - OrderedRequest
 
 /// The protocol for all requests that be ordered.
+///
+/// :nodoc:
 public protocol OrderedRequest {
     /// Creates a request with the provided *orderings promise*.
     ///
@@ -285,6 +300,7 @@ public protocol OrderedRequest {
     func reversed() -> Self
 }
 
+/// :nodoc:
 extension OrderedRequest {
     /// Creates a request with the provided *orderings*.
     ///
@@ -352,6 +368,8 @@ extension OrderedRequest {
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// The base protocol for all requests that can be refined.
+///
+/// :nodoc:
 public protocol DerivableRequest: SelectionRequest, FilteredRequest, OrderedRequest {
     associatedtype RowDecoder
 }

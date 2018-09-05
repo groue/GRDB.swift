@@ -1,5 +1,9 @@
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
 /// SQLGenerationContext is responsible for preventing SQL injection and
 /// disambiguating table names when GRDB generates SQL queries.
+///
+/// :nodoc:
 public struct SQLGenerationContext {
     private(set) var arguments: StatementArguments?
     private var resolvedNames: [TableAlias: String]
@@ -231,10 +235,17 @@ public class TableAlias: Hashable {
         return expression.qualifiedExpression(with: self)
     }
     
+    #if swift(>=4.2)
+    /// :nodoc:
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(root))
+    }
+    #else
     /// :nodoc:
     public var hashValue: Int {
         return ObjectIdentifier(root).hashValue
     }
+    #endif
     
     /// :nodoc:
     public static func == (lhs: TableAlias, rhs: TableAlias) -> Bool {

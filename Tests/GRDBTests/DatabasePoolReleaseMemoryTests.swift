@@ -113,7 +113,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             dbPool.releaseMemory()
         }
         let blocks = [block1, block2, block3]
-        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in // FIXME: this crashes sometimes
             blocks[index]()
         }
         
@@ -205,7 +205,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             }
         }
         
-        var cursor: ColumnCursor<Int>? = nil
+        var cursor: FastDatabaseValueCursor<Int>? = nil
         do {
             try! makeDatabasePool().write { db in
                 try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")

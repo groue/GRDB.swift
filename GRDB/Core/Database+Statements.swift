@@ -223,3 +223,81 @@ extension Database {
         publicStatementCache.remove(statement)
     }
 }
+
+/// A thread-unsafe statement cache
+struct StatementCache {
+    unowned let db: Database
+    private var selectStatements: [String: SelectStatement] = [:]
+    private var updateStatements: [String: UpdateStatement] = [:]
+    
+    init(database: Database) {
+        self.db = database
+    }
+    
+    mutating func selectStatement(_ sql: String) throws -> SelectStatement {
+        if let statement = selectStatements[sql] {
+            return statement
+        }
+        
+        // http://www.sqlite.org/c3ref/c_prepare_persistent.html#sqlitepreparepersistent
+        // > The SQLITE_PREPARE_PERSISTENT flag is a hint to the query
+        // > planner that the prepared statement will be retained for a long
+        // > time and probably reused many times.
+        //
+        // This looks like a perfect match for cached statements.
+        //
+        // However SQLITE_PREPARE_PERSISTENT was only introduced in
+        // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
+        //
+        // TODO: use SQLITE_PREPARE_PERSISTENT if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *)
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+            let statement = try db.makeSelectStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        #else
+            let statement = try db.makeSelectStatement(sql)
+        #endif
+        selectStatements[sql] = statement
+        return statement
+    }
+
+    mutating func updateStatement(_ sql: String) throws -> UpdateStatement {
+        if let statement = updateStatements[sql] {
+            return statement
+        }
+        
+        // http://www.sqlite.org/c3ref/c_prepare_persistent.html#sqlitepreparepersistent
+        // > The SQLITE_PREPARE_PERSISTENT flag is a hint to the query
+        // > planner that the prepared statement will be retained for a long
+        // > time and probably reused many times.
+        //
+        // This looks like a perfect match for cached statements.
+        //
+        // However SQLITE_PREPARE_PERSISTENT was only introduced in
+        // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
+        //
+        // TODO: use SQLITE_PREPARE_PERSISTENT if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *)
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+            let statement = try db.makeUpdateStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        #else
+            let statement = try db.makeUpdateStatement(sql)
+        #endif
+        updateStatements[sql] = statement
+        return statement
+    }
+    
+    mutating func clear() {
+        updateStatements = [:]
+        selectStatements = [:]
+    }
+    
+    mutating func remove(_ statement: SelectStatement) {
+        if let index = selectStatements.index(where: { $0.1 === statement }) {
+            selectStatements.remove(at: index)
+        }
+    }
+    
+    mutating func remove(_ statement: UpdateStatement) {
+        if let index = updateStatements.index(where: { $0.1 === statement }) {
+            updateStatements.remove(at: index)
+        }
+    }
+}

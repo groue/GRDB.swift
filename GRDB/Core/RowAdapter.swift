@@ -501,16 +501,22 @@ struct AdaptedRowImpl : RowImpl {
         return base.impl.databaseValue(atUncheckedIndex: mappedIndex)
     }
     
-    func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value {
+    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int) -> Value
+    {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.impl.fastValue(atUncheckedIndex: mappedIndex)
+        return Value.fastDecode(from: base, atUncheckedIndex: mappedIndex)
     }
     
-    func fastValue<Value: DatabaseValueConvertible & StatementColumnConvertible>(atUncheckedIndex index: Int) -> Value? {
+    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int) -> Value?
+    {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return base.impl.fastValue(atUncheckedIndex: mappedIndex)
+        return Value.fastDecodeIfPresent(from: base, atUncheckedIndex: mappedIndex)
     }
-
+    
     func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
         return base.impl.dataNoCopy(atUncheckedIndex: mappedIndex)

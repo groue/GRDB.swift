@@ -121,18 +121,18 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
 
     /// Returns a DatabaseValue initialized from a raw SQLite statement pointer.
     init(sqliteStatement: SQLiteStatement, index: Int32) {
-        switch sqlite3_column_type(sqliteStatement, Int32(index)) {
+        switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_NULL:
             storage = .null
         case SQLITE_INTEGER:
-            storage = .int64(sqlite3_column_int64(sqliteStatement, Int32(index)))
+            storage = .int64(sqlite3_column_int64(sqliteStatement, index))
         case SQLITE_FLOAT:
-            storage = .double(sqlite3_column_double(sqliteStatement, Int32(index)))
+            storage = .double(sqlite3_column_double(sqliteStatement, index))
         case SQLITE_TEXT:
-            storage = .string(String(cString: sqlite3_column_text(sqliteStatement, Int32(index))))
+            storage = .string(String(cString: sqlite3_column_text(sqliteStatement, index)))
         case SQLITE_BLOB:
-            if let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) {
-                let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
+            if let bytes = sqlite3_column_blob(sqliteStatement, index) {
+                let count = Int(sqlite3_column_bytes(sqliteStatement, index))
                 storage = .blob(Data(bytes: bytes, count: count)) // copy bytes
             } else {
                 storage = .blob(Data())
@@ -149,7 +149,24 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
 // Hashable
 extension DatabaseValue {
     
-    /// The hash value
+    #if swift(>=4.2)
+    /// :nodoc:
+    public func hash(into hasher: inout Hasher) {
+        switch storage {
+        case .null:
+            hasher.combine(0)
+        case .int64(let int64):
+            // 1 == 1.0, hence 1 and 1.0 must have the same hash:
+            hasher.combine(Double(int64))
+        case .double(let double):
+            hasher.combine(double)
+        case .string(let string):
+            hasher.combine(string)
+        case .blob(let data):
+            hasher.combine(data)
+        }
+    }
+    #else
     /// :nodoc:
     public var hashValue: Int {
         switch storage {
@@ -166,6 +183,7 @@ extension DatabaseValue {
             return data.hashValue
         }
     }
+    #endif
     
     /// Returns whether two DatabaseValues are equal.
     ///
@@ -207,6 +225,7 @@ extension DatabaseValue {
 // MARK: - Lossless conversions
 
 extension DatabaseValue {
+    // TODO: deprecate and rename to DatabaseValue.decode(_:sql:arguments:)
     /// Converts the database value to the type T.
     ///
     ///     let dbValue = "foo".databaseValue
@@ -226,20 +245,10 @@ extension DatabaseValue {
     ///     - arguments: Optional statement arguments that enhances the eventual
     ///       conversion error
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T : DatabaseValueConvertible {
-        if let value = T.fromDatabaseValue(self) {
-            return value
-        }
-        // Failed conversion: this is data loss, a programmer error.
-        var error = "could not convert database value \(self) to \(T.self)"
-        if let sql = sql {
-            error += " with statement `\(sql)`"
-        }
-        if let arguments = arguments, !arguments.isEmpty {
-            error += " arguments \(arguments)"
-        }
-        fatalError(error)
+        return T.decode(from: self, conversionContext: sql.map { ValueConversionContext(sql: $0, arguments: arguments) })
     }
     
+    // TODO: deprecate and rename to DatabaseValue.decodeIfPresent(_:sql:arguments:)
     /// Converts the database value to the type Optional<T>.
     ///
     ///     let dbValue = "foo".databaseValue
@@ -260,25 +269,7 @@ extension DatabaseValue {
     ///     - arguments: Optional statement arguments that enhances the eventual
     ///       conversion error
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T : DatabaseValueConvertible {
-        // Use fromDatabaseValue first: this allows DatabaseValue to convert NULL to .null.
-        if let value = T.fromDatabaseValue(self) {
-            return value
-        }
-        if isNull {
-            // Failed conversion from null: ok
-            return nil
-        } else {
-            // Failed conversion from a non-null database value: this is data
-            // loss, a programmer error.
-            var error = "could not convert database value \(self) to \(T.self)"
-            if let sql = sql {
-                error += " with statement `\(sql)`"
-            }
-            if let arguments = arguments, !arguments.isEmpty {
-                error += " arguments \(arguments)"
-            }
-            fatalError(error)
-        }
+        return T.decodeIfPresent(from: self, conversionContext: sql.map { ValueConversionContext(sql: $0, arguments: arguments) })
     }
 }
 

@@ -1,5 +1,5 @@
 # The OS X Build Environment
-# https://docs.travis-ci.com/user/reference/osx/#Xcode-version
+# https://docs.travis-ci.com/user/reference/osx/#xcode-version
 
 language: objective-c
 xcode_project: GRDB.xcodeproj
@@ -15,21 +15,37 @@ jobs:
     ###########################################
     ## Test GRDB
 
-    # Test GRDBOSX (Xcode 9.4)
+    # Test GRDBOSX (Xcode 10)
     - stage: Test GRDB
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.4
+      osx_image: xcode10
       env:
-        - TID=GRDBOSX (Xcode 9.4, macOS)
-      script: make test_framework_GRDBOSX
+        - TID=GRDBOSX (Xcode 10, Swift 4.2, macOS)
+      script: make test_framework_GRDBOSX_maxSwift
 
-    # Test GRDBWatchOS (Xcode 9.4)
+    # Test GRDBOSX (Xcode 10)
     - stage: Test GRDB
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.4
+      osx_image: xcode10
       env:
-        - TID=GRDBWatchOS (Xcode 9.4, watchOS)
+        - TID=GRDBOSX (Xcode 10, Swift 4.0, macOS)
+      script: make test_framework_GRDBOSX_minSwift
+
+    # Test GRDBWatchOS (Xcode 10)
+    - stage: Test GRDB
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode10
+      env:
+        - TID=GRDBWatchOS (Xcode 10, watchOS)
       script: make test_framework_GRDBWatchOS
+
+    # Test GRDBiOS (Xcode 10, iOS <MAXIMUM VERSION>)
+    - stage: Test GRDB
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode10
+      env:
+        - TID=GRDBiOS (Xcode 10, Swift 4.2, iOS <MAX>)
+      script: make test_framework_GRDBiOS_maxTarget_maxSwift
 
     # Test GRDBiOS (Xcode 9.4, iOS <MAXIMUM VERSION>)
     - stage: Test GRDB
@@ -37,7 +53,7 @@ jobs:
       osx_image: xcode9.4
       env:
         - TID=GRDBiOS (Xcode 9.4, iOS <MAX>)
-      script: make test_framework_GRDBiOS_maxTarget
+      script: make test_framework_GRDBiOS_maxTarget_maxSwift
 
     # Test GRDBiOS (Xcode 9.3, iOS <MINIMUM VERSION>))
     - stage: Test GRDB
@@ -47,24 +63,40 @@ jobs:
         - TID=GRDBiOS (Xcode 9.3, iOS <MIN>)
       script: make test_framework_GRDBiOS_minTarget
 
-    # Test GRDB [SPM] (Xcode 9.4, macOS)
+    # Test GRDB [SPM] (Xcode 10, macOS)
     - stage: Test GRDB
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.4
+      osx_image: xcode10
       env:
-        - TID=GRDB [SPM] (Xcode 9.4, macOS)
+        - TID=GRDB [SPM] (Xcode 10, macOS)
       script: make test_SPM
 
     ###########################################
     ## Test GRDB (Custom SQLite)
 
-    # Test GRDBCustomSQLiteOSX (Xcode 9.4)
+    # Test GRDBCustomSQLiteOSX (Xcode 10)
     - stage: Test GRDB + Custom SQLite
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.4
+      osx_image: xcode10
       env:
-        - TID=GRDBCustomSQLiteOSX (Xcode 9.4, macOS)
+        - TID=GRDBCustomSQLiteOSX (Xcode 10, macOS)
       script: make test_framework_GRDBCustomSQLiteOSX
+
+    # Test GRDBCustomSQLiteiOS (Xcode 10, iOS <MAXIMUM VERSION>)
+    - stage: Test GRDB + Custom SQLite
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode10
+      env:
+        - TID=GRDBCustomSQLiteiOS (Xcode 10, Swift 4.2, iOS <MAX>)
+      script: make test_framework_GRDBCustomSQLiteiOS_maxTarget_maxSwift
+
+    # Test GRDBCustomSQLiteiOS (Xcode 10, iOS <MAXIMUM VERSION>)
+    - stage: Test GRDB + Custom SQLite
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode10
+      env:
+        - TID=GRDBCustomSQLiteiOS (Xcode 10, Swift 4.0, iOS <MAX>)
+      script: make test_framework_GRDBCustomSQLiteiOS_maxTarget_minSwift
 
     # Test GRDBCustomSQLiteiOS (Xcode 9.4, iOS <MAXIMUM VERSION>)
     - stage: Test GRDB + Custom SQLite
@@ -85,13 +117,21 @@ jobs:
     ###########################################
     ## Test GRDB (SQLCipher)
 
-    # Test GRDBCipherOSX (Xcode 9.4)
+    # Test GRDBCipherOSX (Xcode 10)
     - stage: Test GRDB + SQLCipher
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.4
+      osx_image: xcode10
       env:
-        - TID=GRDBCipherOSX (Xcode 9.4, macOS)
+        - TID=GRDBCipherOSX (Xcode 10, macOS)
       script: make test_framework_GRDBCipherOSX
+
+    # Test GRDBCipheriOS (Xcode 10, iOS <MAXIMUM VERSION>)
+    - stage: Test GRDB + SQLCipher
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode10
+      env:
+        - TID=GRDBCipheriOS (Xcode 10, iOS <MAX>)
+      script: make test_framework_GRDBCipheriOS_maxTarget
 
     # Test GRDBCipheriOS (Xcode 9.4, iOS <MAXIMUM VERSION>)
     - stage: Test GRDB + SQLCipher
@@ -112,43 +152,88 @@ jobs:
     ###########################################
     ## Test Installation Methods
 
-    # Manual Install (Xcode 9.4)
+    # Manual Install (Xcode 10)
     - stage: Test Installation
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.4
+      osx_image: xcode10
       env:
-        - TID=Manual Install (Xcode 9.4)
+        - TID=Manual Install (Xcode 10)
       script: make test_install_manual
 
-    # Manual Install (GRDBCipher, Xcode 9.4)
+    # Manual Install (GRDBCipher, Xcode 10)
     - stage: Test Installation
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode9.4
+      osx_image: xcode10
       env:
-        - TID=Manual Install (GRDBCipher, Xcode 9.4)
+        - TID=Manual Install (GRDBCipher, Xcode 10)
       script: make test_install_GRDBCipher
 
-    # Cocoapods Lint (Xcode 9.4)
+    # CocoaPods Lint (Xcode 10)
     - stage: Test Installation
-      osx_image: xcode9.4
+      osx_image: xcode10
       install:
-        - gem install cocoapods # Since Travis is not always on latest version
+        - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
       env:
-        - TID=Cocoapods (Xcode 9.4)
-      script: make test_CocoaPodsLint
+        - TID=CocoaPods Lint GRDB.swift (Xcode 10)
+      script: make test_CocoaPodsLint_GRDB
 
-    # SPM Install (Xcode 9.4)
+    # CocoaPods Lint (Xcode 10)
     - stage: Test Installation
-      osx_image: xcode9.4
+      osx_image: xcode10
+      install:
+        - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
       env:
-        - TID=SPM (Xcode 9.4)
+        - TID=CocoaPods Lint GRDBPlus (Xcode 10)
+      script: make test_CocoaPodsLint_GRDBPlus
+
+    # CocoaPods Lint (Xcode 10)
+    - stage: Test Installation
+      osx_image: xcode10
+      install:
+        - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
+      env:
+        - TID=CocoaPods Lint GRDBCipher (Xcode 10)
+      script: make test_CocoaPodsLint_GRDBCipher
+
+    # CocoaPods Install (Xcode 10)
+    - stage: Test Installation
+      osx_image: xcode10
+      install:
+        - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
+      env:
+        - TID=CocoaPods GRDB (Xcode 10)
+      script: make test_install_GRDB_CocoaPods
+
+    # CocoaPods Install (Xcode 10)
+    - stage: Test Installation
+      osx_image: xcode10
+      install:
+        - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
+      env:
+        - TID=CocoaPods GRDB+FTS5 (Xcode 10)
+      script: make test_install_GRDBFTS5_CocoaPods
+
+    # CocoaPods Install (Xcode 10)
+    - stage: Test Installation
+      osx_image: xcode10
+      install:
+        - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
+      env:
+        - TID=CocoaPods GRDBCipher (Xcode 10)
+      script: make test_install_GRDBCipher_CocoaPods
+
+    # SPM Install (Xcode 10)
+    - stage: Test Installation
+      osx_image: xcode10
+      env:
+        - TID=SPM (Xcode 10)
       script: make test_install_SPM
 
     ## Carthage Build
     ## Commented out until `make test_CarthageBuild` performs *reliably*.
     ## See https://github.com/groue/GRDB.swift/pull/262
     # - stage: Test Installation
-    #   osx_image: xcode9.4
+    #   osx_image: xcode10
     #   before_install:
     #     - brew update
     #     - brew outdated carthage || brew upgrade carthage

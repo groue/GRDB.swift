@@ -1,6 +1,103 @@
 Release Notes
 =============
 
+## 3.3.0-beta1
+
+Released September 5, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.2.0...v3.3.0-beta1)
+
+This release focuses on enhancing the relationships between [Codable records](README.md#codable-records) and the database, with JSON columns, customized date formats, and better diagnostics when things go wrong.
+
+Other notable enhancements are:
+
+- Support for Swift 4.2 and Xcode 10 (Xcode 9.3 is still supported).
+- Support for the FTS5 full-text engine when available in the operating system (iOS 11.4+ / macOS 10.13+ / watchOS 4.3+).
+
+
+### Fixed
+
+- The `write` and `unsafeReentrantRead` DatabaseQueue methods used to have an incorrect `throws/rethrows` qualifier.
+
+
+### New
+
+- [#397](https://github.com/groue/GRDB.swift/pull/397) by [@gusrota](https://github.com/gusrota) and [@valexa](https://github.com/valexa): Codable records: JSON encoding and decoding of codable record properties
+- [#399](https://github.com/groue/GRDB.swift/pull/399): Codable records: customize the `userInfo` context dictionary, and the format of JSON columns
+- [#403](https://github.com/groue/GRDB.swift/pull/403): Codable records: customize date and uuid format
+- [#401](https://github.com/groue/GRDB.swift/pull/401): Query Interface: set the selection and the fetched type in a single method call
+- [#393](https://github.com/groue/GRDB.swift/pull/393) by [@Marus](https://github.com/Marus): Upgrade SQLCipher to 3.4.2, enable FTS5 on GRDBCipher and new pod GRDBPlus.
+- [#384](https://github.com/groue/GRDB.swift/pull/384): Improve database value decoding diagnostics
+- [#396](https://github.com/groue/GRDB.swift/pull/396): Support for Xcode 10 and Swift 4.2
+- Cursors of optimized values (Strint, Int, Date, etc.) have been renamed: FastDatabaseValueCursor and FastNullableDatabaseValueCursor replace the deprecated ColumnCursor and NullableColumnCursor.
+
+
+### Documentation Diff
+
+- [Enabling FTS5 Support](README.md#enabling-fts5-support): Procedure for enabling FTS5 support in GRDB.
+- [Codable Records](README.md#codable-records): Updated documentation for JSON columns, customized date and uuid formats, and other customization options.
+- [Record Customization Options](README.md#record-customization-options): A new chapter that gathers all your customization options.
+- [Fetching from Requests](README.md#fetching-from-requests): Enhanced documentation about requests that don't fetch their origin record (such as aggregates, or associated records).
+- [DatabaseRegion](README.md#databaseregion): Database regions help you observe the database.
+
+
+### API diff
+
+Fixes:
+
+```diff
+ class DatabaseQueue {
+-    func write<T>(_ block: (Database) throws -> T) rethrows -> T {
++    func write<T>(_ block: (Database) throws -> T) throws -> T {
+-    func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
++    func unsafeReentrantRead<T>(_ block: (Database) throws -> T) rethrows -> T {
+ }
+```
+
+Enhancements to Codable support:
+
+```diff
+ protocol FetchableRecord {
++    static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] { get }
++    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
++    static func databaseJSONDecoder(for column: String) -> JSONDecoder
+ }
+
+ protocol MutablePersistableRecord: TableRecord {
++    static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] { get }
++    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
++    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
++    static func databaseJSONEncoder(for column: String) -> JSONEncoder
+ }
+```
+
+Query Interface: set the selection and the fetched type in a single method call:
+
+```diff
+ extension QueryInterfaceRequest {
++    func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder>
++    func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder>
++    func select<RowDecoder>(sql: String, arguments: StatementArguments? = nil, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder>
+ }
+ 
+ extension TableRecord {
++    static func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder>
++    static func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder>
++    static func select<RowDecoder>(sql: String, arguments: StatementArguments? = nil, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder>
+ }
+```
+
+Deprecations:
+
+```diff
++final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor { }
++@available(*, deprecated, renamed: "FastDatabaseValueCursor")
++typealias ColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> = FastDatabaseValueCursor<Value>
+
++final class FastNullableDatabaseValueCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor { }
++@available(*, deprecated, renamed: "FastNullableDatabaseValueCursor")
++typealias NullableColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> = FastNullableDatabaseValueCursor<Value>
+```
+
+
 ## 3.2.0
 
 Released July 8, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.1.0...v3.2.0)

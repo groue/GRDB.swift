@@ -35,6 +35,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 XCTAssertEqual(try cursor.next()!.int, 1)
                 XCTAssertEqual(try cursor.next()!.int, 2)
                 XCTAssertTrue(try cursor.next() == nil) // end
+                XCTAssertTrue(try cursor.next() == nil) // past the end
             }
             do {
                 let sql = "SELECT 1 UNION ALL SELECT 2"
@@ -370,6 +371,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 XCTAssertEqual(try cursor.next()!!.int, 1)
                 XCTAssertTrue(try cursor.next()! == nil)
                 XCTAssertTrue(try cursor.next() == nil) // end
+                XCTAssertTrue(try cursor.next() == nil) // past the end
             }
             do {
                 let sql = "SELECT 1 UNION ALL SELECT NULL"

@@ -7,6 +7,8 @@
 ///
 ///     // SELECT * FROM player WHERE email = 'arthur@example.com' COLLATE NOCASE
 ///     Player.filter(email == "arthur@example.com")
+///
+/// :nodoc:
 public struct SQLCollatedExpression {
     /// The tainted expression
     public let expression: SQLExpression
@@ -48,6 +50,7 @@ public struct SQLCollatedExpression {
     }
 }
 
+/// :nodoc:
 extension SQLCollatedExpression : SQLOrderingTerm {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)

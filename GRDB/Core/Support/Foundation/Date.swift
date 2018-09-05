@@ -125,17 +125,15 @@ extension Date: StatementColumnConvertible {
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_INTEGER, SQLITE_FLOAT:
-            self.init(timeIntervalSince1970: sqlite3_column_double(sqliteStatement, Int32(index)))
+            self.init(timeIntervalSince1970: sqlite3_column_double(sqliteStatement, index))
         case SQLITE_TEXT:
             let databaseDateComponents = DatabaseDateComponents(sqliteStatement: sqliteStatement, index: index)
             guard let date = Date(databaseDateComponents: databaseDateComponents) else {
-                let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
-                fatalError("could not convert database value \(dbValue) to Date")
+                fatalConversionError(to: Date.self, sqliteStatement: sqliteStatement, index: index)
             }
             self.init(timeIntervalSinceReferenceDate: date.timeIntervalSinceReferenceDate)
         default:
-            let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
-            fatalError("could not convert database value \(dbValue) to Date")
+            fatalConversionError(to: Date.self, sqliteStatement: sqliteStatement, index: index)
         }
     }
 }

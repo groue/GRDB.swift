@@ -94,8 +94,13 @@ extension DatabaseQueue {
     public func setupMemoryManagement(in application: UIApplication) {
         self.application = application
         let center = NotificationCenter.default
+        #if swift(>=4.2)
+        center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidReceiveMemoryWarning(_:)), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
+        center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidEnterBackground(_:)), name: UIApplication.didEnterBackgroundNotification, object: nil)
+        #else
         center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidReceiveMemoryWarning(_:)), name: .UIApplicationDidReceiveMemoryWarning, object: nil)
         center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidEnterBackground(_:)), name: .UIApplicationDidEnterBackground, object: nil)
+        #endif
     }
     
     @objc private func applicationDidEnterBackground(_ notification: NSNotification) {
@@ -103,10 +108,13 @@ extension DatabaseQueue {
             return
         }
         
-        var task: UIBackgroundTaskIdentifier! = nil
-        task = application.beginBackgroundTask(expirationHandler: nil)
-        
-        if task == UIBackgroundTaskInvalid {
+        let task: UIBackgroundTaskIdentifier = application.beginBackgroundTask(expirationHandler: nil)
+        #if swift(>=4.2)
+        let taskIsInvalid = task == UIBackgroundTaskIdentifier.invalid
+        #else
+        let taskIsInvalid = task == UIBackgroundTaskInvalid
+        #endif
+        if taskIsInvalid {
             // Perform releaseMemory() synchronously.
             releaseMemory()
         } else {
@@ -191,7 +199,7 @@ extension DatabaseQueue {
     /// concurrency practices.
     ///
     /// :nodoc:
-    public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
+    public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try writer.reentrantSync(block)
     }
     
@@ -232,7 +240,7 @@ extension DatabaseQueue {
     ///
     /// - parameter block: A block that executes SQL statements.
     /// - throws: An eventual database error, or the error thrown by the block.
-    public func write<T>(_ block: (Database) throws -> T) rethrows -> T {
+    public func write<T>(_ block: (Database) throws -> T) throws -> T {
         return try writer.sync { db in
             var result: T? = nil
             try db.inTransaction {
