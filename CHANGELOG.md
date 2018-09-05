@@ -3,7 +3,7 @@ Release Notes
 
 ## 3.3.0-beta1
 
-Released August 31, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.2.0...v3.3.0-beta1)
+Released September 5, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.2.0...v3.3.0-beta1)
 
 This release focuses on enhancing the relationships between [Codable records](README.md#codable-records) and the database, with JSON columns, customized date formats, and better diagnostics when things go wrong.
 
