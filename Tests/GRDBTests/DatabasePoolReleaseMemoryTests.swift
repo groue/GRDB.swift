@@ -113,7 +113,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             dbPool.releaseMemory()
         }
         let blocks = [block1, block2, block3]
-        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in // FIXME: this crashes sometimes
             blocks[index]()
         }
         
