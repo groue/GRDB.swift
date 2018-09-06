@@ -25,9 +25,8 @@ extension Database {
     }
     
     /// Returns whether a table exists.
-    public func tableExists(_ tableName: String) throws -> Bool {
-        // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
-        return try Row.fetchOne(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercased()]) != nil
+    public func tableExists(_ name: String) throws -> Bool {
+        return try exists(type: "table", name: name)
     }
     
     /// Returns whether a table is an internal SQLite table.
@@ -53,15 +52,31 @@ extension Database {
     }
     
     /// Returns whether a view exists.
-    public func viewExists(_ viewName: String) throws -> Bool {
-        // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
-        return try Row.fetchOne(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'view' AND LOWER(name) = ?", arguments: [viewName.lowercased()]) != nil
+    public func viewExists(_ name: String) throws -> Bool {
+        return try exists(type: "view", name: name)
     }
     
     /// Returns whether a trigger exists.
-    public func triggerExists(_ triggerName: String) throws -> Bool {
-        // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
-        return try Row.fetchOne(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'trigger' AND LOWER(name) = ?", arguments: [triggerName.lowercased()]) != nil
+    public func triggerExists(_ name: String) throws -> Bool {
+        return try exists(type: "trigger", name: name)
+    }
+    
+    private func exists(type: String, name: String) throws -> Bool {
+        // SQlite identifiers are case-insensitive, case-preserving:
+        // http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html
+        let name = name.lowercased()
+        
+        if try makeSelectStatement("SELECT 1 FROM sqlite_master WHERE type = ? AND LOWER(name) = ?")
+            .makeCursor(arguments: [type, name])
+            .isEmpty() == false
+        { return true }
+        
+        if try makeSelectStatement("SELECT 1 FROM sqlite_temp_master WHERE type = ? AND LOWER(name) = ?")
+            .makeCursor(arguments: [type, name])
+            .isEmpty() == false
+        { return true }
+        
+        return false
     }
 
     /// The primary key for table named `tableName`.
