@@ -1,6 +1,17 @@
 Release Notes
 =============
 
+## Next Version
+
+### API diff
+
+```diff
+ extension Cursor {
++    func isEmpty() throws -> Bool
+ }
+```
+
+
 ## 3.3.0-beta1
 
 Released September 5, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.2.0...v3.3.0-beta1)
