@@ -179,14 +179,21 @@ extension Database {
             return indexes
         }
         
-        let indexes = try Row.fetchAll(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row -> IndexInfo in
-            let indexName: String = row[1]
-            let unique: Bool = row[2]
-            let columns = try Row.fetchAll(self, "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
-                .map { ($0[0] as Int, $0[2] as String) }
-                .sorted { $0.0 < $1.0 }
-                .map { $0.1 }
-            return IndexInfo(name: indexName, columns: columns, unique: unique)
+        let indexes = try Row
+            .fetchAll(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))")
+            .map { row -> IndexInfo in
+                // [seq:0 name:"index" unique:0 origin:"c" partial:0]
+                let indexName: String = row[1]
+                let unique: Bool = row[2]
+                let columns = try Row
+                    .fetchAll(self, "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
+                    .map { row -> (Int, String) in
+                        // [seqno:0 cid:2 name:"column"]
+                        (row[0] as Int, row[2] as String)
+                    }
+                    .sorted { $0.0 < $1.0 }
+                    .map { $0.1 }
+                return IndexInfo(name: indexName, columns: columns, unique: unique)
         }
         
         if indexes.isEmpty {
