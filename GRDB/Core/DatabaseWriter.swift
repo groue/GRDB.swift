@@ -230,7 +230,8 @@ extension DatabaseWriter {
 }
 
 /// A future value.
-public struct Future<Value> {
+public class Future<Value> {
+    private var consumed = false
     private let _wait: () throws -> Value
     
     init(_ wait: @escaping () throws -> Value) {
@@ -239,7 +240,11 @@ public struct Future<Value> {
     
     /// Blocks the current thread until the future value is available.
     /// Throws an error if the value could not be computed.
+    ///
+    /// It is a programmer error to call this method several times.
     public func wait() throws -> Value {
+        GRDBPrecondition(consumed == false, "Future.wait() must be called only once")
+        consumed = true
         return try _wait()
     }
 }
