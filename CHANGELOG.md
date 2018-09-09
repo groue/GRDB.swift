@@ -16,7 +16,11 @@ Release Notes
 +    @available(*, deprecated)
      func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
  }
- 
+
++struct Future<Value> {
++    func wait() throws -> Value
++}
+
  extension Cursor {
 +    func isEmpty() throws -> Bool
  }
