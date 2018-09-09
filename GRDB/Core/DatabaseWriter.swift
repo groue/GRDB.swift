@@ -227,14 +227,17 @@ extension DatabaseWriter {
     }
 }
 
-public struct Future<T> {
-    private let _wait: () throws -> T
+/// A future value.
+public struct Future<Value> {
+    private let _wait: () throws -> Value
     
-    init(_ wait: @escaping () throws -> T) {
+    init(_ wait: @escaping () throws -> Value) {
         _wait = wait
     }
     
-    public func wait() throws -> T {
+    /// Blocks the current thread until the future value is available.
+    /// Throws an error if the value could not be computed.
+    public func wait() throws -> Value {
         return try _wait()
     }
 }
