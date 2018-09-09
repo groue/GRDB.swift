@@ -98,8 +98,8 @@ public protocol DatabaseWriter : DatabaseReader {
     /// database updates are *not visible* inside the block.
     ///
     /// This method returns as soon as the isolation guarantees described above
-    /// are established. To access the fetched results, you use the wait()
-    /// method of the returned future.
+    /// are established. To access the fetched results, you call the wait()
+    /// method of the returned future, on any dispatch queue.
     ///
     /// In the example below, the number of players is fetched concurrently with
     /// the player insertion. Yet the future is guaranteed to return zero:
