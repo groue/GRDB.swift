@@ -17,7 +17,7 @@ Release Notes
      func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
  }
 
-+struct Future<Value> {
++class Future<Value> {
 +    func wait() throws -> Value
 +}
 
