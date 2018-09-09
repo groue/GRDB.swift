@@ -1,3 +1,5 @@
+import Dispatch
+
 /// The protocol for all types that can update a database.
 ///
 /// It is adopted by DatabaseQueue and DatabasePool.

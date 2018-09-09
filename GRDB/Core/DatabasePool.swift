@@ -1,4 +1,5 @@
 import Foundation
+import Dispatch
 #if SWIFT_PACKAGE
     import CSQLite
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
