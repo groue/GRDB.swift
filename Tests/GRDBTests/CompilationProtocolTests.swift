@@ -80,6 +80,7 @@ private class UserDatabaseWriter : DatabaseWriter {
     func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T { preconditionFailure() }
     func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T { preconditionFailure() }
     func readFromCurrentState(_ block: @escaping (Database) -> Void) throws { preconditionFailure() }
+    func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> { preconditionFailure() }
 }
 
 // MARK: - FTS5Tokenizer

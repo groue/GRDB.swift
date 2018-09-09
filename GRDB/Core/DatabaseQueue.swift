@@ -215,12 +215,33 @@ extension DatabaseQueue {
     /// See `DatabaseWriter.readFromCurrentState`.
     ///
     /// :nodoc:
+    @available(*, deprecated)
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) {
         // Check that we're on the correct queue...
         writer.execute { db in
             // ... and that no transaction is opened.
             GRDBPrecondition(!db.isInsideTransaction, "readFromCurrentState must not be called from inside a transaction.")
             db.readOnly { block(db) }
+        }
+    }
+    
+    /// See `DatabaseWriter.concurrentRead`.
+    ///
+    /// :nodoc:
+    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
+        // DatabaseQueue can't perform parallel reads.
+        let result = Result<T> {
+            // Check that we're on the writer queue...
+            try writer.execute { db in
+                // ... and that no transaction is opened.
+                GRDBPrecondition(!db.isInsideTransaction, "concurrentRead must not be called from inside a transaction.")
+                return try db.readOnly {
+                    try block(db)
+                }
+            }
+        }
+        return Future {
+            try result.unwrap()
         }
     }
     
