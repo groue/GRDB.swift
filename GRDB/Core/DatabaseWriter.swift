@@ -238,11 +238,14 @@ public class Future<Value> {
         _wait = wait
     }
     
-    /// Blocks the current thread until the future value is available.
-    /// Throws an error if the value could not be computed.
+    /// Blocks the current thread until the value is available, and returns it.
     ///
     /// It is a programmer error to call this method several times.
+    ///
+    /// - throws: Any error that prevented the value from becoming available.
     public func wait() throws -> Value {
+        // Not thread-safe and quick and dirty.
+        // Goal is that users learn not to call this method twice.
         GRDBPrecondition(consumed == false, "Future.wait() must be called only once")
         consumed = true
         return try _wait()
