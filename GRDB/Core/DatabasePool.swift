@@ -350,6 +350,8 @@ extension DatabasePool : DatabaseReader {
         }
     }
     
+    /// This method is deprecated. Use concurrentRead instead.
+    ///
     /// Asynchronously executes a read-only block in a protected dispatch queue,
     /// wrapped in a deferred transaction.
     ///
@@ -375,9 +377,7 @@ extension DatabasePool : DatabaseReader {
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block, or any DatabaseError that would
     ///   happen while establishing the read access to the database.
-    ///
-    /// :nodoc:
-    @available(*, deprecated)
+    @available(*, deprecated, message: "Use concurrentRead instead")
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
         // https://www.sqlite.org/isolation.html
         //
@@ -466,9 +466,6 @@ extension DatabasePool : DatabaseReader {
         }
     }
     
-    /// See `DatabaseWriter.concurrentRead`.
-    ///
-    /// :nodoc:
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
         // https://www.sqlite.org/isolation.html
         //

@@ -203,6 +203,8 @@ extension DatabaseQueue {
         return try writer.reentrantSync(block)
     }
     
+    /// This method is deprecated. Use concurrentRead instead.
+    ///
     /// Synchronously executes *block*.
     ///
     /// This method must be called from the protected database dispatch queue,
@@ -211,11 +213,7 @@ extension DatabaseQueue {
     /// Starting SQLite 3.8.0 (iOS 8.2+, OSX 10.10+, custom SQLite builds and
     /// SQLCipher), attempts to write in the database from this meethod throw a
     /// DatabaseError of resultCode `SQLITE_READONLY`.
-    ///
-    /// See `DatabaseWriter.readFromCurrentState`.
-    ///
-    /// :nodoc:
-    @available(*, deprecated)
+    @available(*, deprecated, message: "Use concurrentRead instead")
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) {
         // Check that we're on the correct queue...
         writer.execute { db in
@@ -225,9 +223,6 @@ extension DatabaseQueue {
         }
     }
     
-    /// See `DatabaseWriter.concurrentRead`.
-    ///
-    /// :nodoc:
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
         // DatabaseQueue can't perform parallel reads.
         let result = Result<T> {

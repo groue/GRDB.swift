@@ -62,6 +62,8 @@ public protocol DatabaseWriter : DatabaseReader {
     
     // MARK: - Reading from Database
     
+    /// This method is deprecated. Use concurrentRead instead.
+    ///
     /// Synchronously or asynchronously executes a read-only block that takes a
     /// database connection.
     ///
@@ -82,9 +84,7 @@ public protocol DatabaseWriter : DatabaseReader {
     ///         }
     ///         try db.execute("INSERT INTO player ...")
     ///     }
-    ///
-    /// :nodoc:
-    @available(*, deprecated)
+    @available(*, deprecated, message: "Use concurrentRead instead")
     func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
     
     /// Concurrently executes a read-only block that takes a
@@ -282,7 +282,7 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     }
 
     /// :nodoc:
-    @available(*, deprecated)
+    @available(*, deprecated, message: "Use concurrentRead instead")
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
         try base.readFromCurrentState(block)
     }
