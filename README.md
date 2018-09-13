@@ -7223,7 +7223,7 @@ let futureCount: Future<Int> = try dbPool.writeWithoutTransaction { db in
 // <- The writer queue has been unlocked :-)
 
 // Wait for the player count
-let count = try futureCount.wait()
+let count: Int = try futureCount.wait()
 ```
 
 `concurrentRead` blocks until it can guarantee its closure argument an isolated access to the last committed state of the database. It then asynchronously executes the closure.
