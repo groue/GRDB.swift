@@ -7,18 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		277479482141D92B00FCD661 /* PlayerEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 277479452141D92B00FCD661 /* PlayerEditionViewController.swift */; };
+		277479492141D92B00FCD661 /* PlayersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 277479462141D92B00FCD661 /* PlayersViewController.swift */; };
+		2774794A2141D92B00FCD661 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 277479472141D92B00FCD661 /* Player.swift */; };
 		5644E4041C1072A30090716E /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5644E4031C1072A30090716E /* GRDB.framework */; };
 		5644E4061C1072CA0090716E /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5644E4031C1072A30090716E /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		567374431B4D46600089DE44 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 567374411B4D46600089DE44 /* Main.storyboard */; };
 		567374451B4D46600089DE44 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 567374441B4D46600089DE44 /* Assets.xcassets */; };
 		567374481B4D46600089DE44 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 567374461B4D46600089DE44 /* LaunchScreen.storyboard */; };
-		568E2B991CACE4ED00426E7B /* SimplePersonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568E2B981CACE4ED00426E7B /* SimplePersonsViewController.swift */; };
 		56AEC9D91CAA985700452D96 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AEC9D21CAA985700452D96 /* AppDelegate.swift */; };
 		56AEC9DA1CAA985700452D96 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AEC9D31CAA985700452D96 /* AppDatabase.swift */; };
-		56AEC9DB1CAA985700452D96 /* DemoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AEC9D41CAA985700452D96 /* DemoViewController.swift */; };
-		56AEC9DD1CAA985700452D96 /* Person.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AEC9D61CAA985700452D96 /* Person.swift */; };
-		56AEC9DE1CAA985700452D96 /* PersonEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AEC9D71CAA985700452D96 /* PersonEditionViewController.swift */; };
-		56AEC9DF1CAA985700452D96 /* PersonsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AEC9D81CAA985700452D96 /* PersonsViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -36,19 +34,17 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		277479452141D92B00FCD661 /* PlayerEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerEditionViewController.swift; sourceTree = "<group>"; };
+		277479462141D92B00FCD661 /* PlayersViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayersViewController.swift; sourceTree = "<group>"; };
+		277479472141D92B00FCD661 /* Player.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 		5644E4031C1072A30090716E /* GRDB.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GRDB.framework; path = ../../../Carthage/Build/iOS/GRDB.framework; sourceTree = "<group>"; };
 		567374381B4D46600089DE44 /* iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		567374421B4D46600089DE44 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		567374441B4D46600089DE44 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		567374471B4D46600089DE44 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		567374491B4D46600089DE44 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		568E2B981CACE4ED00426E7B /* SimplePersonsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimplePersonsViewController.swift; sourceTree = "<group>"; };
 		56AEC9D21CAA985700452D96 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		56AEC9D31CAA985700452D96 /* AppDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
-		56AEC9D41CAA985700452D96 /* DemoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoViewController.swift; sourceTree = "<group>"; };
-		56AEC9D61CAA985700452D96 /* Person.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Person.swift; sourceTree = "<group>"; };
-		56AEC9D71CAA985700452D96 /* PersonEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonEditionViewController.swift; sourceTree = "<group>"; };
-		56AEC9D81CAA985700452D96 /* PersonsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersonsViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,16 +80,14 @@
 			isa = PBXGroup;
 			children = (
 				56AEC9D21CAA985700452D96 /* AppDelegate.swift */,
-				567374441B4D46600089DE44 /* Assets.xcassets */,
 				56AEC9D31CAA985700452D96 /* AppDatabase.swift */,
-				56AEC9D41CAA985700452D96 /* DemoViewController.swift */,
+				277479472141D92B00FCD661 /* Player.swift */,
+				277479452141D92B00FCD661 /* PlayerEditionViewController.swift */,
+				277479462141D92B00FCD661 /* PlayersViewController.swift */,
+				567374441B4D46600089DE44 /* Assets.xcassets */,
 				567374491B4D46600089DE44 /* Info.plist */,
 				567374461B4D46600089DE44 /* LaunchScreen.storyboard */,
 				567374411B4D46600089DE44 /* Main.storyboard */,
-				56AEC9D61CAA985700452D96 /* Person.swift */,
-				56AEC9D71CAA985700452D96 /* PersonEditionViewController.swift */,
-				56AEC9D81CAA985700452D96 /* PersonsViewController.swift */,
-				568E2B981CACE4ED00426E7B /* SimplePersonsViewController.swift */,
 			);
 			name = GRDBDemoiOS;
 			path = ../../../DemoApps/GRDBDemoiOS/GRDBDemoiOS;
@@ -190,12 +184,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				56AEC9DD1CAA985700452D96 /* Person.swift in Sources */,
-				56AEC9DF1CAA985700452D96 /* PersonsViewController.swift in Sources */,
-				56AEC9DB1CAA985700452D96 /* DemoViewController.swift in Sources */,
+				277479482141D92B00FCD661 /* PlayerEditionViewController.swift in Sources */,
 				56AEC9DA1CAA985700452D96 /* AppDatabase.swift in Sources */,
-				568E2B991CACE4ED00426E7B /* SimplePersonsViewController.swift in Sources */,
-				56AEC9DE1CAA985700452D96 /* PersonEditionViewController.swift in Sources */,
+				277479492141D92B00FCD661 /* PlayersViewController.swift in Sources */,
+				2774794A2141D92B00FCD661 /* Player.swift in Sources */,
 				56AEC9D91CAA985700452D96 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -263,7 +255,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -300,7 +292,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 4.2;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
