@@ -8,6 +8,11 @@ Release Notes
 - [#409](https://github.com/groue/GRDB.swift/pull/409): DatabaseWriter.concurrentRead
 
 
+### Documentation Diff
+
+- [Advanced DatabasePool](README.md#advanced-databasepool): the chapter has been updated for the new DatabasePool.concurrentRead method.
+
+
 ### API diff
 
 ```diff
