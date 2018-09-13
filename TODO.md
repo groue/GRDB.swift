@@ -22,6 +22,8 @@
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0075-import-test.md
 - [ ] Avoid code duplication: https://forums.swift.org/t/c-interoperability-combinations-of-library-and-os-versions/14029/4
 - [ ] Allow joining methods on DerivableRequest
+- [ ] DatabaseWriter.assertWriteAccess()
+- [ ] Configuration.crashOnError = true
 - [ ] Support for "INSERT INTO ... SELECT ...". For example:
     
     ```swift

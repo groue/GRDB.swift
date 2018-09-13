@@ -233,6 +233,8 @@ Starting points:
 - [RxSwiftCommunity/RxDataSources](https://github.com/RxSwiftCommunity/RxDataSources)
 - [ra1028/DifferenceKit](https://github.com/ra1028/DifferenceKit)
 - [tonyarnold/Differ](https://github.com/tonyarnold/Differ)
+- [onmyway133/DeepDiff](https://github.com/onmyway133/DeepDiff)
+- [mcudich/HeckelDiff](https://github.com/mcudich/HeckelDiff)
 
 
 ### FetchedRecordsController Support for Any Request

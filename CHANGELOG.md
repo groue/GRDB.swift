@@ -3,9 +3,24 @@ Release Notes
 
 ## Next Version
 
+### New
+
+- [#409](https://github.com/groue/GRDB.swift/pull/409): DatabaseWriter.concurrentRead
+
+
 ### API diff
 
 ```diff
+ protocol DatabaseWriter : DatabaseReader {
++    func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T>
++    @available(*, deprecated)
+     func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
+ }
+
++class Future<Value> {
++    func wait() throws -> Value
++}
+
  extension Cursor {
 +    func isEmpty() throws -> Bool
  }

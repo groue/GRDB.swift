@@ -7197,50 +7197,54 @@ try dbPool.write { db in
     // Increment the number of players
     try Player(...).insert(db)
 }
+// <- other threads can write in the database here
 try dbPool.read { db in
     // Read some random value :-(
     let count = try Player.fetchCount(db)
 }
 ```
 
-The correct solution is the `readFromCurrentState` method, which must be called from within a write block, outside of any transaction:
+The correct solution is the `concurrentRead` method, which must be called from within a write block, outside of any transaction.
+
+`concurrentRead` returns a **future value** which you consume on any dispatch queue, with the `wait()` method:
 
 ```swift
 // CORRECT
-try dbPool.writeWithoutTransaction { db in
-    try db.inTransaction {
-        // increment the number of players
-        try Player(...).insert(db)
-        return .commit
-    }
+let futureCount: Future<Int> = try dbPool.writeWithoutTransaction { db in
+    // increment the number of players
+    try Player(...).insert(db)
     
     // <- not in a transaction here
-    try dbPool.readFromCurrentState { db
-        // Read the number of players. The writer queue has been unlocked :-)
-        let count = try Player.fetchCount(db)
+    let futureCount = dbPool.concurrentRead { db
+        return try Player.fetchCount(db)
     }
+    return futureCount
 }
+// <- The writer queue has been unlocked :-)
+
+// Wait for the player count
+let count = try futureCount.wait()
 ```
 
-`readFromCurrentState` blocks until it can guarantee its closure argument an isolated access to the last committed state of the database. It then asynchronously executes the closure. If the isolated access can't be established, `readFromCurrentState` throws an error, and the closure is not executed.
+`concurrentRead` blocks until it can guarantee its closure argument an isolated access to the last committed state of the database. It then asynchronously executes the closure.
 
-The closure can run concurrently with eventual updates performed after `readFromCurrentState`: those updates won't be visible from within the closure. In the example below, the number of players is guaranteed to be non-zero, even though it is fetched concurrently with the player deletion:
+The closure can run concurrently with eventual updates performed after `concurrentRead`: those updates won't be visible from within the closure. In the example below, the number of players is guaranteed to be non-zero, even though it is fetched concurrently with the player deletion:
 
 ```swift
 try dbPool.writeWithoutTransaction { db in
     // Increment the number of players
     try Player(...).insert(db)
     
-    try dbPool.readFromCurrentState { db
+    let futureCount = dbPool.concurrentRead { db
         // Guaranteed to be non-zero
-        let count = try Player.fetchCount(db)
+        return try Player.fetchCount(db)
     }
     
     try Player.deleteAll(db)
 }
 ```
 
-[Transaction Observers](#transactionobserver-protocol) can also use `readFromCurrentState` in their `databaseDidCommit` method in order to process database changes without blocking other threads that want to write into the database.
+[Transaction Observers](#transactionobserver-protocol) can also use `concurrentRead` in their `databaseDidCommit` method in order to process database changes without blocking other threads that want to write into the database.
 
 
 ### Database Snapshots
@@ -7306,20 +7310,13 @@ try snapshot2.read { db in
 
 Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://groue.github.io/GRDB.swift/docs/3.3/Protocols/DatabaseReader.html) and [DatabaseWriter](http://groue.github.io/GRDB.swift/docs/3.3/Protocols/DatabaseWriter.html) protocols. DatabaseSnapshot adopts DatabaseReader only.
 
-These protocols provide a unified API that lets you write safe concurrent code that targets all three concurrency modes.
-
-However, queues are not pools which are different from snapshots, and DatabaseReader and DatabaseWriter provide the *smallest* common guarantees. They require more discipline:
-
-- Pools are less forgiving than queues when one overlooks a transaction (see [concurrency rule 3](#guarantees-and-rules)).
-- DatabaseWriter.readFromCurrentState is synchronous, or asynchronous, depending on whether it is run by a queue or a pool (see [advanced DatabasePool](#advanced-databasepool)). It thus requires higher libDispatch skills, and more complex synchronization code.
-
-DatabaseReader and DatabaseWriter are not a tool for applications that hesitate between DatabaseQueue and DatabasePool, and look for a common API. As seen above, the protocols actually make applications harder to write correctly. Instead, they target generic code that has *both* queues and pools in mind. The built-in AnyDatabaseReader and AnyDatabaseWriter type erasers serve the same purpose.
-
-DatabaseWriter and DatabaseReader fuel, for example:
+These protocols provide a unified API that let you write generic code that targets all concurrency modes. They fuel, for example:
 
 - [Migrations](#migrations)
 - [FetchedRecordsController](#fetchedrecordscontroller)
 - [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)
+
+Caution: DatabaseQueue and DatabasePool only provide the *smallest* common guarantees. They don't erase the differences between queues, pools, and snapshots. See for example [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools).
 
 
 ### Unsafe Concurrency APIs

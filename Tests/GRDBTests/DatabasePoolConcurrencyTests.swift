@@ -836,6 +836,21 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         _ = s.wait(timeout: .distantFuture)
     }
 
+    func testConcurrentReadOpensATransaction() throws {
+        let dbPool = try makeDatabasePool()
+        let future = dbPool.writeWithoutTransaction { db in
+            dbPool.concurrentRead { db in
+                XCTAssertTrue(db.isInsideTransaction)
+                do {
+                    try db.execute("BEGIN DEFERRED TRANSACTION")
+                    XCTFail("Expected error")
+                } catch {
+                }
+            }
+        }
+        try future.wait()
+    }
+
     func testReadFromCurrentStateOutsideOfTransaction() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
@@ -871,6 +886,38 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         XCTAssertEqual(i, 0)
     }
 
+    func testConcurrentReadOutsideOfTransaction() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.write { db in
+            try db.create(table: "persons") { t in
+                t.column("id", .integer).primaryKey()
+            }
+        }
+        
+        // Writer                       Reader
+        // dbPool.writeWithoutTransaction {
+        // >
+        //                              dbPool.concurrentRead {
+        //                              <
+        // INSERT INTO items (id) VALUES (NULL)
+        // >
+        let s1 = DispatchSemaphore(value: 0)
+        // }                            SELECT COUNT(*) FROM persons -> 0
+        //                              <
+        //                              }
+        
+        let future: Future<Int> = try dbPool.writeWithoutTransaction { db in
+            let future: Future<Int> = dbPool.concurrentRead { db in
+                _ = s1.wait(timeout: .distantFuture)
+                return try! Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+            }
+            try db.execute("INSERT INTO persons DEFAULT VALUES")
+            s1.signal()
+            return future
+        }
+        XCTAssertEqual(try future.wait(), 0)
+    }
+
     func testReadFromCurrentStateError() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.writeWithoutTransaction { db in
@@ -890,6 +937,26 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
     
+    func testConcurrentReadError() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.writeWithoutTransaction { db in
+            try db.execute("PRAGMA locking_mode=EXCLUSIVE")
+            try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            let future = dbPool.concurrentRead { db in
+                fatalError("Should not run")
+            }
+            do {
+                try future.wait()
+                XCTFail("Expected error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_BUSY)
+                XCTAssertEqual(error.message!, "database is locked")
+                XCTAssertTrue(error.sql == nil)
+                XCTAssertEqual(error.description, "SQLite error 5: database is locked")
+            }
+        }
+    }
+
     func testLongRunningReadTransaction() throws {
         // A test for a "user-defined" DatabaseSnapshot based on DatabaseQueue
         let dbName = "test.sqlite"
