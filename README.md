@@ -219,20 +219,21 @@ See the [Query Interface](#the-query-interface)
     <summary>Be notified of database changes</summary>
 
 ```swift
-// Track query interface requests
-Place.filter(key: 1)
-    .rx
-    .fetchOne(in: dbQueue)
-    .subscribe(onNext: { place: Place? in
-        print("Place 1 has changed")
-    })
+let request = Place.order(Column("title"))
 
-// Track SQL requests
-SQLRequest<Place>("SELECT * FROM place WHERE favorite ORDER BY title")
-    .rx
+// Track request changes with FetchedRecordsController
+let controller = FetchedRecordsController(dbQueue, request: request)
+controller.trackChanges { controller in
+    print("Places have changed.")
+    let places = controller.fetchedRecords // [Place]
+}
+try controller.performFetch()
+
+// Track request changes with RxSwift and RxGRDB
+request.rx
     .fetchAll(in: dbQueue)
     .subscribe(onNext: { places: [Place] in
-        print("Favorite places have changed")
+        print("Places have changed.")
     })
 ```
 
