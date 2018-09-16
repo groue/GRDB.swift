@@ -789,6 +789,7 @@ extension SQLBinaryOperator {
     static let like = SQLBinaryOperator("LIKE")
 }
 
+/// :nodoc:
 extension SQLSpecificExpressible {
     
     /// An SQL expression with the `LIKE` SQL operator.
