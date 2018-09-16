@@ -1,3 +1,5 @@
+import Dispatch
+
 /// The protocol for all types that can update a database.
 ///
 /// It is adopted by DatabaseQueue and DatabasePool.
@@ -60,6 +62,8 @@ public protocol DatabaseWriter : DatabaseReader {
     
     // MARK: - Reading from Database
     
+    /// This method is deprecated. Use concurrentRead instead.
+    ///
     /// Synchronously or asynchronously executes a read-only block that takes a
     /// database connection.
     ///
@@ -80,7 +84,42 @@ public protocol DatabaseWriter : DatabaseReader {
     ///         }
     ///         try db.execute("INSERT INTO player ...")
     ///     }
+    @available(*, deprecated, message: "Use concurrentRead instead")
     func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
+    
+    /// Concurrently executes a read-only block that takes a
+    /// database connection.
+    ///
+    /// This method must be called from a writing dispatch queue, outside of any
+    /// transaction. You'll get a fatal error otherwise.
+    ///
+    /// The *block* argument is guaranteed to see the database in the last
+    /// committed state at the moment this method is called. Eventual concurrent
+    /// database updates are *not visible* inside the block.
+    ///
+    /// This method returns as soon as the isolation guarantees described above
+    /// are established. To access the fetched results, you call the wait()
+    /// method of the returned future, on any dispatch queue.
+    ///
+    /// In the example below, the number of players is fetched concurrently with
+    /// the player insertion. Yet the future is guaranteed to return zero:
+    ///
+    ///     try writer.writeWithoutTransaction { db in
+    ///         // Delete all players
+    ///         try Player.deleteAll()
+    ///
+    ///         // Count players concurrently
+    ///         let future = writer.concurrentRead { db in
+    ///             return try Player.fetchCount()
+    ///         }
+    ///
+    ///         // Insert a player
+    ///         try Player(...).insert(db)
+    ///
+    ///         // Guaranteed to be zero
+    ///         let count = try future.wait()
+    ///     }
+    func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T>
 }
 
 extension DatabaseWriter {
@@ -148,6 +187,37 @@ extension DatabaseWriter {
         #endif
     }
     
+    // MARK: - Reading from Database
+    
+    /// Default implementation, based on the deprecated readFromCurrentState.
+    ///
+    /// :nodoc:
+    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
+        let semaphore = DispatchSemaphore(value: 0)
+        var result: Result<T>? = nil
+
+        do {
+            try readFromCurrentState { db in
+                result = Result { try block(db) }
+                semaphore.signal()
+            }
+        } catch {
+            result = .failure(error)
+            semaphore.signal()
+        }
+
+        return Future {
+            _ = semaphore.wait(timeout: .distantFuture)
+
+            switch result! {
+            case .failure(let error):
+                throw error
+            case .success(let result):
+                return result
+            }
+        }
+    }
+    
     // MARK: - Claiming Disk Space
     
     /// Rebuilds the database file, repacking it into a minimal amount of
@@ -156,6 +226,29 @@ extension DatabaseWriter {
     /// See https://www.sqlite.org/lang_vacuum.html for more information.
     public func vacuum() throws {
         try writeWithoutTransaction { try $0.execute("VACUUM") }
+    }
+}
+
+/// A future value.
+public class Future<Value> {
+    private var consumed = false
+    private let _wait: () throws -> Value
+    
+    init(_ wait: @escaping () throws -> Value) {
+        _wait = wait
+    }
+    
+    /// Blocks the current thread until the value is available, and returns it.
+    ///
+    /// It is a programmer error to call this method several times.
+    ///
+    /// - throws: Any error that prevented the value from becoming available.
+    public func wait() throws -> Value {
+        // Not thread-safe and quick and dirty.
+        // Goal is that users learn not to call this method twice.
+        GRDBPrecondition(consumed == false, "Future.wait() must be called only once")
+        consumed = true
+        return try _wait()
     }
 }
 
@@ -189,8 +282,14 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     }
 
     /// :nodoc:
+    @available(*, deprecated, message: "Use concurrentRead instead")
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
         try base.readFromCurrentState(block)
+    }
+    
+    /// :nodoc:
+    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
+        return base.concurrentRead(block)
     }
 
     // MARK: - Writing in Database

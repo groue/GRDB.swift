@@ -580,62 +580,41 @@ private func makeFetchFunction<Record, T>(
     // Should controller become strong at any point before callbacks are
     // called, such unowned reference would have an opportunity to crash.
     return { [weak controller] observer in
-        // Return if observer has been invalidated
-        guard observer.isValid else { return }
-        
-        // Return if fetched records controller has been deallocated
-        guard let request = controller?.request, let databaseWriter = controller?.databaseWriter else { return }
+        // Return if observer has been invalidated, or if fetched records
+        // controller has been deallocated
+        guard observer.isValid,
+            let request = controller?.request,
+            let databaseWriter = controller?.databaseWriter
+            else { return }
         
         willProcessTransaction()
         
-        // Fetch items.
-        //
-        // This method is called from the database writer's serialized
-        // queue, so that we can fetch items before other writes have the
-        // opportunity to modify the database.
-        //
-        // However, we don't have to block the writer queue for all the
-        // duration of the fetch. We just need to block the writer queue
-        // until we can perform a fetch in isolation. This is the role of
-        // the readFromCurrentState method (see below).
-        //
-        // However, our fetch will last for an unknown duration. And since
-        // we release the writer queue early, the next database modification
-        // will triggers this callback while our fetch is, maybe, still
-        // running. This next callback will also perform its own fetch, that
-        // will maybe end before our own fetch.
-        //
-        // We have to make sure that our fetch is processed *before* the
-        // next fetch: let's immediately dispatch the processing task in our
-        // serialized FIFO queue, but have it wait for our fetch to
-        // complete, with a semaphore:
-        let semaphore = DispatchSemaphore(value: 0)
-        var result: Result<(fetchedItems: [Item<Record>], fetchedAlongside: T)>? = nil
-        do {
-            try databaseWriter.readFromCurrentState { db in
-                result = Result { try (
-                    fetchedItems: request.fetchAll(db),
-                    fetchedAlongside: fetchAlongside(db)) }
-                semaphore.signal()
-            }
-        } catch {
-            result = .failure(error)
-            semaphore.signal()
+        // Perform a concurrent read so that writer dispatch queue is released
+        // as soon as possible.
+        let future = databaseWriter.concurrentRead { db in
+            try (fetchedItems: request.fetchAll(db),
+                 fetchedAlongside: fetchAlongside(db))
         }
         
-        // Process the fetched items
-        
+        // Dispatch processing immediately on observer.queue in order to
+        // process fetched values in the same order as transactions:
         observer.queue.async { [weak observer] in
-            // Wait for the fetch to complete:
-            _ = semaphore.wait(timeout: .distantFuture)
+            // Return if observer has been deallocated or invalidated
+            guard let observer = observer,
+                observer.isValid
+                else { return }
             
-            // Return if observer has been invalidated
-            guard let strongObserver = observer else { return }
-            guard strongObserver.isValid else { return }
-            
-            completion(result!.map { (fetchedItems, fetchedAlongside) in
-                (fetchedItems: fetchedItems, fetchedAlongside: fetchedAlongside, observer: strongObserver)
-            })
+            do {
+                // Wait for concurrent read to complete
+                let values = try future.wait()
+                
+                completion(.success((
+                    fetchedItems: values.fetchedItems,
+                    fetchedAlongside: values.fetchedAlongside,
+                    observer: observer)))
+            } catch {
+                completion(.failure(error))
+            }
         }
     }
 }

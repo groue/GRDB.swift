@@ -230,13 +230,11 @@ jobs:
       script: make test_install_SPM
 
     ## Carthage Build
-    ## Commented out until `make test_CarthageBuild` performs *reliably*.
-    ## See https://github.com/groue/GRDB.swift/pull/262
-    # - stage: Test Installation
-    #   osx_image: xcode10
-    #   before_install:
-    #     - brew update
-    #     - brew outdated carthage || brew upgrade carthage
-    #   env:
-    #     - TID=Carthages
-    #   script: make test_CarthageBuild
+    - stage: Test Installation
+      osx_image: xcode10
+      before_install:
+        - brew update
+        - brew outdated carthage || brew upgrade carthage
+      env:
+        - TID=Carthages
+      script: make test_CarthageBuild

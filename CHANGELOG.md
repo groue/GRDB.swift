@@ -1,6 +1,39 @@
 Release Notes
 =============
 
+## 3.3.0
+
+Released September 16, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.3.0-beta1...v3.3.0)
+
+### New
+
+- [#409](https://github.com/groue/GRDB.swift/pull/409): DatabaseWriter.concurrentRead
+
+
+### Documentation Diff
+
+- [Advanced DatabasePool](README.md#advanced-databasepool): the chapter has been updated for the new DatabasePool.concurrentRead method.
+
+
+### API diff
+
+```diff
+ protocol DatabaseWriter : DatabaseReader {
++    func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T>
++    @available(*, deprecated)
+     func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
+ }
+
++class Future<Value> {
++    func wait() throws -> Value
++}
+
+ extension Cursor {
++    func isEmpty() throws -> Bool
+ }
+```
+
+
 ## 3.3.0-beta1
 
 Released September 5, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.2.0...v3.3.0-beta1)

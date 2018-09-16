@@ -3,13 +3,13 @@ GRDB 3 [![Swift](https://img.shields.io/badge/swift-4.1-orange.svg?style=flat)](
 
 ### A toolkit for SQLite databases, with a focus on application development
 
-**Latest release**: September 5, 2018 • version 3.3.0-beta1 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 2 to GRDB 3](Documentation/GRDB2MigrationGuide.md)
+**Latest release**: September 16, 2018 • version 3.3.0 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 2 to GRDB 3](Documentation/GRDB2MigrationGuide.md)
 
 **Requirements**: iOS 8.0+ / macOS 10.9+ / watchOS 2.0+ &bull; Swift 4.1+ / Xcode 9.3+
 
 | Swift version | GRDB version                                                |
 | ------------- | ----------------------------------------------------------- |
-| **Swift 4.2** | **v3.3.0-beta1**                                            |
+| **Swift 4.2** | **v3.3.0**                                                  |
 | Swift 4.1     | [v3.2.0](https://github.com/groue/GRDB.swift/tree/v3.2.0)   |
 | Swift 4       | [v2.10.0](https://github.com/groue/GRDB.swift/tree/v2.10.0) |
 | Swift 3.2     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
@@ -219,20 +219,21 @@ See the [Query Interface](#the-query-interface)
     <summary>Be notified of database changes</summary>
 
 ```swift
-// Track query interface requests
-Place.filter(key: 1)
-    .rx
-    .fetchOne(in: dbQueue)
-    .subscribe(onNext: { place: Place? in
-        print("Place 1 has changed")
-    })
+let request = Place.order(Column("title"))
 
-// Track SQL requests
-SQLRequest<Place>("SELECT * FROM place WHERE favorite ORDER BY title")
-    .rx
+// Track request changes with FetchedRecordsController
+let controller = FetchedRecordsController(dbQueue, request: request)
+controller.trackChanges { controller in
+    print("Places have changed.")
+    let places = controller.fetchedRecords // [Place]
+}
+try controller.performFetch()
+
+// Track request changes with RxSwift and RxGRDB
+request.rx
     .fetchAll(in: dbQueue)
     .subscribe(onNext: { places: [Place] in
-        print("Favorite places have changed")
+        print("Places have changed.")
     })
 ```
 
@@ -330,7 +331,7 @@ The [Swift Package Manager](https://swift.org/package-manager/) automates the di
 ```swift
 let package = Package(
     dependencies: [
-        .package(url: "https://github.com/groue/GRDB.swift.git", from: "3.3.0-beta1")
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "3.3.0")
     ]
 )
 ```
@@ -347,7 +348,7 @@ If you decide to use Carthage despite this warning, and get any Carthage-related
 
 ## Manually
 
-1. [Download](https://github.com/groue/GRDB.swift/releases/tag/v3.3.0-beta1) a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the `git checkout v3.3.0-beta1` command.
+1. [Download](https://github.com/groue/GRDB.swift/releases/tag/v3.3.0) a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the `git checkout v3.3.0` command.
 
 2. Embed the `GRDB.xcodeproj` project in your own project.
 
@@ -6517,7 +6518,7 @@ Alternatively, perform a manual installation of GRDB and SQLCipher:
     
     ```sh
     cd [GRDB directory]
-    git checkout v3.3.0-beta1
+    git checkout v3.3.0
     git submodule update --init SQLCipher/src
     ```
     
@@ -7197,50 +7198,54 @@ try dbPool.write { db in
     // Increment the number of players
     try Player(...).insert(db)
 }
+// <- other threads can write in the database here
 try dbPool.read { db in
     // Read some random value :-(
     let count = try Player.fetchCount(db)
 }
 ```
 
-The correct solution is the `readFromCurrentState` method, which must be called from within a write block, outside of any transaction:
+The correct solution is the `concurrentRead` method, which must be called from within a write block, outside of any transaction.
+
+`concurrentRead` returns a **future value** which you consume on any dispatch queue, with the `wait()` method:
 
 ```swift
 // CORRECT
-try dbPool.writeWithoutTransaction { db in
-    try db.inTransaction {
-        // increment the number of players
-        try Player(...).insert(db)
-        return .commit
-    }
+let futureCount: Future<Int> = try dbPool.writeWithoutTransaction { db in
+    // increment the number of players
+    try Player(...).insert(db)
     
     // <- not in a transaction here
-    try dbPool.readFromCurrentState { db
-        // Read the number of players. The writer queue has been unlocked :-)
-        let count = try Player.fetchCount(db)
+    let futureCount = dbPool.concurrentRead { db
+        return try Player.fetchCount(db)
     }
+    return futureCount
 }
+// <- The writer queue has been unlocked :-)
+
+// Wait for the player count
+let count: Int = try futureCount.wait()
 ```
 
-`readFromCurrentState` blocks until it can guarantee its closure argument an isolated access to the last committed state of the database. It then asynchronously executes the closure. If the isolated access can't be established, `readFromCurrentState` throws an error, and the closure is not executed.
+`concurrentRead` blocks until it can guarantee its closure argument an isolated access to the last committed state of the database. It then asynchronously executes the closure.
 
-The closure can run concurrently with eventual updates performed after `readFromCurrentState`: those updates won't be visible from within the closure. In the example below, the number of players is guaranteed to be non-zero, even though it is fetched concurrently with the player deletion:
+The closure can run concurrently with eventual updates performed after `concurrentRead`: those updates won't be visible from within the closure. In the example below, the number of players is guaranteed to be non-zero, even though it is fetched concurrently with the player deletion:
 
 ```swift
 try dbPool.writeWithoutTransaction { db in
     // Increment the number of players
     try Player(...).insert(db)
     
-    try dbPool.readFromCurrentState { db
+    let futureCount = dbPool.concurrentRead { db
         // Guaranteed to be non-zero
-        let count = try Player.fetchCount(db)
+        return try Player.fetchCount(db)
     }
     
     try Player.deleteAll(db)
 }
 ```
 
-[Transaction Observers](#transactionobserver-protocol) can also use `readFromCurrentState` in their `databaseDidCommit` method in order to process database changes without blocking other threads that want to write into the database.
+[Transaction Observers](#transactionobserver-protocol) can also use `concurrentRead` in their `databaseDidCommit` method in order to process database changes without blocking other threads that want to write into the database.
 
 
 ### Database Snapshots
@@ -7306,20 +7311,13 @@ try snapshot2.read { db in
 
 Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://groue.github.io/GRDB.swift/docs/3.3/Protocols/DatabaseReader.html) and [DatabaseWriter](http://groue.github.io/GRDB.swift/docs/3.3/Protocols/DatabaseWriter.html) protocols. DatabaseSnapshot adopts DatabaseReader only.
 
-These protocols provide a unified API that lets you write safe concurrent code that targets all three concurrency modes.
-
-However, queues are not pools which are different from snapshots, and DatabaseReader and DatabaseWriter provide the *smallest* common guarantees. They require more discipline:
-
-- Pools are less forgiving than queues when one overlooks a transaction (see [concurrency rule 3](#guarantees-and-rules)).
-- DatabaseWriter.readFromCurrentState is synchronous, or asynchronous, depending on whether it is run by a queue or a pool (see [advanced DatabasePool](#advanced-databasepool)). It thus requires higher libDispatch skills, and more complex synchronization code.
-
-DatabaseReader and DatabaseWriter are not a tool for applications that hesitate between DatabaseQueue and DatabasePool, and look for a common API. As seen above, the protocols actually make applications harder to write correctly. Instead, they target generic code that has *both* queues and pools in mind. The built-in AnyDatabaseReader and AnyDatabaseWriter type erasers serve the same purpose.
-
-DatabaseWriter and DatabaseReader fuel, for example:
+These protocols provide a unified API that let you write generic code that targets all concurrency modes. They fuel, for example:
 
 - [Migrations](#migrations)
 - [FetchedRecordsController](#fetchedrecordscontroller)
 - [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)
+
+Caution: DatabaseQueue and DatabasePool only provide the *smallest* common guarantees. They don't erase the differences between queues, pools, and snapshots. See for example [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools).
 
 
 ### Unsafe Concurrency APIs
@@ -7807,7 +7805,7 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@Chiliec](https://github.com/Chiliec), [@darrenclark](https://github.com/darrenclark), [@fpillet](http://github.com/fpillet), [@gusrota](https://github.com/gusrota), [@hartbit](https://github.com/hartbit), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@Marus](https://github.com/Marus), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@swiftlyfalling](https://github.com/swiftlyfalling), [@valexa](https://github.com/valexa), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
+- [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@Chiliec](https://github.com/Chiliec), [@darrenclark](https://github.com/darrenclark), [@fpillet](http://github.com/fpillet), [@gusrota](https://github.com/gusrota), [@hartbit](https://github.com/hartbit), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@KyleLeneau](https://github.com/KyleLeneau), [@Marus](https://github.com/Marus), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@swiftlyfalling](https://github.com/swiftlyfalling), [@valexa](https://github.com/valexa), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [@kali](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
 

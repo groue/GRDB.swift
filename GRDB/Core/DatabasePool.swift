@@ -1,4 +1,5 @@
 import Foundation
+import Dispatch
 #if SWIFT_PACKAGE
     import CSQLite
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
@@ -349,6 +350,8 @@ extension DatabasePool : DatabaseReader {
         }
     }
     
+    /// This method is deprecated. Use concurrentRead instead.
+    ///
     /// Asynchronously executes a read-only block in a protected dispatch queue,
     /// wrapped in a deferred transaction.
     ///
@@ -374,6 +377,7 @@ extension DatabasePool : DatabaseReader {
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block, or any DatabaseError that would
     ///   happen while establishing the read access to the database.
+    @available(*, deprecated, message: "Use concurrentRead instead")
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
         // https://www.sqlite.org/isolation.html
         //
@@ -422,7 +426,12 @@ extension DatabasePool : DatabaseReader {
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
-            GRDBPrecondition(!db.isInsideTransaction, "readFromCurrentState must not be called from inside a transaction. If this error is raised from a DatabasePool.write block, use DatabasePool.writeWithoutTransaction instead (and use transactions when needed).")
+            GRDBPrecondition(!db.isInsideTransaction, """
+                readFromCurrentState must not be called from inside a transaction. \
+                If this error is raised from a DatabasePool.write block, use \
+                DatabasePool.writeWithoutTransaction instead (and use \
+                transactions when needed).
+                """)
         }
         
         // The semaphore that blocks the writing dispatch queue until snapshot
@@ -456,7 +465,119 @@ extension DatabasePool : DatabaseReader {
             throw readError
         }
     }
-
+    
+    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
+        // https://www.sqlite.org/isolation.html
+        //
+        // > In WAL mode, SQLite exhibits "snapshot isolation". When a read
+        // > transaction starts, that reader continues to see an unchanging
+        // > "snapshot" of the database file as it existed at the moment in time
+        // > when the read transaction started. Any write transactions that
+        // > commit while the read transaction is active are still invisible to
+        // > the read transaction, because the reader is seeing a snapshot of
+        // > database file from a prior moment in time.
+        //
+        // That's exactly what we need. But what does "when read transaction
+        // starts" mean?
+        //
+        // http://www.sqlite.org/lang_transaction.html
+        //
+        // > Deferred [transaction] means that no locks are acquired on the
+        // > database until the database is first accessed. [...] Locks are not
+        // > acquired until the first read or write operation. [...] Because the
+        // > acquisition of locks is deferred until they are needed, it is
+        // > possible that another thread or process could create a separate
+        // > transaction and write to the database after the BEGIN on the
+        // > current thread has executed.
+        //
+        // Now that's precise enough: SQLite defers "snapshot isolation" until
+        // the first SELECT:
+        //
+        //     Reader                       Writer
+        //     BEGIN DEFERRED TRANSACTION
+        //                                  UPDATE ... (1)
+        //     Here the change (1) is visible
+        //     SELECT ...
+        //                                  UPDATE ... (2)
+        //     Here the change (2) is not visible
+        //
+        // The readFromCurrentState method says that no change should be visible
+        // at all. We thus have to perform a select that establishes the
+        // snapshot isolation before we release the writer queue:
+        //
+        //     Reader                       Writer
+        //     BEGIN DEFERRED TRANSACTION
+        //     SELECT anything
+        //                                  UPDATE ...
+        //     Here the change is not visible by GRDB user
+        
+        // Check that we're on the writer queue...
+        writer.execute { db in
+            // ... and that no transaction is opened.
+            GRDBPrecondition(!db.isInsideTransaction, """
+                concurrentRead must not be called from inside a transaction. \
+                If this error is raised from a DatabasePool.write block, use \
+                DatabasePool.writeWithoutTransaction instead (and use \
+                transactions when needed).
+                """)
+        }
+        
+        // The semaphore that blocks the writing dispatch queue until snapshot
+        // isolation has been established:
+        let isolationSemaphore = DispatchSemaphore(value: 0)
+        
+        // The semaphore that blocks until futureResult is defined:
+        let futureSemaphore = DispatchSemaphore(value: 0)
+        var futureResult: Result<T>? = nil
+        
+        do {
+            try readerPool.get { reader in
+                reader.async { db in
+                    // Open a deferred transaction and access the database in
+                    // order to establish snapshot isolation.
+                    defer { _ = try? db.commit() }
+                    do {
+                        try db.beginTransaction(.deferred)
+                        try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").makeCursor().next()
+                    } catch {
+                        // Snapshot isolation failure
+                        futureResult = .failure(error)
+                        isolationSemaphore.signal()
+                        futureSemaphore.signal()
+                        return
+                    }
+                    
+                    // Release the writer queue
+                    isolationSemaphore.signal()
+                    
+                    // Reset the schema cache before running user code in snapshot isolation
+                    db.schemaCache = SimpleDatabaseSchemaCache()
+                    
+                    // Fetch and release the future
+                    futureResult = Result { try block(db) }
+                    futureSemaphore.signal()
+                }
+            }
+        } catch {
+            return Future { throw error }
+        }
+        
+        // Block the writer queue until snapshot isolation success or error
+        _ = isolationSemaphore.wait(timeout: .distantFuture)
+        
+        return Future {
+            // Block the future until results are fetched
+            _ = futureSemaphore.wait(timeout: .distantFuture)
+            
+            switch futureResult! {
+            case .failure(let error):
+                throw error
+            case .success(let result):
+                return result
+            }
+        }
+    }
+    
     /// Returns a reader that can be used from the current dispatch queue,
     /// if any.
     private var currentReader: SerializedDatabase? {

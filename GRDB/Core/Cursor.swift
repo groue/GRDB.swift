@@ -85,6 +85,12 @@ public protocol Cursor : class {
 }
 
 extension Cursor {
+    /// Returns a Boolean value indicating whether the cursor contains
+    /// an element.
+    public func isEmpty() throws -> Bool {
+        return try next() == nil
+    }
+    
     /// Returns a Boolean value indicating whether the cursor contains an
     /// element that satisfies the given predicate.
     ///
