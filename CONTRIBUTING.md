@@ -297,11 +297,13 @@ Swift on Linux is currently focused on the server (Vapor, Perfect, Kitura). Whil
 
 There are several SQLite features that GRDB could natively support:
 
+- [ALTER TABLE ... RENAME COLUMN ... TO ...](https://www.sqlite.org/lang_altertable.html)
 - [ATTACH DATABASE](https://www.sqlite.org/lang_attach.html)
 - [UPSERT](https://www.sqlite.org/lang_UPSERT.html)
 - [INSERT INTO ... SELECT ...](https://www.sqlite.org/lang_insert.html)
 - [WITH RECURSIVE ...](https://www.sqlite.org/lang_with.html)
 - [RTree](https://sqlite.org/rtree.html)
+- [Windows Functions](https://www.sqlite.org/windowfunctions.html)
 - [More ideas](https://www.sqlite.org/lang.html)
 
 
