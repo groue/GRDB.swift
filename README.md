@@ -43,6 +43,7 @@ See [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md) if you are looking for your
     <a href="#usage">Usage</a> &bull;
     <a href="#installation">Installation</a> &bull;
     <a href="#documentation">Documentation</a> &bull;
+    <a href="#demo-application">Demo Application</a> &bull;
     <a href="#faq">FAQ</a>
 </p>
 
@@ -254,6 +255,7 @@ Documentation
 #### Getting Started
 
 - [Installation](#installation)
+- [Demo Application](#demo-application)
 - [Database Connections](#database-connections): Connect to SQLite databases
 
 #### SQLite and SQL
@@ -357,6 +359,18 @@ If you decide to use Carthage despite this warning, and get any Carthage-related
 4. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
 
 See [GRDBDemoiOS](DemoApps/GRDBDemoiOS/GRDBDemoiOS) for an example of such integration.
+
+
+Demo Application
+================
+
+The repository comes with an [demo application](DemoApps/GRDBDemoiOS) that shows you:
+
+- how to setup a database in an iOS app
+- how to define a simple [Codable Record](#codable-records)
+- how to track database changes and animate a table view with [FetchedRecordsController](#fetchedrecordscontroller).
+
+![Screenshot of demo application](Documentation/Images/GRDBDemoScreenshot.png)
 
 
 Database Connections
