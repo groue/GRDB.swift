@@ -17,4 +17,4 @@ Files of interest are:
 
 - [Player.swift](GRDBDemoiOS/Player.swift)
     
-    `Player` is a [Record](../../README.md#records) type, able to read and write in the database.
+    `Player` is a [Record](../../README.md#records) type, able to read and write in the database. It conforms to the standard Codable protocol in order to gain all advantages of [Codable Records](../../README.md#codable-records).
