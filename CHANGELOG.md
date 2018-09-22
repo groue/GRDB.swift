@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+### Fixed
+
+- [#414](https://github.com/groue/GRDB.swift/pull/414): Fix database pool use of FTS5 tokenizers
+
+
 ## 3.3.0
 
 Released September 16, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.3.0-beta1...v3.3.0)
