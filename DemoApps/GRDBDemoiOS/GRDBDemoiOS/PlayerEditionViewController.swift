@@ -1,13 +1,16 @@
 import UIKit
 
-protocol PlayerEditionViewControllerDelegate: class {
-    func playerEditionControllerDidComplete(_ controller: PlayerEditionViewController)
-}
-
 class PlayerEditionViewController: UITableViewController {
-    weak var delegate: PlayerEditionViewControllerDelegate?
+    enum Presentation {
+        /// Modal presentation: edition ends with the "Commit" segue.
+        case modal
+        
+        /// Push presentation: edition ends when user hits the back button.
+        case push(onPop: (PlayerEditionViewController) -> Void)
+    }
+    
     var player: Player! { didSet { configureView() } }
-    var commitButtonHidden: Bool = false { didSet { configureView() } }
+    var presentation: Presentation! { didSet { configureView() } }
 
     @IBOutlet fileprivate weak var cancelBarButtonItem: UIBarButtonItem!
     @IBOutlet fileprivate weak var commitBarButtonItem: UIBarButtonItem!
@@ -31,13 +34,14 @@ class PlayerEditionViewController: UITableViewController {
         } else {
             scoreTextField.text = "\(player.score)"
         }
-    
-        if commitButtonHidden {
-            navigationItem.leftBarButtonItem = nil
-            navigationItem.rightBarButtonItem = nil
-        } else {
+        
+        switch presentation! {
+        case .modal:
             navigationItem.leftBarButtonItem = cancelBarButtonItem
             navigationItem.rightBarButtonItem = commitBarButtonItem
+        case .push:
+            navigationItem.leftBarButtonItem = nil
+            navigationItem.rightBarButtonItem = nil
         }
     }
 }
@@ -62,10 +66,15 @@ extension PlayerEditionViewController {
     override func willMove(toParent parent: UIViewController?) {
         super.willMove(toParent: parent)
         
-        if parent == nil {
-            // Self is popping from its navigation controller
-            applyChanges()
-            delegate?.playerEditionControllerDidComplete(self)
+        switch presentation! {
+        case .modal:
+            break
+        case .push(onPop: let callback):
+            if parent == nil {
+                // Self is popping from its navigation controller
+                applyChanges()
+                callback(self)
+            }
         }
     }
     

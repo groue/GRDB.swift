@@ -5,22 +5,23 @@ class PlayersViewController: UITableViewController {
     enum PlayerOrdering {
         case byName
         case byScore
-        
-        var request: QueryInterfaceRequest<Player> {
-            switch self {
-            case .byName:
-                return Player.order(Player.Columns.name)
-            case .byScore:
-                return Player.order(Player.Columns.score.desc, Player.Columns.name)
-            }
-        }
     }
     
     var playersController: FetchedRecordsController<Player>!
+    
     var playerOrdering: PlayerOrdering = .byScore {
         didSet {
-            try! playersController.setRequest(playerOrdering.request)
+            try! playersController.setRequest(playersRequest)
             configureNavigationItem()
+        }
+    }
+    
+    var playersRequest: QueryInterfaceRequest<Player> {
+        switch playerOrdering {
+        case .byName:
+            return Player.orderedByName()
+        case .byScore:
+            return Player.orderedByScore()
         }
     }
     
@@ -42,7 +43,7 @@ class PlayersViewController: UITableViewController {
 
 // MARK: - Navigation
 
-extension PlayersViewController : PlayerEditionViewControllerDelegate {
+extension PlayersViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "Edit" {
@@ -50,8 +51,14 @@ extension PlayersViewController : PlayerEditionViewControllerDelegate {
             let controller = segue.destination as! PlayerEditionViewController
             controller.title = player.name
             controller.player = player
-            controller.delegate = self // See playerEditionControllerDidComplete
-            controller.commitButtonHidden = true
+            
+            // Push presentation: save player in the database when use hits the
+            // back button.
+            controller.presentation = .push(onPop: { controller in
+                try! dbQueue.write { db in
+                    try controller.player.save(db)
+                }
+            })
         }
         else if segue.identifier == "New" {
             setEditing(false, animated: true)
@@ -59,23 +66,20 @@ extension PlayersViewController : PlayerEditionViewControllerDelegate {
             let controller = navigationController.viewControllers.first as! PlayerEditionViewController
             controller.title = "New Player"
             controller.player = Player(id: nil, name: "", score: 0)
+            
+            // Modal presentation: save player in the database in the
+            // commitPlayerEdition unwind segue.
+            controller.presentation = .modal
         }
     }
     
     @IBAction func cancelPlayerEdition(_ segue: UIStoryboardSegue) {
-        // Player creation: cancel button was tapped
+        // Player creation cancelled
     }
     
     @IBAction func commitPlayerEdition(_ segue: UIStoryboardSegue) {
-        // Player creation: commit button was tapped
+        // Player creation committed
         let controller = segue.source as! PlayerEditionViewController
-        try! dbQueue.write { db in
-            try controller.player.save(db)
-        }
-    }
-    
-    func playerEditionControllerDidComplete(_ controller: PlayerEditionViewController) {
-        // Player edition: user has finished editing the player
         try! dbQueue.write { db in
             try controller.player.save(db)
         }
@@ -87,8 +91,10 @@ extension PlayersViewController : PlayerEditionViewControllerDelegate {
 
 extension PlayersViewController {
     private func configureTableView() {
-        playersController = try! FetchedRecordsController(dbQueue, request: playerOrdering.request)
+        // Track changes in the database players
+        playersController = try! FetchedRecordsController(dbQueue, request: playersRequest)
         
+        // Animate changes in the table view
         playersController.trackChanges(
             willChange: { [unowned self] _ in
                 self.tableView.beginUpdates()
@@ -123,6 +129,7 @@ extension PlayersViewController {
                 self.tableView.endUpdates()
         })
         
+        // Initial fetch
         try! playersController.performFetch()
     }
     
@@ -151,7 +158,7 @@ extension PlayersViewController {
     private func configure(_ cell: UITableViewCell, at indexPath: IndexPath) {
         let player = playersController.record(at: indexPath)
         if player.name.isEmpty {
-            cell.textLabel?.text = "(anonymous)"
+            cell.textLabel?.text = "-"
         } else {
             cell.textLabel?.text = player.name
         }
@@ -231,16 +238,16 @@ extension PlayersViewController {
                 }
             } else {
                 // Insert a player
-                if arc4random_uniform(2) == 0 {
+                if Bool.random() {
                     var player = Player(id: nil, name: Player.randomName(), score: Player.randomScore())
                     try player.insert(db)
                 }
                 // Delete a random player
-                if arc4random_uniform(2) == 0 {
+                if Bool.random() {
                     try Player.order(sql: "RANDOM()").limit(1).deleteAll(db)
                 }
                 // Update some players
-                for var player in try Player.fetchAll(db) where arc4random_uniform(2) == 0 {
+                for var player in try Player.fetchAll(db) where Bool.random() {
                     player.score = Player.randomScore()
                     try player.update(db)
                 }
