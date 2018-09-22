@@ -150,19 +150,4 @@
             }
         }
     }
-    
-    extension DatabasePool {
-        
-        // MARK: - Custom FTS5 Tokenizers
-        
-        /// Add a custom FTS5 tokenizer.
-        ///
-        ///     class MyTokenizer : FTS5CustomTokenizer { ... }
-        ///     dbPool.add(tokenizer: MyTokenizer.self)
-        public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
-            writeWithoutTransaction { db in
-                db.add(tokenizer: Tokenizer.self)
-            }
-        }
-    }
 #endif
