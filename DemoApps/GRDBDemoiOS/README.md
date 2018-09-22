@@ -3,7 +3,13 @@ Demo Application
 
 <img align="right" src="https://github.com/groue/GRDB.swift/raw/development/Documentation/Images/GRDBDemoScreenshot.png" width="50%">
 
-Files of interest are:
+**This demo application shows you:**
+
+- how to setup a database in an iOS app
+- how to define a simple [Codable Record](../../README.md#codable-records)
+- how to track database changes and animate a table view with [FetchedRecordsController](../../README.md#fetchedrecordscontroller).
+
+**Files of interest:**
 
 - [AppDelegate.swift](GRDBDemoiOS/AppDelegate.swift)
     
