@@ -17,7 +17,7 @@ Demo Application
 
 - [AppDatabase.swift](GRDBDemoiOS/AppDatabase.swift)
     
-    `AppDatabase` is responsible for the format of the database. It uses [DatabaseMigrator](../../README.md#migrations) in order to setup the database schema.
+    `AppDatabase` defines the database for the whole application. It uses [DatabaseMigrator](../../README.md#migrations) in order to setup the database schema.
 
 - [Player.swift](GRDBDemoiOS/Player.swift)
     
@@ -25,8 +25,7 @@ Demo Application
 
 - [PlayersViewController.swift](GRDBDemoiOS/PlayersViewController.swift)
     
-    `PlayersViewController` displays a list of players, and animates a table view with [FetchedRecordsController](../../README.md#fetchedrecordscontroller).
-
+    `PlayersViewController` displays a list of players, and animates its table view according to database changes with [FetchedRecordsController](../../README.md#fetchedrecordscontroller).
 
 - [PlayerEditionViewController.swift](GRDBDemoiOS/PlayerEditionViewController.swift)
     
