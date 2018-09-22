@@ -21,7 +21,7 @@ Files of interest are:
 
 - [PlayersViewController.swift](GRDBDemoiOS/PlayersViewController.swift)
     
-    `PlayersViewController` displays a list of players, and animates a table view with [FetchedRecordsController](../../README.md#fetchedrecordscontroller)
+    `PlayersViewController` displays a list of players, and animates a table view with [FetchedRecordsController](../../README.md#fetchedrecordscontroller).
 
 
 - [PlayerEditionViewController.swift](GRDBDemoiOS/PlayerEditionViewController.swift)
