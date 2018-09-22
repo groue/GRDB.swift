@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14113" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="UAh-8N-CM8">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14313.18" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES" initialViewController="UAh-8N-CM8">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
-        <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14088"/>
-        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14283.14"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -14,7 +12,7 @@
         <scene sceneID="Juk-Ad-tZ2">
             <objects>
                 <tableViewController id="iNr-Oe-muq" customClass="PlayerEditionViewController" customModule="GRDBDemoiOS" customModuleProvider="target" sceneMemberID="viewController">
-                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="vlV-lc-eQA">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" dataMode="static" style="plain" separatorStyle="none" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" id="vlV-lc-eQA">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -25,11 +23,11 @@
                                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="2gb-gB-918" id="iyM-TJ-JB4">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" horizontalCompressionResistancePriority="250" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Name" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="m5m-Zs-j0z">
-                                                    <rect key="frame" x="26" y="12" width="333" height="20"/>
+                                                    <rect key="frame" x="16" y="12" width="343" height="20"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="words" autocorrectionType="no" spellCheckingType="no" returnKeyType="next"/>
                                                     <connections>
@@ -38,7 +36,7 @@
                                                 </textField>
                                             </subviews>
                                             <constraints>
-                                                <constraint firstItem="m5m-Zs-j0z" firstAttribute="leading" secondItem="iyM-TJ-JB4" secondAttribute="leadingMargin" constant="10" id="9cK-nj-70V"/>
+                                                <constraint firstItem="m5m-Zs-j0z" firstAttribute="leading" secondItem="iyM-TJ-JB4" secondAttribute="leadingMargin" id="9cK-nj-70V"/>
                                                 <constraint firstAttribute="trailingMargin" secondItem="m5m-Zs-j0z" secondAttribute="trailing" id="JsE-8v-XAS"/>
                                                 <constraint firstItem="m5m-Zs-j0z" firstAttribute="centerY" secondItem="iyM-TJ-JB4" secondAttribute="centerY" id="psG-tW-QrM"/>
                                             </constraints>
@@ -48,11 +46,11 @@
                                         <rect key="frame" x="0.0" y="44" width="375" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="vp3-Ft-Gth" id="ccO-0O-u72">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" horizontalCompressionResistancePriority="250" contentHorizontalAlignment="left" contentVerticalAlignment="center" placeholder="Score" minimumFontSize="17" clearButtonMode="whileEditing" translatesAutoresizingMaskIntoConstraints="NO" id="rZ9-Fa-cyr">
-                                                    <rect key="frame" x="26" y="12" width="333" height="20"/>
+                                                    <rect key="frame" x="16" y="12" width="343" height="20"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                                     <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" keyboardType="numberPad" returnKeyType="done"/>
                                                 </textField>
@@ -60,7 +58,7 @@
                                             <constraints>
                                                 <constraint firstAttribute="trailingMargin" secondItem="rZ9-Fa-cyr" secondAttribute="trailing" id="Gso-FU-Ct1"/>
                                                 <constraint firstItem="rZ9-Fa-cyr" firstAttribute="centerY" secondItem="ccO-0O-u72" secondAttribute="centerY" id="UqA-ea-emb"/>
-                                                <constraint firstItem="rZ9-Fa-cyr" firstAttribute="leading" secondItem="ccO-0O-u72" secondAttribute="leadingMargin" constant="10" id="WrY-St-72v"/>
+                                                <constraint firstItem="rZ9-Fa-cyr" firstAttribute="leading" secondItem="ccO-0O-u72" secondAttribute="leadingMargin" id="WrY-St-72v"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
