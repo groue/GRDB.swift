@@ -7,6 +7,10 @@ Release Notes
 
 - [#414](https://github.com/groue/GRDB.swift/pull/414): Fix database pool use of FTS5 tokenizers
 
+### Documentation Diff
+
+- The [Demo Application](DemoApps/GRDBDemoiOS) has more visibility.
+
 
 ## 3.3.0
 
