@@ -223,7 +223,7 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
     }
 
     func testStopWordsTokenizerDatabasePool() throws {
-        let dbPool = try makeDatabaseQueue()
+        let dbPool = try makeDatabasePool()
         dbPool.add(tokenizer: StopWordsTokenizer.self)
         
         try dbPool.write { db in
