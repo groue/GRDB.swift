@@ -51,14 +51,7 @@ extension PlayersViewController {
             let controller = segue.destination as! PlayerEditionViewController
             controller.title = player.name
             controller.player = player
-            
-            // Push presentation: save player in the database when use hits the
-            // back button.
-            controller.presentation = .push(onPop: { controller in
-                try! dbQueue.write { db in
-                    try controller.player.save(db)
-                }
-            })
+            controller.presentation = .push
         }
         else if segue.identifier == "New" {
             setEditing(false, animated: true)
@@ -66,9 +59,6 @@ extension PlayersViewController {
             let controller = navigationController.viewControllers.first as! PlayerEditionViewController
             controller.title = "New Player"
             controller.player = Player(id: nil, name: "", score: 0)
-            
-            // Modal presentation: save player in the database in the
-            // commitPlayerEdition unwind segue.
             controller.presentation = .modal
         }
     }
@@ -79,10 +69,6 @@ extension PlayersViewController {
     
     @IBAction func commitPlayerEdition(_ segue: UIStoryboardSegue) {
         // Player creation committed
-        let controller = segue.source as! PlayerEditionViewController
-        try! dbQueue.write { db in
-            try controller.player.save(db)
-        }
     }
 }
 

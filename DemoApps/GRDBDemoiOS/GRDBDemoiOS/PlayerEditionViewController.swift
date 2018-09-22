@@ -6,7 +6,7 @@ class PlayerEditionViewController: UITableViewController {
         case modal
         
         /// Push presentation: edition ends when user hits the back button.
-        case push(onPop: (PlayerEditionViewController) -> Void)
+        case push
     }
     
     var player: Player! { didSet { configureView() } }
@@ -59,7 +59,7 @@ extension PlayerEditionViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "Commit" {
-            applyChanges()
+            saveChanges()
         }
     }
     
@@ -69,11 +69,10 @@ extension PlayerEditionViewController {
         switch presentation! {
         case .modal:
             break
-        case .push(onPop: let callback):
+        case .push:
             if parent == nil {
                 // Self is popping from its navigation controller
-                applyChanges()
-                callback(self)
+                saveChanges()
             }
         }
     }
@@ -107,12 +106,16 @@ extension PlayerEditionViewController: UITextFieldDelegate {
         return false
     }
     
-    private func applyChanges() {
+    private func saveChanges() {
         guard var player = self.player else {
             return
         }
         player.name = nameTextField.text ?? ""
         player.score = scoreTextField.text.flatMap { Int($0) } ?? 0
         self.player = player
+        
+        try! dbQueue.inDatabase { db in
+            try player.save(db)
+        }
     }
 }
