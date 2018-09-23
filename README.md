@@ -7332,7 +7332,7 @@ These protocols provide a unified API that let you write generic code that targe
 - [FetchedRecordsController](#fetchedrecordscontroller)
 - [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)
 
-Caution: DatabaseQueue and DatabasePool only provide the *smallest* common guarantees. They don't erase the differences between queues, pools, and snapshots. See for example [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools).
+Caution: DatabaseReader and DatabaseWriter only provide the *smallest* common guarantees. They don't erase the differences between queues, pools, and snapshots. See for example [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools).
 
 
 ### Unsafe Concurrency APIs
