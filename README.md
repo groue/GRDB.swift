@@ -358,7 +358,7 @@ If you decide to use Carthage despite this warning, and get any Carthage-related
 
 4. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
 
-See the [Demo Application](#demo-application) for an example of such integration.
+See the [Demo Application](DemoApps/GRDBDemoiOS) for an example of such integration.
 
 
 Demo Application
@@ -451,7 +451,7 @@ let newPlaceCount = try dbQueue.write { db -> Int in
 
 **A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
-See the [Demo Application](#demo-application) for a sample code that sets up a database queue on iOS.
+See the [Demo Application](DemoApps/GRDBDemoiOS) for a sample code that sets up a database queue on iOS.
 
 
 ### DatabaseQueue Configuration
@@ -531,7 +531,7 @@ let newPlaceCount = try dbPool.write { db -> Int in
 
 **A database pool needs your application to follow rules in order to deliver its safety guarantees.** See the [Concurrency](#concurrency) chapter for more details about database pools, how they differ from database queues, and advanced use cases.
 
-See the [Demo Application](#demo-application) for a sample code that sets up a database queue on iOS, and just replace DatabaseQueue with DatabasePool.
+See the [Demo Application](DemoApps/GRDBDemoiOS) for a sample code that sets up a database queue on iOS, and just replace DatabaseQueue with DatabasePool.
 
 
 ### DatabasePool Configuration
@@ -6183,7 +6183,7 @@ It looks and behaves very much like [Core Data's NSFetchedResultsController](htt
 
 Given a fetch request, and a type that adopts the [FetchableRecord] protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to track changes in the results of the fetch request, notify of those changes, and return the results of the request in a form that is suitable for a table view or a collection view, with one cell per fetched record.
 
-See the [Demo Application](#demo-application) for an sample app that uses FetchedRecordsController.
+See the [Demo Application](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
 
 See also [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), an [RxSwift](https://github.com/ReactiveX/RxSwift) extension, for a reactive way to track request changes.
 
@@ -6480,7 +6480,7 @@ controller.trackChanges(
 
 > :warning: **Warning**: notification of individual record changes (the `onChange` callback) has FetchedRecordsController use a diffing algorithm that has a high complexity, a high memory consumption, and is thus **not suited for large result sets**. One hundred rows is probably OK, but one thousand is probably not. If your application experiences problems with large lists, see [Issue 263](https://github.com/groue/GRDB.swift/issues/263) for more information.
 
-See the [Demo Application](#demo-application) for an sample app that uses FetchedRecordsController to animate a table view.
+See the [Demo Application](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController to animate a table view.
 
 > :point_up: **Note**: our sample code above uses `unowned` references to the table view controller. This is a safe pattern as long as the table view controller owns the fetched records controller, and is deallocated from the main thread (this is usually the case). In other situations, prefer weak references.
 
@@ -7079,7 +7079,7 @@ Those guarantees hold as long as you follow three rules:
     
     This means that opening a new connection each time you access the database is a bad idea. Do share a single connection instead.
     
-    See the [Demo Application](#demo-application) for an sample app that sets up a single database queue that is available throughout the application.
+    See the [Demo Application](DemoApps/GRDBDemoiOS) for an sample app that sets up a single database queue that is available throughout the application.
     
     If there are several instances of database queues or pools that write in the same database, a multi-threaded application will eventually face "database is locked" errors. See [Dealing with External Connections](#dealing-with-external-connections).
     
@@ -7809,7 +7809,7 @@ Sample Code
 ===========
 
 - The [Documentation](#documentation) is full of GRDB snippets.
-- [Demo Application](#demo-application): A sample iOS application.
+- [Demo Application](DemoApps/GRDBDemoiOS): A sample iOS application.
 - [WWDC Companion](https://github.com/groue/WWDCCompanion): A sample iOS application.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
 - How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift)
