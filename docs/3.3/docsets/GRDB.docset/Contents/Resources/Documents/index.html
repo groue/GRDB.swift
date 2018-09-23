@@ -786,7 +786,7 @@
             <h1 id='grdb-3-a-href-https-developer-apple-com-swift-img-src-https-img-shields-io-badge-swift-4-1-orange-svg-style-flat-alt-swift-a-a-href-https-developer-apple-com-swift-img-src-https-img-shields-io-cocoapods-p-grdb-swift-svg-alt-platforms-a-a-href-license-img-src-https-img-shields-io-github-license-groue-grdb-swift-svg-maxage-2592000-alt-license-a-a-href-https-travis-ci-org-groue-grdb-swift-img-src-https-travis-ci-org-groue-grdb-swift-svg-branch-master-alt-build-status-a' class='heading'>GRDB 3 <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/swift-4.1-orange.svg?style=flat" alt="Swift"></a> <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/cocoapods/p/GRDB.swift.svg" alt="Platforms"></a> <a href="/LICENSE"><img src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000" alt="License"></a> <a href="https://travis-ci.org/groue/GRDB.swift"><img src="https://travis-ci.org/groue/GRDB.swift.svg?branch=master" alt="Build Status"></a></h1>
 <h3 id='a-toolkit-for-sqlite-databases-with-a-focus-on-application-development' class='heading'>A toolkit for SQLite databases, with a focus on application development</h3>
 
-<p><strong>Latest release</strong>: September 16, 2018 • version 3.3.0 • <a href="CHANGELOG.md">CHANGELOG</a> • <a href="Documentation/GRDB2MigrationGuide.md">Migrating From GRDB 2 to GRDB 3</a></p>
+<p><strong>Latest release</strong>: September 23, 2018 • version 3.3.1 • <a href="CHANGELOG.md">CHANGELOG</a> • <a href="Documentation/GRDB2MigrationGuide.md">Migrating From GRDB 2 to GRDB 3</a></p>
 
 <p><strong>Requirements</strong>: iOS 8.0+ / macOS 10.9+ / watchOS 2.0+ &bull; Swift 4.1+ / Xcode 9.3+</p>
 
@@ -798,7 +798,7 @@
 </thead><tbody>
 <tr>
 <td><strong>Swift 4.2</strong></td>
-<td><strong>v3.3.0</strong></td>
+<td><strong>v3.3.1</strong></td>
 </tr>
 <tr>
 <td>Swift 4.1</td>
@@ -854,6 +854,7 @@
     <a href="#usage">Usage</a> &bull;
     <a href="#installation">Installation</a> &bull;
     <a href="#documentation">Documentation</a> &bull;
+    <a href="#demo-application">Demo Application</a> &bull;
     <a href="#faq">FAQ</a>
 </p>
 
@@ -1063,6 +1064,7 @@ See [Database Changes Observation](#database-changes-observation), and [RxGRDB](
 
 <ul>
 <li><a href="#installation">Installation</a></li>
+<li><a href="#demo-application">Demo Application</a></li>
 <li><a href="#database-connections">Database Connections</a>: Connect to SQLite databases</li>
 </ul>
 <h4 id='sqlite-and-sql' class='heading'>SQLite and SQL</h4>
@@ -1134,7 +1136,7 @@ See [Database Changes Observation](#database-changes-observation), and [RxGRDB](
 <p>The <a href="https://swift.org/package-manager/">Swift Package Manager</a> automates the distribution of Swift code. To use GRDB with SPM, add a dependency to your <code>Package.swift</code> file:</p>
 <pre class="highlight swift"><code><span class="k">let</span> <span class="nv">package</span> <span class="o">=</span> <span class="nf">Package</span><span class="p">(</span>
     <span class="nv">dependencies</span><span class="p">:</span> <span class="p">[</span>
-        <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/groue/GRDB.swift.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"3.3.0"</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/groue/GRDB.swift.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"3.3.1"</span><span class="p">)</span>
     <span class="p">]</span>
 <span class="p">)</span>
 </code></pre>
@@ -1148,13 +1150,26 @@ See [Database Changes Observation](#database-changes-observation), and [RxGRDB](
 <h2 id='manually' class='heading'>Manually</h2>
 
 <ol>
-<li><p><a href="https://github.com/groue/GRDB.swift/releases/tag/v3.3.0">Download</a> a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the <code>git checkout v3.3.0</code> command.</p></li>
+<li><p><a href="https://github.com/groue/GRDB.swift/releases/tag/v3.3.1">Download</a> a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the <code>git checkout v3.3.1</code> command.</p></li>
 <li><p>Embed the <code>GRDB.xcodeproj</code> project in your own project.</p></li>
 <li><p>Add the <code>GRDBOSX</code>, <code>GRDBiOS</code>, or <code>GRDBWatchOS</code> target in the <strong>Target Dependencies</strong> section of the <strong>Build Phases</strong> tab of your application target (extension target for WatchOS).</p></li>
 <li><p>Add the <code>GRDB.framework</code> from the targetted platform to the <strong>Embedded Binaries</strong> section of the <strong>General</strong>  tab of your application target (extension target for WatchOS).</p></li>
 </ol>
 
-<p>See <a href="DemoApps/GRDBDemoiOS/GRDBDemoiOS">GRDBDemoiOS</a> for an example of such integration.</p>
+<p>See the <a href="DemoApps/GRDBDemoiOS">Demo Application</a> for an example of such integration.</p>
+<h1 id='demo-application' class='heading'>Demo Application</h1>
+
+<p>The repository comes with a <a href="DemoApps/GRDBDemoiOS">demo application</a> that shows you:</p>
+
+<ul>
+<li>how to setup a database in an iOS app</li>
+<li>how to define a simple <a href="#codable-records">Codable Record</a></li>
+<li>how to track database changes and animate a table view with <a href="#fetchedrecordscontroller">FetchedRecordsController</a>.</li>
+</ul>
+
+<p align="center">
+    <img src="https://github.com/groue/GRDB.swift/raw/development/Documentation/Images/GRDBDemoScreenshot.png" width="50%">
+</p>
 <h1 id='database-connections' class='heading'>Database Connections</h1>
 
 <p>GRDB provides two classes for accessing SQLite databases: <code><a href="Classes/DatabaseQueue.html">DatabaseQueue</a></code> and <code><a href="Classes/DatabasePool.html">DatabasePool</a></code>:</p>
@@ -1226,7 +1241,7 @@ See [Database Changes Observation](#database-changes-observation), and [RxGRDB](
 
 <p><strong>A database queue needs your application to follow rules in order to deliver its safety guarantees.</strong> Please refer to the <a href="#concurrency">Concurrency</a> chapter.</p>
 
-<p>See <a href="DemoApps/GRDBDemoiOS/GRDBDemoiOS/AppDatabase.swift">DemoApps/GRDBDemoiOS/AppDatabase.swift</a> for a sample code that sets up a database queue on iOS.</p>
+<p>See the <a href="DemoApps/GRDBDemoiOS">Demo Application</a> for a sample code that sets up a database queue on iOS.</p>
 <h3 id='databasequeue-configuration' class='heading'>DatabaseQueue Configuration</h3>
 <pre class="highlight swift"><code><span class="k">var</span> <span class="nv">config</span> <span class="o">=</span> <span class="nf">Configuration</span><span class="p">()</span>
 <span class="n">config</span><span class="o">.</span><span class="n">readonly</span> <span class="o">=</span> <span class="kc">true</span>
@@ -1294,7 +1309,7 @@ See [Database Changes Observation](#database-changes-observation), and [RxGRDB](
 
 <p><strong>A database pool needs your application to follow rules in order to deliver its safety guarantees.</strong> See the <a href="#concurrency">Concurrency</a> chapter for more details about database pools, how they differ from database queues, and advanced use cases.</p>
 
-<p>For a sample code that sets up a database pool on iOS, see <a href="DemoApps/GRDBDemoiOS/GRDBDemoiOS/AppDatabase.swift">DemoApps/GRDBDemoiOS/AppDatabase.swift</a>, and replace DatabaseQueue with DatabasePool.</p>
+<p>See the <a href="DemoApps/GRDBDemoiOS">Demo Application</a> for a sample code that sets up a database queue on iOS, and just replace DatabaseQueue with DatabasePool.</p>
 <h3 id='databasepool-configuration' class='heading'>DatabasePool Configuration</h3>
 <pre class="highlight swift"><code><span class="k">var</span> <span class="nv">config</span> <span class="o">=</span> <span class="nf">Configuration</span><span class="p">()</span>
 <span class="n">config</span><span class="o">.</span><span class="n">readonly</span> <span class="o">=</span> <span class="kc">true</span>
@@ -6663,7 +6678,7 @@ class Place: Record {
 
 <p>Given a fetch request, and a type that adopts the <a href="#fetchablerecord-protocol">FetchableRecord</a> protocol, such as a subclass of the <a href="#record-class">Record</a> class, a FetchedRecordsController is able to track changes in the results of the fetch request, notify of those changes, and return the results of the request in a form that is suitable for a table view or a collection view, with one cell per fetched record.</p>
 
-<p>See <a href="DemoApps/GRDBDemoiOS/GRDBDemoiOS">GRDBDemoiOS</a> for an sample app that uses FetchedRecordsController.</p>
+<p>See the <a href="DemoApps/GRDBDemoiOS">Demo Application</a> for an sample app that uses FetchedRecordsController.</p>
 
 <p>See also <a href="http://github.com/RxSwiftCommunity/RxGRDB">RxGRDB</a>, an <a href="https://github.com/ReactiveX/RxSwift">RxSwift</a> extension, for a reactive way to track request changes.</p>
 
@@ -6927,7 +6942,7 @@ the fetch.</p>
 <p>:warning: <strong>Warning</strong>: notification of individual record changes (the <code>onChange</code> callback) has FetchedRecordsController use a diffing algorithm that has a high complexity, a high memory consumption, and is thus <strong>not suited for large result sets</strong>. One hundred rows is probably OK, but one thousand is probably not. If your application experiences problems with large lists, see <a href="https://github.com/groue/GRDB.swift/issues/263">Issue 263</a> for more information.</p>
 </blockquote>
 
-<p>See <a href="DemoApps/GRDBDemoiOS/GRDBDemoiOS">GRDBDemoiOS</a> for an sample app that uses FetchedRecordsController to animate a table view.</p>
+<p>See the <a href="DemoApps/GRDBDemoiOS">Demo Application</a> for an sample app that uses FetchedRecordsController to animate a table view.</p>
 
 <blockquote>
 <p>:point_up: <strong>Note</strong>: our sample code above uses <code>unowned</code> references to the table view controller. This is a safe pattern as long as the table view controller owns the fetched records controller, and is deallocated from the main thread (this is usually the case). In other situations, prefer weak references.</p>
@@ -6972,7 +6987,7 @@ the fetch.</p>
 <ol>
 <li><p>Clone the GRDB git repository, checkout the latest tagged version, and download SQLCipher sources:</p>
 <pre class="highlight shell"><code><span class="nb">cd</span> <span class="o">[</span>GRDB directory]
-git checkout v3.3.0
+git checkout v3.3.1
 git submodule update <span class="nt">--init</span> SQLCipher/src
 </code></pre></li>
 <li><p>Embed the <code>GRDBCipher.xcodeproj</code> project in your own project.</p></li>
@@ -7438,9 +7453,9 @@ dbQueue.setupMemoryManagement(in: UIApplication.shared)
 <ul>
 <li><p>:point_up: <strong>Rule 1</strong>: Have a unique instance of DatabaseQueue or DatabasePool connected to any database file.</p>
 
-<p>This means that opening a new connection each time you access the database is probably a very bad idea. Do share a single connection instead.</p>
+<p>This means that opening a new connection each time you access the database is a bad idea. Do share a single connection instead.</p>
 
-<p>See, for example, <a href="DemoApps/GRDBDemoiOS/GRDBDemoiOS/AppDatabase.swift">DemoApps/GRDBDemoiOS/AppDatabase.swift</a> for a sample code that properly sets up a single database queue that is available throughout the application.</p>
+<p>See the <a href="DemoApps/GRDBDemoiOS">Demo Application</a> for an sample app that sets up a single database queue that is available throughout the application.</p>
 
 <p>If there are several instances of database queues or pools that write in the same database, a multi-threaded application will eventually face <q>database is locked</q> errors. See <a href="#dealing-with-external-connections">Dealing with External Connections</a>.</p>
 <pre class="highlight swift"><code><span class="c1">// SAFE CONCURRENCY</span>
@@ -8072,7 +8087,7 @@ dbQueue.setupMemoryManagement(in: UIApplication.shared)
 
 <ul>
 <li>The <a href="#documentation">Documentation</a> is full of GRDB snippets.</li>
-<li><a href="DemoApps/GRDBDemoiOS/GRDBDemoiOS">GRDBDemoiOS</a>: A sample iOS application.</li>
+<li><a href="DemoApps/GRDBDemoiOS">Demo Application</a>: A sample iOS application.</li>
 <li><a href="https://github.com/groue/WWDCCompanion">WWDC Companion</a>: A sample iOS application.</li>
 <li>Check <code>GRDB.xcworkspace</code>: it contains GRDB-enabled playgrounds to play with.</li>
 <li>How to synchronize a database table with a JSON payload: <a href="Playgrounds/JSONSynchronization.playground/Contents.swift">JSONSynchronization.playground</a></li>
@@ -8108,7 +8123,7 @@ dbQueue.setupMemoryManagement(in: UIApplication.shared)
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2018 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2018-09-16)</p>
+          <p>&copy; 2018 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2018-09-23)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.3</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
