@@ -364,13 +364,14 @@ See the [Demo Application](DemoApps/GRDBDemoiOS) for an example of such integrat
 Demo Application
 ================
 
+<img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/Images/GRDBDemoScreenshot.png" width="50%">
+
 The repository comes with a [demo application](DemoApps/GRDBDemoiOS) that shows you:
 
 - how to setup a database in an iOS app
 - how to define a simple [Codable Record](#codable-records)
 - how to track database changes and animate a table view with [FetchedRecordsController](#fetchedrecordscontroller).
 
-<img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/Images/GRDBDemoScreenshot.png" width="50%">
 
 Database Connections
 ====================
