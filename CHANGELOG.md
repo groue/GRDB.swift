@@ -1,6 +1,19 @@
 Release Notes
 =============
 
+## 3.3.1
+
+Released September 23, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.3.0...v3.3.1)
+
+### Fixed
+
+- [#414](https://github.com/groue/GRDB.swift/pull/414): Fix database pool use of FTS5 tokenizers
+
+### Documentation Diff
+
+- Enhanced visibility of the [Demo Application](DemoApps/GRDBDemoiOS)
+
+
 ## 3.3.0
 
 Released September 16, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.3.0-beta1...v3.3.0)

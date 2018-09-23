@@ -17,6 +17,7 @@ public final class DatabasePool: DatabaseWriter {
     
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
+    private var tokenizerRegistrations: [(Database) -> Void] = []
     
     var snapshotCount = ReadWriteBox(0)
     
@@ -105,12 +106,22 @@ public final class DatabasePool: DatabaseWriter {
     #endif
     
     private func setupDatabase(_ db: Database) {
-        for function in self.functions {
+        for function in functions {
             db.add(function: function)
         }
-        for collation in self.collations {
+        for collation in collations {
             db.add(collation: collation)
         }
+        for registration in tokenizerRegistrations {
+            registration(db)
+        }
+    }
+    
+    /// Blocks the current thread until all database connections have
+    /// executed the *body* block.
+    fileprivate func forEachConnection(_ body: (Database) -> Void) {
+        writer.sync(body)
+        readerPool.forEach { $0.sync(body) }
     }
 }
 
@@ -148,11 +159,7 @@ extension DatabasePool {
     ///
     /// See also setupMemoryManagement(application:)
     public func releaseMemory() {
-        // TODO: test that this method blocks the current thread until all database accesses are completed.
-        writer.sync { $0.releaseMemory() }
-        readerPool.forEach { reader in
-            reader.sync { $0.releaseMemory() }
-        }
+        forEachConnection { $0.releaseMemory() }
         readerPool.clear()
     }
     
@@ -722,19 +729,13 @@ extension DatabasePool : DatabaseReader {
     ///     }
     public func add(function: DatabaseFunction) {
         functions.update(with: function)
-        writer.sync { $0.add(function: function) }
-        readerPool.forEach { reader in
-            reader.sync { $0.add(function: function) }
-        }
+        forEachConnection { $0.add(function: function) }
     }
     
     /// Remove an SQL function.
     public func remove(function: DatabaseFunction) {
         functions.remove(function)
-        writer.sync { $0.remove(function: function) }
-        readerPool.forEach { reader in
-            reader.sync { $0.remove(function: function) }
-        }
+        forEachConnection { $0.remove(function: function) }
     }
     
     // MARK: - Collations
@@ -750,20 +751,30 @@ extension DatabasePool : DatabaseReader {
     ///     }
     public func add(collation: DatabaseCollation) {
         collations.update(with: collation)
-        writer.sync { $0.add(collation: collation) }
-        readerPool.forEach { reader in
-            reader.sync { $0.add(collation: collation) }
-        }
+        forEachConnection { $0.add(collation: collation) }
     }
     
     /// Remove a collation.
     public func remove(collation: DatabaseCollation) {
         collations.remove(collation)
-        writer.sync { $0.remove(collation: collation) }
-        readerPool.forEach { reader in
-            reader.sync { $0.remove(collation: collation) }
-        }
+        forEachConnection { $0.remove(collation: collation) }
     }
+    
+    // MARK: - Custom FTS5 Tokenizers
+    
+    #if SQLITE_ENABLE_FTS5
+    /// Add a custom FTS5 tokenizer.
+    ///
+    ///     class MyTokenizer : FTS5CustomTokenizer { ... }
+    ///     dbPool.add(tokenizer: MyTokenizer.self)
+    public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
+        func registerTokenizer(db: Database) {
+            db.add(tokenizer: Tokenizer.self)
+        }
+        tokenizerRegistrations.append(registerTokenizer)
+        forEachConnection(registerTokenizer)
+    }
+    #endif
 }
 
 extension DatabasePool {

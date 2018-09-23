@@ -1,13 +1,16 @@
 import UIKit
 
-protocol PlayerEditionViewControllerDelegate: class {
-    func playerEditionControllerDidComplete(_ controller: PlayerEditionViewController)
-}
-
 class PlayerEditionViewController: UITableViewController {
-    weak var delegate: PlayerEditionViewControllerDelegate?
+    enum Presentation {
+        /// Modal presentation: edition ends with the "Commit" segue.
+        case modal
+        
+        /// Push presentation: edition ends when user hits the back button.
+        case push
+    }
+    
     var player: Player! { didSet { configureView() } }
-    var commitButtonHidden: Bool = false { didSet { configureView() } }
+    var presentation: Presentation! { didSet { configureView() } }
 
     @IBOutlet fileprivate weak var cancelBarButtonItem: UIBarButtonItem!
     @IBOutlet fileprivate weak var commitBarButtonItem: UIBarButtonItem!
@@ -31,13 +34,14 @@ class PlayerEditionViewController: UITableViewController {
         } else {
             scoreTextField.text = "\(player.score)"
         }
-    
-        if commitButtonHidden {
-            navigationItem.leftBarButtonItem = nil
-            navigationItem.rightBarButtonItem = nil
-        } else {
+        
+        switch presentation! {
+        case .modal:
             navigationItem.leftBarButtonItem = cancelBarButtonItem
             navigationItem.rightBarButtonItem = commitBarButtonItem
+        case .push:
+            navigationItem.leftBarButtonItem = nil
+            navigationItem.rightBarButtonItem = nil
         }
     }
 }
@@ -55,17 +59,21 @@ extension PlayerEditionViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "Commit" {
-            applyChanges()
+            saveChanges()
         }
     }
     
     override func willMove(toParent parent: UIViewController?) {
         super.willMove(toParent: parent)
         
-        if parent == nil {
-            // Self is popping from its navigation controller
-            applyChanges()
-            delegate?.playerEditionControllerDidComplete(self)
+        switch presentation! {
+        case .modal:
+            break
+        case .push:
+            if parent == nil {
+                // Self is popping from its navigation controller
+                saveChanges()
+            }
         }
     }
     
@@ -98,12 +106,16 @@ extension PlayerEditionViewController: UITextFieldDelegate {
         return false
     }
     
-    private func applyChanges() {
+    private func saveChanges() {
         guard var player = self.player else {
             return
         }
         player.name = nameTextField.text ?? ""
         player.score = scoreTextField.text.flatMap { Int($0) } ?? 0
         self.player = player
+        
+        try! dbQueue.inDatabase { db in
+            try player.save(db)
+        }
     }
 }
