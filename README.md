@@ -364,7 +364,7 @@ See the [Demo Application](DemoApps/GRDBDemoiOS) for an example of such integrat
 Demo Application
 ================
 
-The repository comes with an [demo application](DemoApps/GRDBDemoiOS) that shows you:
+The repository comes with a [demo application](DemoApps/GRDBDemoiOS) that shows you:
 
 - how to setup a database in an iOS app
 - how to define a simple [Codable Record](#codable-records)

@@ -54,6 +54,6 @@ extension Player {
     }
     
     static func randomScore() -> Int {
-        return Int.random(in: 0...1000)
+        return 10 * Int.random(in: 0...100)
     }
 }
