@@ -370,9 +370,7 @@ The repository comes with a [demo application](DemoApps/GRDBDemoiOS) that shows 
 - how to define a simple [Codable Record](#codable-records)
 - how to track database changes and animate a table view with [FetchedRecordsController](#fetchedrecordscontroller).
 
-<p align="center">
-    <img src="https://github.com/groue/GRDB.swift/raw/development/Documentation/Images/GRDBDemoScreenshot.png" width="50%">
-</p>
+<img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/Images/GRDBDemoScreenshot.png" width="50%">
 
 Database Connections
 ====================

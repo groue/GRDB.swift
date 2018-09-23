@@ -1,7 +1,7 @@
 Demo Application
 ================
 
-<img align="right" src="https://github.com/groue/GRDB.swift/raw/development/Documentation/Images/GRDBDemoScreenshot.png" width="50%">
+<img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/Images/GRDBDemoScreenshot.png" width="50%">
 
 **This demo application shows you:**
 
