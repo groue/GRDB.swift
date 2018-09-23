@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Version
+## 3.3.1
+
+Released September 23, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.3.0...v3.3.1)
 
 ### Fixed
 
@@ -9,7 +11,7 @@ Release Notes
 
 ### Documentation Diff
 
-- The [Demo Application](DemoApps/GRDBDemoiOS) has more visibility.
+- Enhanced visibility of the [Demo Application](DemoApps/GRDBDemoiOS)
 
 
 ## 3.3.0
