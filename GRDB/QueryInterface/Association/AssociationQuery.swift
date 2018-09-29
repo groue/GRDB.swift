@@ -178,9 +178,17 @@ extension AssociationQuery {
             mergedJoins.append(value: join, forKey: key)
         }
         
+        // There is a possible conflict when both selections are not empty.
+        let mergedSelection: [SQLSelectable]
+        if selection.isEmpty {
+            mergedSelection = other.selection
+        } else {
+            mergedSelection = selection
+        }
+        
         return AssociationQuery(
             source: mergedSource,
-            selection: other.selection, // possible conflict with self.selection here.
+            selection: mergedSelection,
             filterPromise: mergedFilterPromise,
             ordering: other.ordering, // reorder
             joins: mergedJoins)

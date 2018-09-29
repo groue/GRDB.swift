@@ -208,6 +208,52 @@ class AssociationParallelSQLTests: GRDBTestCase {
         }
     }
     
+    func testParallelTwoIncludingJoiningSameAssociation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try assertEqualSQL(db, A.including(required: A.b).joining(required: A.b), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, A.including(required: A.b).joining(optional: A.b), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, A.including(optional: A.b).joining(required: A.b), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, A.including(optional: A.b).joining(optional: A.b), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                LEFT JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, B.including(required: B.a).joining(required: B.a), """
+                SELECT "b".*, "a".* \
+                FROM "b" \
+                JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.including(required: B.a).joining(optional: B.a), """
+                SELECT "b".*, "a".* \
+                FROM "b" \
+                JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.including(optional: B.a).joining(required: B.a), """
+                SELECT "b".*, "a".* \
+                FROM "b" \
+                JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.including(optional: B.a).joining(optional: B.a), """
+                SELECT "b".*, "a".* \
+                FROM "b" \
+                LEFT JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+        }
+    }
+    
     func testParallelTwoJoiningIncluding() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -262,6 +308,52 @@ class AssociationParallelSQLTests: GRDBTestCase {
         }
     }
     
+    func testParallelTwoJoiningIncludingSameAssociation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try assertEqualSQL(db, A.joining(required: A.b).including(required: A.b), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, A.joining(required: A.b).including(optional: A.b), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, A.joining(optional: A.b).including(required: A.b), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, A.joining(optional: A.b).including(optional: A.b), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                LEFT JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.a).including(required: B.a), """
+                SELECT "b".*, "a".* \
+                FROM "b" \
+                JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.a).including(optional: B.a), """
+                SELECT "b".*, "a".* \
+                FROM "b" \
+                JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.joining(optional: B.a).including(required: B.a), """
+                SELECT "b".*, "a".* \
+                FROM "b" \
+                JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.joining(optional: B.a).including(optional: B.a), """
+                SELECT "b".*, "a".* \
+                FROM "b" \
+                LEFT JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+        }
+    }
+
     func testParallelTwoJoiningJoining() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -312,6 +404,52 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 FROM "b" \
                 LEFT JOIN "a" ON ("a"."bid" = "b"."id") \
                 LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+        }
+    }
+
+    func testParallelTwoJoiningJoiningSameAssociation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try assertEqualSQL(db, A.joining(required: A.b).joining(required: A.b), """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, A.joining(required: A.b).joining(optional: A.b), """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, A.joining(optional: A.b).joining(required: A.b), """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, A.joining(optional: A.b).joining(optional: A.b), """
+                SELECT "a".* \
+                FROM "a" \
+                LEFT JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.a).joining(required: B.a), """
+                SELECT "b".* \
+                FROM "b" \
+                JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.a).joining(optional: B.a), """
+                SELECT "b".* \
+                FROM "b" \
+                JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.joining(optional: B.a).joining(required: B.a), """
+                SELECT "b".* \
+                FROM "b" \
+                JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.joining(optional: B.a).joining(optional: B.a), """
+                SELECT "b".* \
+                FROM "b" \
+                LEFT JOIN "a" ON ("a"."bid" = "b"."id")
                 """)
         }
     }
