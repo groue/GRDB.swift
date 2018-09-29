@@ -130,12 +130,18 @@ extension QueryInterfaceQuery {
         return query
     }
     
-    func joining(_ join: AssociationJoin, forKey key: String) -> QueryInterfaceQuery {
+    func appendingJoin(_ join: AssociationJoin, forKey key: String) -> QueryInterfaceQuery {
         var query = self
-        guard query.joins[key] == nil else {
-            fatalError("The association key \"\(key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
+        if let existingJoin = query.joins[key] {
+            guard let mergedJoin = existingJoin.merged(with: join) else {
+                // can't merge
+                fatalError("The association key \"\(key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
+            }
+            query.joins.removeValue(forKey: key)
+            query.joins.append(value: mergedJoin, forKey: key)
+        } else {
+            query.joins.append(value: join, forKey: key)
         }
-        query.joins.append(value: join, forKey: key)
         return query
     }
 
@@ -460,9 +466,9 @@ enum AssociationJoinOperator {
 
 struct AssociationJoin {
     var joinOperator: AssociationJoinOperator
+    var joinCondition: JoinCondition
     var query: AssociationQuery
-    var joinConditionPromise: DatabasePromise<JoinCondition>
-    
+
     var finalizedJoin: AssociationJoin {
         var join = self
         join.query = query.finalizedQuery
@@ -505,7 +511,7 @@ struct AssociationJoin {
         
         let rightAlias = query.alias!
         let filters = try [
-            joinConditionPromise.resolve(db)(leftAlias, rightAlias),
+            joinCondition.sqlExpression(db, leftAlias: leftAlias, rightAlias: rightAlias),
             query.filterPromise.resolve(db)
             ].compactMap { $0 }
         if !filters.isEmpty {
@@ -517,6 +523,32 @@ struct AssociationJoin {
         }
         
         return sql
+    }
+    
+    /// Returns nil if joins can't be merged (conflict in condition, query...)
+    func merged(with other: AssociationJoin) -> AssociationJoin? {
+        guard joinCondition == other.joinCondition else {
+            // can't merge
+            return nil
+        }
+        
+        guard let mergedQuery = query.merged(with: other.query) else {
+            // can't merge
+            return nil
+        }
+        
+        let mergedJoinOperator: AssociationJoinOperator
+        switch (joinOperator, other.joinOperator) {
+        case (.required, _), (_, .required):
+            mergedJoinOperator = .required
+        default:
+            mergedJoinOperator = .optional
+        }
+        
+        return AssociationJoin(
+            joinOperator: mergedJoinOperator,
+            joinCondition: joinCondition,
+            query: mergedQuery)
     }
 }
 
@@ -560,6 +592,21 @@ enum SQLSource {
             }
         case .query(let query):
             return .query(query.qualified(with: alias))
+        }
+    }
+    
+    /// Returns nil if sources can't be merged (conflict in tables, aliases...)
+    func merged(with other: SQLSource) -> SQLSource? {
+        switch (self, other) {
+        case let (.table(tableName: tableName, alias: alias), .table(tableName: otherTableName, alias: otherAlias)):
+            guard tableName == otherTableName && alias == otherAlias else {
+                // can't merge
+                return nil
+            }
+            return .table(tableName: tableName, alias: alias)
+        default:
+            // can't merge
+            return nil
         }
     }
 }

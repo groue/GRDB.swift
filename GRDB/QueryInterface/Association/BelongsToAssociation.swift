@@ -59,8 +59,6 @@
 ///
 /// See ForeignKey for more information.
 public struct BelongsToAssociation<Origin, Destination>: Association {
-    fileprivate let joinConditionRequest: ForeignKeyJoinConditionRequest
-    
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
     
@@ -70,17 +68,15 @@ public struct BelongsToAssociation<Origin, Destination>: Association {
     public var key: String
     
     /// :nodoc:
+    public let joinCondition: JoinCondition
+    
+    /// :nodoc:
     public var request: AssociationRequest<Destination>
 
     public func forKey(_ key: String) -> BelongsToAssociation<Origin, Destination> {
         var association = self
         association.key = key
         return association
-    }
-    
-    /// :nodoc:
-    public func joinCondition(_ db: Database) throws -> JoinCondition {
-        return try joinConditionRequest.fetch(db)
     }
     
     /// :nodoc:
@@ -166,13 +162,13 @@ extension TableRecord {
             destinationTable: Destination.databaseTableName,
             foreignKey: foreignKey)
         
-        let joinConditionRequest = ForeignKeyJoinConditionRequest(
+        let joinCondition = JoinCondition(
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: true)
 
         return BelongsToAssociation(
-            joinConditionRequest: joinConditionRequest,
             key: key ?? Destination.databaseTableName,
+            joinCondition: joinCondition,
             request: AssociationRequest(Destination.all()))
     }
 }

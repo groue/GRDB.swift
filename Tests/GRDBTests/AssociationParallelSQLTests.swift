@@ -108,6 +108,52 @@ class AssociationParallelSQLTests: GRDBTestCase {
         }
     }
     
+    func testParallelTwoIncludingIncludingSameAssociation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try assertEqualSQL(db, A.including(required: A.b).including(required: A.b), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, A.including(required: A.b).including(optional: A.b), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, A.including(optional: A.b).including(required: A.b), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, A.including(optional: A.b).including(optional: A.b), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                LEFT JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            try assertEqualSQL(db, B.including(required: B.a).including(required: B.a), """
+                SELECT "b".*, "a".* \
+                FROM "b" \
+                JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.including(required: B.a).including(optional: B.a), """
+                SELECT "b".*, "a".* \
+                FROM "b" \
+                JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.including(optional: B.a).including(required: B.a), """
+                SELECT "b".*, "a".* \
+                FROM "b" \
+                JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.including(optional: B.a).including(optional: B.a), """
+                SELECT "b".*, "a".* \
+                FROM "b" \
+                LEFT JOIN "a" ON ("a"."bid" = "b"."id")
+                """)
+        }
+    }
+
     func testParallelTwoIncludingJoining() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

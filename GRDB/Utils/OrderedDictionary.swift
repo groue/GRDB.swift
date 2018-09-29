@@ -26,6 +26,16 @@ struct OrderedDictionary<Key: Hashable, Value> {
         keys.append(key)
     }
     
+    @discardableResult
+    mutating func removeValue(forKey key: Key) -> Value? {
+        guard let value = values.removeValue(forKey: key) else {
+            return nil
+        }
+        let index = keys.index { $0 == key }!
+        keys.remove(at: index)
+        return value
+    }
+    
     func mapValues<T>(_ transform: (Value) throws -> T) rethrows -> OrderedDictionary<Key, T> {
         var result = OrderedDictionary<Key, T>()
         for key in keys {

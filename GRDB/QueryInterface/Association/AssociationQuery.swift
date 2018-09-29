@@ -59,12 +59,18 @@ extension AssociationQuery {
         return query
     }
     
-    func joining(_ join: AssociationJoin, forKey key: String) -> AssociationQuery {
+    func appendingJoin(_ join: AssociationJoin, forKey key: String) -> AssociationQuery {
         var query = self
-        guard query.joins[key] == nil else {
-            fatalError("The association key \"\(key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
+        if let existingJoin = query.joins[key] {
+            guard let mergedJoin = existingJoin.merged(with: join) else {
+                // can't merge
+                fatalError("The association key \"\(key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
+            }
+            query.joins.removeValue(forKey: key)
+            query.joins.append(value: mergedJoin, forKey: key)
+        } else {
+            query.joins.append(value: join, forKey: key)
         }
-        query.joins.append(value: join, forKey: key)
         return query
     }
     
@@ -136,5 +142,47 @@ extension AssociationQuery {
         
         let adapter = RangeRowAdapter(startIndex ..< (startIndex + selectionWidth))
         return (adapter: adapter.addingScopes(scopes), endIndex: endIndex)
+    }
+}
+
+extension AssociationQuery {
+    /// Returns nil if queries can't be merged (conflict in source, joins...)
+    func merged(with other: AssociationQuery) -> AssociationQuery? {
+        guard let mergedSource = source.merged(with: other.source) else {
+            // can't merge
+            return nil
+        }
+        
+        let mergedFilterPromise = filterPromise.map { (db, expression) in
+            let otherExpression = try other.filterPromise.resolve(db)
+            let expressions = [expression, otherExpression].compactMap { $0 }
+            if expressions.isEmpty {
+                return nil
+            }
+            return expressions.joined(operator: .and)
+        }
+        
+        var mergedJoins: OrderedDictionary<String, AssociationJoin> = [:]
+        for (key, join) in joins {
+            if let otherJoin = other.joins[key] {
+                guard let mergedJoin = join.merged(with: otherJoin) else {
+                    // can't merge
+                    return nil
+                }
+                mergedJoins.append(value: mergedJoin, forKey: key)
+            } else {
+                mergedJoins.append(value: join, forKey: key)
+            }
+        }
+        for (key, join) in other.joins where mergedJoins[key] == nil {
+            mergedJoins.append(value: join, forKey: key)
+        }
+        
+        return AssociationQuery(
+            source: mergedSource,
+            selection: other.selection, // possible conflict with self.selection here.
+            filterPromise: mergedFilterPromise,
+            ordering: other.ordering, // reorder
+            joins: mergedJoins)
     }
 }
