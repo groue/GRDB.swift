@@ -3,7 +3,7 @@ struct AssociationQuery {
     var selection: [SQLSelectable]
     var filterPromise: DatabasePromise<SQLExpression?>
     var ordering: QueryOrdering
-    var joins: [AssociationJoin]
+    var joins: OrderedDictionary<String, AssociationJoin>
     
     var alias: TableAlias? {
         return source.alias
@@ -59,9 +59,12 @@ extension AssociationQuery {
         return query
     }
     
-    func joining(_ join: AssociationJoin) -> AssociationQuery {
+    func joining(_ join: AssociationJoin, forKey key: String) -> AssociationQuery {
         var query = self
-        query.joins.append(join)
+        guard query.joins[key] == nil else {
+            fatalError("The association key \"\(key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
+        }
+        query.joins.append(value: join, forKey: key)
         return query
     }
     
@@ -82,7 +85,7 @@ extension AssociationQuery {
         query.selection = selection.map { $0.qualifiedSelectable(with: alias) }
         query.filterPromise = filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
         query.ordering = ordering.qualified(with: alias)
-        query.joins = joins.map { $0.finalizedJoin }
+        query.joins = joins.mapValues { $0.finalizedJoin }
         
         return query
     }
@@ -94,21 +97,21 @@ extension AssociationQuery {
             aliases.append(alias)
         }
         return joins.reduce(into: aliases) {
-            $0.append(contentsOf: $1.finalizedAliases)
+            $0.append(contentsOf: $1.value.finalizedAliases)
         }
     }
     
     /// precondition: self is the result of finalizedQuery
     var finalizedSelection: [SQLSelectable] {
         return joins.reduce(into: selection) {
-            $0.append(contentsOf: $1.finalizedSelection)
+            $0.append(contentsOf: $1.value.finalizedSelection)
         }
     }
     
     /// precondition: self is the result of finalizedQuery
     var finalizedOrdering: QueryOrdering {
         return joins.reduce(ordering) {
-            $0.appending($1.finalizedOrdering)
+            $0.appending($1.value.finalizedOrdering)
         }
     }
     
@@ -120,10 +123,9 @@ extension AssociationQuery {
         
         var endIndex = startIndex + selectionWidth
         var scopes: [String: RowAdapter] = [:]
-        for join in joins {
-            if let (joinAdapter, joinEndIndex) = try join.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [join.key]) {
-                GRDBPrecondition(scopes[join.key] == nil, "The association key \"\((keyPath + [join.key]).joined(separator: "."))\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
-                scopes[join.key] = joinAdapter
+        for (key, join) in joins {
+            if let (joinAdapter, joinEndIndex) = try join.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [key]) {
+                scopes[key] = joinAdapter
                 endIndex = joinEndIndex
             }
         }

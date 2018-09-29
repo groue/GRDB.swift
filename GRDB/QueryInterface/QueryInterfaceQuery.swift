@@ -25,7 +25,7 @@ struct QueryInterfaceQuery {
     var ordering: QueryOrdering
     var havingExpression: SQLExpression?
     var limit: SQLLimit?
-    var joins: [AssociationJoin]
+    var joins: OrderedDictionary<String, AssociationJoin>
     
     init(
         source: SQLSource,
@@ -36,7 +36,7 @@ struct QueryInterfaceQuery {
         ordering: QueryOrdering = QueryOrdering(),
         havingExpression: SQLExpression? = nil,
         limit: SQLLimit? = nil,
-        joins: [AssociationJoin] = [])
+        joins: OrderedDictionary<String, AssociationJoin> = [:])
     {
         self.source = source
         self.selection = selection
@@ -130,9 +130,12 @@ extension QueryInterfaceQuery {
         return query
     }
     
-    func joining(_ join: AssociationJoin) -> QueryInterfaceQuery {
+    func joining(_ join: AssociationJoin, forKey key: String) -> QueryInterfaceQuery {
         var query = self
-        query.joins.append(join)
+        guard query.joins[key] == nil else {
+            fatalError("The association key \"\(key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
+        }
+        query.joins.append(value: join, forKey: key)
         return query
     }
 
@@ -156,7 +159,7 @@ extension QueryInterfaceQuery {
         query.ordering = query.ordering.qualified(with: alias)
         query.havingExpression = query.havingExpression?.qualifiedExpression(with: alias)
         
-        query.joins = query.joins.map { $0.finalizedJoin }
+        query.joins = query.joins.mapValues { $0.finalizedJoin }
         
         return query
     }
@@ -168,21 +171,21 @@ extension QueryInterfaceQuery {
             aliases.append(alias)
         }
         return joins.reduce(into: aliases) {
-            $0.append(contentsOf: $1.finalizedAliases)
+            $0.append(contentsOf: $1.value.finalizedAliases)
         }
     }
     
     /// precondition: self is the result of finalizedQuery
     var finalizedSelection: [SQLSelectable] {
         return joins.reduce(into: selection) {
-            $0.append(contentsOf: $1.finalizedSelection)
+            $0.append(contentsOf: $1.value.finalizedSelection)
         }
     }
     
     /// precondition: self is the result of finalizedQuery
     var finalizedOrdering: QueryOrdering {
         return joins.reduce(ordering) {
-            $0.appending($1.finalizedOrdering)
+            $0.appending($1.value.finalizedOrdering)
         }
     }
     
@@ -198,10 +201,9 @@ extension QueryInterfaceQuery {
         
         var endIndex = selectionWidth
         var scopes: [String: RowAdapter] = [:]
-        for join in joins {
-            if let (joinAdapter, joinEndIndex) = try join.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: [join.key]) {
-                GRDBPrecondition(scopes[join.key] == nil, "The association key \"\(join.key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
-                scopes[join.key] = joinAdapter
+        for (key, join) in joins {
+            if let (joinAdapter, joinEndIndex) = try join.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: [key]) {
+                scopes[key] = joinAdapter
                 endIndex = joinEndIndex
             }
         }
@@ -230,7 +232,7 @@ extension QueryInterfaceQuery {
         
         sql += try " FROM " + source.sourceSQL(db, &context)
         
-        for join in joins {
+        for (_, join) in joins {
             sql += try " " + join.joinSQL(db, &context, leftAlias: alias!, isRequiredAllowed: true)
         }
         
@@ -459,7 +461,6 @@ enum AssociationJoinOperator {
 struct AssociationJoin {
     var joinOperator: AssociationJoinOperator
     var query: AssociationQuery
-    var key: String
     var joinConditionPromise: DatabasePromise<JoinCondition>
     
     var finalizedJoin: AssociationJoin {
@@ -511,7 +512,7 @@ struct AssociationJoin {
             sql += " ON " + filters.joined(operator: .and).expressionSQL(&context)
         }
         
-        for join in query.joins {
+        for (_, join) in query.joins {
             sql += try " " + join.joinSQL(db, &context, leftAlias: rightAlias, isRequiredAllowed: isRequiredAllowed)
         }
         
