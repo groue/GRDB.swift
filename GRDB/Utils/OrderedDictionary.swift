@@ -50,11 +50,11 @@ extension OrderedDictionary: Collection {
     typealias Index = Int
     
     var startIndex: Int {
-        return keys.startIndex
+        return 0
     }
     
     var endIndex: Int {
-        return keys.endIndex
+        return keys.count
     }
     
     func index(after i: Int) -> Int {

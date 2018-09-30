@@ -132,12 +132,11 @@ extension QueryInterfaceQuery {
     
     func appendingJoin(_ join: AssociationJoin, forKey key: String) -> QueryInterfaceQuery {
         var query = self
-        if let existingJoin = query.joins[key] {
+        if let existingJoin = query.joins.removeValue(forKey: key) {
             guard let mergedJoin = existingJoin.merged(with: join) else {
                 // can't merge
                 fatalError("The association key \"\(key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
             }
-            query.joins.removeValue(forKey: key)
             query.joins.append(value: mergedJoin, forKey: key)
         } else {
             query.joins.append(value: join, forKey: key)

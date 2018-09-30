@@ -211,37 +211,28 @@ extension Association {
     }
 }
 
-///// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///// :nodoc:
-//public struct JoinCondition {
-//    var columnMapping: [(left: Column, right: Column)]
-//
-//    func sqlExpression(leftAlias: TableAlias, rightAlias: TableAlias) -> SQLExpression? {
-//        return columnMapping
-//            .map { $0.right.qualifiedExpression(with: rightAlias) == $0.left.qualifiedExpression(with: leftAlias) }
-//            .joined(operator: .and)
-//    }
-//}
-
-///// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///// :nodoc:
-//public typealias JoinCondition = (_ leftAlias: TableAlias, _ rightAlias: TableAlias) -> SQLExpression?
-
-/// Turns a ForeignKeyRequest into a JoinCondition
+/// The condition that links two joined tables.
+///
+/// We only support one kind of join condition, today: foreign keys.
+///
+///     SELECT ...
+///     FROM book
+///     JOIN author ON author.id = book.authorId
+///                    <--the join condition--->
+///
+/// When we eventually add support for new ways to join tables, JoinCondition
+/// is the type we'll need to update.
+///
+/// The Equatable conformance is used when we merge associations. Two
+/// associations can be merged if and only if their join conditions
+/// are equal:
+///
+///     let request = Book
+///         .include(required: Book.author)
+///         .include(required: Book.author)
 public struct JoinCondition: Equatable {
     var foreignKeyRequest: ForeignKeyRequest
     var originIsLeft: Bool
-    
-//    func fetch(_ db: Database) throws -> JoinCondition {
-//        let foreignKeyMapping = try foreignKeyRequest.fetch(db).mapping
-//        let columnMapping: [(left: Column, right: Column)]
-//        if originIsLeft {
-//            columnMapping = foreignKeyMapping.map { (left: Column($0.origin), right: Column($0.destination)) }
-//        } else {
-//            columnMapping = foreignKeyMapping.map { (left: Column($0.destination), right: Column($0.origin)) }
-//        }
-//        return JoinCondition(columnMapping: columnMapping)
-//    }
     
     func sqlExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLExpression? {
         let foreignKeyMapping = try foreignKeyRequest.fetch(db).mapping
