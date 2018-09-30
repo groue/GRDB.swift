@@ -599,11 +599,22 @@ enum SQLSource {
     func merged(with other: SQLSource) -> SQLSource? {
         switch (self, other) {
         case let (.table(tableName: tableName, alias: alias), .table(tableName: otherTableName, alias: otherAlias)):
-            guard tableName == otherTableName && alias == otherAlias else {
+            guard tableName == otherTableName else {
                 // can't merge
                 return nil
             }
-            return .table(tableName: tableName, alias: alias)
+            switch (alias, otherAlias) {
+            case (nil, nil):
+                return .table(tableName: tableName, alias: nil)
+            case let (alias?, nil), let (nil, alias?):
+                return .table(tableName: tableName, alias: alias)
+            case let (alias?, otherAlias?):
+                guard let mergedAlias = alias.merge(with: otherAlias) else {
+                    // can't merge
+                    return nil
+                }
+                return .table(tableName: tableName, alias: mergedAlias)
+            }
         default:
             // can't merge
             return nil
