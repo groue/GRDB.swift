@@ -1,9 +1,6 @@
 /// QueryOrdering provides the order clause to QueryInterfaceQuery
 /// and AssociationQuery.
 struct QueryOrdering {
-    private var elements: [Element] = []
-    var isReversed: Bool
-    
     private enum Element {
         case orderingTerms((Database) throws -> [SQLOrderingTerm])
         case queryOrdering(QueryOrdering)
@@ -34,6 +31,13 @@ struct QueryOrdering {
                 return try queryOrdering.resolve(db)
             }
         }
+    }
+    
+    private var elements: [Element] = []
+    var isReversed: Bool
+    
+    var isEmpty: Bool {
+        return elements.isEmpty
     }
     
     private init(elements: [Element], isReversed: Bool) {

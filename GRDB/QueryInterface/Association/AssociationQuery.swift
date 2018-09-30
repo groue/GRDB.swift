@@ -180,11 +180,14 @@ extension AssociationQuery {
         // replace selection unless empty
         let mergedSelection = other.selection.isEmpty ? selection : other.selection
         
+        // replace ordering unless empty
+        let mergedOrdering = other.ordering.isEmpty ? ordering : other.ordering
+        
         return AssociationQuery(
             source: mergedSource,
             selection: mergedSelection,
             filterPromise: mergedFilterPromise,
-            ordering: other.ordering, // replace ordering
+            ordering: mergedOrdering,
             joins: mergedJoins)
     }
 }

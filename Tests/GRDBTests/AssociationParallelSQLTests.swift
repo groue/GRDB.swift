@@ -507,4 +507,212 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 """)
         }
     }
+    
+    func testRequestRefiningFilter() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                let request = A
+                    .joining(required: A.b.filter(Column("id") > 1))
+                    .joining(required: A.b)
+                try assertEqualSQL(db, request, """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON (("b"."id" = "a"."bid") AND ("b"."id" > 1))
+                """)
+            }
+            do {
+                let request = A
+                    .joining(required: A.b)
+                    .joining(required: A.b.filter(Column("id") < 3))
+                try assertEqualSQL(db, request, """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON (("b"."id" = "a"."bid") AND ("b"."id" < 3))
+                """)
+            }
+            do {
+                let request = A
+                    .joining(required: A.b.filter(Column("id") > 1))
+                    .joining(required: A.b.filter(Column("id") < 3))
+                try assertEqualSQL(db, request, """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON (("b"."id" = "a"."bid") AND (("b"."id" > 1) AND ("b"."id" < 3)))
+                """)
+            }
+        }
+    }
+    
+    func testRequestRefiningOrder() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                let request = A
+                    .joining(required: A.b.order(Column("id")))
+                    .joining(required: A.b)
+                try assertEqualSQL(db, request, """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                ORDER BY "b"."id"
+                """)
+            }
+            do {
+                let request = A
+                    .joining(required: A.b)
+                    .joining(required: A.b.order(Column("id").desc))
+                try assertEqualSQL(db, request, """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                ORDER BY "b"."id" DESC
+                """)
+            }
+            do {
+                let request = A
+                    .joining(required: A.b.order(Column("id")))
+                    .joining(required: A.b.order(Column("id").desc))
+                try assertEqualSQL(db, request, """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                ORDER BY "b"."id" DESC
+                """)
+            }
+        }
+    }
+    
+    func testRequestRefiningSelection() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            // joining + joining
+            do {
+                let request = A
+                    .joining(required: A.b.select(Column("id"), 1.databaseValue))
+                    .joining(required: A.b)
+                try assertEqualSQL(db, request, """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            }
+            do {
+                let request = A
+                    .joining(required: A.b)
+                    .joining(required: A.b.select(Column("id"), 2.databaseValue))
+                try assertEqualSQL(db, request, """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            }
+            do {
+                let request = A
+                    .joining(required: A.b.select(Column("id"), 1.databaseValue))
+                    .joining(required: A.b.select(Column("id"), 2.databaseValue))
+                try assertEqualSQL(db, request, """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            }
+            
+            // joining + including
+            do {
+                let request = A
+                    .joining(required: A.b.select(Column("id"), 1.databaseValue))
+                    .including(required: A.b)
+                try assertEqualSQL(db, request, """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            }
+            do {
+                let request = A
+                    .joining(required: A.b)
+                    .including(required: A.b.select(Column("id"), 2.databaseValue))
+                try assertEqualSQL(db, request, """
+                SELECT "a".*, "b"."id", 2 \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            }
+            do {
+                let request = A
+                    .joining(required: A.b.select(Column("id"), 1.databaseValue))
+                    .including(required: A.b.select(Column("id"), 2.databaseValue))
+                try assertEqualSQL(db, request, """
+                SELECT "a".*, "b"."id", 2 \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            }
+            
+            // including + joining
+            do {
+                let request = A
+                    .including(required: A.b.select(Column("id"), 1.databaseValue))
+                    .joining(required: A.b)
+                try assertEqualSQL(db, request, """
+                SELECT "a".*, "b"."id", 1 \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            }
+            do {
+                let request = A
+                    .including(required: A.b)
+                    .joining(required: A.b.select(Column("id"), 2.databaseValue))
+                try assertEqualSQL(db, request, """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            }
+            do {
+                let request = A
+                    .including(required: A.b.select(Column("id"), 1.databaseValue))
+                    .joining(required: A.b.select(Column("id"), 2.databaseValue))
+                try assertEqualSQL(db, request, """
+                SELECT "a".*, "b"."id", 1 \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            }
+            
+            // including + including
+            do {
+                let request = A
+                    .including(required: A.b.select(Column("id"), 1.databaseValue))
+                    .including(required: A.b)
+                try assertEqualSQL(db, request, """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            }
+            do {
+                let request = A
+                    .including(required: A.b)
+                    .including(required: A.b.select(Column("id"), 2.databaseValue))
+                try assertEqualSQL(db, request, """
+                SELECT "a".*, "b"."id", 2 \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            }
+            do {
+                let request = A
+                    .including(required: A.b.select(Column("id"), 1.databaseValue))
+                    .including(required: A.b.select(Column("id"), 2.databaseValue))
+                try assertEqualSQL(db, request, """
+                SELECT "a".*, "b"."id", 2 \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid")
+                """)
+            }
+        }
+    }
 }
