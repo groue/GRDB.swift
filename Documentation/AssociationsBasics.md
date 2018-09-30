@@ -22,6 +22,7 @@ GRDB Associations
     - [Sorting Associations]
     - [Columns Selected by an Association]
     - [Table Aliases]
+    - [Refining Association Requests]
 - [Fetching Values from Associations]
     - [The Structure of a Joined Request]
     - [Decoding a Joined Request with a Decodable Record]
@@ -1034,7 +1035,7 @@ let request = Book
     .order(authorAlias[Column("name")], Column("title"))
 ```
 
-The request can also be built in three distinct steps, as below:
+The same request can also be built in three distinct steps, as below:
 
 ```swift
 // 1. include author
@@ -1067,7 +1068,7 @@ extension QueryInterfaceRequest where T == Book {
 }
 ```
 
-And now our complex request looks much more simple:
+And now our complex request looks much simpler:
 
 ```swift
 let request = Book
