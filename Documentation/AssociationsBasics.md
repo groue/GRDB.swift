@@ -1442,26 +1442,6 @@ let request = Book
 
 This code compiles, but you'll get a runtime fatal error "Not implemented: chaining a required association behind an optional association". Future versions of GRDB may allow such requests.
 
-**You can't join two associations with the same [association key](#the-structure-of-a-joined-request) at the same level:**
-
-```swift
-// NOT IMPLEMENTED
-let request = Book
-    .including(required: Book.author) // key "author"
-    .including(required: Book.author) // key "author"
-```
-
-This code compiles, but you'll get a runtime fatal error "The association key `author` is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.". Future versions of GRDB may allow such requests.
-
-To join the same table twice, and make sure GRDB does not modify the fetched results in some future release, make sure no two associations have the same name on a given level:
-
-```swift
-// OK
-let request = Book
-    .including(required: Book.author.forKey("firstAuthor"))
-    .including(required: Book.author.forKey("secondAuthor"))
-```
-
 
 ## Future Directions
 
