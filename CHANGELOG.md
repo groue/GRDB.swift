@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+## Next Version
+
+### New
+
+- [#422](https://github.com/groue/GRDB.swift/pull/422): Refining Association Requests
+
+
 ## 3.3.1
 
 Released September 23, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.3.0...v3.3.1)
