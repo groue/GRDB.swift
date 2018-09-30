@@ -1,5 +1,7 @@
 // MARK: - SelectionRequest
 
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
 /// The protocol for all requests that can refine their selection.
 ///
 /// :nodoc:
@@ -56,6 +58,8 @@ extension SelectionRequest {
 
 // MARK: - FilteredRequest
 
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
 /// The protocol for all requests that can be filtered.
 ///
 /// :nodoc:
@@ -103,6 +107,8 @@ extension FilteredRequest {
 
 // MARK: - TableRequest {
 
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
 /// The protocol for all requests that feed from a database table
 ///
 /// :nodoc:
@@ -222,14 +228,27 @@ extension TableRequest where Self: OrderedRequest {
     }
 }
 
+/// :nodoc:
+extension TableRequest where Self: AggregatingRequest {
+    /// Creates a request grouped by primary key.
+    public func groupByPrimaryKey() -> Self {
+        let tableName = self.databaseTableName
+        return group { db in
+            try db.primaryKey(tableName).columns.map { Column($0) }
+        }
+    }
+}
+
 // MARK: - AggregatingRequest
 
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
 /// The protocol for all requests that can aggregate.
 ///
 /// :nodoc:
 public protocol AggregatingRequest {
-    /// Creates a request grouped according to *expressions*.
-    func group(_ expressions: [SQLExpressible]) -> Self
+    /// Creates a request grouped according to *expressions promise*.
+    func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> Self
     
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
@@ -238,6 +257,11 @@ public protocol AggregatingRequest {
 
 /// :nodoc:
 extension AggregatingRequest {
+    /// Creates a request grouped according to *expressions*.
+    public func group(_ expressions: [SQLExpressible]) -> Self {
+        return group { _ in expressions }
+    }
+    
     /// Creates a request grouped according to *expressions*.
     public func group(_ expressions: SQLExpressible...) -> Self {
         return group(expressions)
@@ -267,6 +291,8 @@ extension AggregatingRequest {
 
 // MARK: - OrderedRequest
 
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
 /// The protocol for all requests that be ordered.
 ///
 /// :nodoc:

@@ -21,7 +21,7 @@ struct QueryInterfaceQuery {
     var selection: [SQLSelectable]
     var isDistinct: Bool
     var filterPromise: DatabasePromise<SQLExpression?>
-    var groupByExpressions: [SQLExpression]
+    var groupPromise: DatabasePromise<[SQLExpression]>?
     var ordering: QueryOrdering
     var havingExpression: SQLExpression?
     var limit: SQLLimit?
@@ -32,7 +32,7 @@ struct QueryInterfaceQuery {
         selection: [SQLSelectable] = [],
         isDistinct: Bool = false,
         filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil),
-        groupByExpressions: [SQLExpression] = [],
+        groupPromise: DatabasePromise<[SQLExpression]>? = nil,
         ordering: QueryOrdering = QueryOrdering(),
         havingExpression: SQLExpression? = nil,
         limit: SQLLimit? = nil,
@@ -42,7 +42,7 @@ struct QueryInterfaceQuery {
         self.selection = selection
         self.isDistinct = isDistinct
         self.filterPromise = filterPromise
-        self.groupByExpressions = groupByExpressions
+        self.groupPromise = groupPromise
         self.ordering = ordering
         self.havingExpression = havingExpression
         self.limit = limit
@@ -88,9 +88,9 @@ extension QueryInterfaceQuery {
         return query
     }
     
-    func group(_ expressions: [SQLExpressible]) -> QueryInterfaceQuery {
+    func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceQuery {
         var query = self
-        query.groupByExpressions = expressions.map { $0.sqlExpression }
+        query.groupPromise = DatabasePromise { db in try expressions(db).map { $0.sqlExpression } }
         return query
     }
     
@@ -160,7 +160,7 @@ extension QueryInterfaceQuery {
         query.source = source.qualified(with: alias)
         query.selection = query.selection.map { $0.qualifiedSelectable(with: alias) }
         query.filterPromise = query.filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
-        query.groupByExpressions = query.groupByExpressions.map { $0.qualifiedExpression(with: alias) }
+        query.groupPromise = query.groupPromise?.map { [alias] (_, exprs) in exprs.map { $0.qualifiedExpression(with: alias) } }
         query.ordering = query.ordering.qualified(with: alias)
         query.havingExpression = query.havingExpression?.qualifiedExpression(with: alias)
         
@@ -245,9 +245,9 @@ extension QueryInterfaceQuery {
             sql += " WHERE " + filter.expressionSQL(&context)
         }
         
-        if !groupByExpressions.isEmpty {
+        if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
             sql += " GROUP BY "
-            sql += groupByExpressions.map { $0.expressionSQL(&context) }
+            sql += groupExpressions.map { $0.expressionSQL(&context) }
                 .joined(separator: ", ")
         }
         
@@ -278,7 +278,7 @@ extension QueryInterfaceQuery {
     
     /// precondition: self is the result of finalizedQuery
     func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
-        guard groupByExpressions.isEmpty else {
+        if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
             // Programmer error
             fatalError("Can't delete query with GROUP BY clause")
         }
@@ -370,7 +370,7 @@ extension QueryInterfaceQuery {
     }
     
     private var countQuery: QueryInterfaceQuery {
-        guard groupByExpressions.isEmpty && limit == nil else {
+        guard groupPromise == nil && limit == nil else {
             // SELECT ... GROUP BY ...
             // SELECT ... LIMIT ...
             return trivialCountQuery

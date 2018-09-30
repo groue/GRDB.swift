@@ -14,6 +14,19 @@ Release Notes
 - [#422](https://github.com/groue/GRDB.swift/pull/422): Refining Association Requests
 
 
+### API diff
+
+```diff
+ protocol AggregatingRequest {
+-    func group(_ expressions: [SQLExpressible]) -> Self
++    func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> Self
+ }
+
++extension TableRequest where Self: AggregatingRequest {
++    func groupByPrimaryKey() -> Self {
++}
+```
+
 ## 3.3.1
 
 Released September 23, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.3.0...v3.3.1)

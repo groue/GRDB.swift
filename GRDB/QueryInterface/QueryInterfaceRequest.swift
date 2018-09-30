@@ -122,8 +122,8 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
         return QueryInterfaceRequest(query: query.filter(predicate))
     }
     
-    /// Creates a request grouped according to *expressions*.
-    public func group(_ expressions: [SQLExpressible]) -> QueryInterfaceRequest<T> {
+    /// Creates a request grouped according to *expressions promise*.
+    public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceRequest<T> {
         return QueryInterfaceRequest(query: query.group(expressions))
     }
     
