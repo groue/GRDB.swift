@@ -614,6 +614,7 @@ Fetch requests do not visit the database until you fetch values from them. This 
 - [Sorting Associations]
 - [Columns Selected by an Association]
 - [Table Aliases]
+- [Refining Association Requests]
 
 
 ## Requesting Associated Records
@@ -1014,6 +1015,113 @@ let request = Book.aliased(bookAlias)
 > let books = Book.aliased(alias)...
 > let people = Person.aliased(alias)...
 > ```
+
+
+## Refining Association Requests
+
+You can join and include an association several times in a single request. This can help you craft complex requests in a modular way.
+
+Let's say, for example, that your application needs all books, along with their Spanish authors, sorted by author name and then by title. That's already pretty complex.
+
+This request can be built in a single shot:
+
+```swift
+let authorAlias = TableAlias()
+let request = Book
+    .including(required: Book.author
+        .filter(Column("countryCode") == "ES")
+        .aliased(authorAlias))
+    .order(authorAlias[Column("name")], Column("title"))
+```
+
+The request can also be built in three distinct steps, as below:
+
+```swift
+// 1. include author
+var request = Book.including(required: Book.author)
+
+// 2. filter by author country
+request = request.joining(required: Book.author.filter(Column("countryCode") == "ES"))
+
+// 3. sort by author name and then title
+let authorAlias = TableAlias()
+request = request
+    .joining(optional: Book.author.aliased(authorAlias))
+    .order(authorAlias[Column("name")], Column("title"))
+```
+
+See how the `Book.author` has been joined or included, on each step, independently, for a different purpose. We can wrap those steps in an extension to the `QueryInterfaceRequest<Book>` type:
+
+```swift
+extension QueryInterfaceRequest where T == Book {
+    func filter(countryCode: String) -> QueryInterfaceRequest<Book> {
+        return joining(required: Book.author
+            .filter(Column("countryCode") == countryCode))
+    }
+
+    func orderedByAuthorNameAndTitle() -> QueryInterfaceRequest<Book> {
+        let authorAlias = TableAlias()
+        return joining(optional: Book.author.aliased(authorAlias))
+            .order(authorAlias[Column("name")], Column("title"))
+    }
+}
+```
+
+And now our complex request looks much more simple:
+
+```swift
+let request = Book
+    .including(required: Book.author)
+    .filter(countryCode: "ES")
+    .orderedByAuthorNameAndTitle()
+```
+
+When you join or include an association several times, GRDB will apply the following rules:
+
+- `including` wins over `joining`:
+
+    ```swift
+    // Equivalent to Record.including(optional: association)
+    Record
+        .including(optional: association)
+        .joining(optional: association)
+    ```
+
+- `required` wins over `optional`:
+
+    ```swift
+    // Equivalent to Record.including(required: association)
+    Record
+        .including(required: association)
+        .including(optional: association)
+    ```
+
+- All [filters](#filtering-associations) are applied:
+
+    ```swift
+    // Equivalent to Record.including(required: association.filter(condition1 && condition2))
+    Record
+        .including(required: association.filter(condition1))
+        .including(optional: association.filter(condition1))
+    ```
+
+- The last [ordering](#sorting-associations) wins:
+
+    ```swift
+    // Equivalent to Record.including(required: association.order(ordering2))
+    Record
+        .including(required: association.order(ordering1))
+        .including(optional: association.order(ordering2))
+    ```
+
+- The last [selection](#columns-selected-by-an-association) wins:
+
+    ```swift
+    // Equivalent to Record.including(required: association.select(selection2))
+    Record
+        .including(required: association.select(selection1))
+        .including(optional: association.select(selection2))
+    ```
 
 
 Fetching Values from Associations
@@ -1440,6 +1548,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Sorting Associations]: #sorting-associations
 [Columns Selected by an Association]: #columns-selected-by-an-association
 [Table Aliases]: #table-aliases
+[Refining Association Requests]: #refining-association-requests
 [The Structure of a Joined Request]: #the-structure-of-a-joined-request
 [Decoding a Joined Request with a Decodable Record]: #decoding-a-joined-request-with-a-decodable-record
 [Decoding a Hierarchical Decodable Record]: #decoding-a-hierarchical-decodable-record
