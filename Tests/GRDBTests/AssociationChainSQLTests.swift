@@ -67,7 +67,7 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "c" ON ("c"."bid" = "b"."id")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.including(optional: A.b.including(required: B.c)), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.including(required: B.c)), "TODO")
             try assertEqualSQL(db, A.including(optional: A.b.including(optional: B.c)), """
                 SELECT "a".*, "b".*, "c".* \
                 FROM "a" \
@@ -87,8 +87,156 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, B.including(optional: B.c.including(required: C.d)), "TODO")
+            // try assertEqualSQL(db, B.including(optional: B.c.including(required: C.d)), "TODO")
             try assertEqualSQL(db, B.including(optional: B.c.including(optional: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+        }
+    }
+    
+    func testChainOfTwoIncludingIncludingIncludingSameAssociation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try assertEqualSQL(db, A.including(required: A.b.including(required: B.c).including(required: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.including(required: A.b.including(required: B.c).including(optional: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.including(required: A.b.including(optional: B.c).including(required: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.including(required: A.b.including(optional: B.c).including(optional: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, A.including(optional: A.b.including(required: B.c).including(required: B.c)), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.including(required: B.c).including(optional: B.c)), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.including(optional: B.c).including(required: B.c)), "TODO")
+            try assertEqualSQL(db, A.including(optional: A.b.including(optional: B.c).including(optional: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.including(required: C.d).including(required: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.including(required: C.d).including(optional: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.including(optional: C.d).including(required: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.including(optional: C.d).including(optional: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, B.including(optional: B.c.including(required: C.d).including(required: C.d)), "TODO")
+            // try assertEqualSQL(db, B.including(optional: B.c.including(required: C.d).including(optional: C.d)), "TODO")
+            // try assertEqualSQL(db, B.including(optional: B.c.including(optional: C.d).including(required: C.d)), "TODO")
+            try assertEqualSQL(db, B.including(optional: B.c.including(optional: C.d).including(optional: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+        }
+    }
+
+    func testChainOfTwoIncludingIncludingJoiningSameAssociation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try assertEqualSQL(db, A.including(required: A.b.including(required: B.c).joining(required: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.including(required: A.b.including(required: B.c).joining(optional: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.including(required: A.b.including(optional: B.c).joining(required: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.including(required: A.b.including(optional: B.c).joining(optional: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, A.including(optional: A.b.including(required: B.c).joining(required: B.c)), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.including(required: B.c).joining(optional: B.c)), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.including(optional: B.c).joining(required: B.c)), "TODO")
+            try assertEqualSQL(db, A.including(optional: A.b.including(optional: B.c).joining(optional: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.including(required: C.d).joining(required: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.including(required: C.d).joining(optional: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.including(optional: C.d).joining(required: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.including(optional: C.d).joining(optional: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, B.including(optional: B.c.including(required: C.d).joining(required: C.d)), "TODO")
+            // try assertEqualSQL(db, B.including(optional: B.c.including(required: C.d).joining(optional: C.d)), "TODO")
+            // try assertEqualSQL(db, B.including(optional: B.c.including(optional: C.d).joining(required: C.d)), "TODO")
+            try assertEqualSQL(db, B.including(optional: B.c.including(optional: C.d).joining(optional: C.d)), """
                 SELECT "b".*, "c".*, "d".* \
                 FROM "b" \
                 LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
@@ -113,7 +261,7 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "c" ON ("c"."bid" = "b"."id")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.including(optional: A.b.joining(required: B.c)), "")
+            // try assertEqualSQL(db, A.including(optional: A.b.joining(required: B.c)), "")
             try assertEqualSQL(db, A.including(optional: A.b.joining(optional: B.c)), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
@@ -133,8 +281,156 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, B.including(optional: B.c.joining(required: C.d)), "TODO")
+            // try assertEqualSQL(db, B.including(optional: B.c.joining(required: C.d)), "TODO")
             try assertEqualSQL(db, B.including(optional: B.c.joining(optional: C.d)), """
+                SELECT "b".*, "c".* \
+                FROM "b" \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+        }
+    }
+    
+    func testChainOfTwoIncludingJoiningIncludingSameAssociation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try assertEqualSQL(db, A.including(required: A.b.joining(required: B.c).including(required: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.including(required: A.b.joining(required: B.c).including(optional: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.including(required: A.b.joining(optional: B.c).including(required: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.including(required: A.b.joining(optional: B.c).including(optional: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, A.including(optional: A.b.joining(required: B.c).including(required: B.c)), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.joining(required: B.c).including(optional: B.c)), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.joining(optional: B.c).including(required: B.c)), "TODO")
+            try assertEqualSQL(db, A.including(optional: A.b.joining(optional: B.c).including(optional: B.c)), """
+                SELECT "a".*, "b".*, "c".* \
+                FROM "a" \
+                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.joining(required: C.d).including(required: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.joining(required: C.d).including(optional: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.joining(optional: C.d).including(required: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.joining(optional: C.d).including(optional: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, B.including(optional: B.c.joining(required: C.d).including(required: C.d)), "TODO")
+            // try assertEqualSQL(db, B.including(optional: B.c.joining(required: C.d).including(optional: C.d)), "TODO")
+            // try assertEqualSQL(db, B.including(optional: B.c.joining(optional: C.d).including(required: C.d)), "TODO")
+            try assertEqualSQL(db, B.including(optional: B.c.joining(optional: C.d).including(optional: C.d)), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+        }
+    }
+
+    func testChainOfTwoIncludingJoiningJoiningSameAssociation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try assertEqualSQL(db, A.including(required: A.b.joining(required: B.c).joining(required: B.c)), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.including(required: A.b.joining(required: B.c).joining(optional: B.c)), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.including(required: A.b.joining(optional: B.c).joining(required: B.c)), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.including(required: A.b.joining(optional: B.c).joining(optional: B.c)), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, A.including(optional: A.b.joining(required: B.c).joining(required: B.c)), "")
+            // try assertEqualSQL(db, A.including(optional: A.b.joining(required: B.c).joining(optional: B.c)), "")
+            // try assertEqualSQL(db, A.including(optional: A.b.joining(optional: B.c).joining(required: B.c)), "")
+            try assertEqualSQL(db, A.including(optional: A.b.joining(optional: B.c).joining(optional: B.c)), """
+                SELECT "a".*, "b".* \
+                FROM "a" \
+                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.joining(required: C.d).joining(required: C.d)), """
+                SELECT "b".*, "c".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.joining(required: C.d).joining(optional: C.d)), """
+                SELECT "b".*, "c".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.joining(optional: C.d).joining(required: C.d)), """
+                SELECT "b".*, "c".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.including(required: B.c.joining(optional: C.d).joining(optional: C.d)), """
+                SELECT "b".*, "c".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, B.including(optional: B.c.joining(required: C.d).joining(required: C.d)), "TODO")
+            // try assertEqualSQL(db, B.including(optional: B.c.joining(required: C.d).joining(optional: C.d)), "TODO")
+            // try assertEqualSQL(db, B.including(optional: B.c.joining(optional: C.d).joining(required: C.d)), "TODO")
+            try assertEqualSQL(db, B.including(optional: B.c.joining(optional: C.d).joining(optional: C.d)), """
                 SELECT "b".*, "c".* \
                 FROM "b" \
                 LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
@@ -159,7 +455,7 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "c" ON ("c"."bid" = "b"."id")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.joining(optional: A.b.including(required: B.c)), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.including(required: B.c)), "TODO")
             try assertEqualSQL(db, A.joining(optional: A.b.including(optional: B.c)), """
                 SELECT "a".*, "c".* \
                 FROM "a" \
@@ -179,7 +475,7 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, B.joining(optional: B.c.including(required: C.d)), "TODO")
+            // try assertEqualSQL(db, B.joining(optional: B.c.including(required: C.d)), "TODO")
             try assertEqualSQL(db, B.joining(optional: B.c.including(optional: C.d)), """
                 SELECT "b".*, "d".* \
                 FROM "b" \
@@ -189,6 +485,154 @@ class AssociationChainSQLTests: GRDBTestCase {
         }
     }
     
+    func testChainOfTwoJoiningIncludingIncludingSameAssociation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try assertEqualSQL(db, A.joining(required: A.b.including(required: B.c).including(required: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.joining(required: A.b.including(required: B.c).including(optional: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.joining(required: A.b.including(optional: B.c).including(required: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.joining(required: A.b.including(optional: B.c).including(optional: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, A.joining(optional: A.b.including(required: B.c).including(required: B.c)), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.including(required: B.c).including(optional: B.c)), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.including(optional: B.c).including(required: B.c)), "TODO")
+            try assertEqualSQL(db, A.joining(optional: A.b.including(optional: B.c).including(optional: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.including(required: C.d).including(required: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.including(required: C.d).including(optional: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.including(optional: C.d).including(required: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.including(optional: C.d).including(optional: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, B.joining(optional: B.c.including(required: C.d).including(required: C.d)), "TODO")
+            // try assertEqualSQL(db, B.joining(optional: B.c.including(required: C.d).including(optional: C.d)), "TODO")
+            // try assertEqualSQL(db, B.joining(optional: B.c.including(optional: C.d).including(required: C.d)), "TODO")
+            try assertEqualSQL(db, B.joining(optional: B.c.including(optional: C.d).including(optional: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+        }
+    }
+    
+    func testChainOfTwoJoiningIncludingJoiningSameAssociation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try assertEqualSQL(db, A.joining(required: A.b.including(required: B.c).joining(required: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.joining(required: A.b.including(required: B.c).joining(optional: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.joining(required: A.b.including(optional: B.c).joining(required: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.joining(required: A.b.including(optional: B.c).joining(optional: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, A.joining(optional: A.b.including(required: B.c).joining(required: B.c)), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.including(required: B.c).joining(optional: B.c)), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.including(optional: B.c).joining(required: B.c)), "TODO")
+            try assertEqualSQL(db, A.joining(optional: A.b.including(optional: B.c).joining(optional: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.including(required: C.d).joining(required: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.including(required: C.d).joining(optional: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.including(optional: C.d).joining(required: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.including(optional: C.d).joining(optional: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, B.joining(optional: B.c.including(required: C.d).joining(required: C.d)), "TODO")
+            // try assertEqualSQL(db, B.joining(optional: B.c.including(required: C.d).joining(optional: C.d)), "TODO")
+            // try assertEqualSQL(db, B.joining(optional: B.c.including(optional: C.d).joining(required: C.d)), "TODO")
+            try assertEqualSQL(db, B.joining(optional: B.c.including(optional: C.d).joining(optional: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+        }
+    }
+
     func testChainOfTwoJoiningJoining() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -205,7 +649,7 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "c" ON ("c"."bid" = "b"."id")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.joining(optional: A.b.joining(required: B.c)), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.joining(required: B.c)), "TODO")
             try assertEqualSQL(db, A.joining(optional: A.b.joining(optional: B.c)), """
                 SELECT "a".* \
                 FROM "a" \
@@ -225,7 +669,7 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, B.joining(optional: B.c.joining(required: C.d)), "TODO")
+            // try assertEqualSQL(db, B.joining(optional: B.c.joining(required: C.d)), "TODO")
             try assertEqualSQL(db, B.joining(optional: B.c.joining(optional: C.d)), """
                 SELECT "b".* \
                 FROM "b" \
@@ -235,6 +679,154 @@ class AssociationChainSQLTests: GRDBTestCase {
         }
     }
     
+    func testChainOfTwoJoiningJoiningIncludingSameAssociation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try assertEqualSQL(db, A.joining(required: A.b.joining(required: B.c).including(required: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.joining(required: A.b.joining(required: B.c).including(optional: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.joining(required: A.b.joining(optional: B.c).including(required: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.joining(required: A.b.joining(optional: B.c).including(optional: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, A.joining(optional: A.b.joining(required: B.c).including(required: B.c)), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.joining(required: B.c).including(optional: B.c)), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.joining(optional: B.c).including(required: B.c)), "TODO")
+            try assertEqualSQL(db, A.joining(optional: A.b.joining(optional: B.c).including(optional: B.c)), """
+                SELECT "a".*, "c".* \
+                FROM "a" \
+                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.joining(required: C.d).including(required: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.joining(required: C.d).including(optional: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.joining(optional: C.d).including(required: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.joining(optional: C.d).including(optional: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, B.joining(optional: B.c.joining(required: C.d).including(required: C.d)), "TODO")
+            // try assertEqualSQL(db, B.joining(optional: B.c.joining(required: C.d).including(optional: C.d)), "TODO")
+            // try assertEqualSQL(db, B.joining(optional: B.c.joining(optional: C.d).including(required: C.d)), "TODO")
+            try assertEqualSQL(db, B.joining(optional: B.c.joining(optional: C.d).including(optional: C.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+        }
+    }
+
+    func testChainOfTwoJoiningJoiningJoiningSameAssociation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try assertEqualSQL(db, A.joining(required: A.b.joining(required: B.c).joining(required: B.c)), """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.joining(required: A.b.joining(required: B.c).joining(optional: B.c)), """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.joining(required: A.b.joining(optional: B.c).joining(required: B.c)), """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, A.joining(required: A.b.joining(optional: B.c).joining(optional: B.c)), """
+                SELECT "a".* \
+                FROM "a" \
+                JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, A.joining(optional: A.b.joining(required: B.c).joining(required: B.c)), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.joining(required: B.c).joining(optional: B.c)), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.joining(optional: B.c).joining(required: B.c)), "TODO")
+            try assertEqualSQL(db, A.joining(optional: A.b.joining(optional: B.c).joining(optional: B.c)), """
+                SELECT "a".* \
+                FROM "a" \
+                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.joining(required: C.d).joining(required: C.d)), """
+                SELECT "b".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.joining(required: C.d).joining(optional: C.d)), """
+                SELECT "b".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.joining(optional: C.d).joining(required: C.d)), """
+                SELECT "b".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            try assertEqualSQL(db, B.joining(required: B.c.joining(optional: C.d).joining(optional: C.d)), """
+                SELECT "b".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, B.joining(optional: B.c.joining(required: C.d).joining(required: C.d)), "TODO")
+            // try assertEqualSQL(db, B.joining(optional: B.c.joining(required: C.d).joining(optional: C.d)), "TODO")
+            // try assertEqualSQL(db, B.joining(optional: B.c.joining(optional: C.d).joining(required: C.d)), "TODO")
+            try assertEqualSQL(db, B.joining(optional: B.c.joining(optional: C.d).joining(optional: C.d)), """
+                SELECT "b".* \
+                FROM "b" \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+        }
+    }
+
     func testChainOfThreeIncludingIncludingIncluding() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -253,7 +845,7 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.including(required: A.b.including(optional: B.c.including(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(required: A.b.including(optional: B.c.including(required: C.d))), "TODO")
             try assertEqualSQL(db, A.including(required: A.b.including(optional: B.c.including(optional: C.d))), """
                 SELECT "a".*, "b".*, "c".*, "d".* \
                 FROM "a" \
@@ -262,9 +854,9 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.including(optional: A.b.including(required: B.c.including(required: C.d))), "TODO")
-//            try assertEqualSQL(db, A.including(optional: A.b.including(required: B.c.including(optional: C.d))), "TODO")
-//            try assertEqualSQL(db, A.including(optional: A.b.including(optional: B.c.including(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.including(required: B.c.including(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.including(required: B.c.including(optional: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.including(optional: B.c.including(required: C.d))), "TODO")
             try assertEqualSQL(db, A.including(optional: A.b.including(optional: B.c.including(optional: C.d))), """
                 SELECT "a".*, "b".*, "c".*, "d".* \
                 FROM "a" \
@@ -293,7 +885,7 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.including(required: A.b.including(optional: B.c.joining(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(required: A.b.including(optional: B.c.joining(required: C.d))), "TODO")
             try assertEqualSQL(db, A.including(required: A.b.including(optional: B.c.joining(optional: C.d))), """
                 SELECT "a".*, "b".*, "c".* \
                 FROM "a" \
@@ -302,9 +894,9 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.including(optional: A.b.including(required: B.c.joining(required: C.d))), "TODO")
-//            try assertEqualSQL(db, A.including(optional: A.b.including(required: B.c.joining(optional: C.d))), "TODO")
-//            try assertEqualSQL(db, A.including(optional: A.b.including(optional: B.c.joining(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.including(required: B.c.joining(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.including(required: B.c.joining(optional: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.including(optional: B.c.joining(required: C.d))), "TODO")
             try assertEqualSQL(db, A.including(optional: A.b.including(optional: B.c.joining(optional: C.d))), """
                 SELECT "a".*, "b".*, "c".* \
                 FROM "a" \
@@ -333,7 +925,7 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.including(required: A.b.joining(optional: B.c.including(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(required: A.b.joining(optional: B.c.including(required: C.d))), "TODO")
             try assertEqualSQL(db, A.including(required: A.b.joining(optional: B.c.including(optional: C.d))), """
                 SELECT "a".*, "b".*, "d".* \
                 FROM "a" \
@@ -342,9 +934,9 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.including(optional: A.b.joining(required: B.c.including(required: C.d))), "TODO")
-//            try assertEqualSQL(db, A.including(optional: A.b.joining(required: B.c.including(optional: C.d))), "TODO")
-//            try assertEqualSQL(db, A.including(optional: A.b.joining(optional: B.c.including(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.joining(required: B.c.including(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.joining(required: B.c.including(optional: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.joining(optional: B.c.including(required: C.d))), "TODO")
             try assertEqualSQL(db, A.including(optional: A.b.joining(optional: B.c.including(optional: C.d))), """
                 SELECT "a".*, "b".*, "d".* \
                 FROM "a" \
@@ -373,7 +965,7 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.including(required: A.b.joining(optional: B.c.joining(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(required: A.b.joining(optional: B.c.joining(required: C.d))), "TODO")
             try assertEqualSQL(db, A.including(required: A.b.joining(optional: B.c.joining(optional: C.d))), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
@@ -382,9 +974,9 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.including(optional: A.b.joining(required: B.c.joining(required: C.d))), "TODO")
-//            try assertEqualSQL(db, A.including(optional: A.b.joining(required: B.c.joining(optional: C.d))), "TODO")
-//            try assertEqualSQL(db, A.including(optional: A.b.joining(optional: B.c.joining(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.joining(required: B.c.joining(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.joining(required: B.c.joining(optional: C.d))), "TODO")
+            // try assertEqualSQL(db, A.including(optional: A.b.joining(optional: B.c.joining(required: C.d))), "TODO")
             try assertEqualSQL(db, A.including(optional: A.b.joining(optional: B.c.joining(optional: C.d))), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
@@ -413,7 +1005,7 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.joining(required: A.b.including(optional: B.c.including(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(required: A.b.including(optional: B.c.including(required: C.d))), "TODO")
             try assertEqualSQL(db, A.joining(required: A.b.including(optional: B.c.including(optional: C.d))), """
                 SELECT "a".*, "c".*, "d".* \
                 FROM "a" \
@@ -422,9 +1014,9 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.joining(optional: A.b.including(required: B.c.including(required: C.d))), "TODO")
-//            try assertEqualSQL(db, A.joining(optional: A.b.including(required: B.c.including(optional: C.d))), "TODO")
-//            try assertEqualSQL(db, A.joining(optional: A.b.including(optional: B.c.including(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.including(required: B.c.including(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.including(required: B.c.including(optional: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.including(optional: B.c.including(required: C.d))), "TODO")
             try assertEqualSQL(db, A.joining(optional: A.b.including(optional: B.c.including(optional: C.d))), """
                 SELECT "a".*, "c".*, "d".* \
                 FROM "a" \
@@ -453,7 +1045,7 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.joining(required: A.b.including(optional: B.c.joining(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(required: A.b.including(optional: B.c.joining(required: C.d))), "TODO")
             try assertEqualSQL(db, A.joining(required: A.b.including(optional: B.c.joining(optional: C.d))), """
                 SELECT "a".*, "c".* \
                 FROM "a" \
@@ -462,9 +1054,9 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.joining(optional: A.b.including(required: B.c.joining(required: C.d))), "TODO")
-//            try assertEqualSQL(db, A.joining(optional: A.b.including(required: B.c.joining(optional: C.d))), "TODO")
-//            try assertEqualSQL(db, A.joining(optional: A.b.including(optional: B.c.joining(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.including(required: B.c.joining(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.including(required: B.c.joining(optional: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.including(optional: B.c.joining(required: C.d))), "TODO")
             try assertEqualSQL(db, A.joining(optional: A.b.including(optional: B.c.joining(optional: C.d))), """
                 SELECT "a".*, "c".* \
                 FROM "a" \
@@ -493,7 +1085,7 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.joining(required: A.b.joining(optional: B.c.including(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(required: A.b.joining(optional: B.c.including(required: C.d))), "TODO")
             try assertEqualSQL(db, A.joining(required: A.b.joining(optional: B.c.including(optional: C.d))), """
                 SELECT "a".*, "d".* \
                 FROM "a" \
@@ -502,9 +1094,9 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.joining(optional: A.b.joining(required: B.c.including(required: C.d))), "TODO")
-//            try assertEqualSQL(db, A.joining(optional: A.b.joining(required: B.c.including(optional: C.d))), "TODO")
-//            try assertEqualSQL(db, A.joining(optional: A.b.joining(optional: B.c.including(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.joining(required: B.c.including(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.joining(required: B.c.including(optional: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.joining(optional: B.c.including(required: C.d))), "TODO")
             try assertEqualSQL(db, A.joining(optional: A.b.joining(optional: B.c.including(optional: C.d))), """
                 SELECT "a".*, "d".* \
                 FROM "a" \
@@ -533,7 +1125,7 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.joining(required: A.b.joining(optional: B.c.joining(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(required: A.b.joining(optional: B.c.joining(required: C.d))), "TODO")
             try assertEqualSQL(db, A.joining(required: A.b.joining(optional: B.c.joining(optional: C.d))), """
                 SELECT "a".* \
                 FROM "a" \
@@ -542,9 +1134,9 @@ class AssociationChainSQLTests: GRDBTestCase {
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
                 """)
             // TODO: chainOptionalRequired
-//            try assertEqualSQL(db, A.joining(optional: A.b.joining(required: B.c.joining(required: C.d))), "TODO")
-//            try assertEqualSQL(db, A.joining(optional: A.b.joining(required: B.c.joining(optional: C.d))), "TODO)
-//            try assertEqualSQL(db, A.joining(optional: A.b.joining(optional: B.c.joining(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.joining(required: B.c.joining(required: C.d))), "TODO")
+            // try assertEqualSQL(db, A.joining(optional: A.b.joining(required: B.c.joining(optional: C.d))), "TODO)
+            // try assertEqualSQL(db, A.joining(optional: A.b.joining(optional: B.c.joining(required: C.d))), "TODO")
             try assertEqualSQL(db, A.joining(optional: A.b.joining(optional: B.c.joining(optional: C.d))), """
                 SELECT "a".* \
                 FROM "a" \
