@@ -33,6 +33,18 @@ private struct PlayerWithOptionalTeam: Decodable, FetchableRecord {
     static let team = Player.team.forKey(CodingKeys.team)
 }
 
+extension QueryInterfaceRequest where T == Player {
+    func filter(teamName: String) -> QueryInterfaceRequest<Player> {
+        return joining(required: PlayerWithOptionalTeam.team.filter(Column("name") == teamName))
+    }
+    
+    func orderedByTeamName() -> QueryInterfaceRequest<Player> {
+        let teamAlias = TableAlias()
+        return joining(optional: PlayerWithOptionalTeam.team.aliased(teamAlias))
+            .order(teamAlias[Column("name")], Column("name"))
+    }
+}
+
 /// Test support for Decodable records
 class AssociationBelongsToDecodableRecordTests: GRDBTestCase {
     
@@ -107,5 +119,27 @@ class AssociationBelongsToDecodableRecordTests: GRDBTestCase {
         XCTAssertEqual(players[1].id, 2)
         XCTAssertNil(players[1].teamId)
         XCTAssertEqual(players[1].name, "Barbara")
+    }
+    
+    func testRequestRefining() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = Player
+            .including(required: PlayerWithRequiredTeam.team.select(Column("name"), Column("id")))
+            .filter(teamName: "Reds")
+            .orderedByTeamName()
+            .asRequest(of: PlayerWithRequiredTeam.self)
+        let records = try dbQueue.inDatabase { try request.fetchAll($0) }
+        XCTAssertEqual(lastSQLQuery, """
+            SELECT "players".*, "teams"."name", "teams"."id" \
+            FROM "players" \
+            JOIN "teams" ON (("teams"."id" = "players"."teamId") AND ("teams"."name" = 'Reds')) \
+            ORDER BY "teams"."name", "players"."name"
+            """)
+        XCTAssertEqual(records.count, 1)
+        XCTAssertEqual(records[0].player.id, 1)
+        XCTAssertEqual(records[0].player.teamId, 1)
+        XCTAssertEqual(records[0].player.name, "Arthur")
+        XCTAssertEqual(records[0].team.id, 1)
+        XCTAssertEqual(records[0].team.name, "Reds")
     }
 }
