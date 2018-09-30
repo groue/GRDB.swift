@@ -42,9 +42,8 @@ extension AssociationRequest {
     {
         let join = AssociationJoin(
             joinOperator: joinOperator,
-            query: association.request.query,
-            key: association.key,
-            joinConditionPromise: DatabasePromise(association.joinCondition))
-        return AssociationRequest(query: query.joining(join))
+            joinCondition: association.joinCondition,
+            query: association.request.query)
+        return AssociationRequest(query: query.appendingJoin(join, forKey: association.key))
     }
 }

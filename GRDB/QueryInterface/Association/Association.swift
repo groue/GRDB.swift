@@ -52,7 +52,7 @@ public protocol Association: DerivableRequest {
     var request: AssociationRequest<RowDecoder> { get }
     
     /// :nodoc:
-    func joinCondition(_ db: Database) throws -> JoinCondition
+    var joinCondition: JoinCondition { get }
     
     /// :nodoc:
     func mapRequest(_ transform: (AssociationRequest<RowDecoder>) -> AssociationRequest<RowDecoder>) -> Self
@@ -211,16 +211,30 @@ extension Association {
     }
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-/// :nodoc:
-public typealias JoinCondition = (_ leftAlias: TableAlias, _ rightAlias: TableAlias) -> SQLExpression?
-
-/// Turns a ForeignKeyRequest into a JoinCondition
-struct ForeignKeyJoinConditionRequest {
+/// The condition that links two joined tables.
+///
+/// We only support one kind of join condition, today: foreign keys.
+///
+///     SELECT ...
+///     FROM book
+///     JOIN author ON author.id = book.authorId
+///                    <--the join condition--->
+///
+/// When we eventually add support for new ways to join tables, JoinCondition
+/// is the type we'll need to update.
+///
+/// The Equatable conformance is used when we merge associations. Two
+/// associations can be merged if and only if their join conditions
+/// are equal:
+///
+///     let request = Book
+///         .include(required: Book.author)
+///         .include(required: Book.author)
+public struct JoinCondition: Equatable {
     var foreignKeyRequest: ForeignKeyRequest
     var originIsLeft: Bool
     
-    func fetch(_ db: Database) throws -> JoinCondition {
+    func sqlExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLExpression? {
         let foreignKeyMapping = try foreignKeyRequest.fetch(db).mapping
         let columnMapping: [(left: Column, right: Column)]
         if originIsLeft {
@@ -228,11 +242,10 @@ struct ForeignKeyJoinConditionRequest {
         } else {
             columnMapping = foreignKeyMapping.map { (left: Column($0.destination), right: Column($0.origin)) }
         }
-        return { (leftAlias, rightAlias) in
-            return columnMapping
-                .map { $0.right.qualifiedExpression(with: rightAlias) == $0.left.qualifiedExpression(with: leftAlias) }
-                .joined(operator: .and)
-        }
+        
+        return columnMapping
+            .map { $0.right.qualifiedExpression(with: rightAlias) == $0.left.qualifiedExpression(with: leftAlias) }
+            .joined(operator: .and)
     }
 }
 
@@ -296,7 +309,7 @@ extension Association where OriginRowDecoder: MutablePersistableRecord {
             .filter { db in
                 // Build a join condition: `association.recordId = record.id`
                 // We still need to replace `record.id` with the actual record id.
-                guard let joinCondition = try self.joinCondition(db)(recordAlias, associationAlias) else {
+                guard let joinExpression = try self.joinCondition.sqlExpression(db, leftAlias: recordAlias, rightAlias: associationAlias) else {
                     fatalError("Can't request from record without join condition")
                 }
                 
@@ -306,7 +319,7 @@ extension Association where OriginRowDecoder: MutablePersistableRecord {
                 let container = PersistenceContainer(record)
                 
                 // Replace `record.id` with 123
-                return joinCondition.resolvedExpression(inContext: [recordAlias: container])
+                return joinExpression.resolvedExpression(inContext: [recordAlias: container])
             }
             
             // We just added a condition qualified with associationAlias. Don't

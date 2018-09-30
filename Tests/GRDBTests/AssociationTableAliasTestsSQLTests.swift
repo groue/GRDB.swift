@@ -337,4 +337,146 @@ class AssociationTableAliasTestsSQLTests : GRDBTestCase {
             }
         }
     }
+    
+    func testAssociationRewrite() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                let request: QueryInterfaceRequest<A> = {
+                    let parentAlias = TableAlias()
+                    let name = Column("name")
+                    return A
+                        .joining(required: A.parent.aliased(parentAlias))
+                        .filter(parentAlias[name] == "foo")
+                }()
+                
+                let request2: QueryInterfaceRequest<A> = {
+                    let parentAlias = TableAlias()
+                    let name = Column("name")
+                    return request
+                        .joining(optional: A.parent.aliased(parentAlias))
+                        .order(parentAlias[name])
+                }()
+                
+                let request3 = request2.including(optional: A.parent)
+                
+                try assertEqualSQL(db, request3, """
+                    SELECT "a1".*, "a2".* \
+                    FROM "a" "a1" \
+                    JOIN "a" "a2" ON ("a2"."id" = "a1"."parentId") \
+                    WHERE ("a2"."name" = 'foo') \
+                    ORDER BY "a2"."name"
+                    """)
+            }
+            do {
+                let request: QueryInterfaceRequest<A> = {
+                    let parentAlias = TableAlias(name: "parent")
+                    let name = Column("name")
+                    return A
+                        .joining(required: A.parent.aliased(parentAlias))
+                        .filter(parentAlias[name] == "foo")
+                }()
+                
+                let request2: QueryInterfaceRequest<A> = {
+                    let parentAlias = TableAlias()
+                    let name = Column("name")
+                    return request
+                        .joining(optional: A.parent.aliased(parentAlias))
+                        .order(parentAlias[name])
+                }()
+                
+                let request3 = request2.including(optional: A.parent)
+                
+                try assertEqualSQL(db, request3, """
+                    SELECT "a".*, "parent".* \
+                    FROM "a" \
+                    JOIN "a" "parent" ON ("parent"."id" = "a"."parentId") \
+                    WHERE ("parent"."name" = 'foo') \
+                    ORDER BY "parent"."name"
+                    """)
+            }
+            do {
+                let request: QueryInterfaceRequest<A> = {
+                    let parentAlias = TableAlias()
+                    let name = Column("name")
+                    return A
+                        .joining(required: A.parent.aliased(parentAlias))
+                        .filter(parentAlias[name] == "foo")
+                }()
+                
+                let request2: QueryInterfaceRequest<A> = {
+                    let parentAlias = TableAlias(name: "parent")
+                    let name = Column("name")
+                    return request
+                        .joining(optional: A.parent.aliased(parentAlias))
+                        .order(parentAlias[name])
+                }()
+                
+                let request3 = request2.including(optional: A.parent)
+                
+                try assertEqualSQL(db, request3, """
+                    SELECT "a".*, "parent".* \
+                    FROM "a" \
+                    JOIN "a" "parent" ON ("parent"."id" = "a"."parentId") \
+                    WHERE ("parent"."name" = 'foo') \
+                    ORDER BY "parent"."name"
+                    """)
+            }
+            do {
+                let request: QueryInterfaceRequest<A> = {
+                    let parentAlias = TableAlias(name: "parent")
+                    let name = Column("name")
+                    return A
+                        .joining(required: A.parent.aliased(parentAlias))
+                        .filter(parentAlias[name] == "foo")
+                }()
+                
+                let request2: QueryInterfaceRequest<A> = {
+                    let parentAlias = TableAlias(name: "parent")
+                    let name = Column("name")
+                    return request
+                        .joining(optional: A.parent.aliased(parentAlias))
+                        .order(parentAlias[name])
+                }()
+                
+                let request3 = request2.including(optional: A.parent)
+                
+                try assertEqualSQL(db, request3, """
+                    SELECT "a".*, "parent".* \
+                    FROM "a" \
+                    JOIN "a" "parent" ON ("parent"."id" = "a"."parentId") \
+                    WHERE ("parent"."name" = 'foo') \
+                    ORDER BY "parent"."name"
+                    """)
+            }
+            do {
+                let request: QueryInterfaceRequest<A> = {
+                    let parentAlias = TableAlias()
+                    let name = Column("name")
+                    return A
+                        .joining(required: A.parent.aliased(parentAlias))
+                        .filter(parentAlias[name] == "foo")
+                }()
+                
+                let request2: QueryInterfaceRequest<A> = {
+                    let parentAlias = TableAlias()
+                    let name = Column("name")
+                    return request
+                        .joining(optional: A.parent.aliased(parentAlias))
+                        .order(parentAlias[name])
+                }()
+                
+                let parentAlias = TableAlias(name: "parent")
+                let request3 = request2.including(optional: A.parent.aliased(parentAlias))
+                
+                try assertEqualSQL(db, request3, """
+                    SELECT "a".*, "parent".* \
+                    FROM "a" \
+                    JOIN "a" "parent" ON ("parent"."id" = "a"."parentId") \
+                    WHERE ("parent"."name" = 'foo') \
+                    ORDER BY "parent"."name"
+                    """)
+            }
+        }
+    }
 }
