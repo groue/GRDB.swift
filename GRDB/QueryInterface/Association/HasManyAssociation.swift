@@ -94,7 +94,7 @@ extension HasManyAssociation: TableRequest where Destination: TableRecord {
 }
 
 extension HasManyAssociation where Destination: TableRecord {
-    /// An annotation that counts the number of associated records
+    /// An annotation that counts the number of associated records.
     ///
     /// For example:
     ///
@@ -104,6 +104,58 @@ extension HasManyAssociation where Destination: TableRecord {
             association: self,
             expression: SQLExpressionCount(Column.rowID),
             alias: "\(key)Count")
+    }
+
+    /// An annotation that evaluaes to the aaverage value of the given column
+    /// in associated records.
+    ///
+    /// For example:
+    ///
+    ///     Team.annotated(with: Team.players.avg(Column("score")))
+    public func avg(_ column: Column) -> Annotation<HasManyAssociation<Origin, Destination>> {
+        return Annotation(
+            association: self,
+            expression: SQLExpressionFunction(.avg, arguments: column),
+            alias: "average\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+    }
+
+    /// An annotation that evaluaes to the maximum value of the given column
+    /// in associated records.
+    ///
+    /// For example:
+    ///
+    ///     Team.annotated(with: Team.players.max(Column("score")))
+    public func max(_ column: Column) -> Annotation<HasManyAssociation<Origin, Destination>> {
+        return Annotation(
+            association: self,
+            expression: SQLExpressionFunction(.max, arguments: column),
+            alias: "max\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+    }
+
+    /// An annotation that evaluaes to the minimum value of the given column
+    /// in associated records.
+    ///
+    /// For example:
+    ///
+    ///     Team.annotated(with: Team.players.min(Column("score")))
+    public func min(_ column: Column) -> Annotation<HasManyAssociation<Origin, Destination>> {
+        return Annotation(
+            association: self,
+            expression: SQLExpressionFunction(.min, arguments: column),
+            alias: "min\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+    }
+
+    /// An annotation that evaluaes to the sum of the given column
+    /// in associated records.
+    ///
+    /// For example:
+    ///
+    ///     Team.annotated(with: Team.players.min(Column("score")))
+    public func sum(_ column: Column) -> Annotation<HasManyAssociation<Origin, Destination>> {
+        return Annotation(
+            association: self,
+            expression: SQLExpressionFunction(.sum, arguments: column),
+            alias: "\(key)\(column.name.uppercasingFirstCharacter)Sum")
     }
 }
 

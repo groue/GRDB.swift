@@ -9,6 +9,7 @@ import GRDB
 
 private struct Team: Codable, FetchableRecord, PersistableRecord {
     static let players = hasMany(Player.self)
+    static let customPlayers = hasMany(Player.self, key: "custom")
     var id: Int64
     var name: String
 }
@@ -18,6 +19,24 @@ private struct Player: Codable, FetchableRecord, PersistableRecord {
     var teamId: Int64?
     var name: String
     var score: Int
+}
+
+private struct TeamInfo: Decodable, FetchableRecord {
+    var team: Team
+    var averagePlayerScore: Double?
+    var playerCount: Int?
+    var maxPlayerScore: Int?
+    var minPlayerScore: Int?
+    var playerScoreSum: Int?
+}
+
+private struct CustomTeamInfo: Decodable, FetchableRecord {
+    var team: Team
+    var averageCustomScore: Double?
+    var customCount: Int?
+    var maxCustomScore: Int?
+    var minCustomScore: Int?
+    var customScoreSum: Int?
 }
 
 class AnnotationTests: GRDBTestCase {
@@ -46,16 +65,441 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testCount() throws {
+    func testDefaultAvg() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let request = Team.annotated(with: Team.players.count)
+            let request = Team
+                .annotated(with: Team.players.avg(Column("score")))
+                .orderByPrimaryKey()
+                .asRequest(of: TeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, AVG("player"."score") AS "averagePlayerScore" \
+                FROM "team" \
+                LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 3)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].averagePlayerScore, 550)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].averagePlayerScore, 500)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertNil(teamInfos[2].averagePlayerScore)
+        }
+    }
+
+    func testDefaultCount() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.players.count)
+                .orderByPrimaryKey()
+                .asRequest(of: TeamInfo.self)
+            
             try assertEqualSQL(db, request, """
                 SELECT "team".*, COUNT("player"."rowid") AS "playerCount" \
                 FROM "team" \
                 LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
-                GROUP BY "team"."id"
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
                 """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 3)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].playerCount, 2)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].playerCount, 3)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertEqual(teamInfos[2].playerCount, 0)
+        }
+    }
+    
+    func testDefaultMax() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.players.max(Column("score")))
+                .orderByPrimaryKey()
+                .asRequest(of: TeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, MAX("player"."score") AS "maxPlayerScore" \
+                FROM "team" \
+                LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 3)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].maxPlayerScore, 1000)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].maxPlayerScore, 800)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertNil(teamInfos[2].maxPlayerScore)
+        }
+    }
+    
+    func testDefaultMin() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.players.min(Column("score")))
+                .orderByPrimaryKey()
+                .asRequest(of: TeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, MIN("player"."score") AS "minPlayerScore" \
+                FROM "team" \
+                LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 3)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].minPlayerScore, 100)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].minPlayerScore, 200)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertNil(teamInfos[2].minPlayerScore)
+        }
+    }
+    
+    func testDefaultSum() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.players.sum(Column("score")))
+                .orderByPrimaryKey()
+                .asRequest(of: TeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, SUM("player"."score") AS "playerScoreSum" \
+                FROM "team" \
+                LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 3)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].playerScoreSum, 1100)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].playerScoreSum, 1500)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertNil(teamInfos[2].playerScoreSum)
+        }
+    }
+    
+    func testDefaultMultipleAnnotations() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.players.avg(Column("score")))
+                .annotated(with: Team.players.count)
+                .annotated(with: Team.players.max(Column("score")))
+                .annotated(with: Team.players.min(Column("score")))
+                .annotated(with: Team.players.sum(Column("score")))
+                .orderByPrimaryKey()
+                .asRequest(of: TeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, \
+                AVG("player"."score") AS "averagePlayerScore", \
+                COUNT("player"."rowid") AS "playerCount", \
+                MAX("player"."score") AS "maxPlayerScore", \
+                MIN("player"."score") AS "minPlayerScore", \
+                SUM("player"."score") AS "playerScoreSum" \
+                FROM "team" \
+                LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 3)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].averagePlayerScore, 550)
+            XCTAssertEqual(teamInfos[0].playerCount, 2)
+            XCTAssertEqual(teamInfos[0].maxPlayerScore, 1000)
+            XCTAssertEqual(teamInfos[0].minPlayerScore, 100)
+            XCTAssertEqual(teamInfos[0].playerScoreSum, 1100)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].averagePlayerScore, 500)
+            XCTAssertEqual(teamInfos[1].playerCount, 3)
+            XCTAssertEqual(teamInfos[1].maxPlayerScore, 800)
+            XCTAssertEqual(teamInfos[1].minPlayerScore, 200)
+            XCTAssertEqual(teamInfos[1].playerScoreSum, 1500)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertNil(teamInfos[2].averagePlayerScore)
+            XCTAssertEqual(teamInfos[2].playerCount, 0)
+            XCTAssertNil(teamInfos[2].maxPlayerScore)
+            XCTAssertNil(teamInfos[2].minPlayerScore)
+            XCTAssertNil(teamInfos[2].playerScoreSum)
+        }
+    }
+    
+    func testCustomAvg() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.customPlayers.avg(Column("score")))
+                .orderByPrimaryKey()
+                .asRequest(of: CustomTeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, AVG("player"."score") AS "averageCustomScore" \
+                FROM "team" \
+                LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 3)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].averageCustomScore, 550)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].averageCustomScore, 500)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertNil(teamInfos[2].averageCustomScore)
+        }
+    }
+    
+    func testCustomCount() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.customPlayers.count)
+                .orderByPrimaryKey()
+                .asRequest(of: CustomTeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, COUNT("player"."rowid") AS "customCount" \
+                FROM "team" \
+                LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 3)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].customCount, 2)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].customCount, 3)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertEqual(teamInfos[2].customCount, 0)
+        }
+    }
+    
+    func testCustomMax() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.customPlayers.max(Column("score")))
+                .orderByPrimaryKey()
+                .asRequest(of: CustomTeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, MAX("player"."score") AS "maxCustomScore" \
+                FROM "team" \
+                LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 3)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].maxCustomScore, 1000)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].maxCustomScore, 800)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertNil(teamInfos[2].maxCustomScore)
+        }
+    }
+    
+    func testCustomMin() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.customPlayers.min(Column("score")))
+                .orderByPrimaryKey()
+                .asRequest(of: CustomTeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, MIN("player"."score") AS "minCustomScore" \
+                FROM "team" \
+                LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 3)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].minCustomScore, 100)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].minCustomScore, 200)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertNil(teamInfos[2].minCustomScore)
+        }
+    }
+    
+    func testCustomSum() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.customPlayers.sum(Column("score")))
+                .orderByPrimaryKey()
+                .asRequest(of: CustomTeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, SUM("player"."score") AS "customScoreSum" \
+                FROM "team" \
+                LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 3)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].customScoreSum, 1100)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].customScoreSum, 1500)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertNil(teamInfos[2].customScoreSum)
+        }
+    }
+    
+    func testCustomMultipleAnnotations() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.customPlayers.avg(Column("score")))
+                .annotated(with: Team.customPlayers.count)
+                .annotated(with: Team.customPlayers.max(Column("score")))
+                .annotated(with: Team.customPlayers.min(Column("score")))
+                .annotated(with: Team.customPlayers.sum(Column("score")))
+                .orderByPrimaryKey()
+                .asRequest(of: CustomTeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, \
+                AVG("player"."score") AS "averageCustomScore", \
+                COUNT("player"."rowid") AS "customCount", \
+                MAX("player"."score") AS "maxCustomScore", \
+                MIN("player"."score") AS "minCustomScore", \
+                SUM("player"."score") AS "customScoreSum" \
+                FROM "team" \
+                LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 3)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].averageCustomScore, 550)
+            XCTAssertEqual(teamInfos[0].customCount, 2)
+            XCTAssertEqual(teamInfos[0].maxCustomScore, 1000)
+            XCTAssertEqual(teamInfos[0].minCustomScore, 100)
+            XCTAssertEqual(teamInfos[0].customScoreSum, 1100)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].averageCustomScore, 500)
+            XCTAssertEqual(teamInfos[1].customCount, 3)
+            XCTAssertEqual(teamInfos[1].maxCustomScore, 800)
+            XCTAssertEqual(teamInfos[1].minCustomScore, 200)
+            XCTAssertEqual(teamInfos[1].customScoreSum, 1500)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertNil(teamInfos[2].averageCustomScore)
+            XCTAssertEqual(teamInfos[2].customCount, 0)
+            XCTAssertNil(teamInfos[2].maxCustomScore)
+            XCTAssertNil(teamInfos[2].minCustomScore)
+            XCTAssertNil(teamInfos[2].customScoreSum)
         }
     }
 }
