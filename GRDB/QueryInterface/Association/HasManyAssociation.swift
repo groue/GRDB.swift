@@ -93,6 +93,20 @@ extension HasManyAssociation: TableRequest where Destination: TableRecord {
     public var databaseTableName: String { return Destination.databaseTableName }
 }
 
+extension HasManyAssociation where Destination: TableRecord {
+    /// An annotation that counts the number of associated records
+    ///
+    /// For example:
+    ///
+    ///     Team.annotated(with: Team.players.count)
+    public var count: Annotation<HasManyAssociation<Origin, Destination>> {
+        return Annotation(
+            association: self,
+            expression: SQLExpressionCount(Column.rowID),
+            alias: "\(key)Count")
+    }
+}
+
 extension TableRecord {
     /// Creates a "Has many" association between Self and the
     /// destination type.

@@ -70,6 +70,12 @@ extension QueryInterfaceQuery {
         return query
     }
     
+    func appendingSelection(_ selection: [SQLSelectable]) -> QueryInterfaceQuery {
+        var query = self
+        query.selection.append(contentsOf: selection)
+        return query
+    }
+    
     func distinct() -> QueryInterfaceQuery {
         var query = self
         query.isDistinct = true

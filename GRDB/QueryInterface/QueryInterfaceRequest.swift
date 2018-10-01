@@ -98,6 +98,11 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     public func select<RowDecoder>(sql: String, arguments: StatementArguments? = nil, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
         return select(SQLSelectionLiteral(sql, arguments: arguments), as: type)
     }
+    
+    /// Support for annotations
+    func appendingSelection(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<T> {
+        return QueryInterfaceRequest(query: query.appendingSelection(selection))
+    }
 
     /// Creates a request which returns distinct rows.
     ///

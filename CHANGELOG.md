@@ -22,6 +22,10 @@ Release Notes
 +    func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> Self
  }
 
++extension AggregatingRequest {
++    func group(_ expressions: [SQLExpressible]) -> Self
++}
+
 +extension TableRequest where Self: AggregatingRequest {
 +    func groupByPrimaryKey() -> Self {
 +}

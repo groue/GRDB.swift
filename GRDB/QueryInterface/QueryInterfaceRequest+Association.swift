@@ -39,6 +39,19 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func joining<A: Association>(required association: A) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder {
         return joining(.required, association.select([]))
     }
+    
+    // MARK: - Annotations
+    
+    /// TODO
+    public func annotated<A: Association>(with annotation: Annotation<A>) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder {
+        // SELECT author.*, COUNT(book.rowID) AS bookCount
+        // LEFT JOIN book ON ...
+        // GROUP BY author.id
+        let tableAlias = TableAlias()
+        return appendingSelection([tableAlias[annotation.expression].aliased(annotation.alias)])
+            .joining(optional: annotation.association.aliased(tableAlias))
+            .groupByPrimaryKey()
+    }
 }
 
 extension MutablePersistableRecord {
@@ -90,5 +103,12 @@ extension TableRecord {
     /// that the associated database table contains a matching row.
     public static func joining<A: Association>(required association: A) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self {
         return all().joining(required: association)
+    }
+    
+    // MARK: - Annotations
+    
+    /// TODO
+    public static func annotated<A: Association>(with annotation: Annotation<A>) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self {
+        return all().annotated(with: annotation)
     }
 }
