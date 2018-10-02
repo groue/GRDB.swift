@@ -1423,7 +1423,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
 // LEFT JOIN book ON book.authorId = author.id
 // GROUP BY author.id
 let request = Author.annotate(with: Author.books.count)
-let authorInfos = AuthorInfo.fetchAll(db, request)
+let authorInfos = try AuthorInfo.fetchAll(db, request)
 
 for info in authorInfo {
     print("\(info.author.name) wrote \(info.bookCount) book(s).")
@@ -1470,7 +1470,7 @@ let request = Author
     .annotate(with: Author.books.avg(Column("price")))
     .annotate(with: Author.books.sum(Column("price")))
 
-if let authorInfo = AuthorInfo.fetchOne(db, request) {
+if let authorInfo = try AuthorInfo.fetchOne(db, request) {
     print(info.author.name)
     print("number of books: \(info.bookCount)")
     print("minimum book price: \(info.minBookPrice)")
@@ -1513,7 +1513,7 @@ let request = Author
     .annotate(with: Author.books
         .filter(Column("kind") == "theatrePlay")
         .forKey("theatrePlay"))
-let authorInfos = AuthorInfo.fetchAll(db, request)
+let authorInfos = try AuthorInfo.fetchAll(db, request)
 
 for info in authorInfo {
     ...
