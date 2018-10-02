@@ -27,6 +27,7 @@ GRDB Associations
     - [The Structure of a Joined Request]
     - [Decoding a Joined Request with a Decodable Record]
     - [Decoding a Joined Request with FetchableRecord]
+- [Association Aggregates]
 - [DerivableRequest Protocol]
 - [Known Issues]
 - [Future Directions]
@@ -1394,6 +1395,132 @@ let country: Country? = row["country"]
 You can also perform custom navigation in the tree by using *row scopes*. See [Row Adapters] for more information.
 
 
+## Association Aggregates
+
+It is possible to fetch aggregated values from a to-many association:
+
+You can count associated records, or fetch the minimum, maximum, average value of an associated record column, or compute the sum of an associated record column.
+
+For example, in order to fetch all authors with their number of books, you'd write:
+
+```swift
+struct Author: TableRecord {
+    static let books = hasMany(Book.self)
+    ...
+}
+
+struct Book: TableRecord {
+    ...
+}
+
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var bookCount: Int
+}
+
+// SELECT author.*, COUNT(DISTINCT book.rowid) AS bookCount
+// FROM author
+// LEFT JOIN book ON book.authorId = author.id
+// GROUP BY author.id
+let request = Author.annotate(with: Author.book.count)
+let authorInfos = AuthorInfo.fetchAll(db, request)
+
+for info in authorInfo {
+    print("\(info.author.name) wrote \(info.bookCount) book(s).")
+}
+```
+
+**HasMany** associations let you build five aggregates:
+
+- `association.count`
+- `association.min(column)`
+- `association.max(column)`
+- `association.avg(column)`
+- `association.sum(column)`
+
+The request `annotate(with:)` method appends an aggregated value to the request selection. In order to access those values, you fetch a record type that contains the necessary properties.
+
+For example:
+
+```swift
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var bookCount: Int
+    var minBookPrice: Int?
+    var maxBookPrice: Int?
+    var averageBookPrice: Double?
+    var bookPriceSum: Int?
+}
+
+// SELECT author.*,
+//        COUNT(DISTINCT book.rowid) AS bookCount,
+//        MIN(book.price) AS minBookPrice
+//        MAX(book.price) AS maxBookPrice
+//        AVG(book.price) AS avgBookPrice
+//        SUM(book.price) AS sumBookPrice
+// FROM author
+// LEFT JOIN book ON book.authorId = author.id
+// WHERE author.id = 1
+// GROUP BY author.id
+let request = Author
+    .filter(key: 1)
+    .annotate(with: Author.book.count)
+    .annotate(with: Author.book.min(Column("price")))
+    .annotate(with: Author.book.max(Column("price")))
+    .annotate(with: Author.book.avg(Column("price")))
+    .annotate(with: Author.book.sum(Column("price")))
+
+if let authorInfo = AuthorInfo.fetchOne(db, request) {
+    print(info.author.name)
+    print("number of books: \(info.bookCount))
+    print("minimum book price: \(info.minBookPrice))
+    print("maximum book price: \(info.maxBookPrice))
+    print("average book price: \(info.avgBookPrice))
+    print("sum of book prices: \(info.bookPriceSum))
+}
+```
+
+The names of the decoded properties are built from the **[association key](#the-structure-of-a-joined-request)**, and the aggregated column name:
+
+| Aggregate | Key | Column | Property name |
+| --------- | --- | ------ | ------------- |
+| `Author.book.count`                | `book` |         | `bookCounnt`       |
+| `Author.book.min(Column("price"))` | `book` | `price` | `minBookPrice`     |
+| `Author.book.max(Column("price"))` | `book` | `price` | `maxBookPrice`     |
+| `Author.book.avg(Column("price"))` | `book` | `price` | `averageBookPrice` |
+| `Author.book.sum(Column("price"))` | `book` | `price` | `bookPriceSum`     |
+
+When you need to compute aggregates on various subsets of associated records, use distinct association keys. For example:
+
+```swift
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var novelCount: Int
+    var theatrePlayCount: Int
+}
+
+// SELECT author.*,
+//        COUNT(DISTINCT book1.rowid) AS novelCount
+//        COUNT(DISTINCT book2.rowid) AS theatrePlayCount
+// FROM author
+// LEFT JOIN book book1 ON book.authorId = author.id AND book.kind = 'novel'
+// LEFT JOIN book book2 ON book.authorId = author.id AND book.kind = 'theatrePlay'
+// GROUP BY author.id
+let request = Author
+    .annotate(with: Author.book
+        .filter(Column("kind") == "novel")
+        .forKey("novel"))
+    .annotate(with: Author.book
+        .filter(Column("kind") == "theatrePlay")
+        .forKey("theatrePlay"))
+let authorInfos = AuthorInfo.fetchAll(db, request)
+
+for info in authorInfo {
+    ...
+}
+```
+
+
 ## DerivableRequest Protocol
 
 The `DerivableRequest` protocol is adopted by both [query interface requests] such as `Author.all()` and associations such as `Book.author`. It is intended for you to use as a customization point when you want to extend the built-in GRDB apis.
@@ -1535,6 +1662,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Decoding a Hierarchical Decodable Record]: #decoding-a-hierarchical-decodable-record
 [Decoding a Joined Request with FetchableRecord]: #decoding-a-joined-request-with-fetchablerecord
 [Custom Requests]: ../README.md#custom-requests
+[Association Aggregates]: #association-aggregates
 [DerivableRequest Protocol]: #derivablerequest-protocol
 [Known Issues]: #known-issues
 [Future Directions]: #future-directions
