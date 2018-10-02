@@ -1484,7 +1484,7 @@ The names of the decoded properties are built from the **[association key](#the-
 
 | Aggregate | Key | Column | Property name |
 | --------- | --- | ------ | ------------- |
-| `Author.books.count`                | `book` |         | `bookCounnt`       |
+| `Author.books.count`                | `book` |         | `bookCount`       |
 | `Author.books.min(Column("price"))` | `book` | `price` | `minBookPrice`     |
 | `Author.books.max(Column("price"))` | `book` | `price` | `maxBookPrice`     |
 | `Author.books.avg(Column("price"))` | `book` | `price` | `averageBookPrice` |
