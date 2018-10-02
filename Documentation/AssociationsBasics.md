@@ -1415,7 +1415,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
 // FROM author
 // LEFT JOIN book ON book.authorId = author.id
 // GROUP BY author.id
-let request = Author.annotate(with: Author.books.count())
+let request = Author.annotated(with: Author.books.count())
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 
 for info in authorInfos {
@@ -1434,7 +1434,7 @@ An **HasMany** association lets you build the following aggregates:
 - `association.avg(column)`
 - `association.sum(column)`
 
-The `annotate(with:)` method appends an aggregated value to the selected columns of a request. You can append as many aggregates values as needed, from one or several associations.
+The `annotated(with:)` method appends an aggregated value to the selected columns of a request. You can append as many aggregates values as needed, from one or several associations.
 
 In order to access those values, you fetch records that have matching properties.
 
@@ -1462,11 +1462,11 @@ struct AuthorInfo: Decodable, FetchableRecord {
 // GROUP BY author.id
 let request = Author
     .filter(key: 1)
-    .annotate(with: Author.books.count())
-    .annotate(with: Author.books.min(Column("year")))
-    .annotate(with: Author.books.max(Column("year")))
-    .annotate(with: Author.books.avg(Column("price")))
-    .annotate(with: Author.books.sum(Column("awards")))
+    .annotated(with: Author.books.count())
+    .annotated(with: Author.books.min(Column("year")))
+    .annotated(with: Author.books.max(Column("year")))
+    .annotated(with: Author.books.avg(Column("price")))
+    .annotated(with: Author.books.sum(Column("awards")))
 
 let info: AuthorInfo? = try AuthorInfo.fetchOne(db, request)
 
@@ -1502,7 +1502,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
 // FROM author
 // LEFT JOIN book ON book.authorId = author.id
 // GROUP BY author.id
-let request = Author.annotate(with: Author.books.count(aliased: "numberOfBooks"))
+let request = Author.annotated(with: Author.books.count(aliased: "numberOfBooks"))
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 ```
 
@@ -1523,7 +1523,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
 // LEFT JOIN book ON book.authorId = author.id AND book.kind = 'novel'
 // GROUP BY author.id
 let novels = Author.books.filter(Column("kind") == "novel")
-let request = Author.annotate(with: novels.count())
+let request = Author.annotated(with: novels.count())
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 ```
 
@@ -1544,11 +1544,11 @@ struct AuthorInfo: Decodable, FetchableRecord {
 // LEFT JOIN book book2 ON book2.authorId = author.id AND book2.kind = 'theatrePlay'
 // GROUP BY author.id
 let request = Author
-    .annotate(with: Author.books
+    .annotated(with: Author.books
         .filter(Column("kind") == "novel")
         .forKey("novel")
         .count())
-    .annotate(with: Author.books
+    .annotated(with: Author.books
         .filter(Column("kind") == "theatrePlay")
         .forKey("theatrePlay")
         .count())
