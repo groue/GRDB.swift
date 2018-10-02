@@ -1525,7 +1525,7 @@ let request = Author.annotate(with: novels.count())
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 ```
 
-When you need to compute aggregates on *several distinct subsets* of associated records, make sure you use distinct **association keys**, one for each subset. For example:
+When you need to compute aggregates on *several distinct subsets* of associated records, make sure you use distinct **[association keys](#the-structure-of-a-joined-request)**, one for each subset. For example:
 
 ```swift
 struct AuthorInfo: Decodable, FetchableRecord {
