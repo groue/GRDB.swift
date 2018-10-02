@@ -503,7 +503,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testAnnotationsAndAssociationKeys() throws {
+    func testMultipleCount() throws {
         struct TeamInfo: Decodable, FetchableRecord {
             var team: Team
             var lowPlayerCount: Int
