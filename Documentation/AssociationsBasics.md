@@ -28,6 +28,8 @@ GRDB Associations
     - [Decoding a Joined Request with a Decodable Record]
     - [Decoding a Joined Request with FetchableRecord]
 - [Association Aggregates]
+    - [Available Aggregates]
+    - [Aggregates on Subsets of Associated Records]
 - [DerivableRequest Protocol]
 - [Known Issues]
 - [Future Directions]
@@ -1503,7 +1505,7 @@ let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 ```
 
 
-### Subset Aggregates
+### Aggregates on Subsets of Associated Records
 
 You can compute aggregates on subsets of associated records with the `filter` method:
 
@@ -1694,6 +1696,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Decoding a Joined Request with FetchableRecord]: #decoding-a-joined-request-with-fetchablerecord
 [Custom Requests]: ../README.md#custom-requests
 [Association Aggregates]: #association-aggregates
+[Available Aggregates]: #available-aggregates
+[Aggregates on Subsets of Associated Records]: #aggregates-on-subsets-of-associated-records
 [DerivableRequest Protocol]: #derivablerequest-protocol
 [Known Issues]: #known-issues
 [Future Directions]: #future-directions
