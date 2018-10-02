@@ -1434,7 +1434,9 @@ An **HasMany** association lets you build the following aggregates:
 - `association.avg(column)`
 - `association.sum(column)`
 
-The `annotate(with:)` method appends an aggregated value to the selected columns of a request. You can append as many aggregates values as needed. In order to access those values, you fetch a record type that has matching properties.
+The `annotate(with:)` method appends an aggregated value to the selected columns of a request. You can append as many aggregates values as needed, from one or several associations.
+
+In order to access those values, you fetch records that have matching properties.
 
 For example:
 
