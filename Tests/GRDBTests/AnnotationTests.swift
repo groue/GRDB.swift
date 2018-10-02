@@ -51,7 +51,7 @@ class AnnotationTests: GRDBTestCase {
                 t.column("id", .integer).primaryKey()
                 t.column("teamId", .integer).references("team")
                 t.column("name", .text)
-                t.column("score", .text)
+                t.column("score", .integer)
             }
             
             try Team(id: 1, name: "Reds").insert(db)
@@ -107,7 +107,7 @@ class AnnotationTests: GRDBTestCase {
                 .asRequest(of: TeamInfo.self)
             
             try assertEqualSQL(db, request, """
-                SELECT "team".*, COUNT("player"."rowid") AS "playerCount" \
+                SELECT "team".*, COUNT(DISTINCT "player"."rowid") AS "playerCount" \
                 FROM "team" \
                 LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
                 GROUP BY "team"."id" \
@@ -245,7 +245,7 @@ class AnnotationTests: GRDBTestCase {
             try assertEqualSQL(db, request, """
                 SELECT "team".*, \
                 AVG("player"."score") AS "averagePlayerScore", \
-                COUNT("player"."rowid") AS "playerCount", \
+                COUNT(DISTINCT "player"."rowid") AS "playerCount", \
                 MAX("player"."score") AS "maxPlayerScore", \
                 MIN("player"."score") AS "minPlayerScore", \
                 SUM("player"."score") AS "playerScoreSum" \
@@ -326,7 +326,7 @@ class AnnotationTests: GRDBTestCase {
                 .asRequest(of: CustomTeamInfo.self)
             
             try assertEqualSQL(db, request, """
-                SELECT "team".*, COUNT("player"."rowid") AS "customCount" \
+                SELECT "team".*, COUNT(DISTINCT "player"."rowid") AS "customCount" \
                 FROM "team" \
                 LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
                 GROUP BY "team"."id" \
@@ -464,7 +464,7 @@ class AnnotationTests: GRDBTestCase {
             try assertEqualSQL(db, request, """
                 SELECT "team".*, \
                 AVG("player"."score") AS "averageCustomScore", \
-                COUNT("player"."rowid") AS "customCount", \
+                COUNT(DISTINCT "player"."rowid") AS "customCount", \
                 MAX("player"."score") AS "maxCustomScore", \
                 MIN("player"."score") AS "minCustomScore", \
                 SUM("player"."score") AS "customScoreSum" \
@@ -500,6 +500,51 @@ class AnnotationTests: GRDBTestCase {
             XCTAssertNil(teamInfos[2].maxCustomScore)
             XCTAssertNil(teamInfos[2].minCustomScore)
             XCTAssertNil(teamInfos[2].customScoreSum)
+        }
+    }
+    
+    func testAnnotationsAndAssociationKeys() throws {
+        struct TeamInfo: Decodable, FetchableRecord {
+            var team: Team
+            var lowPlayerCount: Int
+            var highPlayerCount: Int
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.players.filter(Column("score") < 500).forKey("lowPlayer").count)
+                .annotated(with: Team.players.filter(Column("score") >= 500).forKey("highPlayer").count)
+                .orderByPrimaryKey()
+                .asRequest(of: TeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, \
+                COUNT(DISTINCT "player1"."rowid") AS "lowPlayerCount", \
+                COUNT(DISTINCT "player2"."rowid") AS "highPlayerCount" \
+                FROM "team" \
+                LEFT JOIN "player" "player1" ON (("player1"."teamId" = "team"."id") AND ("player1"."score" < 500)) \
+                LEFT JOIN "player" "player2" ON (("player2"."teamId" = "team"."id") AND ("player2"."score" >= 500)) \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 3)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].lowPlayerCount, 1)
+            XCTAssertEqual(teamInfos[0].highPlayerCount, 1)
+
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].lowPlayerCount, 1)
+            XCTAssertEqual(teamInfos[1].highPlayerCount, 2)
+
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertEqual(teamInfos[2].lowPlayerCount, 0)
+            XCTAssertEqual(teamInfos[2].highPlayerCount, 0)
         }
     }
 }

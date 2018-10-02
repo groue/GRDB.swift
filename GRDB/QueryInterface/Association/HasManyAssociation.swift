@@ -102,7 +102,7 @@ extension HasManyAssociation where Destination: TableRecord {
     public var count: Annotation<HasManyAssociation<Origin, Destination>> {
         return Annotation(
             association: self,
-            expression: SQLExpressionCount(Column.rowID),
+            expression: SQLExpressionCountDistinct(Column.rowID),
             alias: "\(key)Count")
     }
 
