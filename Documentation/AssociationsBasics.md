@@ -1478,7 +1478,7 @@ if let info = info {
 
 As seen in the above example, aggregated values are given a **default name**, such as "bookCount" or "maxBookYear". The default name is built from the **[association key](#the-structure-of-a-joined-request)**, and the aggregated column name:
 
-| Aggregate | Key | Column | Property name |
+| Aggregate | Key | Column | Default name |
 | --------- | --- | ------ | ------------- |
 | `Author.books.count()`               | `book` |          | `bookCount`        |
 | `Author.books.min(Column("year"))`   | `book` | `year`   | `minBookYear`      |
