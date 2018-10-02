@@ -12,6 +12,7 @@ Release Notes
 ### New
 
 - [#422](https://github.com/groue/GRDB.swift/pull/422): Refining Association Requests
+- [#423](https://github.com/groue/GRDB.swift/pull/423): Association Aggregates
 
 
 ### API diff
@@ -28,6 +29,29 @@ Release Notes
 
 +extension TableRequest where Self: AggregatingRequest {
 +    func groupByPrimaryKey() -> Self {
++}
+
++struct Annotation<A: Association> { }
+
++extension HasManyAssociation where Destination: TableRecord {
++    func count() -> Annotation<HasManyAssociation>
++    func count(aliased name: String) -> Annotation<HasManyAssociation>
++    func average(_ column: Column) -> Annotation<HasManyAssociation>
++    func average(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation>
++    func max(_ column: Column) -> Annotation<HasManyAssociation>
++    func max(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation>
++    func min(_ column: Column -> Annotation<HasManyAssociation>
++    func min(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation>
++    func sum(_ column: Column) -> Annotation<HasManyAssociation>
++    func sum(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation>
++)
+
++extension QueryInterfaceRequest where RowDecoder: TableRecord {
++    func annotated<A: Association>(with annotation: Annotation<A>) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder
++}
+
++extension TableRecord {
++    static func annotated<A: Association>(with annotation: Annotation<A>) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self
 +}
 ```
 
