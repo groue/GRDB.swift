@@ -1472,11 +1472,11 @@ let request = Author
 
 if let authorInfo = AuthorInfo.fetchOne(db, request) {
     print(info.author.name)
-    print("number of books: \(info.bookCount))
-    print("minimum book price: \(info.minBookPrice))
-    print("maximum book price: \(info.maxBookPrice))
-    print("average book price: \(info.avgBookPrice))
-    print("sum of book prices: \(info.bookPriceSum))
+    print("number of books: \(info.bookCount)")
+    print("minimum book price: \(info.minBookPrice)")
+    print("maximum book price: \(info.maxBookPrice)")
+    print("average book price: \(info.avgBookPrice)")
+    print("sum of book prices: \(info.bookPriceSum)")
 }
 ```
 
