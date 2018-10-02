@@ -1397,22 +1397,13 @@ You can also perform custom navigation in the tree by using *row scopes*. See [R
 
 ## Association Aggregates
 
-It is possible to fetch aggregated values from a to-many association:
+It is possible to fetch aggregated values from a **HasMany** association.
 
 You can count associated records, or fetch the minimum, maximum, average value of an associated record column, or compute the sum of an associated record column.
 
-For example, in order to fetch all authors with their number of books, you'd write:
+In the example below, we fetch all authors with their number of books:
 
 ```swift
-struct Author: TableRecord {
-    static let books = hasMany(Book.self)
-    ...
-}
-
-struct Book: TableRecord {
-    ...
-}
-
 struct AuthorInfo: Decodable, FetchableRecord {
     var author: Author
     var bookCount: Int
@@ -1422,23 +1413,26 @@ struct AuthorInfo: Decodable, FetchableRecord {
 // FROM author
 // LEFT JOIN book ON book.authorId = author.id
 // GROUP BY author.id
-let request = Author.annotate(with: Author.books.count)
-let authorInfos = try AuthorInfo.fetchAll(db, request)
+let request = Author.annotate(with: Author.books.count())
+let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 
-for info in authorInfo {
+for info in authorInfos {
     print("\(info.author.name) wrote \(info.bookCount) book(s).")
 }
 ```
 
-**HasMany** associations let you build five aggregates:
 
-- `association.count`
+### Available Aggregates
+
+An **HasMany** association lets you build the following aggregates:
+
+- `association.count()`
 - `association.min(column)`
 - `association.max(column)`
 - `association.avg(column)`
 - `association.sum(column)`
 
-The request `annotate(with:)` method appends an aggregated value to the request selection. In order to access those values, you fetch a record type that contains the necessary properties.
+The `annotate(with:)` method appends an aggregated value to the selected columns of a request. You can append as many aggregates values as needed. In order to access those values, you fetch a record type that has matching properties.
 
 For example:
 
@@ -1446,51 +1440,90 @@ For example:
 struct AuthorInfo: Decodable, FetchableRecord {
     var author: Author
     var bookCount: Int
-    var minBookPrice: Int?
-    var maxBookPrice: Int?
+    var minBookYear: Int?
+    var maxBookYear: Int?
     var averageBookPrice: Double?
-    var bookPriceSum: Int?
+    var bookAwardsSum: Int?
 }
 
 // SELECT author.*,
 //        COUNT(DISTINCT book.rowid) AS bookCount,
-//        MIN(book.price) AS minBookPrice
-//        MAX(book.price) AS maxBookPrice
-//        AVG(book.price) AS avgBookPrice
-//        SUM(book.price) AS sumBookPrice
+//        MIN(book.year) AS minBookYear
+//        MAX(book.year) AS maxBookYear
+//        AVG(book.price) AS averageBookPrice
+//        SUM(book.awards) AS sumBookAwards
 // FROM author
 // LEFT JOIN book ON book.authorId = author.id
 // WHERE author.id = 1
 // GROUP BY author.id
 let request = Author
     .filter(key: 1)
-    .annotate(with: Author.books.count)
-    .annotate(with: Author.books.min(Column("price")))
-    .annotate(with: Author.books.max(Column("price")))
+    .annotate(with: Author.books.count())
+    .annotate(with: Author.books.min(Column("year")))
+    .annotate(with: Author.books.max(Column("year")))
     .annotate(with: Author.books.avg(Column("price")))
-    .annotate(with: Author.books.sum(Column("price")))
+    .annotate(with: Author.books.sum(Column("awards")))
 
-if let authorInfo = try AuthorInfo.fetchOne(db, request) {
+let info: AuthorInfo? = try AuthorInfo.fetchOne(db, request)
+
+if let info = info {
     print(info.author.name)
-    print("number of books: \(info.bookCount)")
-    print("minimum book price: \(info.minBookPrice)")
-    print("maximum book price: \(info.maxBookPrice)")
-    print("average book price: \(info.avgBookPrice)")
-    print("sum of book prices: \(info.bookPriceSum)")
+    print("- number of books: \(info.bookCount)")
+    print("- first book published on: \(info.minBookYear)")
+    print("- last book published on: \(info.maxBookYear)")
+    print("- average book price: \(info.averageBookPrice)")
+    print("- total awards received: \(info.bookAwardsSum)")
 }
 ```
 
-The names of the decoded properties are built from the **[association key](#the-structure-of-a-joined-request)**, and the aggregated column name:
+As seen in the above example, aggregated values are given a **default name**, such as "bookCount" or "maxBookYear". The default name is built from the **[association key](#the-structure-of-a-joined-request)**, and the aggregated column name:
 
 | Aggregate | Key | Column | Property name |
 | --------- | --- | ------ | ------------- |
-| `Author.books.count`                | `book` |         | `bookCount`       |
-| `Author.books.min(Column("price"))` | `book` | `price` | `minBookPrice`     |
-| `Author.books.max(Column("price"))` | `book` | `price` | `maxBookPrice`     |
-| `Author.books.avg(Column("price"))` | `book` | `price` | `averageBookPrice` |
-| `Author.books.sum(Column("price"))` | `book` | `price` | `bookPriceSum`     |
+| `Author.books.count()`               | `book` |          | `bookCount`        |
+| `Author.books.min(Column("year"))`   | `book` | `year`   | `minBookYear`      |
+| `Author.books.max(Column("year"))`   | `book` | `year`   | `maxBookYear`      |
+| `Author.books.avg(Column("price"))`  | `book` | `price`  | `averageBookPrice` |
+| `Author.books.sum(Column("awards"))` | `book` | `awards` | `bookAwardsSum`    |
 
-When you need to compute aggregates on various subsets of associated records, use distinct association keys. For example:
+You can rename aggregated values with the `aliased` parameter:
+
+```swift
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var numberOfBooks: Int
+}
+
+// SELECT author.*, COUNT(DISTINCT book.rowid) AS numberOfBooks
+// FROM author
+// LEFT JOIN book ON book.authorId = author.id
+// GROUP BY author.id
+let request = Author.annotate(with: Author.books.count(aliased: "numberOfBooks"))
+let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+```
+
+
+### Subset Aggregates
+
+You can compute aggregates on subsets of associated records with the `filter` method:
+
+```swift
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var bookCount: Int
+}
+
+// SELECT author.*,
+//        COUNT(DISTINCT book.rowid) AS novelCount
+// FROM author
+// LEFT JOIN book ON book.authorId = author.id AND book.kind = 'novel'
+// GROUP BY author.id
+let novels = Author.books.filter(Column("kind") == "novel")
+let request = Author.annotate(with: novels.count())
+let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+```
+
+When you need to compute aggregates on *several distinct subsets* of associated records, make sure you use distinct **association keys**, one for each subset. For example:
 
 ```swift
 struct AuthorInfo: Decodable, FetchableRecord {
@@ -1509,15 +1542,13 @@ struct AuthorInfo: Decodable, FetchableRecord {
 let request = Author
     .annotate(with: Author.books
         .filter(Column("kind") == "novel")
-        .forKey("novel"))
+        .forKey("novel")
+        .count())
     .annotate(with: Author.books
         .filter(Column("kind") == "theatrePlay")
-        .forKey("theatrePlay"))
-let authorInfos = try AuthorInfo.fetchAll(db, request)
-
-for info in authorInfo {
-    ...
-}
+        .forKey("theatrePlay")
+        .count())
+let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 ```
 
 

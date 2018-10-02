@@ -69,7 +69,7 @@ class AnnotationTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.avg(Column("score")))
+                .annotated(with: Team.players.average(Column("score")))
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
             
@@ -102,7 +102,7 @@ class AnnotationTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.count)
+                .annotated(with: Team.players.count())
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
             
@@ -234,8 +234,8 @@ class AnnotationTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.avg(Column("score")))
-                .annotated(with: Team.players.count)
+                .annotated(with: Team.players.average(Column("score")))
+                .annotated(with: Team.players.count())
                 .annotated(with: Team.players.max(Column("score")))
                 .annotated(with: Team.players.min(Column("score")))
                 .annotated(with: Team.players.sum(Column("score")))
@@ -288,7 +288,7 @@ class AnnotationTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.customPlayers.avg(Column("score")))
+                .annotated(with: Team.customPlayers.average(Column("score")))
                 .orderByPrimaryKey()
                 .asRequest(of: CustomTeamInfo.self)
             
@@ -321,7 +321,7 @@ class AnnotationTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.customPlayers.count)
+                .annotated(with: Team.customPlayers.count())
                 .orderByPrimaryKey()
                 .asRequest(of: CustomTeamInfo.self)
             
@@ -453,8 +453,8 @@ class AnnotationTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.customPlayers.avg(Column("score")))
-                .annotated(with: Team.customPlayers.count)
+                .annotated(with: Team.customPlayers.average(Column("score")))
+                .annotated(with: Team.customPlayers.count())
                 .annotated(with: Team.customPlayers.max(Column("score")))
                 .annotated(with: Team.customPlayers.min(Column("score")))
                 .annotated(with: Team.customPlayers.sum(Column("score")))
@@ -503,6 +503,58 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
+    func testAnnotationAlias() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.players.average(Column("score"), aliased: "a1"))
+                .annotated(with: Team.players.count(aliased: "a2"))
+                .annotated(with: Team.players.max(Column("score"), aliased: "a3"))
+                .annotated(with: Team.players.min(Column("score"), aliased: "a4"))
+                .annotated(with: Team.players.sum(Column("score"), aliased: "a5"))
+                .orderByPrimaryKey()
+                .asRequest(of: CustomTeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, \
+                AVG("player"."score") AS "a1", \
+                COUNT(DISTINCT "player"."rowid") AS "a2", \
+                MAX("player"."score") AS "a3", \
+                MIN("player"."score") AS "a4", \
+                SUM("player"."score") AS "a5" \
+                FROM "team" \
+                LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+        }
+    }
+    
+    func testAnnotationExpression() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.players.average(Column("score") * Column("score"), aliased: "a1"))
+                .annotated(with: Team.players.max(Column("score") * 10, aliased: "a3"))
+                .annotated(with: Team.players.min(-Column("score"), aliased: "a4"))
+                .annotated(with: Team.players.sum(Column("score") * Column("score"), aliased: "a5"))
+                .orderByPrimaryKey()
+                .asRequest(of: CustomTeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, \
+                AVG(("player"."score" * "player"."score")) AS "a1", \
+                MAX(("player"."score" * 10)) AS "a3", \
+                MIN(-"player"."score") AS "a4", \
+                SUM(("player"."score" * "player"."score")) AS "a5" \
+                FROM "team" \
+                LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+        }
+    }
+
     func testMultipleCount() throws {
         struct TeamInfo: Decodable, FetchableRecord {
             var team: Team
@@ -512,8 +564,8 @@ class AnnotationTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.filter(Column("score") < 500).forKey("lowPlayer").count)
-                .annotated(with: Team.players.filter(Column("score") >= 500).forKey("highPlayer").count)
+                .annotated(with: Team.players.filter(Column("score") < 500).forKey("lowPlayer").count())
+                .annotated(with: Team.players.filter(Column("score") >= 500).forKey("highPlayer").count())
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
             

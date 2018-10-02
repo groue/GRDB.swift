@@ -8,8 +8,9 @@
 
 import Foundation
 
+/// TODO
 public struct Annotation<A: Association> {
     let association: A
     let expression: SQLExpression
-    let alias: String
+    var alias: String
 }
