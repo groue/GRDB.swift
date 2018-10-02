@@ -1448,10 +1448,10 @@ struct AuthorInfo: Decodable, FetchableRecord {
 
 // SELECT author.*,
 //        COUNT(DISTINCT book.rowid) AS bookCount,
-//        MIN(book.year) AS minBookYear
-//        MAX(book.year) AS maxBookYear
-//        AVG(book.price) AS averageBookPrice
-//        SUM(book.awards) AS sumBookAwards
+//        MIN(book.year) AS minBookYear,
+//        MAX(book.year) AS maxBookYear,
+//        AVG(book.price) AS averageBookPrice,
+//        SUM(book.awards) AS bookAwardsSum
 // FROM author
 // LEFT JOIN book ON book.authorId = author.id
 // WHERE author.id = 1
