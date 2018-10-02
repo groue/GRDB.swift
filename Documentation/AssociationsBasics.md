@@ -1399,7 +1399,7 @@ You can also perform custom navigation in the tree by using *row scopes*. See [R
 
 ## Association Aggregates
 
-It is possible to fetch aggregated values from a **HasMany** association.
+It is possible to fetch aggregated values from a **HasMany** association:
 
 You can count associated records, or fetch the minimum, maximum, average value of an associated record column, or compute the sum of an associated record column.
 
@@ -1426,7 +1426,7 @@ for info in authorInfos {
 
 ### Available Aggregates
 
-An **HasMany** association lets you build the following aggregates:
+**HasMany** associations let you build the following aggregates:
 
 - `association.count()`
 - `association.min(column)`
