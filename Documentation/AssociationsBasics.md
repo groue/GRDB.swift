@@ -1422,7 +1422,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
 // FROM author
 // LEFT JOIN book ON book.authorId = author.id
 // GROUP BY author.id
-let request = Author.annotate(with: Author.book.count)
+let request = Author.annotate(with: Author.books.count)
 let authorInfos = AuthorInfo.fetchAll(db, request)
 
 for info in authorInfo {
@@ -1464,11 +1464,11 @@ struct AuthorInfo: Decodable, FetchableRecord {
 // GROUP BY author.id
 let request = Author
     .filter(key: 1)
-    .annotate(with: Author.book.count)
-    .annotate(with: Author.book.min(Column("price")))
-    .annotate(with: Author.book.max(Column("price")))
-    .annotate(with: Author.book.avg(Column("price")))
-    .annotate(with: Author.book.sum(Column("price")))
+    .annotate(with: Author.books.count)
+    .annotate(with: Author.books.min(Column("price")))
+    .annotate(with: Author.books.max(Column("price")))
+    .annotate(with: Author.books.avg(Column("price")))
+    .annotate(with: Author.books.sum(Column("price")))
 
 if let authorInfo = AuthorInfo.fetchOne(db, request) {
     print(info.author.name)
@@ -1484,11 +1484,11 @@ The names of the decoded properties are built from the **[association key](#the-
 
 | Aggregate | Key | Column | Property name |
 | --------- | --- | ------ | ------------- |
-| `Author.book.count`                | `book` |         | `bookCounnt`       |
-| `Author.book.min(Column("price"))` | `book` | `price` | `minBookPrice`     |
-| `Author.book.max(Column("price"))` | `book` | `price` | `maxBookPrice`     |
-| `Author.book.avg(Column("price"))` | `book` | `price` | `averageBookPrice` |
-| `Author.book.sum(Column("price"))` | `book` | `price` | `bookPriceSum`     |
+| `Author.books.count`                | `book` |         | `bookCounnt`       |
+| `Author.books.min(Column("price"))` | `book` | `price` | `minBookPrice`     |
+| `Author.books.max(Column("price"))` | `book` | `price` | `maxBookPrice`     |
+| `Author.books.avg(Column("price"))` | `book` | `price` | `averageBookPrice` |
+| `Author.books.sum(Column("price"))` | `book` | `price` | `bookPriceSum`     |
 
 When you need to compute aggregates on various subsets of associated records, use distinct association keys. For example:
 
@@ -1507,10 +1507,10 @@ struct AuthorInfo: Decodable, FetchableRecord {
 // LEFT JOIN book book2 ON book.authorId = author.id AND book.kind = 'theatrePlay'
 // GROUP BY author.id
 let request = Author
-    .annotate(with: Author.book
+    .annotate(with: Author.books
         .filter(Column("kind") == "novel")
         .forKey("novel"))
-    .annotate(with: Author.book
+    .annotate(with: Author.books
         .filter(Column("kind") == "theatrePlay")
         .forKey("theatrePlay"))
 let authorInfos = AuthorInfo.fetchAll(db, request)
