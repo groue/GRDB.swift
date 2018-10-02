@@ -1514,7 +1514,7 @@ You can compute aggregates on subsets of associated records with the `filter` me
 ```swift
 struct AuthorInfo: Decodable, FetchableRecord {
     var author: Author
-    var bookCount: Int
+    var novelCount: Int
 }
 
 // SELECT author.*,
@@ -1523,7 +1523,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
 // LEFT JOIN book ON book.authorId = author.id AND book.kind = 'novel'
 // GROUP BY author.id
 let novels = Author.books.filter(Column("kind") == "novel")
-let request = Author.annotated(with: novels.count())
+let request = Author.annotated(with: novels.count(aliased: "novelCount"))
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 ```
 
