@@ -1431,7 +1431,7 @@ for info in authorInfos {
 - `association.count()`
 - `association.min(column)`
 - `association.max(column)`
-- `association.avg(column)`
+- `association.average(column)`
 - `association.sum(column)`
 
 The `annotated(with:)` method appends an aggregated value to the selected columns of a request. You can append as many aggregates values as needed, from one or several associations.
@@ -1465,7 +1465,7 @@ let request = Author
     .annotated(with: Author.books.count())
     .annotated(with: Author.books.min(Column("year")))
     .annotated(with: Author.books.max(Column("year")))
-    .annotated(with: Author.books.avg(Column("price")))
+    .annotated(with: Author.books.average(Column("price")))
     .annotated(with: Author.books.sum(Column("awards")))
 
 let info: AuthorInfo? = try AuthorInfo.fetchOne(db, request)
@@ -1487,7 +1487,7 @@ As seen in the above example, aggregated values are given a **default name**, su
 | `Author.books.count()`               | `book` |          | `bookCount`        |
 | `Author.books.min(Column("year"))`   | `book` | `year`   | `minBookYear`      |
 | `Author.books.max(Column("year"))`   | `book` | `year`   | `maxBookYear`      |
-| `Author.books.avg(Column("price"))`  | `book` | `price`  | `averageBookPrice` |
+| `Author.books.average(Column("price"))` | `book` | `price`  | `averageBookPrice` |
 | `Author.books.sum(Column("awards"))` | `book` | `awards` | `bookAwardsSum`    |
 
 You can rename aggregated values with the `aliased` parameter:
