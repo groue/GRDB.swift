@@ -1503,8 +1503,8 @@ struct AuthorInfo: Decodable, FetchableRecord {
 //        COUNT(DISTINCT book1.rowid) AS novelCount
 //        COUNT(DISTINCT book2.rowid) AS theatrePlayCount
 // FROM author
-// LEFT JOIN book book1 ON book.authorId = author.id AND book.kind = 'novel'
-// LEFT JOIN book book2 ON book.authorId = author.id AND book.kind = 'theatrePlay'
+// LEFT JOIN book book1 ON book1.authorId = author.id AND book1.kind = 'novel'
+// LEFT JOIN book book2 ON book2.authorId = author.id AND book2.kind = 'theatrePlay'
 // GROUP BY author.id
 let request = Author
     .annotate(with: Author.books
