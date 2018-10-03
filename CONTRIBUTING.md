@@ -75,6 +75,7 @@ The ideas, in alphabetical order:
 - [Carthage]
 - [CloudKit]
 - [Concurrency]
+- [Custom FTS5 Auxiliary Functions]
 - [Database Observation]
 - [Date and Time Functions]
 - [Decode NSDecimalNumber from Text Columns]
@@ -153,6 +154,19 @@ And this creates improvement opportunities:
 - Better documentation of GRDB concurrency
 
 - The introduction of an "ultra-safe" concurrency mode. Maybe something that restricts all database accesses to the main thread, like [FCModel](https://github.com/marcoarment/FCModel). Maybe in a separate companion library.
+
+
+### Custom FTS5 Auxiliary Functions
+
+:question: Unknown Difficulty
+
+The SQLite documentation provides [this description](https://www.sqlite.org/fts5.html) of FTS5 auxiliary functions:
+
+> An application may use FTS5 auxiliary functions to retrieve extra information regarding the matched row. For example, an auxiliary function may be used to retrieve a copy of a column value for a matched row with all instances of the matched term surrounded by html <b></b> tags.
+
+Applications can define their own [custom FTS5 auxiliary functions](https://www.sqlite.org/fts5.html#custom_auxiliary_functions) with SQLite, but GRDB does not yet provide any Swift API for that.
+
+See issue [#421](https://github.com/groue/GRDB.swift/issues/421) for more information.
 
 
 ### Database Observation
@@ -367,6 +381,7 @@ Features that blur this focus are non-goals:
 [Carthage]: #carthage
 [CloudKit]: #cloudkit
 [Codable Records]: README.md#codable-records
+[Custom FTS5 Auxiliary Functions]: #custom-fts5-auxiliary-functions
 [Database Observation]: #database-observation
 [Date and Time Functions]: #date-and-time-functions
 [Decode NSDecimalNumber from Text Columns]: #decode-nsdecimalnumber-from-text-columns
