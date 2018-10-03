@@ -40,6 +40,8 @@
     ```
 - [ ] Consider renaming dbQueue.inDatabase, dbPool.writeWithoutTransaction -> dbQueue/Pool.exclusive
 - [ ] FetchedRecordsController diff algorithm: check https://github.com/RxSwiftCommunity/RxDataSources/issues/256
+- [ ] Annotations: request.having(...)
+- [ ] Annotations: request.select(annotation)
 
 Swift 4.2
 
