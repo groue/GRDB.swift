@@ -72,7 +72,6 @@ Legend:
 The ideas, in alphabetical order:
 
 - [Associations]
-- [Carthage]
 - [CloudKit]
 - [Concurrency]
 - [Custom FTS5 Auxiliary Functions]
@@ -99,15 +98,6 @@ The ideas, in alphabetical order:
 :bowtie: Public API Challenge :muscle: Hard :fire: Experimental
 
 Associations can be enhanced in several ways. See the "Known Issues" and "Future Directions" chapter of the [Associations Guide](Documentation/AssociationsBasics.md)
-
-
-### Carthage
-
-:question: Unknown Difficulty
-
-[Carthage](https://github.com/Carthage/Carthage) can build GRDB frameworks, but it can also inexplicably fail. This installation method is thus currently **unsupported**, which means that support has to be found directly in the [Carthage repo](https://github.com/Carthage/Carthage/issues), or on [Stack Overflow](http://stackoverflow.com). See [#262](https://github.com/groue/GRDB.swift/pull/262) for more information.
-
-I would be a nice improvement if GRDB Carthage builds were made robust.
 
 
 ### CloudKit
@@ -392,7 +382,6 @@ Features that blur this focus are non-goals:
 
 [Ask Questions]: #ask-questions
 [Associations]: #associations
-[Carthage]: #carthage
 [CloudKit]: #cloudkit
 [Codable Records]: README.md#codable-records
 [Custom FTS5 Auxiliary Functions]: #custom-fts5-auxiliary-functions
