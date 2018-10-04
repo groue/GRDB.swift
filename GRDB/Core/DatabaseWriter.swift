@@ -153,6 +153,10 @@ extension DatabaseWriter {
         // SQLCipher does not support the backup API: https://discuss.zetetic.net/t/using-the-sqlite-online-backup-api/2631
         // So we'll drop all database objects one after the other.
         try writeWithoutTransaction { db in
+            // Clear schema and statement cache so that no prepared statement
+            // can prevent schema change.
+            db.clearSchemaCache()
+            
             // Prevent foreign keys from messing with drop table statements
             let foreignKeysEnabled = try Bool.fetchOne(db, "PRAGMA foreign_keys")!
             if foreignKeysEnabled {

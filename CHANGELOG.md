@@ -3,6 +3,11 @@ Release Notes
 
 ## Next Version
 
+### Fixed
+
+- [#425](https://github.com/groue/GRDB.swift/pull/425): Fix "destination database is in use " error during database backup
+
+
 ### New
 
 - [#422](https://github.com/groue/GRDB.swift/pull/422): Refining Association Requests

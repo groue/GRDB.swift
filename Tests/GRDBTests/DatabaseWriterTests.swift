@@ -90,4 +90,33 @@ class DatabaseWriterTests : GRDBTestCase {
             try XCTAssertNil(Row.fetchOne(db, "SELECT * FROM sqlite_master"))
         }
     }
+    
+    // See https://github.com/groue/GRDB.swift/issues/424
+    func testIssue424() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute("""
+                CREATE TABLE t(a);
+                INSERT INTO t VALUES (1)
+                """)
+        }
+        try dbQueue.read { db in
+            _ = try Row.fetchCursor(db.cachedSelectStatement("SELECT * FROM t")).next()
+        }
+        try dbQueue.erase()
+    }
+    
+    // See https://github.com/groue/GRDB.swift/issues/424
+    func testIssue424Minimal() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute("""
+                CREATE TABLE t(a);
+                INSERT INTO t VALUES (1);
+                PRAGMA query_only = 1;
+                """)
+            _ = try Row.fetchCursor(db.cachedSelectStatement("SELECT * FROM t")).next()
+        }
+        try DatabaseQueue().backup(to: dbQueue)
+    }
 }
