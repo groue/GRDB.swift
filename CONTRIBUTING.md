@@ -72,7 +72,6 @@ Legend:
 The ideas, in alphabetical order:
 
 - [Associations]
-- [Carthage]
 - [CloudKit]
 - [Concurrency]
 - [Custom FTS5 Auxiliary Functions]
@@ -87,6 +86,7 @@ The ideas, in alphabetical order:
 - [JSON]
 - [Linux]
 - [More SQL Generation]
+- [Records: Splitting Database Encoding from Ability to Write in the Database]
 - [SQL Console in the Debugger]
 - [SQLCipher in a Shared App Container]
 - [Static Library]
@@ -98,15 +98,6 @@ The ideas, in alphabetical order:
 :bowtie: Public API Challenge :muscle: Hard :fire: Experimental
 
 Associations can be enhanced in several ways. See the "Known Issues" and "Future Directions" chapter of the [Associations Guide](Documentation/AssociationsBasics.md)
-
-
-### Carthage
-
-:question: Unknown Difficulty
-
-[Carthage](https://github.com/Carthage/Carthage) can build GRDB frameworks, but it can also inexplicably fail. This installation method is thus currently **unsupported**, which means that support has to be found directly in the [Carthage repo](https://github.com/Carthage/Carthage/issues), or on [Stack Overflow](http://stackoverflow.com). See [#262](https://github.com/groue/GRDB.swift/pull/262) for more information.
-
-I would be a nice improvement if GRDB Carthage builds were made robust.
 
 
 ### CloudKit
@@ -321,6 +312,19 @@ There are several SQLite features that GRDB could natively support:
 - [More ideas](https://www.sqlite.org/lang.html)
 
 
+### Records: Splitting Database Encoding from Ability to Write in the Database
+
+:baby: Starter Task :pencil: Documentation
+
+Record types that know how to encode themselves in the database (converting themselves into columns and database values) currently are granted with [persistence methods] which can write in the database. Those record types all adopt the [PersistableRecord] protocol.
+
+But encoding a record grants other features, such as [Record Comparison], or [Requesting Associated Records].
+
+This is a problem: one should not have to grant a type with persistence methods, when one just needs read-only features.
+
+The fix is to split database encoding from persistence methods. See [#426](https://github.com/groue/GRDB.swift/issues/426) for more information.
+
+
 ### SQL Console in the Debugger
 
 :question: Unknown Difficulty :hammer: Tooling
@@ -378,7 +382,6 @@ Features that blur this focus are non-goals:
 
 [Ask Questions]: #ask-questions
 [Associations]: #associations
-[Carthage]: #carthage
 [CloudKit]: #cloudkit
 [Codable Records]: README.md#codable-records
 [Custom FTS5 Auxiliary Functions]: #custom-fts5-auxiliary-functions
@@ -396,6 +399,7 @@ Features that blur this focus are non-goals:
 [JSON]: #json
 [Linux]: #linux
 [More SQL Generation]: #more-sql-generation
+[Records: Splitting Database Encoding from Ability to Write in the Database]: #records-splitting-database-encoding-from-ability-to-write-in-the-database
 [Non-Goals]: #non-goals
 [Report Bugs]: #report-bugs
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
@@ -408,3 +412,7 @@ Features that blur this focus are non-goals:
 [Suggest an Enhancement]: #suggest-an-enhancement
 [Suggested Contributions]: #suggested-contributions
 [Typed Expressions]: #typed-expressions
+[persistence methods]: README.md#persistence-methods
+[PersistableRecord]: README.md#persistablerecord-protocol
+[Record Comparison]: README.md#record-comparison
+[Requesting Associated Records]: Documentation/AssociationsBasics.md#requesting-associated-records
