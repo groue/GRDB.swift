@@ -83,14 +83,11 @@ public class Statement {
         sqlite3_finalize(sqliteStatement)
     }
     
-    final func reset() {
-        // It looks like sqlite3_reset() does not access the file system.
-        // This function call should thus succeed, unless a GRDB bug, or a
-        // programmer error (reusing a failed statement): there is no point
-        // throwing any error.
+    final func reset() throws {
+        SchedulingWatchdog.preconditionValidQueue(database)
         let code = sqlite3_reset(sqliteStatement)
         guard code == SQLITE_OK else {
-            fatalError(DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql).description)
+            throw DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql)
         }
     }
     
@@ -136,7 +133,7 @@ public class Statement {
         _arguments = arguments
         argumentsNeedValidation = false
         
-        reset()
+        try! reset()
         clearBindings()
         
         var valuesIterator = arguments.values.makeIterator()
@@ -159,7 +156,7 @@ public class Statement {
         argumentsNeedValidation = false
         
         // Apply
-        reset()
+        try reset()
         clearBindings()
         for (index, dbValue) in zip(Int32(1)..., bindings) {
             bind(dbValue, at: index)
@@ -363,9 +360,8 @@ public final class SelectStatement : Statement {
     
     /// Utility function for cursors
     func reset(withArguments arguments: StatementArguments? = nil) {
-        SchedulingWatchdog.preconditionValidQueue(database)
         prepare(withArguments: arguments)
-        reset()
+        try! reset()
     }
 }
 
@@ -390,6 +386,12 @@ public final class StatementCursor: Cursor {
         self.statement = statement
         self.sqliteStatement = statement.sqliteStatement
         statement.reset(withArguments: arguments)
+    }
+    
+    deinit {
+        // Statement reset fails when sqlite3_step has previously failed.
+        // Just ignore reset error.
+        try? statement.reset()
     }
     
     /// :nodoc:
@@ -480,7 +482,7 @@ public final class UpdateStatement : Statement {
     public func execute(arguments: StatementArguments? = nil) throws {
         SchedulingWatchdog.preconditionValidQueue(database)
         prepare(withArguments: arguments)
-        reset()
+        try reset()
         database.updateStatementWillExecute(self)
         
         while true {

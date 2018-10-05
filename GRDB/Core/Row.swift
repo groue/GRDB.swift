@@ -617,6 +617,12 @@ public final class RowCursor : Cursor {
         statement.reset(withArguments: arguments)
     }
     
+    deinit {
+        // Statement reset fails when sqlite3_step has previously failed.
+        // Just ignore reset error.
+        try? statement.reset()
+    }
+    
     /// :nodoc:
     public func next() throws -> Row? {
         if done {
@@ -702,8 +708,11 @@ extension Row {
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row? {
-        // The cursor reuses a single mutable row. Return an immutable copy.
-        return try fetchCursor(statement, arguments: arguments, adapter: adapter).next().map { $0.copy() }
+        let cursor = try fetchCursor(statement, arguments: arguments, adapter: adapter)
+        // Keep cursor alive until we can copy the fetched row
+        return try withExtendedLifetime(cursor) {
+            try cursor.next().map { $0.copy() }
+        }
     }
 }
 

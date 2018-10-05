@@ -6,6 +6,7 @@ Release Notes
 ### Fixed
 
 - [#425](https://github.com/groue/GRDB.swift/pull/425): Fix "destination database is in use " error during database backup
+- [#427](https://github.com/groue/GRDB.swift/pull/427): Have cursors reset SQLite statements in deinit
 
 
 ### New

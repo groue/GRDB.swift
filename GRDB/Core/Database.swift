@@ -778,16 +778,6 @@ extension Database {
     // MARK: - Backup
     
     static func backup(from dbFrom: Database, to dbDest: Database, afterBackupInit: (() -> ())? = nil, afterBackupStep: (() -> ())? = nil) throws {
-        // The schema of the destination database will change: we need to clear
-        // the schema and statements cache.
-        //
-        // We especially need to clear the statements cache before calling
-        // sqlite3_backup_init, so that we avoid an SQLite error
-        // "destination database is in use" (SQLITE_ERROR).
-        //
-        // See https://github.com/groue/GRDB.swift/issues/424
-        dbDest.clearSchemaCache()
-        
         guard let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", dbFrom.sqliteConnection, "main") else {
             throw DatabaseError(resultCode: dbDest.lastErrorCode, message: dbDest.lastErrorMessage)
         }
@@ -820,6 +810,9 @@ extension Database {
         case let code:
             throw DatabaseError(resultCode: code, message: dbDest.lastErrorMessage)
         }
+        
+        // The schema of the destination database has changed:
+        dbDest.clearSchemaCache()
     }
 }
 
