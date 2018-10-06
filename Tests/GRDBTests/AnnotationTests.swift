@@ -65,6 +65,23 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
+    func testAnnotationWithJoiningMethodAndTableAliasAndSQLSnippet() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let tableAlias = TableAlias(name: "custom")
+            let request = Team
+                .annotated(with: Team.players.count())
+                .joining(required: Team.players.aliased(tableAlias).filter(sql: "custom.score < ?", arguments: [500]))
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, COUNT(DISTINCT "custom"."rowid") AS "playerCount" \
+                FROM "team" \
+                JOIN "player" "custom" ON (("custom"."teamId" = "team"."id") AND (custom.score < 500)) \
+                GROUP BY "team"."id"
+                """)
+        }
+    }
+    
     func testAnnotatedWithDefaultAverage() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
