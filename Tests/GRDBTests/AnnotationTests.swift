@@ -632,19 +632,29 @@ class AnnotationTests: GRDBTestCase {
                     FROM "team" \
                     LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
                     GROUP BY "team"."id" \
-                    HAVING (COUNT(DISTINCT "player"."rowid") <> 0)
+                    HAVING (COUNT(DISTINCT "player"."rowid") > 0)
                     """)
             }
             do {
                 let request = Team.having(Team.players.isEmpty() == false)
                 
-                // TODO: this is not nice at all
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
                     FROM "team" \
                     LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
                     GROUP BY "team"."id" \
-                    HAVING ((COUNT(DISTINCT "player"."rowid") = 0) = 0)
+                    HAVING (COUNT(DISTINCT "player"."rowid") > 0)
+                    """)
+            }
+            do {
+                let request = Team.having(Team.players.isEmpty() == true)
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") = 0)
                     """)
             }
         }

@@ -46,6 +46,12 @@ public func == <A>(lhs: SQLExpressible?, rhs: Annotation<A>) -> Annotation<A> {
         expression: lhs == rhs.expression)
 }
 
+public func == <A>(lhs: Annotation<A>, rhs: Bool) -> Annotation<A> {
+    return Annotation(
+        association: lhs.association,
+        expression: lhs.expression == rhs)
+}
+
 public func != <A>(lhs: Annotation<A>, rhs: SQLExpressible?) -> Annotation<A> {
     return Annotation(
         association: lhs.association,
@@ -56,4 +62,10 @@ public func != <A>(lhs: SQLExpressible?, rhs: Annotation<A>) -> Annotation<A> {
     return Annotation(
         association: rhs.association,
         expression: lhs != rhs.expression)
+}
+
+public func != <A>(lhs: Annotation<A>, rhs: Bool) -> Annotation<A> {
+    return Annotation(
+        association: lhs.association,
+        expression: lhs.expression != rhs)
 }

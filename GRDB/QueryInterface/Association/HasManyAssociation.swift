@@ -123,7 +123,9 @@ extension HasManyAssociation where Destination: TableRecord {
     ///     Team.having(!Team.players.isEmpty())
     ///     Team.having(Team.players.isEmpty() == false)
     public func isEmpty() -> Annotation<HasManyAssociation> {
-        return count() == 0
+        return Annotation(
+            association: self,
+            expression: SQLExpressionIsEmpty(SQLExpressionCountDistinct(Column.rowID)))
     }
     
     /// An annotation that evaluates to the average value of the given column
