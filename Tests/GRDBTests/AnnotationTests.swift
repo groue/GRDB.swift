@@ -65,7 +65,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testDefaultAvg() throws {
+    func testAnnotatedWithDefaultAverage() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -98,7 +98,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
 
-    func testDefaultCount() throws {
+    func testAnnotatedWithDefaultCount() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -131,7 +131,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testDefaultMax() throws {
+    func testAnnotatedWithDefaultMax() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -164,7 +164,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testDefaultMin() throws {
+    func testAnnotatedWithDefaultMin() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -197,7 +197,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testDefaultSum() throws {
+    func testAnnotatedWithDefaultSum() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -230,7 +230,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testDefaultMultipleAnnotations() throws {
+    func testAnnotatedWithMultipleDefaultAnnotations() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -284,7 +284,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testCustomAvg() throws {
+    func testAnnotatedWithCustomAverage() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -317,7 +317,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testCustomCount() throws {
+    func testAnnotatedWithCustomCount() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -350,7 +350,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testCustomMax() throws {
+    func testAnnotatedWithCustomMax() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -383,7 +383,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testCustomMin() throws {
+    func testAnnotatedWithCustomMin() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -416,7 +416,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testCustomSum() throws {
+    func testAnnotatedWithCustomSum() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -449,7 +449,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testCustomMultipleAnnotations() throws {
+    func testAnnotatedWithMultipleCustomAnnotations() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -503,7 +503,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testAnnotationAlias() throws {
+    func testAnnotatedWithAnnotationAlias() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -512,8 +512,6 @@ class AnnotationTests: GRDBTestCase {
                 .annotated(with: Team.players.max(Column("score"), aliased: "a3"))
                 .annotated(with: Team.players.min(Column("score"), aliased: "a4"))
                 .annotated(with: Team.players.sum(Column("score"), aliased: "a5"))
-                .orderByPrimaryKey()
-                .asRequest(of: CustomTeamInfo.self)
             
             try assertEqualSQL(db, request, """
                 SELECT "team".*, \
@@ -524,13 +522,12 @@ class AnnotationTests: GRDBTestCase {
                 SUM("player"."score") AS "a5" \
                 FROM "team" \
                 LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
-                GROUP BY "team"."id" \
-                ORDER BY "team"."id"
+                GROUP BY "team"."id"
                 """)
         }
     }
     
-    func testAnnotationExpression() throws {
+    func testAnnotatedWithAnnotationExpression() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -538,9 +535,6 @@ class AnnotationTests: GRDBTestCase {
                 .annotated(with: Team.players.max(Column("score") * 10, aliased: "a3"))
                 .annotated(with: Team.players.min(-Column("score"), aliased: "a4"))
                 .annotated(with: Team.players.sum(Column("score") * Column("score"), aliased: "a5"))
-                .orderByPrimaryKey()
-                .asRequest(of: CustomTeamInfo.self)
-            
             try assertEqualSQL(db, request, """
                 SELECT "team".*, \
                 AVG(("player"."score" * "player"."score")) AS "a1", \
@@ -549,13 +543,12 @@ class AnnotationTests: GRDBTestCase {
                 SUM(("player"."score" * "player"."score")) AS "a5" \
                 FROM "team" \
                 LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
-                GROUP BY "team"."id" \
-                ORDER BY "team"."id"
+                GROUP BY "team"."id"
                 """)
         }
     }
 
-    func testMultipleCount() throws {
+    func testAnnotatedWithMultipleCount() throws {
         struct TeamInfo: Decodable, FetchableRecord {
             var team: Team
             var lowPlayerCount: Int
@@ -597,6 +590,102 @@ class AnnotationTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
             XCTAssertEqual(teamInfos[2].lowPlayerCount, 0)
             XCTAssertEqual(teamInfos[2].highPlayerCount, 0)
+        }
+    }
+    
+    func testHavingIsEmpty() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.having(Team.players.isEmpty())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") = 0)
+                    """)
+            }
+            do {
+                let request = Team.having(!Team.players.isEmpty())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") <> 0)
+                    """)
+            }
+            do {
+                let request = Team.having(Team.players.isEmpty() == false)
+                
+                // TODO: this is not nice at all
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING ((COUNT(DISTINCT "player"."rowid") = 0) = 0)
+                    """)
+            }
+        }
+    }
+
+    func testHavingEqual() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.having(Team.players.count() == 2)
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") = 2)
+                    """)
+            }
+            do {
+                let request = Team.having(2 == Team.players.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (2 = COUNT(DISTINCT "player"."rowid"))
+                    """)
+            }
+        }
+    }
+    
+    func testHavingNotEqual() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.having(Team.players.count() != 2)
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") <> 2)
+                    """)
+            }
+            do {
+                let request = Team.having(2 != Team.players.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (2 <> COUNT(DISTINCT "player"."rowid"))
+                    """)
+            }
         }
     }
 }

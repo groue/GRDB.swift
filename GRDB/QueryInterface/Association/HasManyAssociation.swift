@@ -111,8 +111,19 @@ extension HasManyAssociation where Destination: TableRecord {
     public func count(aliased name: String) -> Annotation<HasManyAssociation> {
         return Annotation(
             association: self,
-            expression: SQLExpressionCountDistinct(Column.rowID),
-            alias: name)
+            expression: SQLExpressionCountDistinct(Column.rowID))
+            .aliased(name)
+    }
+    
+    /// An annotation that is true if there exists no associated records.
+    ///
+    /// For example:
+    ///
+    ///     Team.having(Team.players.isEmpty())
+    ///     Team.having(!Team.players.isEmpty())
+    ///     Team.having(Team.players.isEmpty() == false)
+    public func isEmpty() -> Annotation<HasManyAssociation> {
+        return count() == 0
     }
     
     /// An annotation that evaluates to the average value of the given column
@@ -129,8 +140,8 @@ extension HasManyAssociation where Destination: TableRecord {
     public func average(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation> {
         return Annotation(
             association: self,
-            expression: SQLExpressionFunction(.avg, arguments: value),
-            alias: name)
+            expression: SQLExpressionFunction(.avg, arguments: value))
+            .aliased(name)
     }
     
     /// An annotation that evaluates to the maximum value of the given column
@@ -147,8 +158,8 @@ extension HasManyAssociation where Destination: TableRecord {
     public func max(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation> {
         return Annotation(
             association: self,
-            expression: SQLExpressionFunction(.max, arguments: value),
-            alias: name)
+            expression: SQLExpressionFunction(.max, arguments: value))
+            .aliased(name)
     }
     
     /// An annotation that evaluates to the minimum value of the given column
@@ -165,8 +176,8 @@ extension HasManyAssociation where Destination: TableRecord {
     public func min(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation> {
         return Annotation(
             association: self,
-            expression: SQLExpressionFunction(.min, arguments: value),
-            alias: name)
+            expression: SQLExpressionFunction(.min, arguments: value))
+            .aliased(name)
     }
     
     /// An annotation that evaluates to the sum of the given column
@@ -184,8 +195,8 @@ extension HasManyAssociation where Destination: TableRecord {
     public func sum(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation> {
         return Annotation(
             association: self,
-            expression: SQLExpressionFunction(.sum, arguments: value),
-            alias: name)
+            expression: SQLExpressionFunction(.sum, arguments: value))
+            .aliased(name)
     }
 }
 

@@ -48,7 +48,25 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
         // LEFT JOIN book ON ...
         // GROUP BY author.id
         let tableAlias = TableAlias()
-        return appendingSelection([tableAlias[annotation.expression].aliased(annotation.alias)])
+        let selectable: SQLSelectable
+        if let alias = annotation.alias {
+            selectable = tableAlias[annotation.expression].aliased(alias)
+        } else {
+            selectable = tableAlias[annotation.expression]
+        }
+        return appendingSelection([selectable])
+            .joining(optional: annotation.association.aliased(tableAlias))
+            .groupByPrimaryKey()
+    }
+    
+    /// TODO
+    public func having<A: Association>(_ annotation: Annotation<A>) -> QueryInterfaceRequest<T> where A.OriginRowDecoder == RowDecoder {
+        // SELECT author.*
+        // LEFT JOIN book ON ...
+        // GROUP BY author.id
+        // HAVING COUNT(book.rowID) > 0
+        let tableAlias = TableAlias()
+        return having(tableAlias[annotation.expression])
             .joining(optional: annotation.association.aliased(tableAlias))
             .groupByPrimaryKey()
     }
@@ -110,5 +128,10 @@ extension TableRecord {
     /// TODO
     public static func annotated<A: Association>(with annotation: Annotation<A>) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self {
         return all().annotated(with: annotation)
+    }
+    
+    /// TODO
+    public static func having<A: Association>(_ annotation: Annotation<A>) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self {
+        return all().having(annotation)
     }
 }
