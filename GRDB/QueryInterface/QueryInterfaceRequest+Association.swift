@@ -44,7 +44,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     
     /// TODO
     public func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
-        let (request, expression) = aggregate.run(self)
+        let (request, expression) = aggregate.prepare(self)
         if let alias = aggregate.alias {
             return request.appendingSelection([expression.aliased(alias)])
         } else {
@@ -54,7 +54,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     
     /// TODO
     public func having(_ aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
-        let (request, expression) = aggregate.run(self)
+        let (request, expression) = aggregate.prepare(self)
         return request.having(expression)
     }
 }

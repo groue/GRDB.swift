@@ -10,12 +10,11 @@ import Foundation
 
 /// TODO
 public struct AssociationAggregate<RowDecoder> {
-    // TODO: find a name
-    let run: (QueryInterfaceRequest<RowDecoder>) -> (request: QueryInterfaceRequest<RowDecoder>, expression: SQLExpression)
+    let prepare: (QueryInterfaceRequest<RowDecoder>) -> (request: QueryInterfaceRequest<RowDecoder>, expression: SQLExpression)
     var alias: String?
     
-    init(run: @escaping (QueryInterfaceRequest<RowDecoder>) -> (request: QueryInterfaceRequest<RowDecoder>, expression: SQLExpression)) {
-        self.run = run
+    init(_ prepare: @escaping (QueryInterfaceRequest<RowDecoder>) -> (request: QueryInterfaceRequest<RowDecoder>, expression: SQLExpression)) {
+        self.prepare = prepare
     }
 }
 
@@ -33,7 +32,7 @@ extension AssociationAggregate {
 /// TODO
 public prefix func ! <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = aggregate.run(request)
+        let (request, expression) = aggregate.prepare(request)
         return (request: request, expression: !expression)
     }
 }
@@ -41,8 +40,8 @@ public prefix func ! <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -
 /// TODO
 public func && <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.run(request)
-        let (request, rExpression) = rhs.run(lRequest)
+        let (lRequest, lExpression) = lhs.prepare(request)
+        let (request, rExpression) = rhs.prepare(lRequest)
         return (request: request, expression: lExpression && rExpression)
     }
 }
@@ -50,7 +49,7 @@ public func && <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associat
 /// TODO
 public func && <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression && rhs)
     }
 }
@@ -58,7 +57,7 @@ public func && <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpre
 /// TODO
 public func && <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs && expression)
     }
 }
@@ -66,8 +65,8 @@ public func && <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDe
 /// TODO
 public func || <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.run(request)
-        let (request, rExpression) = rhs.run(lRequest)
+        let (lRequest, lExpression) = lhs.prepare(request)
+        let (request, rExpression) = rhs.prepare(lRequest)
         return (request: request, expression: lExpression || rExpression)
     }
 }
@@ -75,7 +74,7 @@ public func || <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associat
 /// TODO
 public func || <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression || rhs)
     }
 }
@@ -83,7 +82,7 @@ public func || <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpre
 /// TODO
 public func || <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs || expression)
     }
 }
@@ -93,8 +92,8 @@ public func || <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDe
 /// TODO
 public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.run(request)
-        let (request, rExpression) = rhs.run(lRequest)
+        let (lRequest, lExpression) = lhs.prepare(request)
+        let (request, rExpression) = rhs.prepare(lRequest)
         return (request: request, expression: lExpression == rExpression)
     }
 }
@@ -102,7 +101,7 @@ public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associat
 /// TODO
 public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression == rhs)
     }
 }
@@ -110,7 +109,7 @@ public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpre
 /// TODO
 public func == <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs == expression)
     }
 }
@@ -118,7 +117,7 @@ public func == <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDe
 /// TODO
 public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression == rhs)
     }
 }
@@ -126,7 +125,7 @@ public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) ->
 /// TODO
 public func == <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs == expression)
     }
 }
@@ -134,8 +133,8 @@ public func == <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) ->
 /// TODO
 public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.run(request)
-        let (request, rExpression) = rhs.run(lRequest)
+        let (lRequest, lExpression) = lhs.prepare(request)
+        let (request, rExpression) = rhs.prepare(lRequest)
         return (request: request, expression: lExpression != rExpression)
     }
 }
@@ -143,7 +142,7 @@ public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associat
 /// TODO
 public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression != rhs)
     }
 }
@@ -151,7 +150,7 @@ public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpre
 /// TODO
 public func != <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs != expression)
     }
 }
@@ -159,7 +158,7 @@ public func != <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDe
 /// TODO
 public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression != rhs)
     }
 }
@@ -167,7 +166,7 @@ public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) ->
 /// TODO
 public func != <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs != expression)
     }
 }
@@ -175,8 +174,8 @@ public func != <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) ->
 /// TODO
 public func === <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.run(request)
-        let (request, rExpression) = rhs.run(lRequest)
+        let (lRequest, lExpression) = lhs.prepare(request)
+        let (request, rExpression) = rhs.prepare(lRequest)
         return (request: request, expression: lExpression === rExpression)
     }
 }
@@ -184,7 +183,7 @@ public func === <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associa
 /// TODO
 public func === <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression === rhs)
     }
 }
@@ -192,7 +191,7 @@ public func === <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpr
 /// TODO
 public func === <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs === expression)
     }
 }
@@ -200,8 +199,8 @@ public func === <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowD
 /// TODO
 public func !== <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.run(request)
-        let (request, rExpression) = rhs.run(lRequest)
+        let (lRequest, lExpression) = lhs.prepare(request)
+        let (request, rExpression) = rhs.prepare(lRequest)
         return (request: request, expression: lExpression !== rExpression)
     }
 }
@@ -209,7 +208,7 @@ public func !== <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associa
 /// TODO
 public func !== <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression !== rhs)
     }
 }
@@ -217,7 +216,7 @@ public func !== <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpr
 /// TODO
 public func !== <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs !== expression)
     }
 }
@@ -227,8 +226,8 @@ public func !== <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowD
 /// TODO
 public func <= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.run(request)
-        let (request, rExpression) = rhs.run(lRequest)
+        let (lRequest, lExpression) = lhs.prepare(request)
+        let (request, rExpression) = rhs.prepare(lRequest)
         return (request: request, expression: lExpression <= rExpression)
     }
 }
@@ -236,7 +235,7 @@ public func <= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associat
 /// TODO
 public func <= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression <= rhs)
     }
 }
@@ -244,7 +243,7 @@ public func <= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpre
 /// TODO
 public func <= <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs <= expression)
     }
 }
@@ -252,8 +251,8 @@ public func <= <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDe
 /// TODO
 public func < <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.run(request)
-        let (request, rExpression) = rhs.run(lRequest)
+        let (lRequest, lExpression) = lhs.prepare(request)
+        let (request, rExpression) = rhs.prepare(lRequest)
         return (request: request, expression: lExpression < rExpression)
     }
 }
@@ -261,7 +260,7 @@ public func < <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associati
 /// TODO
 public func < <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression < rhs)
     }
 }
@@ -269,7 +268,7 @@ public func < <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpres
 /// TODO
 public func < <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs < expression)
     }
 }
@@ -277,8 +276,8 @@ public func < <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDec
 /// TODO
 public func > <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.run(request)
-        let (request, rExpression) = rhs.run(lRequest)
+        let (lRequest, lExpression) = lhs.prepare(request)
+        let (request, rExpression) = rhs.prepare(lRequest)
         return (request: request, expression: lExpression > rExpression)
     }
 }
@@ -286,7 +285,7 @@ public func > <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associati
 /// TODO
 public func > <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression > rhs)
     }
 }
@@ -294,7 +293,7 @@ public func > <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpres
 /// TODO
 public func > <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs > expression)
     }
 }
@@ -302,8 +301,8 @@ public func > <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDec
 /// TODO
 public func >= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.run(request)
-        let (request, rExpression) = rhs.run(lRequest)
+        let (lRequest, lExpression) = lhs.prepare(request)
+        let (request, rExpression) = rhs.prepare(lRequest)
         return (request: request, expression: lExpression >= rExpression)
     }
 }
@@ -311,7 +310,7 @@ public func >= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associat
 /// TODO
 public func >= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression >= rhs)
     }
 }
@@ -319,7 +318,7 @@ public func >= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpre
 /// TODO
 public func >= <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs >= expression)
     }
 }
@@ -329,7 +328,7 @@ public func >= <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDe
 /// TODO
 public prefix func - <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = aggregate.run(request)
+        let (request, expression) = aggregate.prepare(request)
         return (request: request, expression:-expression)
     }
 }
@@ -337,8 +336,8 @@ public prefix func - <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -
 /// TODO
 public func + <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.run(request)
-        let (request, rExpression) = rhs.run(lRequest)
+        let (lRequest, lExpression) = lhs.prepare(request)
+        let (request, rExpression) = rhs.prepare(lRequest)
         return (request: request, expression: lExpression + rExpression)
     }
 }
@@ -346,7 +345,7 @@ public func + <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associati
 /// TODO
 public func + <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression + rhs)
     }
 }
@@ -354,7 +353,7 @@ public func + <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpres
 /// TODO
 public func + <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs + expression)
     }
 }
@@ -362,8 +361,8 @@ public func + <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDec
 /// TODO
 public func - <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.run(request)
-        let (request, rExpression) = rhs.run(lRequest)
+        let (lRequest, lExpression) = lhs.prepare(request)
+        let (request, rExpression) = rhs.prepare(lRequest)
         return (request: request, expression: lExpression - rExpression)
     }
 }
@@ -371,7 +370,7 @@ public func - <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associati
 /// TODO
 public func - <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression - rhs)
     }
 }
@@ -379,7 +378,7 @@ public func - <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpres
 /// TODO
 public func - <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs - expression)
     }
 }
@@ -387,8 +386,8 @@ public func - <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDec
 /// TODO
 public func * <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.run(request)
-        let (request, rExpression) = rhs.run(lRequest)
+        let (lRequest, lExpression) = lhs.prepare(request)
+        let (request, rExpression) = rhs.prepare(lRequest)
         return (request: request, expression: lExpression * rExpression)
     }
 }
@@ -396,7 +395,7 @@ public func * <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associati
 /// TODO
 public func * <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression * rhs)
     }
 }
@@ -404,7 +403,7 @@ public func * <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpres
 /// TODO
 public func * <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs * expression)
     }
 }
@@ -412,8 +411,8 @@ public func * <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDec
 /// TODO
 public func / <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.run(request)
-        let (request, rExpression) = rhs.run(lRequest)
+        let (lRequest, lExpression) = lhs.prepare(request)
+        let (request, rExpression) = rhs.prepare(lRequest)
         return (request: request, expression: lExpression / rExpression)
     }
 }
@@ -421,7 +420,7 @@ public func / <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associati
 /// TODO
 public func / <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = lhs.run(request)
+        let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression / rhs)
     }
 }
@@ -429,7 +428,7 @@ public func / <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpres
 /// TODO
 public func / <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
-        let (request, expression) = rhs.run(request)
+        let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs / expression)
     }
 }

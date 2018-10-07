@@ -541,11 +541,11 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.average(Column("score"), aliased: "a1"))
-                .annotated(with: Team.players.count(aliased: "a2"))
-                .annotated(with: Team.players.max(Column("score"), aliased: "a3"))
-                .annotated(with: Team.players.min(Column("score"), aliased: "a4"))
-                .annotated(with: Team.players.sum(Column("score"), aliased: "a5"))
+                .annotated(with: Team.players.average(Column("score")).aliased("a1"))
+                .annotated(with: Team.players.count().aliased("a2"))
+                .annotated(with: Team.players.max(Column("score")).aliased("a3"))
+                .annotated(with: Team.players.min(Column("score")).aliased("a4"))
+                .annotated(with: Team.players.sum(Column("score")).aliased("a5"))
             
             try assertEqualSQL(db, request, """
                 SELECT "team".*, \
@@ -565,10 +565,10 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.average(Column("score") * Column("score"), aliased: "a1"))
-                .annotated(with: Team.players.max(Column("score") * 10, aliased: "a3"))
-                .annotated(with: Team.players.min(-Column("score"), aliased: "a4"))
-                .annotated(with: Team.players.sum(Column("score") * Column("score"), aliased: "a5"))
+                .annotated(with: Team.players.average(Column("score") * Column("score")).aliased("a1"))
+                .annotated(with: Team.players.max(Column("score") * 10).aliased("a3"))
+                .annotated(with: Team.players.min(-Column("score")).aliased("a4"))
+                .annotated(with: Team.players.sum(Column("score") * Column("score")).aliased("a5"))
             try assertEqualSQL(db, request, """
                 SELECT "team".*, \
                 AVG(("player"."score" * "player"."score")) AS "a1", \

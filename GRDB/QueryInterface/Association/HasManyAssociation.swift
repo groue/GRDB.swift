@@ -94,7 +94,7 @@ extension HasManyAssociation: TableRequest where Destination: TableRecord {
 }
 
 extension HasManyAssociation where Origin: TableRecord, Destination: TableRecord {
-    private func aggregate(_ expression: SQLExpression) -> AssociationAggregate<Origin> {
+    private func makeAggregate(_ expression: SQLExpression) -> AssociationAggregate<Origin> {
         return AssociationAggregate { request in
             let tableAlias = TableAlias()
             let request = request
@@ -111,16 +111,7 @@ extension HasManyAssociation where Origin: TableRecord, Destination: TableRecord
     ///
     ///     Team.annotated(with: Team.players.count())
     public func count() -> AssociationAggregate<Origin> {
-        return count(aliased: "\(key)Count")
-    }
-    
-    /// The number of associated records.
-    ///
-    /// For example:
-    ///
-    ///     Team.annotated(with: Team.players.count(aliased: "numberOfPlayers"))
-    public func count(aliased name: String) -> AssociationAggregate<Origin> {
-        return aggregate(SQLExpressionCountDistinct(Column.rowID)).aliased(name)
+        return makeAggregate(SQLExpressionCountDistinct(Column.rowID)).aliased("\(key)Count")
     }
     
     /// An aggregate that is true if there exists no associated records.
@@ -131,63 +122,63 @@ extension HasManyAssociation where Origin: TableRecord, Destination: TableRecord
     ///     Team.having(!Team.players.isEmpty())
     ///     Team.having(Team.players.isEmpty() == false)
     public func isEmpty() -> AssociationAggregate<Origin> {
-        return aggregate(SQLExpressionIsEmpty(SQLExpressionCountDistinct(Column.rowID)))
+        return makeAggregate(SQLExpressionIsEmpty(SQLExpressionCountDistinct(Column.rowID)))
     }
     
-    /// The average value of the given column in associated records.
+    /// The average value of the given expression in associated records.
     ///
     /// For example:
     ///
     ///     Team.annotated(with: Team.players.average(Column("score")))
-    public func average(_ column: Column) -> AssociationAggregate<Origin> {
-        return average(column, aliased: "average\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+    public func average(_ expression: SQLExpressible) -> AssociationAggregate<Origin> {
+        let aggregate = makeAggregate(SQLExpressionFunction(.avg, arguments: expression))
+        if let column = expression as? ColumnExpression {
+            return aggregate.aliased("average\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+        } else {
+            return aggregate
+        }
     }
     
-    /// The average value of the given expression in associated records.
-    public func average(_ value: SQLSpecificExpressible, aliased name: String) -> AssociationAggregate<Origin> {
-        return aggregate(SQLExpressionFunction(.avg, arguments: value)).aliased(name)
-    }
-    
-    /// The maximum value of the given column in associated records.
+    /// The maximum value of the given expression in associated records.
     ///
     /// For example:
     ///
     ///     Team.annotated(with: Team.players.max(Column("score")))
-    public func max(_ column: Column) -> AssociationAggregate<Origin> {
-        return max(column, aliased: "max\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
-    }
-    
-    /// The maximum value of the given expression in associated records.
-    public func max(_ value: SQLSpecificExpressible, aliased name: String) -> AssociationAggregate<Origin> {
-        return aggregate(SQLExpressionFunction(.max, arguments: value)).aliased(name)
-    }
-    
-    /// The minimum value of the given column in associated records.
-    ///
-    /// For example:
-    ///
-    ///     Team.annotated(with: Team.players.min(Column("score")))
-    public func min(_ column: Column) -> AssociationAggregate<Origin> {
-        return min(column, aliased: "min\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+    public func max(_ expression: SQLExpressible) -> AssociationAggregate<Origin> {
+        let aggregate = makeAggregate(SQLExpressionFunction(.max, arguments: expression))
+        if let column = expression as? ColumnExpression {
+            return aggregate.aliased("max\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+        } else {
+            return aggregate
+        }
     }
     
     /// The minimum value of the given expression in associated records.
-    public func min(_ value: SQLSpecificExpressible, aliased name: String) -> AssociationAggregate<Origin> {
-        return aggregate(SQLExpressionFunction(.min, arguments: value)).aliased(name)
-    }
-    
-    /// The sum of the given column in associated records.
     ///
     /// For example:
     ///
     ///     Team.annotated(with: Team.players.min(Column("score")))
-    public func sum(_ column: Column) -> AssociationAggregate<Origin> {
-        return sum(column, aliased: "\(key)\(column.name.uppercasingFirstCharacter)Sum")
+    public func min(_ expression: SQLExpressible) -> AssociationAggregate<Origin> {
+        let aggregate = makeAggregate(SQLExpressionFunction(.min, arguments: expression))
+        if let column = expression as? ColumnExpression {
+            return aggregate.aliased("min\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+        } else {
+            return aggregate
+        }
     }
-    
+
     /// The sum of the given expression in associated records.
-    public func sum(_ value: SQLSpecificExpressible, aliased name: String) -> AssociationAggregate<Origin> {
-        return aggregate(SQLExpressionFunction(.sum, arguments: value)).aliased(name)
+    ///
+    /// For example:
+    ///
+    ///     Team.annotated(with: Team.players.min(Column("score")))
+    public func sum(_ expression: SQLExpressible) -> AssociationAggregate<Origin> {
+        let aggregate = makeAggregate(SQLExpressionFunction(.sum, arguments: expression))
+        if let column = expression as? ColumnExpression {
+            return aggregate.aliased("\(key)\(column.name.uppercasingFirstCharacter)Sum")
+        } else {
+            return aggregate
+        }
     }
 }
 
