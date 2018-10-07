@@ -1415,9 +1415,15 @@ let request = author.books.select(max(yearColumn))
 let maxYear = try Int.fetchOne(db, request)      // Int?
 ```
 
-When you need to count aggregates **from several record**, you'll use an **association aggregate**. Those are the topic of this chapter.
+When you need to compute aggregates **from several record**, in a single shot, you'll use an **association aggregate**. Those are the topic of this chapter.
 
-For example, look at how we fetch all authors, and count their books, in a single shot:
+For example, you'll use the `isEmpty` aggregate when you want, say, to fetch all authors who wrote no book at all:
+
+```swift
+let lazyAuthors = try Author.having(Author.books.isEmpty).fetchAll(db)
+```
+
+And the `count` aggregate lets you fetch all authors along with the number of books they wrote:
 
 ```swift
 struct AuthorInfo: Decodable, FetchableRecord {
