@@ -3,6 +3,8 @@ Release Notes
 
 ## Next Version
 
+This release comes with **Association Aggregates**. They let you compute values out of collections of associated records, such as their count, or the maximum value of an associated record column.
+
 ### Fixed
 
 - [#425](https://github.com/groue/GRDB.swift/pull/425): Fix "destination database is in use " error during database backup
@@ -13,6 +15,13 @@ Release Notes
 
 - [#422](https://github.com/groue/GRDB.swift/pull/422): Refining Association Requests
 - [#423](https://github.com/groue/GRDB.swift/pull/423): Association Aggregates
+
+
+### Documentation Diff
+
+- [Refining Association Requests](Documentation/AssociationBasics.md#refining-association-requests): this new chapter describes how you can craft complex associated requests in a modular way.
+- [Association Aggregates](Documentation/AssociationBasics.md#association-aggregates): this chapter describes the main new feature of this release.
+
 
 
 ### API diff
@@ -31,29 +40,41 @@ Release Notes
 +    func groupByPrimaryKey() -> Self {
 +}
 
-+struct Annotation<A: Association> { }
++struct AssociationAggregate<RowDecoder> {
++    func aliased(_ name: String) -> AssociationAggregate<RowDecoder>
++    func aliased(_ key: CodingKey) -> AssociationAggregate<RowDecoder>
++}
 
-+extension HasManyAssociation where Destination: TableRecord {
-+    func count() -> Annotation<HasManyAssociation>
-+    func count(aliased name: String) -> Annotation<HasManyAssociation>
-+    func average(_ column: Column) -> Annotation<HasManyAssociation>
-+    func average(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation>
-+    func max(_ column: Column) -> Annotation<HasManyAssociation>
-+    func max(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation>
-+    func min(_ column: Column -> Annotation<HasManyAssociation>
-+    func min(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation>
-+    func sum(_ column: Column) -> Annotation<HasManyAssociation>
-+    func sum(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation>
-+)
++extension HasManyAssociation where Origin: TableRecord, Destination: TableRecord {
++    var count: AssociationAggregate<Origin>
++    var isEmpty: AssociationAggregate<Origin>
++    func average(_ expression: SQLExpressible) -> AssociationAggregate<Origin>
++    func max(_ expression: SQLExpressible) -> AssociationAggregate<Origin>
++    func min(_ expression: SQLExpressible) -> AssociationAggregate<Origin>
++    func sum(_ expression: SQLExpressible) -> AssociationAggregate<Origin>
++}
+
++extension QueryInterfaceRequest {
++    func appendingSelection(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<T>
++}
 
 +extension QueryInterfaceRequest where RowDecoder: TableRecord {
-+    func annotated<A: Association>(with annotation: Annotation<A>) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder
++    func annotated(with aggregates: AssociationAggregate<RowDecoder>...) -> QueryInterfaceRequest<RowDecoder>
++    func annotated(with aggregates: [AssociationAggregate<RowDecoder>]) -> QueryInterfaceRequest<RowDecoder>
++    func having(_ aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder>
 +}
 
 +extension TableRecord {
-+    static func annotated<A: Association>(with annotation: Annotation<A>) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self
++    static func annotated(with aggregates: AssociationAggregate<Self>...) -> QueryInterfaceRequest<Self>
++    static func annotated(with aggregates: [AssociationAggregate<Self>]) -> QueryInterfaceRequest<Self>
++    static func having(_ aggregate: AssociationAggregate<Self>) -> QueryInterfaceRequest<Self>
++}
+
++extension SQLSpecificExpressible {
++    public func aliased(_ key: CodingKey) -> SQLSelectable
 +}
 ```
+
 
 ## 3.3.1
 

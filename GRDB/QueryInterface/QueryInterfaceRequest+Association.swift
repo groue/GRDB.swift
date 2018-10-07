@@ -124,10 +124,15 @@ extension TableRecord {
     // MARK: - Association Aggregates
     
     /// TODO
-    public static func annotated(with aggregate: AssociationAggregate<Self>) -> QueryInterfaceRequest<Self> {
-        return all().annotated(with: aggregate)
+    public static func annotated(with aggregates: AssociationAggregate<Self>...) -> QueryInterfaceRequest<Self> {
+        return all().annotated(with: aggregates)
     }
     
+    /// TODO
+    public static func annotated(with aggregates: [AssociationAggregate<Self>]) -> QueryInterfaceRequest<Self> {
+        return all().annotated(with: aggregates)
+    }
+
     /// TODO
     public static func having(_ aggregate: AssociationAggregate<Self>) -> QueryInterfaceRequest<Self> {
         return all().having(aggregate)
