@@ -32,11 +32,70 @@ extension AssociationAggregate {
     }
 }
 
+// MARK: - Logical Operators (AND, OR, NOT)
+
 /// TODO
 public prefix func ! <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate(
         expression: !aggregate.expression,
         aggregatedRequest: aggregate.aggregatedRequest)
+}
+
+/// TODO
+public func && <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression && rhs.expression,
+        aggregatedRequest: { request, tableAlias in
+            rhs.aggregatedRequest(lhs.aggregatedRequest(request, tableAlias), tableAlias)
+    })
+}
+
+/// TODO
+public func && <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression && rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
+}
+
+/// TODO
+public func && <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs && rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
+}
+
+/// TODO
+public func || <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression || rhs.expression,
+        aggregatedRequest: { request, tableAlias in
+            rhs.aggregatedRequest(lhs.aggregatedRequest(request, tableAlias), tableAlias)
+    })
+}
+
+/// TODO
+public func || <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression || rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
+}
+
+/// TODO
+public func || <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs || rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
+}
+
+// MARK: - Egality and Identity Operators (=, <>, IS, IS NOT)
+
+/// TODO
+public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression == rhs.expression,
+        aggregatedRequest: { request, tableAlias in
+            rhs.aggregatedRequest(lhs.aggregatedRequest(request, tableAlias), tableAlias)
+    })
 }
 
 /// TODO
@@ -61,7 +120,30 @@ public func == <RowDecoder>(lhs: SQLExpressible?, rhs: AssociationAggregate<RowD
 }
 
 /// TODO
+public func == <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs == rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
+}
+
+/// TODO
+public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression != rhs.expression,
+        aggregatedRequest: { request, tableAlias in
+            rhs.aggregatedRequest(lhs.aggregatedRequest(request, tableAlias), tableAlias)
+    })
+}
+
+/// TODO
 public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible?) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression != rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
+}
+
+/// TODO
+public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate(
         expression: lhs.expression != rhs,
         aggregatedRequest: lhs.aggregatedRequest)
@@ -75,8 +157,250 @@ public func != <RowDecoder>(lhs: SQLExpressible?, rhs: AssociationAggregate<RowD
 }
 
 /// TODO
-public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) -> AssociationAggregate<RowDecoder> {
+public func != <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate(
-        expression: lhs.expression != rhs,
+        expression: lhs != rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
+}
+
+/// TODO
+public func === <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression === rhs.expression,
+        aggregatedRequest: { request, tableAlias in
+            rhs.aggregatedRequest(lhs.aggregatedRequest(request, tableAlias), tableAlias)
+    })
+}
+
+/// TODO
+public func === <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible?) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression === rhs,
         aggregatedRequest: lhs.aggregatedRequest)
 }
+
+/// TODO
+public func === <RowDecoder>(lhs: SQLExpressible?, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs === rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
+}
+
+/// TODO
+public func !== <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression !== rhs.expression,
+        aggregatedRequest: { request, tableAlias in
+            rhs.aggregatedRequest(lhs.aggregatedRequest(request, tableAlias), tableAlias)
+    })
+}
+
+/// TODO
+public func !== <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible?) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression !== rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
+}
+
+/// TODO
+public func !== <RowDecoder>(lhs: SQLExpressible?, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs !== rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
+}
+
+// MARK: - Comparison Operators (<, >, <=, >=)
+
+/// TODO
+public func < <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression < rhs.expression,
+        aggregatedRequest: { request, tableAlias in
+            rhs.aggregatedRequest(lhs.aggregatedRequest(request, tableAlias), tableAlias)
+    })
+}
+
+/// TODO
+public func < <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression < rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
+}
+
+/// TODO
+public func < <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs < rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
+}
+
+/// TODO
+public func <= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression <= rhs.expression,
+        aggregatedRequest: { request, tableAlias in
+            rhs.aggregatedRequest(lhs.aggregatedRequest(request, tableAlias), tableAlias)
+    })
+}
+
+/// TODO
+public func <= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression <= rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
+}
+
+/// TODO
+public func <= <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs <= rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
+}
+
+/// TODO
+public func > <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression > rhs.expression,
+        aggregatedRequest: { request, tableAlias in
+            rhs.aggregatedRequest(lhs.aggregatedRequest(request, tableAlias), tableAlias)
+    })
+}
+
+/// TODO
+public func > <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression > rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
+}
+
+/// TODO
+public func > <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs > rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
+}
+
+/// TODO
+public func >= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression >= rhs.expression,
+        aggregatedRequest: { request, tableAlias in
+            rhs.aggregatedRequest(lhs.aggregatedRequest(request, tableAlias), tableAlias)
+    })
+}
+
+/// TODO
+public func >= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression >= rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
+}
+
+/// TODO
+public func >= <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs >= rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
+}
+
+// MARK: - Arithmetic Operators (+, -, *, /)
+
+/// TODO
+public prefix func - <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: -aggregate.expression,
+        aggregatedRequest: aggregate.aggregatedRequest)
+}
+
+/// TODO
+public func + <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression + rhs.expression,
+        aggregatedRequest: { request, tableAlias in
+            rhs.aggregatedRequest(lhs.aggregatedRequest(request, tableAlias), tableAlias)
+    })
+}
+
+/// TODO
+public func + <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression + rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
+}
+
+/// TODO
+public func + <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs + rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
+}
+
+/// TODO
+public func - <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression - rhs.expression,
+        aggregatedRequest: { request, tableAlias in
+            rhs.aggregatedRequest(lhs.aggregatedRequest(request, tableAlias), tableAlias)
+    })
+}
+
+/// TODO
+public func - <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression - rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
+}
+
+/// TODO
+public func - <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs - rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
+}
+
+/// TODO
+public func * <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression * rhs.expression,
+        aggregatedRequest: { request, tableAlias in
+            rhs.aggregatedRequest(lhs.aggregatedRequest(request, tableAlias), tableAlias)
+    })
+}
+
+/// TODO
+public func * <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression * rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
+}
+
+/// TODO
+public func * <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs * rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
+}
+
+/// TODO
+public func / <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression / rhs.expression,
+        aggregatedRequest: { request, tableAlias in
+            rhs.aggregatedRequest(lhs.aggregatedRequest(request, tableAlias), tableAlias)
+    })
+}
+
+/// TODO
+public func / <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs.expression / rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
+}
+
+/// TODO
+public func / <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
+    return AssociationAggregate(
+        expression: lhs / rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
+}
+
