@@ -9,20 +9,23 @@
 import Foundation
 
 /// TODO
-public struct AssociationAggregate<A: Association> {
-    let association: A
+public struct AssociationAggregate<RowDecoder> {
+    let aggregatedRequest: (QueryInterfaceRequest<RowDecoder>, TableAlias) -> QueryInterfaceRequest<RowDecoder>
     let expression: SQLExpression
     var alias: String?
     
-    init(association: A, expression: SQLExpression) {
-        self.association = association
+    init(
+        expression: SQLExpression,
+        aggregatedRequest: @escaping (QueryInterfaceRequest<RowDecoder>, TableAlias) -> QueryInterfaceRequest<RowDecoder>)
+    {
+        self.aggregatedRequest = aggregatedRequest
         self.expression = expression
     }
 }
 
 extension AssociationAggregate {
     /// TODO
-    public func aliased(_ name: String) -> AssociationAggregate<A> {
+    public func aliased(_ name: String) -> AssociationAggregate<RowDecoder> {
         var aggregate = self
         aggregate.alias = name
         return aggregate
@@ -30,50 +33,50 @@ extension AssociationAggregate {
 }
 
 /// TODO
-public prefix func ! <A>(aggregate: AssociationAggregate<A>) -> AssociationAggregate<A> {
+public prefix func ! <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate(
-        association: aggregate.association,
-        expression: !aggregate.expression)
+        expression: !aggregate.expression,
+        aggregatedRequest: aggregate.aggregatedRequest)
 }
 
 /// TODO
-public func == <A>(lhs: AssociationAggregate<A>, rhs: SQLExpressible?) -> AssociationAggregate<A> {
+public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible?) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate(
-        association: lhs.association,
-        expression: lhs.expression == rhs)
+        expression: lhs.expression == rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
 }
 
 /// TODO
-public func == <A>(lhs: SQLExpressible?, rhs: AssociationAggregate<A>) -> AssociationAggregate<A> {
+public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate(
-        association: rhs.association,
-        expression: lhs == rhs.expression)
+        expression: lhs.expression == rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
 }
 
 /// TODO
-public func == <A>(lhs: AssociationAggregate<A>, rhs: Bool) -> AssociationAggregate<A> {
+public func == <RowDecoder>(lhs: SQLExpressible?, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate(
-        association: lhs.association,
-        expression: lhs.expression == rhs)
+        expression: lhs == rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
 }
 
 /// TODO
-public func != <A>(lhs: AssociationAggregate<A>, rhs: SQLExpressible?) -> AssociationAggregate<A> {
+public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible?) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate(
-        association: lhs.association,
-        expression: lhs.expression != rhs)
+        expression: lhs.expression != rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
 }
 
 /// TODO
-public func != <A>(lhs: SQLExpressible?, rhs: AssociationAggregate<A>) -> AssociationAggregate<A> {
+public func != <RowDecoder>(lhs: SQLExpressible?, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate(
-        association: rhs.association,
-        expression: lhs != rhs.expression)
+        expression: lhs != rhs.expression,
+        aggregatedRequest: rhs.aggregatedRequest)
 }
 
 /// TODO
-public func != <A>(lhs: AssociationAggregate<A>, rhs: Bool) -> AssociationAggregate<A> {
+public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate(
-        association: lhs.association,
-        expression: lhs.expression != rhs)
+        expression: lhs.expression != rhs,
+        aggregatedRequest: lhs.aggregatedRequest)
 }

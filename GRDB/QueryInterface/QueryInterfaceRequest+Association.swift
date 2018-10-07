@@ -43,7 +43,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     // MARK: - Association Aggregates
     
     /// TODO
-    public func annotated<A: Association>(with aggregate: AssociationAggregate<A>) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder {
+    public func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
         // SELECT author.*, COUNT(book.rowID) AS bookCount
         // LEFT JOIN book ON ...
         // GROUP BY author.id
@@ -54,21 +54,17 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
         } else {
             selectable = tableAlias[aggregate.expression]
         }
-        return appendingSelection([selectable])
-            .joining(optional: aggregate.association.aliased(tableAlias))
-            .groupByPrimaryKey()
+        return aggregate.aggregatedRequest(appendingSelection([selectable]), tableAlias)
     }
     
     /// TODO
-    public func having<A: Association>(_ aggregate: AssociationAggregate<A>) -> QueryInterfaceRequest<T> where A.OriginRowDecoder == RowDecoder {
+    public func having(_ aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
         // SELECT author.*
         // LEFT JOIN book ON ...
         // GROUP BY author.id
         // HAVING COUNT(book.rowID) > 0
         let tableAlias = TableAlias()
-        return having(tableAlias[aggregate.expression])
-            .joining(optional: aggregate.association.aliased(tableAlias))
-            .groupByPrimaryKey()
+        return aggregate.aggregatedRequest(having(tableAlias[aggregate.expression]), tableAlias)
     }
 }
 
@@ -126,12 +122,12 @@ extension TableRecord {
     // MARK: - Association Aggregates
     
     /// TODO
-    public static func annotated<A: Association>(with aggregate: AssociationAggregate<A>) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self {
+    public static func annotated(with aggregate: AssociationAggregate<Self>) -> QueryInterfaceRequest<Self> {
         return all().annotated(with: aggregate)
     }
     
     /// TODO
-    public static func having<A: Association>(_ aggregate: AssociationAggregate<A>) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self {
+    public static func having(_ aggregate: AssociationAggregate<Self>) -> QueryInterfaceRequest<Self> {
         return all().having(aggregate)
     }
 }
