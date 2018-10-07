@@ -42,13 +42,24 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     
     // MARK: - Association Aggregates
     
-    /// TODO
-    public func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
+    private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
         let (request, expression) = aggregate.prepare(self)
         if let alias = aggregate.alias {
             return request.appendingSelection([expression.aliased(alias)])
         } else {
             return request.appendingSelection([expression])
+        }
+    }
+    
+    /// TODO
+    public func annotated(with aggregates: AssociationAggregate<RowDecoder>...) -> QueryInterfaceRequest<RowDecoder> {
+        return annotated(with: aggregates)
+    }
+
+    /// TODO
+    public func annotated(with aggregates: [AssociationAggregate<RowDecoder>]) -> QueryInterfaceRequest<RowDecoder> {
+        return aggregates.reduce(self) { request, aggregate in
+            request.annotated(with: aggregate)
         }
     }
     

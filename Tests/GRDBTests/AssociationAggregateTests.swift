@@ -87,7 +87,7 @@ class AssociationAggregateTests: GRDBTestCase {
         try dbQueue.read { db in
             let tableAlias = TableAlias(name: "custom")
             let request = Team
-                .annotated(with: Team.players.count())
+                .annotated(with: Team.players.count)
                 .joining(required: Team.players.aliased(tableAlias).filter(sql: "custom.score < ?", arguments: [500]))
             
             try assertEqualSQL(db, request, """
@@ -136,7 +136,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.count())
+                .annotated(with: Team.players.count)
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
             
@@ -269,9 +269,8 @@ class AssociationAggregateTests: GRDBTestCase {
         try dbQueue.read { db in
             let request = Team
                 .annotated(with: Team.players.average(Column("score")))
-                .annotated(with: Team.players.count())
-                .annotated(with: Team.players.max(Column("score")))
-                .annotated(with: Team.players.min(Column("score")))
+                .annotated(with: Team.players.count)
+                .annotated(with: Team.players.min(Column("score")), Team.players.max(Column("score")))
                 .annotated(with: Team.players.sum(Column("score")))
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
@@ -280,8 +279,8 @@ class AssociationAggregateTests: GRDBTestCase {
                 SELECT "team".*, \
                 AVG("player"."score") AS "averagePlayerScore", \
                 COUNT(DISTINCT "player"."rowid") AS "playerCount", \
-                MAX("player"."score") AS "maxPlayerScore", \
                 MIN("player"."score") AS "minPlayerScore", \
+                MAX("player"."score") AS "maxPlayerScore", \
                 SUM("player"."score") AS "playerScoreSum" \
                 FROM "team" \
                 LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
@@ -355,7 +354,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.customPlayers.count())
+                .annotated(with: Team.customPlayers.count)
                 .orderByPrimaryKey()
                 .asRequest(of: CustomTeamInfo.self)
             
@@ -488,9 +487,8 @@ class AssociationAggregateTests: GRDBTestCase {
         try dbQueue.read { db in
             let request = Team
                 .annotated(with: Team.customPlayers.average(Column("score")))
-                .annotated(with: Team.customPlayers.count())
-                .annotated(with: Team.customPlayers.max(Column("score")))
-                .annotated(with: Team.customPlayers.min(Column("score")))
+                .annotated(with: Team.customPlayers.count)
+                .annotated(with: Team.customPlayers.min(Column("score")), Team.customPlayers.max(Column("score")))
                 .annotated(with: Team.customPlayers.sum(Column("score")))
                 .orderByPrimaryKey()
                 .asRequest(of: CustomTeamInfo.self)
@@ -499,8 +497,8 @@ class AssociationAggregateTests: GRDBTestCase {
                 SELECT "team".*, \
                 AVG("player"."score") AS "averageCustomScore", \
                 COUNT(DISTINCT "player"."rowid") AS "customCount", \
-                MAX("player"."score") AS "maxCustomScore", \
                 MIN("player"."score") AS "minCustomScore", \
+                MAX("player"."score") AS "maxCustomScore", \
                 SUM("player"."score") AS "customScoreSum" \
                 FROM "team" \
                 LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
@@ -542,7 +540,7 @@ class AssociationAggregateTests: GRDBTestCase {
         try dbQueue.read { db in
             let request = Team
                 .annotated(with: Team.players.average(Column("score")).aliased("a1"))
-                .annotated(with: Team.players.count().aliased("a2"))
+                .annotated(with: Team.players.count.aliased("a2"))
                 .annotated(with: Team.players.max(Column("score")).aliased("a3"))
                 .annotated(with: Team.players.min(Column("score")).aliased("a4"))
                 .annotated(with: Team.players.sum(Column("score")).aliased("a5"))
@@ -591,8 +589,8 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.filter(Column("score") < 500).forKey("lowPlayer").count())
-                .annotated(with: Team.players.filter(Column("score") >= 500).forKey("highPlayer").count())
+                .annotated(with: Team.players.filter(Column("score") < 500).forKey("lowPlayer").count)
+                .annotated(with: Team.players.filter(Column("score") >= 500).forKey("highPlayer").count)
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
             
@@ -631,7 +629,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                let request = Team.having(Team.players.isEmpty())
+                let request = Team.having(Team.players.isEmpty)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -642,7 +640,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(!Team.players.isEmpty())
+                let request = Team.having(!Team.players.isEmpty)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -653,7 +651,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(Team.players.isEmpty() == false)
+                let request = Team.having(Team.players.isEmpty == false)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -664,7 +662,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(Team.players.isEmpty() == true)
+                let request = Team.having(Team.players.isEmpty == true)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -681,7 +679,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                let request = Team.having(Team.players.count() == 2)
+                let request = Team.having(Team.players.count == 2)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -692,7 +690,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(2 == Team.players.count())
+                let request = Team.having(2 == Team.players.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -703,7 +701,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(Team.players.count() == Team.awards.count())
+                let request = Team.having(Team.players.count == Team.awards.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -721,7 +719,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                let request = Team.having(Team.players.count() != 2)
+                let request = Team.having(Team.players.count != 2)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -732,7 +730,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(2 != Team.players.count())
+                let request = Team.having(2 != Team.players.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -743,7 +741,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(Team.players.count() != Team.awards.count())
+                let request = Team.having(Team.players.count != Team.awards.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -761,7 +759,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                let request = Team.having(Team.players.count() >= 2)
+                let request = Team.having(Team.players.count >= 2)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -772,7 +770,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(2 >= Team.players.count())
+                let request = Team.having(2 >= Team.players.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -783,7 +781,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(Team.players.count() >= Team.awards.count())
+                let request = Team.having(Team.players.count >= Team.awards.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -801,7 +799,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                let request = Team.having(Team.players.count() > 2)
+                let request = Team.having(Team.players.count > 2)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -812,7 +810,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(2 > Team.players.count())
+                let request = Team.having(2 > Team.players.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -823,7 +821,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(Team.players.count() > Team.awards.count())
+                let request = Team.having(Team.players.count > Team.awards.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -841,7 +839,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                let request = Team.having(Team.players.count() <= 2)
+                let request = Team.having(Team.players.count <= 2)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -852,7 +850,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(2 <= Team.players.count())
+                let request = Team.having(2 <= Team.players.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -863,7 +861,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(Team.players.count() <= Team.awards.count())
+                let request = Team.having(Team.players.count <= Team.awards.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -881,7 +879,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                let request = Team.having(Team.players.count() < 2)
+                let request = Team.having(Team.players.count < 2)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -892,7 +890,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(2 < Team.players.count())
+                let request = Team.having(2 < Team.players.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -903,7 +901,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(Team.players.count() < Team.awards.count())
+                let request = Team.having(Team.players.count < Team.awards.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -921,7 +919,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                let request = Team.having(Team.players.isEmpty() && Team.awards.isEmpty())
+                let request = Team.having(Team.players.isEmpty && Team.awards.isEmpty)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -933,7 +931,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(Team.players.isEmpty() || Team.awards.isEmpty())
+                let request = Team.having(Team.players.isEmpty || Team.awards.isEmpty)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -945,7 +943,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.having(!(Team.players.isEmpty() || Team.awards.isEmpty()))
+                let request = Team.having(!(Team.players.isEmpty || Team.awards.isEmpty))
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
@@ -963,7 +961,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                let request = Team.annotated(with: -Team.players.count())
+                let request = Team.annotated(with: -Team.players.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, -COUNT(DISTINCT "player"."rowid") \
@@ -979,7 +977,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                let request = Team.annotated(with: Team.players.count() + 2)
+                let request = Team.annotated(with: Team.players.count + 2)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, (COUNT(DISTINCT "player"."rowid") + 2) \
@@ -989,7 +987,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.annotated(with: 2 + Team.players.count())
+                let request = Team.annotated(with: 2 + Team.players.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, (2 + COUNT(DISTINCT "player"."rowid")) \
@@ -999,7 +997,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.annotated(with: Team.players.count() + Team.awards.count())
+                let request = Team.annotated(with: Team.players.count + Team.awards.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, (COUNT(DISTINCT "player"."rowid") + COUNT(DISTINCT "award"."rowid")) \
@@ -1016,7 +1014,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                let request = Team.annotated(with: Team.players.count() - 2)
+                let request = Team.annotated(with: Team.players.count - 2)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, (COUNT(DISTINCT "player"."rowid") - 2) \
@@ -1026,7 +1024,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.annotated(with: 2 - Team.players.count())
+                let request = Team.annotated(with: 2 - Team.players.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, (2 - COUNT(DISTINCT "player"."rowid")) \
@@ -1036,7 +1034,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.annotated(with: Team.players.count() - Team.awards.count())
+                let request = Team.annotated(with: Team.players.count - Team.awards.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, (COUNT(DISTINCT "player"."rowid") - COUNT(DISTINCT "award"."rowid")) \
@@ -1053,7 +1051,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                let request = Team.annotated(with: Team.players.count() * 2)
+                let request = Team.annotated(with: Team.players.count * 2)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, (COUNT(DISTINCT "player"."rowid") * 2) \
@@ -1063,7 +1061,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.annotated(with: 2 * Team.players.count())
+                let request = Team.annotated(with: 2 * Team.players.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, (2 * COUNT(DISTINCT "player"."rowid")) \
@@ -1073,7 +1071,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.annotated(with: Team.players.count() * Team.awards.count())
+                let request = Team.annotated(with: Team.players.count * Team.awards.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, (COUNT(DISTINCT "player"."rowid") * COUNT(DISTINCT "award"."rowid")) \
@@ -1090,7 +1088,7 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                let request = Team.annotated(with: Team.players.count() / 2)
+                let request = Team.annotated(with: Team.players.count / 2)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, (COUNT(DISTINCT "player"."rowid") / 2) \
@@ -1100,7 +1098,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.annotated(with: 2 / Team.players.count())
+                let request = Team.annotated(with: 2 / Team.players.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, (2 / COUNT(DISTINCT "player"."rowid")) \
@@ -1110,7 +1108,7 @@ class AssociationAggregateTests: GRDBTestCase {
                     """)
             }
             do {
-                let request = Team.annotated(with: Team.players.count() / Team.awards.count())
+                let request = Team.annotated(with: Team.players.count / Team.awards.count)
                 
                 try assertEqualSQL(db, request, """
                     SELECT "team".*, (COUNT(DISTINCT "player"."rowid") / COUNT(DISTINCT "award"."rowid")) \

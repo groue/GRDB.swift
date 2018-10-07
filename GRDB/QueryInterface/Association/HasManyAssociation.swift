@@ -110,7 +110,7 @@ extension HasManyAssociation where Origin: TableRecord, Destination: TableRecord
     /// For example:
     ///
     ///     Team.annotated(with: Team.players.count())
-    public func count() -> AssociationAggregate<Origin> {
+    public var count: AssociationAggregate<Origin> {
         return makeAggregate(SQLExpressionCountDistinct(Column.rowID)).aliased("\(key)Count")
     }
     
@@ -121,7 +121,7 @@ extension HasManyAssociation where Origin: TableRecord, Destination: TableRecord
     ///     Team.having(Team.players.isEmpty())
     ///     Team.having(!Team.players.isEmpty())
     ///     Team.having(Team.players.isEmpty() == false)
-    public func isEmpty() -> AssociationAggregate<Origin> {
+    public var isEmpty: AssociationAggregate<Origin> {
         return makeAggregate(SQLExpressionIsEmpty(SQLExpressionCountDistinct(Column.rowID)))
     }
     

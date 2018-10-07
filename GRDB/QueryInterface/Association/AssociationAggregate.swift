@@ -25,6 +25,11 @@ extension AssociationAggregate {
         aggregate.alias = name
         return aggregate
     }
+    
+    /// TODO
+    public func aliased(_ key: CodingKey) -> AssociationAggregate<RowDecoder> {
+        return aliased(key.stringValue)
+    }
 }
 
 // MARK: - Logical Operators (AND, OR, NOT)
