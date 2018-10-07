@@ -1755,7 +1755,7 @@ But in the following example, we use the same association `Author.books` twice, 
     
     ```sql
     SELECT author.*,
-           COUNT(DISTINCT book1.rowid) AS novelCount
+           COUNT(DISTINCT book1.rowid) AS novelCount,
            COUNT(DISTINCT book2.rowid) AS theatrePlayCount
     FROM author
     LEFT JOIN book book1 ON book1.authorId = author.id AND book1.kind = 'novel'
@@ -1795,8 +1795,8 @@ But in the following example, we use the same association `Author.books` twice, 
     
     ```sql
     SELECT author.*,
-           COUNT(DISTINCT book1.rowid) AS novelCount
-           COUNT(DISTINCT book2.rowid) AS theatrePlayCount
+           COUNT(DISTINCT book.rowid) AS novelCount,
+           COUNT(DISTINCT book.rowid) AS theatrePlayCount
     FROM author
     LEFT JOIN book ON book.authorId = author.id
           AND (book.kind = 'novel' AND book.kind = 'theatrePlay')
@@ -1810,9 +1810,11 @@ But in the following example, we use the same association `Author.books` twice, 
     let novelCount = Author.books                // association key "book"
         .filter(Column("kind") == "novel")
         .count
+        .aliased("novelCount")
     let theatrePlayCount = Author.books          // association key "book"
         .filter(Column("kind") == "theatrePlay")
         .count
+        .aliased("theatrePlayCount")
     let request = Author.annotated(with: novelCount, theatrePlayCount)
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
