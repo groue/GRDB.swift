@@ -1573,7 +1573,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     // LEFT JOIN book ON book.authorId = author.id
     // GROUP BY author.id
     // HAVING COUNT(DISTINCT book.rowid) > 0
-    let request = Author.having(Author.books.isEmpty == false)
+    let request = Author.having(Author.books.isEmpty)
     ```
 
 - Authors who wrote at least one book:
