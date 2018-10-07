@@ -1421,7 +1421,7 @@ For example, you'll use the `isEmpty` aggregate when you want, say, to fetch all
 
 ```swift
 let lazyAuthors: [Author] = try Author.having(Author.books.isEmpty).fetchAll(db)
-let productiveAuthors: [Author] = try Author.having(!Author.books.isEmpty).fetchAll(db)
+let productiveAuthors: [Author] = try Author.having(Author.books.isEmpty == false).fetchAll(db)
 ```
 
 And you'll use the `count` aggregate in order to fetch all authors along with the number of books they wrote:
