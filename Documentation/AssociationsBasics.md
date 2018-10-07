@@ -1549,12 +1549,20 @@ The `having(_:)` method filters a request according to an aggregated value. You 
 
 - Authors who did not write any book:
 
+    <details>
+        <summary>SQL</summary>
+      
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) == 0
+    ```
+    
+    </details>
+    
     ```swift
-    // SELECT author.*
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id
-    // GROUP BY author.id
-    // HAVING COUNT(DISTINCT book.rowid) > 0
     let request = Author.having(Author.books.isEmpty)
     ```
 
