@@ -1549,70 +1549,118 @@ The `having(_:)` method filters a request according to an aggregated value. You 
 
 - Authors who did not write any book:
 
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) = 0
+    ```
+    
+    </details>
+    
     ```swift
-    // SELECT author.*
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id
-    // GROUP BY author.id
-    // HAVING COUNT(DISTINCT book.rowid) = 0
     let request = Author.having(Author.books.isEmpty)
     ```
 
 - Authors who wrote at least one book:
 
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) > 0
+    ```
+    
+    </details>
+    
     ```swift
-    // SELECT author.*
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id
-    // GROUP BY author.id
-    // HAVING COUNT(DISTINCT book.rowid) > 0
     let request = Author.having(Author.books.isEmpty == false)
     ```
 
 - Authors who wrote at least two books:
 
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) >= 2
+    ```
+    
+    </details>
+    
     ```swift
-    // SELECT author.*
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id
-    // GROUP BY author.id
-    // HAVING COUNT(DISTINCT book.rowid) >= 2
     let request = Author.having(Author.books.count >= 2)
     ```
 
 - Authors who wrote at least one book of kind "novel":
 
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id AND book.kind = 'novel'
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) > 0
+    ```
+    
+    </details>
+    
     ```swift
-    // SELECT author.*
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id AND book.kind = 'novel'
-    // GROUP BY author.id
-    // HAVING COUNT(DISTINCT book.rowid) > 0
     let novels = Author.books.filter(Column("kind") == "novel")
     let request = Author.having(novels.isEmpty == false)
     ```
     
 - Authors who wrote more books than they made paitings:
 
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    LEFT JOIN painting ON painting.authorId = author.id
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) > COUNT(DISTINCT painting.rowid)
+    ```
+    
+    </details>
+    
     ```swift
-    // SELECT author.*
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id
-    // LEFT JOIN painting ON painting.authorId = author.id
-    // GROUP BY author.id
-    // HAVING COUNT(DISTINCT book.rowid) > COUNT(DISTINCT painting.rowid)
     let request = Author.having(Author.books.count > Author.painting.count)
     ```
 
 - Authors who wrote no book, but made at least one painting:
 
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    LEFT JOIN painting ON painting.authorId = author.id
+    GROUP BY author.id
+    HAVING ((COUNT(DISTINCT book.rowid) = 0) AND (COUNT(DISTINCT painting.rowid) > 0))
+    ```
+    
+    </details>
+    
     ```swift
-    // SELECT author.*
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id
-    // LEFT JOIN painting ON painting.authorId = author.id
-    // GROUP BY author.id
-    // HAVING ((COUNT(DISTINCT book.rowid) = 0) AND (COUNT(DISTINCT painting.rowid) > 0))
     let request = Author.having(Author.books.isEmpty && !Author.painting.isEmpty)
     ```
 
@@ -1625,6 +1673,20 @@ In the example below, we use compute two aggregates from the same association `A
 
 - Authors with the publishing year of their first and last book:
 
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*,
+           MIN(book.year) AS minBookYear,
+           MAX(book.year) AS maxBookYea
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    ```
+    
+    </details>
+    
     ```swift
     struct Author: TableRecord {
         static let books = hasMany(Book.self) // association key "book"
@@ -1636,12 +1698,6 @@ In the example below, we use compute two aggregates from the same association `A
         var maxBookYear: Int?
     }
     
-    // SELECT author.*,
-    //        MIN(book.year) AS minBookYear,
-    //        MAX(book.year) AS maxBookYea
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id
-    // GROUP BY author.id
     let request = Author.annotated(with:
         Author.books.min(Column("year")), // association key "book"
         Author.books.max(Column("year"))) // association key "book"
@@ -1652,6 +1708,20 @@ In this other example, the `Author.books` and `Author.paintings` have the distin
 
 - Authors with their number of books and paitings:
 
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*,
+           (COUNT(DISTINCT book.rowid) + COUNT(DISTINCT painting.rowid)) AS workCount
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    LEFT JOIN painting ON painting.authorId = author.id
+    GROUP BY author.id
+    ```
+    
+    </details>
+    
     ```swift
     struct Author: TableRecord {
         static let books = hasMany(Book.self)         // association key "book"
@@ -1663,12 +1733,6 @@ In this other example, the `Author.books` and `Author.paintings` have the distin
         var workCount: Int
     }
     
-    // SELECT author.*,
-    //        (COUNT(DISTINCT book.rowid) + COUNT(DISTINCT painting.rowid)) AS workCount
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id
-    // LEFT JOIN painting ON painting.authorId = author.id
-    // GROUP BY author.id
     let aggregate = Author.books.count +   // association key "book"
                     Author.paintings.count // association key "painting"
     let request = Author.annotated(with: aggregate.aliased("workCount"))
@@ -1679,6 +1743,21 @@ But in the following example, we use the same association `Author.books` twice, 
 
 - Authors with their number of novels and theatre plays:
 
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*,
+           COUNT(DISTINCT book1.rowid) AS novelCount
+           COUNT(DISTINCT book2.rowid) AS theatrePlayCount
+    FROM author
+    LEFT JOIN book book1 ON book1.authorId = author.id AND book1.kind = 'novel'
+    LEFT JOIN book book2 ON book2.authorId = author.id AND book2.kind = 'theatrePlay'
+    GROUP BY author.id
+    ```
+    
+    </details>
+    
     ```swift
     struct Author: TableRecord {
         static let books = hasMany(Book.self) // association key "book"
@@ -1690,13 +1769,6 @@ But in the following example, we use the same association `Author.books` twice, 
         var theatrePlayCount: Int
     }
     
-    // SELECT author.*,
-    //        COUNT(DISTINCT book1.rowid) AS novelCount
-    //        COUNT(DISTINCT book2.rowid) AS theatrePlayCount
-    // FROM author
-    // LEFT JOIN book book1 ON book1.authorId = author.id AND book1.kind = 'novel'
-    // LEFT JOIN book book2 ON book2.authorId = author.id AND book2.kind = 'theatrePlay'
-    // GROUP BY author.id
     let novelCount = Author.books
         .filter(Column("kind") == "novel")
         .forKey("novel")                         // association key "novel"
