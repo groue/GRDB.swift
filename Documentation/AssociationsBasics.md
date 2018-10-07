@@ -29,7 +29,9 @@ GRDB Associations
     - [Decoding a Joined Request with FetchableRecord]
 - [Association Aggregates]
     - [Available Association Aggregates]
-    - [Aggregates on Subsets of Associated Records]
+    - [Annotating a Request with Aggregates]
+    - [Filtering a Request with Aggregates]
+    - [Isolation of Multiple Aggregates]
 - [DerivableRequest Protocol]
 - [Known Issues]
 - [Future Directions]
@@ -1563,7 +1565,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
 
 The `having(_:)` method filters a request according to an aggregated value. You can append as many aggregate conditions as needed, from one or several associations.
 
-- Authors without books:
+- Authors who did not write any book:
 
     ```swift
     // SELECT author.*
@@ -1571,11 +1573,10 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     // LEFT JOIN book ON book.authorId = author.id
     // GROUP BY author.id
     // HAVING COUNT(DISTINCT book.rowid) > 0
-    let request = Author
-        .having(Author.books.isEmpty == false)
+    let request = Author.having(Author.books.isEmpty == false)
     ```
 
-- Authors with at least one book:
+- Authors who wrote at least one book:
 
     ```swift
     // SELECT author.*
@@ -1583,11 +1584,10 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     // LEFT JOIN book ON book.authorId = author.id
     // GROUP BY author.id
     // HAVING COUNT(DISTINCT book.rowid) > 0
-    let request = Author
-        .having(Author.books.isEmpty == false)
+    let request = Author.having(Author.books.isEmpty == false)
     ```
 
-- Authors with at least two books:
+- Authors who wrote at least two books:
 
     ```swift
     // SELECT author.*
@@ -1595,11 +1595,22 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     // LEFT JOIN book ON book.authorId = author.id
     // GROUP BY author.id
     // HAVING COUNT(DISTINCT book.rowid) >= 2
-    let request = Author
-        .having(Author.books.count >= 2)
+    let request = Author.having(Author.books.count >= 2)
     ```
 
-- Authors with more books than paitings:
+- Authors who wrote at least one book of kind "novel":
+
+    ```swift
+    // SELECT author.*
+    // FROM author
+    // LEFT JOIN book ON book.authorId = author.id AND book.kind = 'novel'
+    // GROUP BY author.id
+    // HAVING COUNT(DISTINCT book.rowid) > 0
+    let novels = Author.books.filter(Column("kind") == "novel")
+    let request = Author.having(novels.isEmpty == false)
+    ```
+    
+- Authors who wrote more books than they made paitings:
 
     ```swift
     // SELECT author.*
@@ -1608,11 +1619,10 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     // LEFT JOIN painting ON painting.authorId = author.id
     // GROUP BY author.id
     // HAVING COUNT(DISTINCT book.rowid) > COUNT(DISTINCT painting.rowid)
-    let request = Author
-        .having(Author.books.count > Author.painting.count)
+    let request = Author.having(Author.books.count > Author.painting.count)
     ```
 
-- Authors without books but with at least one painting:
+- Authors who wrote no book, but made at least one painting:
 
     ```swift
     // SELECT author.*
@@ -1621,15 +1631,66 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     // LEFT JOIN painting ON painting.authorId = author.id
     // GROUP BY author.id
     // HAVING ((COUNT(DISTINCT book.rowid) = 0) AND (COUNT(DISTINCT painting.rowid) > 0))
-    let request = Author
-        .having(Author.books.isEmpty && !Author.painting.isEmpty)
+    let request = Author.having(Author.books.isEmpty && !Author.painting.isEmpty)
     ```
 
-When you need to compute aggregates on *several distinct sets* of associated records, make sure all of them use distinct **[association keys](#the-structure-of-a-joined-request)**.
 
-In the example above, the `Author.books` and `Author.paintings` are assumed to have the distinct `book` and `painting` keys. But in the example below, which uses the same association `Author.books` *twice*, for distinct purposes, we need to provide explicit distinct keys:
+### Isolation of Multiple Aggregates
 
-- Authors with more novels than theatre plays:
+When you need to compute multiple aggregates, on several distinct sets of associated records, make sure all of them use distinct **[association keys](#the-structure-of-a-joined-request)**, so that they are computed independently.
+
+In the example below, the `Author.books` and `Author.paintings` have the distinct `book` and `painting` keys. They don't interfere, and provide the expected results:
+
+- Authors with their number of books and paitings:
+
+    ```swift
+    struct Author: TableRecord {
+        static let books = hasMany(Book.self)
+        static let paintings = hasMany(Painting.self)
+    }
+    
+    // SELECT author.*,
+    //        (COUNT(DISTINCT book.rowid) + COUNT(DISTINCT painting.rowid)) AS workCount
+    // FROM author
+    // LEFT JOIN book ON book.authorId = author.id
+    // LEFT JOIN painting ON painting.authorId = author.id
+    // GROUP BY author.id
+    let aggregate = Author.books.count + Author.paintings.count
+    let request = Author.annotated(with: aggregate.aliased("workCount"))
+    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+    ```
+
+But in the following examples, we use the same association `Author.books` *twice*, for distinct purposes. We must provide explicit keys in order to make sure both aggregates are computed independently:
+
+- Authors with their number of novels and theatre plays:
+
+    ```swift
+    struct AuthorInfo: Decodable, FetchableRecord {
+        var author: Author
+        var novelCount: Int
+        var theatrePlayCount: Int
+    }
+    
+    // SELECT author.*,
+    //        COUNT(DISTINCT book1.rowid) AS novelCount
+    //        COUNT(DISTINCT book2.rowid) AS theatrePlayCount
+    // FROM author
+    // LEFT JOIN book book1 ON book1.authorId = author.id AND book1.kind = 'novel'
+    // LEFT JOIN book book2 ON book2.authorId = author.id AND book2.kind = 'theatrePlay'
+    // GROUP BY author.id
+    let novelCount = Author.books
+        .filter(Column("kind") == "novel")
+        .forKey("novel")
+        .count
+    let theatrePlayCount = Author.books
+        .filter(Column("kind") == "theatrePlay")
+        .forKey("theatrePlay")
+        .count
+    let request = Author.annotated(with: novelCount, theatrePlayCount)
+    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+    ```
+
+- Authors who wrote more novels than theatre plays:
 
     ```swift
     // SELECT author.*
@@ -1648,55 +1709,6 @@ In the example above, the `Author.books` and `Author.paintings` are assumed to h
         .count
     let request = Author.having(novelCount > theatrePlayCount)
     ```
-
-
-### Aggregates on Subsets of Associated Records
-
-You can compute aggregates on subsets of associated records with the `filter` method:
-
-```swift
-struct AuthorInfo: Decodable, FetchableRecord {
-    var author: Author
-    var novelCount: Int
-}
-
-// SELECT author.*,
-//        COUNT(DISTINCT book.rowid) AS novelCount
-// FROM author
-// LEFT JOIN book ON book.authorId = author.id AND book.kind = 'novel'
-// GROUP BY author.id
-let novels = Author.books.filter(Column("kind") == "novel")
-let request = Author.annotated(with: novels.count(aliased: "novelCount"))
-let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
-```
-
-When you need to compute aggregates on *several distinct subsets* of associated records, make sure you use distinct **[association keys](#the-structure-of-a-joined-request)**, one for each subset. For example:
-
-```swift
-struct AuthorInfo: Decodable, FetchableRecord {
-    var author: Author
-    var novelCount: Int
-    var theatrePlayCount: Int
-}
-
-// SELECT author.*,
-//        COUNT(DISTINCT book1.rowid) AS novelCount
-//        COUNT(DISTINCT book2.rowid) AS theatrePlayCount
-// FROM author
-// LEFT JOIN book book1 ON book1.authorId = author.id AND book1.kind = 'novel'
-// LEFT JOIN book book2 ON book2.authorId = author.id AND book2.kind = 'theatrePlay'
-// GROUP BY author.id
-let novelCount = Author.books
-    .filter(Column("kind") == "novel")
-    .forKey("novel")
-    .count
-let theatrePlayCount = Author.books
-    .filter(Column("kind") == "theatrePlay")
-    .forKey("theatrePlay")
-    .count
-let request = Author.annotated(with: novelCount, theatrePlayCount)
-let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
-```
 
 
 ## DerivableRequest Protocol
@@ -1836,7 +1848,9 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Custom Requests]: ../README.md#custom-requests
 [Association Aggregates]: #association-aggregates
 [Available Association Aggregates]: #available-association-aggregates
-[Aggregates on Subsets of Associated Records]: #aggregates-on-subsets-of-associated-records
+[Annotating a Request with Aggregates]: #annotating-a-request-with-aggregates
+[Filtering a Request with Aggregates]: #filtering-a-request-with-aggregates
+[Isolation of Multiple Aggregates]: #isolation-of-multiple-aggregates
 [DerivableRequest Protocol]: #derivablerequest-protocol
 [Known Issues]: #known-issues
 [Future Directions]: #future-directions
