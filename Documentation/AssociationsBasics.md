@@ -1420,10 +1420,10 @@ When you need to compute aggregates **from several record**, in a single shot, y
 For example, you'll use the `isEmpty` aggregate when you want, say, to fetch all authors who wrote no book at all:
 
 ```swift
-let lazyAuthors = try Author.having(Author.books.isEmpty).fetchAll(db)
+let lazyAuthors: [Author] = try Author.having(Author.books.isEmpty).fetchAll(db)
 ```
 
-And the `count` aggregate lets you fetch all authors along with the number of books they wrote:
+And you'll use the `count` aggregate in order to fetch all authors along with the number of books they wrote:
 
 ```swift
 struct AuthorInfo: Decodable, FetchableRecord {
