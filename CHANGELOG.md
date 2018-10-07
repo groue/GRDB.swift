@@ -19,8 +19,8 @@ This release comes with **Association Aggregates**. They let you compute values 
 
 ### Documentation Diff
 
-- [Refining Association Requests](Documentation/AssociationBasics.md#refining-association-requests): this new chapter describes how you can craft complex associated requests in a modular way.
-- [Association Aggregates](Documentation/AssociationBasics.md#association-aggregates): this chapter describes the main new feature of this release.
+- [Refining Association Requests](Documentation/AssociationsBasics.md#refining-association-requests): this new chapter describes how you can craft complex associated requests in a modular way.
+- [Association Aggregates](Documentation/AssociationsBasics.md#association-aggregates): this chapter describes the main new feature of this release.
 
 
 
