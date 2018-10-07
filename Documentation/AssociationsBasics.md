@@ -1461,13 +1461,6 @@ struct AuthorInfo: Decodable, FetchableRecord {
     var maxBookYear: Int?
 }
 
-// SELECT author.*,
-//        COUNT(DISTINCT book.rowid) AS bookCount,
-//        MAX(book.year) AS maxBookYear,
-// FROM author
-// LEFT JOIN book ON book.authorId = author.id
-// WHERE author.id = 1
-// GROUP BY author.id
 let request = Author.annotated(with:
     Author.books.count,
     Author.books.max(Column("year")))
@@ -1480,6 +1473,21 @@ for info in authorInfos {
     print("- last book published on: \(info.maxBookYear)")
 }
 ```
+
+<details>
+    <summary>SQL</summary>
+
+```sql
+SELECT author.*,
+       COUNT(DISTINCT book.rowid) AS bookCount,
+       MAX(book.year) AS maxBookYear,
+FROM author
+LEFT JOIN book ON book.authorId = author.id
+WHERE author.id = 1
+GROUP BY author.id
+```
+
+</details>
 
 As seen in the above example, some aggregated values are given a **default name**, such as "bookCount" or "maxBookYear". The default name is built from the aggregating method, the **[association key](#the-structure-of-a-joined-request)**, and the aggregated column name:
 
@@ -1500,13 +1508,21 @@ struct AuthorInfo: Decodable, FetchableRecord {
     var numberOfBooks: Int
 }
 
-// SELECT author.*, COUNT(DISTINCT book.rowid) AS numberOfBooks
-// FROM author
-// LEFT JOIN book ON book.authorId = author.id
-// GROUP BY author.id
 let request = Author.annotated(with: Author.books.count.aliased("numberOfBooks"))
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 ```
+
+<details>
+    <summary>SQL</summary>
+
+```sql
+SELECT author.*, COUNT(DISTINCT book.rowid) AS numberOfBooks
+FROM author
+LEFT JOIN book ON book.authorId = author.id
+GROUP BY author.id
+```
+
+</details>
 
 Custom names help consuming complex aggregates:
 
@@ -1516,16 +1532,24 @@ struct AuthorInfo: Decodable, FetchableRecord {
     var workCount: Int
 }
 
-// SELECT author.*,
-//        (COUNT(DISTINCT book.rowid) + COUNT(DISTINCT painting.rowid)) AS workCount
-// FROM author
-// LEFT JOIN book ON book.authorId = author.id
-// LEFT JOIN painting ON painting.authorId = author.id
-// GROUP BY author.id
 let aggregate = Author.books.count + Author.paintings.count
 let request = Author.annotated(with: aggregate.aliased("workCount"))
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 ```
+
+<details>
+    <summary>SQL</summary>
+
+```sql
+SELECT author.*,
+       (COUNT(DISTINCT book.rowid) + COUNT(DISTINCT painting.rowid)) AS workCount
+FROM author
+LEFT JOIN book ON book.authorId = author.id
+LEFT JOIN painting ON painting.authorId = author.id
+GROUP BY author.id
+```
+
+</details>
 
 The `aliased` method also accept coding keys:
 
@@ -1548,10 +1572,14 @@ struct AuthorInfo: Decodable, FetchableRecord {
 The `having(_:)` method filters a request according to an aggregated value. You can append as many aggregate conditions as needed, from one or several associations.
 
 - Authors who did not write any book:
+    
+    ```swift
+    let request = Author.having(Author.books.isEmpty)
+    ```
 
     <details>
         <summary>SQL</summary>
-      
+    
     ```sql
     SELECT author.*
     FROM author
@@ -1561,68 +1589,103 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     ```
     
     </details>
+- Authors who wrote at least one book:
     
     ```swift
-    let request = Author.having(Author.books.isEmpty)
-    ```
-
-- Authors who wrote at least one book:
-
-    ```swift
-    // SELECT author.*
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id
-    // GROUP BY author.id
-    // HAVING COUNT(DISTINCT book.rowid) > 0
     let request = Author.having(Author.books.isEmpty == false)
     ```
+    
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) > 0
+    ```
+    
+    </details>
 
 - Authors who wrote at least two books:
-
+    
     ```swift
-    // SELECT author.*
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id
-    // GROUP BY author.id
-    // HAVING COUNT(DISTINCT book.rowid) >= 2
     let request = Author.having(Author.books.count >= 2)
     ```
-
+    
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) >= 2
+    ```
+    
+    </details>
+    
 - Authors who wrote at least one book of kind "novel":
-
+    
     ```swift
-    // SELECT author.*
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id AND book.kind = 'novel'
-    // GROUP BY author.id
-    // HAVING COUNT(DISTINCT book.rowid) > 0
     let novels = Author.books.filter(Column("kind") == "novel")
     let request = Author.having(novels.isEmpty == false)
     ```
     
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id AND book.kind = 'novel'
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) > 0
+    ```
+    
+    </details>
+    
 - Authors who wrote more books than they made paitings:
-
+    
     ```swift
-    // SELECT author.*
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id
-    // LEFT JOIN painting ON painting.authorId = author.id
-    // GROUP BY author.id
-    // HAVING COUNT(DISTINCT book.rowid) > COUNT(DISTINCT painting.rowid)
     let request = Author.having(Author.books.count > Author.painting.count)
     ```
+    
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    LEFT JOIN painting ON painting.authorId = author.id
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) > COUNT(DISTINCT painting.rowid)
+    ```
+    
+    </details>
 
 - Authors who wrote no book, but made at least one painting:
-
+    
     ```swift
-    // SELECT author.*
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id
-    // LEFT JOIN painting ON painting.authorId = author.id
-    // GROUP BY author.id
-    // HAVING ((COUNT(DISTINCT book.rowid) = 0) AND (COUNT(DISTINCT painting.rowid) > 0))
     let request = Author.having(Author.books.isEmpty && !Author.painting.isEmpty)
     ```
+    
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    LEFT JOIN painting ON painting.authorId = author.id
+    GROUP BY author.id
+    HAVING ((COUNT(DISTINCT book.rowid) = 0) AND (COUNT(DISTINCT painting.rowid) > 0))
+    ```
+    
+    </details>
 
 
 ### Isolation of Multiple Aggregates
@@ -1644,17 +1707,25 @@ In the example below, we use compute two aggregates from the same association `A
         var maxBookYear: Int?
     }
     
-    // SELECT author.*,
-    //        MIN(book.year) AS minBookYear,
-    //        MAX(book.year) AS maxBookYea
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id
-    // GROUP BY author.id
     let request = Author.annotated(with:
         Author.books.min(Column("year")), // association key "book"
         Author.books.max(Column("year"))) // association key "book"
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
+    
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*,
+           MIN(book.year) AS minBookYear,
+           MAX(book.year) AS maxBookYea
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    ```
+    
+    </details>
 
 In this other example, the `Author.books` and `Author.paintings` have the distinct `book` and `painting` keys. They don't interfere, and provide the expected results:
 
@@ -1671,17 +1742,25 @@ In this other example, the `Author.books` and `Author.paintings` have the distin
         var workCount: Int
     }
     
-    // SELECT author.*,
-    //        (COUNT(DISTINCT book.rowid) + COUNT(DISTINCT painting.rowid)) AS workCount
-    // FROM author
-    // LEFT JOIN book ON book.authorId = author.id
-    // LEFT JOIN painting ON painting.authorId = author.id
-    // GROUP BY author.id
     let aggregate = Author.books.count +   // association key "book"
                     Author.paintings.count // association key "painting"
     let request = Author.annotated(with: aggregate.aliased("workCount"))
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
+    
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*,
+           (COUNT(DISTINCT book.rowid) + COUNT(DISTINCT painting.rowid)) AS workCount
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    LEFT JOIN painting ON painting.authorId = author.id
+    GROUP BY author.id
+    ```
+    
+    </details>
 
 But in the following example, we use the same association `Author.books` twice, in order to compute aggregates on two distinct populations of associated books. We must provide explicit keys in order to make sure both aggregates are computed independently:
 
@@ -1698,13 +1777,6 @@ But in the following example, we use the same association `Author.books` twice, 
         var theatrePlayCount: Int
     }
     
-    // SELECT author.*,
-    //        COUNT(DISTINCT book1.rowid) AS novelCount
-    //        COUNT(DISTINCT book2.rowid) AS theatrePlayCount
-    // FROM author
-    // LEFT JOIN book book1 ON book1.authorId = author.id AND book1.kind = 'novel'
-    // LEFT JOIN book book2 ON book2.authorId = author.id AND book2.kind = 'theatrePlay'
-    // GROUP BY author.id
     let novelCount = Author.books
         .filter(Column("kind") == "novel")
         .forKey("novel")                         // association key "novel"
@@ -1716,6 +1788,21 @@ But in the following example, we use the same association `Author.books` twice, 
     let request = Author.annotated(with: novelCount, theatrePlayCount)
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
+    
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*,
+           COUNT(DISTINCT book1.rowid) AS novelCount
+           COUNT(DISTINCT book2.rowid) AS theatrePlayCount
+    FROM author
+    LEFT JOIN book book1 ON book1.authorId = author.id AND book1.kind = 'novel'
+    LEFT JOIN book book2 ON book2.authorId = author.id AND book2.kind = 'theatrePlay'
+    GROUP BY author.id
+    ```
+    
+    </details>
 
 
 ## DerivableRequest Protocol
