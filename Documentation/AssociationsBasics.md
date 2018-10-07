@@ -1408,12 +1408,15 @@ Counting associated records, fetching the minimum, maximum, average value of an 
 When you need to compute aggregates **from a single record**, you use regular aggregating functions, described in the [Fetching Aggregated Values] chapter. For example:
 
 ```swift
+// The regular definition of a `hasMany` association:
 struct Author: TableRecord {
     static let books = hasMany(Book.self)
     var books: QueryInterfaceRequest<Book> {
         return request(for: Author.books)
     }
 }
+
+// A given author:
 let author: Author = ...
 
 // SELECT COUNT(*) FROM book where authorId = 42
