@@ -28,7 +28,7 @@ GRDB Associations
     - [Decoding a Joined Request with a Decodable Record]
     - [Decoding a Joined Request with FetchableRecord]
 - [Association Aggregates]
-    - [Available Aggregates]
+    - [Available Association Aggregates]
     - [Aggregates on Subsets of Associated Records]
 - [DerivableRequest Protocol]
 - [Known Issues]
@@ -1401,9 +1401,36 @@ You can also perform custom navigation in the tree by using *row scopes*. See [R
 
 It is possible to fetch aggregated values from a **HasMany** association:
 
-You can count associated records, or fetch the minimum, maximum, average value of an associated record column, or compute the sum of an associated record column.
+Counting associated records, fetching the minimum, maximum, average value of an associated record column, computing the sum of an associated record column, these are all aggregation operations.
 
-In the example below, we fetch all authors with their number of books:
+When you need to compute aggregates **from a single record**, you use regular aggregating functions, described in the [Fetching Aggregated Values] chapter. For example:
+
+```swift
+struct Author: TableRecord {
+    static let books = hasMany(Book.self)
+    var books: QueryInterfaceRequest<Book> {
+        return request(for: Author.books)
+    }
+}
+let author: Author = ...
+
+// SELECT COUNT(*) FROM book where authorId = 42
+let count = try author.books.fetchCount(db)  // Int
+
+// SELECT MAX(year) FROM book where authorId = 42
+let request = author.books.select(max(yearColumn))
+let maxScore = try Int.fetchOne(db, request) // Int?
+
+// SELECT MIN(year), MAX(year) FROM book where authorId = 42
+let request = author.books.select(min(yearColumn), max(yearColumn))
+let row = try Row.fetchOne(db, request)!     // Row
+let minScore = row[0] as Int?
+let maxScore = row[1] as Int?
+```
+
+When you need to count aggregates **from several record**, you'll use an **association aggregate**. Those are the topic of this chapter.
+
+For example, look at how we fetch all authors, and count their books, in a single shot:
 
 ```swift
 struct AuthorInfo: Decodable, FetchableRecord {
@@ -1424,9 +1451,9 @@ for info in authorInfos {
 ```
 
 
-### Available Aggregates
+### Available Association Aggregates
 
-**HasMany** associations let you build the following aggregates:
+**HasMany** associations let you build the following association aggregates:
 
 - `books.count`
 - `books.isEmpty`
@@ -1438,7 +1465,7 @@ for info in authorInfos {
 
 ### Annotating a Request with Aggregates
 
-The `annotated(with:)` method appends an aggregated value to the selected columns of a request. You can append as many aggregates values as needed, from one or several associations.
+The `annotated(with:)` method appends aggregated values to the selected columns of a request. You can append as many aggregates values as needed, from one or several associations.
 
 In order to access those values, you fetch records that have matching properties.
 
@@ -1808,7 +1835,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Decoding a Joined Request with FetchableRecord]: #decoding-a-joined-request-with-fetchablerecord
 [Custom Requests]: ../README.md#custom-requests
 [Association Aggregates]: #association-aggregates
-[Available Aggregates]: #available-aggregates
+[Available Association Aggregates]: #available-association-aggregates
 [Aggregates on Subsets of Associated Records]: #aggregates-on-subsets-of-associated-records
 [DerivableRequest Protocol]: #derivablerequest-protocol
 [Known Issues]: #known-issues
@@ -1818,3 +1845,4 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [TableRecord]: ../README.md#tablerecord-protocol
 [association requests]: #building-requests-from-associations
 [Good Practices for Designing Record Types]: GoodPracticesForDesigningRecordTypes.md
+[Fetching Aggregated Values]: ../README.md#fetching-aggregated-values
