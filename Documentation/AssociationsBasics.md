@@ -1787,6 +1787,35 @@ But in the following example, we use the same association `Author.books` twice, 
     let request = Author.annotated(with: novelCount, theatrePlayCount)
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
+    
+    When one doesn't use distinct association keys for novels and theatre plays, GRDB will not count two distinct sets of associated books, and will not fetch the expected results:
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*,
+           COUNT(DISTINCT book1.rowid) AS novelCount
+           COUNT(DISTINCT book2.rowid) AS theatrePlayCount
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+          AND (book.kind = 'novel' AND book.kind = 'theatrePlay')
+    GROUP BY author.id
+    ```
+    
+    </details>
+    
+    ```swift
+    // WRONG: not counting distinct sets of associated books
+    let novelCount = Author.books                // association key "book"
+        .filter(Column("kind") == "novel")
+        .count
+    let theatrePlayCount = Author.books          // association key "book"
+        .filter(Column("kind") == "theatrePlay")
+        .count
+    let request = Author.annotated(with: novelCount, theatrePlayCount)
+    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+    ```
 
 
 ## DerivableRequest Protocol
