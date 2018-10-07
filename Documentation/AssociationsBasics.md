@@ -1649,6 +1649,7 @@ In the example below, we use compute two aggregates from the same association `A
         var minBookYear: Int?
         var maxBookYear: Int?
     }
+    
     // SELECT author.*,
     //        MIN(book.year) AS minBookYear,
     //        MAX(book.year) AS maxBookYea
@@ -1688,7 +1689,7 @@ In this other example, the `Author.books` and `Author.paintings` have the distin
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
 
-But in the following examples, we use the same association `Author.books` twice, in order to compute two distinct populations of associated books. We must provide explicit keys in order to make sure both aggregates are computed independently:
+But in the following examples, we use the same association `Author.books` twice, in order to compute aggregates on two distinct populations of associated books. We must provide explicit keys in order to make sure both aggregates are computed independently:
 
 - Authors with their number of novels and theatre plays:
 
