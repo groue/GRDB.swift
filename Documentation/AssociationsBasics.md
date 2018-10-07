@@ -1405,7 +1405,7 @@ It is possible to fetch aggregated values from a **[HasMany]** association:
 
 Counting associated records, fetching the minimum, maximum, average value of an associated record column, computing the sum of an associated record column, these are all aggregation operations.
 
-When you need to compute aggregates **from a single record**, you use regular aggregating functions, detailed in the [Fetching Aggregated Values] chapter. For example:
+When you need to compute aggregates **from a single record**, you use regular aggregating methods, detailed in the [Fetching Aggregated Values] chapter. For example:
 
 ```swift
 let author: Author = ...
