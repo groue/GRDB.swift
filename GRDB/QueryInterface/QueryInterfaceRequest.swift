@@ -99,8 +99,14 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
         return select(SQLSelectionLiteral(sql, arguments: arguments), as: type)
     }
     
-    /// Support for annotations
-    func appendingSelection(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<T> {
+    /// Creates a request which appends *selection*.
+    ///
+    ///     // SELECT id, email, name FROM player
+    ///     var request = Player.all()
+    ///     request = request
+    ///         .select([Column("id"), Column("email")])
+    ///         .appendingSelection([Column("name")])
+    public func appendingSelection(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<T> {
         return QueryInterfaceRequest(query: query.appendingSelection(selection))
     }
 

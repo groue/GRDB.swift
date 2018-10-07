@@ -94,108 +94,103 @@ extension HasManyAssociation: TableRequest where Destination: TableRecord {
 }
 
 extension HasManyAssociation where Destination: TableRecord {
-    /// An annotation that counts the number of associated records.
+    /// The number of associated records.
     ///
     /// For example:
     ///
     ///     Team.annotated(with: Team.players.count())
-    public func count() -> Annotation<HasManyAssociation> {
+    public func count() -> AssociationAggregate<HasManyAssociation> {
         return count(aliased: "\(key)Count")
     }
     
-    /// An annotation that counts the number of associated records.
+    /// The number of associated records.
     ///
     /// For example:
     ///
     ///     Team.annotated(with: Team.players.count(aliased: "numberOfPlayers"))
-    public func count(aliased name: String) -> Annotation<HasManyAssociation> {
-        return Annotation(
+    public func count(aliased name: String) -> AssociationAggregate<HasManyAssociation> {
+        return AssociationAggregate(
             association: self,
             expression: SQLExpressionCountDistinct(Column.rowID))
             .aliased(name)
     }
     
-    /// An annotation that is true if there exists no associated records.
+    /// An aggregate that is true if there exists no associated records.
     ///
     /// For example:
     ///
     ///     Team.having(Team.players.isEmpty())
     ///     Team.having(!Team.players.isEmpty())
     ///     Team.having(Team.players.isEmpty() == false)
-    public func isEmpty() -> Annotation<HasManyAssociation> {
-        return Annotation(
+    public func isEmpty() -> AssociationAggregate<HasManyAssociation> {
+        return AssociationAggregate(
             association: self,
             expression: SQLExpressionIsEmpty(SQLExpressionCountDistinct(Column.rowID)))
     }
     
-    /// An annotation that evaluates to the average value of the given column
-    /// in associated records.
+    /// The average value of the given column in associated records.
     ///
     /// For example:
     ///
     ///     Team.annotated(with: Team.players.average(Column("score")))
-    public func average(_ column: Column) -> Annotation<HasManyAssociation> {
+    public func average(_ column: Column) -> AssociationAggregate<HasManyAssociation> {
         return average(column, aliased: "average\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
     }
     
-    /// An annotation that evaluates to the average value in associated records.
-    public func average(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation> {
-        return Annotation(
+    /// The average value of the given expression in associated records.
+    public func average(_ value: SQLSpecificExpressible, aliased name: String) -> AssociationAggregate<HasManyAssociation> {
+        return AssociationAggregate(
             association: self,
             expression: SQLExpressionFunction(.avg, arguments: value))
             .aliased(name)
     }
     
-    /// An annotation that evaluates to the maximum value of the given column
-    /// in associated records.
+    /// The maximum value of the given column in associated records.
     ///
     /// For example:
     ///
     ///     Team.annotated(with: Team.players.max(Column("score")))
-    public func max(_ column: Column) -> Annotation<HasManyAssociation> {
+    public func max(_ column: Column) -> AssociationAggregate<HasManyAssociation> {
         return max(column, aliased: "max\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
     }
     
-    /// An annotation that evaluates to the maximum value in associated records.
-    public func max(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation> {
-        return Annotation(
+    /// The maximum value of the given expression in associated records.
+    public func max(_ value: SQLSpecificExpressible, aliased name: String) -> AssociationAggregate<HasManyAssociation> {
+        return AssociationAggregate(
             association: self,
             expression: SQLExpressionFunction(.max, arguments: value))
             .aliased(name)
     }
     
-    /// An annotation that evaluates to the minimum value of the given column
-    /// in associated records.
+    /// The minimum value of the given column in associated records.
     ///
     /// For example:
     ///
     ///     Team.annotated(with: Team.players.min(Column("score")))
-    public func min(_ column: Column) -> Annotation<HasManyAssociation> {
+    public func min(_ column: Column) -> AssociationAggregate<HasManyAssociation> {
         return min(column, aliased: "min\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
     }
     
-    /// An annotation that evaluates to the minimum value in associated records.
-    public func min(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation> {
-        return Annotation(
+    /// The minimum value of the given expression in associated records.
+    public func min(_ value: SQLSpecificExpressible, aliased name: String) -> AssociationAggregate<HasManyAssociation> {
+        return AssociationAggregate(
             association: self,
             expression: SQLExpressionFunction(.min, arguments: value))
             .aliased(name)
     }
     
-    /// An annotation that evaluates to the sum of the given column
-    /// in associated records.
+    /// The sum of the given column in associated records.
     ///
     /// For example:
     ///
     ///     Team.annotated(with: Team.players.min(Column("score")))
-    public func sum(_ column: Column) -> Annotation<HasManyAssociation> {
+    public func sum(_ column: Column) -> AssociationAggregate<HasManyAssociation> {
         return sum(column, aliased: "\(key)\(column.name.uppercasingFirstCharacter)Sum")
     }
     
-    /// An annotation that evaluates to the sum of the given value in
-    /// associated records.
-    public func sum(_ value: SQLSpecificExpressible, aliased name: String) -> Annotation<HasManyAssociation> {
-        return Annotation(
+    /// The sum of the given expression in associated records.
+    public func sum(_ value: SQLSpecificExpressible, aliased name: String) -> AssociationAggregate<HasManyAssociation> {
+        return AssociationAggregate(
             association: self,
             expression: SQLExpressionFunction(.sum, arguments: value))
             .aliased(name)

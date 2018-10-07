@@ -40,34 +40,34 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
         return joining(.required, association.select([]))
     }
     
-    // MARK: - Annotations
+    // MARK: - Association Aggregates
     
     /// TODO
-    public func annotated<A: Association>(with annotation: Annotation<A>) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder {
+    public func annotated<A: Association>(with aggregate: AssociationAggregate<A>) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder {
         // SELECT author.*, COUNT(book.rowID) AS bookCount
         // LEFT JOIN book ON ...
         // GROUP BY author.id
         let tableAlias = TableAlias()
         let selectable: SQLSelectable
-        if let alias = annotation.alias {
-            selectable = tableAlias[annotation.expression].aliased(alias)
+        if let alias = aggregate.alias {
+            selectable = tableAlias[aggregate.expression].aliased(alias)
         } else {
-            selectable = tableAlias[annotation.expression]
+            selectable = tableAlias[aggregate.expression]
         }
         return appendingSelection([selectable])
-            .joining(optional: annotation.association.aliased(tableAlias))
+            .joining(optional: aggregate.association.aliased(tableAlias))
             .groupByPrimaryKey()
     }
     
     /// TODO
-    public func having<A: Association>(_ annotation: Annotation<A>) -> QueryInterfaceRequest<T> where A.OriginRowDecoder == RowDecoder {
+    public func having<A: Association>(_ aggregate: AssociationAggregate<A>) -> QueryInterfaceRequest<T> where A.OriginRowDecoder == RowDecoder {
         // SELECT author.*
         // LEFT JOIN book ON ...
         // GROUP BY author.id
         // HAVING COUNT(book.rowID) > 0
         let tableAlias = TableAlias()
-        return having(tableAlias[annotation.expression])
-            .joining(optional: annotation.association.aliased(tableAlias))
+        return having(tableAlias[aggregate.expression])
+            .joining(optional: aggregate.association.aliased(tableAlias))
             .groupByPrimaryKey()
     }
 }
@@ -123,15 +123,15 @@ extension TableRecord {
         return all().joining(required: association)
     }
     
-    // MARK: - Annotations
+    // MARK: - Association Aggregates
     
     /// TODO
-    public static func annotated<A: Association>(with annotation: Annotation<A>) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self {
-        return all().annotated(with: annotation)
+    public static func annotated<A: Association>(with aggregate: AssociationAggregate<A>) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self {
+        return all().annotated(with: aggregate)
     }
     
     /// TODO
-    public static func having<A: Association>(_ annotation: Annotation<A>) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self {
-        return all().having(annotation)
+    public static func having<A: Association>(_ aggregate: AssociationAggregate<A>) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self {
+        return all().having(aggregate)
     }
 }

@@ -39,7 +39,7 @@ private struct CustomTeamInfo: Decodable, FetchableRecord {
     var customScoreSum: Int?
 }
 
-class AnnotationTests: GRDBTestCase {
+class AssociationAggregateTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
@@ -65,7 +65,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testAnnotationWithJoiningMethodAndTableAliasAndSQLSnippet() throws {
+    func testAggregateWithJoiningMethodAndTableAliasAndSQLSnippet() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let tableAlias = TableAlias(name: "custom")
@@ -247,7 +247,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testAnnotatedWithMultipleDefaultAnnotations() throws {
+    func testAnnotatedWithMultipleDefaultAggregates() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -466,7 +466,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testAnnotatedWithMultipleCustomAnnotations() throws {
+    func testAnnotatedWithMultipleCustomAggregates() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -520,7 +520,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testAnnotatedWithAnnotationAlias() throws {
+    func testAnnotatedWithAggregateAlias() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -544,7 +544,7 @@ class AnnotationTests: GRDBTestCase {
         }
     }
     
-    func testAnnotatedWithAnnotationExpression() throws {
+    func testAnnotatedWithAggregateExpression() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
