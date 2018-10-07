@@ -95,13 +95,14 @@ extension HasManyAssociation: TableRequest where Destination: TableRecord {
 
 extension HasManyAssociation where Origin: TableRecord, Destination: TableRecord {
     private func aggregate(_ expression: SQLExpression) -> AssociationAggregate<Origin> {
-        return AssociationAggregate(
-            expression: expression,
-            aggregatedRequest: { request, tableAlias in
-                request
-                    .joining(optional: self.aliased(tableAlias))
-                    .groupByPrimaryKey()
-        })
+        return AssociationAggregate { request in
+            let tableAlias = TableAlias()
+            let request = request
+                .joining(optional: self.aliased(tableAlias))
+                .groupByPrimaryKey()
+            let expression = tableAlias[expression]
+            return (request: request, expression: expression)
+        }
     }
     
     /// The number of associated records.

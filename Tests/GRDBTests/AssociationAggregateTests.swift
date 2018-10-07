@@ -9,6 +9,7 @@ import GRDB
 
 private struct Team: Codable, FetchableRecord, PersistableRecord {
     static let players = hasMany(Player.self)
+    static let awards = hasMany(Award.self)
     static let customPlayers = hasMany(Player.self, key: "custom")
     var id: Int64
     var name: String
@@ -19,6 +20,12 @@ private struct Player: Codable, FetchableRecord, PersistableRecord {
     var teamId: Int64?
     var name: String
     var score: Int
+}
+
+private struct Award: Codable, FetchableRecord, PersistableRecord {
+    var id: Int64
+    var teamId: Int64?
+    var name: String
 }
 
 private struct TeamInfo: Decodable, FetchableRecord {
@@ -53,15 +60,25 @@ class AssociationAggregateTests: GRDBTestCase {
                 t.column("name", .text)
                 t.column("score", .integer)
             }
-            
+            try db.create(table: "award") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("teamId", .integer).references("team")
+                t.column("name", .text)
+            }
+
             try Team(id: 1, name: "Reds").insert(db)
             try Player(id: 1, teamId: 1, name: "Arthur", score: 100).insert(db)
             try Player(id: 2, teamId: 1, name: "Barbara", score: 1000).insert(db)
+            try Award(id: 1, teamId: 1, name: "World cup 2035").insert(db)
+            try Award(id: 2, teamId: 1, name: "World cup 2038").insert(db)
+            try Award(id: 3, teamId: 1, name: "European cup 2038").insert(db)
             try Team(id: 2, name: "Blues").insert(db)
             try Player(id: 3, teamId: 2, name: "Craig", score: 200).insert(db)
             try Player(id: 4, teamId: 2, name: "David", score: 500).insert(db)
             try Player(id: 5, teamId: 2, name: "Elise", score: 800).insert(db)
+            try Award(id: 4, teamId: 2, name: "European cup 2036").insert(db)
             try Team(id: 3, name: "Greens").insert(db)
+            try Award(id: 5, teamId: 3, name: "World cup 2037").insert(db)
         }
     }
     
@@ -114,7 +131,7 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertNil(teamInfos[2].averagePlayerScore)
         }
     }
-
+    
     func testAnnotatedWithDefaultCount() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
@@ -564,7 +581,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
         }
     }
-
+    
     func testAnnotatedWithMultipleCount() throws {
         struct TeamInfo: Decodable, FetchableRecord {
             var team: Team
@@ -610,7 +627,7 @@ class AssociationAggregateTests: GRDBTestCase {
         }
     }
     
-    func testHavingIsEmpty() throws {
+    func testIsEmpty() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
@@ -659,8 +676,8 @@ class AssociationAggregateTests: GRDBTestCase {
             }
         }
     }
-
-    func testHavingEqual() throws {
+    
+    func testEqualOperator() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
@@ -685,10 +702,22 @@ class AssociationAggregateTests: GRDBTestCase {
                     HAVING (2 = COUNT(DISTINCT "player"."rowid"))
                     """)
             }
+            do {
+                let request = Team.having(Team.players.count() == Team.awards.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") = COUNT(DISTINCT "award"."rowid"))
+                    """)
+            }
         }
     }
     
-    func testHavingNotEqual() throws {
+    func testNotEqualOperator() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
@@ -711,6 +740,384 @@ class AssociationAggregateTests: GRDBTestCase {
                     LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
                     GROUP BY "team"."id" \
                     HAVING (2 <> COUNT(DISTINCT "player"."rowid"))
+                    """)
+            }
+            do {
+                let request = Team.having(Team.players.count() != Team.awards.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") <> COUNT(DISTINCT "award"."rowid"))
+                    """)
+            }
+        }
+    }
+    
+    func testGreaterThanOrEqualOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.having(Team.players.count() >= 2)
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") >= 2)
+                    """)
+            }
+            do {
+                let request = Team.having(2 >= Team.players.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (2 >= COUNT(DISTINCT "player"."rowid"))
+                    """)
+            }
+            do {
+                let request = Team.having(Team.players.count() >= Team.awards.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") >= COUNT(DISTINCT "award"."rowid"))
+                    """)
+            }
+        }
+    }
+    
+    func testGreaterThanOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.having(Team.players.count() > 2)
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") > 2)
+                    """)
+            }
+            do {
+                let request = Team.having(2 > Team.players.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (2 > COUNT(DISTINCT "player"."rowid"))
+                    """)
+            }
+            do {
+                let request = Team.having(Team.players.count() > Team.awards.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") > COUNT(DISTINCT "award"."rowid"))
+                    """)
+            }
+        }
+    }
+    
+    func testLessThanOrEqualOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.having(Team.players.count() <= 2)
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") <= 2)
+                    """)
+            }
+            do {
+                let request = Team.having(2 <= Team.players.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (2 <= COUNT(DISTINCT "player"."rowid"))
+                    """)
+            }
+            do {
+                let request = Team.having(Team.players.count() <= Team.awards.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") <= COUNT(DISTINCT "award"."rowid"))
+                    """)
+            }
+        }
+    }
+    
+    func testLessThanOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.having(Team.players.count() < 2)
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") < 2)
+                    """)
+            }
+            do {
+                let request = Team.having(2 < Team.players.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (2 < COUNT(DISTINCT "player"."rowid"))
+                    """)
+            }
+            do {
+                let request = Team.having(Team.players.count() < Team.awards.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING (COUNT(DISTINCT "player"."rowid") < COUNT(DISTINCT "award"."rowid"))
+                    """)
+            }
+        }
+    }
+    
+    func testLogicalOperators() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.having(Team.players.isEmpty() && Team.awards.isEmpty())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING ((COUNT(DISTINCT "player"."rowid") = 0) AND (COUNT(DISTINCT "award"."rowid") = 0))
+                    """)
+            }
+            do {
+                let request = Team.having(Team.players.isEmpty() || Team.awards.isEmpty())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING ((COUNT(DISTINCT "player"."rowid") = 0) OR (COUNT(DISTINCT "award"."rowid") = 0))
+                    """)
+            }
+            do {
+                let request = Team.having(!(Team.players.isEmpty() || Team.awards.isEmpty()))
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".* \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "team"."id" \
+                    HAVING NOT ((COUNT(DISTINCT "player"."rowid") = 0) OR (COUNT(DISTINCT "award"."rowid") = 0))
+                    """)
+            }
+        }
+    }
+    
+    func testNegatedOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.annotated(with: -Team.players.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, -COUNT(DISTINCT "player"."rowid") \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
+                    """)
+            }
+        }
+    }
+
+    func testAdditionOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.annotated(with: Team.players.count() + 2)
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, (COUNT(DISTINCT "player"."rowid") + 2) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
+                    """)
+            }
+            do {
+                let request = Team.annotated(with: 2 + Team.players.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, (2 + COUNT(DISTINCT "player"."rowid")) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
+                    """)
+            }
+            do {
+                let request = Team.annotated(with: Team.players.count() + Team.awards.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, (COUNT(DISTINCT "player"."rowid") + COUNT(DISTINCT "award"."rowid")) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
+                    """)
+            }
+        }
+    }
+    
+    func testSubtractionOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.annotated(with: Team.players.count() - 2)
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, (COUNT(DISTINCT "player"."rowid") - 2) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
+                    """)
+            }
+            do {
+                let request = Team.annotated(with: 2 - Team.players.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, (2 - COUNT(DISTINCT "player"."rowid")) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
+                    """)
+            }
+            do {
+                let request = Team.annotated(with: Team.players.count() - Team.awards.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, (COUNT(DISTINCT "player"."rowid") - COUNT(DISTINCT "award"."rowid")) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
+                    """)
+            }
+        }
+    }
+    
+    func testMultiplicationOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.annotated(with: Team.players.count() * 2)
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, (COUNT(DISTINCT "player"."rowid") * 2) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
+                    """)
+            }
+            do {
+                let request = Team.annotated(with: 2 * Team.players.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, (2 * COUNT(DISTINCT "player"."rowid")) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
+                    """)
+            }
+            do {
+                let request = Team.annotated(with: Team.players.count() * Team.awards.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, (COUNT(DISTINCT "player"."rowid") * COUNT(DISTINCT "award"."rowid")) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
+                    """)
+            }
+        }
+    }
+    
+    func testDivisionOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.annotated(with: Team.players.count() / 2)
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, (COUNT(DISTINCT "player"."rowid") / 2) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
+                    """)
+            }
+            do {
+                let request = Team.annotated(with: 2 / Team.players.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, (2 / COUNT(DISTINCT "player"."rowid")) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
+                    """)
+            }
+            do {
+                let request = Team.annotated(with: Team.players.count() / Team.awards.count())
+                
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, (COUNT(DISTINCT "player"."rowid") / COUNT(DISTINCT "award"."rowid")) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
                     """)
             }
         }

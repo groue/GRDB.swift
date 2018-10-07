@@ -44,27 +44,18 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     
     /// TODO
     public func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
-        // SELECT author.*, COUNT(book.rowID) AS bookCount
-        // LEFT JOIN book ON ...
-        // GROUP BY author.id
-        let tableAlias = TableAlias()
-        let selectable: SQLSelectable
+        let (request, expression) = aggregate.run(self)
         if let alias = aggregate.alias {
-            selectable = tableAlias[aggregate.expression].aliased(alias)
+            return request.appendingSelection([expression.aliased(alias)])
         } else {
-            selectable = tableAlias[aggregate.expression]
+            return request.appendingSelection([expression])
         }
-        return aggregate.aggregatedRequest(appendingSelection([selectable]), tableAlias)
     }
     
     /// TODO
     public func having(_ aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
-        // SELECT author.*
-        // LEFT JOIN book ON ...
-        // GROUP BY author.id
-        // HAVING COUNT(book.rowID) > 0
-        let tableAlias = TableAlias()
-        return aggregate.aggregatedRequest(having(tableAlias[aggregate.expression]), tableAlias)
+        let (request, expression) = aggregate.run(self)
+        return request.having(expression)
     }
 }
 
