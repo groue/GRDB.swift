@@ -1401,36 +1401,18 @@ You can also perform custom navigation in the tree by using *row scopes*. See [R
 
 ## Association Aggregates
 
-It is possible to fetch aggregated values from a **HasMany** association:
+It is possible to fetch aggregated values from a **[HasMany]** association:
 
 Counting associated records, fetching the minimum, maximum, average value of an associated record column, computing the sum of an associated record column, these are all aggregation operations.
 
-When you need to compute aggregates **from a single record**, you use regular aggregating functions, described in the [Fetching Aggregated Values] chapter. For example:
+When you need to compute aggregates **from a single record**, you use regular aggregating functions, detailed in the [Fetching Aggregated Values] chapter. For example:
 
 ```swift
-// The regular definition of a `hasMany` association:
-struct Author: TableRecord {
-    static let books = hasMany(Book.self)
-    var books: QueryInterfaceRequest<Book> {
-        return request(for: Author.books)
-    }
-}
-
-// A given author:
 let author: Author = ...
+let bookCount = try author.books.fetchCount(db)  // Int
 
-// SELECT COUNT(*) FROM book where authorId = 42
-let count = try author.books.fetchCount(db)  // Int
-
-// SELECT MAX(year) FROM book where authorId = 42
 let request = author.books.select(max(yearColumn))
-let maxScore = try Int.fetchOne(db, request) // Int?
-
-// SELECT MIN(year), MAX(year) FROM book where authorId = 42
-let request = author.books.select(min(yearColumn), max(yearColumn))
-let row = try Row.fetchOne(db, request)!     // Row
-let minScore = row[0] as Int?
-let maxScore = row[1] as Int?
+let maxYear = try Int.fetchOne(db, request)      // Int?
 ```
 
 When you need to count aggregates **from several record**, you'll use an **association aggregate**. Those are the topic of this chapter.
@@ -1443,10 +1425,6 @@ struct AuthorInfo: Decodable, FetchableRecord {
     var bookCount: Int
 }
 
-// SELECT author.*, COUNT(DISTINCT book.rowid) AS bookCount
-// FROM author
-// LEFT JOIN book ON book.authorId = author.id
-// GROUP BY author.id
 let request = Author.annotated(with: Author.books.count)
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 
@@ -1490,8 +1468,9 @@ struct AuthorInfo: Decodable, FetchableRecord {
 // LEFT JOIN book ON book.authorId = author.id
 // WHERE author.id = 1
 // GROUP BY author.id
-let request = Author
-    .annotated(with: Author.books.count, Author.books.max(Column("year")))
+let request = Author.annotated(with:
+    Author.books.count,
+    Author.books.max(Column("year")))
 
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 
