@@ -1626,6 +1626,10 @@ In the example below, we use compute two aggregates from the same association `A
 - Authors with the publishing year of their first and last book:
 
     ```swift
+    struct Author: TableRecord {
+        static let books = hasMany(Book.self) // association key "book"
+    }
+    
     struct AuthorInfo: Decodable, FetchableRecord {
         var author: Author
         var minBookYear: Int?
@@ -1650,8 +1654,8 @@ In this other example, the `Author.books` and `Author.paintings` have the distin
 
     ```swift
     struct Author: TableRecord {
-        static let books = hasMany(Book.self)
-        static let paintings = hasMany(Painting.self)
+        static let books = hasMany(Book.self)         // association key "book"
+        static let paintings = hasMany(Painting.self) // association key "painting"
     }
     
     struct AuthorInfo: Decodable, FetchableRecord {
@@ -1665,17 +1669,21 @@ In this other example, the `Author.books` and `Author.paintings` have the distin
     // LEFT JOIN book ON book.authorId = author.id
     // LEFT JOIN painting ON painting.authorId = author.id
     // GROUP BY author.id
-    let aggregate = Author.books.count       // association key "book"
-                    + Author.paintings.count // association key "painting"
+    let aggregate = Author.books.count +   // association key "book"
+                    Author.paintings.count // association key "painting"
     let request = Author.annotated(with: aggregate.aliased("workCount"))
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
 
-But in the following examples, we use the same association `Author.books` twice, in order to compute aggregates on two distinct populations of associated books. We must provide explicit keys in order to make sure both aggregates are computed independently:
+But in the following example, we use the same association `Author.books` twice, in order to compute aggregates on two distinct populations of associated books. We must provide explicit keys in order to make sure both aggregates are computed independently:
 
 - Authors with their number of novels and theatre plays:
 
     ```swift
+    struct Author: TableRecord {
+        static let books = hasMany(Book.self) // association key "book"
+    }
+    
     struct AuthorInfo: Decodable, FetchableRecord {
         var author: Author
         var novelCount: Int
@@ -1699,26 +1707,6 @@ But in the following examples, we use the same association `Author.books` twice,
         .count
     let request = Author.annotated(with: novelCount, theatrePlayCount)
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
-    ```
-
-- Authors who wrote more novels than theatre plays:
-
-    ```swift
-    // SELECT author.*
-    // FROM author
-    // LEFT JOIN book book1 ON book1.authorId = author.id AND book1.kind = 'novel'
-    // LEFT JOIN book book2 ON book2.authorId = author.id AND book2.kind = 'theatrePlay'
-    // GROUP BY author.id
-    // HAVING COUNT(DISTINCT book1.rowid) > COUNT(DISTINCT book2.rowid)
-    let novelCount = Author.books
-        .filter(Column("kind") == "novel")
-        .forKey("novel")                         // association key "novel"
-        .count
-    let theatrePlayCount = Author.books
-        .filter(Column("kind") == "theatrePlay")
-        .forKey("theatrePlay")                   // association key "theatrePlay"
-        .count
-    let request = Author.having(novelCount > theatrePlayCount)
     ```
 
 
