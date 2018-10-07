@@ -1611,6 +1611,25 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     let request = Author.having(Author.books.count >= 2)
     ```
 
+- Authors who wrote at least one book after 2010:
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    HAVING MAX(book.year) >= 2010
+    ```
+    
+    </details>
+    
+    ```swift
+    let request = Author.having(Author.books.max(Column("year")) >= 2010)
+    ```
+
 - Authors who wrote at least one book of kind "novel":
 
     <details>
