@@ -1648,7 +1648,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     </details>
     
     ```swift
-    let request = Author.having(Author.books.count > Author.painting.count)
+    let request = Author.having(Author.books.count > Author.paintings.count)
     ```
 
 - Authors who wrote no book, but made at least one painting:
@@ -1668,7 +1668,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     </details>
     
     ```swift
-    let request = Author.having(Author.books.isEmpty && !Author.painting.isEmpty)
+    let request = Author.having(Author.books.isEmpty && !Author.paintings.isEmpty)
     ```
 
 
