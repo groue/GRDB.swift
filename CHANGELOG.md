@@ -15,6 +15,7 @@ This release comes with **Association Aggregates**. They let you compute values 
 
 - [#422](https://github.com/groue/GRDB.swift/pull/422): Refining Association Requests
 - [#423](https://github.com/groue/GRDB.swift/pull/423): Association Aggregates
+- [#428](https://github.com/groue/GRDB.swift/pull/428): Upgrade custom SQLite builds to version 3.25.2 (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib))
 
 
 ### Documentation Diff
