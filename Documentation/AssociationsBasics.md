@@ -1060,7 +1060,7 @@ See how the `Book.author` has been joined or included, on each step, independent
 
 ```swift
 extension QueryInterfaceRequest where T == Book {
-    func filter(countryCode: String) -> QueryInterfaceRequest<Book> {
+    func filter(authorCountryCode: String) -> QueryInterfaceRequest<Book> {
         return joining(required: Book.author
             .filter(Column("countryCode") == countryCode))
     }
@@ -1078,7 +1078,7 @@ And now our complex request looks much simpler:
 ```swift
 let request = Book
     .including(required: Book.author)
-    .filter(countryCode: "ES")
+    .filter(authorCountryCode: "ES")
     .orderedByAuthorNameAndTitle()
 ```
 
