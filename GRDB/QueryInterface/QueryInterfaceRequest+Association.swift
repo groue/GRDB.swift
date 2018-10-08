@@ -45,27 +45,44 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
         let (request, expression) = aggregate.prepare(self)
         if let alias = aggregate.alias {
-            return request.appendingSelection([expression.aliased(alias)])
+            return request.annotated(with: [expression.aliased(alias)])
         } else {
-            return request.appendingSelection([expression])
+            return request.annotated(with: [expression])
         }
     }
     
-    /// TODO
+    /// Creates a request which appends *aggregates* to the current selection.
+    ///
+    ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
+    ///     // FROM player LEFT JOIN book ...
+    ///     var request = Player.all()
+    ///     request = request.annotated(with: Player.books.count)
     public func annotated(with aggregates: AssociationAggregate<RowDecoder>...) -> QueryInterfaceRequest<RowDecoder> {
         return annotated(with: aggregates)
     }
 
-    /// TODO
+    /// Creates a request which appends *aggregates* to the current selection.
+    ///
+    ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
+    ///     // FROM player LEFT JOIN book ...
+    ///     var request = Player.all()
+    ///     request = request.annotated(with: [Player.books.count])
     public func annotated(with aggregates: [AssociationAggregate<RowDecoder>]) -> QueryInterfaceRequest<RowDecoder> {
         return aggregates.reduce(self) { request, aggregate in
             request.annotated(with: aggregate)
         }
     }
     
-    /// TODO
-    public func having(_ aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
-        let (request, expression) = aggregate.prepare(self)
+    /// Creates a request which appends the provided aggregate *predicate* to
+    /// the eventual set of already applied predicates.
+    ///
+    ///     // SELECT player.*
+    ///     // FROM player LEFT JOIN book ...
+    ///     // HAVING COUNT(DISTINCT book.rowid) = 0
+    ///     var request = Player.all()
+    ///     request = request.having(Player.books.isEmpty)
+    public func having(_ predicate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
+        let (request, expression) = predicate.prepare(self)
         return request.having(expression)
     }
 }
@@ -123,18 +140,36 @@ extension TableRecord {
     
     // MARK: - Association Aggregates
     
-    /// TODO
+    /// Creates a request with *aggregates* appended to the selection.
+    ///
+    ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
+    ///     // FROM player LEFT JOIN book ...
+    ///     var request = Player.annotated(with: Player.books.count)
     public static func annotated(with aggregates: AssociationAggregate<Self>...) -> QueryInterfaceRequest<Self> {
         return all().annotated(with: aggregates)
     }
     
-    /// TODO
+    /// Creates a request with *aggregates* appended to the selection.
+    ///
+    ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
+    ///     // FROM player LEFT JOIN book ...
+    ///     var request = Player.annotated(with: [Player.books.count])
     public static func annotated(with aggregates: [AssociationAggregate<Self>]) -> QueryInterfaceRequest<Self> {
         return all().annotated(with: aggregates)
     }
 
-    /// TODO
-    public static func having(_ aggregate: AssociationAggregate<Self>) -> QueryInterfaceRequest<Self> {
-        return all().having(aggregate)
+    /// Creates a request with the provided aggregate *predicate*.
+    ///
+    ///     // SELECT player.*
+    ///     // FROM player LEFT JOIN book ...
+    ///     // HAVING COUNT(DISTINCT book.rowid) = 0
+    ///     var request = Player.all()
+    ///     request = request.having(Player.books.isEmpty)
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
+    public static func having(_ predicate: AssociationAggregate<Self>) -> QueryInterfaceRequest<Self> {
+        return all().having(predicate)
     }
 }

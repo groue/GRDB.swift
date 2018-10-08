@@ -70,7 +70,7 @@ extension QueryInterfaceQuery {
         return query
     }
     
-    func appendingSelection(_ selection: [SQLSelectable]) -> QueryInterfaceQuery {
+    func annotated(with selection: [SQLSelectable]) -> QueryInterfaceQuery {
         var query = self
         query.selection.append(contentsOf: selection)
         return query

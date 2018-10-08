@@ -105,9 +105,9 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///     var request = Player.all()
     ///     request = request
     ///         .select([Column("id"), Column("email")])
-    ///         .appendingSelection([Column("name")])
-    public func appendingSelection(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<T> {
-        return QueryInterfaceRequest(query: query.appendingSelection(selection))
+    ///         .annotated(with: [Column("name")])
+    public func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest<T> {
+        return QueryInterfaceRequest(query: query.annotated(with: selection))
     }
 
     /// Creates a request which returns distinct rows.

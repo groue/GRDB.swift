@@ -55,7 +55,7 @@ This release comes with **Association Aggregates**. They let you compute values 
 +}
 
 +extension QueryInterfaceRequest {
-+    func appendingSelection(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<T>
++    func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest<RowDecoder>
 +}
 
 +extension QueryInterfaceRequest where RowDecoder: TableRecord {
