@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Version
+## 3.4.0
+
+Released October 8, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.3.1...v3.4.0)
 
 This release comes with **Association Aggregates**. They let you compute values out of collections of associated records, such as their count, or the maximum value of an associated record column.
 
