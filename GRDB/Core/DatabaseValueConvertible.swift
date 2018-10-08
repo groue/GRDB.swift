@@ -65,6 +65,12 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible> : Cursor
         statement.reset(withArguments: arguments)
     }
     
+    deinit {
+        // Statement reset fails when sqlite3_step has previously failed.
+        // Just ignore reset error.
+        try? statement.reset()
+    }
+    
     /// :nodoc:
     public func next() throws -> Value? {
         if done {
@@ -117,6 +123,12 @@ public final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible> 
             self.columnIndex = 0
         }
         statement.reset(withArguments: arguments)
+    }
+    
+    deinit {
+        // Statement reset fails when sqlite3_step has previously failed.
+        // Just ignore reset error.
+        try? statement.reset()
     }
     
     /// :nodoc:

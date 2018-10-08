@@ -947,7 +947,6 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             }
             do {
                 try future.wait()
-                XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_BUSY)
                 XCTAssertEqual(error.message!, "database is locked")

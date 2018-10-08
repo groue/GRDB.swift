@@ -716,6 +716,42 @@ struct SQLExpressionCountDistinct : SQLExpression {
     }
 }
 
+// MARK: - SQLExpressionIsEmpty
+
+/// This one helps generating `COUNT(...) = 0` or `COUNT(...) > 0` while letting
+/// the user using the not `!` logical operator, or comparisons with booleans
+/// such as `== true` or `== false`.
+struct SQLExpressionIsEmpty : SQLExpression {
+    var countExpression: SQLExpression
+    var isEmpty: Bool
+    
+    // countExpression should be a counting expression
+    init(_ countExpression: SQLExpression, isEmpty: Bool = true) {
+        self.countExpression = countExpression
+        self.isEmpty = isEmpty
+    }
+    
+    var negated: SQLExpression {
+        return SQLExpressionIsEmpty(countExpression, isEmpty: !isEmpty)
+    }
+    
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        if isEmpty {
+            return "(" + countExpression.expressionSQL(&context) + " = 0)"
+        } else {
+            return "(" + countExpression.expressionSQL(&context) + " > 0)"
+        }
+    }
+    
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return SQLExpressionIsEmpty(countExpression.qualifiedExpression(with: alias), isEmpty: isEmpty)
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
+        return SQLExpressionIsEmpty(countExpression.resolvedExpression(inContext: context), isEmpty: isEmpty)
+    }
+}
+
 // MARK: - TableMatchExpression
 
 struct TableMatchExpression: SQLExpression {

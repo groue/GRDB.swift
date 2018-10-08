@@ -3,7 +3,7 @@ struct AssociationQuery {
     var selection: [SQLSelectable]
     var filterPromise: DatabasePromise<SQLExpression?>
     var ordering: QueryOrdering
-    var joins: [AssociationJoin]
+    var joins: OrderedDictionary<String, AssociationJoin>
     
     var alias: TableAlias? {
         return source.alias
@@ -13,7 +13,7 @@ struct AssociationQuery {
 extension AssociationQuery {
     init(_ query: QueryInterfaceQuery) {
         GRDBPrecondition(!query.isDistinct, "Not implemented: join distinct queries")
-        GRDBPrecondition(query.groupByExpressions.isEmpty, "Can't join aggregated queries")
+        GRDBPrecondition(query.groupPromise == nil, "Can't join aggregated queries")
         GRDBPrecondition(query.havingExpression == nil, "Can't join aggregated queries")
         GRDBPrecondition(query.limit == nil, "Can't join limited queries")
         
@@ -59,9 +59,17 @@ extension AssociationQuery {
         return query
     }
     
-    func joining(_ join: AssociationJoin) -> AssociationQuery {
+    func appendingJoin(_ join: AssociationJoin, forKey key: String) -> AssociationQuery {
         var query = self
-        query.joins.append(join)
+        if let existingJoin = query.joins.removeValue(forKey: key) {
+            guard let mergedJoin = existingJoin.merged(with: join) else {
+                // can't merge
+                fatalError("The association key \"\(key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
+            }
+            query.joins.append(value: mergedJoin, forKey: key)
+        } else {
+            query.joins.append(value: join, forKey: key)
+        }
         return query
     }
     
@@ -82,7 +90,7 @@ extension AssociationQuery {
         query.selection = selection.map { $0.qualifiedSelectable(with: alias) }
         query.filterPromise = filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
         query.ordering = ordering.qualified(with: alias)
-        query.joins = joins.map { $0.finalizedJoin }
+        query.joins = joins.mapValues { $0.finalizedJoin }
         
         return query
     }
@@ -94,21 +102,21 @@ extension AssociationQuery {
             aliases.append(alias)
         }
         return joins.reduce(into: aliases) {
-            $0.append(contentsOf: $1.finalizedAliases)
+            $0.append(contentsOf: $1.value.finalizedAliases)
         }
     }
     
     /// precondition: self is the result of finalizedQuery
     var finalizedSelection: [SQLSelectable] {
         return joins.reduce(into: selection) {
-            $0.append(contentsOf: $1.finalizedSelection)
+            $0.append(contentsOf: $1.value.finalizedSelection)
         }
     }
     
     /// precondition: self is the result of finalizedQuery
     var finalizedOrdering: QueryOrdering {
         return joins.reduce(ordering) {
-            $0.appending($1.finalizedOrdering)
+            $0.appending($1.value.finalizedOrdering)
         }
     }
     
@@ -120,10 +128,9 @@ extension AssociationQuery {
         
         var endIndex = startIndex + selectionWidth
         var scopes: [String: RowAdapter] = [:]
-        for join in joins {
-            if let (joinAdapter, joinEndIndex) = try join.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [join.key]) {
-                GRDBPrecondition(scopes[join.key] == nil, "The association key \"\((keyPath + [join.key]).joined(separator: "."))\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
-                scopes[join.key] = joinAdapter
+        for (key, join) in joins {
+            if let (joinAdapter, joinEndIndex) = try join.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [key]) {
+                scopes[key] = joinAdapter
                 endIndex = joinEndIndex
             }
         }
@@ -134,5 +141,53 @@ extension AssociationQuery {
         
         let adapter = RangeRowAdapter(startIndex ..< (startIndex + selectionWidth))
         return (adapter: adapter.addingScopes(scopes), endIndex: endIndex)
+    }
+}
+
+extension AssociationQuery {
+    /// Returns nil if queries can't be merged (conflict in source, joins...)
+    func merged(with other: AssociationQuery) -> AssociationQuery? {
+        guard let mergedSource = source.merged(with: other.source) else {
+            // can't merge
+            return nil
+        }
+        
+        let mergedFilterPromise = filterPromise.map { (db, expression) in
+            let otherExpression = try other.filterPromise.resolve(db)
+            let expressions = [expression, otherExpression].compactMap { $0 }
+            if expressions.isEmpty {
+                return nil
+            }
+            return expressions.joined(operator: .and)
+        }
+        
+        var mergedJoins: OrderedDictionary<String, AssociationJoin> = [:]
+        for (key, join) in joins {
+            if let otherJoin = other.joins[key] {
+                guard let mergedJoin = join.merged(with: otherJoin) else {
+                    // can't merge
+                    return nil
+                }
+                mergedJoins.append(value: mergedJoin, forKey: key)
+            } else {
+                mergedJoins.append(value: join, forKey: key)
+            }
+        }
+        for (key, join) in other.joins where mergedJoins[key] == nil {
+            mergedJoins.append(value: join, forKey: key)
+        }
+        
+        // replace selection unless empty
+        let mergedSelection = other.selection.isEmpty ? selection : other.selection
+        
+        // replace ordering unless empty
+        let mergedOrdering = other.ordering.isEmpty ? ordering : other.ordering
+        
+        return AssociationQuery(
+            source: mergedSource,
+            selection: mergedSelection,
+            filterPromise: mergedFilterPromise,
+            ordering: mergedOrdering,
+            joins: mergedJoins)
     }
 }

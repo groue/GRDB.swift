@@ -811,6 +811,7 @@ extension Database {
             throw DatabaseError(resultCode: code, message: dbDest.lastErrorMessage)
         }
         
+        // The schema of the destination database has changed:
         dbDest.clearSchemaCache()
     }
 }

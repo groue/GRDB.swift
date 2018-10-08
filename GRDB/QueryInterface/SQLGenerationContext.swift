@@ -180,15 +180,45 @@ public class TableAlias: Hashable {
     
     func becomeProxy(of base: TableAlias) {
         switch impl {
-        case .undefined(let userName):
+        case let .undefined(userName):
             if let userName = userName {
                 // rename
+                assert(base.userName == nil || base.userName == userName)
                 base.setUserName(userName)
             }
             self.impl = .proxy(base)
+        case let .table(tableName: tableName, userName: userName):
+            assert(tableName == base.tableName)
+            if let userName = userName {
+                // rename
+                assert(base.userName == nil || base.userName == userName)
+                base.setUserName(userName)
+            }
+            self.impl = .proxy(base)
+        case let .proxy(selfBase):
+            selfBase.becomeProxy(of: base)
+        }
+    }
+    
+    /// Returns nil if aliases can't be merged (conflict in tables, aliases...)
+    func merge(with other: TableAlias) -> TableAlias? {
+        let root = self.root
+        let otherRoot = other.root
+        switch (root.impl, otherRoot.impl) {
+        case let (.table(tableName: tableName, userName: userName), .table(tableName: otherTableName, userName: otherUserName)):
+            guard tableName == otherTableName else {
+                // can't merge
+                return nil
+            }
+            if let userName = userName, let otherUserName = otherUserName, userName != otherUserName {
+                // can't merge
+                return nil
+            }
+            root.becomeProxy(of: otherRoot)
+            return otherRoot
         default:
-            // Likely a GRDB bug
-            fatalError("Not implemented")
+            // can't merge
+            return nil
         }
     }
     

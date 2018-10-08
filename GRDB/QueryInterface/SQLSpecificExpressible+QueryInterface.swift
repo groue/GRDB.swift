@@ -30,6 +30,13 @@ extension SQLSpecificExpressible {
     public func aliased(_ name: String) -> SQLSelectable {
         return SQLAliasedExpression(sqlExpression, name: name)
     }
+    
+    /// Returns a value that can be used as an argument to QueryInterfaceRequest.select()
+    ///
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    public func aliased(_ key: CodingKey) -> SQLSelectable {
+        return aliased(key.stringValue)
+    }
 }
 
 

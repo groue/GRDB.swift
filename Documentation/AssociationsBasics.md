@@ -22,10 +22,16 @@ GRDB Associations
     - [Sorting Associations]
     - [Columns Selected by an Association]
     - [Table Aliases]
+    - [Refining Association Requests]
 - [Fetching Values from Associations]
     - [The Structure of a Joined Request]
     - [Decoding a Joined Request with a Decodable Record]
     - [Decoding a Joined Request with FetchableRecord]
+- [Association Aggregates]
+    - [Available Association Aggregates]
+    - [Annotating a Request with Aggregates]
+    - [Filtering a Request with Aggregates]
+    - [Isolation of Multiple Aggregates]
 - [DerivableRequest Protocol]
 - [Known Issues]
 - [Future Directions]
@@ -614,6 +620,7 @@ Fetch requests do not visit the database until you fetch values from them. This 
 - [Sorting Associations]
 - [Columns Selected by an Association]
 - [Table Aliases]
+- [Refining Association Requests]
 
 
 ## Requesting Associated Records
@@ -1016,6 +1023,113 @@ let request = Book.aliased(bookAlias)
 > ```
 
 
+## Refining Association Requests
+
+You can join and include an association several times in a single request. This can help you craft complex requests in a modular way.
+
+Let's say, for example, that your application needs all books, along with their Spanish authors, sorted by author name and then by title. That's already pretty complex.
+
+This request can be built in a single shot:
+
+```swift
+let authorAlias = TableAlias()
+let request = Book
+    .including(required: Book.author
+        .filter(Column("countryCode") == "ES")
+        .aliased(authorAlias))
+    .order(authorAlias[Column("name")], Column("title"))
+```
+
+The same request can also be built in three distinct steps, as below:
+
+```swift
+// 1. include author
+var request = Book.including(required: Book.author)
+
+// 2. filter by author country
+request = request.joining(required: Book.author.filter(Column("countryCode") == "ES"))
+
+// 3. sort by author name and then title
+let authorAlias = TableAlias()
+request = request
+    .joining(optional: Book.author.aliased(authorAlias))
+    .order(authorAlias[Column("name")], Column("title"))
+```
+
+See how the `Book.author` has been joined or included, on each step, independently, for a different purpose. We can wrap those steps in an extension to the `QueryInterfaceRequest<Book>` type:
+
+```swift
+extension QueryInterfaceRequest where T == Book {
+    func filter(authorCountryCode: String) -> QueryInterfaceRequest<Book> {
+        let filteredAuthor = Book.author.filter(Column("countryCode") == countryCode)
+        return joining(required: filteredAuthor)
+    }
+    
+    func orderedByAuthorNameAndTitle() -> QueryInterfaceRequest<Book> {
+        let authorAlias = TableAlias()
+        return joining(optional: Book.author.aliased(authorAlias))
+            .order(authorAlias[Column("name")], Column("title"))
+    }
+}
+```
+
+And now our complex request looks much simpler:
+
+```swift
+let request = Book
+    .including(required: Book.author)
+    .filter(authorCountryCode: "ES")
+    .orderedByAuthorNameAndTitle()
+```
+
+When you join or include an association several times, with the same **[association key](#the-structure-of-a-joined-request)**, GRDB will apply the following rules:
+
+- `including` wins over `joining`:
+
+    ```swift
+    // Equivalent to Record.including(optional: association)
+    Record
+        .including(optional: association)
+        .joining(optional: association)
+    ```
+
+- `required` wins over `optional`:
+
+    ```swift
+    // Equivalent to Record.including(required: association)
+    Record
+        .including(required: association)
+        .including(optional: association)
+    ```
+
+- All [filters](#filtering-associations) are applied:
+
+    ```swift
+    // Equivalent to Record.including(required: association.filter(condition1 && condition2))
+    Record
+        .including(required: association.filter(condition1))
+        .including(optional: association.filter(condition1))
+    ```
+
+- The last [ordering](#sorting-associations) wins:
+
+    ```swift
+    // Equivalent to Record.including(required: association.order(ordering2))
+    Record
+        .including(required: association.order(ordering1))
+        .including(optional: association.order(ordering2))
+    ```
+
+- The last [selection](#columns-selected-by-an-association) wins:
+
+    ```swift
+    // Equivalent to Record.including(required: association.select(selection2))
+    Record
+        .including(required: association.select(selection1))
+        .including(optional: association.select(selection2))
+    ```
+
+
 Fetching Values from Associations
 =================================
 
@@ -1285,6 +1399,444 @@ let country: Country? = row["country"]
 You can also perform custom navigation in the tree by using *row scopes*. See [Row Adapters] for more information.
 
 
+## Association Aggregates
+
+It is possible to fetch aggregated values from a **[HasMany]** association:
+
+Counting associated records, fetching the minimum, maximum, average value of an associated record column, computing the sum of an associated record column, these are all aggregation operations.
+
+When you need to compute aggregates **from a single record**, you use regular aggregating methods, detailed in the [Fetching Aggregated Values] chapter. For example:
+
+```swift
+let author: Author = ...
+let bookCount = try author.books.fetchCount(db)  // Int
+
+let request = author.books.select(max(yearColumn))
+let maxBookYear = try Int.fetchOne(db, request)  // Int?
+```
+
+When you need to compute aggregates **from several record**, in a single shot, you'll use an **association aggregate**. Those are the topic of this chapter.
+
+For example, you'll use the `isEmpty` aggregate when you want, say, to fetch all authors who wrote no book at all:
+
+```swift
+let lazyAuthors: [Author] = try Author.having(Author.books.isEmpty).fetchAll(db)
+let productiveAuthors: [Author] = try Author.having(Author.books.isEmpty == false).fetchAll(db)
+```
+
+And you'll use the `count` aggregate in order to fetch all authors along with the number of books they wrote:
+
+```swift
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var bookCount: Int
+}
+
+let request = Author.annotated(with: Author.books.count)
+let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+
+for info in authorInfos {
+    print("\(info.author.name) wrote \(info.bookCount) book(s).")
+}
+```
+
+
+### Available Association Aggregates
+
+**HasMany** associations let you build the following association aggregates:
+
+- `books.count`
+- `books.isEmpty`
+- `books.min(column)`
+- `books.max(column)`
+- `books.average(column)`
+- `books.sum(column)`
+
+
+### Annotating a Request with Aggregates
+
+The `annotated(with:)` method appends aggregated values to the selected columns of a request. You can append as many aggregates values as needed, from one or several associations.
+
+In order to access those values, you fetch records that have matching properties.
+
+For example:
+
+```swift
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var bookCount: Int
+    var maxBookYear: Int?
+}
+
+// SELECT author.*,
+//        COUNT(DISTINCT book.rowid) AS bookCount,
+//        MAX(book.year) AS maxBookYear,
+// FROM author
+// LEFT JOIN book ON book.authorId = author.id
+// GROUP BY author.id
+let request = Author.annotated(with:
+    Author.books.count,
+    Author.books.max(Column("year")))
+
+let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+
+for info in authorInfos {
+    print(info.author.name)
+    print("- number of books: \(info.bookCount)")
+    print("- last book published on: \(info.maxBookYear)")
+}
+```
+
+As seen in the above example, some aggregated values are given a **default name**, such as "bookCount" or "maxBookYear". The default name is built from the aggregating method, the **[association key](#the-structure-of-a-joined-request)**, and the aggregated column name:
+
+| Method | Key | Column | Default name |
+| --------- | --- | ------ | ------------- |
+| `Author.books.isEmpty  `                | `book` | -        | -                  |
+| `Author.books.count  `                  | `book` | -        | `bookCount`        |
+| `Author.books.min(Column("year"))`      | `book` | `year`   | `minBookYear`      |
+| `Author.books.max(Column("year"))`      | `book` | `year`   | `maxBookYear`      |
+| `Author.books.average(Column("price"))` | `book` | `price`  | `averageBookPrice` |
+| `Author.books.sum(Column("awards"))   ` | `book` | `awards` | `bookAwardsSum`    |
+
+You give a custom name to an aggregated value with the `aliased` method:
+
+```swift
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var numberOfBooks: Int
+}
+
+// SELECT author.*, COUNT(DISTINCT book.rowid) AS numberOfBooks
+// FROM author
+// LEFT JOIN book ON book.authorId = author.id
+// GROUP BY author.id
+let request = Author.annotated(with: Author.books.count.aliased("numberOfBooks"))
+let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+```
+
+The `aliased` method also accept coding keys:
+
+```swift
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var numberOfBooks: Int
+    
+    static func fetchAll(_ db: Database) throws -> [AuthorInfo] {
+        let request = Author.annotated(with: Author.books.count.aliased(CodingKey.numberOfBooks))
+        return try AuthorInfo.fetchAll(db, request)
+    }
+}
+```
+
+Custom names help consuming complex aggregates that have no name by default:
+
+```swift
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var workCount: Int
+}
+
+// SELECT author.*,
+//        (COUNT(DISTINCT book.rowid) + COUNT(DISTINCT painting.rowid)) AS workCount
+// FROM author
+// LEFT JOIN book ON book.authorId = author.id
+// LEFT JOIN painting ON painting.authorId = author.id
+// GROUP BY author.id
+let aggregate = Author.books.count + Author.paintings.count
+let request = Author.annotated(with: aggregate.aliased("workCount"))
+let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+```
+
+
+### Filtering a Request with Aggregates
+
+The `having(_:)` method filters a request according to an aggregated value. You can append as many aggregate conditions as needed, from one or several associations.
+
+- Authors who did not write any book:
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) = 0
+    ```
+    
+    </details>
+    
+    ```swift
+    let request = Author.having(Author.books.isEmpty)
+    ```
+
+- Authors who wrote at least one book:
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) > 0
+    ```
+    
+    </details>
+    
+    ```swift
+    let request = Author.having(Author.books.isEmpty == false)
+    ```
+
+- Authors who wrote at least two books:
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) >= 2
+    ```
+    
+    </details>
+    
+    ```swift
+    let request = Author.having(Author.books.count >= 2)
+    ```
+
+- Authors who wrote at least one book after 2010:
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    HAVING MAX(book.year) >= 2010
+    ```
+    
+    </details>
+    
+    ```swift
+    let request = Author.having(Author.books.max(Column("year")) >= 2010)
+    ```
+
+- Authors who wrote at least one book of kind "novel":
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id AND book.kind = 'novel'
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) > 0
+    ```
+    
+    </details>
+    
+    ```swift
+    let novels = Author.books.filter(Column("kind") == "novel")
+    let request = Author.having(novels.isEmpty == false)
+    ```
+    
+- Authors who wrote more books than they made paitings:
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    LEFT JOIN painting ON painting.authorId = author.id
+    GROUP BY author.id
+    HAVING COUNT(DISTINCT book.rowid) > COUNT(DISTINCT painting.rowid)
+    ```
+    
+    </details>
+    
+    ```swift
+    let request = Author.having(Author.books.count > Author.paintings.count)
+    ```
+
+- Authors who wrote no book, but made at least one painting:
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    LEFT JOIN painting ON painting.authorId = author.id
+    GROUP BY author.id
+    HAVING ((COUNT(DISTINCT book.rowid) = 0) AND (COUNT(DISTINCT painting.rowid) > 0))
+    ```
+    
+    </details>
+    
+    ```swift
+    let request = Author.having(Author.books.isEmpty && !Author.paintings.isEmpty)
+    ```
+
+
+### Isolation of Multiple Aggregates
+
+When you compute multiple aggregates, make sure they use as many distinct **[association keys](#the-structure-of-a-joined-request)** as there are distinct populations of associated records.
+
+In the example below, we use compute two aggregates from the same association `Author.books`. Both aggregates are computed on the same population of associated records, and so we want them to share the same association key:
+
+- Authors with the publishing year of their first and last book:
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*,
+           MIN(book.year) AS minBookYear,
+           MAX(book.year) AS maxBookYea
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    ```
+    
+    </details>
+    
+    ```swift
+    struct Author: TableRecord {
+        static let books = hasMany(Book.self) // association key "book"
+    }
+    
+    struct AuthorInfo: Decodable, FetchableRecord {
+        var author: Author
+        var minBookYear: Int?
+        var maxBookYear: Int?
+    }
+    
+    let request = Author.annotated(with:
+        Author.books.min(Column("year")), // association key "book"
+        Author.books.max(Column("year"))) // association key "book"
+    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+    ```
+
+In this other example, the `Author.books` and `Author.paintings` have the distinct `book` and `painting` keys. They don't interfere, and provide the expected results:
+
+- Authors with their number of books and paitings:
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*,
+           (COUNT(DISTINCT book.rowid) + COUNT(DISTINCT painting.rowid)) AS workCount
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    LEFT JOIN painting ON painting.authorId = author.id
+    GROUP BY author.id
+    ```
+    
+    </details>
+    
+    ```swift
+    struct Author: TableRecord {
+        static let books = hasMany(Book.self)         // association key "book"
+        static let paintings = hasMany(Painting.self) // association key "painting"
+    }
+    
+    struct AuthorInfo: Decodable, FetchableRecord {
+        var author: Author
+        var workCount: Int
+    }
+    
+    let aggregate = Author.books.count +   // association key "book"
+                    Author.paintings.count // association key "painting"
+    let request = Author.annotated(with: aggregate.aliased("workCount"))
+    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+    ```
+
+But in the following example, we use the same association `Author.books` twice, in order to compute aggregates on two distinct populations of associated books. We must provide explicit keys in order to make sure both aggregates are computed independently:
+
+- Authors with their number of novels and theatre plays:
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*,
+           COUNT(DISTINCT book1.rowid) AS novelCount,
+           COUNT(DISTINCT book2.rowid) AS theatrePlayCount
+    FROM author
+    LEFT JOIN book book1 ON book1.authorId = author.id AND book1.kind = 'novel'
+    LEFT JOIN book book2 ON book2.authorId = author.id AND book2.kind = 'theatrePlay'
+    GROUP BY author.id
+    ```
+    
+    </details>
+    
+    ```swift
+    struct Author: TableRecord {
+        static let books = hasMany(Book.self) // association key "book"
+    }
+    
+    struct AuthorInfo: Decodable, FetchableRecord {
+        var author: Author
+        var novelCount: Int
+        var theatrePlayCount: Int
+    }
+    
+    let novelCount = Author.books
+        .filter(Column("kind") == "novel")
+        .forKey("novel")                         // association key "novel"
+        .count
+    let theatrePlayCount = Author.books
+        .filter(Column("kind") == "theatrePlay")
+        .forKey("theatrePlay")                   // association key "theatrePlay"
+        .count
+    let request = Author.annotated(with: novelCount, theatrePlayCount)
+    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+    ```
+    
+    When one doesn't use distinct association keys for novels and theatre plays, GRDB will not count two distinct sets of associated books, and will not fetch the expected results:
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*,
+           COUNT(DISTINCT book.rowid) AS novelCount,
+           COUNT(DISTINCT book.rowid) AS theatrePlayCount
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+          AND (book.kind = 'novel' AND book.kind = 'theatrePlay')
+    GROUP BY author.id
+    ```
+    
+    </details>
+    
+    ```swift
+    // WRONG: not counting distinct sets of associated books
+    let novelCount = Author.books                // association key "book"
+        .filter(Column("kind") == "novel")
+        .count
+        .aliased("novelCount")
+    let theatrePlayCount = Author.books          // association key "book"
+        .filter(Column("kind") == "theatrePlay")
+        .count
+        .aliased("theatrePlayCount")
+    let request = Author.annotated(with: novelCount, theatrePlayCount)
+    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+    ```
+
+
 ## DerivableRequest Protocol
 
 The `DerivableRequest` protocol is adopted by both [query interface requests] such as `Author.all()` and associations such as `Book.author`. It is intended for you to use as a customization point when you want to extend the built-in GRDB apis.
@@ -1333,26 +1885,6 @@ let request = Book
 
 This code compiles, but you'll get a runtime fatal error "Not implemented: chaining a required association behind an optional association". Future versions of GRDB may allow such requests.
 
-**You can't join two associations with the same [association key](#the-structure-of-a-joined-request) at the same level:**
-
-```swift
-// NOT IMPLEMENTED
-let request = Book
-    .including(required: Book.author) // key "author"
-    .including(required: Book.author) // key "author"
-```
-
-This code compiles, but you'll get a runtime fatal error "The association key `author` is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.". Future versions of GRDB may allow such requests.
-
-To join the same table twice, and make sure GRDB does not modify the fetched results in some future release, make sure no two associations have the same name on a given level:
-
-```swift
-// OK
-let request = Book
-    .including(required: Book.author.forKey("firstAuthor"))
-    .including(required: Book.author.forKey("secondAuthor"))
-```
-
 
 ## Future Directions
 
@@ -1361,12 +1893,6 @@ The APIs that have been described above do not cover the whole topic of joined r
 - One can not yet join two tables without a foreign key. One can not build the plain `SELECT * FROM a JOIN b`, for example.
 
 - One can not yet express requests such as "all authors with all their books".
-
-- A common use case of associations is aggregations, such as fetching all authors with the number of books they have written:
-    
-    ```swift
-    let request = Author.annotate(with: Author.books.count)
-    ```
 
 - There's no HasOneThrough and HasManyThrough association, which would allow to skip intermediate bridge records when building requests.
     
@@ -1440,11 +1966,17 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Sorting Associations]: #sorting-associations
 [Columns Selected by an Association]: #columns-selected-by-an-association
 [Table Aliases]: #table-aliases
+[Refining Association Requests]: #refining-association-requests
 [The Structure of a Joined Request]: #the-structure-of-a-joined-request
 [Decoding a Joined Request with a Decodable Record]: #decoding-a-joined-request-with-a-decodable-record
 [Decoding a Hierarchical Decodable Record]: #decoding-a-hierarchical-decodable-record
 [Decoding a Joined Request with FetchableRecord]: #decoding-a-joined-request-with-fetchablerecord
 [Custom Requests]: ../README.md#custom-requests
+[Association Aggregates]: #association-aggregates
+[Available Association Aggregates]: #available-association-aggregates
+[Annotating a Request with Aggregates]: #annotating-a-request-with-aggregates
+[Filtering a Request with Aggregates]: #filtering-a-request-with-aggregates
+[Isolation of Multiple Aggregates]: #isolation-of-multiple-aggregates
 [DerivableRequest Protocol]: #derivablerequest-protocol
 [Known Issues]: #known-issues
 [Future Directions]: #future-directions
@@ -1453,3 +1985,4 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [TableRecord]: ../README.md#tablerecord-protocol
 [association requests]: #building-requests-from-associations
 [Good Practices for Designing Record Types]: GoodPracticesForDesigningRecordTypes.md
+[Fetching Aggregated Values]: ../README.md#fetching-aggregated-values

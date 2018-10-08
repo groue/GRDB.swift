@@ -381,6 +381,12 @@ public final class RecordCursor<Record: FetchableRecord> : Cursor {
         statement.reset(withArguments: arguments)
     }
     
+    deinit {
+        // Statement reset fails when sqlite3_step has previously failed.
+        // Just ignore reset error.
+        try? statement.reset()
+    }
+    
     /// :nodoc:
     public func next() throws -> Record? {
         if done {

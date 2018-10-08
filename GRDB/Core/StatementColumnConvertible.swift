@@ -77,6 +77,12 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
         statement.reset(withArguments: arguments)
     }
     
+    deinit {
+        // Statement reset fails when sqlite3_step has previously failed.
+        // Just ignore reset error.
+        try? statement.reset()
+    }
+    
     /// :nodoc:
     public func next() throws -> Value? {
         if done {
@@ -125,6 +131,12 @@ public final class FastNullableDatabaseValueCursor<Value: DatabaseValueConvertib
             self.columnIndex = 0
         }
         statement.reset(withArguments: arguments)
+    }
+    
+    deinit {
+        // Statement reset fails when sqlite3_step has previously failed.
+        // Just ignore reset error.
+        try? statement.reset()
     }
     
     /// :nodoc:

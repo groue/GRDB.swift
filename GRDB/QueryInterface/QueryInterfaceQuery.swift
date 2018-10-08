@@ -21,28 +21,28 @@ struct QueryInterfaceQuery {
     var selection: [SQLSelectable]
     var isDistinct: Bool
     var filterPromise: DatabasePromise<SQLExpression?>
-    var groupByExpressions: [SQLExpression]
+    var groupPromise: DatabasePromise<[SQLExpression]>?
     var ordering: QueryOrdering
     var havingExpression: SQLExpression?
     var limit: SQLLimit?
-    var joins: [AssociationJoin]
+    var joins: OrderedDictionary<String, AssociationJoin>
     
     init(
         source: SQLSource,
         selection: [SQLSelectable] = [],
         isDistinct: Bool = false,
         filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil),
-        groupByExpressions: [SQLExpression] = [],
+        groupPromise: DatabasePromise<[SQLExpression]>? = nil,
         ordering: QueryOrdering = QueryOrdering(),
         havingExpression: SQLExpression? = nil,
         limit: SQLLimit? = nil,
-        joins: [AssociationJoin] = [])
+        joins: OrderedDictionary<String, AssociationJoin> = [:])
     {
         self.source = source
         self.selection = selection
         self.isDistinct = isDistinct
         self.filterPromise = filterPromise
-        self.groupByExpressions = groupByExpressions
+        self.groupPromise = groupPromise
         self.ordering = ordering
         self.havingExpression = havingExpression
         self.limit = limit
@@ -70,6 +70,12 @@ extension QueryInterfaceQuery {
         return query
     }
     
+    func annotated(with selection: [SQLSelectable]) -> QueryInterfaceQuery {
+        var query = self
+        query.selection.append(contentsOf: selection)
+        return query
+    }
+    
     func distinct() -> QueryInterfaceQuery {
         var query = self
         query.isDistinct = true
@@ -88,9 +94,9 @@ extension QueryInterfaceQuery {
         return query
     }
     
-    func group(_ expressions: [SQLExpressible]) -> QueryInterfaceQuery {
+    func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceQuery {
         var query = self
-        query.groupByExpressions = expressions.map { $0.sqlExpression }
+        query.groupPromise = DatabasePromise { db in try expressions(db).map { $0.sqlExpression } }
         return query
     }
     
@@ -130,9 +136,17 @@ extension QueryInterfaceQuery {
         return query
     }
     
-    func joining(_ join: AssociationJoin) -> QueryInterfaceQuery {
+    func appendingJoin(_ join: AssociationJoin, forKey key: String) -> QueryInterfaceQuery {
         var query = self
-        query.joins.append(join)
+        if let existingJoin = query.joins.removeValue(forKey: key) {
+            guard let mergedJoin = existingJoin.merged(with: join) else {
+                // can't merge
+                fatalError("The association key \"\(key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
+            }
+            query.joins.append(value: mergedJoin, forKey: key)
+        } else {
+            query.joins.append(value: join, forKey: key)
+        }
         return query
     }
 
@@ -152,11 +166,11 @@ extension QueryInterfaceQuery {
         query.source = source.qualified(with: alias)
         query.selection = query.selection.map { $0.qualifiedSelectable(with: alias) }
         query.filterPromise = query.filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
-        query.groupByExpressions = query.groupByExpressions.map { $0.qualifiedExpression(with: alias) }
+        query.groupPromise = query.groupPromise?.map { [alias] (_, exprs) in exprs.map { $0.qualifiedExpression(with: alias) } }
         query.ordering = query.ordering.qualified(with: alias)
         query.havingExpression = query.havingExpression?.qualifiedExpression(with: alias)
         
-        query.joins = query.joins.map { $0.finalizedJoin }
+        query.joins = query.joins.mapValues { $0.finalizedJoin }
         
         return query
     }
@@ -168,21 +182,21 @@ extension QueryInterfaceQuery {
             aliases.append(alias)
         }
         return joins.reduce(into: aliases) {
-            $0.append(contentsOf: $1.finalizedAliases)
+            $0.append(contentsOf: $1.value.finalizedAliases)
         }
     }
     
     /// precondition: self is the result of finalizedQuery
     var finalizedSelection: [SQLSelectable] {
         return joins.reduce(into: selection) {
-            $0.append(contentsOf: $1.finalizedSelection)
+            $0.append(contentsOf: $1.value.finalizedSelection)
         }
     }
     
     /// precondition: self is the result of finalizedQuery
     var finalizedOrdering: QueryOrdering {
         return joins.reduce(ordering) {
-            $0.appending($1.finalizedOrdering)
+            $0.appending($1.value.finalizedOrdering)
         }
     }
     
@@ -198,10 +212,9 @@ extension QueryInterfaceQuery {
         
         var endIndex = selectionWidth
         var scopes: [String: RowAdapter] = [:]
-        for join in joins {
-            if let (joinAdapter, joinEndIndex) = try join.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: [join.key]) {
-                GRDBPrecondition(scopes[join.key] == nil, "The association key \"\(join.key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
-                scopes[join.key] = joinAdapter
+        for (key, join) in joins {
+            if let (joinAdapter, joinEndIndex) = try join.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: [key]) {
+                scopes[key] = joinAdapter
                 endIndex = joinEndIndex
             }
         }
@@ -230,7 +243,7 @@ extension QueryInterfaceQuery {
         
         sql += try " FROM " + source.sourceSQL(db, &context)
         
-        for join in joins {
+        for (_, join) in joins {
             sql += try " " + join.joinSQL(db, &context, leftAlias: alias!, isRequiredAllowed: true)
         }
         
@@ -238,9 +251,9 @@ extension QueryInterfaceQuery {
             sql += " WHERE " + filter.expressionSQL(&context)
         }
         
-        if !groupByExpressions.isEmpty {
+        if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
             sql += " GROUP BY "
-            sql += groupByExpressions.map { $0.expressionSQL(&context) }
+            sql += groupExpressions.map { $0.expressionSQL(&context) }
                 .joined(separator: ", ")
         }
         
@@ -271,7 +284,7 @@ extension QueryInterfaceQuery {
     
     /// precondition: self is the result of finalizedQuery
     func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
-        guard groupByExpressions.isEmpty else {
+        if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
             // Programmer error
             fatalError("Can't delete query with GROUP BY clause")
         }
@@ -363,7 +376,7 @@ extension QueryInterfaceQuery {
     }
     
     private var countQuery: QueryInterfaceQuery {
-        guard groupByExpressions.isEmpty && limit == nil else {
+        guard groupPromise == nil && limit == nil else {
             // SELECT ... GROUP BY ...
             // SELECT ... LIMIT ...
             return trivialCountQuery
@@ -458,10 +471,9 @@ enum AssociationJoinOperator {
 
 struct AssociationJoin {
     var joinOperator: AssociationJoinOperator
+    var joinCondition: JoinCondition
     var query: AssociationQuery
-    var key: String
-    var joinConditionPromise: DatabasePromise<JoinCondition>
-    
+
     var finalizedJoin: AssociationJoin {
         var join = self
         join.query = query.finalizedQuery
@@ -504,18 +516,44 @@ struct AssociationJoin {
         
         let rightAlias = query.alias!
         let filters = try [
-            joinConditionPromise.resolve(db)(leftAlias, rightAlias),
+            joinCondition.sqlExpression(db, leftAlias: leftAlias, rightAlias: rightAlias),
             query.filterPromise.resolve(db)
             ].compactMap { $0 }
         if !filters.isEmpty {
             sql += " ON " + filters.joined(operator: .and).expressionSQL(&context)
         }
         
-        for join in query.joins {
+        for (_, join) in query.joins {
             sql += try " " + join.joinSQL(db, &context, leftAlias: rightAlias, isRequiredAllowed: isRequiredAllowed)
         }
         
         return sql
+    }
+    
+    /// Returns nil if joins can't be merged (conflict in condition, query...)
+    func merged(with other: AssociationJoin) -> AssociationJoin? {
+        guard joinCondition == other.joinCondition else {
+            // can't merge
+            return nil
+        }
+        
+        guard let mergedQuery = query.merged(with: other.query) else {
+            // can't merge
+            return nil
+        }
+        
+        let mergedJoinOperator: AssociationJoinOperator
+        switch (joinOperator, other.joinOperator) {
+        case (.required, _), (_, .required):
+            mergedJoinOperator = .required
+        default:
+            mergedJoinOperator = .optional
+        }
+        
+        return AssociationJoin(
+            joinOperator: mergedJoinOperator,
+            joinCondition: joinCondition,
+            query: mergedQuery)
     }
 }
 
@@ -559,6 +597,32 @@ enum SQLSource {
             }
         case .query(let query):
             return .query(query.qualified(with: alias))
+        }
+    }
+    
+    /// Returns nil if sources can't be merged (conflict in tables, aliases...)
+    func merged(with other: SQLSource) -> SQLSource? {
+        switch (self, other) {
+        case let (.table(tableName: tableName, alias: alias), .table(tableName: otherTableName, alias: otherAlias)):
+            guard tableName == otherTableName else {
+                // can't merge
+                return nil
+            }
+            switch (alias, otherAlias) {
+            case (nil, nil):
+                return .table(tableName: tableName, alias: nil)
+            case let (alias?, nil), let (nil, alias?):
+                return .table(tableName: tableName, alias: alias)
+            case let (alias?, otherAlias?):
+                guard let mergedAlias = alias.merge(with: otherAlias) else {
+                    // can't merge
+                    return nil
+                }
+                return .table(tableName: tableName, alias: mergedAlias)
+            }
+        default:
+            // can't merge
+            return nil
         }
     }
 }
