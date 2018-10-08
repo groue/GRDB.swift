@@ -3791,6 +3791,16 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.select(nameColumn, as: String.self)
     ```
 
+- `annotated(with: ...)` extends the selection with [association aggregates](Documentation/AssociationsBasics.md#association-aggregates).
+    
+    ```swift
+    // SELECT team.*, COUNT(DISTINCT player.rowid) AS playerCount
+    // FROM team
+    // LEFT JOIN player ON player.teamId = team.id
+    // GROUP BY team.id
+    Team.annotated(with: Team.players.count)
+    ```
+
 - `distinct()` performs uniquing.
     
     ```swift
@@ -3853,6 +3863,17 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
         .having(min(scoreColumn) >= 1000)
     ```
 
+- `having(aggregate)` applies conditions on grouped rows, according to an [association aggregate](Documentation/AssociationsBasics.md#association-aggregates).
+    
+    ```swift
+    // SELECT team.*
+    // FROM team
+    // LEFT JOIN player ON player.teamId = team.id
+    // GROUP BY team.id
+    // HAVING COUNT(DISTINCT player.rowid) >= 5
+    Team.having(Team.players.count >= 5)
+    ```
+
 - `order(ordering, ...)` sorts.
     
     ```swift
@@ -3870,7 +3891,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.order(scoreColumn).order(nameColumn)
     ```
 
-    `orderByPrimaryKey()` sorts by primary key:
+- `orderByPrimaryKey()` sorts by primary key:
     
     ```swift
     // SELECT * FROM player ORDER BY id
@@ -3905,6 +3926,15 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     // SELECT * FROM player LIMIT 5 OFFSET 10
     Player.limit(5, offset: 10)
+    ```
+
+- `joining(...)` and `including(...)` fetch and join records through [Associations].
+    
+    ```swift
+    // SELECT player.*, team.*
+    // FROM player
+    // JOIN team ON team.id = player.teamId
+    Player.including(required: Player.team)
     ```
 
 You can refine requests by chaining those methods:
