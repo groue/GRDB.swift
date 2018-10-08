@@ -1491,8 +1491,8 @@ As seen in the above example, some aggregated values are given a **default name*
 
 | Method | Key | Column | Default name |
 | --------- | --- | ------ | ------------- |
-| `Author.books.isEmpty  `                | `book` |          | -                  |
-| `Author.books.count  `                  | `book` |          | `bookCount`        |
+| `Author.books.isEmpty  `                | `book` | -        | -                  |
+| `Author.books.count  `                  | `book` | -        | `bookCount`        |
 | `Author.books.min(Column("year"))`      | `book` | `year`   | `minBookYear`      |
 | `Author.books.max(Column("year"))`      | `book` | `year`   | `maxBookYear`      |
 | `Author.books.average(Column("price"))` | `book` | `price`  | `averageBookPrice` |
