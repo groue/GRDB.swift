@@ -1082,7 +1082,7 @@ let request = Book
     .orderedByAuthorNameAndTitle()
 ```
 
-When you join or include an association several times, GRDB will apply the following rules:
+When you join or include an association several times, with the same **[association key](#the-structure-of-a-joined-request)**, GRDB will apply the following rules:
 
 - `including` wins over `joining`:
 
