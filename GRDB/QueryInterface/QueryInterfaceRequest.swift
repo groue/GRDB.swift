@@ -98,6 +98,17 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     public func select<RowDecoder>(sql: String, arguments: StatementArguments? = nil, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
         return select(SQLSelectionLiteral(sql, arguments: arguments), as: type)
     }
+    
+    /// Creates a request which appends *selection*.
+    ///
+    ///     // SELECT id, email, name FROM player
+    ///     var request = Player.all()
+    ///     request = request
+    ///         .select([Column("id"), Column("email")])
+    ///         .annotated(with: [Column("name")])
+    public func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest<T> {
+        return QueryInterfaceRequest(query: query.annotated(with: selection))
+    }
 
     /// Creates a request which returns distinct rows.
     ///
@@ -122,8 +133,8 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
         return QueryInterfaceRequest(query: query.filter(predicate))
     }
     
-    /// Creates a request grouped according to *expressions*.
-    public func group(_ expressions: [SQLExpressible]) -> QueryInterfaceRequest<T> {
+    /// Creates a request grouped according to *expressions promise*.
+    public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceRequest<T> {
         return QueryInterfaceRequest(query: query.group(expressions))
     }
     

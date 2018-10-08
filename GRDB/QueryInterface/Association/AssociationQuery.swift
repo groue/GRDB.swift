@@ -13,7 +13,7 @@ struct AssociationQuery {
 extension AssociationQuery {
     init(_ query: QueryInterfaceQuery) {
         GRDBPrecondition(!query.isDistinct, "Not implemented: join distinct queries")
-        GRDBPrecondition(query.groupByExpressions.isEmpty, "Can't join aggregated queries")
+        GRDBPrecondition(query.groupPromise == nil, "Can't join aggregated queries")
         GRDBPrecondition(query.havingExpression == nil, "Can't join aggregated queries")
         GRDBPrecondition(query.limit == nil, "Can't join limited queries")
         
