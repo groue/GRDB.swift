@@ -1412,7 +1412,7 @@ let author: Author = ...
 let bookCount = try author.books.fetchCount(db)  // Int
 
 let request = author.books.select(max(yearColumn))
-let maxYear = try Int.fetchOne(db, request)      // Int?
+let maxBookYear = try Int.fetchOne(db, request)  // Int?
 ```
 
 When you need to compute aggregates **from several record**, in a single shot, you'll use an **association aggregate**. Those are the topic of this chapter.
