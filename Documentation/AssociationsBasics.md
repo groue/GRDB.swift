@@ -1473,7 +1473,6 @@ struct AuthorInfo: Decodable, FetchableRecord {
 //        MAX(book.year) AS maxBookYear,
 // FROM author
 // LEFT JOIN book ON book.authorId = author.id
-// WHERE author.id = 1
 // GROUP BY author.id
 let request = Author.annotated(with:
     Author.books.count,
