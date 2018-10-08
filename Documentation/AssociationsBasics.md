@@ -1061,10 +1061,10 @@ See how the `Book.author` has been joined or included, on each step, independent
 ```swift
 extension QueryInterfaceRequest where T == Book {
     func filter(authorCountryCode: String) -> QueryInterfaceRequest<Book> {
-        return joining(required: Book.author
-            .filter(Column("countryCode") == countryCode))
+        let filteredAuthor = Book.author.filter(Column("countryCode") == countryCode)
+        return joining(required: filteredAuthor)
     }
-
+    
     func orderedByAuthorNameAndTitle() -> QueryInterfaceRequest<Book> {
         let authorAlias = TableAlias()
         return joining(optional: Book.author.aliased(authorAlias))
