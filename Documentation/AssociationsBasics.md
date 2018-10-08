@@ -1514,7 +1514,21 @@ let request = Author.annotated(with: Author.books.count.aliased("numberOfBooks")
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 ```
 
-Custom names help consuming complex aggregates:
+The `aliased` method also accept coding keys:
+
+```swift
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var numberOfBooks: Int
+    
+    static func fetchAll(_ db: Database) throws -> [AuthorInfo] {
+        let request = Author.annotated(with: Author.books.count.aliased(CodingKey.numberOfBooks))
+        return try AuthorInfo.fetchAll(db, request)
+    }
+}
+```
+
+Custom names help consuming complex aggregates that have no name by default:
 
 ```swift
 struct AuthorInfo: Decodable, FetchableRecord {
@@ -1531,21 +1545,6 @@ struct AuthorInfo: Decodable, FetchableRecord {
 let aggregate = Author.books.count + Author.paintings.count
 let request = Author.annotated(with: aggregate.aliased("workCount"))
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
-```
-
-The `aliased` method also accept coding keys:
-
-```swift
-struct AuthorInfo: Decodable, FetchableRecord {
-    var author: Author
-    var workCount: Int
-    
-    static func fetchAll(_ db: Database) throws -> [AuthorInfo] {
-        let aggregate = Author.books.count + Author.paintings.count
-        let request = Author.annotated(with: aggregate.aliased(CodingKey.workCount))
-        return try AuthorInfo.fetchAll(db, request)
-    }
-}
 ```
 
 
