@@ -3773,7 +3773,7 @@ enum Columns: String, ColumnExpression {
 }
 ```
 
-You can now build requests with the following methods: `all`, `none`, `select`, `distinct`, `filter`, `matching`, `group`, `having`, `order`, `reversed`, `limit`. All those methods return another request, which you can further refine by applying another method: `Player.select(...).filter(...).order(...)`.
+You can now build requests with the following methods: `all`, `none`, `select`, `distinct`, `filter`, `matching`, `group`, `having`, `order`, `reversed`, `limit`, `joining`, `including`. All those methods return another request, which you can further refine by applying another method: `Player.select(...).filter(...).order(...)`.
 
 - `all()`, `none()`: the requests for all rows, or no row.
 
