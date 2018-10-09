@@ -1648,7 +1648,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     let request = Author.having(novels.isEmpty == false)
     ```
     
-- Authors who wrote more books than they made paitings:
+- Authors who wrote more books than they made paintings:
 
     <details>
         <summary>SQL</summary>
@@ -1730,7 +1730,7 @@ In the example below, we use compute two aggregates from the same association `A
 
 In this other example, the `Author.books` and `Author.paintings` have the distinct `book` and `painting` keys. They don't interfere, and provide the expected results:
 
-- Authors with their number of books and paitings:
+- Authors with their number of books and paintings:
 
     <details>
         <summary>SQL</summary>
