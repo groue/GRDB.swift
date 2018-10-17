@@ -24,10 +24,10 @@ configuration.trace = { print($0) }
 let dbQueue = DatabaseQueue(configuration: configuration)
 
 
-// Create a database table
+// Create the database table to store the players
 
 try dbQueue.inDatabase { db in
-    try db.create(table: "players") { t in
+    try db.create(table: "player") { t in
         t.column("id", .integer).primaryKey()
         t.column("name", .text)
         t.column("score", .integer)
@@ -35,67 +35,48 @@ try dbQueue.inDatabase { db in
 }
 
 
-// Define the Player subclass of GRDB's Record.
-//
-// Record can compare against itself, and that helps avoiding useless UPDATE statements.
-class Player : Record {
+// Define the Player `Codable` that is a `FetchableRecord` and `MutablePersistableRecord`.
+struct Player: Codable, FetchableRecord, MutablePersistableRecord {
     var id: Int64
     var name: String
     var score: Int
-    
-    convenience init(json: [String : Any]) {
-        // For convenience, assume JSON keys are database columns, and reuse row initializer
-        self.init(row: Row(json)!)
+
+    // Add ColumnExpression to Codable's CodingKeys so that we can use them
+    // as database columns.
+    //
+    // See https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
+    // for more information about CodingKeys.
+    private enum CodingKeys: String, CodingKey, ColumnExpression {
+        case id, name, score
     }
-    
-    func update(from json: [String: Any]) {
-        id = json["id"] as! Int64
-        name = json["name"] as! String
-        score = json["score"] as! Int
-    }
-    
-    // Record overrides
-    
-    override class var databaseTableName: String {
-        return "players"
-    }
-    
-    required init(row: Row) {
-        id = row["id"]
-        name = row["name"]
-        score = row["score"]
-        super.init(row: row)
-    }
-    
-    override func encode(to container: inout PersistenceContainer) {
-        container["id"] = id
-        container["name"] = name
-        container["score"] = score
-    }
-    
-    override func didInsert(with rowID: Int64, for column: String?) {
+
+    // Update a player id after it has been inserted in the database.
+    mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
 }
 
+extension Player {
+    static func orderedById() -> QueryInterfaceRequest<Player> {
+        return order(CodingKeys.id)
+    }
+}
+
+// This is just the container of our incoming JSON
+struct PlayersToSync: Codable {
+    let players: [Player]
+}
 
 // Synchronizes the players table with a JSON payload
 func synchronizePlayers(with jsonString: String, in db: Database) throws {
     let jsonData = jsonString.data(using: .utf8)!
-    let json = try JSONSerialization.jsonObject(with: jsonData, options: []) as! [String: Any]
-    
-    // A support function that extracts an ID from a JSON player.
-    func jsonPlayerId(_ jsonPlayer: [String: Any]) -> Int64 {
-        return jsonPlayer["id"] as! Int64
-    }
-    
-    // Sort JSON players by id:
-    let jsonPlayers = (json["players"] as! [[String: Any]]).sorted {
-        return jsonPlayerId($0) < jsonPlayerId($1)
-    }
+    let dataToSync = try JSONDecoder().decode(PlayersToSync.self, from: jsonData)
+
+    // Sort new players to sync by id:
+    let playersToSync = dataToSync.players.sorted { $0.id < $1.id }
     
     // Sort database players by id:
-    let players = try Player.order(Column("id")).fetchAll(db)
+    let players = try Player.orderedById().fetchAll(db)
     
     // Now that both lists are sorted by id, we can compare them with
     // the sortedMerge() function (see https://gist.github.com/groue/7e8510849ded36f7d770).
@@ -104,28 +85,26 @@ func synchronizePlayers(with jsonString: String, in db: Database) throws {
     // in either lists.
     for mergeStep in sortedMerge(
         left: players,          // Database players
-        right: jsonPlayers,     // JSON players
+        right: playersToSync,   // PlayersToSync players (Decoded)
         leftKey: { $0.id },     // The id of a database player
-        rightKey: jsonPlayerId) // The id of a JSON player
+        rightKey: { $0.id })    // The id of a PlayersToSync player
     {
         switch mergeStep {
         case .left(let player):
             // Delete database player without matching JSON player:
             try player.delete(db)
-        case .right(let jsonPlayer):
-            // Insert JSON player without matching database player:
-            let player = Player(json: jsonPlayer)
-            try player.insert(db)
-        case .common(let player, let jsonPlayer):
+        case .right(var playerToSync):
+            // Insert the Codable player without matching database player:
+            try playerToSync.insert(db)
+        case .common(let player, let playerToSync):
             // Update database player with its JSON counterpart:
-            player.update(from: jsonPlayer)
-            try player.updateChanges(db)
+            try playerToSync.updateChanges(db, from: player)
         }
     }
 }
 
 do {
-    let jsonString = """
+    let jsonString1 = """
     {
         "players": [
             { "id": 1, "name": "Arthur", "score": 1000},
@@ -134,18 +113,18 @@ do {
         ]
     }
     """
-    print("---\nImport \(jsonString)")
+    print("---\nImport \(jsonString1)")
     try dbQueue.inDatabase { db in
-        // SELECT * FROM players ORDER BY id
-        // INSERT INTO "players" ("id", "name", "score") VALUES (1,'Arthur',1000)
-        // INSERT INTO "players" ("id", "name", "score") VALUES (2,'Barbara',2000)
-        // INSERT INTO "players" ("id", "name", "score") VALUES (3,'Craig',500)
-        try synchronizePlayers(with: jsonString, in: db)
+        // SELECT * FROM player ORDER BY id
+        // INSERT INTO "player" ("id", "name", "score") VALUES (1,'Arthur',1000)
+        // INSERT INTO "player" ("id", "name", "score") VALUES (2,'Barbara',2000)
+        // INSERT INTO "player" ("id", "name", "score") VALUES (3,'Craig',500)
+        try synchronizePlayers(with: jsonString1, in: db)
     }
 }
 
 do {
-    let jsonString = """
+    let jsonString2 = """
     {
         "players": [
             { "id": 2, "name": "Barbara", "score": 3000},
@@ -154,12 +133,12 @@ do {
         ]
     }
     """
-    print("---\nImport \(jsonString)")
+    print("---\nImport \(jsonString2)")
     try dbQueue.inDatabase { db in
-        // SELECT * FROM players ORDER BY id
-        // DELETE FROM "players" WHERE "id"=1
-        // UPDATE "players" SET "score"=3000 WHERE "id"=2
-        // INSERT INTO "players" ("id", "name", "score") VALUES (4,'Daniel',1500)
-        try synchronizePlayers(with: jsonString, in: db)
+        // SELECT * FROM player ORDER BY id
+        // DELETE FROM "player" WHERE "id"=1
+        // UPDATE "player" SET "score"=3000 WHERE "id"=2
+        // INSERT INTO "player" ("id", "name", "score") VALUES (4,'Daniel',1500)
+        try synchronizePlayers(with: jsonString2, in: db)
     }
 }
