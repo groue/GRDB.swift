@@ -296,3 +296,12 @@ private struct TableRegion: Equatable {
         return TableRegion(columns: columnsUnion, rowIds: rowIdsUnion)
     }
 }
+
+// MARK: - DatabaseRegionConvertible
+
+public protocol DatabaseRegionConvertible {
+    /// Returns a database region.
+    ///
+    /// - parameter db: A database connection.
+    func databaseRegion(_ db: Database) throws -> DatabaseRegion
+}
