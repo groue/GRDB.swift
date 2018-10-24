@@ -305,3 +305,10 @@ public protocol DatabaseRegionConvertible {
     /// - parameter db: A database connection.
     func databaseRegion(_ db: Database) throws -> DatabaseRegion
 }
+
+extension DatabaseRegion: DatabaseRegionConvertible {
+    /// :nodoc:
+    public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
+        return self
+    }
+}
