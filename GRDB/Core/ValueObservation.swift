@@ -20,13 +20,13 @@ public enum InitialDispatch {
 }
 
 /// The database transaction observer, generic on the type of fetched values.
-private class ValuesObserver<T>: TransactionObserver {
+private class ValueObserver<T>: TransactionObserver {
     private let region: DatabaseRegion
     private let future: () -> Future<T>
     private let queue: DispatchQueue
     private let onChange: (T) -> Void
     private let onError: ((Error) -> Void)?
-    private let notificationQueue = DispatchQueue(label: "ValuesObserver")
+    private let notificationQueue = DispatchQueue(label: "ValueObserver")
     private var changed = false
     
     init(
@@ -92,12 +92,17 @@ private class ValuesObserver<T>: TransactionObserver {
 
 extension DatabaseWriter {
     /// TODO
-    public func add<Value>(observation: ValueObservation<Value>) throws -> TransactionObserver {
+    public func add<Value>(
+        observation: ValueObservation<Value>,
+        onError: ((Error) -> Void)? = nil,
+        onChange: @escaping (Value) -> Void)
+        throws -> TransactionObserver
+    {
         // Will be set and notified on the caller queue if initialDispatch is .immediateOnCurrentQueue
         var immediateValue: Value? = nil
         defer {
             if let immediateValue = immediateValue {
-                observation.onChange(immediateValue)
+                onChange(immediateValue)
             }
         }
         
@@ -112,26 +117,26 @@ extension DatabaseWriter {
             //
             // Observation stops when transactionObserver is deallocated,
             // which happens when self is deallocated.
-            let transactionObserver = try ValuesObserver(
+            let transactionObserver = try ValueObserver(
                 region: observation.observedRegion(db),
-                future: { [unowned self] in self.concurrentRead { try observation.fetch($0) } },
+                future: { [unowned self] in self.concurrentRead { try observation.read($0) } },
                 queue: observation.queue,
-                onError: observation.onError,
-                onChange: observation.onChange)
+                onError: onError,
+                onChange: onChange)
             db.add(transactionObserver: transactionObserver, extent: observation.extent)
             
             switch observation.initialDispatch {
             case .none:
                 break
             case .immediateOnCurrentQueue:
-                immediateValue = try observation.fetch(db)
+                immediateValue = try observation.read(db)
             case .asynchronous:
-                let initialValue = try observation.fetch(db)
+                let initialValue = try observation.read(db)
                 // We're still on the database writer queue. Let's dispatch
                 // initial value now, before any future transaction has any
                 // opportunity to trigger a change notification.
                 observation.queue.async {
-                    observation.onChange(initialValue)
+                    onChange(initialValue)
                 }
             }
             
@@ -144,15 +149,15 @@ extension DatabaseWriter {
 public struct ValueObservation<Value> {
     /// A closure that is evaluated when the observation startst, and returns
     /// the observed database region.
-    var observedRegion: (Database) throws -> DatabaseRegion
+    fileprivate var observedRegion: (Database) throws -> DatabaseRegion
+    
+    /// A closure that fetches fresh results whenever the database changes.
+    fileprivate var read: (Database) throws -> Value
     
     /// The extent of the database observation. The default is
     /// `.observerLifetime`: once started, the observation lasts until the
     /// observer is deallocated.
-    var extent = Database.TransactionObservationExtent.observerLifetime
-    
-    /// A closure that fetches fresh results whenever the database changes.
-    var fetch: (Database) throws -> Value
+    public var extent = Database.TransactionObservationExtent.observerLifetime
     
     /// The dispatch queue where change callbacks are called. Default is the
     /// main queue.
@@ -160,62 +165,55 @@ public struct ValueObservation<Value> {
     /// Note that when *initialDispatch* is `.immediateOnCurrentQueue`, the
     /// first values are dispatched on the dispatch queue which starts the
     /// observation, regardless of this property.
-    var queue = DispatchQueue.main
+    public var queue = DispatchQueue.main
     
     /// `initialDispatch` controls how initial values are dispatched when
-    /// observation starts.
+    /// observation starts with the `add(observation:)` method:
     ///
     /// - When `.immediateOnCurrentQueue` (the default), initial values are
-    /// fetched right away, and the *onChange* callback is called
-    /// synchronously, on the dispatch queue which starts the observation.
+    /// fetched right away, and notified synchronously, on the dispatch queue
+    /// which starts the observation.
     ///
     /// - When `.asynchronous`, initial values are fetched right away, and
-    /// the *onChange* callback is called asynchronously, on *queue*.
+    /// notified asynchronously, on *queue*.
     ///
     /// - When `.none`, initial values are not fetched and not notified.
-    var initialDispatch = InitialDispatch.immediateOnCurrentQueue
-    
-    /// This callback is called when fresh results could not be fetched.
-    var onError: ((Error) -> Void)? = nil
-    
-    /// This callback is called with fresh results whenever the observed
-    /// database region is impacted by a database transaction.
-    var onChange: (Value) -> Void
+    public var initialDispatch = InitialDispatch.immediateOnCurrentQueue
     
     /// Creates a ValueObservation which observes *region*, and notifies the
-    /// *onChange* callback with the values returned by the *fetch* closure
-    /// whenever the observed region is impacted by a database transaction.
+    /// values returned by the *fetch* closure whenever the observed region is
+    /// impacted by a database transaction.
     ///
     /// For example:
     ///
     ///     let observation = ValueObservation(
     ///         observing: { db in try Player.all().databaseRegion(db) },
-    ///         fetch: { db in try Player.fetchAll(db) },
-    ///         onChange: { player: [Player] in print("players have changed") })
-    ///     let observer = dbQueue.add(observation: observation)
+    ///         read: { db in try Player.fetchAll(db) })
+    ///
+    ///     let observer = dbQueue.add(observation: observation) { player: [Player] in
+    ///         print("players have changed")
+    ///     }
     ///     // prints "players have changed"
     ///
-    /// Unless further configured:
+    /// The returned observation has the default configuration:
     ///
-    /// - The observation notifies fresh values on the main queue.
     /// - When started with the `add(observation:)` method, fresh values are
-    /// immediately notified, on the dispatch queue which starts
+    /// synchronously notified, on the dispatch queue which starts
     /// the observation.
+    /// - When database eventually changes, fresh values are notified on the
+    /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
     /// - parameter region: a closure that returns the observed region.
-    /// - parameter fetch: a closure that fetches fresh results.
-    /// - parameter onChange: called with fresh results.
+    /// - parameter read: a closure that fetches fresh results.
     public init(
         observing region: @escaping (Database) throws -> DatabaseRegion,
-        fetch: @escaping (Database) throws -> Value,
-        onChange: @escaping (Value) -> Void)
+        read: @escaping (Database) throws -> Value)
     {
         self.observedRegion = region
-        self.fetch = fetch
-        self.onChange = onChange
+        self.read = read
     }
 }
 
@@ -223,36 +221,36 @@ public struct ValueObservation<Value> {
 
 extension ValueObservation {
     /// Creates a ValueObservation which observes *regions*, and notifies the
-    /// *onChange* callback with the values returned by the *fetch* closure
-    /// whenever one of the observed region is impacted by a
-    /// database transaction.
+    /// values returned by the *read* closure whenever one of the observed
+    /// regions is impacted by a database transaction.
     ///
     /// For example:
     ///
     ///     let observation = ValueObservation(
     ///         observing: Player.all(),
-    ///         fetch: { db in return try Player.fetchAll(db) },
-    ///         onChange: { player: [Player] in print("players have changed") })
-    ///     let observer = dbQueue.add(observation: observation)
+    ///         read: { db in return try Player.fetchAll(db) })
+    ///
+    ///     let observer = dbQueue.add(observation: observation) { player: [Player] in
+    ///         print("players have changed")
+    ///     }
     ///     // prints "players have changed"
     ///
-    /// Unless further configured:
+    /// The returned observation has the default configuration:
     ///
-    /// - The observation notifies fresh values on the main queue.
     /// - When started with the `add(observation:)` method, fresh values are
-    /// immediately notified, on the dispatch queue which starts
+    /// synchronously notified, on the dispatch queue which starts
     /// the observation.
+    /// - When database eventually changes, fresh values are notified on the
+    /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
     /// - parameter regions: one or more observed requests.
-    /// - parameter fetch: a closure that fetches fresh results.
-    /// - parameter onChange: called with fresh results.
+    /// - parameter read: a closure that fetches fresh results.
     public init(
         observing regions: DatabaseRegionConvertible...,
-        fetch: @escaping (Database) throws -> Value,
-        onChange: @escaping (Value) -> Void)
+        read: @escaping (Database) throws -> Value)
     {
         func region(_ db: Database) throws -> DatabaseRegion {
             return try regions.reduce(into: DatabaseRegion()) { union, region in
@@ -260,7 +258,7 @@ extension ValueObservation {
             }
         }
         
-        self.init(observing: region, fetch: fetch, onChange: onChange)
+        self.init(observing: region, read: read)
     }
 }
 
@@ -268,71 +266,67 @@ extension ValueObservation {
 
 extension ValueObservation where Value == Int {
     /// Creates a ValueObservation which observes *request*, and notifies the
-    /// *onChange* callback with the number of fetched values whenever the
-    /// request is impacted by a database transaction.
+    /// number of fetched values whenever the request is impacted by a
+    /// database transaction.
     ///
     /// For example:
     ///
     ///     let request = Player.all()
-    ///     let observation = ValueObservation(count: request) { count: Int in
+    ///     let observation = ValueObservation(count: request)
+    ///
+    ///     let observer = dbQueue.add(observation: observation) { count: Int in
     ///         print("number of players has changed")
     ///     }
-    ///     let observer = dbQueue.add(observation: observation)
     ///     // prints "number of players has changed"
     ///
-    /// Unless further configured:
+    /// The returned observation has the default configuration:
     ///
-    /// - The observation notifies fresh values on the main queue.
     /// - When started with the `add(observation:)` method, fresh values are
-    /// immediately notified, on the dispatch queue which starts
+    /// synchronously notified, on the dispatch queue which starts
     /// the observation.
+    /// - When database eventually changes, fresh values are notified on the
+    /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
     /// - parameter request: the observed request.
-    /// - parameter onChange: called with fresh results.
     /// - returns: a new ValueObservation<Int>.
-    init<Request: FetchRequest>(count request: Request, onChange: @escaping (Int) -> Void) {
-        self.init(
-            observing: request,
-            fetch: { try request.fetchCount($0) },
-            onChange: onChange)
+    init<Request: FetchRequest>(count request: Request) {
+        self.init(observing: request, read: { try request.fetchCount($0) })
     }
 }
 
 extension FetchRequest {
     /// Creates a ValueObservation which observes *self*, and notifies the
-    /// *onChange* callback with the number of fetched values whenever the
-    /// request is impacted by a database transaction.
+    /// number of fetched values whenever the request is impacted by a
+    /// database transaction.
     ///
     /// For example:
     ///
     ///     let request = Player.all()
-    ///     let observation = request.observeCount { count: Int in
+    ///     let observation = request.observeCount()
+    ///
+    ///     let observer = dbQueue.add(observation: observation) { count: Int in
     ///         print("number of players has changed")
     ///     }
-    ///     let observer = dbQueue.add(observation: observation)
     ///     // prints "number of players has changed"
     ///
-    /// Unless further configured:
+    /// The returned observation has the default configuration:
     ///
-    /// - The observation notifies fresh values on the main queue.
     /// - When started with the `add(observation:)` method, fresh values are
-    /// immediately notified, on the dispatch queue which starts
+    /// synchronously notified, on the dispatch queue which starts
     /// the observation.
+    /// - When database eventually changes, fresh values are notified on the
+    /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
     /// - parameter request: the observed request.
-    /// - parameter onChange: called with fresh results.
     /// - returns: a new ValueObservation<Int>.
-    func observeCount(onChange: @escaping (Int) -> Void) -> ValueObservation<Int> {
-        return ValueObservation(
-            observing: self,
-            fetch: { try self.fetchCount($0) },
-            onChange: onChange)
+    func observeCount() -> ValueObservation<Int> {
+        return ValueObservation(observing: self, read: { try self.fetchCount($0) })
     }
 }
 
@@ -340,139 +334,127 @@ extension FetchRequest {
 
 extension ValueObservation where Value == [Row] {
     /// Creates a ValueObservation which observes *request*, and notifies the
-    /// *onChange* callback with fetched rows whenever the request is impacted
-    /// by a database transaction.
+    /// fetched rows whenever the request is impacted by a database transaction.
     ///
     /// For example:
     ///
     ///     let request = SQLRequest<Row>("SELECT * FROM player")
-    ///     let observation = ValueObservation(all: request) { rows: [Row] in
+    ///     let observation = ValueObservation(all: request)
+    ///
+    ///     let observer = dbQueue.add(observation: observation) { rows: [Row] in
     ///         print("players have changed")
     ///     }
-    ///     let observer = dbQueue.add(observation: observation)
     ///     // prints "players have changed"
     ///
-    /// Unless further configured:
+    /// The returned observation has the default configuration:
     ///
-    /// - The observation notifies fresh values on the main queue.
     /// - When started with the `add(observation:)` method, fresh values are
-    /// immediately notified, on the dispatch queue which starts
+    /// synchronously notified, on the dispatch queue which starts
     /// the observation.
+    /// - When database eventually changes, fresh values are notified on the
+    /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
     /// - parameter request: the observed request.
-    /// - parameter onChange: called with fresh results.
     /// - returns: a new ValueObservation<Int>.
-    init<Request: FetchRequest>(all request: Request, onChange: @escaping ([Row]) -> Void) where Request.RowDecoder == Row {
-        self.init(
-            observing: request,
-            fetch: { try request.fetchAll($0) },
-            onChange: onChange)
+    init<Request: FetchRequest>(all request: Request) where Request.RowDecoder == Row {
+        self.init(observing: request, read: { try request.fetchAll($0) })
     }
 }
 
 extension ValueObservation where Value == Row? {
     /// Creates a ValueObservation which observes *request*, and notifies the
-    /// *onChange* callback with fetched rows whenever the request is impacted
-    /// by a database transaction.
+    /// fetched rows whenever the request is impacted by a database transaction.
     ///
     /// For example:
     ///
     ///     let request = SQLRequest<Row>("SELECT * FROM player WHERE id = ?", arguments: [1])
-    ///     let observation = ValueObservation(one: request) { row: Row? in
+    ///     let observation = ValueObservation(one: request)
+    ///
+    ///     let observer = dbQueue.add(observation: observation) { row: Row? in
     ///         print("players have changed")
     ///     }
-    ///     let observer = dbQueue.add(observation: observation)
     ///     // prints "players have changed"
     ///
-    /// Unless further configured:
+    /// The returned observation has the default configuration:
     ///
-    /// - The observation notifies fresh values on the main queue.
     /// - When started with the `add(observation:)` method, fresh values are
-    /// immediately notified, on the dispatch queue which starts
+    /// synchronously notified, on the dispatch queue which starts
     /// the observation.
+    /// - When database eventually changes, fresh values are notified on the
+    /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
     /// - parameter request: the observed request.
-    /// - parameter onChange: called with fresh results.
     /// - returns: a new ValueObservation<Int>.
-    init<Request: FetchRequest>(one request: Request, onChange: @escaping (Row?) -> Void) where Request.RowDecoder == Row {
-        self.init(
-            observing: request,
-            fetch: { try request.fetchOne($0) },
-            onChange: onChange)
+    init<Request: FetchRequest>(one request: Request) where Request.RowDecoder == Row {
+        self.init(observing: request, read: { try request.fetchOne($0) })
     }
 }
 
 extension FetchRequest where RowDecoder == Row {
     /// Creates a ValueObservation which observes *self*, and notifies the
-    /// *onChange* callback with fetched rows whenever the request is impacted
-    /// by a database transaction.
+    /// fetched rows whenever the request is impacted by a database transaction.
     ///
     /// For example:
     ///
     ///     let request = SQLRequest<Row>("SELECT * FROM player")
-    ///     let observation = request.observeAll { rows: [Row] in
+    ///     let observation = request.observeAll()
+    ///
+    ///     let observer = dbQueue.add(observation: observation) { rows: [Row] in
     ///         print("players have changed")
     ///     }
-    ///     let observer = dbQueue.add(observation: observation)
     ///     // prints "players have changed"
     ///
-    /// Unless further configured:
+    /// The returned observation has the default configuration:
     ///
-    /// - The observation notifies fresh values on the main queue.
     /// - When started with the `add(observation:)` method, fresh values are
-    /// immediately notified, on the dispatch queue which starts
+    /// synchronously notified, on the dispatch queue which starts
     /// the observation.
+    /// - When database eventually changes, fresh values are notified on the
+    /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
     /// - parameter request: the observed request.
-    /// - parameter onChange: called with fresh results.
     /// - returns: a new ValueObservation<Int>.
-    func observeAll(onChange: @escaping ([Row]) -> Void) -> ValueObservation<[Row]> {
-        return ValueObservation(
-            observing: self,
-            fetch: { try self.fetchAll($0) },
-            onChange: onChange)
+    func observeAll() -> ValueObservation<[Row]> {
+        return ValueObservation(observing: self, read: { try self.fetchAll($0) })
     }
     
     /// Creates a ValueObservation which observes *self*, and notifies the
-    /// *onChange* callback with a fetched row whenever the request is impacted
-    /// by a database transaction.
+    /// fetched row whenever the request is impacted by a database transaction.
     ///
     /// For example:
     ///
     ///     let request = SQLRequest<Row>("SELECT * FROM player WHERE id = ?", arguments: [1])
-    ///     let observation = request.observeOne { row: Row? in
+    ///     let observation = request.observeOne()
+    ///
+    ///     let observer = dbQueue.add(observation: observation) { row: Row? in
     ///         print("player has changed")
     ///     }
-    ///     let observer = dbQueue.add(observation: observation)
     ///     // prints "player has changed"
     ///
-    /// Unless further configured:
+    /// The returned observation has the default configuration:
     ///
-    /// - The observation notifies fresh values on the main queue.
     /// - When started with the `add(observation:)` method, fresh values are
-    /// immediately notified, on the dispatch queue which starts
+    /// synchronously notified, on the dispatch queue which starts
     /// the observation.
+    /// - When database eventually changes, fresh values are notified on the
+    /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
     /// - parameter request: the observed request.
-    /// - parameter onChange: called with fresh results.
     /// - returns: a new ValueObservation<Int>.
-    func observeOne(onChange: @escaping (Row?) -> Void) -> ValueObservation<Row?> {
-        return ValueObservation(
-            observing: self,
-            fetch: { try self.fetchOne($0) },
-            onChange: onChange)
+    func observeOne() -> ValueObservation<Row?> {
+        return ValueObservation(observing: self, read: { try self.fetchOne($0) })
     }
 }
 
@@ -509,13 +491,11 @@ extension DatabaseWriter {
     {
         var observation = ValueObservation(
             observing: { try request.databaseRegion($0) },
-            fetch: { try request.fetchAll($0) },
-            onChange: onChange)
+            read: { try request.fetchAll($0) })
         observation.extent = extent
         observation.queue = queue
         observation.initialDispatch = initialDispatch
-        observation.onError = onError
-        return try add(observation: observation)
+        return try add(observation: observation, onError: onError, onChange: onChange)
     }
     
     /// Observe *request*: calls a closure with fresh results each time the
@@ -548,13 +528,11 @@ extension DatabaseWriter {
     {
         var observation = ValueObservation(
             observing: { try request.databaseRegion($0) },
-            fetch: { try request.fetchOne($0) },
-            onChange: onChange)
+            read: { try request.fetchOne($0) })
         observation.extent = extent
         observation.queue = queue
         observation.initialDispatch = initialDispatch
-        observation.onError = onError
-        return try add(observation: observation)
+        return try add(observation: observation, onError: onError, onChange: onChange)
     }
 }
 
@@ -592,13 +570,11 @@ extension DatabaseWriter {
     {
         var observation = ValueObservation(
             observing: { try request.databaseRegion($0) },
-            fetch: { try request.fetchAll($0) },
-            onChange: onChange)
+            read: { try request.fetchAll($0) })
         observation.extent = extent
         observation.queue = queue
         observation.initialDispatch = initialDispatch
-        observation.onError = onError
-        return try add(observation: observation)
+        return try add(observation: observation, onError: onError, onChange: onChange)
     }
     
     /// Observe *request*: calls a closure with fresh results each time the
@@ -634,13 +610,11 @@ extension DatabaseWriter {
     {
         var observation = ValueObservation(
             observing: { try request.databaseRegion($0) },
-            fetch: { try request.fetchOne($0) },
-            onChange: onChange)
+            read: { try request.fetchOne($0) })
         observation.extent = extent
         observation.queue = queue
         observation.initialDispatch = initialDispatch
-        observation.onError = onError
-        return try add(observation: observation)
+        return try add(observation: observation, onError: onError, onChange: onChange)
     }
 }
 
@@ -678,12 +652,10 @@ extension DatabaseWriter {
     {
         var observation = ValueObservation(
             observing: { try request.databaseRegion($0) },
-            fetch: { try request.fetchAll($0) },
-            onChange: onChange)
+            read: { try request.fetchAll($0) })
         observation.extent = extent
         observation.queue = queue
         observation.initialDispatch = initialDispatch
-        observation.onError = onError
-        return try add(observation: observation)
+        return try add(observation: observation, onError: onError, onChange: onChange)
     }
 }
