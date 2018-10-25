@@ -81,45 +81,55 @@ extension DatabaseSnapshot {
     
     // MARK: - Functions
     
-    /// Add or redefine an SQL function.
-    ///
-    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { dbValues in
-    ///         guard let int = Int.fromDatabaseValue(dbValues[0]) else {
-    ///             return nil
-    ///         }
-    ///         return int + 1
-    ///     }
-    ///     snapshot.add(function: fn)
-    ///     try snapshot.read { db in
-    ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
-    ///     }
     public func add(function: DatabaseFunction) {
         serializedDatabase.sync { $0.add(function: function) }
     }
     
-    /// Remove an SQL function.
     public func remove(function: DatabaseFunction) {
         serializedDatabase.sync { $0.remove(function: function) }
     }
     
     // MARK: - Collations
     
-    /// Add or redefine a collation.
-    ///
-    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
-    ///         return (string1 as NSString).localizedStandardCompare(string2)
-    ///     }
-    ///     snapshot.add(collation: collation)
-    ///     let files = try snapshot.read { db in
-    ///         try File.fetchAll(db, "SELECT * FROM file ORDER BY name COLLATE localized_standard")
-    ///     }
     public func add(collation: DatabaseCollation) {
         serializedDatabase.sync { $0.add(collation: collation) }
     }
     
-    /// Remove a collation.
     public func remove(collation: DatabaseCollation) {
         serializedDatabase.sync { $0.remove(collation: collation) }
     }
+    
+    // MARK: - Value Observation
+    
+    public func add<Value>(
+        observation: ValueObservation<Value>,
+        onError: ((Error) -> Void)? = nil,
+        onChange: @escaping (Value) -> Void) throws -> TransactionObserver
+    {
+        // Deal with initial value
+        switch observation.initialDispatch {
+        case .none:
+            break
+        case .deferred:
+            let initialValue = try unsafeReentrantRead { try observation.read($0) }
+            observation.queue.async {
+                onChange(initialValue)
+            }
+        case .immediateOnCurrentQueue:
+            let initialValue = try unsafeReentrantRead { try observation.read($0) }
+            onChange(initialValue)
+        }
+        
+        // Return a dummy observer, because snapshots never change
+        return SnapshotValueObserver()
+    }
 }
 
+/// An observer that does nothing, support for
+/// `DatabaseSnapshot.add(observation:onError:onChange:)`.
+private class SnapshotValueObserver: TransactionObserver {
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return false }
+    func databaseDidChange(with event: DatabaseEvent) { }
+    func databaseDidCommit(_ db: Database) { }
+    func databaseDidRollback(_ db: Database) { }
+}

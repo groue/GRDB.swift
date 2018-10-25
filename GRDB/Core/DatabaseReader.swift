@@ -149,6 +149,14 @@ public protocol DatabaseReader : class {
     
     /// Remove a collation.
     func remove(collation: DatabaseCollation)
+    
+    // MARK: - Value Observation
+    
+    /// TODO
+    func add<Value>(
+        observation: ValueObservation<Value>,
+        onError: ((Error) -> Void)?,
+        onChange: @escaping (Value) -> Void) throws -> TransactionObserver
 }
 
 extension DatabaseReader {
@@ -227,5 +235,16 @@ public final class AnyDatabaseReader : DatabaseReader {
     /// :nodoc:
     public func remove(collation: DatabaseCollation) {
         base.remove(collation: collation)
+    }
+    
+    // MARK: - Value Observation
+    
+    /// TODO
+    public func add<Value>(
+        observation: ValueObservation<Value>,
+        onError: ((Error) -> Void)? = nil,
+        onChange: @escaping (Value) -> Void) throws -> TransactionObserver
+    {
+        return try base.add(observation: observation, onError: onError, onChange: onChange)
     }
 }

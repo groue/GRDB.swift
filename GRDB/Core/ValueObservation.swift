@@ -19,140 +19,14 @@ public enum InitialDispatch {
     case deferred
 }
 
-/// The database transaction observer, generic on the type of fetched values.
-private class ValueObserver<T>: TransactionObserver {
-    private let region: DatabaseRegion
-    private let future: () -> Future<T>
-    private let queue: DispatchQueue
-    private let onChange: (T) -> Void
-    private let onError: ((Error) -> Void)?
-    private let notificationQueue = DispatchQueue(label: "ValueObserver")
-    private var changed = false
-    
-    init(
-        region: DatabaseRegion,
-        future: @escaping () -> Future<T>,
-        queue: DispatchQueue,
-        onError: ((Error) -> Void)?,
-        onChange: @escaping (T) -> Void)
-    {
-        self.region = region
-        self.future = future
-        self.queue = queue
-        self.onChange = onChange
-        self.onError = onError
-    }
-    
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return region.isModified(byEventsOfKind: eventKind)
-    }
-    
-    func databaseDidChange(with event: DatabaseEvent) {
-        if region.isModified(by: event) {
-            changed = true
-            stopObservingDatabaseChangesUntilNextTransaction()
-        }
-    }
-    
-    func databaseDidCommit(_ db: Database) {
-        guard changed else {
-            return
-        }
-        
-        changed = false
-        
-        // Fetch future results now...
-        let future = self.future()
-        
-        // ...but wait for them in notificationQueue, which guarantees
-        // that notifications have the same ordering as transactions.
-        notificationQueue.async { [weak self] in
-            guard let strongSelf = self else { return }
-            
-            do {
-                // block notificationQueue until the concurrent fetch is done
-                let result = try future.wait()
-                strongSelf.queue.async {
-                    guard let strongSelf = self else { return }
-                    strongSelf.onChange(result)
-                }
-            } catch {
-                strongSelf.queue.async {
-                    guard let strongSelf = self else { return }
-                    strongSelf.onError?(error)
-                }
-            }
-        }
-    }
-    
-    func databaseDidRollback(_ db: Database) {
-        changed = false
-    }
-}
-
-extension DatabaseWriter {
-    /// TODO
-    public func add<Value>(
-        observation: ValueObservation<Value>,
-        onError: ((Error) -> Void)? = nil,
-        onChange: @escaping (Value) -> Void)
-        throws -> TransactionObserver
-    {
-        // Will be set and notified on the caller queue if initialDispatch is .immediateOnCurrentQueue
-        var immediateValue: Value? = nil
-        defer {
-            if let immediateValue = immediateValue {
-                onChange(immediateValue)
-            }
-        }
-        
-        // Enter database in order to start observation, and fetch initial
-        // value if needed.
-        //
-        // We use an unsafe reentrant method so that this initializer can be
-        // called from a database queue.
-        return try unsafeReentrantWrite { db in
-            // Start observing the database (take care of future transactions
-            // that change the observed region).
-            //
-            // Observation stops when transactionObserver is deallocated,
-            // which happens when self is deallocated.
-            let transactionObserver = try ValueObserver(
-                region: observation.observedRegion(db),
-                future: { [unowned self] in self.concurrentRead { try observation.read($0) } },
-                queue: observation.queue,
-                onError: onError,
-                onChange: onChange)
-            db.add(transactionObserver: transactionObserver, extent: observation.extent)
-            
-            switch observation.initialDispatch {
-            case .none:
-                break
-            case .immediateOnCurrentQueue:
-                immediateValue = try observation.read(db)
-            case .deferred:
-                let initialValue = try observation.read(db)
-                // We're still on the database writer queue. Let's dispatch
-                // initial value now, before any future transaction has any
-                // opportunity to trigger a change notification.
-                observation.queue.async {
-                    onChange(initialValue)
-                }
-            }
-            
-            return transactionObserver
-        }
-    }
-}
-
 /// TODO
 public struct ValueObservation<Value> {
     /// A closure that is evaluated when the observation startst, and returns
     /// the observed database region.
-    fileprivate var observedRegion: (Database) throws -> DatabaseRegion
+    var observedRegion: (Database) throws -> DatabaseRegion
     
     /// A closure that fetches fresh results whenever the database changes.
-    fileprivate var read: (Database) throws -> Value
+    var read: (Database) throws -> Value
     
     /// The extent of the database observation. The default is
     /// `.observerLifetime`: once started, the observation lasts until the

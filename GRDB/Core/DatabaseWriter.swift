@@ -229,6 +229,131 @@ extension DatabaseWriter {
     }
 }
 
+/// The database transaction observer, support for ValueObservation.
+private class ValueObserver<Value>: TransactionObserver {
+    private let region: DatabaseRegion
+    private let future: () -> Future<Value>
+    private let queue: DispatchQueue
+    private let onChange: (Value) -> Void
+    private let onError: ((Error) -> Void)?
+    private let notificationQueue = DispatchQueue(label: "ValueObserver")
+    private var changed = false
+    
+    init(
+        region: DatabaseRegion,
+        future: @escaping () -> Future<Value>,
+        queue: DispatchQueue,
+        onError: ((Error) -> Void)?,
+        onChange: @escaping (Value) -> Void)
+    {
+        self.region = region
+        self.future = future
+        self.queue = queue
+        self.onChange = onChange
+        self.onError = onError
+    }
+    
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        return region.isModified(byEventsOfKind: eventKind)
+    }
+    
+    func databaseDidChange(with event: DatabaseEvent) {
+        if region.isModified(by: event) {
+            changed = true
+            stopObservingDatabaseChangesUntilNextTransaction()
+        }
+    }
+    
+    func databaseDidCommit(_ db: Database) {
+        guard changed else {
+            return
+        }
+        
+        changed = false
+        
+        // Fetch future value now, from the database writer queue
+        let futureValue = future()
+        
+        // Wait for future value in notificationQueue, in order to guarantee
+        // that notifications have the same ordering as transactions.
+        notificationQueue.async { [weak self] in
+            guard let strongSelf = self else { return }
+            
+            do {
+                let value = try futureValue.wait()
+                strongSelf.queue.async {
+                    guard let strongSelf = self else { return }
+                    strongSelf.onChange(value)
+                }
+            } catch {
+                strongSelf.queue.async {
+                    guard let strongSelf = self else { return }
+                    strongSelf.onError?(error)
+                }
+            }
+        }
+    }
+    
+    func databaseDidRollback(_ db: Database) {
+        changed = false
+    }
+}
+
+extension DatabaseWriter {
+    public func add<Value>(
+        observation: ValueObservation<Value>,
+        onError: ((Error) -> Void)? = nil,
+        onChange: @escaping (Value) -> Void)
+        throws -> TransactionObserver
+    {
+        // Will be set and notified on the caller queue if initialDispatch is .immediateOnCurrentQueue
+        var immediateValue: Value? = nil
+        defer {
+            if let immediateValue = immediateValue {
+                onChange(immediateValue)
+            }
+        }
+        
+        // Enter database in order to start observation, and fetch initial
+        // value if needed.
+        //
+        // We use an unsafe reentrant method so that this initializer can be
+        // called from a database queue.
+        return try unsafeReentrantWrite { db in
+            // Start observing the database (take care of future transactions
+            // that change the observed region).
+            //
+            // Observation stops when transactionObserver is deallocated,
+            // which happens when self is deallocated.
+            let transactionObserver = try ValueObserver(
+                region: observation.observedRegion(db),
+                future: { [unowned self] in self.concurrentRead { try observation.read($0) } },
+                queue: observation.queue,
+                onError: onError,
+                onChange: onChange)
+            db.add(transactionObserver: transactionObserver, extent: observation.extent)
+            
+            switch observation.initialDispatch {
+            case .none:
+                break
+            case .immediateOnCurrentQueue:
+                immediateValue = try observation.read(db)
+            case .deferred:
+                // We're still on the database writer queue. Let's dispatch
+                // initial value right now, before any future transaction has
+                // any opportunity to trigger a change notification, and mess
+                // with the ordering of value notifications.
+                let initialValue = try observation.read(db)
+                observation.queue.async {
+                    onChange(initialValue)
+                }
+            }
+            
+            return transactionObserver
+        }
+    }
+}
+
 /// A future value.
 public class Future<Value> {
     private var consumed = false
