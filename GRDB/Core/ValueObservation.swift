@@ -16,7 +16,7 @@ public enum InitialDispatch {
     case immediateOnCurrentQueue
     
     /// Initial values are immediately fetched, and asynchronously notified.
-    case asynchronous
+    case deferred
 }
 
 /// The database transaction observer, generic on the type of fetched values.
@@ -130,7 +130,7 @@ extension DatabaseWriter {
                 break
             case .immediateOnCurrentQueue:
                 immediateValue = try observation.read(db)
-            case .asynchronous:
+            case .deferred:
                 let initialValue = try observation.read(db)
                 // We're still on the database writer queue. Let's dispatch
                 // initial value now, before any future transaction has any
@@ -174,7 +174,7 @@ public struct ValueObservation<Value> {
     /// fetched right away, and notified synchronously, on the dispatch queue
     /// which starts the observation.
     ///
-    /// - When `.asynchronous`, initial values are fetched right away, and
+    /// - When `.deferred`, initial values are fetched right away, and
     /// notified asynchronously, on *queue*.
     ///
     /// - When `.none`, initial values are not fetched and not notified.
@@ -198,8 +198,7 @@ public struct ValueObservation<Value> {
     /// The returned observation has the default configuration:
     ///
     /// - When started with the `add(observation:)` method, fresh values are
-    /// synchronously notified, on the dispatch queue which starts
-    /// the observation.
+    /// immediately notified on the dispatch queue which starts the observation.
     /// - When database eventually changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
@@ -238,8 +237,7 @@ extension ValueObservation {
     /// The returned observation has the default configuration:
     ///
     /// - When started with the `add(observation:)` method, fresh values are
-    /// synchronously notified, on the dispatch queue which starts
-    /// the observation.
+    /// immediately notified on the dispatch queue which starts the observation.
     /// - When database eventually changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
@@ -282,8 +280,7 @@ extension ValueObservation where Value == Int {
     /// The returned observation has the default configuration:
     ///
     /// - When started with the `add(observation:)` method, fresh values are
-    /// synchronously notified, on the dispatch queue which starts
-    /// the observation.
+    /// immediately notified on the dispatch queue which starts the observation.
     /// - When database eventually changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
@@ -315,8 +312,7 @@ extension FetchRequest {
     /// The returned observation has the default configuration:
     ///
     /// - When started with the `add(observation:)` method, fresh values are
-    /// synchronously notified, on the dispatch queue which starts
-    /// the observation.
+    /// immediately notified on the dispatch queue which starts the observation.
     /// - When database eventually changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
@@ -349,8 +345,7 @@ extension ValueObservation where Value == [Row] {
     /// The returned observation has the default configuration:
     ///
     /// - When started with the `add(observation:)` method, fresh values are
-    /// synchronously notified, on the dispatch queue which starts
-    /// the observation.
+    /// immediately notified on the dispatch queue which starts the observation.
     /// - When database eventually changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
@@ -381,8 +376,7 @@ extension ValueObservation where Value == Row? {
     /// The returned observation has the default configuration:
     ///
     /// - When started with the `add(observation:)` method, fresh values are
-    /// synchronously notified, on the dispatch queue which starts
-    /// the observation.
+    /// immediately notified on the dispatch queue which starts the observation.
     /// - When database eventually changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
@@ -413,8 +407,7 @@ extension FetchRequest where RowDecoder == Row {
     /// The returned observation has the default configuration:
     ///
     /// - When started with the `add(observation:)` method, fresh values are
-    /// synchronously notified, on the dispatch queue which starts
-    /// the observation.
+    /// immediately notified on the dispatch queue which starts the observation.
     /// - When database eventually changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
@@ -443,8 +436,7 @@ extension FetchRequest where RowDecoder == Row {
     /// The returned observation has the default configuration:
     ///
     /// - When started with the `add(observation:)` method, fresh values are
-    /// synchronously notified, on the dispatch queue which starts
-    /// the observation.
+    /// immediately notified on the dispatch queue which starts the observation.
     /// - When database eventually changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the returned observer is deallocated.
