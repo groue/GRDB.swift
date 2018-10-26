@@ -5,7 +5,7 @@ Release Notes
 
 ### Breaking Changes
 
-- The DatabaseReader and DatabaseWriter protocols have changed in a way that is compatible with your current code, except with your eventual custom types that implement those protocols. Only five types provided by GRDB adopt those propocols: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. Expanding this set is no longer supported.
+- The DatabaseReader and DatabaseWriter protocols have changed in a way that is compatible with your current code, except with your eventual custom types that implement those protocols. Only five types provided by GRDB adopt those protocols: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. Expanding this set is no longer supported.
 
 
 ## 3.4.0
