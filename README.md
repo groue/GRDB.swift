@@ -7362,7 +7362,25 @@ These protocols provide a unified API that let you write generic code that targe
 - [FetchedRecordsController](#fetchedrecordscontroller)
 - [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)
 
-Caution: DatabaseReader and DatabaseWriter only provide the *smallest* common guarantees. They don't erase the differences between queues, pools, and snapshots. See for example [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools).
+Only five types adopt those protocols: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. Expanding this set is not supported: any future GRDB release may break your custom writers and readers, without notice.
+
+DatabaseReader and DatabaseWriter provide the *smallest* common guarantees: they don't erase the differences between queues, pools, and snapshots. See for example [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools).
+
+However, you can easily prevent some parts of your application from writing in the database by giving them a DatabaseReader:
+
+```swift
+// This class can read in the database, but can't write into it.
+class MyReadOnlyComponent {
+    let reader: DatabaseReader
+    
+    init(reader: DatabaseReader) {
+        self.reader = reader
+    }
+}
+
+let dbQueue: DatabaseQueue = ...
+let component = MyReadOnlyComponent(reader: dbQueue)
+```
 
 
 ### Unsafe Concurrency APIs
