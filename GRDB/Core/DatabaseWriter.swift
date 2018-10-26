@@ -232,7 +232,7 @@ extension DatabaseWriter {
 /// The database transaction observer, support for ValueObservation.
 private class ValueObserver<Value>: TransactionObserver {
     private let region: DatabaseRegion
-    private let future: () -> Future<Value>
+    private let future: (Database) -> Future<Value>
     private let queue: DispatchQueue
     private let onChange: (Value) -> Void
     private let onError: ((Error) -> Void)?
@@ -241,7 +241,7 @@ private class ValueObserver<Value>: TransactionObserver {
     
     init(
         region: DatabaseRegion,
-        future: @escaping () -> Future<Value>,
+        future: @escaping (Database) -> Future<Value>,
         queue: DispatchQueue,
         onError: ((Error) -> Void)?,
         onChange: @escaping (Value) -> Void)
@@ -272,7 +272,7 @@ private class ValueObserver<Value>: TransactionObserver {
         changed = false
         
         // Fetch future value now, from the database writer queue
-        let futureValue = future()
+        let futureValue = future(db)
         
         // Wait for future value in notificationQueue, in order to guarantee
         // that notifications have the same ordering as transactions.
@@ -320,19 +320,46 @@ extension DatabaseWriter {
         // We use an unsafe reentrant method so that this initializer can be
         // called from a database queue.
         return try unsafeReentrantWrite { db in
-            // Start observing the database (take care of future transactions
-            // that change the observed region).
+            // Setup how future values are fetched, right after a change has
+            // been detected.
             //
-            // Observation stops when transactionObserver is deallocated,
-            // which happens when self is deallocated.
+            // The fetching technique depends on the observation.readonly flag:
+            let future: (Database) -> Future<Value>
+            if observation.readonly {
+                // Perform a concurrent read. This allows observations not to
+                // block writes in a DatabasePool longer than necessary.
+                future = { [unowned self] _ in
+                    self.concurrentRead { try observation.fetch($0) }
+                }
+            } else {
+                // Fetching results require write access: fetch right after the
+                // impactful transaction has been committed.
+                future = { db in
+                    assert(!db.configuration.readonly)
+                    let result = Result<Value> {
+                        var value: Value!
+                        try db.inSavepoint {
+                            value = try observation.fetch(db)
+                            return .commit
+                        }
+                        return value
+                    }
+                    return Future {
+                        try result.unwrap()
+                    }
+                }
+            }
+            
+            // Start observing the database
             let transactionObserver = try ValueObserver(
                 region: observation.observedRegion(db),
-                future: { [unowned self] in self.concurrentRead { try observation.fetch($0) } },
+                future: future,
                 queue: observation.queue,
                 onError: onError,
                 onChange: onChange)
             db.add(transactionObserver: transactionObserver, extent: observation.extent)
             
+            // Deal with initial value
             switch observation.initialDispatch {
             case .none:
                 break
