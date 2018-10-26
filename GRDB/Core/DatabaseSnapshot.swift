@@ -111,13 +111,13 @@ extension DatabaseSnapshot {
         case .none:
             break
         case .deferred:
-            let initialValue = try unsafeReentrantRead { try observation.read($0) }
+            let value = try unsafeReentrantRead { try observation.fetch($0) }
             observation.queue.async {
-                onChange(initialValue)
+                onChange(value)
             }
         case .immediateOnCurrentQueue:
-            let initialValue = try unsafeReentrantRead { try observation.read($0) }
-            onChange(initialValue)
+            let value = try unsafeReentrantRead { try observation.fetch($0) }
+            onChange(value)
         }
         
         // Return a dummy observer, because snapshots never change

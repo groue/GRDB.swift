@@ -327,7 +327,7 @@ extension DatabaseWriter {
             // which happens when self is deallocated.
             let transactionObserver = try ValueObserver(
                 region: observation.observedRegion(db),
-                future: { [unowned self] in self.concurrentRead { try observation.read($0) } },
+                future: { [unowned self] in self.concurrentRead { try observation.fetch($0) } },
                 queue: observation.queue,
                 onError: onError,
                 onChange: onChange)
@@ -337,13 +337,13 @@ extension DatabaseWriter {
             case .none:
                 break
             case .immediateOnCurrentQueue:
-                immediateValue = try observation.read(db)
+                immediateValue = try observation.fetch(db)
             case .deferred:
                 // We're still on the database writer queue. Let's dispatch
                 // initial value right now, before any future transaction has
                 // any opportunity to trigger a change notification, and mess
                 // with the ordering of value notifications.
-                let initialValue = try observation.read(db)
+                let initialValue = try observation.fetch(db)
                 observation.queue.async {
                     onChange(initialValue)
                 }
