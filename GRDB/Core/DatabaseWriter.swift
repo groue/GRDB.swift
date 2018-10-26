@@ -187,37 +187,6 @@ extension DatabaseWriter {
         #endif
     }
     
-    // MARK: - Reading from Database
-    
-    /// Default implementation, based on the deprecated readFromCurrentState.
-    ///
-    /// :nodoc:
-    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
-        let semaphore = DispatchSemaphore(value: 0)
-        var result: Result<T>? = nil
-
-        do {
-            try readFromCurrentState { db in
-                result = Result { try block(db) }
-                semaphore.signal()
-            }
-        } catch {
-            result = .failure(error)
-            semaphore.signal()
-        }
-
-        return Future {
-            _ = semaphore.wait(timeout: .distantFuture)
-
-            switch result! {
-            case .failure(let error):
-                throw error
-            case .success(let result):
-                return result
-            }
-        }
-    }
-    
     // MARK: - Claiming Disk Space
     
     /// Rebuilds the database file, repacking it into a minimal amount of
