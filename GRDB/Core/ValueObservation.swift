@@ -139,7 +139,10 @@ public struct ValueObservation<Reducer> {
     {
         self.observedRegion = region
         self.reducer = reducer
-        if #available(OSXApplicationExtension 10.10, *) {
+        
+        // TODO: read https://developer.apple.com/library/archive/documentation/Performance/Conceptual/EnergyGuide-iOS/PrioritizeWorkWithQoS.html
+        // and pick a sensible default qos
+        if #available(OSX 10.10, *) {
             self.qos = .default
         } else {
             self.qos = .unspecified
