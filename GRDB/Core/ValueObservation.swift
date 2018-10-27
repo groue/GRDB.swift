@@ -172,7 +172,7 @@ extension ValueObservation where Value == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    static func forCount<Request: FetchRequest>(_ request: Request) -> ValueObservation<Int> {
+    public static func forCount<Request: FetchRequest>(_ request: Request) -> ValueObservation<Int> {
         return ValueObservation<Int>(
             observing: request.databaseRegion,
             fetch: request.fetchCount)
@@ -207,7 +207,7 @@ extension ValueObservation where Value == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    static func forAll<Request: FetchRequest>(_ request: Request) -> ValueObservation<[Row]> where Request.RowDecoder == Row {
+    public static func forAll<Request: FetchRequest>(_ request: Request) -> ValueObservation<[Row]> where Request.RowDecoder == Row {
         return ValueObservation<[Row]>(
             observing: request.databaseRegion,
             fetch: request.fetchAll)
@@ -238,7 +238,7 @@ extension ValueObservation where Value == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a new ValueObservation<Int>.
-    static func forOne<Request: FetchRequest>(_ request: Request) -> ValueObservation<Row?> where Request.RowDecoder == Row {
+    public static func forOne<Request: FetchRequest>(_ request: Request) -> ValueObservation<Row?> where Request.RowDecoder == Row {
         return ValueObservation<Row?>(
             observing: request.databaseRegion,
             fetch: request.fetchOne)
@@ -274,7 +274,7 @@ extension ValueObservation where Value == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    static func forAll<Request: FetchRequest>(_ request: Request) -> ValueObservation<[Request.RowDecoder]> where Request.RowDecoder: FetchableRecord {
+    public static func forAll<Request: FetchRequest>(_ request: Request) -> ValueObservation<[Request.RowDecoder]> where Request.RowDecoder: FetchableRecord {
         return ValueObservation<[Request.RowDecoder]>(
             observing: request.databaseRegion,
             fetch: request.fetchAll)
@@ -305,7 +305,7 @@ extension ValueObservation where Value == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    static func forOne<Request: FetchRequest>(_ request: Request) -> ValueObservation<Request.RowDecoder?> where Request.RowDecoder: FetchableRecord {
+    public static func forOne<Request: FetchRequest>(_ request: Request) -> ValueObservation<Request.RowDecoder?> where Request.RowDecoder: FetchableRecord {
         return ValueObservation<Request.RowDecoder?>(
             observing: request.databaseRegion,
             fetch: request.fetchOne)
@@ -341,7 +341,7 @@ extension ValueObservation where Value == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    static func forAll<Request: FetchRequest>(_ request: Request) -> ValueObservation<[Request.RowDecoder]> where Request.RowDecoder: DatabaseValueConvertible {
+    public static func forAll<Request: FetchRequest>(_ request: Request) -> ValueObservation<[Request.RowDecoder]> where Request.RowDecoder: DatabaseValueConvertible {
         return ValueObservation<[Request.RowDecoder]>(
             observing: request.databaseRegion,
             fetch: request.fetchAll)
@@ -372,7 +372,7 @@ extension ValueObservation where Value == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    static func forOne<Request: FetchRequest>(_ request: Request) -> ValueObservation<Request.RowDecoder?> where Request.RowDecoder: DatabaseValueConvertible {
+    public static func forOne<Request: FetchRequest>(_ request: Request) -> ValueObservation<Request.RowDecoder?> where Request.RowDecoder: DatabaseValueConvertible {
         return ValueObservation<Request.RowDecoder?>(
             observing: request.databaseRegion,
             fetch: request.fetchOne)
@@ -408,7 +408,7 @@ extension ValueObservation where Value == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    static func forAll<Request: FetchRequest>(_ request: Request) -> ValueObservation<[Request.RowDecoder]> where Request.RowDecoder: DatabaseValueConvertible & StatementColumnConvertible {
+    public static func forAll<Request: FetchRequest>(_ request: Request) -> ValueObservation<[Request.RowDecoder]> where Request.RowDecoder: DatabaseValueConvertible & StatementColumnConvertible {
         return ValueObservation<[Request.RowDecoder]>(
             observing: request.databaseRegion,
             fetch: request.fetchAll)
@@ -439,7 +439,7 @@ extension ValueObservation where Value == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    static func forOne<Request: FetchRequest>(_ request: Request) -> ValueObservation<Request.RowDecoder?> where Request.RowDecoder: DatabaseValueConvertible & StatementColumnConvertible {
+    public static func forOne<Request: FetchRequest>(_ request: Request) -> ValueObservation<Request.RowDecoder?> where Request.RowDecoder: DatabaseValueConvertible & StatementColumnConvertible {
         return ValueObservation<Request.RowDecoder?>(
             observing: request.databaseRegion,
             fetch: request.fetchOne)
@@ -475,7 +475,7 @@ extension ValueObservation where Value == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    static func forAll<Request: FetchRequest>(_ request: Request) -> ValueObservation<[Request.RowDecoder._Wrapped?]> where Request.RowDecoder: _OptionalProtocol, Request.RowDecoder._Wrapped: DatabaseValueConvertible {
+    public static func forAll<Request: FetchRequest>(_ request: Request) -> ValueObservation<[Request.RowDecoder._Wrapped?]> where Request.RowDecoder: _OptionalProtocol, Request.RowDecoder._Wrapped: DatabaseValueConvertible {
         return ValueObservation<[Request.RowDecoder._Wrapped?]>(
             observing: request.databaseRegion,
             fetch: request.fetchAll)
@@ -511,7 +511,7 @@ extension ValueObservation where Value == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    static func forAll<Request: FetchRequest>(_ request: Request) -> ValueObservation<[Request.RowDecoder._Wrapped?]> where Request.RowDecoder: _OptionalProtocol, Request.RowDecoder._Wrapped: DatabaseValueConvertible & StatementColumnConvertible {
+    public static func forAll<Request: FetchRequest>(_ request: Request) -> ValueObservation<[Request.RowDecoder._Wrapped?]> where Request.RowDecoder: _OptionalProtocol, Request.RowDecoder._Wrapped: DatabaseValueConvertible & StatementColumnConvertible {
         return ValueObservation<[Request.RowDecoder._Wrapped?]>(
             observing: request.databaseRegion,
             fetch: request.fetchAll)
