@@ -30,6 +30,35 @@ public protocol ValueReducer {
 }
 
 /// TODO: doc
+public struct AnyValueReducer<Fetched, Value>: ValueReducer {
+    var _fetch: (Database) throws -> Fetched
+    var _value: (Fetched) -> Value?
+    
+    /// TODO: doc
+    public init(fetch: @escaping (Database) throws -> Fetched, value: @escaping (Fetched) -> Value?) {
+        self._fetch = fetch
+        self._value = value
+    }
+    
+    /// TODO: doc
+    public init<Reducer: ValueReducer>(_ reducer: Reducer) where Reducer.Fetched == Fetched, Reducer.Value == Value {
+        var reducer = reducer
+        self._fetch = { try reducer.fetch($0) }
+        self._value = { reducer.value($0) }
+    }
+    
+    /// :nodoc:
+    public func fetch(_ db: Database) throws -> Fetched {
+        return try _fetch(db)
+    }
+    
+    /// :nodoc:
+   public func value(_ fetched: Fetched) -> Value? {
+        return _value(fetched)
+    }
+}
+
+/// TODO: doc
 /// TODO: refresh region after each fetch
 public struct ValueObservation<Reducer> {
     /// A closure that is evaluated when the observation starts, and returns
@@ -287,6 +316,48 @@ public enum ValueReducers {
 }
 
 // MARK: - DatabaseRegionConvertible Observation
+
+extension ValueObservation {
+    /// Creates a ValueObservation which observes *region*, and notifies the
+    /// values returned by the *fetch* closure whenever the observed region is
+    /// impacted by a database transaction.
+    ///
+    /// For example:
+    ///
+    ///     let observation = ValueObservation(
+    ///         observing: { db in try Player.all().databaseRegion(db) },
+    ///         fetch: { db in try Player.fetchAll(db) })
+    ///
+    ///     let observer = dbQueue.add(observation: observation) { player: [Player] in
+    ///         print("players have changed")
+    ///     }
+    ///
+    /// The returned observation has the default configuration:
+    ///
+    /// - When started with the `add(observation:)` method, a fresh value is
+    /// immediately notified on the dispatch queue which starts the observation.
+    /// - Upon subsequent database changes, fresh values are notified on the
+    /// main queue.
+    /// - The observation lasts until the observer returned by
+    /// `add(observation:)` is deallocated.
+    ///
+    /// See ValueObservation for more information.
+    ///
+    /// - parameter region: a closure that returns the observed region.
+    /// - parameter fetch: a closure that fetches a value.
+    public init(
+        observing regions: DatabaseRegionConvertible...,
+        reducer: Reducer)
+    {
+        func region(_ db: Database) throws -> DatabaseRegion {
+            return try regions.reduce(into: DatabaseRegion()) { union, region in
+                try union.formUnion(region.databaseRegion(db))
+            }
+        }
+        
+        self.init(observing: region, reducer: reducer)
+    }
+}
 
 extension ValueObservation where Reducer == Void {
     /// Creates a ValueObservation which observes *regions*, and notifies the
