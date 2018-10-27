@@ -22,8 +22,16 @@ public enum InitialDispatch {
 }
 
 /// TODO: doc
+public protocol ValueReducer {
+    associatedtype Fetched
+    associatedtype Value
+    func fetch(_ db: Database) throws -> Fetched
+    mutating func value(_ fetched: Fetched) -> Value?
+}
+
+/// TODO: doc
 /// TODO: refresh region after each fetch
-public struct ValueObservation<Value> {
+public struct ValueObservation<Reducer> {
     /// A closure that is evaluated when the observation starts, and returns
     /// the observed database region.
     var observedRegion: (Database) throws -> DatabaseRegion
@@ -34,7 +42,7 @@ public struct ValueObservation<Value> {
     ///
     /// When this closure needs to write in the database, set the *readonly*
     /// flag to false.
-    var fetch: (Database) throws -> Value
+    var reducer: Reducer
     
     /// Default is true. Set this property to false when the *fetch* closure
     /// requires write access, and should be executed inside a savepoint.
@@ -98,10 +106,10 @@ public struct ValueObservation<Value> {
     /// - parameter fetch: a closure that fetches a value.
     public init(
         observing region: @escaping (Database) throws -> DatabaseRegion,
-        fetch: @escaping (Database) throws -> Value)
+        reducer: Reducer)
     {
         self.observedRegion = region
-        self.fetch = fetch
+        self.reducer = reducer
         if #available(OSXApplicationExtension 10.10, *) {
             self.qos = .default
         } else {
@@ -110,17 +118,113 @@ public struct ValueObservation<Value> {
     }
 }
 
+// MARK: - Reducers
+
+public enum ValueReducers {
+    /// TODO
+    public struct Raw<Value>: ValueReducer {
+        let _fetch: (Database) throws -> Value
+        
+        /// TODO
+        public init(_ fetch: @escaping (Database) throws -> Value) {
+            self._fetch = fetch
+        }
+        
+        /// :nodoc:
+        public func fetch(_ db: Database) throws -> Value {
+            return try _fetch(db)
+        }
+        
+        /// :nodoc:
+        public func value(_ fetched: Value) -> Value? {
+            return fetched
+        }
+    }
+    
+    public struct Unique<Value: Equatable>: ValueReducer {
+        let _fetch: (Database) throws -> Value
+        var value: Value??
+        
+        /// TODO
+        public init(_ fetch: @escaping (Database) throws -> Value) {
+            self._fetch = fetch
+        }
+        
+        /// :nodoc:
+        public func fetch(_ db: Database) throws -> Value {
+            return try _fetch(db)
+        }
+        
+        /// :nodoc:
+        public mutating func value(_ newValue: Value) -> Value? {
+            if let value = value, value == newValue {
+                return nil
+            }
+            self.value = newValue
+            return newValue
+        }
+    }
+    
+    public struct UniqueRecords<Record: FetchableRecord>: ValueReducer {
+        let _fetch: (Database) throws -> [Row]
+        var rows: [Row]?
+        
+        /// TODO
+        public init(_ fetch: @escaping (Database) throws -> [Row]) {
+            self._fetch = fetch
+        }
+        
+        /// :nodoc:
+        public func fetch(_ db: Database) throws -> [Row] {
+            return try _fetch(db)
+        }
+        
+        /// :nodoc:
+        public mutating func value(_ newRows: [Row]) -> [Record]? {
+            if let rows = rows, rows == newRows {
+                return nil
+            }
+            self.rows = newRows
+            return newRows.map(Record.init(row:))
+        }
+    }
+    
+    public struct UniqueRecord<Record: FetchableRecord>: ValueReducer {
+        let _fetch: (Database) throws -> Row?
+        var row: Row??
+        
+        /// TODO
+        public init(_ fetch: @escaping (Database) throws -> Row?) {
+            self._fetch = fetch
+        }
+        
+        /// :nodoc:
+        public func fetch(_ db: Database) throws -> Row? {
+            return try _fetch(db)
+        }
+        
+        /// :nodoc:
+        public mutating func value(_ newRow: Row?) -> Record? {
+            if let row = row, row == newRow {
+                return nil
+            }
+            self.row = newRow
+            return newRow.map(Record.init(row:))
+        }
+    }
+}
+
 // MARK: - DatabaseRegionConvertible Observation
 
-extension ValueObservation {
+extension ValueObservation where Reducer == Void {
     /// Creates a ValueObservation which observes *regions*, and notifies the
     /// values returned by the *fetch* closure whenever one of the observed
     /// regions is impacted by a database transaction.
     ///
     /// For example:
     ///
-    ///     let observation = ValueObservation(
-    ///         observing: Player.all(),
+    ///     let observation = ValueObservation.observing(
+    ///         Player.all(),
     ///         fetch: { db in return try Player.fetchAll(db) })
     ///
     ///     let observer = dbQueue.add(observation: observation) { player: [Player] in
@@ -140,9 +244,10 @@ extension ValueObservation {
     ///
     /// - parameter regions: one or more observed requests.
     /// - parameter fetch: a closure that fetches a value.
-    public init(
-        observing regions: DatabaseRegionConvertible...,
+    public static func observing<Value>(
+        _ regions: DatabaseRegionConvertible...,
         fetch: @escaping (Database) throws -> Value)
+        -> ValueObservation<ValueReducers.Raw<Value>>
     {
         func region(_ db: Database) throws -> DatabaseRegion {
             return try regions.reduce(into: DatabaseRegion()) { union, region in
@@ -150,13 +255,59 @@ extension ValueObservation {
             }
         }
         
-        self.init(observing: region, fetch: fetch)
+        return ValueObservation<ValueReducers.Raw<Value>>(
+            observing: region,
+            reducer: ValueReducers.Raw(fetch))
+    }
+    
+    /// Creates a ValueObservation which observes *regions*, and notifies the
+    /// values returned by the *fetch* closure whenever one of the observed
+    /// regions is impacted by a database transaction.
+    ///
+    /// For example:
+    ///
+    ///     let observation = ValueObservation.observing(
+    ///         withUniquing: Player.all(),
+    ///         fetch: { db in return try Player.fetchAll(db) })
+    ///
+    ///     let observer = dbQueue.add(observation: observation) { player: [Player] in
+    ///         print("players have changed")
+    ///     }
+    ///
+    /// The returned observation has the default configuration:
+    ///
+    /// - When started with the `add(observation:)` method, a fresh value is
+    /// immediately notified on the dispatch queue which starts the observation.
+    /// - Upon subsequent database changes, fresh values are notified on the
+    /// main queue.
+    /// - The observation lasts until the observer returned by
+    /// `add(observation:)` is deallocated.
+    ///
+    /// See ValueObservation for more information.
+    ///
+    /// - parameter regions: one or more observed requests.
+    /// - parameter fetch: a closure that fetches a value.
+    public static func observing<Value>(
+        withUniquing regions: DatabaseRegionConvertible...,
+        fetch: @escaping (Database) throws -> Value)
+        -> ValueObservation<ValueReducers.Unique<Value>>
+        where Value: Equatable
+    {
+        func region(_ db: Database) throws -> DatabaseRegion {
+            return try regions.reduce(into: DatabaseRegion()) { union, region in
+                try union.formUnion(region.databaseRegion(db))
+            }
+        }
+        
+        return ValueObservation<ValueReducers.Unique<Value>>(
+            observing: region,
+            reducer: ValueReducers.Unique(fetch))
     }
 }
 
 // MARK: - FetchRequest Observation
 
-extension ValueObservation where Value == Void {
+extension ValueObservation where Reducer == Void {
     /// Creates a ValueObservation which observes *request*, and notifies a
     /// fresh count whenever the request is impacted by a database transaction.
     ///
@@ -183,17 +334,50 @@ extension ValueObservation where Value == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func forCount<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<Int>
+        -> ValueObservation<ValueReducers.Raw<Int>>
     {
-        return ValueObservation<Int>(
+        return ValueObservation<ValueReducers.Raw<Int>>(
             observing: request.databaseRegion,
-            fetch: request.fetchCount)
+            reducer: ValueReducers.Raw(request.fetchCount))
+    }
+    
+    /// Creates a ValueObservation which observes *request*, and notifies a
+    /// fresh count whenever the request is impacted by a database transaction.
+    ///
+    /// For example:
+    ///
+    ///     let request = Player.all()
+    ///     let observation = ValueObservation.forCount(withUniquing: request)
+    ///
+    ///     let observer = dbQueue.add(observation: observation) { count: Int in
+    ///         print("number of players has changed")
+    ///     }
+    ///
+    /// The returned observation has the default configuration:
+    ///
+    /// - When started with the `add(observation:)` method, a fresh value is
+    /// immediately notified on the dispatch queue which starts the observation.
+    /// - Upon subsequent database changes, fresh values are notified on the
+    /// main queue.
+    /// - The observation lasts until the observer returned by
+    /// `add(observation:)` is deallocated.
+    ///
+    /// See ValueObservation for more information.
+    ///
+    /// - parameter request: the observed request.
+    /// - returns: a ValueObservation.
+    public static func forCount<Request: FetchRequest>(withUniquing request: Request)
+        -> ValueObservation<ValueReducers.Unique<Int>>
+    {
+        return ValueObservation<ValueReducers.Unique<Int>>(
+            observing: request.databaseRegion,
+            reducer: ValueReducers.Unique(request.fetchCount))
     }
 }
 
 // MARK: - Row Observation
 
-extension ValueObservation where Value == Void {
+extension ValueObservation where Reducer == Void {
     /// Creates a ValueObservation which observes *request*, and notifies
     /// fresh rows whenever the request is impacted by a database transaction.
     ///
@@ -220,14 +404,48 @@ extension ValueObservation where Value == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func forAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<[Row]>
+        -> ValueObservation<ValueReducers.Raw<[Row]>>
         where Request.RowDecoder == Row
     {
-        return ValueObservation<[Row]>(
+        return ValueObservation<ValueReducers.Raw<[Row]>>(
             observing: request.databaseRegion,
-            fetch: request.fetchAll)
+            reducer: ValueReducers.Raw(request.fetchAll))
     }
 
+    /// Creates a ValueObservation which observes *request*, and notifies
+    /// fresh rows whenever the request is impacted by a database transaction.
+    ///
+    /// For example:
+    ///
+    ///     let request = SQLRequest<Row>("SELECT * FROM player")
+    ///     let observation = ValueObservation.forAll(withUniquing: request)
+    ///
+    ///     let observer = dbQueue.add(observation: observation) { rows: [Row] in
+    ///         print("players have changed")
+    ///     }
+    ///
+    /// The returned observation has the default configuration:
+    ///
+    /// - When started with the `add(observation:)` method, a fresh value is
+    /// immediately notified on the dispatch queue which starts the observation.
+    /// - Upon subsequent database changes, fresh values are notified on the
+    /// main queue.
+    /// - The observation lasts until the observer returned by
+    /// `add(observation:)` is deallocated.
+    ///
+    /// See ValueObservation for more information.
+    ///
+    /// - parameter request: the observed request.
+    /// - returns: a ValueObservation.
+    public static func forAll<Request: FetchRequest>(withUniquing request: Request)
+        -> ValueObservation<ValueReducers.Unique<[Row]>>
+        where Request.RowDecoder == Row
+    {
+        return ValueObservation<ValueReducers.Unique<[Row]>>(
+            observing: request.databaseRegion,
+            reducer: ValueReducers.Unique(request.fetchAll))
+    }
+    
     /// Creates a ValueObservation which observes *request*, and notifies a
     /// fresh row whenever the request is impacted by a database transaction.
     ///
@@ -254,18 +472,52 @@ extension ValueObservation where Value == Void {
     /// - parameter request: the observed request.
     /// - returns: a new ValueObservation<Int>.
     public static func forOne<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<Row?>
+        -> ValueObservation<ValueReducers.Raw<Row?>>
         where Request.RowDecoder == Row
     {
-        return ValueObservation<Row?>(
+        return ValueObservation<ValueReducers.Raw<Row?>>(
             observing: request.databaseRegion,
-            fetch: request.fetchOne)
+            reducer: ValueReducers.Raw(request.fetchOne))
+    }
+
+    /// Creates a ValueObservation which observes *request*, and notifies a
+    /// fresh row whenever the request is impacted by a database transaction.
+    ///
+    /// For example:
+    ///
+    ///     let request = SQLRequest<Row>("SELECT * FROM player WHERE id = ?", arguments: [1])
+    ///     let observation = ValueObservation.forOne(withUniquing: request)
+    ///
+    ///     let observer = dbQueue.add(observation: observation) { row: Row? in
+    ///         print("players have changed")
+    ///     }
+    ///
+    /// The returned observation has the default configuration:
+    ///
+    /// - When started with the `add(observation:)` method, a fresh value is
+    /// immediately notified on the dispatch queue which starts the observation.
+    /// - Upon subsequent database changes, fresh values are notified on the
+    /// main queue.
+    /// - The observation lasts until the observer returned by
+    /// `add(observation:)` is deallocated.
+    ///
+    /// See ValueObservation for more information.
+    ///
+    /// - parameter request: the observed request.
+    /// - returns: a new ValueObservation<Int>.
+    public static func forOne<Request: FetchRequest>(withUniquing request: Request)
+        -> ValueObservation<ValueReducers.Unique<Row?>>
+        where Request.RowDecoder == Row
+    {
+        return ValueObservation<ValueReducers.Unique<Row?>>(
+            observing: request.databaseRegion,
+            reducer: ValueReducers.Unique(request.fetchOne))
     }
 }
 
 // MARK: - FetchableRecord Observation
 
-extension ValueObservation where Value == Void {
+extension ValueObservation where Reducer == Void {
     /// Creates a ValueObservation which observes *request*, and notifies
     /// fresh records whenever the request is impacted by a
     /// database transaction.
@@ -293,12 +545,47 @@ extension ValueObservation where Value == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func forAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<[Request.RowDecoder]>
+        -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>
         where Request.RowDecoder: FetchableRecord
     {
-        return ValueObservation<[Request.RowDecoder]>(
+        return ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>(
             observing: request.databaseRegion,
-            fetch: request.fetchAll)
+            reducer: ValueReducers.Raw(request.fetchAll))
+    }
+    
+    /// Creates a ValueObservation which observes *request*, and notifies
+    /// fresh records whenever the request is impacted by a
+    /// database transaction.
+    ///
+    /// For example:
+    ///
+    ///     let request = Player.all()
+    ///     let observation = ValueObservation.forAll(withUniquing: request)
+    ///
+    ///     let observer = dbQueue.add(observation: observation) { players: [Player] in
+    ///         print("players have changed")
+    ///     }
+    ///
+    /// The returned observation has the default configuration:
+    ///
+    /// - When started with the `add(observation:)` method, a fresh value is
+    /// immediately notified on the dispatch queue which starts the observation.
+    /// - Upon subsequent database changes, fresh values are notified on the
+    /// main queue.
+    /// - The observation lasts until the observer returned by
+    /// `add(observation:)` is deallocated.
+    ///
+    /// See ValueObservation for more information.
+    ///
+    /// - parameter request: the observed request.
+    /// - returns: a ValueObservation.
+    public static func forAll<Request: FetchRequest>(withUniquing request: Request)
+        -> ValueObservation<ValueReducers.UniqueRecords<Request.RowDecoder>>
+        where Request.RowDecoder: FetchableRecord
+    {
+        return ValueObservation<ValueReducers.UniqueRecords<Request.RowDecoder>>(
+            observing: request.databaseRegion,
+            reducer: ValueReducers.UniqueRecords { try Row.fetchAll($0, request) })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -327,63 +614,24 @@ extension ValueObservation where Value == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func forOne<Request: FetchRequest>(_ request: Request) ->
-        ValueObservation<Request.RowDecoder?>
+        ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>
         where Request.RowDecoder: FetchableRecord
     {
-        return ValueObservation<Request.RowDecoder?>(
+        return ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>(
             observing: request.databaseRegion,
-            fetch: request.fetchOne)
-    }
-}
-
-// MARK: - DatabaseValueConvertible Observation
-
-extension ValueObservation where Value == Void {
-    /// Creates a ValueObservation which observes *request*, and notifies
-    /// fresh values whenever the request is impacted by a
-    /// database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let observation = ValueObservation.forAll(request)
-    ///
-    ///     let observer = dbQueue.add(observation: observation) { names: [String] in
-    ///         print("player name have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func forAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<[Request.RowDecoder]>
-        where Request.RowDecoder: DatabaseValueConvertible
-    {
-        return ValueObservation<[Request.RowDecoder]>(
-            observing: request.databaseRegion,
-            fetch: request.fetchAll)
+            reducer: ValueReducers.Raw(request.fetchOne))
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
-    /// fresh value whenever the request is impacted by a database transaction.
+    /// fresh record whenever the request is impacted by a database transaction.
     ///
     /// For example:
     ///
-    ///     let request = Player.select(max(Column("score")), as: Int.self)
-    ///     let observation = ValueObservation.forOne(request)
+    ///     let request = Player.filter(key: 1)
+    ///     let observation = ValueObservation.forOne(withUniquing: request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { maxScore: Int? in
-    ///         print("maximum score has changed")
+    ///     let observer = dbQueue.add(observation: observation) { player: Player? in
+    ///         print("player has changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
@@ -399,165 +647,238 @@ extension ValueObservation where Value == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forOne<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<Request.RowDecoder?>
-        where Request.RowDecoder: DatabaseValueConvertible
+    public static func forOne<Request: FetchRequest>(withUniquing request: Request) ->
+        ValueObservation<ValueReducers.UniqueRecord<Request.RowDecoder>>
+        where Request.RowDecoder: FetchableRecord
     {
-        return ValueObservation<Request.RowDecoder?>(
+        return ValueObservation<ValueReducers.UniqueRecord<Request.RowDecoder>>(
             observing: request.databaseRegion,
-            fetch: request.fetchOne)
+            reducer: ValueReducers.UniqueRecord { try Row.fetchOne($0, request) })
     }
 }
 
-// MARK: - DatabaseValueConvertible & StatementColumnConvertible Observation
-
-extension ValueObservation where Value == Void {
-    /// Creates a ValueObservation which observes *request*, and notifies
-    /// fresh values whenever the request is impacted by a
-    /// database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let observation = ValueObservation.forAll(request)
-    ///
-    ///     let observer = dbQueue.add(observation: observation) { names: [String] in
-    ///         print("player name have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func forAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<[Request.RowDecoder]>
-        where Request.RowDecoder: DatabaseValueConvertible & StatementColumnConvertible
-    {
-        return ValueObservation<[Request.RowDecoder]>(
-            observing: request.databaseRegion,
-            fetch: request.fetchAll)
-    }
-    
-    /// Creates a ValueObservation which observes *request*, and notifies a
-    /// fresh value whenever the request is impacted by a database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.select(max(Column("score")), as: Int.self)
-    ///     let observation = ValueObservation.forOne(request)
-    ///
-    ///     let observer = dbQueue.add(observation: observation) { maxScore: Int? in
-    ///         print("maximum score has changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func forOne<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<Request.RowDecoder?>
-        where Request.RowDecoder: DatabaseValueConvertible & StatementColumnConvertible
-    {
-        return ValueObservation<Request.RowDecoder?>(
-            observing: request.databaseRegion,
-            fetch: request.fetchOne)
-    }
-}
-
-// MARK: - Optional DatabaseValueConvertible Observation
-
-extension ValueObservation where Value == Void {
-    /// Creates a ValueObservation which observes *request*, and notifies
-    /// fresh values whenever the request is impacted by a
-    /// database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let observation = ValueObservation.forAll(request)
-    ///
-    ///     let observer = dbQueue.add(observation: observation) { names: [String] in
-    ///         print("player name have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func forAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<[Request.RowDecoder._Wrapped?]>
-        where Request.RowDecoder: _OptionalProtocol,
-        Request.RowDecoder._Wrapped: DatabaseValueConvertible
-    {
-        return ValueObservation<[Request.RowDecoder._Wrapped?]>(
-            observing: request.databaseRegion,
-            fetch: request.fetchAll)
-    }
-}
-
-// MARK: - Optional DatabaseValueConvertible & StatementColumnConvertible Observation
-
-extension ValueObservation where Value == Void {
-    /// Creates a ValueObservation which observes *request*, and notifies
-    /// fresh values whenever the request is impacted by a
-    /// database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let observation = ValueObservation.forAll(request)
-    ///
-    ///     let observer = dbQueue.add(observation: observation) { names: [String] in
-    ///         print("player name have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func forAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<[Request.RowDecoder._Wrapped?]>
-        where Request.RowDecoder: _OptionalProtocol,
-        Request.RowDecoder._Wrapped: DatabaseValueConvertible & StatementColumnConvertible
-    {
-        return ValueObservation<[Request.RowDecoder._Wrapped?]>(
-            observing: request.databaseRegion,
-            fetch: request.fetchAll)
-    }
-}
+//// MARK: - DatabaseValueConvertible Observation
+//
+//extension ValueObservation where Value == Void {
+//    /// Creates a ValueObservation which observes *request*, and notifies
+//    /// fresh values whenever the request is impacted by a
+//    /// database transaction.
+//    ///
+//    /// For example:
+//    ///
+//    ///     let request = Player.select(Column("name"), as: String.self)
+//    ///     let observation = ValueObservation.forAll(request)
+//    ///
+//    ///     let observer = dbQueue.add(observation: observation) { names: [String] in
+//    ///         print("player name have changed")
+//    ///     }
+//    ///
+//    /// The returned observation has the default configuration:
+//    ///
+//    /// - When started with the `add(observation:)` method, a fresh value is
+//    /// immediately notified on the dispatch queue which starts the observation.
+//    /// - Upon subsequent database changes, fresh values are notified on the
+//    /// main queue.
+//    /// - The observation lasts until the observer returned by
+//    /// `add(observation:)` is deallocated.
+//    ///
+//    /// See ValueObservation for more information.
+//    ///
+//    /// - parameter request: the observed request.
+//    /// - returns: a ValueObservation.
+//    public static func forAll<Request: FetchRequest>(_ request: Request)
+//        -> ValueObservation<[Request.RowDecoder]>
+//        where Request.RowDecoder: DatabaseValueConvertible
+//    {
+//        return ValueObservation<[Request.RowDecoder]>(
+//            observing: request.databaseRegion,
+//            fetch: request.fetchAll)
+//    }
+//    
+//    /// Creates a ValueObservation which observes *request*, and notifies a
+//    /// fresh value whenever the request is impacted by a database transaction.
+//    ///
+//    /// For example:
+//    ///
+//    ///     let request = Player.select(max(Column("score")), as: Int.self)
+//    ///     let observation = ValueObservation.forOne(request)
+//    ///
+//    ///     let observer = dbQueue.add(observation: observation) { maxScore: Int? in
+//    ///         print("maximum score has changed")
+//    ///     }
+//    ///
+//    /// The returned observation has the default configuration:
+//    ///
+//    /// - When started with the `add(observation:)` method, a fresh value is
+//    /// immediately notified on the dispatch queue which starts the observation.
+//    /// - Upon subsequent database changes, fresh values are notified on the
+//    /// main queue.
+//    /// - The observation lasts until the observer returned by
+//    /// `add(observation:)` is deallocated.
+//    ///
+//    /// See ValueObservation for more information.
+//    ///
+//    /// - parameter request: the observed request.
+//    /// - returns: a ValueObservation.
+//    public static func forOne<Request: FetchRequest>(_ request: Request)
+//        -> ValueObservation<Request.RowDecoder?>
+//        where Request.RowDecoder: DatabaseValueConvertible
+//    {
+//        return ValueObservation<Request.RowDecoder?>(
+//            observing: request.databaseRegion,
+//            fetch: request.fetchOne)
+//    }
+//}
+//
+//// MARK: - DatabaseValueConvertible & StatementColumnConvertible Observation
+//
+//extension ValueObservation where Value == Void {
+//    /// Creates a ValueObservation which observes *request*, and notifies
+//    /// fresh values whenever the request is impacted by a
+//    /// database transaction.
+//    ///
+//    /// For example:
+//    ///
+//    ///     let request = Player.select(Column("name"), as: String.self)
+//    ///     let observation = ValueObservation.forAll(request)
+//    ///
+//    ///     let observer = dbQueue.add(observation: observation) { names: [String] in
+//    ///         print("player name have changed")
+//    ///     }
+//    ///
+//    /// The returned observation has the default configuration:
+//    ///
+//    /// - When started with the `add(observation:)` method, a fresh value is
+//    /// immediately notified on the dispatch queue which starts the observation.
+//    /// - Upon subsequent database changes, fresh values are notified on the
+//    /// main queue.
+//    /// - The observation lasts until the observer returned by
+//    /// `add(observation:)` is deallocated.
+//    ///
+//    /// See ValueObservation for more information.
+//    ///
+//    /// - parameter request: the observed request.
+//    /// - returns: a ValueObservation.
+//    public static func forAll<Request: FetchRequest>(_ request: Request)
+//        -> ValueObservation<[Request.RowDecoder]>
+//        where Request.RowDecoder: DatabaseValueConvertible & StatementColumnConvertible
+//    {
+//        return ValueObservation<[Request.RowDecoder]>(
+//            observing: request.databaseRegion,
+//            fetch: request.fetchAll)
+//    }
+//    
+//    /// Creates a ValueObservation which observes *request*, and notifies a
+//    /// fresh value whenever the request is impacted by a database transaction.
+//    ///
+//    /// For example:
+//    ///
+//    ///     let request = Player.select(max(Column("score")), as: Int.self)
+//    ///     let observation = ValueObservation.forOne(request)
+//    ///
+//    ///     let observer = dbQueue.add(observation: observation) { maxScore: Int? in
+//    ///         print("maximum score has changed")
+//    ///     }
+//    ///
+//    /// The returned observation has the default configuration:
+//    ///
+//    /// - When started with the `add(observation:)` method, a fresh value is
+//    /// immediately notified on the dispatch queue which starts the observation.
+//    /// - Upon subsequent database changes, fresh values are notified on the
+//    /// main queue.
+//    /// - The observation lasts until the observer returned by
+//    /// `add(observation:)` is deallocated.
+//    ///
+//    /// See ValueObservation for more information.
+//    ///
+//    /// - parameter request: the observed request.
+//    /// - returns: a ValueObservation.
+//    public static func forOne<Request: FetchRequest>(_ request: Request)
+//        -> ValueObservation<Request.RowDecoder?>
+//        where Request.RowDecoder: DatabaseValueConvertible & StatementColumnConvertible
+//    {
+//        return ValueObservation<Request.RowDecoder?>(
+//            observing: request.databaseRegion,
+//            fetch: request.fetchOne)
+//    }
+//}
+//
+//// MARK: - Optional DatabaseValueConvertible Observation
+//
+//extension ValueObservation where Value == Void {
+//    /// Creates a ValueObservation which observes *request*, and notifies
+//    /// fresh values whenever the request is impacted by a
+//    /// database transaction.
+//    ///
+//    /// For example:
+//    ///
+//    ///     let request = Player.select(Column("name"), as: String.self)
+//    ///     let observation = ValueObservation.forAll(request)
+//    ///
+//    ///     let observer = dbQueue.add(observation: observation) { names: [String] in
+//    ///         print("player name have changed")
+//    ///     }
+//    ///
+//    /// The returned observation has the default configuration:
+//    ///
+//    /// - When started with the `add(observation:)` method, a fresh value is
+//    /// immediately notified on the dispatch queue which starts the observation.
+//    /// - Upon subsequent database changes, fresh values are notified on the
+//    /// main queue.
+//    /// - The observation lasts until the observer returned by
+//    /// `add(observation:)` is deallocated.
+//    ///
+//    /// See ValueObservation for more information.
+//    ///
+//    /// - parameter request: the observed request.
+//    /// - returns: a ValueObservation.
+//    public static func forAll<Request: FetchRequest>(_ request: Request)
+//        -> ValueObservation<[Request.RowDecoder._Wrapped?]>
+//        where Request.RowDecoder: _OptionalProtocol,
+//        Request.RowDecoder._Wrapped: DatabaseValueConvertible
+//    {
+//        return ValueObservation<[Request.RowDecoder._Wrapped?]>(
+//            observing: request.databaseRegion,
+//            fetch: request.fetchAll)
+//    }
+//}
+//
+//// MARK: - Optional DatabaseValueConvertible & StatementColumnConvertible Observation
+//
+//extension ValueObservation where Value == Void {
+//    /// Creates a ValueObservation which observes *request*, and notifies
+//    /// fresh values whenever the request is impacted by a
+//    /// database transaction.
+//    ///
+//    /// For example:
+//    ///
+//    ///     let request = Player.select(Column("name"), as: String.self)
+//    ///     let observation = ValueObservation.forAll(request)
+//    ///
+//    ///     let observer = dbQueue.add(observation: observation) { names: [String] in
+//    ///         print("player name have changed")
+//    ///     }
+//    ///
+//    /// The returned observation has the default configuration:
+//    ///
+//    /// - When started with the `add(observation:)` method, a fresh value is
+//    /// immediately notified on the dispatch queue which starts the observation.
+//    /// - Upon subsequent database changes, fresh values are notified on the
+//    /// main queue.
+//    /// - The observation lasts until the observer returned by
+//    /// `add(observation:)` is deallocated.
+//    ///
+//    /// See ValueObservation for more information.
+//    ///
+//    /// - parameter request: the observed request.
+//    /// - returns: a ValueObservation.
+//    public static func forAll<Request: FetchRequest>(_ request: Request)
+//        -> ValueObservation<[Request.RowDecoder._Wrapped?]>
+//        where Request.RowDecoder: _OptionalProtocol,
+//        Request.RowDecoder._Wrapped: DatabaseValueConvertible & StatementColumnConvertible
+//    {
+//        return ValueObservation<[Request.RowDecoder._Wrapped?]>(
+//            observing: request.databaseRegion,
+//            fetch: request.fetchAll)
+//    }
+//}

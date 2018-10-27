@@ -199,14 +199,14 @@ extension DatabaseWriter {
     
     // MARK: - Value Observation
     
-    public func add<Value>(
-        observation: ValueObservation<Value>,
+    public func add<Reducer: ValueReducer>(
+        observation: ValueObservation<Reducer>,
         onError: ((Error) -> Void)? = nil,
-        onChange: @escaping (Value) -> Void)
+        onChange: @escaping (Reducer.Value) -> Void)
         throws -> TransactionObserver
     {
         // Will be set and notified on the caller queue if initialDispatch is .immediateOnCurrentQueue
-        var immediateValue: Value? = nil
+        var immediateValue: Reducer.Value? = nil
         defer {
             if let immediateValue = immediateValue {
                 onChange(immediateValue)
@@ -219,18 +219,40 @@ extension DatabaseWriter {
         // We use an unsafe reentrant method so that this initializer can be
         // called from a database queue.
         return try unsafeReentrantWrite { db in
+            var reducer = observation.reducer
+            
             // The technique to fetch a fresh value after database has changed
             // depends on the observation.readonly flag:
-            let futureValue: (Database) -> Future<Value>
+            let fetch: (Database) -> Future<Reducer.Fetched>
             if observation.readonly {
                 // Concurrent read so that we don't block the writer queue
-                futureValue = { [unowned self] _ in
-                    self.concurrentRead { db in try observation.fetch(db) }
+                fetch = { [unowned self] _ in
+                    self.concurrentRead { db in try reducer.fetch(db) }
                 }
             } else {
                 // Synchronous fetch from the writer queue
-                futureValue = { db in
-                    Future(Result { try observation.fetch(db) })
+                fetch = { db in
+                    Future(Result { try reducer.fetch(db) })
+                }
+            }
+            
+            // Deal with initial value
+            switch observation.initialDispatch {
+            case .none:
+                break
+            case .immediateOnCurrentQueue:
+                let fetchedValue = try unsafeReentrantRead(reducer.fetch)
+                immediateValue = reducer.value(fetchedValue)
+            case .deferred:
+                // We're still on the database writer queue. Let's dispatch
+                // initial value right now, before any future transaction has
+                // any opportunity to trigger a change notification, and mess
+                // with the ordering of value notifications.
+                let fetchedValue = try unsafeReentrantRead(reducer.fetch)
+                if let value = reducer.value(fetchedValue) {
+                    observation.queue.async {
+                        onChange(value)
+                    }
                 }
             }
             
@@ -238,28 +260,12 @@ extension DatabaseWriter {
             let transactionObserver = try ValueObserver(
                 qos: observation.qos,
                 region: observation.observedRegion(db),
-                futureValue: futureValue,
+                reducer: reducer,
+                fetch: fetch,
                 queue: observation.queue,
                 onError: onError,
                 onChange: onChange)
             db.add(transactionObserver: transactionObserver, extent: observation.extent)
-            
-            // Deal with initial value
-            switch observation.initialDispatch {
-            case .none:
-                break
-            case .immediateOnCurrentQueue:
-                immediateValue = try observation.fetch(db)
-            case .deferred:
-                // We're still on the database writer queue. Let's dispatch
-                // initial value right now, before any future transaction has
-                // any opportunity to trigger a change notification, and mess
-                // with the ordering of value notifications.
-                let initialValue = try observation.fetch(db)
-                observation.queue.async {
-                    onChange(initialValue)
-                }
-            }
             
             return transactionObserver
         }
@@ -268,11 +274,12 @@ extension DatabaseWriter {
 
 /// Support for ValueObservation.
 /// See DatabaseWriter.add(observation:onError:onChange:)
-private class ValueObserver<Value>: TransactionObserver {
+private class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
     private let region: DatabaseRegion
-    private let futureValue: (Database) -> Future<Value>
+    private var reducer: Reducer
+    private let fetch: (Database) -> Future<Reducer.Fetched>
     private let queue: DispatchQueue
-    private let onChange: (Value) -> Void
+    private let onChange: (Reducer.Value) -> Void
     private let onError: ((Error) -> Void)?
     private let notificationQueue: DispatchQueue
     private var changed = false
@@ -280,13 +287,15 @@ private class ValueObserver<Value>: TransactionObserver {
     init(
         qos: DispatchQoS,
         region: DatabaseRegion,
-        futureValue: @escaping (Database) -> Future<Value>,
+        reducer: Reducer,
+        fetch: @escaping (Database) -> Future<Reducer.Fetched>,
         queue: DispatchQueue,
         onError: ((Error) -> Void)?,
-        onChange: @escaping (Value) -> Void)
+        onChange: @escaping (Reducer.Value) -> Void)
     {
         self.region = region
-        self.futureValue = futureValue
+        self.reducer = reducer
+        self.fetch = fetch
         self.queue = queue
         self.onChange = onChange
         self.onError = onError
@@ -312,7 +321,7 @@ private class ValueObserver<Value>: TransactionObserver {
         changed = false
         
         // Fetch future value from the database writer queue
-        let futureValue = self.futureValue(db)
+        let fetched = self.fetch(db)
         
         // Wait for future value in notificationQueue, in order to guarantee
         // that notifications have the same ordering as transactions.
@@ -320,10 +329,11 @@ private class ValueObserver<Value>: TransactionObserver {
             guard let strongSelf = self else { return }
             
             do {
-                let value = try futureValue.wait()
-                strongSelf.queue.async {
-                    guard let strongSelf = self else { return }
-                    strongSelf.onChange(value)
+                if let value = try strongSelf.reducer.value(fetched.wait()) {
+                    strongSelf.queue.async {
+                        guard let strongSelf = self else { return }
+                        strongSelf.onChange(value)
+                    }
                 }
             } catch {
                 strongSelf.queue.async {
@@ -449,10 +459,10 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     
     // MARK: - Value Observation
     
-    public func add<Value>(
-        observation: ValueObservation<Value>,
+    public func add<Reducer: ValueReducer>(
+        observation: ValueObservation<Reducer>,
         onError: ((Error) -> Void)? = nil,
-        onChange: @escaping (Value) -> Void)
+        onChange: @escaping (Reducer.Value) -> Void)
         throws -> TransactionObserver
     {
         return try base.add(observation: observation, onError: onError, onChange: onChange)

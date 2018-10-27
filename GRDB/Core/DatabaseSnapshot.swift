@@ -101,10 +101,10 @@ extension DatabaseSnapshot {
     
     // MARK: - Value Observation
     
-    public func add<Value>(
-        observation: ValueObservation<Value>,
+    public func add<Reducer: ValueReducer>(
+        observation: ValueObservation<Reducer>,
         onError: ((Error) -> Void)? = nil,
-        onChange: @escaping (Value) -> Void)
+        onChange: @escaping (Reducer.Value) -> Void)
         throws -> TransactionObserver
     {
         // Deal with initial value
@@ -112,13 +112,19 @@ extension DatabaseSnapshot {
         case .none:
             break
         case .deferred:
-            let value = try unsafeReentrantRead { try observation.fetch($0) }
-            observation.queue.async {
-                onChange(value)
+            var reducer = observation.reducer
+            let fetchedValue = try unsafeReentrantRead(reducer.fetch)
+            if let value = reducer.value(fetchedValue) {
+                observation.queue.async {
+                    onChange(value)
+                }
             }
         case .immediateOnCurrentQueue:
-            let value = try unsafeReentrantRead { try observation.fetch($0) }
-            onChange(value)
+            var reducer = observation.reducer
+            let fetchedValue = try unsafeReentrantRead(reducer.fetch)
+            if let value = reducer.value(fetchedValue) {
+                onChange(value)
+            }
         }
         
         // Return a dummy observer, because snapshots never change
