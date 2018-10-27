@@ -6,6 +6,8 @@
 //  Copyright © 2018 Gwendal Roué. All rights reserved.
 //
 
+import Dispatch
+
 /// InitialDispatch controls how initial value is dispatched when one starts
 /// observing the database. See ValueObservation.
 public enum InitialDispatch {
@@ -50,6 +52,9 @@ public struct ValueObservation<Value> {
     /// dispatched on the dispatch queue which starts the observation,
     /// regardless of this property.
     public var queue = DispatchQueue.main
+    
+    /// The quality of service.
+    public var qos: DispatchQoS
     
     /// `initialDispatch` controls how initial value is dispatched when
     /// observation starts with the `add(observation:)` method:
@@ -97,6 +102,11 @@ public struct ValueObservation<Value> {
     {
         self.observedRegion = region
         self.fetch = fetch
+        if #available(OSXApplicationExtension 10.10, *) {
+            self.qos = .default
+        } else {
+            self.qos = .unspecified
+        }
     }
 }
 
