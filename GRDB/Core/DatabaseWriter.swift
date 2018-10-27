@@ -196,79 +196,9 @@ extension DatabaseWriter {
     public func vacuum() throws {
         try writeWithoutTransaction { try $0.execute("VACUUM") }
     }
-}
-
-/// The database transaction observer, support for ValueObservation.
-private class ValueObserver<Value>: TransactionObserver {
-    private let region: DatabaseRegion
-    private let future: (Database) -> Future<Value>
-    private let queue: DispatchQueue
-    private let onChange: (Value) -> Void
-    private let onError: ((Error) -> Void)?
-    private let notificationQueue = DispatchQueue(label: "ValueObserver")
-    private var changed = false
     
-    init(
-        region: DatabaseRegion,
-        future: @escaping (Database) -> Future<Value>,
-        queue: DispatchQueue,
-        onError: ((Error) -> Void)?,
-        onChange: @escaping (Value) -> Void)
-    {
-        self.region = region
-        self.future = future
-        self.queue = queue
-        self.onChange = onChange
-        self.onError = onError
-    }
+    // MARK: - Value Observation
     
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return region.isModified(byEventsOfKind: eventKind)
-    }
-    
-    func databaseDidChange(with event: DatabaseEvent) {
-        if region.isModified(by: event) {
-            changed = true
-            stopObservingDatabaseChangesUntilNextTransaction()
-        }
-    }
-    
-    func databaseDidCommit(_ db: Database) {
-        guard changed else {
-            return
-        }
-        
-        changed = false
-        
-        // Fetch future value now, from the database writer queue
-        let futureValue = future(db)
-        
-        // Wait for future value in notificationQueue, in order to guarantee
-        // that notifications have the same ordering as transactions.
-        notificationQueue.async { [weak self] in
-            guard let strongSelf = self else { return }
-            
-            do {
-                let value = try futureValue.wait()
-                strongSelf.queue.async {
-                    guard let strongSelf = self else { return }
-                    strongSelf.onChange(value)
-                }
-            } catch {
-                strongSelf.queue.async {
-                    guard let strongSelf = self else { return }
-                    strongSelf.onError?(error)
-                }
-            }
-        }
-    }
-    
-    func databaseDidRollback(_ db: Database) {
-        changed = false
-    }
-}
-
-extension DatabaseWriter {
     public func add<Value>(
         observation: ValueObservation<Value>,
         onError: ((Error) -> Void)? = nil,
@@ -289,40 +219,26 @@ extension DatabaseWriter {
         // We use an unsafe reentrant method so that this initializer can be
         // called from a database queue.
         return try unsafeReentrantWrite { db in
-            // Setup how future values are fetched, right after a change has
-            // been detected.
-            //
-            // The fetching technique depends on the observation.readonly flag:
-            let future: (Database) -> Future<Value>
+            // The technique to fetch a fresh value after database has changed
+            // depends on the observation.readonly flag:
+            let futureValue: (Database) -> Future<Value>
             if observation.readonly {
-                // Perform a concurrent read. This allows observations not to
-                // block writes in a DatabasePool longer than necessary.
-                future = { [unowned self] _ in
-                    self.concurrentRead { try observation.fetch($0) }
+                // Concurrent read so that we don't block the writer queue
+                futureValue = { [unowned self] _ in
+                    self.concurrentRead { db in try observation.fetch(db) }
                 }
             } else {
-                // Fetching results require write access: fetch right after the
-                // impactful transaction has been committed.
-                future = { db in
-                    assert(!db.configuration.readonly)
-                    let result = Result<Value> {
-                        var value: Value!
-                        try db.inSavepoint {
-                            value = try observation.fetch(db)
-                            return .commit
-                        }
-                        return value
-                    }
-                    return Future {
-                        try result.unwrap()
-                    }
+                // Synchronous fetch from the writer queue
+                futureValue = { db in
+                    Future(Result { try observation.fetch(db) })
                 }
             }
             
             // Start observing the database
             let transactionObserver = try ValueObserver(
+                qos: observation.qos,
                 region: observation.observedRegion(db),
-                future: future,
+                futureValue: futureValue,
                 queue: observation.queue,
                 onError: onError,
                 onChange: onChange)
@@ -350,6 +266,79 @@ extension DatabaseWriter {
     }
 }
 
+/// Support for ValueObservation.
+/// See DatabaseWriter.add(observation:onError:onChange:)
+private class ValueObserver<Value>: TransactionObserver {
+    private let region: DatabaseRegion
+    private let futureValue: (Database) -> Future<Value>
+    private let queue: DispatchQueue
+    private let onChange: (Value) -> Void
+    private let onError: ((Error) -> Void)?
+    private let notificationQueue: DispatchQueue
+    private var changed = false
+    
+    init(
+        qos: DispatchQoS,
+        region: DatabaseRegion,
+        futureValue: @escaping (Database) -> Future<Value>,
+        queue: DispatchQueue,
+        onError: ((Error) -> Void)?,
+        onChange: @escaping (Value) -> Void)
+    {
+        self.region = region
+        self.futureValue = futureValue
+        self.queue = queue
+        self.onChange = onChange
+        self.onError = onError
+        self.notificationQueue = DispatchQueue(label: "GRDB.ValueObservation", qos: qos)
+    }
+    
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        return region.isModified(byEventsOfKind: eventKind)
+    }
+    
+    func databaseDidChange(with event: DatabaseEvent) {
+        if region.isModified(by: event) {
+            changed = true
+            stopObservingDatabaseChangesUntilNextTransaction()
+        }
+    }
+    
+    func databaseDidCommit(_ db: Database) {
+        guard changed else {
+            return
+        }
+        
+        changed = false
+        
+        // Fetch future value from the database writer queue
+        let futureValue = self.futureValue(db)
+        
+        // Wait for future value in notificationQueue, in order to guarantee
+        // that notifications have the same ordering as transactions.
+        notificationQueue.async { [weak self] in
+            guard let strongSelf = self else { return }
+            
+            do {
+                let value = try futureValue.wait()
+                strongSelf.queue.async {
+                    guard let strongSelf = self else { return }
+                    strongSelf.onChange(value)
+                }
+            } catch {
+                strongSelf.queue.async {
+                    guard let strongSelf = self else { return }
+                    strongSelf.onError?(error)
+                }
+            }
+        }
+    }
+    
+    func databaseDidRollback(_ db: Database) {
+        changed = false
+    }
+}
+
 /// A future value.
 public class Future<Value> {
     private var consumed = false
@@ -357,6 +346,10 @@ public class Future<Value> {
     
     init(_ wait: @escaping () throws -> Value) {
         _wait = wait
+    }
+    
+    init(_ result: Result<Value>) {
+        _wait = { try result.unwrap() }
     }
     
     /// Blocks the current thread until the value is available, and returns it.
@@ -452,5 +445,16 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     /// :nodoc:
     public func remove(collation: DatabaseCollation) {
         base.remove(collation: collation)
+    }
+    
+    // MARK: - Value Observation
+    
+    public func add<Value>(
+        observation: ValueObservation<Value>,
+        onError: ((Error) -> Void)? = nil,
+        onChange: @escaping (Value) -> Void)
+        throws -> TransactionObserver
+    {
+        return try base.add(observation: observation, onError: onError, onChange: onChange)
     }
 }

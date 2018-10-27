@@ -104,7 +104,8 @@ extension DatabaseSnapshot {
     public func add<Value>(
         observation: ValueObservation<Value>,
         onError: ((Error) -> Void)? = nil,
-        onChange: @escaping (Value) -> Void) throws -> TransactionObserver
+        onChange: @escaping (Value) -> Void)
+        throws -> TransactionObserver
     {
         // Deal with initial value
         switch observation.initialDispatch {

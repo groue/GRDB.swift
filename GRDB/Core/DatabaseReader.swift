@@ -156,7 +156,8 @@ public protocol DatabaseReader : class {
     func add<Value>(
         observation: ValueObservation<Value>,
         onError: ((Error) -> Void)?,
-        onChange: @escaping (Value) -> Void) throws -> TransactionObserver
+        onChange: @escaping (Value) -> Void)
+        throws -> TransactionObserver
 }
 
 extension DatabaseReader {
@@ -243,7 +244,8 @@ public final class AnyDatabaseReader : DatabaseReader {
     public func add<Value>(
         observation: ValueObservation<Value>,
         onError: ((Error) -> Void)? = nil,
-        onChange: @escaping (Value) -> Void) throws -> TransactionObserver
+        onChange: @escaping (Value) -> Void)
+        throws -> TransactionObserver
     {
         return try base.add(observation: observation, onError: onError, onChange: onChange)
     }
