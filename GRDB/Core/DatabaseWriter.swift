@@ -299,6 +299,7 @@ private class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
         self.queue = queue
         self.onChange = onChange
         self.onError = onError
+        // TODO: provide a proper label
         self.notificationQueue = DispatchQueue(label: "GRDB.ValueObservation", qos: qos)
     }
     
