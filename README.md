@@ -6332,7 +6332,7 @@ Sometimes you need to observe several requests at the same time, and be notified
 ```swift
 struct TeamInfo {
     var team: Team
-    var player: [Player]
+    var players: [Player]
 }
 
 let teamRequest = Team.filter(key: 1)
@@ -6449,13 +6449,17 @@ let observer = dbQueue.add(
     ```swift
     let observation = ValueObservation.observing(
         teamRequest, playersRequest,
-        fetch { db  in
-            // some
+        fetch { db in
+            // write access allowed
         })
     observation.isReadOnly = false
     ```
     
-    When you use a [database pool](#database-pools), an observation is less efficient when it is not read-only.
+    The `fetch` closure is executed inside a [savepoint](#transactions-and-savepoints).
+    
+    Don't use this flag unless you actually need it: when you use a [database pool](#database-pools), observations with write access are less efficient.
+    
+    See [RxSwiftCommunity/RxGRDB/issues/42](https://github.com/RxSwiftCommunity/RxGRDB/issues/42) for an example use case. The `isReadOnly` flag exists in order to address this feature request.
 
 
 ## FetchedRecordsController
