@@ -13,7 +13,67 @@ import XCTest
 #endif
 
 class ValueObservationFetchTests: GRDBTestCase {
+    func testFetch() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        
+        var counts: [Int] = []
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 4
+        
+        var observation = ValueObservation.observing(DatabaseRegion.fullDatabase, fetch: {
+            try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+        })
+        observation.extent = .databaseLifetime
+        _ = try dbQueue.add(observation: observation) { count in
+            notificationExpectation.fulfill()
+            counts.append(count)
+        }
+        
+        try dbQueue.write {
+            try $0.execute("INSERT INTO t DEFAULT VALUES")
+        }
+        try dbQueue.write {
+            try $0.execute("UPDATE t SET id = id")
+        }
+        try dbQueue.write {
+            try $0.execute("INSERT INTO t DEFAULT VALUES")
+        }
+        
+        waitForExpectations(timeout: 1, handler: nil)
+        XCTAssertEqual(counts, [0, 1, 1, 2])
+    }
+    
+    func testFetchWithUniquing() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        
+        var counts: [Int] = []
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 3
+        
+        var observation = ValueObservation.observing(withUniquing: DatabaseRegion.fullDatabase, fetch: {
+            try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+        })
+        observation.extent = .databaseLifetime
+        _ = try dbQueue.add(observation: observation) { count in
+            notificationExpectation.fulfill()
+            counts.append(count)
+        }
+        
+        try dbQueue.write {
+            try $0.execute("INSERT INTO t DEFAULT VALUES")
+        }
+        try dbQueue.write {
+            try $0.execute("UPDATE t SET id = id")
+        }
+        try dbQueue.write {
+            try $0.execute("INSERT INTO t DEFAULT VALUES")
+        }
+        
+        waitForExpectations(timeout: 1, handler: nil)
+        XCTAssertEqual(counts, [0, 1, 2])
+    }
 }
-
-// let observation = ValueObservation.observing(<#T##regions: DatabaseRegionConvertible...##DatabaseRegionConvertible#>, fetch: <#T##(Database) throws -> Value#>)
-// let observation = ValueObservation.observing(withUniquing: <#T##DatabaseRegionConvertible...##DatabaseRegionConvertible#>, fetch: <#T##(Database) throws -> Equatable#>)
