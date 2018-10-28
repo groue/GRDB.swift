@@ -188,12 +188,12 @@ public enum ValueReducers {
         }
         
         /// :nodoc:
-        public mutating func value(_ newRow: Row?) -> Record? {
+        public mutating func value(_ newRow: Row?) -> Record?? {
             if let row = row, row == newRow {
                 return nil
             }
             self.row = newRow
-            return newRow.map(Record.init(row:))
+            return .some(newRow.map(Record.init(row:)))
         }
     }
     
@@ -236,12 +236,12 @@ public enum ValueReducers {
         }
         
         /// :nodoc:
-        public mutating func value(_ newDbValue: DatabaseValue?) -> T? {
+        public mutating func value(_ newDbValue: DatabaseValue?) -> T?? {
             if let dbValue = dbValue, dbValue == newDbValue {
                 return nil
             }
             self.dbValue = newDbValue
-            return newDbValue.map { T.decode(from: $0, conversionContext: nil) }
+            return .some(newDbValue.map { T.decode(from: $0, conversionContext: nil) })
         }
     }
     
