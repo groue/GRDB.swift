@@ -443,7 +443,7 @@ class DatabaseRegionTests : GRDBTestCase {
                 try XCTAssertEqual(request.databaseRegion(db).description, "a(id,name),b(aid,id,name)[1],c(aid,id,name)")
             }
         }
-   }
+    }
     
     func testDatabaseRegionOfDerivedRequests() throws {
         let dbQueue = try makeDatabaseQueue()
