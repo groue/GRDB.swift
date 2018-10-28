@@ -131,6 +131,8 @@
 		563B06CB2185D2E500B38F35 /* ValueObservationFetchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563B06C92185D2E500B38F35 /* ValueObservationFetchTests.swift */; };
 		563B06F721861D8400B38F35 /* ValueObservationCountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563B06F621861D8300B38F35 /* ValueObservationCountTests.swift */; };
 		563B06F821861D8400B38F35 /* ValueObservationCountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563B06F621861D8300B38F35 /* ValueObservationCountTests.swift */; };
+		563B0705218627F800B38F35 /* ValueObservationRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563B0704218627F700B38F35 /* ValueObservationRowTests.swift */; };
+		563B0706218627F800B38F35 /* ValueObservationRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563B0704218627F700B38F35 /* ValueObservationRowTests.swift */; };
 		563EF415215F87EB007DAACD /* OrderedDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563EF414215F87EB007DAACD /* OrderedDictionary.swift */; };
 		563EF416215F87EB007DAACD /* OrderedDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563EF414215F87EB007DAACD /* OrderedDictionary.swift */; };
 		563EF417215F87EB007DAACD /* OrderedDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563EF414215F87EB007DAACD /* OrderedDictionary.swift */; };
@@ -911,6 +913,7 @@
 		563B06C22185D29F00B38F35 /* ValueObservationReadonlyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservationReadonlyTests.swift; sourceTree = "<group>"; };
 		563B06C92185D2E500B38F35 /* ValueObservationFetchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservationFetchTests.swift; sourceTree = "<group>"; };
 		563B06F621861D8300B38F35 /* ValueObservationCountTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservationCountTests.swift; sourceTree = "<group>"; };
+		563B0704218627F700B38F35 /* ValueObservationRowTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservationRowTests.swift; sourceTree = "<group>"; };
 		563EF414215F87EB007DAACD /* OrderedDictionary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderedDictionary.swift; sourceTree = "<group>"; };
 		563EF42C2161180D007DAACD /* AssociationAggregate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssociationAggregate.swift; sourceTree = "<group>"; };
 		563EF43E216131D1007DAACD /* AssociationAggregateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssociationAggregateTests.swift; sourceTree = "<group>"; };
@@ -1480,6 +1483,7 @@
 				563B06C92185D2E500B38F35 /* ValueObservationFetchTests.swift */,
 				563B06C22185D29F00B38F35 /* ValueObservationReadonlyTests.swift */,
 				563B06BC2185CCD300B38F35 /* ValueObservationReducerTests.swift */,
+				563B0704218627F700B38F35 /* ValueObservationRowTests.swift */,
 				563B06C12185D29F00B38F35 /* ValueObservationSchedulingTests.swift */,
 			);
 			name = ValueObservation;
@@ -2670,6 +2674,7 @@
 				5698AC071D9B9FCF0056AF8C /* QueryInterfaceExtensibilityTests.swift in Sources */,
 				56C3F7561CF9F12400F6A361 /* DatabaseSavepointTests.swift in Sources */,
 				56B021CD1D8C0D3900B239BB /* MutablePersistableRecordPersistenceConflictPolicyTests.swift in Sources */,
+				563B0706218627F800B38F35 /* ValueObservationRowTests.swift in Sources */,
 				569531271C9087B700CF1A2B /* DatabaseQueueSchemaCacheTests.swift in Sources */,
 				56B14E831D4DAE54000BF4A3 /* RowFromDictionaryLiteralTests.swift in Sources */,
 				562393341DEDFC5700A6B01F /* AnyCursorTests.swift in Sources */,
@@ -2843,6 +2848,7 @@
 				56D496BF1D8135D4008276D7 /* TableDefinitionTests.swift in Sources */,
 				5674A7171F3087710095F066 /* DatabaseValueConvertibleDecodableTests.swift in Sources */,
 				56D496801D813131008276D7 /* StatementColumnConvertibleFetchTests.swift in Sources */,
+				563B0705218627F800B38F35 /* ValueObservationRowTests.swift in Sources */,
 				56D4966E1D81309E008276D7 /* RecordPrimaryKeyMultipleTests.swift in Sources */,
 				56D496891D81316E008276D7 /* DatabaseValueConvertibleFetchTests.swift in Sources */,
 				56D4967C1D8130DB008276D7 /* CGFloatTests.swift in Sources */,
