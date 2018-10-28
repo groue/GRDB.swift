@@ -32,15 +32,17 @@ class ValueObservationReducerTests: GRDBTestCase {
         let reducer = AnyValueReducer(
             fetch: { db -> Int in
                 fetchCount += 1
+                // test for database access
                 return try Int.fetchOne(db, "SELECT COUNT(*) FROM t")!
             },
             value: { count -> String? in
                 reduceCount += 1
                 if dropNext {
+                    // test that reducer can drop values
                     dropNext = false
                     return nil
                 }
-                // just make sure the fetched type and the notified type can be different
+                // test that the fetched type and the notified type can be different
                 return count.description
             })
         
@@ -71,19 +73,19 @@ class ValueObservationReducerTests: GRDBTestCase {
             XCTAssertEqual(changes, ["0"])
             
             try dbQueue.inDatabase { db in
-                // A 1st notified transaction
+                // Test a 1st notified transaction
                 try db.inTransaction {
                     try db.execute("INSERT INTO t DEFAULT VALUES")
                     return .commit
                 }
                 
-                // An untracked transaction
+                // Test an untracked transaction
                 try db.inTransaction {
                     try db.execute("CREATE TABLE ignored(a)")
                     return .commit
                 }
                 
-                // A dropped transaction
+                // Test a dropped transaction
                 dropNext = true
                 try db.inTransaction {
                     try db.execute("INSERT INTO t DEFAULT VALUES")
@@ -91,13 +93,13 @@ class ValueObservationReducerTests: GRDBTestCase {
                     return .commit
                 }
                 
-                // A rollbacked transaction
+                // Test a rollbacked transaction
                 try db.inTransaction {
                     try db.execute("INSERT INTO t DEFAULT VALUES")
                     return .rollback
                 }
 
-                // A 2nd notified transaction
+                // Test a 2nd notified transaction
                 try db.inTransaction {
                     try db.execute("INSERT INTO t DEFAULT VALUES")
                     try db.execute("INSERT INTO t DEFAULT VALUES")
