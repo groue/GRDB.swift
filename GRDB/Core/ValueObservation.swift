@@ -8,18 +8,63 @@
 
 import Dispatch
 
-/// InitialDispatch controls how initial value is dispatched when one starts
-/// observing the database. See ValueObservation.
-public enum InitialDispatch {
-    /// Initial value is not fetched, and not notified.
-    case none
+
+/// ValueScheduling controls how ValueObservation schedules the notifications
+/// of fresh values to your application.
+///
+/// See ValueObservation.
+public enum ValueScheduling {
+    /// All values are notified on the main queue.
+    ///
+    /// If the observation starts on the main queue, initial values are
+    /// notified right upon subscription, synchronously:
+    ///
+    ///     // On main queue
+    ///     let observation = ValueObservation.forAll(Player.all())
+    ///     let observer = try dbQueue.add(observation: observation) { players: [Player] in
+    ///         print("fresh players: /(players)")
+    ///     }
+    ///     // <- here "fresh players" is already printed.
+    ///
+    /// If the observation does not start on the main queue, initial values
+    /// are asynchronously notified on the main queue:
+    ///
+    ///     // Not on the main queue: "fresh players" is eventually printed
+    ///     // on the main queue.
+    ///     let observation = ValueObservation.forAll(Player.all())
+    ///     let observer = try dbQueue.add(observation: observation) { players: [Player] in
+    ///         print("fresh players: /(players)")
+    ///     }
+    ///
+    /// When the database changes, fresh values are asynchronously notified:
+    ///
+    ///     // Eventually prints "fresh players" on the main queue
+    ///     try dbQueue.write { db in
+    ///         try Player(...).insert(db)
+    ///     }
+    case mainQueue
     
-    /// Initial value is immediately fetched, and notified on the current dispatch queue.
-    case immediateOnCurrentQueue
-    
-    /// Initial value is immediately fetched, and asynchronously notified.
-    case deferred
+    /// All values are asychronously notified on the specified queue.
+    /// Initial values are only fetched and notified if `startImmediately`
+    /// is true.
+    ///
+    /// Correct ordering of notifications is only guaranteed if the queue
+    /// is serial.
+    case onQueue(DispatchQueue, startImmediately: Bool)
 }
+
+extension DispatchQueue {
+    private static var mainKey: DispatchSpecificKey<()> = {
+        let key = DispatchSpecificKey<()>()
+        DispatchQueue.main.setSpecific(key: key, value: ())
+        return key
+    }()
+    
+    static var isMain: Bool {
+        return DispatchQueue.getSpecific(key: mainKey) != nil
+    }
+}
+
 
 /// TODO: doc
 public protocol ValueReducer {
@@ -40,7 +85,6 @@ public struct AnyValueReducer<Fetched, Value>: ValueReducer {
         self._value = value
     }
     
-    /// TODO: doc
     public init<Reducer: ValueReducer>(_ reducer: Reducer) where Reducer.Fetched == Fetched, Reducer.Value == Value {
         var reducer = reducer
         self._fetch = { try reducer.fetch($0) }
@@ -82,71 +126,63 @@ public struct ValueObservation<Reducer> {
     /// observer is deallocated.
     public var extent = Database.TransactionObservationExtent.observerLifetime
     
-    /// The dispatch queue where change callbacks are called. Default is the
-    /// main queue.
+    /// `scheduling` controls how fresh values are notified.
+    /// Default is `.mainQueue`:
     ///
-    /// When *initialDispatch* is `.immediateOnCurrentQueue`, the first value is
-    /// dispatched on the dispatch queue which starts the observation,
-    /// regardless of this property.
-    public var queue = DispatchQueue.main
+    /// - `.mainQueue`: all values are notified on the main queue.
+    ///
+    ///     If the observation starts on the main queue, initial values are
+    ///     notified right upon subscription, synchronously:
+    ///
+    ///         // On main queue
+    ///         let observation = ValueObservation.forAll(Player.all())
+    ///         let observer = try dbQueue.add(observation: observation) { players: [Player] in
+    ///             print("fresh players: /(players)")
+    ///         }
+    ///         // <- here "fresh players" is already printed.
+    ///
+    ///     If the observation does not start on the main queue, initial values
+    ///     are asynchronously notified on the main queue:
+    ///
+    ///         // Not on the main queue: "fresh players" is eventually printed
+    ///         // on the main queue.
+    ///         let observation = ValueObservation.forAll(Player.all())
+    ///         let observer = try dbQueue.add(observation: observation) { players: [Player] in
+    ///             print("fresh players: /(players)")
+    ///         }
+    ///
+    ///     When the database changes, fresh values are asynchronously notified:
+    ///
+    ///         // Eventually prints "fresh players" on the main queue
+    ///         try dbQueue.write { db in
+    ///             try Player(...).insert(db)
+    ///         }
+    ///
+    /// - `.onQueue(_:startImmediately:)`: all values are asychronously notified
+    /// on the specified queue. Initial values are only fetched and notified if
+    /// `startImmediately` is true.
+    ///
+    ///     Correct ordering of notifications is only guaranteed if the queue
+    ///     is serial.
+    public var scheduling: ValueScheduling = .mainQueue
     
-    /// The quality of service.
-    public var qos: DispatchQoS
+    /// The dispatch queue where change callbacks are called.
+    public var notificatinQueue: DispatchQueue {
+        switch scheduling {
+        case .mainQueue:
+            return DispatchQueue.main
+        case .onQueue(let queue, startImmediately: _):
+            return queue
+        }
+    }
     
-    /// `initialDispatch` controls how initial value is dispatched when
-    /// observation starts with the `add(observation:)` method:
-    ///
-    /// - When `.immediateOnCurrentQueue` (the default), initial value is
-    /// fetched right away, and notified synchronously, on the dispatch queue
-    /// which starts the observation.
-    ///
-    /// - When `.deferred`, initial value is fetched right away, and
-    /// notified asynchronously, on *queue*.
-    ///
-    /// - When `.none`, initial value is not fetched, and not notified.
-    public var initialDispatch = InitialDispatch.immediateOnCurrentQueue
-    
-    /// Creates a ValueObservation which observes *region*, and notifies the
-    /// values returned by the *fetch* closure whenever the observed region is
-    /// impacted by a database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let observation = ValueObservation(
-    ///         observing: { db in try Player.all().databaseRegion(db) },
-    ///         fetch: { db in try Player.fetchAll(db) })
-    ///
-    ///     let observer = dbQueue.add(observation: observation) { player: [Player] in
-    ///         print("players have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter region: a closure that returns the observed region.
-    /// - parameter fetch: a closure that fetches a value.
+    // This initializer is not public. See ValueObservation.observing(_:reducer:)
     init(
         observing region: @escaping (Database) throws -> DatabaseRegion,
         reducer: Reducer)
     {
         self.observedRegion = region
         self.reducer = reducer
-        
-        // TODO: read https://developer.apple.com/library/archive/documentation/Performance/Conceptual/EnergyGuide-iOS/PrioritizeWorkWithQoS.html
-        // and pick a sensible default qos
-        if #available(OSX 10.10, *) {
-            self.qos = .default
-        } else {
-            self.qos = .unspecified
-        }
     }
     
     /// Creates a ValueObservation which observes *region*, and notifies the
@@ -159,7 +195,7 @@ public struct ValueObservation<Reducer> {
     ///         observing: { db in try Player.all().databaseRegion(db) },
     ///         fetch: { db in try Player.fetchAll(db) })
     ///
-    ///     let observer = dbQueue.add(observation: observation) { player: [Player] in
+    ///     let observer = try dbQueue.add(observation: observation) { player: [Player] in
     ///         print("players have changed")
     ///     }
     ///
@@ -366,7 +402,7 @@ extension ValueObservation {
     ///         observing: { db in try Player.all().databaseRegion(db) },
     ///         fetch: { db in try Player.fetchAll(db) })
     ///
-    ///     let observer = dbQueue.add(observation: observation) { player: [Player] in
+    ///     let observer = try dbQueue.add(observation: observation) { player: [Player] in
     ///         print("players have changed")
     ///     }
     ///
@@ -409,7 +445,7 @@ extension ValueObservation where Reducer == Void {
     ///         Player.all(),
     ///         fetch: { db in return try Player.fetchAll(db) })
     ///
-    ///     let observer = dbQueue.add(observation: observation) { player: [Player] in
+    ///     let observer = try dbQueue.add(observation: observation) { player: [Player] in
     ///         print("players have changed")
     ///     }
     ///
@@ -452,7 +488,7 @@ extension ValueObservation where Reducer == Void {
     ///         withUniquing: Player.all(),
     ///         fetch: { db in return try Player.fetchAll(db) })
     ///
-    ///     let observer = dbQueue.add(observation: observation) { player: [Player] in
+    ///     let observer = try dbQueue.add(observation: observation) { player: [Player] in
     ///         print("players have changed")
     ///     }
     ///
@@ -498,7 +534,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.all()
     ///     let observation = ValueObservation.forCount(request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { count: Int in
+    ///     let observer = try dbQueue.add(observation: observation) { count: Int in
     ///         print("number of players has changed")
     ///     }
     ///
@@ -531,7 +567,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.all()
     ///     let observation = ValueObservation.forCount(withUniquing: request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { count: Int in
+    ///     let observer = try dbQueue.add(observation: observation) { count: Int in
     ///         print("number of players has changed")
     ///     }
     ///
@@ -568,7 +604,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = SQLRequest<Row>("SELECT * FROM player")
     ///     let observation = ValueObservation.forAll(request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { rows: [Row] in
+    ///     let observer = try dbQueue.add(observation: observation) { rows: [Row] in
     ///         print("players have changed")
     ///     }
     ///
@@ -602,7 +638,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = SQLRequest<Row>("SELECT * FROM player")
     ///     let observation = ValueObservation.forAll(withUniquing: request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { rows: [Row] in
+    ///     let observer = try dbQueue.add(observation: observation) { rows: [Row] in
     ///         print("players have changed")
     ///     }
     ///
@@ -636,7 +672,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = SQLRequest<Row>("SELECT * FROM player WHERE id = ?", arguments: [1])
     ///     let observation = ValueObservation.forOne(request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { row: Row? in
+    ///     let observer = try dbQueue.add(observation: observation) { row: Row? in
     ///         print("players have changed")
     ///     }
     ///
@@ -670,7 +706,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = SQLRequest<Row>("SELECT * FROM player WHERE id = ?", arguments: [1])
     ///     let observation = ValueObservation.forOne(withUniquing: request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { row: Row? in
+    ///     let observer = try dbQueue.add(observation: observation) { row: Row? in
     ///         print("players have changed")
     ///     }
     ///
@@ -709,7 +745,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.all()
     ///     let observation = ValueObservation.forAll(request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { players: [Player] in
+    ///     let observer = try dbQueue.add(observation: observation) { players: [Player] in
     ///         print("players have changed")
     ///     }
     ///
@@ -744,7 +780,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.all()
     ///     let observation = ValueObservation.forAll(withUniquing: request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { players: [Player] in
+    ///     let observer = try dbQueue.add(observation: observation) { players: [Player] in
     ///         print("players have changed")
     ///     }
     ///
@@ -778,7 +814,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.filter(key: 1)
     ///     let observation = ValueObservation.forOne(request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { player: Player? in
+    ///     let observer = try dbQueue.add(observation: observation) { player: Player? in
     ///         print("player has changed")
     ///     }
     ///
@@ -812,7 +848,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.filter(key: 1)
     ///     let observation = ValueObservation.forOne(withUniquing: request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { player: Player? in
+    ///     let observer = try dbQueue.add(observation: observation) { player: Player? in
     ///         print("player has changed")
     ///     }
     ///
@@ -851,7 +887,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.forAll(request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { names: [String] in
+    ///     let observer = try dbQueue.add(observation: observation) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
@@ -886,7 +922,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.forAll(withUniquing: request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { names: [String] in
+    ///     let observer = try dbQueue.add(observation: observation) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
@@ -920,7 +956,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(max(Column("score")), as: Int.self)
     ///     let observation = ValueObservation.forOne(request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { maxScore: Int? in
+    ///     let observer = try dbQueue.add(observation: observation) { maxScore: Int? in
     ///         print("maximum score has changed")
     ///     }
     ///
@@ -954,7 +990,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(max(Column("score")), as: Int.self)
     ///     let observation = ValueObservation.forOne(withUniquing: request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { maxScore: Int? in
+    ///     let observer = try dbQueue.add(observation: observation) { maxScore: Int? in
     ///         print("maximum score has changed")
     ///     }
     ///
@@ -993,7 +1029,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.forAll(request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { names: [String] in
+    ///     let observer = try dbQueue.add(observation: observation) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
@@ -1027,7 +1063,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(max(Column("score")), as: Int.self)
     ///     let observation = ValueObservation.forOne(request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { maxScore: Int? in
+    ///     let observer = try dbQueue.add(observation: observation) { maxScore: Int? in
     ///         print("maximum score has changed")
     ///     }
     ///
@@ -1066,7 +1102,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.forAll(request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { names: [String] in
+    ///     let observer = try dbQueue.add(observation: observation) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
@@ -1102,7 +1138,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.forAll(withUniquing: request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { names: [String] in
+    ///     let observer = try dbQueue.add(observation: observation) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
@@ -1142,7 +1178,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.forAll(request)
     ///
-    ///     let observer = dbQueue.add(observation: observation) { names: [String] in
+    ///     let observer = try dbQueue.add(observation: observation) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///

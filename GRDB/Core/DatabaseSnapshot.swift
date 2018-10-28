@@ -108,22 +108,26 @@ extension DatabaseSnapshot {
         throws -> TransactionObserver
     {
         // Deal with initial value
-        switch observation.initialDispatch {
-        case .none:
-            break
-        case .deferred:
+        switch observation.scheduling {
+        case .mainQueue:
             var reducer = observation.reducer
-            let fetchedValue = try unsafeReentrantRead(reducer.fetch)
-            if let value = reducer.value(fetchedValue) {
-                observation.queue.async {
+            if let value = try reducer.value(unsafeReentrantRead(reducer.fetch)) {
+                if DispatchQueue.isMain {
                     onChange(value)
+                } else {
+                    DispatchQueue.main.async {
+                        onChange(value)
+                    }
                 }
             }
-        case .immediateOnCurrentQueue:
-            var reducer = observation.reducer
-            let fetchedValue = try unsafeReentrantRead(reducer.fetch)
-            if let value = reducer.value(fetchedValue) {
-                onChange(value)
+        case let .onQueue(queue, startImmediately: startImmediately):
+            if startImmediately {
+                var reducer = observation.reducer
+                if let value = try reducer.value(unsafeReentrantRead(reducer.fetch)) {
+                    queue.async {
+                        onChange(value)
+                    }
+                }
             }
         }
         
