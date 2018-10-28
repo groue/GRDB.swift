@@ -27,8 +27,8 @@ class ValueObservationFetchTests: GRDBTestCase {
         })
         observation.extent = .databaseLifetime
         _ = try dbQueue.add(observation: observation) { count in
-            notificationExpectation.fulfill()
             counts.append(count)
+            notificationExpectation.fulfill()
         }
         
         try dbQueue.write {
@@ -59,8 +59,8 @@ class ValueObservationFetchTests: GRDBTestCase {
         })
         observation.extent = .databaseLifetime
         _ = try dbQueue.add(observation: observation) { count in
-            notificationExpectation.fulfill()
             counts.append(count)
+            notificationExpectation.fulfill()
         }
         
         try dbQueue.write {

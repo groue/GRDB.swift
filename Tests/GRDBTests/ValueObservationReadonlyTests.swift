@@ -28,8 +28,8 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         })
         observation.extent = .databaseLifetime
         _ = try dbQueue.add(observation: observation) { count in
-            notificationExpectation.fulfill()
             counts.append(count)
+            notificationExpectation.fulfill()
         }
         
         try dbQueue.write {
@@ -81,8 +81,8 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         observation.extent = .databaseLifetime
         observation.isReadOnly = false
         _ = try dbQueue.add(observation: observation) { count in
-            notificationExpectation.fulfill()
             counts.append(count)
+            notificationExpectation.fulfill()
         }
         
         try dbQueue.write {

@@ -13,6 +13,11 @@ import XCTest
 #endif
 
 class ValueObservationExtentTests: GRDBTestCase {
+    func testDefaultExtentIsObserverLifetime() {
+        let observation = ValueObservation.observing(DatabaseRegion.fullDatabase, fetch: { _ in })
+        XCTAssertEqual(observation.extent, .observerLifetime)
+    }
+    
     func testExtentDatabaseLifetime() throws {
         // We need something to change
         let dbQueue = try makeDatabaseQueue()
