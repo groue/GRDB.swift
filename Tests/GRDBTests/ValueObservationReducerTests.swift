@@ -21,11 +21,11 @@ class ValueObservationReducerTests: GRDBTestCase {
         // Track reducer proceess
         var fetchCount = 0
         var reduceCount = 0
-        var errorCount = 0
+        var errors: [Error] = []
         var changes: [String] = []
-        let changeExpectation = expectation(description: "changes")
-        changeExpectation.assertForOverFulfill = true
-        changeExpectation.expectedFulfillmentCount = 3
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 3
         
         // A reducer which tracks its progress
         var dropNext = false // if true, reducer drops next value
@@ -51,11 +51,14 @@ class ValueObservationReducerTests: GRDBTestCase {
         // Start observation with default configuration
         let observer = try dbQueue.add(
             observation: observation,
-            onError: { _ in errorCount += 1 },
-            onChange: { change in
-                changes.append(change)
-                changeExpectation.fulfill()
-        })
+            onError: {
+                errors.append($0)
+                notificationExpectation.fulfill()
+            },
+            onChange: {
+                changes.append($0)
+                notificationExpectation.fulfill()
+            })
         
         // Default config stops when observer is deallocated: keep it alive for
         // the duration of the test:
@@ -64,7 +67,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             // Test that default config synchronously notifies initial value
             XCTAssertEqual(fetchCount, 1)
             XCTAssertEqual(reduceCount, 1)
-            XCTAssertEqual(errorCount, 0)
+            XCTAssertEqual(errors.count, 0)
             XCTAssertEqual(changes, ["0"])
             
             try dbQueue.inDatabase { db in
@@ -105,15 +108,89 @@ class ValueObservationReducerTests: GRDBTestCase {
             waitForExpectations(timeout: 1, handler: nil)
             XCTAssertEqual(fetchCount, 4)
             XCTAssertEqual(reduceCount, 4)
-            XCTAssertEqual(errorCount, 0)
+            XCTAssertEqual(errors.count, 0)
             XCTAssertEqual(changes, ["0", "1", "5"])
         }
     }
     
-    func testErrorThenSuccess() throws {
+    func testInitialError() throws {
+        struct TestError: Error { }
+        let reducer = AnyValueReducer(
+            fetch: { _ in throw TestError() },
+            value: { _ in fatalError() })
+        
+        // Create an observation
+        let observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
+        
+        // Start observation with default configuration
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            _ = try dbQueue.add(
+                observation: observation,
+                onError: { _ in fatalError() },
+                onChange: { _ in fatalError() })
+            XCTFail("Expected error")
+        } catch is TestError {
+        } catch {
+            XCTFail("Unexpected error")
+        }
     }
     
     func testSuccessThenErrorThenSuccess() throws {
+        // We need something to change
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        
+        // Track reducer proceess
+        var errors: [Error] = []
+        var changes: [Void] = []
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 3
+        
+        // A reducer which throws an error is requested to do so
+        var nextError: Error? = nil // If not null, reducer throws an error
+        let reducer = AnyValueReducer(
+            fetch: { _ -> Void in
+                if let error = nextError {
+                    nextError = nil
+                    throw error
+                }
+            },
+            value: { $0 })
+        
+        // Create an observation
+        let request = SQLRequest<Void>("SELECT * FROM t")
+        let observation = ValueObservation.observing(request, reducer: reducer)
+        
+        // Start observation with default configuration, and an error
+        let observer = try dbQueue.add(
+            observation: observation,
+            onError: {
+                errors.append($0)
+                notificationExpectation.fulfill()
+            },
+            onChange: {
+                changes.append($0)
+                notificationExpectation.fulfill()
+            })
+        
+        // Default config stops when observer is deallocated: keep it alive for
+        // the duration of the test:
+        try withExtendedLifetime(observer) {
+            struct TestError: Error { }
+            nextError = TestError()
+            try dbQueue.write { db in
+                try db.execute("INSERT INTO t DEFAULT VALUES")
+            }
+            
+            try dbQueue.write { db in
+                try db.execute("INSERT INTO t DEFAULT VALUES")
+            }
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(errors.count, 1)
+            XCTAssertEqual(changes.count, 2)
+        }
     }
-
 }
