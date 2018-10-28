@@ -162,8 +162,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             value: { $0 })
         
         // Create an observation
-        let request = SQLRequest<Void>("SELECT * FROM t")
-        let observation = ValueObservation.observing(request, reducer: reducer)
+        let observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
         
         // Start observation with default configuration
         let observer = try dbQueue.add(

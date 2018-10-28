@@ -29,15 +29,13 @@ class ValueObservationExtentTests: GRDBTestCase {
             value: { $0 })
         
         // Create an observation
-        let request = SQLRequest<Void>("SELECT * FROM t")
-        var observation = ValueObservation.observing(request, reducer: reducer)
+        var observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
         observation.extent = .databaseLifetime
         
         // Start observation
-        _ = try dbQueue.add(
-            observation: observation,
-            onError: nil,
-            onChange: { notificationExpectation.fulfill() })
+        _ = try dbQueue.add(observation: observation) {
+            notificationExpectation.fulfill()
+        }
         
         // notified
         try dbQueue.write { db in
@@ -69,22 +67,18 @@ class ValueObservationExtentTests: GRDBTestCase {
             value: { $0 })
         
         // Create an observation
-        let request = SQLRequest<Void>("SELECT * FROM t")
-        var observation = ValueObservation.observing(request, reducer: reducer)
+        var observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
         observation.extent = .observerLifetime
         
         // Start observation and deallocate observer after second change
         var observer: TransactionObserver?
-        observer = try dbQueue.add(
-            observation: observation,
-            onError: nil,
-            onChange: {
-                changesCount += 1
-                if changesCount == 2 {
-                    observer = nil
-                }
-                notificationExpectation.fulfill()
-        })
+        observer = try dbQueue.add(observation: observation) {
+            changesCount += 1
+            if changesCount == 2 {
+                observer = nil
+            }
+            notificationExpectation.fulfill()
+        }
         
         // notified
         try dbQueue.write { db in
@@ -119,15 +113,13 @@ class ValueObservationExtentTests: GRDBTestCase {
             value: { $0 })
         
         // Create an observation
-        let request = SQLRequest<Void>("SELECT * FROM t")
-        var observation = ValueObservation.observing(request, reducer: reducer)
+        var observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
         observation.extent = .nextTransaction
         
         // Start observation
-        let observer = try dbQueue.add(
-            observation: observation,
-            onError: nil,
-            onChange: { notificationExpectation.fulfill() })
+        let observer = try dbQueue.add(observation: observation) {
+            notificationExpectation.fulfill()
+        }
         
         try withExtendedLifetime(observer) {
             // notified
