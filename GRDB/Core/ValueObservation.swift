@@ -119,7 +119,7 @@ public struct ValueObservation<Reducer> {
     
     /// Default is true. Set this property to false when the *fetch* closure
     /// requires write access, and should be executed inside a savepoint.
-    var readonly: Bool = true
+    public var readonly: Bool = true
     
     /// The extent of the database observation. The default is
     /// `.observerLifetime`: once started, the observation lasts until the

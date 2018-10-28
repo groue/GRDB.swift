@@ -293,7 +293,11 @@ private class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
         self.notificationQueue = notificationQueue
         self.onChange = onChange
         self.onError = onError
-        self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation", qos: notificationQueue.qos)
+        if #available(OSX 10.10, *) {
+            self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation", qos: notificationQueue.qos)
+        } else {
+            self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation")
+        }
     }
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
@@ -448,16 +452,5 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     /// :nodoc:
     public func remove(collation: DatabaseCollation) {
         base.remove(collation: collation)
-    }
-    
-    // MARK: - Value Observation
-    
-    public func add<Reducer: ValueReducer>(
-        observation: ValueObservation<Reducer>,
-        onError: ((Error) -> Void)? = nil,
-        onChange: @escaping (Reducer.Value) -> Void)
-        throws -> TransactionObserver
-    {
-        return try base.add(observation: observation, onError: onError, onChange: onChange)
     }
 }
