@@ -185,15 +185,20 @@ public struct ValueObservation<Reducer> {
         self.reducer = reducer
     }
     
-    /// Creates a ValueObservation which observes *region*, and notifies the
-    /// values returned by the *fetch* closure whenever the observed region is
+    /// Returs a ValueObservation which observes *regions*, and notifies the
+    /// values returned by the *reducer* whenever the observed region is
     /// impacted by a database transaction.
+    ///
+    /// This method is the most fundamental way to create a ValueObservation.
     ///
     /// For example:
     ///
+    ///     let reducer = AnyValueReducer(
+    ///         fetch: { db in try Player.fetchAll(db) },
+    ///         value: { player in players })
     ///     let observation = ValueObservation(
-    ///         observing: { db in try Player.all().databaseRegion(db) },
-    ///         fetch: { db in try Player.fetchAll(db) })
+    ///         observing: Player.all(),
+    ///         reducer: reducer)
     ///
     ///     let observer = try dbQueue.add(observation: observation) { player: [Player] in
     ///         print("players have changed")
@@ -213,10 +218,16 @@ public struct ValueObservation<Reducer> {
     /// - parameter region: a closure that returns the observed region.
     /// - parameter fetch: a closure that fetches a value.
     public static func observing(
-        _ region: @escaping (Database) throws -> DatabaseRegion,
+        _ regions: DatabaseRegionConvertible...,
         reducer: Reducer)
         -> ValueObservation
     {
+        func region(_ db: Database) throws -> DatabaseRegion {
+            return try regions.reduce(into: DatabaseRegion()) { union, region in
+                try union.formUnion(region.databaseRegion(db))
+            }
+        }
+        
         return ValueObservation(observing: region, reducer: reducer)
     }
 }
@@ -390,49 +401,6 @@ public enum ValueReducers {
 }
 
 // MARK: - DatabaseRegionConvertible Observation
-
-extension ValueObservation {
-    /// Creates a ValueObservation which observes *region*, and notifies the
-    /// values returned by the *fetch* closure whenever the observed region is
-    /// impacted by a database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let observation = ValueObservation(
-    ///         observing: { db in try Player.all().databaseRegion(db) },
-    ///         fetch: { db in try Player.fetchAll(db) })
-    ///
-    ///     let observer = try dbQueue.add(observation: observation) { player: [Player] in
-    ///         print("players have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter region: a closure that returns the observed region.
-    /// - parameter fetch: a closure that fetches a value.
-    public static func observing(
-        _ regions: DatabaseRegionConvertible...,
-        reducer: Reducer)
-        -> ValueObservation
-    {
-        func region(_ db: Database) throws -> DatabaseRegion {
-            return try regions.reduce(into: DatabaseRegion()) { union, region in
-                try union.formUnion(region.databaseRegion(db))
-            }
-        }
-        
-        return ValueObservation(observing: region, reducer: reducer)
-    }
-}
 
 extension ValueObservation where Reducer == Void {
     /// Creates a ValueObservation which observes *regions*, and notifies the
