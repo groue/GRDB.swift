@@ -163,7 +163,7 @@ class ValueObservationReducerTests: GRDBTestCase {
         let request = SQLRequest<Void>("SELECT * FROM t")
         let observation = ValueObservation.observing(request, reducer: reducer)
         
-        // Start observation with default configuration, and an error
+        // Start observation with default configuration
         let observer = try dbQueue.add(
             observation: observation,
             onError: {
