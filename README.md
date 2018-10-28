@@ -5793,14 +5793,9 @@ GRDB puts this SQLite feature to some good use, and lets you observe the databas
 
 - [After Commit Hook](#after-commit-hook): The simplest way to handle successful transactions.
 - [TransactionObserver Protocol](#transactionobserver-protocol): The low-level protocol for database observation
-    - [Activate a Transaction Observer](#activate-a-transaction-observer)
-    - [Database Changes And Transactions](#database-changes-and-transactions)
-    - [Filtering Database Events](#filtering-database-events)
-    - [Observation Extent](#observation-extent)
-    - [DatabaseRegion](#databaseregion)
-    - [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)
-- [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of changes in a query results, plus UITableView animations
-- [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB): Automated tracking of changes in a query results, based on [RxSwift](https://github.com/ReactiveX/RxSwift)
+- [ValueObservation]: Automated tracking of changes in a request results
+- [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of changes in a request results, with table view animations
+- [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB): Automated tracking of changes in a request results, based on [RxSwift](https://github.com/ReactiveX/RxSwift)
 
 Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
 
@@ -6203,11 +6198,269 @@ protocol TransactionObserverType : class {
 ```
 
 
+## ValueObservation
+
+**ValueObservation automatically tracks changes in the results of a [request](#requests).**
+
+It is designed for easy consumption of fresh values by an application. For example, you will find below the typical UIViewController setup:
+
+```swift
+class PlayerViewController: UIViewController {
+    @IBOutlet weak var nameLabel: UILabel!
+    private var playerObserver: TransactionObserver?
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        // 1. Define a tracked request
+        let request = Player.filter(key: 42)
+        
+        // 2. Create a ValueObservation
+        let observation = ValueObservation.forOne(request)
+        
+        // 3. Start observing the database, and store the returned observer
+        // in a property
+        playerObserver = dbQueue.add(
+            observation: observation,
+            onChange: { [unowned self] player: Player? in
+                self.nameLabel.text = player?.name
+            })
+    }
+}
+```
+
+All values are notified on the main queue: views can be updated right from the `onChange` callback.
+
+An initial fetch is performed, and notified, as soon as the observation starts: the view is ready when `viewDidLoad` method returns.
+
+The view controller stores the observer returned by the `add(observation:onChange:)` method in a property. When the view controller is deallocated, so is the observer: the observation stops. Meanwhile, all transactions that impact the observed player are notified, and the `nameLabel` is kept up-to-date.
+
+
+### `ValueObservation.forCount`, `.forOne`, `.forAll`
+
+Given a [request](#requests), you can track its number of results, the first one, or all of them:
+
+```swift
+ValueObservation.forCount(request)
+ValueObservation.forOne(request)
+ValueObservation.forAll(request)
+
+ValueObservation.forCount(withUniquing: request)
+ValueObservation.forOne(withUniquing: request)
+ValueObservation.forAll(withUniquing: request)
+```
+
+The `forCount` observation notifies counts:
+
+```swift
+// Observe number of players
+let observation = ValueObservation.forCount(Player.all())
+let observer = try dbQueue.add(
+    observation: observation,
+    onChange: { count: Int in
+        print("Number of players have changed: \(count)")
+    })
+```
+
+The `forOne` observation notifies optional values, built from a single database row (if any):
+
+```swift
+// Observe a single player
+let observation = ValueObservation.forOne(Player.filter(key: 1))
+let observer = try dbQueue.add(
+    observation: observation,
+    onChange: { player: Player? in
+        print("Player has changed: \(player)")
+    })
+
+// Observe the maximum score
+let request = Player.select(max(Column("score")), as: Int.self)
+let observation = ValueObservation.forOne(request)
+let observer = try dbQueue.add(
+    observation: observation,
+    onChange: { maximumScore: Int? in
+        print("Maximum score has changed: \(maximumScore)")
+    })
+```
+
+
+The `forAll` observation notifies arrays:
+
+```swift
+// Observe all players
+let observation = ValueObservation.forAll(Player.all())
+let observer = try dbQueue.add(
+    observation: observation,
+    onChange: { players: [Player] in
+        print("Players have changed: \(players)")
+    })
+
+// Observe all player names
+let request = SQLRequest<String>("SELECT name FROM player")
+let observation = ValueObservation.forAll(request)
+let observer = try dbQueue.add(
+    observation: observation,
+    onChange: { names: [String] in
+        print("Players names have changed: \(names)")
+    })
+```
+
+Beware that by default, a ValueObservation notifies *potential* changes, not *actual* changes in the results of a request. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
+
+For example, if you observe `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
+
+Similarly, observing `Country.filter(key: "FR")` will notify all changes that happen to the whole `country` table. That is because SQLite only notifies the numerical [rowid](https://www.sqlite.org/rowidtable.html) of changed rows, and we can't check if it is the row "FR" that has been changed, or another. This limitation does not apply to tables whose primary key *is* the rowid: `Player.filter(key: 42)` will only notify of changes performed on the row with id 42.
+
+You can avoid notification of consecutive identical values with the `withUniquing` variant. It performs deduplication at the database level, by comparing raw database values:
+
+```swift
+// Observe the maximum score
+let request = Player.select(max(Column("score")), as: Int.self)
+let observation = ValueObservation.forOne(withUniquing: request)
+let observer = try dbQueue.add(
+    observation: observation,
+    onChange: { maximumScore: Int? in
+        print("Maximum score has (really) changed: \(maximumScore)")
+    })
+```
+
+
+### `ValueObservation.observing(_:fetch)`
+
+Sometimes you need to observe several requests at the same time, and be notified of **consistent** values. For example, you need to observe changes on both a team and its players:
+
+```swift
+struct TeamInfo {
+    var team: Team
+    var player: [Player]
+}
+
+let teamRequest = Team.filter(key: 1)
+let playersRequest = Player.filter(Column("teamId") == 1)
+
+let observation = ValueObservation.observing(
+    teamRequest, playersRequest,
+    fetch { db -> TeamInfo? in
+        guard let team = try teamRequest.fetchOne(db) else {
+            return nil
+        }
+        let players = try playersRequest.fetchAll(db)
+        return TeamInfo(team: team, players: players)
+    })
+
+let observer = dbQueue.add(
+    observation: observation,
+    onChange: { teamInfo: TeamInfo? in
+        print("team and players have changed.")
+    })
+```
+
+You can avoid notification of consecutive identical values with the `withUniquing` variant. It requires the fetched type to be Equatable:
+
+```swift
+extension TeamInfo: Equatable { ... }
+
+let observation = ValueObservation.observing(
+    withUniquing: teamRequest, playersRequest,
+    fetch { db -> TeamInfo? in
+        guard let team = try teamRequest.fetchOne(db) else {
+            return nil
+        }
+        let players = try playersRequest.fetchAll(db)
+        return TeamInfo(team: team, players: players)
+    })
+
+let observer = dbQueue.add(
+    observation: observation,
+    onChange: { teamInfo: TeamInfo? in
+        print("team and players have (really) changed.")
+    })
+```
+
+
+### ValueObservation Options
+
+- **`extent`**
+    
+    The `extent` property lets you specify the duration of the observation. See [Observation Extent](#observation-extent) for more details:
+    
+    ```swift
+    // This observation lasts until the database connection is closed
+    var observation = ValueObservation...
+    observation.extent = .databaseLifetime
+    _ = dbQueue.add(observation: observation) { newValue in ... }
+    ```
+    
+    The default extent is `.observerLifetime`.
+
+- **`scheduling`**
+    
+    The `scheduling` property lets you control how fresh values are notified:
+    
+    - `.mainQueue` (the default): all values are notified on the main queue.
+        
+        If the observation starts on the main queue, initial values are notified right upon subscription, synchronously:
+        
+        ```swift
+        // On main queue
+        let observation = ValueObservation.forAll(Player.all())
+        let observer = try dbQueue.add(observation: observation) { players: [Player] in
+            print("fresh players: /(players)")
+        }
+        // <- here "fresh players" is already printed.
+        ```
+        
+        If the observation does not start on the main queue, initial values are asynchronously notified on the main queue:
+        
+        ```swift
+        // Not on the main queue: "fresh players" is eventually printed
+        // on the main queue.
+        let observation = ValueObservation.forAll(Player.all())
+        let observer = try dbQueue.add(observation: observation) { players: [Player] in
+            print("fresh players: /(players)")
+        }
+        ```
+        
+        When the database changes, fresh values are asynchronously notified:
+        
+        ```swift
+        // Eventually prints "fresh players" on the main queue
+        try dbQueue.write { db in
+            try Player(...).insert(db)
+        }
+        ```
+    
+    - `.onQueue(_:startImmediately:)`: all values are asychronously notified on the specified queue. Initial values are only fetched and notified if `startImmediately` is true.
+        
+        ```swift
+        let customQueue = DispatchQueue(label: "customQueue")
+        var observation = ValueObservation.forAll(Player.all())
+        observation.scheduling = .onQueue(customQueue, startImmediately: true)
+        let observer = try dbQueue.add(observation: observation) { players: [Player] in
+            // in customQueue
+            print("fresh players: /(players)")s
+        }
+        ```
+
+- **`isReadOnly`**
+    
+    The default is true. When false, a ValueObservation has a write access to the database when it fetches fresh values:
+    
+    ```swift
+    let observation = ValueObservation.observing(
+        teamRequest, playersRequest,
+        fetch { db  in
+            // some
+        })
+    observation.isReadOnly = false
+    ```
+    
+    When you use a [database pool](#database-pools), an observation is less efficient when it is not read-only.
+
+
 ## FetchedRecordsController
 
-**You use FetchedRecordsController to track changes in the results of an SQLite request.**
-
-**FetchedRecordsController can also feed table views, collection views, and animate cells when the results of the request change.**
+**FetchedRecordsController track changes in the results of a request. It can also feed table views, collection views, and animate cells when the results of the request change.**
 
 It looks and behaves very much like [Core Data's NSFetchedResultsController](https://developer.apple.com/library/ios/documentation/CoreData/Reference/NSFetchedResultsController_Class/).
 
@@ -7911,3 +8164,4 @@ This chapter has been renamed [Beyond FetchableRecord].
 [Record Comparison]: #record-comparison
 [Record Customization Options]: #record-customization-options
 [TableRecord]: #tablerecord-protocol
+[ValueObservation]: #valueobservation

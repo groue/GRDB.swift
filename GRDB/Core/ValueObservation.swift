@@ -48,9 +48,6 @@ public enum ValueScheduling {
     /// All values are asychronously notified on the specified queue.
     /// Initial values are only fetched and notified if `startImmediately`
     /// is true.
-    ///
-    /// Correct ordering of notifications is only guaranteed if the queue
-    /// is serial.
     case onQueue(DispatchQueue, startImmediately: Bool)
 }
 
@@ -331,9 +328,6 @@ public struct ValueObservation<Reducer> {
     /// - `.onQueue(_:startImmediately:)`: all values are asychronously notified
     /// on the specified queue. Initial values are only fetched and notified if
     /// `startImmediately` is true.
-    ///
-    ///     Correct ordering of notifications is only guaranteed if the queue
-    ///     is serial.
     public var scheduling: ValueScheduling = .mainQueue
     
     /// The dispatch queue where change callbacks are called.
