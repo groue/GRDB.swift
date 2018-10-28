@@ -257,7 +257,7 @@ extension DatabaseWriter {
                 region: observation.observedRegion(db),
                 reducer: reducer,
                 fetch: fetch,
-                notificationQueue: observation.notificatinQueue,
+                notificationQueue: observation.notificationQueue,
                 onError: onError,
                 onChange: onChange)
             db.add(transactionObserver: valueObserver, extent: observation.extent)

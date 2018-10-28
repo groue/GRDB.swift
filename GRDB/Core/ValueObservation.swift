@@ -8,6 +8,7 @@
 
 import Dispatch
 
+// MARK: - ValueScheduling
 
 /// ValueScheduling controls how ValueObservation schedules the notifications
 /// of fresh values to your application.
@@ -65,6 +66,7 @@ extension DispatchQueue {
     }
 }
 
+// MARK: - ValueReducer
 
 /// TODO: doc
 public protocol ValueReducer {
@@ -101,138 +103,6 @@ public struct AnyValueReducer<Fetched, Value>: ValueReducer {
         return _value(fetched)
     }
 }
-
-/// TODO: doc
-/// TODO: refresh region after each fetch
-public struct ValueObservation<Reducer> {
-    /// A closure that is evaluated when the observation starts, and returns
-    /// the observed database region.
-    var observedRegion: (Database) throws -> DatabaseRegion
-    
-    /// A closure that fetches a value from the database. It is called upon
-    /// each database change, and also when the observatioin starts, depending
-    /// on the *initialDispatch* property.
-    ///
-    /// When this closure needs to write in the database, set the *readonly*
-    /// flag to false.
-    var reducer: Reducer
-    
-    /// Default is true. Set this property to false when the *fetch* closure
-    /// requires write access, and should be executed inside a savepoint.
-    public var readonly: Bool = true
-    
-    /// The extent of the database observation. The default is
-    /// `.observerLifetime`: once started, the observation lasts until the
-    /// observer is deallocated.
-    public var extent = Database.TransactionObservationExtent.observerLifetime
-    
-    /// `scheduling` controls how fresh values are notified.
-    /// Default is `.mainQueue`:
-    ///
-    /// - `.mainQueue`: all values are notified on the main queue.
-    ///
-    ///     If the observation starts on the main queue, initial values are
-    ///     notified right upon subscription, synchronously:
-    ///
-    ///         // On main queue
-    ///         let observation = ValueObservation.forAll(Player.all())
-    ///         let observer = try dbQueue.add(observation: observation) { players: [Player] in
-    ///             print("fresh players: /(players)")
-    ///         }
-    ///         // <- here "fresh players" is already printed.
-    ///
-    ///     If the observation does not start on the main queue, initial values
-    ///     are asynchronously notified on the main queue:
-    ///
-    ///         // Not on the main queue: "fresh players" is eventually printed
-    ///         // on the main queue.
-    ///         let observation = ValueObservation.forAll(Player.all())
-    ///         let observer = try dbQueue.add(observation: observation) { players: [Player] in
-    ///             print("fresh players: /(players)")
-    ///         }
-    ///
-    ///     When the database changes, fresh values are asynchronously notified:
-    ///
-    ///         // Eventually prints "fresh players" on the main queue
-    ///         try dbQueue.write { db in
-    ///             try Player(...).insert(db)
-    ///         }
-    ///
-    /// - `.onQueue(_:startImmediately:)`: all values are asychronously notified
-    /// on the specified queue. Initial values are only fetched and notified if
-    /// `startImmediately` is true.
-    ///
-    ///     Correct ordering of notifications is only guaranteed if the queue
-    ///     is serial.
-    public var scheduling: ValueScheduling = .mainQueue
-    
-    /// The dispatch queue where change callbacks are called.
-    public var notificatinQueue: DispatchQueue {
-        switch scheduling {
-        case .mainQueue:
-            return DispatchQueue.main
-        case .onQueue(let queue, startImmediately: _):
-            return queue
-        }
-    }
-    
-    // This initializer is not public. See ValueObservation.observing(_:reducer:)
-    init(
-        observing region: @escaping (Database) throws -> DatabaseRegion,
-        reducer: Reducer)
-    {
-        self.observedRegion = region
-        self.reducer = reducer
-    }
-    
-    /// Returs a ValueObservation which observes *regions*, and notifies the
-    /// values returned by the *reducer* whenever the observed region is
-    /// impacted by a database transaction.
-    ///
-    /// This method is the most fundamental way to create a ValueObservation.
-    ///
-    /// For example:
-    ///
-    ///     let reducer = AnyValueReducer(
-    ///         fetch: { db in try Player.fetchAll(db) },
-    ///         value: { player in players })
-    ///     let observation = ValueObservation(
-    ///         observing: Player.all(),
-    ///         reducer: reducer)
-    ///
-    ///     let observer = try dbQueue.add(observation: observation) { player: [Player] in
-    ///         print("players have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter region: a closure that returns the observed region.
-    /// - parameter fetch: a closure that fetches a value.
-    public static func observing(
-        _ regions: DatabaseRegionConvertible...,
-        reducer: Reducer)
-        -> ValueObservation
-    {
-        func region(_ db: Database) throws -> DatabaseRegion {
-            return try regions.reduce(into: DatabaseRegion()) { union, region in
-                try union.formUnion(region.databaseRegion(db))
-            }
-        }
-        
-        return ValueObservation(observing: region, reducer: reducer)
-    }
-}
-
-// MARK: - Reducers
 
 public enum ValueReducers {
     /// TODO
@@ -397,6 +267,138 @@ public enum ValueReducers {
             self.dbValues = newDbValues
             return newDbValues.map { T.decodeIfPresent(from: $0, conversionContext: nil) }
         }
+    }
+}
+
+// MARK: - ValueObservation
+
+/// TODO: doc
+/// TODO: refresh region after each fetch
+public struct ValueObservation<Reducer> {
+    /// A closure that is evaluated when the observation starts, and returns
+    /// the observed database region.
+    var observedRegion: (Database) throws -> DatabaseRegion
+    
+    /// A closure that fetches a value from the database. It is called upon
+    /// each database change, and also when the observatioin starts, depending
+    /// on the *initialDispatch* property.
+    ///
+    /// When this closure needs to write in the database, set the *readonly*
+    /// flag to false.
+    var reducer: Reducer
+    
+    /// Default is true. Set this property to false when the *fetch* closure
+    /// requires write access, and should be executed inside a savepoint.
+    public var readonly: Bool = true
+    
+    /// The extent of the database observation. The default is
+    /// `.observerLifetime`: once started, the observation lasts until the
+    /// observer is deallocated.
+    public var extent = Database.TransactionObservationExtent.observerLifetime
+    
+    /// `scheduling` controls how fresh values are notified.
+    /// Default is `.mainQueue`:
+    ///
+    /// - `.mainQueue`: all values are notified on the main queue.
+    ///
+    ///     If the observation starts on the main queue, initial values are
+    ///     notified right upon subscription, synchronously:
+    ///
+    ///         // On main queue
+    ///         let observation = ValueObservation.forAll(Player.all())
+    ///         let observer = try dbQueue.add(observation: observation) { players: [Player] in
+    ///             print("fresh players: /(players)")
+    ///         }
+    ///         // <- here "fresh players" is already printed.
+    ///
+    ///     If the observation does not start on the main queue, initial values
+    ///     are asynchronously notified on the main queue:
+    ///
+    ///         // Not on the main queue: "fresh players" is eventually printed
+    ///         // on the main queue.
+    ///         let observation = ValueObservation.forAll(Player.all())
+    ///         let observer = try dbQueue.add(observation: observation) { players: [Player] in
+    ///             print("fresh players: /(players)")
+    ///         }
+    ///
+    ///     When the database changes, fresh values are asynchronously notified:
+    ///
+    ///         // Eventually prints "fresh players" on the main queue
+    ///         try dbQueue.write { db in
+    ///             try Player(...).insert(db)
+    ///         }
+    ///
+    /// - `.onQueue(_:startImmediately:)`: all values are asychronously notified
+    /// on the specified queue. Initial values are only fetched and notified if
+    /// `startImmediately` is true.
+    ///
+    ///     Correct ordering of notifications is only guaranteed if the queue
+    ///     is serial.
+    public var scheduling: ValueScheduling = .mainQueue
+    
+    /// The dispatch queue where change callbacks are called.
+    public var notificationQueue: DispatchQueue {
+        switch scheduling {
+        case .mainQueue:
+            return DispatchQueue.main
+        case .onQueue(let queue, startImmediately: _):
+            return queue
+        }
+    }
+    
+    // This initializer is not public. See ValueObservation.observing(_:reducer:)
+    init(
+        observing region: @escaping (Database) throws -> DatabaseRegion,
+        reducer: Reducer)
+    {
+        self.observedRegion = region
+        self.reducer = reducer
+    }
+    
+    /// Returs a ValueObservation which observes *regions*, and notifies the
+    /// values returned by the *reducer* whenever the observed region is
+    /// impacted by a database transaction.
+    ///
+    /// This method is the most fundamental way to create a ValueObservation.
+    ///
+    /// For example:
+    ///
+    ///     let reducer = AnyValueReducer(
+    ///         fetch: { db in try Player.fetchAll(db) },
+    ///         value: { player in players })
+    ///     let observation = ValueObservation(
+    ///         observing: Player.all(),
+    ///         reducer: reducer)
+    ///
+    ///     let observer = try dbQueue.add(observation: observation) { player: [Player] in
+    ///         print("players have changed")
+    ///     }
+    ///
+    /// The returned observation has the default configuration:
+    ///
+    /// - When started with the `add(observation:)` method, a fresh value is
+    /// immediately notified on the dispatch queue which starts the observation.
+    /// - Upon subsequent database changes, fresh values are notified on the
+    /// main queue.
+    /// - The observation lasts until the observer returned by
+    /// `add(observation:)` is deallocated.
+    ///
+    /// See ValueObservation for more information.
+    ///
+    /// - parameter region: a closure that returns the observed region.
+    /// - parameter fetch: a closure that fetches a value.
+    public static func observing(
+        _ regions: DatabaseRegionConvertible...,
+        reducer: Reducer)
+        -> ValueObservation
+    {
+        func region(_ db: Database) throws -> DatabaseRegion {
+            return try regions.reduce(into: DatabaseRegion()) { union, region in
+                try union.formUnion(region.databaseRegion(db))
+            }
+        }
+        
+        return ValueObservation(observing: region, reducer: reducer)
     }
 }
 
