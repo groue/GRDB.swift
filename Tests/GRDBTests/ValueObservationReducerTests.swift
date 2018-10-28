@@ -48,10 +48,11 @@ class ValueObservationReducerTests: GRDBTestCase {
         
         // Create an observation
         let request = SQLRequest<Void>("SELECT * FROM t")
-        let observation = ValueObservation.observing(request, reducer: reducer)
+        var observation = ValueObservation.observing(request, reducer: reducer)
+        observation.extent = .databaseLifetime
 
-        // Start observation with default configuration
-        let observer = try dbQueue.add(
+        // Start observation
+        _ = try dbQueue.add(
             observation: observation,
             onError: {
                 errors.append($0)
@@ -62,57 +63,53 @@ class ValueObservationReducerTests: GRDBTestCase {
                 notificationExpectation.fulfill()
             })
         
-        // Default config stops when observer is deallocated: keep it alive for
-        // the duration of the test:
-        try withExtendedLifetime(observer) {
+        
+        // Test that default config synchronously notifies initial value
+        XCTAssertEqual(fetchCount, 1)
+        XCTAssertEqual(reduceCount, 1)
+        XCTAssertEqual(errors.count, 0)
+        XCTAssertEqual(changes, ["0"])
+        
+        try dbQueue.inDatabase { db in
+            // Test a 1st notified transaction
+            try db.inTransaction {
+                try db.execute("INSERT INTO t DEFAULT VALUES")
+                return .commit
+            }
             
-            // Test that default config synchronously notifies initial value
-            XCTAssertEqual(fetchCount, 1)
-            XCTAssertEqual(reduceCount, 1)
-            XCTAssertEqual(errors.count, 0)
-            XCTAssertEqual(changes, ["0"])
+            // Test an untracked transaction
+            try db.inTransaction {
+                try db.execute("CREATE TABLE ignored(a)")
+                return .commit
+            }
             
-            try dbQueue.inDatabase { db in
-                // Test a 1st notified transaction
-                try db.inTransaction {
-                    try db.execute("INSERT INTO t DEFAULT VALUES")
-                    return .commit
-                }
-                
-                // Test an untracked transaction
-                try db.inTransaction {
-                    try db.execute("CREATE TABLE ignored(a)")
-                    return .commit
-                }
-                
-                // Test a dropped transaction
-                dropNext = true
-                try db.inTransaction {
-                    try db.execute("INSERT INTO t DEFAULT VALUES")
-                    try db.execute("INSERT INTO t DEFAULT VALUES")
-                    return .commit
-                }
-                
-                // Test a rollbacked transaction
-                try db.inTransaction {
-                    try db.execute("INSERT INTO t DEFAULT VALUES")
-                    return .rollback
-                }
-
-                // Test a 2nd notified transaction
-                try db.inTransaction {
-                    try db.execute("INSERT INTO t DEFAULT VALUES")
-                    try db.execute("INSERT INTO t DEFAULT VALUES")
-                    return .commit
-                }
-           }
+            // Test a dropped transaction
+            dropNext = true
+            try db.inTransaction {
+                try db.execute("INSERT INTO t DEFAULT VALUES")
+                try db.execute("INSERT INTO t DEFAULT VALUES")
+                return .commit
+            }
             
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(fetchCount, 4)
-            XCTAssertEqual(reduceCount, 4)
-            XCTAssertEqual(errors.count, 0)
-            XCTAssertEqual(changes, ["0", "1", "5"])
+            // Test a rollbacked transaction
+            try db.inTransaction {
+                try db.execute("INSERT INTO t DEFAULT VALUES")
+                return .rollback
+            }
+            
+            // Test a 2nd notified transaction
+            try db.inTransaction {
+                try db.execute("INSERT INTO t DEFAULT VALUES")
+                try db.execute("INSERT INTO t DEFAULT VALUES")
+                return .commit
+            }
         }
+        
+        waitForExpectations(timeout: 1, handler: nil)
+        XCTAssertEqual(fetchCount, 4)
+        XCTAssertEqual(reduceCount, 4)
+        XCTAssertEqual(errors.count, 0)
+        XCTAssertEqual(changes, ["0", "1", "5"])
     }
     
     func testInitialError() throws {
@@ -124,7 +121,7 @@ class ValueObservationReducerTests: GRDBTestCase {
         // Create an observation
         let observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
         
-        // Start observation with default configuration
+        // Start observation
         do {
             let dbQueue = try makeDatabaseQueue()
             _ = try dbQueue.add(
@@ -133,8 +130,6 @@ class ValueObservationReducerTests: GRDBTestCase {
                 onChange: { _ in fatalError() })
             XCTFail("Expected error")
         } catch is TestError {
-        } catch {
-            XCTFail("Unexpected error")
         }
     }
     
@@ -162,10 +157,11 @@ class ValueObservationReducerTests: GRDBTestCase {
             value: { $0 })
         
         // Create an observation
-        let observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
-        
-        // Start observation with default configuration
-        let observer = try dbQueue.add(
+        var observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
+        observation.extent = .databaseLifetime
+
+        // Start observation
+        _ = try dbQueue.add(
             observation: observation,
             onError: {
                 errors.append($0)
@@ -176,22 +172,18 @@ class ValueObservationReducerTests: GRDBTestCase {
                 notificationExpectation.fulfill()
             })
         
-        // Default config stops when observer is deallocated: keep it alive for
-        // the duration of the test:
-        try withExtendedLifetime(observer) {
-            struct TestError: Error { }
-            nextError = TestError()
-            try dbQueue.write { db in
-                try db.execute("INSERT INTO t DEFAULT VALUES")
-            }
-            
-            try dbQueue.write { db in
-                try db.execute("INSERT INTO t DEFAULT VALUES")
-            }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(errors.count, 1)
-            XCTAssertEqual(changes.count, 2)
+        struct TestError: Error { }
+        nextError = TestError()
+        try dbQueue.write { db in
+            try db.execute("INSERT INTO t DEFAULT VALUES")
         }
+        
+        try dbQueue.write { db in
+            try db.execute("INSERT INTO t DEFAULT VALUES")
+        }
+        
+        waitForExpectations(timeout: 1, handler: nil)
+        XCTAssertEqual(errors.count, 1)
+        XCTAssertEqual(changes.count, 2)
     }
 }

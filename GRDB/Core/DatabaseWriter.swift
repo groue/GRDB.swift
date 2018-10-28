@@ -225,7 +225,18 @@ extension DatabaseWriter {
             var reducer = observation.reducer
             switch observation.scheduling {
             case .mainQueue:
-                if let value = try reducer.value(reducer.fetch(db)) {
+                // fetch
+                var fetchedValue: Reducer.Fetched!
+                if observation.isReadOnly {
+                    fetchedValue = try db.readOnly { try reducer.fetch(db) }
+                } else {
+                    try db.inSavepoint {
+                        fetchedValue = try reducer.fetch(db)
+                        return .commit
+                    }
+                }
+                // reduce
+                if let value = reducer.value(fetchedValue) {
                     if calledOnMainQueue {
                         mainQueueValue = value
                     } else {
@@ -233,8 +244,21 @@ extension DatabaseWriter {
                     }
                 }
             case let .onQueue(queue, startImmediately: startImmediately):
-                if startImmediately, let value = try reducer.value(reducer.fetch(db)) {
-                    queue.async { onChange(value) }
+                if startImmediately {
+                    // fetch
+                    var fetchedValue: Reducer.Fetched!
+                    if observation.isReadOnly {
+                        fetchedValue = try db.readOnly { try reducer.fetch(db) }
+                    } else {
+                        try db.inSavepoint {
+                            fetchedValue = try reducer.fetch(db)
+                            return .commit
+                        }
+                    }
+                    // reduce
+                    if let value = reducer.value(fetchedValue) {
+                        queue.async { onChange(value) }
+                    }
                 }
             }
             
@@ -242,7 +266,7 @@ extension DatabaseWriter {
             // The technique to fetch a fresh value after database has changed
             // depends on the observation.readonly flag:
             let fetch: (Database, Reducer) -> Future<Reducer.Fetched>
-            if observation.readonly {
+            if observation.isReadOnly {
                 fetch = { [unowned self] (_, reducer) in
                     // Concurrent fetch
                     self.concurrentRead { db in try reducer.fetch(db) }
@@ -250,7 +274,14 @@ extension DatabaseWriter {
             } else {
                 fetch = { (db, reducer) in
                     // Synchronous fetch
-                    Future(Result { try reducer.fetch(db) })
+                    Future(Result {
+                        var fetchedValue: Reducer.Fetched!
+                        try db.inTransaction {
+                            fetchedValue = try reducer.fetch(db)
+                            return .commit
+                        }
+                        return fetchedValue
+                    })
                 }
             }
             let valueObserver = try ValueObserver(

@@ -283,13 +283,13 @@ public struct ValueObservation<Reducer> {
     /// each database change, and also when the observatioin starts, depending
     /// on the *initialDispatch* property.
     ///
-    /// When this closure needs to write in the database, set the *readonly*
+    /// When this closure needs to write in the database, set the *isReadOnly*
     /// flag to false.
     var reducer: Reducer
     
     /// Default is true. Set this property to false when the *fetch* closure
     /// requires write access, and should be executed inside a savepoint.
-    public var readonly: Bool = true
+    public var isReadOnly: Bool = true
     
     /// The extent of the database observation. The default is
     /// `.observerLifetime`: once started, the observation lasts until the
@@ -392,17 +392,9 @@ public struct ValueObservation<Reducer> {
         reducer: Reducer)
         -> ValueObservation
     {
-        func region(_ db: Database) throws -> DatabaseRegion {
-            return try regions.reduce(into: DatabaseRegion()) { union, region in
-                try union.formUnion(region.databaseRegion(db))
-            }
-        }
-        
-        return ValueObservation(observing: region, reducer: reducer)
+        return ValueObservation(observing: union(regions), reducer: reducer)
     }
 }
-
-// MARK: - DatabaseRegionConvertible Observation
 
 extension ValueObservation where Reducer == Void {
     /// Creates a ValueObservation which observes *regions*, and notifies the
@@ -437,14 +429,8 @@ extension ValueObservation where Reducer == Void {
         fetch: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Raw<Value>>
     {
-        func region(_ db: Database) throws -> DatabaseRegion {
-            return try regions.reduce(into: DatabaseRegion()) { union, region in
-                try union.formUnion(region.databaseRegion(db))
-            }
-        }
-        
         return ValueObservation<ValueReducers.Raw<Value>>(
-            observing: region,
+            observing: union(regions),
             reducer: ValueReducers.Raw(fetch))
     }
     
@@ -481,19 +467,22 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Unique<Value>>
         where Value: Equatable
     {
-        func region(_ db: Database) throws -> DatabaseRegion {
-            return try regions.reduce(into: DatabaseRegion()) { union, region in
-                try union.formUnion(region.databaseRegion(db))
-            }
-        }
-        
         return ValueObservation<ValueReducers.Unique<Value>>(
-            observing: region,
+            observing: union(regions),
             reducer: ValueReducers.Unique(fetch))
     }
 }
 
-// MARK: - FetchRequest Observation
+private func union(_ regions: [DatabaseRegionConvertible]) -> (Database) throws -> DatabaseRegion {
+    return { db in
+        try regions.reduce(into: DatabaseRegion()) { union, region in
+            try union.formUnion(region.databaseRegion(db))
+        }
+    }
+}
+
+
+// MARK: - Count Observation
 
 extension ValueObservation where Reducer == Void {
     /// Creates a ValueObservation which observes *request*, and notifies a
