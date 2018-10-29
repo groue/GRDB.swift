@@ -6517,6 +6517,7 @@ The `scheduling` property lets you control how fresh values are notified:
     // On main queue
     let observation = ValueObservation.trackingAll(Player.all())
     let observer = try dbQueue.start(observation) { players: [Player] in
+        // On main queue
         print("fresh players: \(players)")
     }
     // <- here "fresh players" is already printed.
@@ -6525,10 +6526,10 @@ The `scheduling` property lets you control how fresh values are notified:
     If the observation does not start on the main queue, an initial value is also notified on the main queue, but asynchronously:
     
     ```swift
-    // Not on the main queue: "fresh players" is eventually printed
-    // on the main queue.
+    // Not on the main queue
     let observation = ValueObservation.trackingAll(Player.all())
     let observer = try dbQueue.start(observation) { players: [Player] in
+        // On main queue
         print("fresh players: \(players)")
     }
     ```
@@ -6551,7 +6552,7 @@ The `scheduling` property lets you control how fresh values are notified:
     var observation = ValueObservation.trackingAll(Player.all())
     observation.scheduling = .onQueue(customQueue, startImmediately: true)
     let observer = try dbQueue.start(observation) { players: [Player] in
-        // in customQueue
+        // On customQueue
         print("fresh players: \(players)")s
     }
     ```
