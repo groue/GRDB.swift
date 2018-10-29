@@ -6209,8 +6209,8 @@ class PlayerViewController: UIViewController {
     @IBOutlet weak var nameLabel: UILabel!
     private var playerObserver: TransactionObserver?
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         
         // 1. Define a tracked request
         let request = Player.filter(key: 42)
@@ -6233,6 +6233,13 @@ class PlayerViewController: UIViewController {
             print("Observation could not start")
         }
     }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // Stop observing the database
+        playerObserver = nil
+    }
 }
 ```
 
@@ -6247,12 +6254,12 @@ When you are not interested in eventual refreshing errors, drop the `onError` ca
 
 All values are notified on the main queue: views can be updated right from the `onChange` callback.
 
-An initial fetch is performed, and notified, as soon as the observation starts: the view is ready when `viewDidLoad` method returns.
+An initial fetch is performed as soon as the observation starts: the view is set up and ready when the `viewWillAppear` method returns.
 
-The view controller stores the observer returned by the `start` method in a property. When the view controller is deallocated, so is the observer: the observation stops. Meanwhile, all transactions that impact the observed player are notified, and the `nameLabel` is kept up-to-date.
+The view controller stores the observer returned by the `start` method in a property in order to control the duration of the observation. When the observed is deallocated, the observation stops. Meanwhile, all transactions that impact the observed player are notified, and the `nameLabel` is kept up-to-date.
 
 
-### `ValueObservation.forCount`, `.forOne`, `.forAll`
+### `ValueObservation.forCount`, `forOne`, `forAll`
 
 Given a [request](#requests), you can track its number of results, the first one, or all of them:
 
