@@ -6322,8 +6322,6 @@ Beware that by default, a ValueObservation notifies *potential* changes, not *ac
 
 For example, if you observe `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
 
-Similarly, observing `Country.filter(key: "FR")` will notify all changes that happen to the whole `country` table. That is because SQLite only notifies the numerical [rowid](https://www.sqlite.org/rowidtable.html) of changed rows, and we can't check if it is the row "FR" that has been changed, or another. This limitation does not apply to tables whose primary key *is* the rowid: `Player.filter(key: 42)` will only notify of changes performed on the row with id 42.
-
 You can avoid notification of consecutive identical values with the `withUniquing` variant. It performs deduplication at the database level, by comparing raw database values:
 
 ```swift
