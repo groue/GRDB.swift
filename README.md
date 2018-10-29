@@ -6299,7 +6299,7 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
     let request = SQLRequest<String>("SELECT name FROM player")
     let observation = ValueObservation.trackingAll(request)
     let observer = try dbQueue.start(observation) { names: [String] in
-        print("Players names have changed: \(names)")
+        print("Player names have changed: \(names)")
     }
     ```
 
