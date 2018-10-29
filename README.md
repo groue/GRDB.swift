@@ -6456,6 +6456,7 @@ Some behaviors of value observations can be configured:
 - [ValueObservation.extent](#valueobservationextent): fine-grained control of the observation duration
 - [ValueObservation.scheduling](#valueobservationscheduling): control the dispatching of notified values
 - [ValueObservation.isReadOnly](#valueobservationisreadonly): allow observations to write in the database
+- [ValueObservation Error Handling](#valueobservation-error-handling)
 
 
 #### ValueObservation.extent
@@ -6567,6 +6568,22 @@ The `fetch` closure is executed inside a [savepoint](#transactions-and-savepoint
 Don't use this flag unless you actually need it: when you use a [database pool](#database-pools), observations with write access are less efficient.
 
 See [RxSwiftCommunity/RxGRDB/issues/42](https://github.com/RxSwiftCommunity/RxGRDB/issues/42) for an example use case. The `isReadOnly` flag exists in order to address this feature request.
+
+
+#### ValueObservation Error Handling
+
+When you start an observation, you can provide an `onError` callback. This callback is called whenever an error happens when a fresh value is fetched after a database change:
+
+```swift
+let observer = try! observation.start(
+    in: dbQueue,
+    onError: { error in
+        print("fresh value could not be fetched")
+    },
+    onChange: { value in
+        print("fresh value: \(value)")
+    })
+```
 
 
 ## FetchedRecordsController

@@ -369,6 +369,11 @@ private class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
                     }
                 }
             } catch {
+                guard strongSelf.onError != nil else {
+                    // Should we let an error unnoticed?
+                    try! { throw error }()
+                    return
+                }
                 if let queue = strongSelf.notificationQueue {
                     queue.async {
                         guard let strongSelf = self else { return }
