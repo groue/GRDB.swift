@@ -6265,44 +6265,49 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
 
     ```swift
     // Observe number of players
-    let observation = ValueObservation.trackingCount(Player.all())
-    let observer = try observation.start(in: dbQueue) { count: Int in
-        print("Number of players have changed: \(count)")
-    }
+    let observer = ValueObservation
+        .trackingCount(Player.all())
+        .start(in: dbQueue) { count: Int in
+            print("Number of players have changed: \(count)")
+        }
     ```
 
 - `trackingOne` notifies optional values, built from a single database row (if any):
 
     ```swift
     // Observe a single player
-    let observation = ValueObservation.trackingOne(Player.filter(key: 1))
-    let observer = try observation.start(in: dbQueue) { player: Player? in
-        print("Player has changed: \(player)")
-    }
-
+    let observer = ValueObservation
+        .trackingOne(Player.filter(key: 1))
+        .start(in: dbQueue) { player: Player? in
+            print("Player has changed: \(player)")
+        }
+    
     // Observe the maximum score
     let request = Player.select(max(Column("score")), as: Int.self)
-    let observation = ValueObservation.trackingOne(request)
-    let observer = try observation.start(in: dbQueue) { maximumScore: Int? in
-        print("Maximum score has changed: \(maximumScore)")
-    }
+    let observer = ValueObservation
+        .trackingOne(request)
+        .start(in: dbQueue) { maximumScore: Int? in
+            print("Maximum score has changed: \(maximumScore)")
+        }
     ```
 
 - `trackingAll` notifies arrays:
 
     ```swift
     // Observe all players
-    let observation = ValueObservation.trackingAll(Player.all())
-    let observer = try observation.start(in: dbQueue) { players: [Player] in
-        print("Players have changed: \(players)")
-    }
-
+    let observer = ValueObservation
+        .trackingAll(Player.all())
+        .start(in: dbQueue) { players: [Player] in
+            print("Players have changed: \(players)")
+        }
+    
     // Observe all player names
     let request = SQLRequest<String>("SELECT name FROM player")
-    let observation = ValueObservation.trackingAll(request)
-    let observer = try observation.start(in: dbQueue) { names: [String] in
-        print("Player names have changed: \(names)")
-    }
+    let observer = ValueObservation
+        .trackingAll(request)
+        .start(in: dbQueue) { names: [String] in
+            print("Player names have changed: \(names)")
+        }
     ```
 
 Beware that by default, a ValueObservation notifies *potential* changes, not *actual* changes in the results of a request. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
@@ -6314,10 +6319,11 @@ You can avoid notification of consecutive identical values with the `withUniquin
 ```swift
 // Observe the maximum score (with uniquing)
 let request = Player.select(max(Column("score")), as: Int.self)
-let observation = ValueObservation.trackingOne(withUniquing: request)
-let observer = try observation.start(in: dbQueue) { maximumScore: Int? in
-    print("Maximum score has (really) changed: \(maximumScore)")
-}
+let observer = ValueObservation
+    .trackingOne(withUniquing: request)
+    .start(in: dbQueue) { maximumScore: Int? in
+        print("Maximum score has (really) changed: \(maximumScore)")
+    }
 ```
 
 
@@ -6402,10 +6408,11 @@ struct TeamInfoRequest: DatabaseRegionConvertible {
 }
 
 let request = TeamInfoRequest(teamId: 1)
-let observation = ValueObservation.tracking(request, fetch: request.fetch)
-let observer = observation.start(in: dbQueue) { teamInfo: TeamInfo? in
-    print("Team and players have hanged.")
-}
+let observer = ValueObservation
+    .tracking(request, fetch: request.fetch)
+    .start(in: dbQueue) { teamInfo: TeamInfo? in
+        print("Team and players have hanged.")
+    }
 ```
 
 See [DatabaseRegion](#databaseregion) for more information.
@@ -6442,10 +6449,11 @@ let reducer = AnyValueReducer(
         count += 1
         return count
     })
-let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
-let observer = try observation.start(in: dbQueue) { count: Int in
-    print("The database has been modified \(count) times.")
-}
+let observer = ValueObservation
+    .tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+    .start(in: dbQueue) { count: Int in
+        print("The database has been modified \(count) times.")
+    }
 ```
 
 
@@ -6493,11 +6501,12 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // On main queue
-    let observation = ValueObservation.trackingAll(Player.all())
-    let observer = try observation.start(in: dbQueue) { players: [Player] in
-        // On main queue
-        print("fresh players: \(players)")
-    }
+    let observer = ValueObservation
+        .trackingAll(Player.all())
+        .start(in: dbQueue) { players: [Player] in
+            // On main queue
+            print("fresh players: \(players)")
+        }
     // <- here "fresh players" is already printed.
     ```
     
@@ -6505,11 +6514,12 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // Not on the main queue
-    let observation = ValueObservation.trackingAll(Player.all())
-    let observer = try observation.start(in: dbQueue) { players: [Player] in
-        // On main queue
-        print("fresh players: \(players)")
-    }
+    let observer = ValueObservation
+        .trackingAll(Player.all())
+        .start(in: dbQueue) { players: [Player] in
+            // On main queue
+            print("fresh players: \(players)")
+        }
     ```
     
     When the database changes, fresh values are asynchronously notified:
