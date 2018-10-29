@@ -6217,9 +6217,11 @@ class PlayerViewController: UIViewController {
         let observation = ValueObservation.trackingOne(request)
         
         // Start observing the database
-        observer = try! observation.start(in: dbQueue, onChange: { [unowned self] player: Player? in
-            self.nameLabel.text = player?.name
-        })
+        observer = try! observation.start(
+            in: dbQueue,
+            onChange: { [unowned self] player: Player? in
+                self.nameLabel.text = player?.name
+            })
     }
     
     override func viewWillDisappear(_ animated: Bool) {
