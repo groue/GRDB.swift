@@ -69,11 +69,3 @@ extension Array {
         }
     }
 }
-
-#if !swift(>=4.2)
-extension Sequence {
-    func allSatisfy(_ predicate: (Self.Element) throws -> Bool) rethrows -> Bool {
-        return try !contains(where: { try !predicate($0) })
-    }
-}
-#endif
