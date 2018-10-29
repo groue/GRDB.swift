@@ -6357,7 +6357,7 @@ You can avoid notification of consecutive identical values with the `withUniquin
 extension TeamInfo: Equatable { ... }
 
 let observation = ValueObservation.tracking(
-    withUniquing: teamRequest, playersRequest,
+    withUniquing: teamRequest, playersRequest, // <- uniquing is here
     fetch: { db -> TeamInfo? in
         // same code as above
     })
