@@ -6207,7 +6207,7 @@ It is designed for easy consumption of fresh values by an application. For examp
 ```swift
 class PlayerViewController: UIViewController {
     @IBOutlet weak var nameLabel: UILabel!
-    private var playerObserver: TransactionObserver?
+    private var observer: TransactionObserver?
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -6216,10 +6216,8 @@ class PlayerViewController: UIViewController {
         let request = Player.filter(key: 42)
         let observation = ValueObservation.trackingOne(request)
         
-        // Start observing the database, and store the
-        // returned observer in a property
-        playerObserver = try! dbQueue.start(observation) {
-            [unowned self] player: Player? in
+        // Start observing the database
+        observer = try! dbQueue.start(observation) { [unowned self] player: Player? in
             self.nameLabel.text = player?.name
         }
     }
@@ -6228,7 +6226,7 @@ class PlayerViewController: UIViewController {
         super.viewWillDisappear(animated)
         
         // Stop observing the database
-        playerObserver = nil
+        observer = nil
     }
 }
 ```
