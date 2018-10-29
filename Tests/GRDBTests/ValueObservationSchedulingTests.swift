@@ -39,7 +39,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         // .mainQueue scheduling: initial value MUST be synchronously
         // dispatched when observation is started from the main queue
         XCTAssertEqual(counts, [0])
-
+        
         try dbQueue.write {
             try $0.execute("INSERT INTO t DEFAULT VALUES")
         }
@@ -219,7 +219,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
         observation.extent = .databaseLifetime
         observation.scheduling = .onQueue(queue, startImmediately: false)
-
+        
         _ = try dbQueue.start(
             observation,
             onError: { error in
@@ -237,7 +237,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         XCTAssertEqual(errorCount, 1)
     }
     
-    func testUnsafeStartImmediately() throws {
+    func testUnsafeStartImmediatelyFromMainQueue() throws {
         // We need something to change
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -247,6 +247,9 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 2
         
+        let key = DispatchSpecificKey<()>()
+        DispatchQueue.main.setSpecific(key: key, value: ())
+        
         var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
             try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
         })
@@ -254,12 +257,55 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         observation.scheduling = .unsafe(startImmediately: true)
         
         _ = try dbQueue.start(observation) { count in
+            if counts.isEmpty {
+                // require main queue on first element
+                XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
+            }
             counts.append(count)
             notificationExpectation.fulfill()
         }
         
         try dbQueue.write {
             try $0.execute("INSERT INTO t DEFAULT VALUES")
+        }
+        
+        waitForExpectations(timeout: 1, handler: nil)
+        XCTAssertEqual(counts, [0, 1])
+    }
+    
+    func testUnsafeStartImmediatelyFromCustomQueue() throws {
+        // We need something to change
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        
+        var counts: [Int] = []
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 2
+        
+        let queue = DispatchQueue(label: "")
+        let key = DispatchSpecificKey<()>()
+        queue.setSpecific(key: key, value: ())
+        
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+            try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+        })
+        observation.extent = .databaseLifetime
+        observation.scheduling = .unsafe(startImmediately: true)
+        
+        queue.async {
+            _ = try! dbQueue.start(observation) { count in
+                if counts.isEmpty {
+                    // require custom queue on first notification
+                    XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
+                }
+                counts.append(count)
+                notificationExpectation.fulfill()
+            }
+            
+            try! dbQueue.write {
+                try $0.execute("INSERT INTO t DEFAULT VALUES")
+            }
         }
         
         waitForExpectations(timeout: 1, handler: nil)

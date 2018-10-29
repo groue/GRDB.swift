@@ -52,11 +52,11 @@ public enum ValueScheduling {
     /// is true.
     case onQueue(DispatchQueue, startImmediately: Bool)
     
-    /// Each value is notified on an unspecified dispatch queue, which may be
-    /// different for each notified value.
+    /// Values are not all notified on the same dispatch queue.
     ///
     /// If `startImmediately` is true, an initial value is notified right upon
-    /// subscription, synchronously.
+    /// subscription, synchronously, on the dispatch queue which starts
+    /// the observation.
     ///
     ///     // On any queue
     ///     var observation = ValueObservation.trackingAll(Player.all())
@@ -65,6 +65,9 @@ public enum ValueScheduling {
     ///         print("fresh players: \(players)")
     ///     }
     ///     // <- here "fresh players" is already printed.
+    ///
+    /// When the database changes, other values are notified on
+    /// unspecified queues.
     case unsafe(startImmediately: Bool)
 }
 
@@ -348,11 +351,12 @@ public struct ValueObservation<Reducer> {
     ///     An initial value is fetched and notified if `startImmediately`
     ///     is true.
     ///
-    /// - `unsafe(startImmediately:)`: each value is notified on an unspecified
-    /// dispatch queue, which may be different for each notified value.
+    /// - `unsafe(startImmediately:)`: values are not all notified on the same
+    /// dispatch queue.
     ///
     ///     If `startImmediately` is true, an initial value is notified right
-    ///     upon subscription, synchronously.
+    ///     upon subscription, synchronously, on the dispatch queue which starts
+    ///     the observation.
     ///
     ///         // On any queue
     ///         var observation = ValueObservation.trackingAll(Player.all())
@@ -361,6 +365,9 @@ public struct ValueObservation<Reducer> {
     ///             print("fresh players: \(players)")
     ///         }
     ///         // <- here "fresh players" is already printed.
+    ///
+    ///     When the database changes, other values are notified on
+    ///     unspecified queues.
     public var scheduling: ValueScheduling = .mainQueue
     
     /// The dispatch queue where change callbacks are called.

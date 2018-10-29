@@ -204,13 +204,11 @@ extension DatabaseWriter {
         onChange: @escaping (Reducer.Value) -> Void)
         throws -> TransactionObserver
     {
-        // mainQueueValue will be set and notified if calledOnMainQueue and
-        // operation.dispatch is .mainQueue
         let calledOnMainQueue = DispatchQueue.isMain
-        var mainQueueValue: Reducer.Value? = nil
+        var startValue: Reducer.Value? = nil
         defer {
-            if let mainQueueValue = mainQueueValue {
-                onChange(mainQueueValue)
+            if let startValue = startValue {
+                onChange(startValue)
             }
         }
         
@@ -224,60 +222,25 @@ extension DatabaseWriter {
             var reducer = observation.reducer
             switch observation.scheduling {
             case .mainQueue:
-                // fetch
-                var fetchedValue: Reducer.Fetched!
-                if observation.isReadOnly {
-                    fetchedValue = try db.readOnly { try reducer.fetch(db) }
-                } else {
-                    try db.inSavepoint {
-                        fetchedValue = try reducer.fetch(db)
-                        return .commit
-                    }
-                }
-                // reduce & notify
-                if let value = reducer.value(fetchedValue) {
+                if let value = try reducer.value(observation.fetch(db)) {
                     if calledOnMainQueue {
-                        mainQueueValue = value
+                        startValue = value
                     } else {
                         DispatchQueue.main.async { onChange(value) }
                     }
                 }
             case let .onQueue(queue, startImmediately: startImmediately):
                 if startImmediately {
-                    // fetch
-                    var fetchedValue: Reducer.Fetched!
-                    if observation.isReadOnly {
-                        fetchedValue = try db.readOnly { try reducer.fetch(db) }
-                    } else {
-                        try db.inSavepoint {
-                            fetchedValue = try reducer.fetch(db)
-                            return .commit
-                        }
-                    }
-                    // reduce & notify
-                    if let value = reducer.value(fetchedValue) {
+                    if let value = try reducer.value(observation.fetch(db)) {
                         queue.async { onChange(value) }
                     }
                 }
             case let .unsafe(startImmediately: startImmediately):
                 if startImmediately {
-                    // fetch
-                    var fetchedValue: Reducer.Fetched!
-                    if observation.isReadOnly {
-                        fetchedValue = try db.readOnly { try reducer.fetch(db) }
-                    } else {
-                        try db.inSavepoint {
-                            fetchedValue = try reducer.fetch(db)
-                            return .commit
-                        }
-                    }
-                    // reduce & notify
-                    if let value = reducer.value(fetchedValue) {
-                        onChange(value)
-                    }
+                    startValue = try reducer.value(observation.fetch(db))
                 }
             }
-            
+
             // Start observing the database
             // The technique to fetch a fresh value after database has changed
             // depends on the observation.readonly flag:
@@ -313,6 +276,23 @@ extension DatabaseWriter {
         }
     }
 }
+
+extension ValueObservation where Reducer: ValueReducer {
+    /// Helper method for DatabaseWriter.start(_:onError:onChange:)
+    fileprivate func fetch(_ db: Database) throws -> Reducer.Fetched {
+        if isReadOnly {
+            return try db.readOnly { try reducer.fetch(db) }
+        } else {
+            var fetchedValue: Reducer.Fetched!
+            try db.inSavepoint {
+                fetchedValue = try reducer.fetch(db)
+                return .commit
+            }
+            return fetchedValue
+        }
+    }
+}
+
 
 /// Support for ValueObservation.
 /// See DatabaseWriter.start(_:onError:onChange:)

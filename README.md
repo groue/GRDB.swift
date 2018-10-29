@@ -6258,8 +6258,13 @@ An initial fetch is performed as soon as the observation starts: the view is set
 
 The view controller stores the observer returned by the `start` method in a property. This allows the view controller to control the duration of the observation. When the observed is deallocated, the observation stops. Meanwhile, all transactions that impact the observed player are notified, and the `nameLabel` is kept up-to-date.
 
+- [ValueObservation.trackingCount, trackingOne, trackingAll](#valueobservationtrackingcount-trackingone-trackingall)
+- [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
+- [ValueObservation.tracking(_:reducer:)](#valueobservationtracking_reducer)
+- [ValueObservation Options](#valueobservation-options)
 
-### `ValueObservation.trackingCount`, `trackingOne`, `trackingAll`
+
+### ValueObservation.trackingCount, trackingOne, trackingAll
 
 Given a [request](#requests), you can track its number of results, the first one, or all of them:
 
@@ -6273,50 +6278,51 @@ ValueObservation.trackingOne(withUniquing: request)
 ValueObservation.trackingAll(withUniquing: request)
 ```
 
-The `trackingCount` observation notifies counts:
+Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request methods:
 
-```swift
-// Observe number of players
-let observation = ValueObservation.trackingCount(Player.all())
-let observer = try dbQueue.start(observation) { count: Int in
-    print("Number of players have changed: \(count)")
-}
-```
+- `trackingCount` notifies counts:
 
-The `trackingOne` observation notifies optional values, built from a single database row (if any):
+    ```swift
+    // Observe number of players
+    let observation = ValueObservation.trackingCount(Player.all())
+    let observer = try dbQueue.start(observation) { count: Int in
+        print("Number of players have changed: \(count)")
+    }
+    ```
 
-```swift
-// Observe a single player
-let observation = ValueObservation.trackingOne(Player.filter(key: 1))
-let observer = try dbQueue.start(observation) { player: Player? in
-    print("Player has changed: \(player)")
-}
+- `trackingOne` notifies optional values, built from a single database row (if any):
 
-// Observe the maximum score
-let request = Player.select(max(Column("score")), as: Int.self)
-let observation = ValueObservation.trackingOne(request)
-let observer = try dbQueue.start(observation) { maximumScore: Int? in
-    print("Maximum score has changed: \(maximumScore)")
-}
-```
+    ```swift
+    // Observe a single player
+    let observation = ValueObservation.trackingOne(Player.filter(key: 1))
+    let observer = try dbQueue.start(observation) { player: Player? in
+        print("Player has changed: \(player)")
+    }
 
+    // Observe the maximum score
+    let request = Player.select(max(Column("score")), as: Int.self)
+    let observation = ValueObservation.trackingOne(request)
+    let observer = try dbQueue.start(observation) { maximumScore: Int? in
+        print("Maximum score has changed: \(maximumScore)")
+    }
+    ```
 
-The `trackingAll` observation notifies arrays:
+- `trackingAll` notifies arrays:
 
-```swift
-// Observe all players
-let observation = ValueObservation.trackingAll(Player.all())
-let observer = try dbQueue.start(observation) { players: [Player] in
-    print("Players have changed: \(players)")
-}
+    ```swift
+    // Observe all players
+    let observation = ValueObservation.trackingAll(Player.all())
+    let observer = try dbQueue.start(observation) { players: [Player] in
+        print("Players have changed: \(players)")
+    }
 
-// Observe all player names
-let request = SQLRequest<String>("SELECT name FROM player")
-let observation = ValueObservation.trackingAll(request)
-let observer = try dbQueue.start(observation) { names: [String] in
-    print("Players names have changed: \(names)")
-}
-```
+    // Observe all player names
+    let request = SQLRequest<String>("SELECT name FROM player")
+    let observation = ValueObservation.trackingAll(request)
+    let observer = try dbQueue.start(observation) { names: [String] in
+        print("Players names have changed: \(names)")
+    }
+    ```
 
 Beware that by default, a ValueObservation notifies *potential* changes, not *actual* changes in the results of a request. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
 
@@ -6334,7 +6340,7 @@ let observer = try dbQueue.start(observation) { maximumScore: Int? in
 ```
 
 
-### `ValueObservation.tracking(_:fetch:)`
+### ValueObservation.tracking(_:fetch:)
 
 Sometimes you need to observe several requests at the same time. For example, you need to observe changes in both a team and its players.
 
@@ -6428,9 +6434,9 @@ let observer = dbQueue.start(observation) { teamInfo: TeamInfo? in
 See [DatabaseRegion](#databaseregion) for more information.
 
 
-### `ValueObservation.tracking(_:reducer:)`
+### ValueObservation.tracking(_:reducer:)
 
-The most general way to define a ValueObservation is to create one from an observed database region (see above), and a **reducer** that adopts the ValueReducer protocol:
+The most general way to define a ValueObservation is to create one from an observed database region (see above), and a **reducer** that adopts the **ValueReducer** protocol:
 
 ```swift
 protocol ValueReducer {
@@ -6468,113 +6474,136 @@ let observer = try dbQueue.start(observation) { count: Int in
 
 ### ValueObservation Options
 
-- **`extent`**
+Some behaviors of value observations can be configured:
+
+- [ValueObservation.extent](#valueobservationextent): fine-grained control of the observation duration
+- [ValueObservation.scheduling](#valueobservationscheduling): control the dispatching of notified values
+- [ValueObservation.isReadOnly](#valueobservationisreadonly): allow observations to write in the database
+
+
+#### ValueObservation.extent
+
+The `extent` property lets you specify the duration of the observation. See [Observation Extent](#observation-extent) for more details:
+
+```swift
+// This observation lasts until the database connection is closed
+var observation = ValueObservation...
+observation.extent = .databaseLifetime
+_ = dbQueue.start(observation) { newValue in ... }
+```
+
+The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deallocated.
+
+Regardless of the extent of an observation, you can always stop observation with the `remove(transactionObserver:)` method:
+
+```swift
+// Start
+let observer = dbQueue.start(observation) { ... }
+
+// Stop
+dbQueue.remove(transactionObserver: observer)
+```
+
+
+#### ValueObservation.scheduling
     
-    The `extent` property lets you specify the duration of the observation. See [Observation Extent](#observation-extent) for more details:
+The `scheduling` property lets you control how fresh values are notified:
+
+- `.mainQueue` (the default): all values are notified on the main queue.
+    
+    If the observation starts on the main queue, an initial value is notified right upon subscription, synchronously:
     
     ```swift
-    // This observation lasts until the database connection is closed
-    var observation = ValueObservation...
-    observation.extent = .databaseLifetime
-    _ = dbQueue.start(observation) { newValue in ... }
+    // On main queue
+    let observation = ValueObservation.trackingAll(Player.all())
+    let observer = try dbQueue.start(observation) { players: [Player] in
+        print("fresh players: \(players)")
+    }
+    // <- here "fresh players" is already printed.
     ```
     
-    The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deallocated.
-    
-    Regardless of the extent of an observation, you can always stop observation with the `remove(transactionObserver:)` method:
+    If the observation does not start on the main queue, an initial value is also notified on the main queue, but asynchronously:
     
     ```swift
-    // Start
-    let observer = dbQueue.start(observation) { ... }
-    
-    // Stop
-    dbQueue.remove(transactionObserver: observer)
+    // Not on the main queue: "fresh players" is eventually printed
+    // on the main queue.
+    let observation = ValueObservation.trackingAll(Player.all())
+    let observer = try dbQueue.start(observation) { players: [Player] in
+        print("fresh players: \(players)")
+    }
     ```
-
-- **`scheduling`**
     
-    The `scheduling` property lets you control how fresh values are notified:
-    
-    - `.mainQueue` (the default): all values are notified on the main queue.
-        
-        If the observation starts on the main queue, an initial value is notified right upon subscription, synchronously:
-        
-        ```swift
-        // On main queue
-        let observation = ValueObservation.trackingAll(Player.all())
-        let observer = try dbQueue.start(observation) { players: [Player] in
-            print("fresh players: \(players)")
-        }
-        // <- here "fresh players" is already printed.
-        ```
-        
-        If the observation does not start on the main queue, an initial value is also notified on the main queue, but asynchronously:
-        
-        ```swift
-        // Not on the main queue: "fresh players" is eventually printed
-        // on the main queue.
-        let observation = ValueObservation.trackingAll(Player.all())
-        let observer = try dbQueue.start(observation) { players: [Player] in
-            print("fresh players: \(players)")
-        }
-        ```
-        
-        When the database changes, fresh values are asynchronously notified:
-        
-        ```swift
-        // Eventually prints "fresh players" on the main queue
-        try dbQueue.write { db in
-            try Player(...).insert(db)
-        }
-        ```
-    
-    - `.onQueue(_:startImmediately:)`: all values are asychronously notified on the specified queue.
-        
-        An initial value is fetched and notified if `startImmediately` is true.
-        
-        ```swift
-        let customQueue = DispatchQueue(label: "customQueue")
-        var observation = ValueObservation.trackingAll(Player.all())
-        observation.scheduling = .onQueue(customQueue, startImmediately: true)
-        let observer = try dbQueue.start(observation) { players: [Player] in
-            // in customQueue
-            print("fresh players: \(players)")s
-        }
-        ```
-
-    - `unsafe(startImmediately:)`: each value is notified on an unspecified dispatch queue, which may be different for each notified value.
-        
-        If `startImmediately` is true, an initial value is notified right upon subscription, synchronously.
-        
-        ```swift
-        // On any queue
-        var observation = ValueObservation.trackingAll(Player.all())
-        observation.scheduling = .unsafe(startImmediately: true)
-        let observer = try dbQueue.start(observation) { players: [Player] in
-            // in an unspecified queue
-            print("fresh players: \(players)")
-        }
-        // <- here "fresh players" is already printed.
-        ```
-
-- **`isReadOnly`**
-    
-    The default is true. When false, a ValueObservation has a write access to the database when it fetches fresh values:
+    When the database changes, fresh values are asynchronously notified:
     
     ```swift
-    let observation = ValueObservation.tracking(
-        teamRequest, playersRequest,
-        fetch { db in
-            // write access allowed
-        })
-    observation.isReadOnly = false
+    // Eventually prints "fresh players" on the main queue
+    try dbQueue.write { db in
+        try Player(...).insert(db)
+    }
+    ```
+
+- `.onQueue(_:startImmediately:)`: all values are asychronously notified on the specified queue.
+    
+    An initial value is fetched and notified if `startImmediately` is true.
+    
+    ```swift
+    let customQueue = DispatchQueue(label: "customQueue")
+    var observation = ValueObservation.trackingAll(Player.all())
+    observation.scheduling = .onQueue(customQueue, startImmediately: true)
+    let observer = try dbQueue.start(observation) { players: [Player] in
+        // in customQueue
+        print("fresh players: \(players)")s
+    }
+    ```
+
+- `unsafe(startImmediately:)`: each value is notified on an unspecified dispatch queue, which may be different for each notified value.
+    
+    If `startImmediately` is true, an initial value is notified right upon subscription, synchronously.
+    
+    ```swift
+    // On any queue
+    var observation = ValueObservation.trackingAll(Player.all())
+    observation.scheduling = .unsafe(startImmediately: true)
+    let observer = try dbQueue.start(observation) { players: [Player] in
+        // in an unspecified queue
+        print("fresh players: \(players)")
+    }
+    // <- here "fresh players" is already printed.
+    ```
+
+- `unsafe(startImmediately:)`: values are not all notified on the same dispatch queue.
+    
+    If `startImmediately` is true, an initial value is notified right upon subscription, synchronously, on the dispatch queue which starts the observation.
+    
+    ```swift
+    // On any queue
+    var observation = ValueObservation.trackingAll(Player.all())
+    observation.scheduling = .unsafe(startImmediately: true)
+    let observer = try dbQueue.start(observation) { players: [Player] in
+        print("fresh players: \(players)")
+    }
+    // <- here "fresh players" is already printed.
     ```
     
-    The `fetch` closure is executed inside a [savepoint](#transactions-and-savepoints).
-    
-    Don't use this flag unless you actually need it: when you use a [database pool](#database-pools), observations with write access are less efficient.
-    
-    See [RxSwiftCommunity/RxGRDB/issues/42](https://github.com/RxSwiftCommunity/RxGRDB/issues/42) for an example use case. The `isReadOnly` flag exists in order to address this feature request.
+    When the database changes, other values are notified on unspecified queues.
+
+
+#### ValueObservation.isReadOnly
+
+The `isReadOnly` property is true by default. When false, a ValueObservation has a write access to the database when it fetches fresh values:
+
+```swift
+var observation = ValueObservation.tracking(..., fetch: { db in
+    // write access allowed
+})
+observation.isReadOnly = false
+```
+
+The `fetch` closure is executed inside a [savepoint](#transactions-and-savepoints).
+
+Don't use this flag unless you actually need it: when you use a [database pool](#database-pools), observations with write access are less efficient.
+
+See [RxSwiftCommunity/RxGRDB/issues/42](https://github.com/RxSwiftCommunity/RxGRDB/issues/42) for an example use case. The `isReadOnly` flag exists in order to address this feature request.
 
 
 ## FetchedRecordsController
