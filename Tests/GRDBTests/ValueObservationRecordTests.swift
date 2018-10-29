@@ -36,7 +36,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.forAll(SQLRequest<Player>("SELECT * FROM t ORDER BY id"))
+        var observation = ValueObservation.trackingAll(SQLRequest<Player>("SELECT * FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
         _ = try dbQueue.start(observation) { players in
             results.append(players)
@@ -70,7 +70,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 3
         
-        var observation = ValueObservation.forAll(withUniquing: SQLRequest<Player>("SELECT * FROM t ORDER BY id"))
+        var observation = ValueObservation.trackingAll(withUniquing: SQLRequest<Player>("SELECT * FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
         _ = try dbQueue.start(observation) { players in
             results.append(players)
@@ -103,7 +103,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 5
         
-        var observation = ValueObservation.forOne(SQLRequest<Player>("SELECT * FROM t ORDER BY id DESC"))
+        var observation = ValueObservation.trackingOne(SQLRequest<Player>("SELECT * FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
         _ = try dbQueue.start(observation) { player in
             results.append(player)
@@ -141,7 +141,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.forOne(withUniquing: SQLRequest<Player>("SELECT * FROM t ORDER BY id DESC"))
+        var observation = ValueObservation.trackingOne(withUniquing: SQLRequest<Player>("SELECT * FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
         _ = try dbQueue.start(observation) { player in
             results.append(player)

@@ -48,7 +48,7 @@ class ValueObservationReducerTests: GRDBTestCase {
         
         // Create an observation
         let request = SQLRequest<Void>("SELECT * FROM t")
-        var observation = ValueObservation.observing(request, reducer: reducer)
+        var observation = ValueObservation.tracking(request, reducer: reducer)
         observation.extent = .databaseLifetime
 
         // Start observation
@@ -119,7 +119,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             value: { _ in fatalError() })
         
         // Create an observation
-        let observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
+        let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
         
         // Start observation
         do {
@@ -157,7 +157,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             value: { $0 })
         
         // Create an observation
-        var observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
         observation.extent = .databaseLifetime
 
         // Start observation

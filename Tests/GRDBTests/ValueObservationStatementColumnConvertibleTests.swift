@@ -44,7 +44,7 @@ class ValueObservationStatementColumnConvertibleTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.forAll(SQLRequest<Name>("SELECT name FROM t ORDER BY id"))
+        var observation = ValueObservation.trackingAll(SQLRequest<Name>("SELECT name FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
         _ = try dbQueue.start(observation) { names in
             XCTAssert(names.allSatisfy { $0.fast })
@@ -79,7 +79,7 @@ class ValueObservationStatementColumnConvertibleTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 5
         
-        var observation = ValueObservation.forOne(SQLRequest<Name>("SELECT name FROM t ORDER BY id DESC"))
+        var observation = ValueObservation.trackingOne(SQLRequest<Name>("SELECT name FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
         _ = try dbQueue.start(observation) { name in
             if let name = name {
@@ -120,7 +120,7 @@ class ValueObservationStatementColumnConvertibleTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.forAll(SQLRequest<Name?>("SELECT name FROM t ORDER BY id"))
+        var observation = ValueObservation.trackingAll(SQLRequest<Name?>("SELECT name FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
         _ = try dbQueue.start(observation) { names in
             XCTAssert(names.allSatisfy { $0.map { $0.fast } ?? true })

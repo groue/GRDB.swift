@@ -21,7 +21,7 @@ public enum ValueScheduling {
     /// notified right upon subscription, synchronously:
     ///
     ///     // On main queue
-    ///     let observation = ValueObservation.forAll(Player.all())
+    ///     let observation = ValueObservation.trackingAll(Player.all())
     ///     let observer = try dbQueue.start(observation) { players: [Player] in
     ///         print("fresh players: /(players)")
     ///     }
@@ -32,7 +32,7 @@ public enum ValueScheduling {
     ///
     ///     // Not on the main queue: "fresh players" is eventually printed
     ///     // on the main queue.
-    ///     let observation = ValueObservation.forAll(Player.all())
+    ///     let observation = ValueObservation.trackingAll(Player.all())
     ///     let observer = try dbQueue.start(observation) { players: [Player] in
     ///         print("fresh players: /(players)")
     ///     }
@@ -302,7 +302,7 @@ public struct ValueObservation<Reducer> {
     ///     notified right upon subscription, synchronously:
     ///
     ///         // On main queue
-    ///         let observation = ValueObservation.forAll(Player.all())
+    ///         let observation = ValueObservation.trackingAll(Player.all())
     ///         let observer = try dbQueue.start(observation) { players: [Player] in
     ///             print("fresh players: /(players)")
     ///         }
@@ -313,7 +313,7 @@ public struct ValueObservation<Reducer> {
     ///
     ///         // Not on the main queue: "fresh players" is eventually printed
     ///         // on the main queue.
-    ///         let observation = ValueObservation.forAll(Player.all())
+    ///         let observation = ValueObservation.trackingAll(Player.all())
     ///         let observer = try dbQueue.start(observation) { players: [Player] in
     ///             print("fresh players: /(players)")
     ///         }
@@ -340,9 +340,9 @@ public struct ValueObservation<Reducer> {
         }
     }
     
-    // This initializer is not public. See ValueObservation.observing(_:reducer:)
+    // This initializer is not public. See ValueObservation.tracking(_:reducer:)
     init(
-        observing region: @escaping (Database) throws -> DatabaseRegion,
+        tracking region: @escaping (Database) throws -> DatabaseRegion,
         reducer: Reducer)
     {
         self.observedRegion = region
@@ -361,7 +361,7 @@ public struct ValueObservation<Reducer> {
     ///         fetch: { db in try Player.fetchAll(db) },
     ///         value: { player in players })
     ///     let observation = ValueObservation(
-    ///         observing: Player.all(),
+    ///         tracking: Player.all(),
     ///         reducer: reducer)
     ///
     ///     let observer = try dbQueue.start(observation) { player: [Player] in
@@ -382,12 +382,12 @@ public struct ValueObservation<Reducer> {
     ///
     /// - parameter region: a closure that returns the observed region.
     /// - parameter fetch: a closure that fetches a value.
-    public static func observing(
+    public static func tracking(
         _ regions: DatabaseRegionConvertible...,
         reducer: Reducer)
         -> ValueObservation
     {
-        return ValueObservation(observing: union(regions), reducer: reducer)
+        return ValueObservation(tracking: union(regions), reducer: reducer)
     }
 }
 
@@ -398,7 +398,7 @@ extension ValueObservation where Reducer == Void {
     ///
     /// For example:
     ///
-    ///     let observation = ValueObservation.observing(
+    ///     let observation = ValueObservation.tracking(
     ///         Player.all(),
     ///         fetch: { db in return try Player.fetchAll(db) })
     ///
@@ -420,13 +420,13 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter regions: one or more observed requests.
     /// - parameter fetch: a closure that fetches a value.
-    public static func observing<Value>(
+    public static func tracking<Value>(
         _ regions: DatabaseRegionConvertible...,
         fetch: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Raw<Value>>
     {
         return ValueObservation<ValueReducers.Raw<Value>>(
-            observing: union(regions),
+            tracking: union(regions),
             reducer: ValueReducers.Raw(fetch))
     }
     
@@ -436,7 +436,7 @@ extension ValueObservation where Reducer == Void {
     ///
     /// For example:
     ///
-    ///     let observation = ValueObservation.observing(
+    ///     let observation = ValueObservation.tracking(
     ///         withUniquing: Player.all(),
     ///         fetch: { db in return try Player.fetchAll(db) })
     ///
@@ -458,14 +458,14 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter regions: one or more observed requests.
     /// - parameter fetch: a closure that fetches a value.
-    public static func observing<Value>(
+    public static func tracking<Value>(
         withUniquing regions: DatabaseRegionConvertible...,
         fetch: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Unique<Value>>
         where Value: Equatable
     {
         return ValueObservation<ValueReducers.Unique<Value>>(
-            observing: union(regions),
+            tracking: union(regions),
             reducer: ValueReducers.Unique(fetch))
     }
 }
@@ -488,7 +488,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.all()
-    ///     let observation = ValueObservation.forCount(request)
+    ///     let observation = ValueObservation.trackingCount(request)
     ///
     ///     let observer = try dbQueue.start(observation) { count: Int in
     ///         print("number of players has changed")
@@ -508,11 +508,11 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forCount<Request: FetchRequest>(_ request: Request)
+    public static func trackingCount<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.Raw<Int>>
     {
         return ValueObservation<ValueReducers.Raw<Int>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.Raw(request.fetchCount))
     }
     
@@ -522,7 +522,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.all()
-    ///     let observation = ValueObservation.forCount(withUniquing: request)
+    ///     let observation = ValueObservation.trackingCount(withUniquing: request)
     ///
     ///     let observer = try dbQueue.start(observation) { count: Int in
     ///         print("number of players has changed")
@@ -542,11 +542,11 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forCount<Request: FetchRequest>(withUniquing request: Request)
+    public static func trackingCount<Request: FetchRequest>(withUniquing request: Request)
         -> ValueObservation<ValueReducers.Unique<Int>>
     {
         return ValueObservation<ValueReducers.Unique<Int>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.Unique(request.fetchCount))
     }
 }
@@ -560,7 +560,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = SQLRequest<Row>("SELECT * FROM player")
-    ///     let observation = ValueObservation.forAll(request)
+    ///     let observation = ValueObservation.trackingAll(request)
     ///
     ///     let observer = try dbQueue.start(observation) { rows: [Row] in
     ///         print("players have changed")
@@ -580,12 +580,12 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forAll<Request: FetchRequest>(_ request: Request)
+    public static func trackingAll<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.Raw<[Row]>>
         where Request.RowDecoder == Row
     {
         return ValueObservation<ValueReducers.Raw<[Row]>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.Raw(request.fetchAll))
     }
 
@@ -595,7 +595,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = SQLRequest<Row>("SELECT * FROM player")
-    ///     let observation = ValueObservation.forAll(withUniquing: request)
+    ///     let observation = ValueObservation.trackingAll(withUniquing: request)
     ///
     ///     let observer = try dbQueue.start(observation) { rows: [Row] in
     ///         print("players have changed")
@@ -615,12 +615,12 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forAll<Request: FetchRequest>(withUniquing request: Request)
+    public static func trackingAll<Request: FetchRequest>(withUniquing request: Request)
         -> ValueObservation<ValueReducers.Unique<[Row]>>
         where Request.RowDecoder == Row
     {
         return ValueObservation<ValueReducers.Unique<[Row]>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.Unique(request.fetchAll))
     }
     
@@ -630,7 +630,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = SQLRequest<Row>("SELECT * FROM player WHERE id = ?", arguments: [1])
-    ///     let observation = ValueObservation.forOne(request)
+    ///     let observation = ValueObservation.trackingOne(request)
     ///
     ///     let observer = try dbQueue.start(observation) { row: Row? in
     ///         print("players have changed")
@@ -650,12 +650,12 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a new ValueObservation<Int>.
-    public static func forOne<Request: FetchRequest>(_ request: Request)
+    public static func trackingOne<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.Raw<Row?>>
         where Request.RowDecoder == Row
     {
         return ValueObservation<ValueReducers.Raw<Row?>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.Raw(request.fetchOne))
     }
 
@@ -665,7 +665,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = SQLRequest<Row>("SELECT * FROM player WHERE id = ?", arguments: [1])
-    ///     let observation = ValueObservation.forOne(withUniquing: request)
+    ///     let observation = ValueObservation.trackingOne(withUniquing: request)
     ///
     ///     let observer = try dbQueue.start(observation) { row: Row? in
     ///         print("players have changed")
@@ -685,12 +685,12 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a new ValueObservation<Int>.
-    public static func forOne<Request: FetchRequest>(withUniquing request: Request)
+    public static func trackingOne<Request: FetchRequest>(withUniquing request: Request)
         -> ValueObservation<ValueReducers.Unique<Row?>>
         where Request.RowDecoder == Row
     {
         return ValueObservation<ValueReducers.Unique<Row?>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.Unique(request.fetchOne))
     }
 }
@@ -705,7 +705,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.all()
-    ///     let observation = ValueObservation.forAll(request)
+    ///     let observation = ValueObservation.trackingAll(request)
     ///
     ///     let observer = try dbQueue.start(observation) { players: [Player] in
     ///         print("players have changed")
@@ -725,12 +725,12 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forAll<Request: FetchRequest>(_ request: Request)
+    public static func trackingAll<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>
         where Request.RowDecoder: FetchableRecord
     {
         return ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.Raw(request.fetchAll))
     }
     
@@ -741,7 +741,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.all()
-    ///     let observation = ValueObservation.forAll(withUniquing: request)
+    ///     let observation = ValueObservation.trackingAll(withUniquing: request)
     ///
     ///     let observer = try dbQueue.start(observation) { players: [Player] in
     ///         print("players have changed")
@@ -761,12 +761,12 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forAll<Request: FetchRequest>(withUniquing request: Request)
+    public static func trackingAll<Request: FetchRequest>(withUniquing request: Request)
         -> ValueObservation<ValueReducers.UniqueRecords<Request.RowDecoder>>
         where Request.RowDecoder: FetchableRecord
     {
         return ValueObservation<ValueReducers.UniqueRecords<Request.RowDecoder>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.UniqueRecords { try Row.fetchAll($0, request) })
     }
     
@@ -776,7 +776,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.filter(key: 1)
-    ///     let observation = ValueObservation.forOne(request)
+    ///     let observation = ValueObservation.trackingOne(request)
     ///
     ///     let observer = try dbQueue.start(observation) { player: Player? in
     ///         print("player has changed")
@@ -796,12 +796,12 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forOne<Request: FetchRequest>(_ request: Request) ->
+    public static func trackingOne<Request: FetchRequest>(_ request: Request) ->
         ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>
         where Request.RowDecoder: FetchableRecord
     {
         return ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.Raw(request.fetchOne))
     }
     
@@ -811,7 +811,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.filter(key: 1)
-    ///     let observation = ValueObservation.forOne(withUniquing: request)
+    ///     let observation = ValueObservation.trackingOne(withUniquing: request)
     ///
     ///     let observer = try dbQueue.start(observation) { player: Player? in
     ///         print("player has changed")
@@ -831,12 +831,12 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forOne<Request: FetchRequest>(withUniquing request: Request) ->
+    public static func trackingOne<Request: FetchRequest>(withUniquing request: Request) ->
         ValueObservation<ValueReducers.UniqueRecord<Request.RowDecoder>>
         where Request.RowDecoder: FetchableRecord
     {
         return ValueObservation<ValueReducers.UniqueRecord<Request.RowDecoder>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.UniqueRecord { try Row.fetchOne($0, request) })
     }
 }
@@ -851,7 +851,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let observation = ValueObservation.forAll(request)
+    ///     let observation = ValueObservation.trackingAll(request)
     ///
     ///     let observer = try dbQueue.start(observation) { names: [String] in
     ///         print("player name have changed")
@@ -871,12 +871,12 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forAll<Request: FetchRequest>(_ request: Request)
+    public static func trackingAll<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>
         where Request.RowDecoder: DatabaseValueConvertible
     {
         return ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.Raw(request.fetchAll))
     }
     
@@ -887,7 +887,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let observation = ValueObservation.forAll(withUniquing: request)
+    ///     let observation = ValueObservation.trackingAll(withUniquing: request)
     ///
     ///     let observer = try dbQueue.start(observation) { names: [String] in
     ///         print("player name have changed")
@@ -907,12 +907,12 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forAll<Request: FetchRequest>(withUniquing request: Request)
+    public static func trackingAll<Request: FetchRequest>(withUniquing request: Request)
         -> ValueObservation<ValueReducers.UniqueValues<Request.RowDecoder>>
         where Request.RowDecoder: DatabaseValueConvertible
     {
         return ValueObservation<ValueReducers.UniqueValues<Request.RowDecoder>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.UniqueValues { try DatabaseValue.fetchAll($0, request) })
     }
     
@@ -922,7 +922,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.select(max(Column("score")), as: Int.self)
-    ///     let observation = ValueObservation.forOne(request)
+    ///     let observation = ValueObservation.trackingOne(request)
     ///
     ///     let observer = try dbQueue.start(observation) { maxScore: Int? in
     ///         print("maximum score has changed")
@@ -942,12 +942,12 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forOne<Request: FetchRequest>(_ request: Request)
+    public static func trackingOne<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>
         where Request.RowDecoder: DatabaseValueConvertible
     {
         return ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.Raw(request.fetchOne))
     }
     
@@ -957,7 +957,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.select(max(Column("score")), as: Int.self)
-    ///     let observation = ValueObservation.forOne(withUniquing: request)
+    ///     let observation = ValueObservation.trackingOne(withUniquing: request)
     ///
     ///     let observer = try dbQueue.start(observation) { maxScore: Int? in
     ///         print("maximum score has changed")
@@ -977,12 +977,12 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forOne<Request: FetchRequest>(withUniquing request: Request)
+    public static func trackingOne<Request: FetchRequest>(withUniquing request: Request)
         -> ValueObservation<ValueReducers.UniqueValue<Request.RowDecoder>>
         where Request.RowDecoder: DatabaseValueConvertible
     {
         return ValueObservation<ValueReducers.UniqueValue<Request.RowDecoder>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.UniqueValue { try DatabaseValue.fetchOne($0, request) })
     }
 }
@@ -997,7 +997,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let observation = ValueObservation.forAll(request)
+    ///     let observation = ValueObservation.trackingAll(request)
     ///
     ///     let observer = try dbQueue.start(observation) { names: [String] in
     ///         print("player name have changed")
@@ -1017,12 +1017,12 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forAll<Request: FetchRequest>(_ request: Request)
+    public static func trackingAll<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>
         where Request.RowDecoder: DatabaseValueConvertible & StatementColumnConvertible
     {
         return ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.Raw(request.fetchAll))
     }
     
@@ -1032,7 +1032,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.select(max(Column("score")), as: Int.self)
-    ///     let observation = ValueObservation.forOne(request)
+    ///     let observation = ValueObservation.trackingOne(request)
     ///
     ///     let observer = try dbQueue.start(observation) { maxScore: Int? in
     ///         print("maximum score has changed")
@@ -1052,12 +1052,12 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forOne<Request: FetchRequest>(_ request: Request)
+    public static func trackingOne<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>
         where Request.RowDecoder: DatabaseValueConvertible & StatementColumnConvertible
     {
         return ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.Raw(request.fetchOne))
     }
 }
@@ -1072,7 +1072,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let observation = ValueObservation.forAll(request)
+    ///     let observation = ValueObservation.trackingAll(request)
     ///
     ///     let observer = try dbQueue.start(observation) { names: [String] in
     ///         print("player name have changed")
@@ -1092,13 +1092,13 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forAll<Request: FetchRequest>(_ request: Request)
+    public static func trackingAll<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder._Wrapped?]>>
         where Request.RowDecoder: _OptionalProtocol,
         Request.RowDecoder._Wrapped: DatabaseValueConvertible
     {
         return ValueObservation<ValueReducers.Raw<[Request.RowDecoder._Wrapped?]>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.Raw(request.fetchAll))
     }
     
@@ -1109,7 +1109,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let observation = ValueObservation.forAll(withUniquing: request)
+    ///     let observation = ValueObservation.trackingAll(withUniquing: request)
     ///
     ///     let observer = try dbQueue.start(observation) { names: [String] in
     ///         print("player name have changed")
@@ -1129,13 +1129,13 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forAll<Request: FetchRequest>(withUniquing request: Request)
+    public static func trackingAll<Request: FetchRequest>(withUniquing request: Request)
         -> ValueObservation<ValueReducers.UniqueOptionalValues<Request.RowDecoder._Wrapped>>
         where Request.RowDecoder: _OptionalProtocol,
         Request.RowDecoder._Wrapped: DatabaseValueConvertible
     {
         return ValueObservation<ValueReducers.UniqueOptionalValues<Request.RowDecoder._Wrapped>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.UniqueOptionalValues { try DatabaseValue.fetchAll($0, request) })
     }
 }
@@ -1150,7 +1150,7 @@ extension ValueObservation where Reducer == Void {
     /// For example:
     ///
     ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let observation = ValueObservation.forAll(request)
+    ///     let observation = ValueObservation.trackingAll(request)
     ///
     ///     let observer = try dbQueue.start(observation) { names: [String] in
     ///         print("player name have changed")
@@ -1170,13 +1170,13 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public static func forAll<Request: FetchRequest>(_ request: Request)
+    public static func trackingAll<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder._Wrapped?]>>
         where Request.RowDecoder: _OptionalProtocol,
         Request.RowDecoder._Wrapped: DatabaseValueConvertible & StatementColumnConvertible
     {
         return ValueObservation<ValueReducers.Raw<[Request.RowDecoder._Wrapped?]>>(
-            observing: request.databaseRegion,
+            tracking: request.databaseRegion,
             reducer: ValueReducers.Raw(request.fetchAll))
     }
 }

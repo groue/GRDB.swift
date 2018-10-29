@@ -22,7 +22,7 @@ class ValueObservationRowTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.forAll(SQLRequest<Row>("SELECT * FROM t ORDER BY id"))
+        var observation = ValueObservation.trackingAll(SQLRequest<Row>("SELECT * FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
         _ = try dbQueue.start(observation) { rows in
             results.append(rows)
@@ -56,7 +56,7 @@ class ValueObservationRowTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 3
         
-        var observation = ValueObservation.forAll(withUniquing: SQLRequest<Row>("SELECT * FROM t ORDER BY id"))
+        var observation = ValueObservation.trackingAll(withUniquing: SQLRequest<Row>("SELECT * FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
         _ = try dbQueue.start(observation) { rows in
             results.append(rows)
@@ -89,7 +89,7 @@ class ValueObservationRowTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 5
         
-        var observation = ValueObservation.forOne(SQLRequest<Row>("SELECT * FROM t ORDER BY id DESC"))
+        var observation = ValueObservation.trackingOne(SQLRequest<Row>("SELECT * FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
         _ = try dbQueue.start(observation) { row in
             results.append(row)
@@ -127,7 +127,7 @@ class ValueObservationRowTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.forOne(withUniquing: SQLRequest<Row>("SELECT * FROM t ORDER BY id DESC"))
+        var observation = ValueObservation.trackingOne(withUniquing: SQLRequest<Row>("SELECT * FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
         _ = try dbQueue.start(observation) { row in
             results.append(row)

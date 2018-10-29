@@ -22,7 +22,7 @@ class ValueObservationFetchTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.observing(DatabaseRegion.fullDatabase, fetch: {
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
             try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
         })
         observation.extent = .databaseLifetime
@@ -54,7 +54,7 @@ class ValueObservationFetchTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 3
         
-        var observation = ValueObservation.observing(withUniquing: DatabaseRegion.fullDatabase, fetch: {
+        var observation = ValueObservation.tracking(withUniquing: DatabaseRegion.fullDatabase, fetch: {
             try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
         })
         observation.extent = .databaseLifetime

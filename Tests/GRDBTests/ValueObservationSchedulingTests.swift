@@ -26,7 +26,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         let key = DispatchSpecificKey<()>()
         DispatchQueue.main.setSpecific(key: key, value: ())
         
-        var observation = ValueObservation.observing(DatabaseRegion.fullDatabase, fetch: {
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
             try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
         })
         observation.extent = .databaseLifetime
@@ -62,7 +62,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         let key = DispatchSpecificKey<()>()
         DispatchQueue.main.setSpecific(key: key, value: ())
         
-        var observation = ValueObservation.observing(DatabaseRegion.fullDatabase, fetch: {
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
             try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
         })
         observation.extent = .databaseLifetime
@@ -105,7 +105,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                 }
             },
             value: { $0 })
-        var observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
         observation.extent = .databaseLifetime
         
         _ = try dbQueue.start(
@@ -144,7 +144,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         let key = DispatchSpecificKey<()>()
         queue.setSpecific(key: key, value: ())
         
-        var observation = ValueObservation.observing(DatabaseRegion.fullDatabase, fetch: {
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
             try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
         })
         observation.extent = .databaseLifetime
@@ -178,7 +178,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         let key = DispatchSpecificKey<()>()
         queue.setSpecific(key: key, value: ())
         
-        var observation = ValueObservation.observing(DatabaseRegion.fullDatabase, fetch: {
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
             try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
         })
         observation.extent = .databaseLifetime
@@ -216,7 +216,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         let reducer = AnyValueReducer(
             fetch: { _ in throw TestError() },
             value: { $0 })
-        var observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
         observation.extent = .databaseLifetime
         observation.scheduling = .onQueue(queue, startImmediately: false)
 

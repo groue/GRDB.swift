@@ -23,7 +23,7 @@ class ValueObservationCountTests: GRDBTestCase {
         notificationExpectation.expectedFulfillmentCount = 4
         
         struct T: TableRecord { }
-        var observation = ValueObservation.forCount(T.all())
+        var observation = ValueObservation.trackingCount(T.all())
         observation.extent = .databaseLifetime
         _ = try dbQueue.start(observation) { count in
             counts.append(count)
@@ -54,7 +54,7 @@ class ValueObservationCountTests: GRDBTestCase {
         notificationExpectation.expectedFulfillmentCount = 3
         
         struct T: TableRecord { }
-        var observation = ValueObservation.forCount(withUniquing: T.all())
+        var observation = ValueObservation.trackingCount(withUniquing: T.all())
         observation.extent = .databaseLifetime
         _ = try dbQueue.start(observation) { count in
             counts.append(count)

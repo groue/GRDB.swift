@@ -6216,7 +6216,7 @@ class PlayerViewController: UIViewController {
         let request = Player.filter(key: 42)
         
         // 2. Create a ValueObservation
-        let observation = ValueObservation.forOne(request)
+        let observation = ValueObservation.trackingOne(request)
         
         do {
             // 3. Start observing the database, and store the returned observer
@@ -6259,60 +6259,60 @@ An initial fetch is performed as soon as the observation starts: the view is set
 The view controller stores the observer returned by the `start` method in a property in order to control the duration of the observation. When the observed is deallocated, the observation stops. Meanwhile, all transactions that impact the observed player are notified, and the `nameLabel` is kept up-to-date.
 
 
-### `ValueObservation.forCount`, `forOne`, `forAll`
+### `ValueObservation.trackingCount`, `trackingOne`, `trackingAll`
 
 Given a [request](#requests), you can track its number of results, the first one, or all of them:
 
 ```swift
-ValueObservation.forCount(request)
-ValueObservation.forOne(request)
-ValueObservation.forAll(request)
+ValueObservation.trackingCount(request)
+ValueObservation.trackingOne(request)
+ValueObservation.trackingAll(request)
 
-ValueObservation.forCount(withUniquing: request)
-ValueObservation.forOne(withUniquing: request)
-ValueObservation.forAll(withUniquing: request)
+ValueObservation.trackingCount(withUniquing: request)
+ValueObservation.trackingOne(withUniquing: request)
+ValueObservation.trackingAll(withUniquing: request)
 ```
 
-The `forCount` observation notifies counts:
+The `trackingCount` observation notifies counts:
 
 ```swift
 // Observe number of players
-let observation = ValueObservation.forCount(Player.all())
+let observation = ValueObservation.trackingCount(Player.all())
 let observer = try dbQueue.start(observation) { count: Int in
     print("Number of players have changed: \(count)")
 }
 ```
 
-The `forOne` observation notifies optional values, built from a single database row (if any):
+The `trackingOne` observation notifies optional values, built from a single database row (if any):
 
 ```swift
 // Observe a single player
-let observation = ValueObservation.forOne(Player.filter(key: 1))
+let observation = ValueObservation.trackingOne(Player.filter(key: 1))
 let observer = try dbQueue.start(observation) { player: Player? in
     print("Player has changed: \(player)")
 }
 
 // Observe the maximum score
 let request = Player.select(max(Column("score")), as: Int.self)
-let observation = ValueObservation.forOne(request)
+let observation = ValueObservation.trackingOne(request)
 let observer = try dbQueue.start(observation) { maximumScore: Int? in
     print("Maximum score has changed: \(maximumScore)")
 }
 ```
 
 
-The `forAll` observation notifies arrays:
+The `trackingAll` observation notifies arrays:
 
 ```swift
 // Observe all players
-let observation = ValueObservation.forAll(Player.all())
+let observation = ValueObservation.trackingAll(Player.all())
 let observer = try dbQueue.start(observation) { players: [Player] in
     print("Players have changed: \(players)")
 }
 
 // Observe all player names
 let request = SQLRequest<String>("SELECT name FROM player")
-let observation = ValueObservation.forAll(request)
+let observation = ValueObservation.trackingAll(request)
 let observer = try dbQueue.start(observation) { names: [String] in
     print("Players names have changed: \(names)")
 }
@@ -6329,14 +6329,14 @@ You can avoid notification of consecutive identical values with the `withUniquin
 ```swift
 // Observe the maximum score
 let request = Player.select(max(Column("score")), as: Int.self)
-let observation = ValueObservation.forOne(withUniquing: request)
+let observation = ValueObservation.trackingOne(withUniquing: request)
 let observer = try dbQueue.start(observation) { maximumScore: Int? in
     print("Maximum score has (really) changed: \(maximumScore)")
 }
 ```
 
 
-### `ValueObservation.observing(_:fetch:)`
+### `ValueObservation.tracking(_:fetch:)`
 
 Sometimes you need to observe several requests at the same time, and be notified of **consistent** values. For example, you need to observe changes on both a team and its players.
 
@@ -6353,7 +6353,7 @@ struct TeamInfo {
     var players: [Player]
 }
 
-let observation = ValueObservation.observing(
+let observation = ValueObservation.tracking(
     teamRequest, playersRequest,
     fetch { db -> TeamInfo? in
         guard let team = try teamRequest.fetchOne(db) else {
@@ -6373,7 +6373,7 @@ You can avoid notification of consecutive identical values with the `withUniquin
 ```swift
 extension TeamInfo: Equatable { ... }
 
-let observation = ValueObservation.observing(
+let observation = ValueObservation.tracking(
     withUniquing: teamRequest, playersRequest,
     fetch { db -> TeamInfo? in
         guard let team = try teamRequest.fetchOne(db) else {
@@ -6388,7 +6388,7 @@ let observer = dbQueue.start(observation) { teamInfo: TeamInfo? in
 }
 ```
 
-The initial parameter of the `ValueObservation.observing(_:fetch:)` method can be fed with requests, and generally speaking, values that adopt the `DatabaseRegionConvertible` protocol.
+The initial parameter of the `ValueObservation.tracking(_:fetch:)` method can be fed with requests, and generally speaking, values that adopt the `DatabaseRegionConvertible` protocol.
 
 This allows you to encapsulate your complex requests in a dedicated type. Our example above can be rewritten as below:
 
@@ -6421,7 +6421,7 @@ struct TeamInfoRequest: DatabaseRegionConvertible {
 }
 
 let request = TeamInfoRequest(teamId: 1)
-let observation = ValueObservation.observing(request, fetch: request.fetch)
+let observation = ValueObservation.tracking(request, fetch: request.fetch)
 let observer = dbQueue.start(observation) { teamInfo: TeamInfo? in
     print("Team and players have hanged.")
 }
@@ -6430,7 +6430,7 @@ let observer = dbQueue.start(observation) { teamInfo: TeamInfo? in
 See [DatabaseRegion](#databaseregion) for more information.
 
 
-### `ValueObservation.observing(_:reducer:)`
+### `ValueObservation.tracking(_:reducer:)`
 
 The most general way to define a ValueObservation is to create one from an observed database region (see above), and a **reducer** that adopts the ValueReducer protocol:
 
@@ -6461,7 +6461,7 @@ let reducer = AnyValueReducer(
         count += 1
         return count
     })
-let observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
+let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
 let observer = try dbQueue.start(observation) { count: Int in
     print("The database has been modified \(count) times.")
 }
@@ -6503,7 +6503,7 @@ let observer = try dbQueue.start(observation) { count: Int in
         
         ```swift
         // On main queue
-        let observation = ValueObservation.forAll(Player.all())
+        let observation = ValueObservation.trackingAll(Player.all())
         let observer = try dbQueue.start(observation) { players: [Player] in
             print("fresh players: \(players)")
         }
@@ -6515,7 +6515,7 @@ let observer = try dbQueue.start(observation) { count: Int in
         ```swift
         // Not on the main queue: "fresh players" is eventually printed
         // on the main queue.
-        let observation = ValueObservation.forAll(Player.all())
+        let observation = ValueObservation.trackingAll(Player.all())
         let observer = try dbQueue.start(observation) { players: [Player] in
             print("fresh players: \(players)")
         }
@@ -6534,7 +6534,7 @@ let observer = try dbQueue.start(observation) { count: Int in
         
         ```swift
         let customQueue = DispatchQueue(label: "customQueue")
-        var observation = ValueObservation.forAll(Player.all())
+        var observation = ValueObservation.trackingAll(Player.all())
         observation.scheduling = .onQueue(customQueue, startImmediately: true)
         let observer = try dbQueue.start(observation) { players: [Player] in
             // in customQueue
@@ -6547,7 +6547,7 @@ let observer = try dbQueue.start(observation) { count: Int in
     The default is true. When false, a ValueObservation has a write access to the database when it fetches fresh values:
     
     ```swift
-    let observation = ValueObservation.observing(
+    let observation = ValueObservation.tracking(
         teamRequest, playersRequest,
         fetch { db in
             // write access allowed
