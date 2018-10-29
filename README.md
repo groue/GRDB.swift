@@ -6338,7 +6338,7 @@ struct TeamInfo {
 
 let observation = ValueObservation.tracking(
     teamRequest, playersRequest,
-    fetch { db -> TeamInfo? in
+    fetch: { db -> TeamInfo? in
         guard let team = try teamRequest.fetchOne(db) else {
             return nil
         }
@@ -6358,12 +6358,8 @@ extension TeamInfo: Equatable { ... }
 
 let observation = ValueObservation.tracking(
     withUniquing: teamRequest, playersRequest,
-    fetch { db -> TeamInfo? in
-        guard let team = try teamRequest.fetchOne(db) else {
-            return nil
-        }
-        let players = try playersRequest.fetchAll(db)
-        return TeamInfo(team: team, players: players)
+    fetch: { db -> TeamInfo? in
+        // same code as above
     })
 
 let observer = dbQueue.start(observation) { teamInfo: TeamInfo? in
