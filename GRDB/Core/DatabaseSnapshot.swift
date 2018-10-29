@@ -134,6 +134,10 @@ extension DatabaseSnapshot {
         // Return a dummy observer, because snapshots never change
         return SnapshotValueObserver()
     }
+    
+    public func remove(transactionObserver: TransactionObserver) {
+        // Can't remove an observer which could not be added :-)
+    }
 }
 
 /// An observer that does nothing, support for
