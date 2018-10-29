@@ -124,9 +124,20 @@ extension DatabaseSnapshot {
             }
         case let .onQueue(queue, startImmediately: startImmediately):
             if startImmediately {
-                var reducer = observation.reducer
-                if let value = try reducer.value(unsafeReentrantRead(reducer.fetch)) {
-                    queue.async {
+                try unsafeReentrantRead { db in
+                    var reducer = observation.reducer
+                    if let value = try reducer.value(reducer.fetch(db)) {
+                        queue.async {
+                            onChange(value)
+                        }
+                    }
+                }
+            }
+        case let .unsafe(startImmediately: startImmediately):
+            if startImmediately {
+                try unsafeReentrantRead { db in
+                    var reducer = observation.reducer
+                    if let value = try reducer.value(reducer.fetch(db)) {
                         onChange(value)
                     }
                 }

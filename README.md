@@ -6497,7 +6497,7 @@ let observer = try dbQueue.start(observation) { count: Int in
     
     - `.mainQueue` (the default): all values are notified on the main queue.
         
-        If the observation starts on the main queue, initial values are notified right upon subscription, synchronously:
+        If the observation starts on the main queue, an initial value is notified right upon subscription, synchronously:
         
         ```swift
         // On main queue
@@ -6508,7 +6508,7 @@ let observer = try dbQueue.start(observation) { count: Int in
         // <- here "fresh players" is already printed.
         ```
         
-        If the observation does not start on the main queue, initial values are asynchronously notified on the main queue:
+        If the observation does not start on the main queue, an initial value is also notified on the main queue, but asynchronously:
         
         ```swift
         // Not on the main queue: "fresh players" is eventually printed
@@ -6528,7 +6528,9 @@ let observer = try dbQueue.start(observation) { count: Int in
         }
         ```
     
-    - `.onQueue(_:startImmediately:)`: all values are asychronously notified on the specified queue. Initial values are only fetched and notified if `startImmediately` is true.
+    - `.onQueue(_:startImmediately:)`: all values are asychronously notified on the specified queue.
+        
+        An initial value is fetched and notified if `startImmediately` is true.
         
         ```swift
         let customQueue = DispatchQueue(label: "customQueue")
@@ -6538,6 +6540,21 @@ let observer = try dbQueue.start(observation) { count: Int in
             // in customQueue
             print("fresh players: \(players)")s
         }
+        ```
+
+    - `unsafe(startImmediately:)`: each value is notified on an unspecified dispatch queue, which may be different for each notified value.
+        
+        If `startImmediately` is true, an initial value is notified right upon subscription, synchronously.
+        
+        ```swift
+        // On any queue
+        var observation = ValueObservation.trackingAll(Player.all())
+        observation.scheduling = .unsafe(startImmediately: true)
+        let observer = try dbQueue.start(observation) { players: [Player] in
+            // in an unspecified queue
+            print("fresh players: \(players)")
+        }
+        // <- here "fresh players" is already printed.
         ```
 
 - **`isReadOnly`**

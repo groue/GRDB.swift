@@ -17,27 +17,28 @@ import Dispatch
 public enum ValueScheduling {
     /// All values are notified on the main queue.
     ///
-    /// If the observation starts on the main queue, initial values are
+    /// If the observation starts on the main queue, an initial value is
     /// notified right upon subscription, synchronously:
     ///
     ///     // On main queue
     ///     let observation = ValueObservation.trackingAll(Player.all())
     ///     let observer = try dbQueue.start(observation) { players: [Player] in
-    ///         print("fresh players: /(players)")
+    ///         print("fresh players: \(players)")
     ///     }
     ///     // <- here "fresh players" is already printed.
     ///
-    /// If the observation does not start on the main queue, initial values
-    /// are asynchronously notified on the main queue:
+    /// If the observation does not start on the main queue, an initial value
+    /// is also notified on the main queue, but asynchronously:
     ///
     ///     // Not on the main queue: "fresh players" is eventually printed
     ///     // on the main queue.
     ///     let observation = ValueObservation.trackingAll(Player.all())
     ///     let observer = try dbQueue.start(observation) { players: [Player] in
-    ///         print("fresh players: /(players)")
+    ///         print("fresh players: \(players)")
     ///     }
     ///
-    /// When the database changes, fresh values are asynchronously notified:
+    /// When the database changes, fresh values are asynchronously notified on
+    /// the main queue:
     ///
     ///     // Eventually prints "fresh players" on the main queue
     ///     try dbQueue.write { db in
@@ -46,9 +47,25 @@ public enum ValueScheduling {
     case mainQueue
     
     /// All values are asychronously notified on the specified queue.
-    /// Initial values are only fetched and notified if `startImmediately`
+    ///
+    /// An initial value is fetched and notified if `startImmediately`
     /// is true.
     case onQueue(DispatchQueue, startImmediately: Bool)
+    
+    /// Each value is notified on an unspecified dispatch queue, which may be
+    /// different for each notified value.
+    ///
+    /// If `startImmediately` is true, an initial value is notified right upon
+    /// subscription, synchronously.
+    ///
+    ///     // On any queue
+    ///     var observation = ValueObservation.trackingAll(Player.all())
+    ///     observation.scheduling = .unsafe(startImmediately: true)
+    ///     let observer = try dbQueue.start(observation) { players: [Player] in
+    ///         print("fresh players: \(players)")
+    ///     }
+    ///     // <- here "fresh players" is already printed.
+    case unsafe(startImmediately: Bool)
 }
 
 extension DispatchQueue {
@@ -298,24 +315,24 @@ public struct ValueObservation<Reducer> {
     ///
     /// - `.mainQueue`: all values are notified on the main queue.
     ///
-    ///     If the observation starts on the main queue, initial values are
-    ///     notified right upon subscription, synchronously:
+    ///     If the observation starts on the main queue, an initial value is
+    ///     notified right upon subscription, synchronously::
     ///
     ///         // On main queue
     ///         let observation = ValueObservation.trackingAll(Player.all())
     ///         let observer = try dbQueue.start(observation) { players: [Player] in
-    ///             print("fresh players: /(players)")
+    ///             print("fresh players: \(players)")
     ///         }
     ///         // <- here "fresh players" is already printed.
     ///
-    ///     If the observation does not start on the main queue, initial values
-    ///     are asynchronously notified on the main queue:
+    ///     If the observation does not start on the main queue, an initial
+    ///     value is also notified on the main queue, but asynchronously:
     ///
     ///         // Not on the main queue: "fresh players" is eventually printed
     ///         // on the main queue.
     ///         let observation = ValueObservation.trackingAll(Player.all())
     ///         let observer = try dbQueue.start(observation) { players: [Player] in
-    ///             print("fresh players: /(players)")
+    ///             print("fresh players: \(players)")
     ///         }
     ///
     ///     When the database changes, fresh values are asynchronously notified:
@@ -326,17 +343,35 @@ public struct ValueObservation<Reducer> {
     ///         }
     ///
     /// - `.onQueue(_:startImmediately:)`: all values are asychronously notified
-    /// on the specified queue. Initial values are only fetched and notified if
-    /// `startImmediately` is true.
+    /// on the specified queue.
+    ///
+    ///     An initial value is fetched and notified if `startImmediately`
+    ///     is true.
+    ///
+    /// - `unsafe(startImmediately:)`: each value is notified on an unspecified
+    /// dispatch queue, which may be different for each notified value.
+    ///
+    ///     If `startImmediately` is true, an initial value is notified right
+    ///     upon subscription, synchronously.
+    ///
+    ///         // On any queue
+    ///         var observation = ValueObservation.trackingAll(Player.all())
+    ///         observation.scheduling = .unsafe(startImmediately: true)
+    ///         let observer = try dbQueue.start(observation) { players: [Player] in
+    ///             print("fresh players: \(players)")
+    ///         }
+    ///         // <- here "fresh players" is already printed.
     public var scheduling: ValueScheduling = .mainQueue
     
     /// The dispatch queue where change callbacks are called.
-    public var notificationQueue: DispatchQueue {
+    var notificationQueue: DispatchQueue? {
         switch scheduling {
         case .mainQueue:
             return DispatchQueue.main
         case .onQueue(let queue, startImmediately: _):
             return queue
+        case .unsafe:
+            return nil
         }
     }
     

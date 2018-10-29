@@ -234,7 +234,7 @@ extension DatabaseWriter {
                         return .commit
                     }
                 }
-                // reduce
+                // reduce & notify
                 if let value = reducer.value(fetchedValue) {
                     if calledOnMainQueue {
                         mainQueueValue = value
@@ -254,9 +254,26 @@ extension DatabaseWriter {
                             return .commit
                         }
                     }
-                    // reduce
+                    // reduce & notify
                     if let value = reducer.value(fetchedValue) {
                         queue.async { onChange(value) }
+                    }
+                }
+            case let .unsafe(startImmediately: startImmediately):
+                if startImmediately {
+                    // fetch
+                    var fetchedValue: Reducer.Fetched!
+                    if observation.isReadOnly {
+                        fetchedValue = try db.readOnly { try reducer.fetch(db) }
+                    } else {
+                        try db.inSavepoint {
+                            fetchedValue = try reducer.fetch(db)
+                            return .commit
+                        }
+                    }
+                    // reduce & notify
+                    if let value = reducer.value(fetchedValue) {
+                        onChange(value)
                     }
                 }
             }
@@ -303,7 +320,7 @@ private class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
     private let region: DatabaseRegion
     private var reducer: Reducer
     private let fetch: (Database, Reducer) -> Future<Reducer.Fetched>
-    private let notificationQueue: DispatchQueue
+    private let notificationQueue: DispatchQueue?
     private let onError: ((Error) -> Void)?
     private let onChange: (Reducer.Value) -> Void
     private let reduceQueue: DispatchQueue
@@ -313,7 +330,7 @@ private class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
         region: DatabaseRegion,
         reducer: Reducer,
         fetch: @escaping (Database, Reducer) -> Future<Reducer.Fetched>,
-        notificationQueue: DispatchQueue,
+        notificationQueue: DispatchQueue?,
         onError: ((Error) -> Void)?,
         onChange: @escaping (Reducer.Value) -> Void)
     {
@@ -324,7 +341,12 @@ private class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
         self.onChange = onChange
         self.onError = onError
         if #available(OSX 10.10, *) {
-            self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation", qos: notificationQueue.qos)
+            if let queue = notificationQueue {
+                self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation", qos: queue.qos)
+            } else {
+                // TODO: provide a qos
+                self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation")
+            }
         } else {
             self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation")
         }
@@ -357,14 +379,22 @@ private class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
             
             do {
                 if let value = try strongSelf.reducer.value(future.wait()) {
-                    strongSelf.notificationQueue.async {
-                        guard let strongSelf = self else { return }
+                    if let queue = strongSelf.notificationQueue {
+                        queue.async {
+                            guard let strongSelf = self else { return }
+                            strongSelf.onChange(value)
+                        }
+                    } else {
                         strongSelf.onChange(value)
                     }
                 }
             } catch {
-                strongSelf.notificationQueue.async {
-                    guard let strongSelf = self else { return }
+                if let queue = strongSelf.notificationQueue {
+                    queue.async {
+                        guard let strongSelf = self else { return }
+                        strongSelf.onError?(error)
+                    }
+                } else {
                     strongSelf.onError?(error)
                 }
             }
