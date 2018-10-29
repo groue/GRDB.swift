@@ -6437,10 +6437,10 @@ protocol ValueReducer {
     associatedtype Fetched
     associatedtype Value
     
-    /// Fetch a database value
+    /// Fetches a database value
     func fetch(_ db: Database) throws -> Fetched
     
-    /// Outputs an notified value
+    /// Returns a notified value
     mutating func value(_ fetched: Fetched) -> Value?
 }
 ```
