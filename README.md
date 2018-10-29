@@ -6388,7 +6388,7 @@ let observer = dbQueue.start(observation) { teamInfo: TeamInfo? in
 }
 ```
 
-The initial parameter of the `ValueObservation.observing(_:fetch)` method can be fed with requests, and generally speaking, values that adopt the `DatabaseRegionConvertible` protocol.
+The initial parameter of the `ValueObservation.observing(_:fetch:)` method can be fed with requests, and generally speaking, values that adopt the `DatabaseRegionConvertible` protocol.
 
 This allows you to encapsulate your complex requests in a dedicated type. Our example above can be rewritten as below:
 
@@ -6481,7 +6481,7 @@ let observer = try dbQueue.start(observation) { count: Int in
     _ = dbQueue.start(observation) { newValue in ... }
     ```
     
-    The default extent is `.observerLifetime`.
+    The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deallocated.
 
 - **`scheduling`**
     
