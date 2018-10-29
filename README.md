@@ -6212,25 +6212,15 @@ class PlayerViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        // 1. Define a tracked request
+        // Define a ValueObservation that tracks a request
         let request = Player.filter(key: 42)
-        
-        // 2. Create a ValueObservation
         let observation = ValueObservation.trackingOne(request)
         
-        do {
-            // 3. Start observing the database, and store the returned observer
-            // in a property
-            playerObserver = try dbQueue.start(
-                observation,
-                onError: { error in
-                    print("fresh values could not be fetched")
-                },
-                onChange: { [unowned self] player: Player? in
-                    self.nameLabel.text = player?.name
-                })
-        } catch {
-            print("Observation could not start")
+        // Start observing the database, and store the
+        // returned observer in a property
+        playerObserver = try! dbQueue.start(observation) {
+            [unowned self] player: Player? in
+            self.nameLabel.text = player?.name
         }
     }
     
@@ -6243,16 +6233,7 @@ class PlayerViewController: UIViewController {
 }
 ```
 
-When you are not interested in eventual errors, drop the `onError` callback:
-
-```swift
-        playerObserver = try dbQueue.start(observation) {
-            [unowned self] player: Player? in
-            self.nameLabel.text = player?.name
-        }
-```
-
-All values are notified on the main queue: views can be updated right from the `onChange` callback.
+All values are notified on the main queue: views can be updated right from the change callback.
 
 An initial fetch is performed as soon as the observation starts: the view is set up and ready when the `viewWillAppear` method returns.
 
