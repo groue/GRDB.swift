@@ -22,7 +22,7 @@ public enum ValueScheduling {
     ///
     ///     // On main queue
     ///     let observation = ValueObservation.trackingAll(Player.all())
-    ///     let observer = try dbQueue.start(observation) { players: [Player] in
+    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///         print("fresh players: \(players)")
     ///     }
     ///     // <- here "fresh players" is already printed.
@@ -33,7 +33,7 @@ public enum ValueScheduling {
     ///     // Not on the main queue: "fresh players" is eventually printed
     ///     // on the main queue.
     ///     let observation = ValueObservation.trackingAll(Player.all())
-    ///     let observer = try dbQueue.start(observation) { players: [Player] in
+    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///         print("fresh players: \(players)")
     ///     }
     ///
@@ -61,7 +61,7 @@ public enum ValueScheduling {
     ///     // On any queue
     ///     var observation = ValueObservation.trackingAll(Player.all())
     ///     observation.scheduling = .unsafe(startImmediately: true)
-    ///     let observer = try dbQueue.start(observation) { players: [Player] in
+    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///         print("fresh players: \(players)")
     ///     }
     ///     // <- here "fresh players" is already printed.
@@ -323,7 +323,7 @@ public struct ValueObservation<Reducer> {
     ///
     ///         // On main queue
     ///         let observation = ValueObservation.trackingAll(Player.all())
-    ///         let observer = try dbQueue.start(observation) { players: [Player] in
+    ///         let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///             print("fresh players: \(players)")
     ///         }
     ///         // <- here "fresh players" is already printed.
@@ -334,7 +334,7 @@ public struct ValueObservation<Reducer> {
     ///         // Not on the main queue: "fresh players" is eventually printed
     ///         // on the main queue.
     ///         let observation = ValueObservation.trackingAll(Player.all())
-    ///         let observer = try dbQueue.start(observation) { players: [Player] in
+    ///         let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///             print("fresh players: \(players)")
     ///         }
     ///
@@ -361,7 +361,7 @@ public struct ValueObservation<Reducer> {
     ///         // On any queue
     ///         var observation = ValueObservation.trackingAll(Player.all())
     ///         observation.scheduling = .unsafe(startImmediately: true)
-    ///         let observer = try dbQueue.start(observation) { players: [Player] in
+    ///         let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///             print("fresh players: \(players)")
     ///         }
     ///         // <- here "fresh players" is already printed.
@@ -406,7 +406,7 @@ public struct ValueObservation<Reducer> {
     ///         tracking: Player.all(),
     ///         reducer: reducer)
     ///
-    ///     let observer = try dbQueue.start(observation) { player: [Player] in
+    ///     let observer = try observation.start(in: dbQueue) { player: [Player] in
     ///         print("players have changed")
     ///     }
     ///
@@ -433,6 +433,24 @@ public struct ValueObservation<Reducer> {
     }
 }
 
+extension ValueObservation where Reducer: ValueReducer {
+    /// Starts the value observation in the provided database reader (such as
+    /// a database queue or database pool).
+    ///
+    /// - parameter observation: the stared observation
+    /// - parameter onError: a closure that is provided by eventual errors that happen
+    /// during observation
+    /// - parameter onChange: a closure that is provided fresh values
+    /// - returns: a TransactionObserver
+    public func start(
+        in reader: DatabaseReader,
+        onError: ((Error) -> Void)? = nil,
+        onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
+    {
+        return try reader.add(observation: self, onError: onError, onChange: onChange)
+    }
+}
+
 extension ValueObservation where Reducer == Void {
     /// Creates a ValueObservation which observes *regions*, and notifies the
     /// values returned by the *fetch* closure whenever one of the observed
@@ -444,7 +462,7 @@ extension ValueObservation where Reducer == Void {
     ///         Player.all(),
     ///         fetch: { db in return try Player.fetchAll(db) })
     ///
-    ///     let observer = try dbQueue.start(observation) { player: [Player] in
+    ///     let observer = try observation.start(in: dbQueue) { player: [Player] in
     ///         print("players have changed")
     ///     }
     ///
@@ -482,7 +500,7 @@ extension ValueObservation where Reducer == Void {
     ///         withUniquing: Player.all(),
     ///         fetch: { db in return try Player.fetchAll(db) })
     ///
-    ///     let observer = try dbQueue.start(observation) { player: [Player] in
+    ///     let observer = try observation.start(in: dbQueue) { player: [Player] in
     ///         print("players have changed")
     ///     }
     ///
@@ -532,7 +550,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.all()
     ///     let observation = ValueObservation.trackingCount(request)
     ///
-    ///     let observer = try dbQueue.start(observation) { count: Int in
+    ///     let observer = try observation.start(in: dbQueue) { count: Int in
     ///         print("number of players has changed")
     ///     }
     ///
@@ -566,7 +584,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.all()
     ///     let observation = ValueObservation.trackingCount(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.start(observation) { count: Int in
+    ///     let observer = try observation.start(in: dbQueue) { count: Int in
     ///         print("number of players has changed")
     ///     }
     ///
@@ -604,7 +622,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = SQLRequest<Row>("SELECT * FROM player")
     ///     let observation = ValueObservation.trackingAll(request)
     ///
-    ///     let observer = try dbQueue.start(observation) { rows: [Row] in
+    ///     let observer = try observation.start(in: dbQueue) { rows: [Row] in
     ///         print("players have changed")
     ///     }
     ///
@@ -639,7 +657,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = SQLRequest<Row>("SELECT * FROM player")
     ///     let observation = ValueObservation.trackingAll(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.start(observation) { rows: [Row] in
+    ///     let observer = try observation.start(in: dbQueue) { rows: [Row] in
     ///         print("players have changed")
     ///     }
     ///
@@ -674,7 +692,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = SQLRequest<Row>("SELECT * FROM player WHERE id = ?", arguments: [1])
     ///     let observation = ValueObservation.trackingOne(request)
     ///
-    ///     let observer = try dbQueue.start(observation) { row: Row? in
+    ///     let observer = try observation.start(in: dbQueue) { row: Row? in
     ///         print("players have changed")
     ///     }
     ///
@@ -709,7 +727,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = SQLRequest<Row>("SELECT * FROM player WHERE id = ?", arguments: [1])
     ///     let observation = ValueObservation.trackingOne(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.start(observation) { row: Row? in
+    ///     let observer = try observation.start(in: dbQueue) { row: Row? in
     ///         print("players have changed")
     ///     }
     ///
@@ -749,7 +767,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.all()
     ///     let observation = ValueObservation.trackingAll(request)
     ///
-    ///     let observer = try dbQueue.start(observation) { players: [Player] in
+    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///         print("players have changed")
     ///     }
     ///
@@ -785,7 +803,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.all()
     ///     let observation = ValueObservation.trackingAll(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.start(observation) { players: [Player] in
+    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///         print("players have changed")
     ///     }
     ///
@@ -820,7 +838,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.filter(key: 1)
     ///     let observation = ValueObservation.trackingOne(request)
     ///
-    ///     let observer = try dbQueue.start(observation) { player: Player? in
+    ///     let observer = try observation.start(in: dbQueue) { player: Player? in
     ///         print("player has changed")
     ///     }
     ///
@@ -855,7 +873,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.filter(key: 1)
     ///     let observation = ValueObservation.trackingOne(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.start(observation) { player: Player? in
+    ///     let observer = try observation.start(in: dbQueue) { player: Player? in
     ///         print("player has changed")
     ///     }
     ///
@@ -895,7 +913,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.trackingAll(request)
     ///
-    ///     let observer = try dbQueue.start(observation) { names: [String] in
+    ///     let observer = try observation.start(in: dbQueue) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
@@ -931,7 +949,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.trackingAll(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.start(observation) { names: [String] in
+    ///     let observer = try observation.start(in: dbQueue) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
@@ -966,7 +984,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(max(Column("score")), as: Int.self)
     ///     let observation = ValueObservation.trackingOne(request)
     ///
-    ///     let observer = try dbQueue.start(observation) { maxScore: Int? in
+    ///     let observer = try observation.start(in: dbQueue) { maxScore: Int? in
     ///         print("maximum score has changed")
     ///     }
     ///
@@ -1001,7 +1019,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(max(Column("score")), as: Int.self)
     ///     let observation = ValueObservation.trackingOne(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.start(observation) { maxScore: Int? in
+    ///     let observer = try observation.start(in: dbQueue) { maxScore: Int? in
     ///         print("maximum score has changed")
     ///     }
     ///
@@ -1041,7 +1059,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.trackingAll(request)
     ///
-    ///     let observer = try dbQueue.start(observation) { names: [String] in
+    ///     let observer = try observation.start(in: dbQueue) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
@@ -1076,7 +1094,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(max(Column("score")), as: Int.self)
     ///     let observation = ValueObservation.trackingOne(request)
     ///
-    ///     let observer = try dbQueue.start(observation) { maxScore: Int? in
+    ///     let observer = try observation.start(in: dbQueue) { maxScore: Int? in
     ///         print("maximum score has changed")
     ///     }
     ///
@@ -1116,7 +1134,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.trackingAll(request)
     ///
-    ///     let observer = try dbQueue.start(observation) { names: [String] in
+    ///     let observer = try observation.start(in: dbQueue) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
@@ -1153,7 +1171,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.trackingAll(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.start(observation) { names: [String] in
+    ///     let observer = try observation.start(in: dbQueue) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
@@ -1194,7 +1212,7 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.trackingAll(request)
     ///
-    ///     let observer = try dbQueue.start(observation) { names: [String] in
+    ///     let observer = try observation.start(in: dbQueue) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///

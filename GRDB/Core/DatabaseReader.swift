@@ -152,9 +152,18 @@ public protocol DatabaseReader : class {
     
     // MARK: - Value Observation
     
-    /// TODO
-    func start<Reducer: ValueReducer>(
-        _ observation: ValueObservation<Reducer>,
+    /// Starts a value observation.
+    ///
+    /// You should use the `ValueObservation.start(in:onError:onChange:)`
+    /// method instead.
+    ///
+    /// - parameter observation: the stared observation
+    /// - parameter onError: a closure that is provided by eventual errors that happen
+    /// during observation
+    /// - parameter onChange: a closure that is provided fresh values
+    /// - returns: a TransactionObserver
+    func add<Reducer: ValueReducer>(
+        observation: ValueObservation<Reducer>,
         onError: ((Error) -> Void)?,
         onChange: @escaping (Reducer.Value) -> Void)
         throws -> TransactionObserver
@@ -244,13 +253,13 @@ public final class AnyDatabaseReader : DatabaseReader {
     // MARK: - Value Observation
     
     /// :nodoc:
-    public func start<Reducer: ValueReducer>(
-        _ observation: ValueObservation<Reducer>,
-        onError: ((Error) -> Void)? = nil,
+    public func add<Reducer: ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        onError: ((Error) -> Void)?,
         onChange: @escaping (Reducer.Value) -> Void)
         throws -> TransactionObserver
     {
-        return try base.start(observation, onError: onError, onChange: onChange)
+        return try base.add(observation: observation, onError: onError, onChange: onChange)
     }
     
     /// :nodoc:

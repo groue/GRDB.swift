@@ -46,7 +46,7 @@ class ValueObservationStatementColumnConvertibleTests: GRDBTestCase {
         
         var observation = ValueObservation.trackingAll(SQLRequest<Name>("SELECT name FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.start(observation) { names in
+        _ = try observation.start(in: dbQueue) { names in
             XCTAssert(names.allSatisfy { $0.fast })
             results.append(names)
             notificationExpectation.fulfill()
@@ -81,7 +81,7 @@ class ValueObservationStatementColumnConvertibleTests: GRDBTestCase {
         
         var observation = ValueObservation.trackingOne(SQLRequest<Name>("SELECT name FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.start(observation) { name in
+        _ = try observation.start(in: dbQueue) { name in
             if let name = name {
                 XCTAssert(name.fast)
             }
@@ -122,7 +122,7 @@ class ValueObservationStatementColumnConvertibleTests: GRDBTestCase {
         
         var observation = ValueObservation.trackingAll(SQLRequest<Name?>("SELECT name FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.start(observation) { names in
+        _ = try observation.start(in: dbQueue) { names in
             XCTAssert(names.allSatisfy { $0.map { $0.fast } ?? true })
             results.append(names)
             notificationExpectation.fulfill()

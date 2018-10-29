@@ -198,9 +198,9 @@ extension DatabaseWriter {
     
     // MARK: - Value Observation
     
-    public func start<Reducer: ValueReducer>(
-        _ observation: ValueObservation<Reducer>,
-        onError: ((Error) -> Void)? = nil,
+    public func add<Reducer: ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        onError: ((Error) -> Void)?,
         onChange: @escaping (Reducer.Value) -> Void)
         throws -> TransactionObserver
     {
@@ -278,7 +278,7 @@ extension DatabaseWriter {
 }
 
 extension ValueObservation where Reducer: ValueReducer {
-    /// Helper method for DatabaseWriter.start(_:onError:onChange:)
+    /// Helper method for DatabaseWriter.add(observation:onError:onChange:)
     fileprivate func fetch(_ db: Database) throws -> Reducer.Fetched {
         if isReadOnly {
             return try db.readOnly { try reducer.fetch(db) }
@@ -295,7 +295,7 @@ extension ValueObservation where Reducer: ValueReducer {
 
 
 /// Support for ValueObservation.
-/// See DatabaseWriter.start(_:onError:onChange:)
+/// See DatabaseWriter.add(observation:onError:onChange:)
 private class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
     private let region: DatabaseRegion
     private var reducer: Reducer
