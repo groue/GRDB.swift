@@ -6388,6 +6388,45 @@ let observer = dbQueue.start(observation) { teamInfo: TeamInfo? in
 }
 ```
 
+The initial parameter of the `ValueObservation.observing(_:fetch)` method can be fed with requests, and generally speaking, values that adopt the `DatabaseRegionConvertible` protocol.
+
+This allows you to encapsulate your complex requests in a dedicated type. Our example above can be rewritten as below:
+
+```swift
+struct TeamInfoRequest: DatabaseRegionConvertible {
+    var teamId: Int64
+    
+    private var teamRequest: QueryInterfaceRequest<Team> {
+        return Team.filter(key: teamId)
+    }
+    
+    private var playersRequest: QueryInterfaceRequest<Player> {
+        return Player.filter(Column("teamId") == teamId)
+    }
+    
+    // DatabaseRegionConvertible adoption
+    func databaseRegion(_ db: Database) throws -> DatabaseRegion {
+        let teamRegion = try teamRequest.databaseRegion(db)
+        let playersRegion = try playersRequest.databaseRegion(db)
+        return teamRegion.union(playersRequest)
+    }
+    
+    func fetch(_ db: Database) throws -> TeamInfo? {
+        guard let team = try teamRequest.fetchOne(db) else {
+            return nil
+        }
+        let players = try playersRequest.fetchAll(db)
+        return TeamInfo(team: team, players: players)
+    }
+}
+
+let request = TeamInfoRequest(teamId: 1)
+let observation = ValueObservation.observing(request, fetch: request.fetch)
+let observer = dbQueue.start(observation) { teamInfo: TeamInfo? in
+    print("Team and players have hanged.")
+}
+```
+
 
 ### ValueObservation Options
 
