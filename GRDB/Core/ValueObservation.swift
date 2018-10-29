@@ -22,7 +22,7 @@ public enum ValueScheduling {
     ///
     ///     // On main queue
     ///     let observation = ValueObservation.forAll(Player.all())
-    ///     let observer = try dbQueue.add(observation: observation) { players: [Player] in
+    ///     let observer = try dbQueue.start(observation) { players: [Player] in
     ///         print("fresh players: /(players)")
     ///     }
     ///     // <- here "fresh players" is already printed.
@@ -33,7 +33,7 @@ public enum ValueScheduling {
     ///     // Not on the main queue: "fresh players" is eventually printed
     ///     // on the main queue.
     ///     let observation = ValueObservation.forAll(Player.all())
-    ///     let observer = try dbQueue.add(observation: observation) { players: [Player] in
+    ///     let observer = try dbQueue.start(observation) { players: [Player] in
     ///         print("fresh players: /(players)")
     ///     }
     ///
@@ -303,7 +303,7 @@ public struct ValueObservation<Reducer> {
     ///
     ///         // On main queue
     ///         let observation = ValueObservation.forAll(Player.all())
-    ///         let observer = try dbQueue.add(observation: observation) { players: [Player] in
+    ///         let observer = try dbQueue.start(observation) { players: [Player] in
     ///             print("fresh players: /(players)")
     ///         }
     ///         // <- here "fresh players" is already printed.
@@ -314,7 +314,7 @@ public struct ValueObservation<Reducer> {
     ///         // Not on the main queue: "fresh players" is eventually printed
     ///         // on the main queue.
     ///         let observation = ValueObservation.forAll(Player.all())
-    ///         let observer = try dbQueue.add(observation: observation) { players: [Player] in
+    ///         let observer = try dbQueue.start(observation) { players: [Player] in
     ///             print("fresh players: /(players)")
     ///         }
     ///
@@ -364,18 +364,19 @@ public struct ValueObservation<Reducer> {
     ///         observing: Player.all(),
     ///         reducer: reducer)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { player: [Player] in
+    ///     let observer = try dbQueue.start(observation) { player: [Player] in
     ///         print("players have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -401,18 +402,19 @@ extension ValueObservation where Reducer == Void {
     ///         Player.all(),
     ///         fetch: { db in return try Player.fetchAll(db) })
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { player: [Player] in
+    ///     let observer = try dbQueue.start(observation) { player: [Player] in
     ///         print("players have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -438,18 +440,19 @@ extension ValueObservation where Reducer == Void {
     ///         withUniquing: Player.all(),
     ///         fetch: { db in return try Player.fetchAll(db) })
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { player: [Player] in
+    ///     let observer = try dbQueue.start(observation) { player: [Player] in
     ///         print("players have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -487,18 +490,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.all()
     ///     let observation = ValueObservation.forCount(request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { count: Int in
+    ///     let observer = try dbQueue.start(observation) { count: Int in
     ///         print("number of players has changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -520,18 +524,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.all()
     ///     let observation = ValueObservation.forCount(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { count: Int in
+    ///     let observer = try dbQueue.start(observation) { count: Int in
     ///         print("number of players has changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -557,18 +562,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = SQLRequest<Row>("SELECT * FROM player")
     ///     let observation = ValueObservation.forAll(request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { rows: [Row] in
+    ///     let observer = try dbQueue.start(observation) { rows: [Row] in
     ///         print("players have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -591,18 +597,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = SQLRequest<Row>("SELECT * FROM player")
     ///     let observation = ValueObservation.forAll(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { rows: [Row] in
+    ///     let observer = try dbQueue.start(observation) { rows: [Row] in
     ///         print("players have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -625,18 +632,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = SQLRequest<Row>("SELECT * FROM player WHERE id = ?", arguments: [1])
     ///     let observation = ValueObservation.forOne(request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { row: Row? in
+    ///     let observer = try dbQueue.start(observation) { row: Row? in
     ///         print("players have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -659,18 +667,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = SQLRequest<Row>("SELECT * FROM player WHERE id = ?", arguments: [1])
     ///     let observation = ValueObservation.forOne(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { row: Row? in
+    ///     let observer = try dbQueue.start(observation) { row: Row? in
     ///         print("players have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -698,18 +707,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.all()
     ///     let observation = ValueObservation.forAll(request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { players: [Player] in
+    ///     let observer = try dbQueue.start(observation) { players: [Player] in
     ///         print("players have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -733,18 +743,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.all()
     ///     let observation = ValueObservation.forAll(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { players: [Player] in
+    ///     let observer = try dbQueue.start(observation) { players: [Player] in
     ///         print("players have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -767,18 +778,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.filter(key: 1)
     ///     let observation = ValueObservation.forOne(request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { player: Player? in
+    ///     let observer = try dbQueue.start(observation) { player: Player? in
     ///         print("player has changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -801,18 +813,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.filter(key: 1)
     ///     let observation = ValueObservation.forOne(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { player: Player? in
+    ///     let observer = try dbQueue.start(observation) { player: Player? in
     ///         print("player has changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -840,18 +853,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.forAll(request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { names: [String] in
+    ///     let observer = try dbQueue.start(observation) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -875,18 +889,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.forAll(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { names: [String] in
+    ///     let observer = try dbQueue.start(observation) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -909,18 +924,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(max(Column("score")), as: Int.self)
     ///     let observation = ValueObservation.forOne(request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { maxScore: Int? in
+    ///     let observer = try dbQueue.start(observation) { maxScore: Int? in
     ///         print("maximum score has changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -943,18 +959,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(max(Column("score")), as: Int.self)
     ///     let observation = ValueObservation.forOne(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { maxScore: Int? in
+    ///     let observer = try dbQueue.start(observation) { maxScore: Int? in
     ///         print("maximum score has changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -982,18 +999,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.forAll(request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { names: [String] in
+    ///     let observer = try dbQueue.start(observation) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -1016,18 +1034,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(max(Column("score")), as: Int.self)
     ///     let observation = ValueObservation.forOne(request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { maxScore: Int? in
+    ///     let observer = try dbQueue.start(observation) { maxScore: Int? in
     ///         print("maximum score has changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -1055,18 +1074,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.forAll(request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { names: [String] in
+    ///     let observer = try dbQueue.start(observation) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -1091,18 +1111,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.forAll(withUniquing: request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { names: [String] in
+    ///     let observer = try dbQueue.start(observation) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///
@@ -1131,18 +1152,19 @@ extension ValueObservation where Reducer == Void {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = ValueObservation.forAll(request)
     ///
-    ///     let observer = try dbQueue.add(observation: observation) { names: [String] in
+    ///     let observer = try dbQueue.start(observation) { names: [String] in
     ///         print("player name have changed")
     ///     }
     ///
     /// The returned observation has the default configuration:
     ///
-    /// - When started with the `add(observation:)` method, a fresh value is
-    /// immediately notified on the dispatch queue which starts the observation.
+    /// - When started with the `start(_:onError:onChage:)` method, a fresh
+    /// value is immediately notified on the dispatch queue which starts
+    /// the observation.
     /// - Upon subsequent database changes, fresh values are notified on the
     /// main queue.
     /// - The observation lasts until the observer returned by
-    /// `add(observation:)` is deallocated.
+    /// `start` is deallocated.
     ///
     /// See ValueObservation for more information.
     ///

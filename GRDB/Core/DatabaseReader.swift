@@ -153,8 +153,8 @@ public protocol DatabaseReader : class {
     // MARK: - Value Observation
     
     /// TODO
-    func add<Reducer: ValueReducer>(
-        observation: ValueObservation<Reducer>,
+    func start<Reducer: ValueReducer>(
+        _ observation: ValueObservation<Reducer>,
         onError: ((Error) -> Void)?,
         onChange: @escaping (Reducer.Value) -> Void)
         throws -> TransactionObserver
@@ -241,12 +241,12 @@ public final class AnyDatabaseReader : DatabaseReader {
     // MARK: - Value Observation
     
     /// TODO
-    public func add<Reducer: ValueReducer>(
-        observation: ValueObservation<Reducer>,
+    public func start<Reducer: ValueReducer>(
+        _ observation: ValueObservation<Reducer>,
         onError: ((Error) -> Void)? = nil,
         onChange: @escaping (Reducer.Value) -> Void)
         throws -> TransactionObserver
     {
-        return try base.add(observation: observation, onError: onError, onChange: onChange)
+        return try base.start(observation, onError: onError, onChange: onChange)
     }
 }

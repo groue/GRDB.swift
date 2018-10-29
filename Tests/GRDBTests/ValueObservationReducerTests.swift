@@ -52,8 +52,8 @@ class ValueObservationReducerTests: GRDBTestCase {
         observation.extent = .databaseLifetime
 
         // Start observation
-        _ = try dbQueue.add(
-            observation: observation,
+        _ = try dbQueue.start(
+            observation,
             onError: {
                 errors.append($0)
                 notificationExpectation.fulfill()
@@ -124,8 +124,8 @@ class ValueObservationReducerTests: GRDBTestCase {
         // Start observation
         do {
             let dbQueue = try makeDatabaseQueue()
-            _ = try dbQueue.add(
-                observation: observation,
+            _ = try dbQueue.start(
+                observation,
                 onError: { _ in fatalError() },
                 onChange: { _ in fatalError() })
             XCTFail("Expected error")
@@ -161,8 +161,8 @@ class ValueObservationReducerTests: GRDBTestCase {
         observation.extent = .databaseLifetime
 
         // Start observation
-        _ = try dbQueue.add(
-            observation: observation,
+        _ = try dbQueue.start(
+            observation,
             onError: {
                 errors.append($0)
                 notificationExpectation.fulfill()

@@ -31,7 +31,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         })
         observation.extent = .databaseLifetime
         
-        _ = try dbQueue.add(observation: observation) { count in
+        _ = try dbQueue.start(observation) { count in
             XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
             counts.append(count)
             notificationExpectation.fulfill()
@@ -68,7 +68,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         observation.extent = .databaseLifetime
         
         DispatchQueue.global(qos: .default).async {
-            _ = try! dbQueue.add(observation: observation) { count in
+            _ = try! dbQueue.start(observation) { count in
                 XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
                 counts.append(count)
                 notificationExpectation.fulfill()
@@ -108,8 +108,8 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         var observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
         observation.extent = .databaseLifetime
         
-        _ = try dbQueue.add(
-            observation: observation,
+        _ = try dbQueue.start(
+            observation,
             onError: { error in
                 XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
                 errorCount += 1
@@ -150,7 +150,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         observation.extent = .databaseLifetime
         observation.scheduling = .onQueue(queue, startImmediately: true)
         
-        _ = try dbQueue.add(observation: observation) { count in
+        _ = try dbQueue.start(observation) { count in
             XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
             counts.append(count)
             notificationExpectation.fulfill()
@@ -184,7 +184,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         observation.extent = .databaseLifetime
         observation.scheduling = .onQueue(queue, startImmediately: false)
         
-        _ = try dbQueue.add(observation: observation) { count in
+        _ = try dbQueue.start(observation) { count in
             XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
             counts.append(count)
             notificationExpectation.fulfill()
@@ -220,8 +220,8 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         observation.extent = .databaseLifetime
         observation.scheduling = .onQueue(queue, startImmediately: false)
 
-        _ = try dbQueue.add(
-            observation: observation,
+        _ = try dbQueue.start(
+            observation,
             onError: { error in
                 XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
                 errorCount += 1

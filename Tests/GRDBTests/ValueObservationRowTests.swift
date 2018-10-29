@@ -24,7 +24,7 @@ class ValueObservationRowTests: GRDBTestCase {
         
         var observation = ValueObservation.forAll(SQLRequest<Row>("SELECT * FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { rows in
+        _ = try dbQueue.start(observation) { rows in
             results.append(rows)
             notificationExpectation.fulfill()
         }
@@ -58,7 +58,7 @@ class ValueObservationRowTests: GRDBTestCase {
         
         var observation = ValueObservation.forAll(withUniquing: SQLRequest<Row>("SELECT * FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { rows in
+        _ = try dbQueue.start(observation) { rows in
             results.append(rows)
             notificationExpectation.fulfill()
         }
@@ -91,7 +91,7 @@ class ValueObservationRowTests: GRDBTestCase {
         
         var observation = ValueObservation.forOne(SQLRequest<Row>("SELECT * FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { row in
+        _ = try dbQueue.start(observation) { row in
             results.append(row)
             notificationExpectation.fulfill()
         }
@@ -129,7 +129,7 @@ class ValueObservationRowTests: GRDBTestCase {
         
         var observation = ValueObservation.forOne(withUniquing: SQLRequest<Row>("SELECT * FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { row in
+        _ = try dbQueue.start(observation) { row in
             results.append(row)
             notificationExpectation.fulfill()
         }

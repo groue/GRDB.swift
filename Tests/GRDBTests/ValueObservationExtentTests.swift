@@ -38,7 +38,7 @@ class ValueObservationExtentTests: GRDBTestCase {
         observation.extent = .databaseLifetime
         
         // Start observation
-        _ = try dbQueue.add(observation: observation) {
+        _ = try dbQueue.start(observation) {
             notificationExpectation.fulfill()
         }
         
@@ -77,7 +77,7 @@ class ValueObservationExtentTests: GRDBTestCase {
         
         // Start observation and deallocate observer after second change
         var observer: TransactionObserver?
-        observer = try dbQueue.add(observation: observation) {
+        observer = try dbQueue.start(observation) {
             changesCount += 1
             if changesCount == 2 {
                 observer = nil
@@ -122,7 +122,7 @@ class ValueObservationExtentTests: GRDBTestCase {
         observation.extent = .nextTransaction
         
         // Start observation
-        let observer = try dbQueue.add(observation: observation) {
+        let observer = try dbQueue.start(observation) {
             notificationExpectation.fulfill()
         }
         

@@ -27,7 +27,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
             try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
         })
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { count in
+        _ = try dbQueue.start(observation) { count in
             counts.append(count)
             notificationExpectation.fulfill()
         }
@@ -50,8 +50,8 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         })
 
         do {
-            _ = try dbQueue.add(
-                observation: observation,
+            _ = try dbQueue.start(
+                observation,
                 onError: { _ in fatalError() },
                 onChange: { _ in fatalError() })
             XCTFail("Expected error")
@@ -80,7 +80,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         })
         observation.extent = .databaseLifetime
         observation.isReadOnly = false
-        _ = try dbQueue.add(observation: observation) { count in
+        _ = try dbQueue.start(observation) { count in
             counts.append(count)
             notificationExpectation.fulfill()
         }
@@ -107,8 +107,8 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         observation.isReadOnly = false
 
         do {
-            _ = try dbQueue.add(
-                observation: observation,
+            _ = try dbQueue.start(
+                observation,
                 onError: { _ in fatalError() },
                 onChange: { _ in fatalError() })
             XCTFail("Expected error")

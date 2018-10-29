@@ -38,7 +38,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         
         var observation = ValueObservation.forAll(SQLRequest<Player>("SELECT * FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { players in
+        _ = try dbQueue.start(observation) { players in
             results.append(players)
             notificationExpectation.fulfill()
         }
@@ -72,7 +72,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         
         var observation = ValueObservation.forAll(withUniquing: SQLRequest<Player>("SELECT * FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { players in
+        _ = try dbQueue.start(observation) { players in
             results.append(players)
             notificationExpectation.fulfill()
         }
@@ -105,7 +105,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         
         var observation = ValueObservation.forOne(SQLRequest<Player>("SELECT * FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { player in
+        _ = try dbQueue.start(observation) { player in
             results.append(player)
             notificationExpectation.fulfill()
         }
@@ -143,7 +143,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         
         var observation = ValueObservation.forOne(withUniquing: SQLRequest<Player>("SELECT * FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { player in
+        _ = try dbQueue.start(observation) { player in
             results.append(player)
             notificationExpectation.fulfill()
         }

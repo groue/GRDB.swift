@@ -39,7 +39,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         
         var observation = ValueObservation.forAll(SQLRequest<Name>("SELECT name FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { names in
+        _ = try dbQueue.start(observation) { names in
             results.append(names)
             notificationExpectation.fulfill()
         }
@@ -73,7 +73,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         
         var observation = ValueObservation.forAll(withUniquing: SQLRequest<Name>("SELECT name FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { names in
+        _ = try dbQueue.start(observation) { names in
             results.append(names)
             notificationExpectation.fulfill()
         }
@@ -106,7 +106,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         
         var observation = ValueObservation.forOne(SQLRequest<Name>("SELECT name FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { name in
+        _ = try dbQueue.start(observation) { name in
             results.append(name)
             notificationExpectation.fulfill()
         }
@@ -144,7 +144,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         
         var observation = ValueObservation.forOne(withUniquing: SQLRequest<Name>("SELECT name FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { name in
+        _ = try dbQueue.start(observation) { name in
             results.append(name)
             notificationExpectation.fulfill()
         }
@@ -181,7 +181,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         
         var observation = ValueObservation.forAll(SQLRequest<Name?>("SELECT name FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { names in
+        _ = try dbQueue.start(observation) { names in
             results.append(names)
             notificationExpectation.fulfill()
         }
@@ -215,7 +215,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         
         var observation = ValueObservation.forAll(withUniquing: SQLRequest<Name?>("SELECT name FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
-        _ = try dbQueue.add(observation: observation) { names in
+        _ = try dbQueue.start(observation) { names in
             results.append(names)
             notificationExpectation.fulfill()
         }

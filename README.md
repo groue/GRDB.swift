@@ -6221,8 +6221,8 @@ class PlayerViewController: UIViewController {
         do {
             // 3. Start observing the database, and store the returned observer
             // in a property
-            playerObserver = try dbQueue.add(
-                observation: observation,
+            playerObserver = try dbQueue.start(
+                observation,
                 onError: { error in
                     print("fresh values could not be fetched")
                 },
@@ -6239,7 +6239,7 @@ class PlayerViewController: UIViewController {
 When you are not interested in eventual refreshing errors, drop the `onError` callback:
 
 ```swift
-        playerObserver = try dbQueue.add(observation: observation) {
+        playerObserver = try dbQueue.start(observation) {
             [unowned self] player: Player? in
             self.nameLabel.text = player?.name
         }
@@ -6249,7 +6249,7 @@ All values are notified on the main queue: views can be updated right from the `
 
 An initial fetch is performed, and notified, as soon as the observation starts: the view is ready when `viewDidLoad` method returns.
 
-The view controller stores the observer returned by the `add(observation:onChange:)` method in a property. When the view controller is deallocated, so is the observer: the observation stops. Meanwhile, all transactions that impact the observed player are notified, and the `nameLabel` is kept up-to-date.
+The view controller stores the observer returned by the `start` method in a property. When the view controller is deallocated, so is the observer: the observation stops. Meanwhile, all transactions that impact the observed player are notified, and the `nameLabel` is kept up-to-date.
 
 
 ### `ValueObservation.forCount`, `.forOne`, `.forAll`
@@ -6271,7 +6271,7 @@ The `forCount` observation notifies counts:
 ```swift
 // Observe number of players
 let observation = ValueObservation.forCount(Player.all())
-let observer = try dbQueue.add(observation: observation) { count: Int in
+let observer = try dbQueue.start(observation) { count: Int in
     print("Number of players have changed: \(count)")
 }
 ```
@@ -6281,14 +6281,14 @@ The `forOne` observation notifies optional values, built from a single database 
 ```swift
 // Observe a single player
 let observation = ValueObservation.forOne(Player.filter(key: 1))
-let observer = try dbQueue.add(observation: observation) { player: Player? in
+let observer = try dbQueue.start(observation) { player: Player? in
     print("Player has changed: \(player)")
 }
 
 // Observe the maximum score
 let request = Player.select(max(Column("score")), as: Int.self)
 let observation = ValueObservation.forOne(request)
-let observer = try dbQueue.add(observation: observation) { maximumScore: Int? in
+let observer = try dbQueue.start(observation) { maximumScore: Int? in
     print("Maximum score has changed: \(maximumScore)")
 }
 ```
@@ -6299,14 +6299,14 @@ The `forAll` observation notifies arrays:
 ```swift
 // Observe all players
 let observation = ValueObservation.forAll(Player.all())
-let observer = try dbQueue.add(observation: observation) { players: [Player] in
+let observer = try dbQueue.start(observation) { players: [Player] in
     print("Players have changed: \(players)")
 }
 
 // Observe all player names
 let request = SQLRequest<String>("SELECT name FROM player")
 let observation = ValueObservation.forAll(request)
-let observer = try dbQueue.add(observation: observation) { names: [String] in
+let observer = try dbQueue.start(observation) { names: [String] in
     print("Players names have changed: \(names)")
 }
 ```
@@ -6323,11 +6323,9 @@ You can avoid notification of consecutive identical values with the `withUniquin
 // Observe the maximum score
 let request = Player.select(max(Column("score")), as: Int.self)
 let observation = ValueObservation.forOne(withUniquing: request)
-let observer = try dbQueue.add(
-    observation: observation,
-    onChange: { maximumScore: Int? in
-        print("Maximum score has (really) changed: \(maximumScore)")
-    })
+let observer = try dbQueue.start(observation) { maximumScore: Int? in
+    print("Maximum score has (really) changed: \(maximumScore)")
+}
 ```
 
 
@@ -6354,7 +6352,7 @@ let observation = ValueObservation.observing(
         return TeamInfo(team: team, players: players)
     })
 
-let observer = dbQueue.add(observation: observation) { teamInfo: TeamInfo? in
+let observer = dbQueue.start(observation) { teamInfo: TeamInfo? in
     print("team and players have changed.")
 }
 ```
@@ -6374,7 +6372,7 @@ let observation = ValueObservation.observing(
         return TeamInfo(team: team, players: players)
     })
 
-let observer = dbQueue.add(observation: observation) { teamInfo: TeamInfo? in
+let observer = dbQueue.start(observation) { teamInfo: TeamInfo? in
     print("team and players have (really) changed.")
 }
 ```
@@ -6390,7 +6388,7 @@ let observer = dbQueue.add(observation: observation) { teamInfo: TeamInfo? in
     // This observation lasts until the database connection is closed
     var observation = ValueObservation...
     observation.extent = .databaseLifetime
-    _ = dbQueue.add(observation: observation) { newValue in ... }
+    _ = dbQueue.start(observation) { newValue in ... }
     ```
     
     The default extent is `.observerLifetime`.
@@ -6406,7 +6404,7 @@ let observer = dbQueue.add(observation: observation) { teamInfo: TeamInfo? in
         ```swift
         // On main queue
         let observation = ValueObservation.forAll(Player.all())
-        let observer = try dbQueue.add(observation: observation) { players: [Player] in
+        let observer = try dbQueue.start(observation) { players: [Player] in
             print("fresh players: \(players)")
         }
         // <- here "fresh players" is already printed.
@@ -6418,7 +6416,7 @@ let observer = dbQueue.add(observation: observation) { teamInfo: TeamInfo? in
         // Not on the main queue: "fresh players" is eventually printed
         // on the main queue.
         let observation = ValueObservation.forAll(Player.all())
-        let observer = try dbQueue.add(observation: observation) { players: [Player] in
+        let observer = try dbQueue.start(observation) { players: [Player] in
             print("fresh players: \(players)")
         }
         ```
@@ -6438,7 +6436,7 @@ let observer = dbQueue.add(observation: observation) { teamInfo: TeamInfo? in
         let customQueue = DispatchQueue(label: "customQueue")
         var observation = ValueObservation.forAll(Player.all())
         observation.scheduling = .onQueue(customQueue, startImmediately: true)
-        let observer = try dbQueue.add(observation: observation) { players: [Player] in
+        let observer = try dbQueue.start(observation) { players: [Player] in
             // in customQueue
             print("fresh players: \(players)")s
         }

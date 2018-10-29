@@ -101,8 +101,8 @@ extension DatabaseSnapshot {
     
     // MARK: - Value Observation
     
-    public func add<Reducer: ValueReducer>(
-        observation: ValueObservation<Reducer>,
+    public func start<Reducer: ValueReducer>(
+        _ observation: ValueObservation<Reducer>,
         onError: ((Error) -> Void)? = nil,
         onChange: @escaping (Reducer.Value) -> Void)
         throws -> TransactionObserver
@@ -137,7 +137,7 @@ extension DatabaseSnapshot {
 }
 
 /// An observer that does nothing, support for
-/// `DatabaseSnapshot.add(observation:onError:onChange:)`.
+/// `DatabaseSnapshot.start(_:onError:onChange:)`.
 private class SnapshotValueObserver: TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return false }
     func databaseDidChange(with event: DatabaseEvent) { }
