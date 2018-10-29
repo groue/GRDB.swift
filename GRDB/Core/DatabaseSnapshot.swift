@@ -1,3 +1,5 @@
+import Dispatch
+
 /// A DatabaseSnapshot sees an unchanging database content, as it existed at the
 /// moment it was created.
 ///
