@@ -6406,7 +6406,7 @@ struct TeamInfoRequest: DatabaseRegionConvertible {
     func databaseRegion(_ db: Database) throws -> DatabaseRegion {
         let teamRegion = try teamRequest.databaseRegion(db)
         let playersRegion = try playersRequest.databaseRegion(db)
-        return teamRegion.union(playersRequest)
+        return teamRegion.union(playersRegion)
     }
     
     func fetch(_ db: Database) throws -> TeamInfo? {
