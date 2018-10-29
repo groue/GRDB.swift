@@ -73,6 +73,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         notificationExpectation.expectedFulfillmentCount = 2
         
         var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db -> Int in
+            XCTAssert(db.isInsideTransaction, "expected a wrapping transaction")
             try db.execute("CREATE TEMPORARY TABLE temp AS SELECT * FROM t")
             let result = try Int.fetchOne(db, "SELECT COUNT(*) FROM temp")!
             try db.execute("DROP TABLE temp")
