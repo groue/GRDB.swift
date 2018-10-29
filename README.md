@@ -6235,7 +6235,7 @@ class PlayerViewController: UIViewController {
     }
     
     override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+        super.viewWillDisappear(animated)
         
         // Stop observing the database
         playerObserver = nil
@@ -6243,7 +6243,7 @@ class PlayerViewController: UIViewController {
 }
 ```
 
-When you are not interested in eventual refreshing errors, drop the `onError` callback:
+When you are not interested in eventual errors, drop the `onError` callback:
 
 ```swift
         playerObserver = try dbQueue.start(observation) {
@@ -6256,7 +6256,7 @@ All values are notified on the main queue: views can be updated right from the `
 
 An initial fetch is performed as soon as the observation starts: the view is set up and ready when the `viewWillAppear` method returns.
 
-The view controller stores the observer returned by the `start` method in a property in order to control the duration of the observation. When the observed is deallocated, the observation stops. Meanwhile, all transactions that impact the observed player are notified, and the `nameLabel` is kept up-to-date.
+The view controller stores the observer returned by the `start` method in a property. This allows the view controller to control the duration of the observation. When the observed is deallocated, the observation stops. Meanwhile, all transactions that impact the observed player are notified, and the `nameLabel` is kept up-to-date.
 
 
 ### `ValueObservation.trackingCount`, `trackingOne`, `trackingAll`
@@ -6325,7 +6325,7 @@ For example, if you observe `Player.select(max(Column("score")))`, then you'll g
 You can avoid notification of consecutive identical values with the `withUniquing` variant. It performs deduplication at the database level, by comparing raw database values:
 
 ```swift
-// Observe the maximum score
+// Observe the maximum score (with uniquing)
 let request = Player.select(max(Column("score")), as: Int.self)
 let observation = ValueObservation.trackingOne(withUniquing: request)
 let observer = try dbQueue.start(observation) { maximumScore: Int? in
@@ -6336,12 +6336,12 @@ let observer = try dbQueue.start(observation) { maximumScore: Int? in
 
 ### `ValueObservation.tracking(_:fetch:)`
 
-Sometimes you need to observe several requests at the same time, and be notified of **consistent** values. For example, you need to observe changes on both a team and its players.
+Sometimes you need to observe several requests at the same time. For example, you need to observe changes in both a team and its players.
 
-When this happens, you create a ValueObservation with two parameters: one is the observed database region, and the other is a closure that fetches fresh values whenever the observed region is modified:
+When this happens, you create a ValueObservation with two parameters. The first parameter is the list of observed requests. The other parameter is a closure that fetches fresh values whenever the observed requests are modified. This fetch closure is guaranteed an immutable view of the last committed state of the database: this means that fetched values are **consistent**. For example:
 
 ```swift
-// The two observed requests
+// The two observed requests (the team and its players)
 let teamRequest = Team.filter(key: 1)
 let playersRequest = Player.filter(Column("teamId") == 1)
 
@@ -6386,9 +6386,9 @@ let observer = dbQueue.start(observation) { teamInfo: TeamInfo? in
 }
 ```
 
-The initial parameter of the `ValueObservation.tracking(_:fetch:)` method can be fed with requests, and generally speaking, values that adopt the `DatabaseRegionConvertible` protocol.
+The initial parameter of the `ValueObservation.tracking(_:fetch:)` method can be fed with requests, and generally speaking, values that adopt the **DatabaseRegionConvertible** protocol.
 
-This allows you to encapsulate your complex requests in a dedicated type. Our example above can be rewritten as below:
+Use this protocol when you want to encapsulate your complex requests in a dedicated type. Our example above can be rewritten as below:
 
 ```swift
 struct TeamInfoRequest: DatabaseRegionConvertible {
