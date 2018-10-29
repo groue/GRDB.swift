@@ -186,4 +186,44 @@ class ValueObservationReducerTests: GRDBTestCase {
         XCTAssertEqual(errors.count, 1)
         XCTAssertEqual(changes.count, 2)
     }
+    
+    func testReadMeReducer() throws {
+        // Test for the reducer documented in the main README
+        
+        // We need something to change
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        
+        // Track reducer proceess
+        var counts: [Int] = []
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 2
+        
+        // The reducer
+        var count = 0
+        let reducer = AnyValueReducer(
+            fetch: { _ in /* don't fetch anything */ },
+            value: { _ -> Int? in
+                count += 1
+                return count
+        })
+        
+        // Create an observation
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+        observation.extent = .databaseLifetime
+        
+        // Start observation
+        _ = try dbQueue.start(observation) { count in
+            counts.append(count)
+            notificationExpectation.fulfill()
+        }
+        
+        try dbQueue.write { db in
+            try db.execute("INSERT INTO t DEFAULT VALUES")
+        }
+        
+        waitForExpectations(timeout: 1, handler: nil)
+        XCTAssertEqual(counts, [1, 2])
+    }
 }
