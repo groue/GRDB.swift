@@ -6336,7 +6336,7 @@ let observer = try dbQueue.start(observation) { maximumScore: Int? in
 ```
 
 
-### `ValueObservation.observing(_:fetch)`
+### `ValueObservation.observing(_:fetch:)`
 
 Sometimes you need to observe several requests at the same time, and be notified of **consistent** values. For example, you need to observe changes on both a team and its players.
 
@@ -6424,6 +6424,46 @@ let request = TeamInfoRequest(teamId: 1)
 let observation = ValueObservation.observing(request, fetch: request.fetch)
 let observer = dbQueue.start(observation) { teamInfo: TeamInfo? in
     print("Team and players have hanged.")
+}
+```
+
+See [DatabaseRegion](#databaseregion) for more information.
+
+
+### `ValueObservation.observing(_:reducer:)`
+
+The most general way to define a ValueObservation is to create one from an observed database region (see above), and a **reducer** that adopts the ValueReducer protocol:
+
+```swift
+protocol ValueReducer {
+    associatedtype Fetched
+    associatedtype Value
+    
+    /// Fetch a database value
+    func fetch(_ db: Database) throws -> Fetched
+    
+    /// Outputs an notified value
+    mutating func value(_ fetched: Fetched) -> Value?
+}
+```
+
+The `fetch` method is called upon changes in the observed [database region](#databaseregion). It runs inside a dispatch queue which can access the database.
+
+The `value` method transforms a fetched value into a notified value. It returns nil if the observer should not be notified. This method runs inside a private dispatch queue.
+
+The sample code below counts the number of times the database is modified:
+
+```swift
+var count = 0
+let reducer = AnyValueReducer(
+    fetch: { _ in /* don't fetch anything */ },
+    value: { _ -> Int? in
+        count += 1
+        return count
+    })
+let observation = ValueObservation.observing(DatabaseRegion.fullDatabase, reducer: reducer)
+let observer = try dbQueue.start(observation) { count: Int in
+    print("The database has been modified \(count) times.")
 }
 ```
 
