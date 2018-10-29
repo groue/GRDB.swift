@@ -6556,21 +6556,6 @@ The `scheduling` property lets you control how fresh values are notified:
     }
     ```
 
-- `unsafe(startImmediately:)`: each value is notified on an unspecified dispatch queue, which may be different for each notified value.
-    
-    If `startImmediately` is true, an initial value is notified right upon subscription, synchronously.
-    
-    ```swift
-    // On any queue
-    var observation = ValueObservation.trackingAll(Player.all())
-    observation.scheduling = .unsafe(startImmediately: true)
-    let observer = try dbQueue.start(observation) { players: [Player] in
-        // in an unspecified queue
-        print("fresh players: \(players)")
-    }
-    // <- here "fresh players" is already printed.
-    ```
-
 - `unsafe(startImmediately:)`: values are not all notified on the same dispatch queue.
     
     If `startImmediately` is true, an initial value is notified right upon subscription, synchronously, on the dispatch queue which starts the observation.
