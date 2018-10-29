@@ -6338,16 +6338,20 @@ let observer = try dbQueue.start(observation) { maximumScore: Int? in
 
 ### `ValueObservation.observing(_:fetch)`
 
-Sometimes you need to observe several requests at the same time, and be notified of **consistent** values. For example, you need to observe changes on both a team and its players:
+Sometimes you need to observe several requests at the same time, and be notified of **consistent** values. For example, you need to observe changes on both a team and its players.
+
+When this happens, you create a ValueObservation with two parameters: one is the observed database region, and the other is a closure that fetches fresh values whenever the observed region is modified:
 
 ```swift
+// The two observed requests
+let teamRequest = Team.filter(key: 1)
+let playersRequest = Player.filter(Column("teamId") == 1)
+
+// The fetched value
 struct TeamInfo {
     var team: Team
     var players: [Player]
 }
-
-let teamRequest = Team.filter(key: 1)
-let playersRequest = Player.filter(Column("teamId") == 1)
 
 let observation = ValueObservation.observing(
     teamRequest, playersRequest,
@@ -6360,11 +6364,11 @@ let observation = ValueObservation.observing(
     })
 
 let observer = dbQueue.start(observation) { teamInfo: TeamInfo? in
-    print("team and players have changed.")
+    print("Team and players have changed.")
 }
 ```
 
-You can avoid notification of consecutive identical values with the `withUniquing` variant. It requires the fetched type to be Equatable:
+You can avoid notification of consecutive identical values with the `withUniquing` variant. It requires the fetched value to adopt the Equatable protocol:
 
 ```swift
 extension TeamInfo: Equatable { ... }
@@ -6380,7 +6384,7 @@ let observation = ValueObservation.observing(
     })
 
 let observer = dbQueue.start(observation) { teamInfo: TeamInfo? in
-    print("team and players have (really) changed.")
+    print("Team and players have (really) changed.")
 }
 ```
 
