@@ -6482,6 +6482,16 @@ let observer = try dbQueue.start(observation) { count: Int in
     ```
     
     The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deallocated.
+    
+    Regardless of the extent of an observation, you can always stop observation with the `remove(transactionObserver:)` method:
+    
+    ```swift
+    // Start
+    let observer = dbQueue.start(observation) { ... }
+    
+    // Stop
+    dbQueue.remove(transactionObserver: observer)
+    ```
 
 - **`scheduling`**
     
