@@ -571,9 +571,7 @@ extension ValueObservation where Reducer == Void {
     public static func trackingCount<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.Raw<Int>>
     {
-        return ValueObservation<ValueReducers.Raw<Int>>(
-            tracking: request.databaseRegion,
-            reducer: ValueReducers.Raw(request.fetchCount))
+        return ValueObservation.tracking(request, fetch: request.fetchCount)
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -605,9 +603,7 @@ extension ValueObservation where Reducer == Void {
     public static func trackingCount<Request: FetchRequest>(withUniquing request: Request)
         -> ValueObservation<ValueReducers.Unique<Int>>
     {
-        return ValueObservation<ValueReducers.Unique<Int>>(
-            tracking: request.databaseRegion,
-            reducer: ValueReducers.Unique(request.fetchCount))
+        return ValueObservation.tracking(withUniquing: request, fetch: request.fetchCount)
     }
 }
 
@@ -644,9 +640,7 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Raw<[Row]>>
         where Request.RowDecoder == Row
     {
-        return ValueObservation<ValueReducers.Raw<[Row]>>(
-            tracking: request.databaseRegion,
-            reducer: ValueReducers.Raw(request.fetchAll))
+        return ValueObservation.tracking(request, fetch: request.fetchAll)
     }
 
     /// Creates a ValueObservation which observes *request*, and notifies
@@ -679,9 +673,7 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Unique<[Row]>>
         where Request.RowDecoder == Row
     {
-        return ValueObservation<ValueReducers.Unique<[Row]>>(
-            tracking: request.databaseRegion,
-            reducer: ValueReducers.Unique(request.fetchAll))
+        return ValueObservation.tracking(withUniquing: request, fetch: request.fetchAll)
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -714,9 +706,7 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Raw<Row?>>
         where Request.RowDecoder == Row
     {
-        return ValueObservation<ValueReducers.Raw<Row?>>(
-            tracking: request.databaseRegion,
-            reducer: ValueReducers.Raw(request.fetchOne))
+        return ValueObservation.tracking(request, fetch: request.fetchOne)
     }
 
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -749,9 +739,7 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Unique<Row?>>
         where Request.RowDecoder == Row
     {
-        return ValueObservation<ValueReducers.Unique<Row?>>(
-            tracking: request.databaseRegion,
-            reducer: ValueReducers.Unique(request.fetchOne))
+        return ValueObservation.tracking(withUniquing: request, fetch: request.fetchOne)
     }
 }
 
@@ -789,9 +777,7 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>
         where Request.RowDecoder: FetchableRecord
     {
-        return ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>(
-            tracking: request.databaseRegion,
-            reducer: ValueReducers.Raw(request.fetchAll))
+        return ValueObservation.tracking(request, fetch: request.fetchAll)
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies
@@ -825,8 +811,8 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.UniqueRecords<Request.RowDecoder>>
         where Request.RowDecoder: FetchableRecord
     {
-        return ValueObservation<ValueReducers.UniqueRecords<Request.RowDecoder>>(
-            tracking: request.databaseRegion,
+        return ValueObservation<ValueReducers.UniqueRecords<Request.RowDecoder>>.tracking(
+            request,
             reducer: ValueReducers.UniqueRecords { try Row.fetchAll($0, request) })
     }
     
@@ -860,9 +846,7 @@ extension ValueObservation where Reducer == Void {
         ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>
         where Request.RowDecoder: FetchableRecord
     {
-        return ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>(
-            tracking: request.databaseRegion,
-            reducer: ValueReducers.Raw(request.fetchOne))
+        return ValueObservation.tracking(request, fetch: request.fetchOne)
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -895,8 +879,8 @@ extension ValueObservation where Reducer == Void {
         ValueObservation<ValueReducers.UniqueRecord<Request.RowDecoder>>
         where Request.RowDecoder: FetchableRecord
     {
-        return ValueObservation<ValueReducers.UniqueRecord<Request.RowDecoder>>(
-            tracking: request.databaseRegion,
+        return ValueObservation<ValueReducers.UniqueRecord<Request.RowDecoder>>.tracking(
+            request,
             reducer: ValueReducers.UniqueRecord { try Row.fetchOne($0, request) })
     }
 }
@@ -935,9 +919,7 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>
         where Request.RowDecoder: DatabaseValueConvertible
     {
-        return ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>(
-            tracking: request.databaseRegion,
-            reducer: ValueReducers.Raw(request.fetchAll))
+        return ValueObservation.tracking(request, fetch: request.fetchAll)
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies
@@ -971,8 +953,8 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.UniqueValues<Request.RowDecoder>>
         where Request.RowDecoder: DatabaseValueConvertible
     {
-        return ValueObservation<ValueReducers.UniqueValues<Request.RowDecoder>>(
-            tracking: request.databaseRegion,
+        return ValueObservation<ValueReducers.UniqueValues<Request.RowDecoder>>.tracking(
+            request,
             reducer: ValueReducers.UniqueValues { try DatabaseValue.fetchAll($0, request) })
     }
     
@@ -1006,9 +988,7 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>
         where Request.RowDecoder: DatabaseValueConvertible
     {
-        return ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>(
-            tracking: request.databaseRegion,
-            reducer: ValueReducers.Raw(request.fetchOne))
+        return ValueObservation.tracking(request, fetch: request.fetchOne)
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -1041,8 +1021,8 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.UniqueValue<Request.RowDecoder>>
         where Request.RowDecoder: DatabaseValueConvertible
     {
-        return ValueObservation<ValueReducers.UniqueValue<Request.RowDecoder>>(
-            tracking: request.databaseRegion,
+        return ValueObservation<ValueReducers.UniqueValue<Request.RowDecoder>>.tracking(
+            request,
             reducer: ValueReducers.UniqueValue { try DatabaseValue.fetchOne($0, request) })
     }
 }
@@ -1081,9 +1061,7 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>
         where Request.RowDecoder: DatabaseValueConvertible & StatementColumnConvertible
     {
-        return ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>(
-            tracking: request.databaseRegion,
-            reducer: ValueReducers.Raw(request.fetchAll))
+        return ValueObservation.tracking(request, fetch: request.fetchAll)
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -1116,9 +1094,7 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>
         where Request.RowDecoder: DatabaseValueConvertible & StatementColumnConvertible
     {
-        return ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>(
-            tracking: request.databaseRegion,
-            reducer: ValueReducers.Raw(request.fetchOne))
+        return ValueObservation.tracking(request, fetch: request.fetchOne)
     }
 }
 
@@ -1157,9 +1133,7 @@ extension ValueObservation where Reducer == Void {
         where Request.RowDecoder: _OptionalProtocol,
         Request.RowDecoder._Wrapped: DatabaseValueConvertible
     {
-        return ValueObservation<ValueReducers.Raw<[Request.RowDecoder._Wrapped?]>>(
-            tracking: request.databaseRegion,
-            reducer: ValueReducers.Raw(request.fetchAll))
+        return ValueObservation.tracking(request, fetch: request.fetchAll)
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies
@@ -1194,8 +1168,8 @@ extension ValueObservation where Reducer == Void {
         where Request.RowDecoder: _OptionalProtocol,
         Request.RowDecoder._Wrapped: DatabaseValueConvertible
     {
-        return ValueObservation<ValueReducers.UniqueOptionalValues<Request.RowDecoder._Wrapped>>(
-            tracking: request.databaseRegion,
+        return ValueObservation<ValueReducers.UniqueOptionalValues<Request.RowDecoder._Wrapped>>.tracking(
+            request,
             reducer: ValueReducers.UniqueOptionalValues { try DatabaseValue.fetchAll($0, request) })
     }
 }
@@ -1235,8 +1209,6 @@ extension ValueObservation where Reducer == Void {
         where Request.RowDecoder: _OptionalProtocol,
         Request.RowDecoder._Wrapped: DatabaseValueConvertible & StatementColumnConvertible
     {
-        return ValueObservation<ValueReducers.Raw<[Request.RowDecoder._Wrapped?]>>(
-            tracking: request.databaseRegion,
-            reducer: ValueReducers.Raw(request.fetchAll))
+        return ValueObservation.tracking(request, fetch: request.fetchAll)
     }
 }
