@@ -433,24 +433,6 @@ public struct ValueObservation<Reducer> {
     }
 }
 
-extension ValueObservation where Reducer: ValueReducer {
-    /// Starts the value observation in the provided database reader (such as
-    /// a database queue or database pool).
-    ///
-    /// - parameter observation: the stared observation
-    /// - parameter onError: a closure that is provided by eventual errors that happen
-    /// during observation
-    /// - parameter onChange: a closure that is provided fresh values
-    /// - returns: a TransactionObserver
-    public func start(
-        in reader: DatabaseReader,
-        onError: ((Error) -> Void)? = nil,
-        onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
-    {
-        return try reader.add(observation: self, onError: onError, onChange: onChange)
-    }
-}
-
 extension ValueObservation where Reducer == Void {
     /// Creates a ValueObservation which observes *regions*, and notifies the
     /// values returned by the *fetch* closure whenever one of the observed
@@ -538,6 +520,25 @@ private func union(_ regions: [DatabaseRegionConvertible]) -> (Database) throws 
     }
 }
 
+// MARK: - Starting Observation
+
+extension ValueObservation where Reducer: ValueReducer {
+    /// Starts the value observation in the provided database reader (such as
+    /// a database queue or database pool).
+    ///
+    /// - parameter observation: the stared observation
+    /// - parameter onError: a closure that is provided by eventual errors that happen
+    /// during observation
+    /// - parameter onChange: a closure that is provided fresh values
+    /// - returns: a TransactionObserver
+    public func start(
+        in reader: DatabaseReader,
+        onError: ((Error) -> Void)? = nil,
+        onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
+    {
+        return try reader.add(observation: self, onError: onError, onChange: onChange)
+    }
+}
 
 // MARK: - Count Observation
 
