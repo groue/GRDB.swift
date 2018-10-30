@@ -6567,6 +6567,8 @@ The `scheduling` property lets you control how fresh values are notified:
     ```
     
     When the database changes, other values are notified on unspecified queues.
+    
+    > :point_up: **Note**: this unsafe mode is intended for third-party libraries that provide their own scheduling engine.
 
 
 #### ValueObservation.isReadOnly
