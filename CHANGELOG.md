@@ -30,7 +30,7 @@ It is also highly configurable, and aims at providing support for any third-part
 
 ### Documentation Diff
 
-- [ValueObservation](Documentation/AssociationsBasics.md#valueobservation): this new chapter describes the new way to observe database values.
+- [ValueObservation](README.md#valueobservation): this new chapter describes the new way to observe database values.
 
 
 ### API diff
