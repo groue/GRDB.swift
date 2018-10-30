@@ -28,6 +28,11 @@ It is also highly configurable, and aims at providing support for any third-part
 - It used to be possible to define custom types that adopt the DatabaseReader and DatabaseWriter protocols, with a major drawback: it was impossible to add concurrency-related APIs to GRDB without breaking user code. Now all types that adopt those protocols are defined by GRDB: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. **Expanding this set is no longer supported.**
 
 
+### Documentation Diff
+
+- [ValueObservation](Documentation/AssociationsBasics.md#valueobservation): this new chapter describes the new way to observe database values.
+
+
 ### API diff
 
 ```diff
