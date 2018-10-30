@@ -3,10 +3,119 @@ Release Notes
 
 ## Next Version
 
-### Breaking Changes
+This release comes with **ValueObservation**, a new type which can track the results of database requests, and notifies fresh values each time the database changes.
 
-- The DatabaseReader and DatabaseWriter protocols have changed in a way that is compatible with your current code, except with your eventual custom types that implement those protocols. Only five types provided by GRDB adopt those protocols: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. Expanding this set is no longer supported.
+ValueObservation provides convenient APIs for applications:
 
+```swift
+let observer = ValueObversation
+    .trackingOne(Player.filter(key: 42))
+    .start(in: dbQueue) { player: Player? in
+        print("Player has changed")
+    }
+```
+
+It is also highly configurable, and aims at providing support for any third-party code that needs to react to database changes. For example, [RxSwiftCommunity/RxGRDB#46](https://github.com/RxSwiftCommunity/RxGRDB/pull/46) is the pull request which implements RxGRDB, the companion library based on [RxSwift](https://github.com/ReactiveX/RxSwift), on top of ValueObservation.
+
+
+### New
+
+- [#435](https://github.com/groue/GRDB.swift/pull/435): Improved support for values observation
+
+
+### Fixed
+
+- It used to be possible to define custom types that adopt the DatabaseReader and DatabaseWriter protocols, with a major drawback: it was impossible to add concurrency-related APIs to GRDB without breaking user code. Now all types that adopt those protocols are defined by GRDB: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. **Expanding this set is no longer supported.**
+
+
+### API diff
+
+```diff
+ protocol DatabaseReader: class {
++    func add<Reducer: ValueReducer>(
++        observation: ValueObservation<Reducer>,
++        onError: ((Error) -> Void)?,
++        onChange: @escaping (Reducer.Value) -> Void)
++        throws -> TransactionObserver
++    func remove(transactionObserver: TransactionObserver)
+ }
+ 
+ protocol DatabaseWriter: DatabaseReader {
+-    func remove(transactionObserver: TransactionObserver)
+ }
+
++protocol DatabaseRegionConvertible {
++    func databaseRegion(_ db: Database) throws -> DatabaseRegion
++}
+
++extension DatabaseRegion: DatabaseRegionConvertible { }
+
++struct AnyDatabaseRegionConvertible: DatabaseRegionConvertible {
++    init(_ region: @escaping (Database) throws -> DatabaseRegion)
++    init(_ region: DatabaseRegionConvertible)
++}
+
+-protocol FetchRequest { ... }
++protocol FetchRequest: DatabaseRegionConvertible { ... }
+
++enum ValueScheduling {
++    case mainQueue
++    case onQueue(DispatchQueue, startImmediately: Bool)
++    case unsafe(startImmediately: Bool)
++}
+
++protocol ValueReducer {
++    associatedtype Fetched
++    associatedtype Value
++    func fetch(_ db: Database) throws -> Fetched
++    mutating func value(_ fetched: Fetched) -> Value?
++}
+
++struct AnyValueReducer<Fetched, Value>: ValueReducer {
++    init(fetch: @escaping (Database) throws -> Fetched, value: @escaping (Fetched) -> Value?)
++    init<Reducer: ValueReducer>(_ reducer: Reducer) where Reducer.Fetched == Fetched, Reducer.Value == Value
++}
+
++struct ValueObservation<Reducer> {
++    var isReadOnly: Bool
++    var extent: Database.TransactionObservationExtent
++    var scheduling: ValueScheduling
++    static func tracking(_ regions: DatabaseRegionConvertible..., reducer: Reducer) -> ValueObservation
++}
+
++extension ValueObservation where Reducer: ValueReducer {
++    public func start(
++        in reader: DatabaseReader,
++        onError: ((Error) -> Void)? = nil,
++        onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
++}
+
++extension ValueObservation where Reducer == Void {
++    static func tracking<Value>(
++        _ regions: DatabaseRegionConvertible...,
++        fetch: @escaping (Database) throws -> Value)
++        -> ValueObservation<ValueReducers.Raw<Value>>
++    static func tracking<Value>(
++        withUniquing regions: DatabaseRegionConvertible...,
++        fetch: @escaping (Database) throws -> Value)
++        -> ValueObservation<ValueReducers.Unique<Value>>
++        where Value: Equatable
++
++    static func trackingCount<Request: FetchRequest>(_ request: Request)
++        -> ValueObservation<ValueReducers.Raw<Int>>
++    static func trackingCount<Request: FetchRequest>(withUniquing request: Request)
++        -> ValueObservation<ValueReducers.Unique<Int>>
++
++    static func trackingAll<Request: FetchRequest>(_ request: Request)
++        -> ValueObservation<ValueReducers.Raw<[Row]>>
++    static func trackingAll<Request: FetchRequest>(withUniquing request: Request)
++        -> ValueObservation<ValueReducers.Unique<[Row]>>
++    static func trackingOne<Request: FetchRequest>(_ request: Request)
++        -> ValueObservation<ValueReducers.Raw<Row?>>
++    static func trackingOne<Request: FetchRequest>(withUniquing request: Request)
++        -> ValueObservation<ValueReducers.Unique<Row?>>
++}
+```
 
 ## 3.4.0
 
