@@ -6172,7 +6172,7 @@ try dbQueue.write { db in
 }
 ```
 
-Beware that a region notifies *potential* changes, not *actual* changes in the results of a request. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
+A region notifies *potential* changes, not *actual* changes in the results of a request. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
 
 For example, if you observe the region of `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
 
@@ -6237,7 +6237,7 @@ All values are notified on the main queue: views can be updated right from the c
 
 An initial fetch is performed as soon as the observation starts: the view is set up and ready when the `viewWillAppear` method returns.
 
-The view controller stores the observer returned by the `start` method in a property. This allows the view controller to control the duration of the observation. When the observed is deallocated, the observation stops. Meanwhile, all transactions that impact the observed player are notified, and the `nameLabel` is kept up-to-date.
+The view controller stores the observer returned by the `start` method in a property. This allows the view controller to control the duration of the observation. When the observer is deallocated, the observation stops. Meanwhile, all transactions that impact the observed player are notified, and the `nameLabel` is kept up-to-date.
 
 - [ValueObservation.trackingCount, trackingOne, trackingAll](#valueobservationtrackingcount-trackingone-trackingall)
 - [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
@@ -6310,7 +6310,7 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
         }
     ```
 
-Beware that by default, a ValueObservation notifies *potential* changes, not *actual* changes in the results of a request. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
+By default, a ValueObservation notifies *potential* changes, not *actual* changes in the results of a request. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
 
 For example, if you observe `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
 
@@ -6331,7 +6331,14 @@ let observer = ValueObservation
 
 Sometimes you need to observe several requests at the same time. For example, you need to observe changes in both a team and its players.
 
-When this happens, you create a ValueObservation with two parameters. The first parameter is the list of observed requests. The other parameter is a closure that fetches fresh values whenever the observed requests are modified. This fetch closure is guaranteed an immutable view of the last committed state of the database: this means that fetched values are **consistent**. For example:
+When this happens, you create a ValueObservation with the `ValueObservation.tracking(_:fetch:)` method, which accepts two parameters:
+
+1. The list of observed requests.
+2. A closure that fetches a fresh value whenever one of the observed requests are modified.
+
+The fetch closure is guaranteed an immutable view of the last committed state of the database: this means that fetched values are **consistent**.
+
+For example:
 
 ```swift
 // The two observed requests (the team and its players)
