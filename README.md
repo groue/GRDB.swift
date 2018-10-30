@@ -6336,7 +6336,7 @@ When this happens, you create a ValueObservation with the `ValueObservation.trac
 1. The list of observed requests.
 2. A closure that fetches a fresh value whenever one of the observed requests are modified.
 
-The fetch closure is guaranteed an immutable view of the last committed state of the database: this means that fetched values are **consistent**.
+The fetch closure is granted an immutable view of the last committed state of the database: this means that fetched values are guaranteed to be **consistent**.
 
 For example:
 
