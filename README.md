@@ -55,11 +55,11 @@ See [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md) if you are looking for your
 GRDB ships with:
 
 - [Access to raw SQL and SQLite](#sqlite-api)
-- [Records](#records): fetching and persistence methods for your custom structs and class hierarchies
-- [Query Interface](#the-query-interface): a swift way to avoid the SQL language
-- [WAL Mode Support](#database-pools): extra performance for multi-threaded applications
-- [Migrations](#migrations): transform your database as your application evolves
-- [Database Observation](#database-changes-observation): track database transactions, get notified of database changes
+- [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
+- [Query Interface](#the-query-interface): A swift way to avoid the SQL language.
+- [WAL Mode Support](#database-pools): Extra performance for multi-threaded applications.
+- [Migrations](#migrations): Transform your database as your application evolves.
+- [Database Observation](#database-changes-observation): Observe database changes and transactions.
 - [Full-Text Search](#full-text-search)
 - [Encryption](#encryption)
 - [Support for Custom SQLite Builds](Documentation/CustomSQLiteBuilds.md)
@@ -262,7 +262,7 @@ Documentation
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Full-Text Search](#full-text-search): Perform efficient and customizable full-text searches.
 - [Joined Queries Support](#joined-queries-support): Consume complex joined queries.
-- [Database Changes Observation](#database-changes-observation): Observe database changes and transactions
+- [Database Changes Observation](#database-changes-observation): Observe database changes and transactions.
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
 - [Backup](#backup): Dump the content of a database to another.
 
