@@ -221,24 +221,14 @@ See the [Query Interface](#the-query-interface)
 
 ```swift
 let request = Place.order(Column("title"))
-
-// Track request changes with FetchedRecordsController
-let controller = FetchedRecordsController(dbQueue, request: request)
-controller.trackChanges { controller in
-    print("Places have changed.")
-    let places = controller.fetchedRecords // [Place]
-}
-try controller.performFetch()
-
-// Track request changes with RxSwift and RxGRDB
-request.rx
-    .fetchAll(in: dbQueue)
-    .subscribe(onNext: { places: [Place] in
+try ValueObservation
+    .trackingAll(request)
+    .start(in: dbQueue) { places: [Place] in
         print("Places have changed.")
-    })
+    }
 ```
 
-See [Database Changes Observation](#database-changes-observation), and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)
+See [Database Changes Observation](#database-changes-observation)
 
 </details>
 
@@ -2743,7 +2733,7 @@ protocol MutablePersistableRecord {
 }
 ```
 
-> :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, and watchOS 4.0+. This option makes sure that the JSON output is stable. This stability is required for [Record Comparison] to work as expected, and database observation tools such as [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) to accurately recognize changed records.
+> :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, and watchOS 4.0+. This option makes sure that the JSON output is stable. This stability is required for [Record Comparison] to work as expected, and database observation tools such as [ValueObservation] to accurately recognize changed records.
 
 
 ### Date and UUID Coding Strategies
@@ -2868,15 +2858,15 @@ try dbQueue.read { db in
 }
 ```
 
-... and feed database observation tools such as [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
+... and feed database observation tools such as [ValueObservation]:
 
 ```swift
 // Observe changes
-Player.maximumScore.rx
-    .fetchOne(in: dbQueue)
-    .subscribe(onNext: { maxScore: Int? in
+try ValueObservation
+    .trackingOne(Player.maximumScore)
+    .start(in: dbQueue) { maxScore: Int? in
         print("The maximum score has changed")
-    })
+    }
 ```
 
 
@@ -3659,7 +3649,7 @@ Use an individual column as **primary**, **unique**, or **foreign key**. When de
 > }
 > ```
 >
-> The reason for this recommendation is that auto-incremented primary keys prevent the reuse of ids. This prevents your app or [database observation tools](#database-changes-observation) to think that a row was updated, when it was actually deleted, then replaced. Depending on your application needs, this may be OK. Or not.
+> The reason for this recommendation is that auto-incremented primary keys prevent the reuse of ids. This prevents your app or [database observation tools](#database-changes-observation) to think that a row was updated, when it was actually deleted, then replaced. Depending on your application needs, this may be acceptable. But usually it is not.
 
 **Create an index** on the column:
 
@@ -4243,7 +4233,7 @@ let minScore = row[0] as Int?
 let maxScore = row[1] as Int?
 ```
 
-When you also want to use database observation tools such as [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you have to go one step further, and change the type of the request:
+When you also want to use database observation tools such as [ValueObservation], you have to go one step further, and change the type of the request:
 
 - When you change the selection, prefer the `select(..., as:)` method:
     
@@ -4256,12 +4246,12 @@ When you also want to use database observation tools such as [FetchedRecordsCont
         try request.fetchOne(db) // Int?
     }
     
-    // Observe with RxGRDB
-    request.rx
-        .fetchOne(in: dbQueue)
-        .subscribe(onNext: { maxScore: Int? in
+    // Observe with ValueObservation
+    try ValueObservation
+        .trackingOne(request)
+        .start(in: dbQueue) { maxScore: Int? in
             print("The maximum score has changed")
-        })
+        }
     ```
 
 - Otherwise, use `asRequest(of:)`. Here is an example that uses [Associations]:
@@ -4282,13 +4272,12 @@ When you also want to use database observation tools such as [FetchedRecordsCont
         try request.fetchAll(db) // [BookInfo]
     }
     
-    // Observe with FetchedRecordsController
-    let controller = FetchedRecordsController(
-        dbQueue,
-        request: request,
-        isSameRecord: { (bookInfo1, bookInfo2) in
-            bookInfo1.book.id == bookInfo2.book.id
-        })
+    // Observe with ValueObservation
+    try ValueObservation
+        .trackingAll(request)
+        .start(in: dbQueue) { bookInfos: [BookInfo] in
+            print("Books have changed")
+        }
     ```
 
 
@@ -4355,14 +4344,14 @@ let request = Player.filter(key: ["email": "arthur@example.com"])
 let player = try request.fetchOne(db)    // Player?
 ```
 
-Those requests help observing the database with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
+Those requests can feed [ValueObservation]:
 
 ```swift
-Player.filter(key: 1).rx
-    .fetchOne(in: dbQueue)
-    .subscribe(onNext: { player: Player? in
+try ValueObservation.
+    .trackingOne(Player.filter(key: 1))
+    .start(in: dbQueue) { player: Player? in
         print("Player 1 has changed")
-    })
+    }
 ```
 
 
@@ -4475,14 +4464,14 @@ But you may prefer to bring some elegance back in, and build custom requests:
 try Player.customRequest().fetchAll(db) // [Player]
 ```
 
-Custom requests also grant [FetchedRecordsController](#fetchedrecordscontroller) and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) the ability to observe the database:
+Custom requests can also feed [ValueObservation]:
 
 ```swift
-Player.customRequest(...).rx
-    .fetchAll(in: dbQueue)
-    .subscribe(onNext: { players: [Player] in
+try ValueObservation.
+    .trackingAll(Player.customRequest(...))
+    .start(in: dbQueue) { players: [Player] in
         print("Players have changed")
-    })
+    }
 ```
 
 - [FetchRequest Protocol](#fetchrequest-protocol)
@@ -4516,7 +4505,7 @@ The `prepare` method returns a prepared statement and an optional row adapter. T
 
 The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
 
-The `databaseRegion` method is involved in [database observation](#database-changes-observation). It is given a default implementation, based on the statement returned by `prepare`. For more information, see [DatabaseRegion](#databaseregion), and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB).
+The `databaseRegion` method is involved in [database observation](#database-changes-observation). It is given a default implementation, based on the statement returned by `prepare`. For more information, see [DatabaseRegion](#databaseregion), and [ValueObservation].
 
 The FetchRequest protocol is adopted, for example, by [query interface requests](#requests):
 
@@ -5639,7 +5628,7 @@ let playerInfos = try dbQueue.read { db in
 
 ### Splitting Rows, the Request Way
 
-The `PlayerInfo.fetchAll` method [above](#splitting-rows-the-record-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation) with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you'll need a [custom request](#custom-requests) that defines a database query.
+The `PlayerInfo.fetchAll` method [above](#splitting-rows-the-record-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation), you'll need a [custom request](#custom-requests) that defines a database query.
 
 It is recommended that you read the previous paragraphs before you dive in this sample code. We start with the same PlayerInfo record as above:
 
@@ -5983,7 +5972,7 @@ do {
 > :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
 
-[FetchedRecordsController](#fetchedrecordscontroller) and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) are based on the TransactionObserver protocol.
+[ValueObservation], [FetchedRecordsController](#fetchedrecordscontroller), and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) are based on the TransactionObserver protocol.
 
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
 
@@ -6586,8 +6575,6 @@ The `fetch` closure is executed inside a [savepoint](#transactions-and-savepoint
 
 Don't use this flag unless you actually need it: when you use a [database pool](#database-pools), observations with write access are less efficient.
 
-See [RxSwiftCommunity/RxGRDB/issues/42](https://github.com/RxSwiftCommunity/RxGRDB/issues/42) for an example use case. The `isReadOnly` flag exists in order to address this feature request.
-
 
 #### ValueObservation Error Handling
 
@@ -6607,7 +6594,7 @@ let observer = try observation.start(
 
 ## FetchedRecordsController
 
-**FetchedRecordsController track changes in the results of a request. It can also feed table views, collection views, and animate cells when the results of the request change.**
+**FetchedRecordsController track changes in the results of a request, feedd table views, collection views, and animate cells when the results of the request change.**
 
 It looks and behaves very much like [Core Data's NSFetchedResultsController](https://developer.apple.com/library/ios/documentation/CoreData/Reference/NSFetchedResultsController_Class/).
 
@@ -6615,7 +6602,7 @@ Given a fetch request, and a type that adopts the [FetchableRecord] protocol, su
 
 See the [Demo Application](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
 
-See also [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), an [RxSwift](https://github.com/ReactiveX/RxSwift) extension, for a reactive way to track request changes.
+When you don't need to animate a table or a collection view, use [ValueObservation] or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) instead.
 
 - [Creating the Fetched Records Controller](#creating-the-fetched-records-controller)
 - [Responding to Changes](#responding-to-changes)
@@ -7759,6 +7746,7 @@ Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://groue.gith
 These protocols provide a unified API that let you write generic code that targets all concurrency modes. They fuel, for example:
 
 - [Migrations](#migrations)
+- [ValueObservation]
 - [FetchedRecordsController](#fetchedrecordscontroller)
 - [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)
 
