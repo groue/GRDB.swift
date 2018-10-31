@@ -6594,7 +6594,7 @@ See [RxSwiftCommunity/RxGRDB/issues/42](https://github.com/RxSwiftCommunity/RxGR
 When you start an observation, you can provide an `onError` callback. This callback is called whenever an error happens when a fresh value is fetched after a database change:
 
 ```swift
-let observer = try! observation.start(
+let observer = try observation.start(
     in: dbQueue,
     onError: { error in
         print("fresh value could not be fetched")
