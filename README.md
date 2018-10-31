@@ -5780,10 +5780,10 @@ Database Changes Observation
 GRDB puts this SQLite feature to some good use, and lets you observe the database in various ways:
 
 - [After Commit Hook](#after-commit-hook): The simplest way to handle successful transactions.
-- [TransactionObserver Protocol](#transactionobserver-protocol): The low-level protocol for database observation
-- [ValueObservation]: Automated tracking of changes in a request results
-- [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of changes in a request results, with table view animations
-- [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB): Automated tracking of changes in a request results, based on [RxSwift](https://github.com/ReactiveX/RxSwift)
+- [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
+- [ValueObservation]: Automated tracking of database changes.
+- [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of database changes, with table view animations.
+- [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB): Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 
 Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
 
