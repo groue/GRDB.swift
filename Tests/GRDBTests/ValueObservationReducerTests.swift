@@ -226,4 +226,78 @@ class ValueObservationReducerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         XCTAssertEqual(counts, [1, 2])
     }
+    
+    func testMapValueReducer() throws {
+        // We need something to change
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        
+        // Track reducer proceess
+        var counts: [String] = []
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 2
+        
+        // The base reducer
+        var count = 0
+        let reducer = AnyValueReducer(
+            fetch: { _ in /* don't fetch anything */ },
+            value: { _ -> Int? in
+                count += 1
+                return count
+        })
+        
+        // The mapped reducer
+        let mapReducer = reducer.map { count -> String? in
+            if count % 2 == 0 { return nil }
+            return "\(count)"
+        }
+        
+        // Create an observation
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: mapReducer)
+        observation.extent = .databaseLifetime
+        
+        // Start observation
+        _ = try observation.start(in: dbQueue) { count in
+            counts.append(count)
+            notificationExpectation.fulfill()
+        }
+        
+        try dbQueue.inDatabase { db in
+            try db.execute("INSERT INTO t DEFAULT VALUES")
+            try db.execute("INSERT INTO t DEFAULT VALUES")
+        }
+        
+        waitForExpectations(timeout: 1, handler: nil)
+        XCTAssertEqual(counts, ["1", "3"])
+    }
+    
+    func testValueObservationMap() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        
+        var counts: [String] = []
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 4
+        
+        struct T: TableRecord { }
+        var observation = ValueObservation
+            .trackingCount(T.all())
+            .map { "\($0)" }
+        observation.extent = .databaseLifetime
+        _ = try observation.start(in: dbQueue) { count in
+            counts.append(count)
+            notificationExpectation.fulfill()
+        }
+        
+        try dbQueue.inDatabase {
+            try $0.execute("INSERT INTO t DEFAULT VALUES")
+            try $0.execute("UPDATE t SET id = id")
+            try $0.execute("INSERT INTO t DEFAULT VALUES")
+        }
+        
+        waitForExpectations(timeout: 1, handler: nil)
+        XCTAssertEqual(counts, ["0", "1", "1", "2"])
+    }
 }

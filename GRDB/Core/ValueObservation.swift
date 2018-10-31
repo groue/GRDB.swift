@@ -94,13 +94,14 @@ public protocol ValueReducer {
 }
 
 extension ValueReducer {
+    /// Returns a reducer which transforms the values returned by this reducer.
     public func map<T>(_ transform: @escaping (Value) -> T?) -> MapValueReducer<Self, T> {
         return MapValueReducer(self, transform)
     }
 }
 
 /// A ValueReducer whose values consist of those in a Base ValueReducer passed
-/// through a transform function returning T.
+/// through a transform function.
 ///
 /// See ValueReducer.map(_:)
 ///
@@ -124,18 +125,17 @@ public struct MapValueReducer<Base: ValueReducer, T>: ValueReducer {
     }
 }
 
-/// TODO: doc
+/// A type-erased ValueReducer.
 public struct AnyValueReducer<Fetched, Value>: ValueReducer {
     var _fetch: (Database) throws -> Fetched
     var _value: (Fetched) -> Value?
     
-    /// TODO: doc
     public init(fetch: @escaping (Database) throws -> Fetched, value: @escaping (Fetched) -> Value?) {
         self._fetch = fetch
         self._value = value
     }
     
-    public init<Reducer: ValueReducer>(_ reducer: Reducer) where Reducer.Fetched == Fetched, Reducer.Value == Value {
+    public init<Base: ValueReducer>(_ reducer: Base) where Base.Fetched == Fetched, Base.Value == Value {
         var reducer = reducer
         self._fetch = { try reducer.fetch($0) }
         self._value = { reducer.value($0) }
@@ -465,9 +465,14 @@ public struct ValueObservation<Reducer> {
 }
 
 extension ValueObservation where Reducer: ValueReducer {
-    /// TODO
-    public func map<T>(_ transform: @escaping (Reducer.Value) -> T) -> ValueObservation<MapValueReducer<Reducer, T>> {
-        return ValueObservation<MapValueReducer<Reducer, T>>(tracking: observedRegion, reducer: reducer.map(transform))
+    /// Returns a ValueObservation which transforms the values returned by
+    /// this ValueObservation.
+    public func map<T>(_ transform: @escaping (Reducer.Value) -> T)
+        -> ValueObservation<MapValueReducer<Reducer, T>>
+    {
+        return ValueObservation<MapValueReducer<Reducer, T>>(
+            tracking: observedRegion,
+            reducer: reducer.map(transform))
     }
 }
 
