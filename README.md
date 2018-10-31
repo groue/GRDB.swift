@@ -262,8 +262,7 @@ Documentation
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Full-Text Search](#full-text-search): Perform efficient and customizable full-text searches.
 - [Joined Queries Support](#joined-queries-support): Consume complex joined queries.
-- [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
-- [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of changes in a query results, plus UITableView animations.
+- [Database Changes Observation](#database-changes-observation): Observe database changes and transactions
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
 - [Backup](#backup): Dump the content of a database to another.
 
@@ -2062,7 +2061,7 @@ Before jumping in the low-level wagon, here is the list of all SQLite APIs used 
 - `sqlite3_busy_handler`, `sqlite3_busy_timeout`: see [Configuration.busyMode](http://groue.github.io/GRDB.swift/docs/3.4/Structs/Configuration.html)
 - `sqlite3_changes`, `sqlite3_total_changes`: see [Database.changesCount and Database.totalChangesCount](http://groue.github.io/GRDB.swift/docs/3.4/Classes/Database.html)
 - `sqlite3_close`, `sqlite3_close_v2`, `sqlite3_next_stmt`, `sqlite3_open_v2`: see [Database Connections](#database-connections)
-- `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [TransactionObserver Protocol](#transactionobserver-protocol), [FetchedRecordsController](#fetchedrecordscontroller)
+- `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [TransactionObserver Protocol](#transactionobserver-protocol), [ValueObservation], [FetchedRecordsController](#fetchedrecordscontroller)
 - `sqlite3_config`: see [Error Log](#error-log)
 - `sqlite3_create_collation_v2`: see [String Comparison](#string-comparison)
 - `sqlite3_db_release_memory`: see [Memory Management](#memory-management)
