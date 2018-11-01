@@ -3,9 +3,7 @@ Release Notes
 
 ## Next Version
 
-This release comes with **ValueObservation**, a new type which can track the results of database requests, and notifies fresh values each time the database changes.
-
-ValueObservation provides convenient APIs for applications:
+This release comes with **[ValueObservation](README.md#valueobservation)**, a new type which tracks the results of database requests, and notifies fresh values whenever the database changes:
 
 ```swift
 let observer = ValueObversation

@@ -6192,9 +6192,9 @@ protocol TransactionObserverType : class {
 
 ## ValueObservation
 
-**ValueObservation automatically tracks changes in the results of a [request](#requests).**
+**ValueObservation tracks changes in the results of database [requests](#requests), and notifies fresh values whenever the database changes.**
 
-It is designed for easy consumption of fresh values by an application. For example, you will find below a typical UIViewController setup:
+For example, here is a typical UIViewController which observes the database in order to keep its view up-to-date:
 
 ```swift
 class PlayerViewController: UIViewController {
@@ -6204,7 +6204,7 @@ class PlayerViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        // Define a ValueObservation that tracks a request
+        // Define a ValueObservation which tracks a player
         let request = Player.filter(key: 42)
         let observation = ValueObservation.trackingOne(request)
         
@@ -6212,6 +6212,7 @@ class PlayerViewController: UIViewController {
         observer = try! observation.start(
             in: dbQueue,
             onChange: { [unowned self] player: Player? in
+                // Player has changed: update view
                 self.nameLabel.text = player?.name
             })
     }
