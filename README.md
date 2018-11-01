@@ -6605,9 +6605,9 @@ It looks and behaves very much like [Core Data's NSFetchedResultsController](htt
 
 Given a fetch request, and a type that adopts the [FetchableRecord] protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to track changes in the results of the fetch request, notify of those changes, and return the results of the request in a form that is suitable for a table view or a collection view, with one cell per fetched record.
 
+> :point_up: **Note**: when you don't need to animate a table or a collection view, use [ValueObservation] or [RxGRDB] instead.
+>
 > :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that uses FetchedRecordsController.
-
-When you don't need to animate a table or a collection view, use [ValueObservation] or [RxGRDB] instead.
 
 - [Creating the Fetched Records Controller](#creating-the-fetched-records-controller)
 - [Responding to Changes](#responding-to-changes)
@@ -6901,10 +6901,10 @@ controller.trackChanges(
 ```
 
 > :warning: **Warning**: notification of individual record changes (the `onChange` callback) has FetchedRecordsController use a diffing algorithm that has a high complexity, a high memory consumption, and is thus **not suited for large result sets**. One hundred rows is probably OK, but one thousand is probably not. If your application experiences problems with large lists, see [Issue 263](https://github.com/groue/GRDB.swift/issues/263) for more information.
-
-> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that uses FetchedRecordsController to animate a table view.
-
+>
 > :point_up: **Note**: our sample code above uses `unowned` references to the table view controller. This is a safe pattern as long as the table view controller owns the fetched records controller, and is deallocated from the main thread (this is usually the case). In other situations, prefer weak references.
+>
+> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that uses FetchedRecordsController to animate a table view.
 
 
 ### FetchedRecordsController Concurrency
