@@ -173,7 +173,7 @@ public enum ValueReducers {
         }
     }
     
-    public struct Unique<Value: Equatable>: ValueReducer {
+    public struct Distinct<Value: Equatable>: ValueReducer {
         let _fetch: (Database) throws -> Value
         var value: Value??
         
@@ -569,14 +569,14 @@ extension ValueObservation where Reducer == Void {
     /// - parameter regions: one or more observed requests.
     /// - parameter fetch: a closure that fetches a value.
     public static func tracking<Value>(
-        withUniquing regions: DatabaseRegionConvertible...,
-        fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Unique<Value>>
+        _ regions: DatabaseRegionConvertible...,
+        fetchDistinct fetch: @escaping (Database) throws -> Value)
+        -> ValueObservation<ValueReducers.Distinct<Value>>
         where Value: Equatable
     {
-        return ValueObservation<ValueReducers.Unique<Value>>(
+        return ValueObservation<ValueReducers.Distinct<Value>>(
             tracking: union(regions),
-            reducer: ValueReducers.Unique(fetch))
+            reducer: ValueReducers.Distinct(fetch))
     }
 }
 
@@ -638,9 +638,9 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingCount<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Unique<Int>>
+        -> ValueObservation<ValueReducers.Distinct<Int>>
     {
-        return ValueObservation.tracking(withUniquing: request, fetch: request.fetchCount)
+        return ValueObservation.tracking(request, fetchDistinct: request.fetchCount)
     }
 }
 
@@ -674,10 +674,10 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Unique<[Row]>>
+        -> ValueObservation<ValueReducers.Distinct<[Row]>>
         where Request.RowDecoder == Row
     {
-        return ValueObservation.tracking(withUniquing: request, fetch: request.fetchAll)
+        return ValueObservation.tracking(request, fetchDistinct: request.fetchAll)
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -707,10 +707,10 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a new ValueObservation<Int>.
     public static func trackingOne<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Unique<Row?>>
+        -> ValueObservation<ValueReducers.Distinct<Row?>>
         where Request.RowDecoder == Row
     {
-        return ValueObservation.tracking(withUniquing: request, fetch: request.fetchOne)
+        return ValueObservation.tracking(request, fetchDistinct: request.fetchOne)
     }
 }
 

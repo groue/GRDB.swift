@@ -6250,10 +6250,6 @@ Given a [request](#requests), you can track its number of results, the first one
 ValueObservation.trackingCount(request)
 ValueObservation.trackingOne(request)
 ValueObservation.trackingAll(request)
-
-ValueObservation.trackingCount(withUniquing: request)
-ValueObservation.trackingOne(withUniquing: request)
-ValueObservation.trackingAll(withUniquing: request)
 ```
 
 Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request methods:
@@ -6307,22 +6303,6 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
         }
     ```
 
-By default, a ValueObservation notifies *potential* changes, not *actual* changes in the results of a request. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
-
-For example, if you observe `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
-
-You can avoid notification of consecutive identical values with the `withUniquing` variant. It performs deduplication at the database level, by comparing raw database values:
-
-```swift
-// Observe the maximum score (with uniquing)
-let request = Player.select(max(Column("score")), as: Int.self)
-let observer = ValueObservation
-    .trackingOne(withUniquing: request)
-    .start(in: dbQueue) { maximumScore: Int? in
-        print("Maximum score has (really) changed: \(maximumScore)")
-    }
-```
-
 
 ### ValueObservation.tracking(_:fetch:)
 
@@ -6363,19 +6343,28 @@ let observer = observation.start(in: dbQueue) { teamInfo: TeamInfo? in
 }
 ```
 
-You can avoid notification of consecutive identical values with the `withUniquing` variant. It requires the fetched value to adopt the Equatable protocol:
+
+The fetch closure may return consecutive identical values. You can filter out those duplicates with the `ValueObservation.tracking(_:fetchDistinct:)` method. It requires the fetched value to adopt the Equatable protocol:
 
 ```swift
-extension TeamInfo: Equatable { ... }
+struct HallOfFame: Equatable {
+    var count: Int
+    var players: [Player]
+}
 
 let observation = ValueObservation.tracking(
-    withUniquing: teamRequest, playersRequest, // <- uniquing is here
-    fetch: { db -> TeamInfo? in
-        // same code as above
+    Player.all(),
+    fetchDistinct: { db -> TeamInfo? in
+        let count = try Player.fetchCount(db)
+        let players = try Player
+            .order(Column("score").desc)
+            .limit(10)
+            .fetchAll(db)
+        return HallOfFame(count: count, players: players)
     })
 
-let observer = observation.start(in: dbQueue) { teamInfo: TeamInfo? in
-    print("Team and players have (really) changed.")
+let observer = observation.start(in: dbQueue) { hallOfFame: HallOfFame in
+    print("Best players out of \(hallOfFame.count): \(hallOfFame.players)")
 }
 ```
 
