@@ -66,7 +66,7 @@ GRDB ships with:
 
 Companion libraries that enhance and extend GRDB:
 
-- [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB): track database changes in a reactive way, with [RxSwift](https://github.com/ReactiveX/RxSwift).
+- [RxGRDB]: track database changes in a reactive way, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 - [GRDBObjc](https://github.com/groue/GRDBObjc): FMDB-compatible bindings to GRDB.
 
 
@@ -357,7 +357,7 @@ The repository comes with a [demo application](DemoApps/GRDBDemoiOS) that shows 
 
 - how to setup a database in an iOS app
 - how to define a simple [Codable Record](#codable-records)
-- how to track database changes and animate a table view with [FetchedRecordsController](#fetchedrecordscontroller).
+- how to track database changes with [ValueObservation] and [FetchedRecordsController].
 
 <p align="center">
     <img src="https://github.com/groue/GRDB.swift/raw/master/Documentation/Images/GRDBDemoScreenshot.png" width="50%">
@@ -2061,7 +2061,7 @@ Before jumping in the low-level wagon, here is the list of all SQLite APIs used 
 - `sqlite3_busy_handler`, `sqlite3_busy_timeout`: see [Configuration.busyMode](http://groue.github.io/GRDB.swift/docs/3.4/Structs/Configuration.html)
 - `sqlite3_changes`, `sqlite3_total_changes`: see [Database.changesCount and Database.totalChangesCount](http://groue.github.io/GRDB.swift/docs/3.4/Classes/Database.html)
 - `sqlite3_close`, `sqlite3_close_v2`, `sqlite3_next_stmt`, `sqlite3_open_v2`: see [Database Connections](#database-connections)
-- `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [TransactionObserver Protocol](#transactionobserver-protocol), [ValueObservation], [FetchedRecordsController](#fetchedrecordscontroller)
+- `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [TransactionObserver Protocol](#transactionobserver-protocol), [ValueObservation], [FetchedRecordsController]
 - `sqlite3_config`: see [Error Log](#error-log)
 - `sqlite3_create_collation_v2`: see [String Comparison](#string-comparison)
 - `sqlite3_db_release_memory`: see [Memory Management](#memory-management)
@@ -5782,8 +5782,8 @@ GRDB puts this SQLite feature to some good use, and lets you observe the databas
 - [After Commit Hook](#after-commit-hook): The simplest way to handle successful transactions.
 - [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
 - [ValueObservation]: Automated tracking of database changes.
-- [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of database changes, with table view animations.
-- [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB): Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
+- [FetchedRecordsController]: Automated tracking of database changes, with table view animations.
+- [RxGRDB]: Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 
 Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
 
@@ -5971,7 +5971,7 @@ do {
 > :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
 
-[ValueObservation], [FetchedRecordsController](#fetchedrecordscontroller), and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) are based on the TransactionObserver protocol.
+[ValueObservation], [FetchedRecordsController], and [RxGRDB] are based on the TransactionObserver protocol.
 
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
 
@@ -6601,7 +6601,7 @@ Given a fetch request, and a type that adopts the [FetchableRecord] protocol, su
 
 See the [Demo Application](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
 
-When you don't need to animate a table or a collection view, use [ValueObservation] or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) instead.
+When you don't need to animate a table or a collection view, use [ValueObservation] or [RxGRDB] instead.
 
 - [Creating the Fetched Records Controller](#creating-the-fetched-records-controller)
 - [Responding to Changes](#responding-to-changes)
@@ -7746,8 +7746,8 @@ These protocols provide a unified API that let you write generic code that targe
 
 - [Migrations](#migrations)
 - [ValueObservation]
-- [FetchedRecordsController](#fetchedrecordscontroller)
-- [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)
+- [FetchedRecordsController]
+- [RxGRDB]
 
 Only five types adopt those protocols: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. Expanding this set is not supported: any future GRDB release may break your custom writers and readers, without notice.
 
@@ -8299,3 +8299,5 @@ This chapter has been renamed [Beyond FetchableRecord].
 [Record Customization Options]: #record-customization-options
 [TableRecord]: #tablerecord-protocol
 [ValueObservation]: #valueobservation
+[FetchedRecordsController]: #fetchedrecordscontroller
+[RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
