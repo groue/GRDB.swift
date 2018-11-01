@@ -6343,10 +6343,11 @@ let observer = observation.start(in: dbQueue) { teamInfo: TeamInfo? in
 }
 ```
 
-
-The fetch closure may return consecutive identical values. You can filter out those duplicates with the `ValueObservation.tracking(_:fetchDistinct:)` method. It requires the fetched value to adopt the Equatable protocol:
+It may happen that a database change does not modify the fetched values. In this case, you'll be notified with consecutive identical values. You can filter out those duplicates with the `ValueObservation.tracking(_:fetchDistinct:)` method. It requires the fetched value to adopt the Equatable protocol:
 
 ```swift
+// When the `player` table is changed, fetch the total number of players, and
+// the ten best ones:
 struct HallOfFame: Equatable {
     var count: Int
     var players: [Player]
@@ -6354,7 +6355,7 @@ struct HallOfFame: Equatable {
 
 let observation = ValueObservation.tracking(
     Player.all(),
-    fetchDistinct: { db -> TeamInfo? in
+    fetchDistinct: { db -> HallOfFame in
         let count = try Player.fetchCount(db)
         let players = try Player
             .order(Column("score").desc)
@@ -6368,7 +6369,7 @@ let observer = observation.start(in: dbQueue) { hallOfFame: HallOfFame in
 }
 ```
 
-The initial parameter of the `ValueObservation.tracking(_:fetch:)` method can be fed with requests, and generally speaking, values that adopt the **DatabaseRegionConvertible** protocol.
+The initial parameter of the `ValueObservation.tracking(_:fetch:)` and `ValueObservation.tracking(_:fetchDistinct:)` methods can be fed with requests, and generally speaking, values that adopt the **DatabaseRegionConvertible** protocol.
 
 Use this protocol when you want to encapsulate your complex requests in a dedicated type. Our example above can be rewritten as below:
 
