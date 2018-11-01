@@ -137,8 +137,6 @@
 		563B071621862C4700B38F35 /* ValueObservationRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563B071421862C4600B38F35 /* ValueObservationRecordTests.swift */; };
 		563B071821862F4C00B38F35 /* ValueObservationDatabaseValueConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563B071721862F4C00B38F35 /* ValueObservationDatabaseValueConvertibleTests.swift */; };
 		563B071921862F4C00B38F35 /* ValueObservationDatabaseValueConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563B071721862F4C00B38F35 /* ValueObservationDatabaseValueConvertibleTests.swift */; };
-		563B0723218634CC00B38F35 /* ValueObservationStatementColumnConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563B0722218634CC00B38F35 /* ValueObservationStatementColumnConvertibleTests.swift */; };
-		563B0724218634CC00B38F35 /* ValueObservationStatementColumnConvertibleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563B0722218634CC00B38F35 /* ValueObservationStatementColumnConvertibleTests.swift */; };
 		563EF415215F87EB007DAACD /* OrderedDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563EF414215F87EB007DAACD /* OrderedDictionary.swift */; };
 		563EF416215F87EB007DAACD /* OrderedDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563EF414215F87EB007DAACD /* OrderedDictionary.swift */; };
 		563EF417215F87EB007DAACD /* OrderedDictionary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563EF414215F87EB007DAACD /* OrderedDictionary.swift */; };
@@ -922,7 +920,6 @@
 		563B0704218627F700B38F35 /* ValueObservationRowTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservationRowTests.swift; sourceTree = "<group>"; };
 		563B071421862C4600B38F35 /* ValueObservationRecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservationRecordTests.swift; sourceTree = "<group>"; };
 		563B071721862F4C00B38F35 /* ValueObservationDatabaseValueConvertibleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservationDatabaseValueConvertibleTests.swift; sourceTree = "<group>"; };
-		563B0722218634CC00B38F35 /* ValueObservationStatementColumnConvertibleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservationStatementColumnConvertibleTests.swift; sourceTree = "<group>"; };
 		563EF414215F87EB007DAACD /* OrderedDictionary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderedDictionary.swift; sourceTree = "<group>"; };
 		563EF42C2161180D007DAACD /* AssociationAggregate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssociationAggregate.swift; sourceTree = "<group>"; };
 		563EF43E216131D1007DAACD /* AssociationAggregateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssociationAggregateTests.swift; sourceTree = "<group>"; };
@@ -1496,7 +1493,6 @@
 				563B06BC2185CCD300B38F35 /* ValueObservationReducerTests.swift */,
 				563B0704218627F700B38F35 /* ValueObservationRowTests.swift */,
 				563B06C12185D29F00B38F35 /* ValueObservationSchedulingTests.swift */,
-				563B0722218634CC00B38F35 /* ValueObservationStatementColumnConvertibleTests.swift */,
 			);
 			name = ValueObservation;
 			sourceTree = "<group>";
@@ -2799,7 +2795,6 @@
 				562393641DEE06D300A6B01F /* CursorTests.swift in Sources */,
 				563B06C62185D29F00B38F35 /* ValueObservationSchedulingTests.swift in Sources */,
 				5657AB5A1D108BA9006283EF /* FoundationNSStringTests.swift in Sources */,
-				563B0724218634CC00B38F35 /* ValueObservationStatementColumnConvertibleTests.swift in Sources */,
 				56300B6C1C53D3E8005A543B /* TableRecord+QueryInterfaceRequestTests.swift in Sources */,
 				5674A7231F30A8DF0095F066 /* MutablePersistableRecordEncodableTests.swift in Sources */,
 				56F0B9921B6001C600A2F135 /* FoundationNSDateTests.swift in Sources */,
@@ -2976,7 +2971,6 @@
 				5653EAD620944B4F00F46237 /* AssociationChainRowScopesTests.swift in Sources */,
 				563B06C52185D29F00B38F35 /* ValueObservationSchedulingTests.swift in Sources */,
 				5698AC801DA380A20056AF8C /* VirtualTableModuleTests.swift in Sources */,
-				563B0723218634CC00B38F35 /* ValueObservationStatementColumnConvertibleTests.swift in Sources */,
 				56D496821D813131008276D7 /* TransactionObserverTests.swift in Sources */,
 				56D496941D81317B008276D7 /* SchedulingWatchdogTests.swift in Sources */,
 				5674A7201F30A8DF0095F066 /* MutablePersistableRecordEncodableTests.swift in Sources */,

@@ -279,7 +279,7 @@ class ValueObservationReducerTests: GRDBTestCase {
         var counts: [String] = []
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 4
+        notificationExpectation.expectedFulfillmentCount = 3
         
         struct T: TableRecord { }
         var observation = ValueObservation
@@ -293,11 +293,10 @@ class ValueObservationReducerTests: GRDBTestCase {
         
         try dbQueue.inDatabase {
             try $0.execute("INSERT INTO t DEFAULT VALUES")
-            try $0.execute("UPDATE t SET id = id")
             try $0.execute("INSERT INTO t DEFAULT VALUES")
         }
         
         waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(counts, ["0", "1", "1", "2"])
+        XCTAssertEqual(counts, ["0", "1", "2"])
     }
 }

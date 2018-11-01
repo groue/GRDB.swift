@@ -44,55 +44,24 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
             notificationExpectation.fulfill()
         }
         
-        try dbQueue.write {
-            try $0.execute("INSERT INTO t (id, name) VALUES (1, 'foo')")
-        }
-        try dbQueue.write {
-            try $0.execute("UPDATE t SET name = 'foo' WHERE id = 1")
-        }
-        try dbQueue.write {
-            try $0.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
-        }
-        
-        waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
-            [],
-            ["foo"],
-            ["foo"],
-            ["foo", "bar"]])
-    }
-    
-    func testAllWithUniquing() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
-        
-        var results: [[Name]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 3
-        
-        var observation = ValueObservation.trackingAll(withUniquing: SQLRequest<Name>("SELECT name FROM t ORDER BY id"))
-        observation.extent = .databaseLifetime
-        _ = try observation.start(in: dbQueue) { names in
-            results.append(names)
-            notificationExpectation.fulfill()
-        }
-        
-        try dbQueue.write {
-            try $0.execute("INSERT INTO t (id, name) VALUES (1, 'foo')")
-        }
-        try dbQueue.write {
-            try $0.execute("UPDATE t SET name = 'foo' WHERE id = 1")
-        }
-        try dbQueue.write {
-            try $0.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
+        try dbQueue.inDatabase { db in
+            try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
+            try db.execute("UPDATE t SET name = 'foo' WHERE id = 1")     // =
+            try db.inTransaction {                                       // +1
+                try db.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
+                try db.execute("INSERT INTO t (id, name) VALUES (3, 'baz')")
+                try db.execute("DELETE FROM t WHERE id = 3")
+                return .commit
+            }
+            try db.execute("DELETE FROM t WHERE id = 1")                 // -1
         }
         
         waitForExpectations(timeout: 1, handler: nil)
         XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
             [],
             ["foo"],
-            ["foo", "bar"]])
+            ["foo", "bar"],
+            ["bar"]])
     }
     
     func testOne() throws {
@@ -102,7 +71,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         var results: [Name?] = []
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 5
+        notificationExpectation.expectedFulfillmentCount = 7
         
         var observation = ValueObservation.trackingOne(SQLRequest<Name>("SELECT name FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
@@ -111,63 +80,32 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
             notificationExpectation.fulfill()
         }
         
-        try dbQueue.write {
-            try $0.execute("INSERT INTO t (id, name) VALUES (1, 'foo')")
-        }
-        try dbQueue.write {
-            try $0.execute("UPDATE t SET name = 'foo' WHERE id = 1")
-        }
-        try dbQueue.write {
-            try $0.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
-        }
-        try dbQueue.write {
-            try $0.execute("DELETE FROM t")
+        try dbQueue.inDatabase { db in
+            try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')")
+            try db.execute("UPDATE t SET name = 'foo' WHERE id = 1")
+            try db.inTransaction {
+                try db.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
+                try db.execute("INSERT INTO t (id, name) VALUES (3, 'baz')")
+                try db.execute("DELETE FROM t WHERE id = 3")
+                return .commit
+            }
+            try db.execute("DELETE FROM t")
+            try db.execute("INSERT INTO t (id, name) VALUES (1, 'baz')")
+            try db.execute("UPDATE t SET name = NULL")
+            try db.execute("DELETE FROM t")
+            try db.execute("INSERT INTO t (id, name) VALUES (1, NULL)")
+            try db.execute("UPDATE t SET name = 'qux'")
         }
 
         waitForExpectations(timeout: 1, handler: nil)
         XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
             nil,
             "foo",
-            "foo",
             "bar",
-            nil])
-    }
-    
-    func testOneWithUniquing() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
-        
-        var results: [Name?] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 4
-        
-        var observation = ValueObservation.trackingOne(withUniquing: SQLRequest<Name>("SELECT name FROM t ORDER BY id DESC"))
-        observation.extent = .databaseLifetime
-        _ = try observation.start(in: dbQueue) { name in
-            results.append(name)
-            notificationExpectation.fulfill()
-        }
-        
-        try dbQueue.write {
-            try $0.execute("INSERT INTO t (id, name) VALUES (1, 'foo')")
-        }
-        try dbQueue.write {
-            try $0.execute("UPDATE t SET name = 'foo' WHERE id = 1")
-        }
-        try dbQueue.write {
-            try $0.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
-        }
-        try dbQueue.write {
-            try $0.execute("DELETE FROM t")
-        }
-        
-        waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
             nil,
-            "foo",
-            "bar",
-            nil])
+            "baz",
+            nil,
+            "qux"])
     }
     
     func testAllOptional() throws {
@@ -186,54 +124,23 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
             notificationExpectation.fulfill()
         }
         
-        try dbQueue.write {
-            try $0.execute("INSERT INTO t (id, name) VALUES (1, 'foo')")
-        }
-        try dbQueue.write {
-            try $0.execute("UPDATE t SET name = 'foo' WHERE id = 1")
-        }
-        try dbQueue.write {
-            try $0.execute("INSERT INTO t (id, name) VALUES (2, NULL)")
-        }
-        
-        waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(results.map { $0.map { $0?.rawValue }}, [
-            [],
-            ["foo"],
-            ["foo"],
-            ["foo", nil]])
-    }
-    
-    func testAllOptionalWithUniquing() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
-        
-        var results: [[Name?]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 3
-        
-        var observation = ValueObservation.trackingAll(withUniquing: SQLRequest<Name?>("SELECT name FROM t ORDER BY id"))
-        observation.extent = .databaseLifetime
-        _ = try observation.start(in: dbQueue) { names in
-            results.append(names)
-            notificationExpectation.fulfill()
-        }
-        
-        try dbQueue.write {
-            try $0.execute("INSERT INTO t (id, name) VALUES (1, 'foo')")
-        }
-        try dbQueue.write {
-            try $0.execute("UPDATE t SET name = 'foo' WHERE id = 1")
-        }
-        try dbQueue.write {
-            try $0.execute("INSERT INTO t (id, name) VALUES (2, NULL)")
+        try dbQueue.inDatabase { db in
+            try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
+            try db.execute("UPDATE t SET name = 'foo' WHERE id = 1")     // =
+            try db.inTransaction {                                       // +1
+                try db.execute("INSERT INTO t (id, name) VALUES (2, NULL)")
+                try db.execute("INSERT INTO t (id, name) VALUES (3, 'baz')")
+                try db.execute("DELETE FROM t WHERE id = 3")
+                return .commit
+            }
+            try db.execute("DELETE FROM t WHERE id = 1")                 // -1
         }
         
         waitForExpectations(timeout: 1, handler: nil)
         XCTAssertEqual(results.map { $0.map { $0?.rawValue }}, [
             [],
             ["foo"],
-            ["foo", nil]])
+            ["foo", nil],
+            [nil]])
     }
 }

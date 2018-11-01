@@ -197,7 +197,7 @@ public enum ValueReducers {
         }
     }
     
-    public struct UniqueRecords<Record: FetchableRecord>: ValueReducer {
+    public struct Records<Record: FetchableRecord>: ValueReducer {
         let _fetch: (Database) throws -> [Row]
         var rows: [Row]?
         
@@ -214,6 +214,7 @@ public enum ValueReducers {
         /// :nodoc:
         public mutating func value(_ newRows: [Row]) -> [Record]? {
             if let rows = rows, rows == newRows {
+                // Don't notify consecutive identical rows
                 return nil
             }
             self.rows = newRows
@@ -221,7 +222,7 @@ public enum ValueReducers {
         }
     }
     
-    public struct UniqueRecord<Record: FetchableRecord>: ValueReducer {
+    public struct Record<Record: FetchableRecord>: ValueReducer {
         let _fetch: (Database) throws -> Row?
         var row: Row??
         
@@ -238,6 +239,7 @@ public enum ValueReducers {
         /// :nodoc:
         public mutating func value(_ newRow: Row?) -> Record?? {
             if let row = row, row == newRow {
+                // Don't notify consecutive identical row
                 return nil
             }
             self.row = newRow
@@ -245,7 +247,7 @@ public enum ValueReducers {
         }
     }
     
-    public struct UniqueValues<T: DatabaseValueConvertible>: ValueReducer {
+    public struct Values<T: DatabaseValueConvertible>: ValueReducer {
         let _fetch: (Database) throws -> [DatabaseValue]
         var dbValues: [DatabaseValue]?
         
@@ -262,6 +264,7 @@ public enum ValueReducers {
         /// :nodoc:
         public mutating func value(_ newDbValues: [DatabaseValue]) -> [T]? {
             if let dbValues = dbValues, dbValues == newDbValues {
+                // Don't notify consecutive identical dbValues
                 return nil
             }
             self.dbValues = newDbValues
@@ -269,9 +272,10 @@ public enum ValueReducers {
         }
     }
     
-    public struct UniqueValue<T: DatabaseValueConvertible>: ValueReducer {
+    public struct Value<T: DatabaseValueConvertible>: ValueReducer {
         let _fetch: (Database) throws -> DatabaseValue?
         var dbValue: DatabaseValue??
+        var previousValueWasNil = false
         
         /// TODO
         public init(_ fetch: @escaping (Database) throws -> DatabaseValue?) {
@@ -286,14 +290,34 @@ public enum ValueReducers {
         /// :nodoc:
         public mutating func value(_ newDbValue: DatabaseValue?) -> T?? {
             if let dbValue = dbValue, dbValue == newDbValue {
+                // Don't notify consecutive identical dbValue
                 return nil
             }
             self.dbValue = newDbValue
-            return .some(newDbValue.map { T.decode(from: $0, conversionContext: nil) })
+            guard let dbValue = newDbValue else {
+                if previousValueWasNil {
+                    return nil
+                } else {
+                    previousValueWasNil = true
+                    return .some(nil)
+                }
+            }
+            let value = T.decodeIfPresent(from: dbValue, conversionContext: nil)
+            if let value = value {
+                previousValueWasNil = false
+                return .some(value)
+            } else {
+                if previousValueWasNil {
+                    return nil
+                } else {
+                    previousValueWasNil = true
+                    return .some(nil)
+                }
+            }
         }
     }
     
-    public struct UniqueOptionalValues<T: DatabaseValueConvertible>: ValueReducer {
+    public struct OptionalValues<T: DatabaseValueConvertible>: ValueReducer {
         let _fetch: (Database) throws -> [DatabaseValue]
         var dbValues: [DatabaseValue]?
         
@@ -310,6 +334,7 @@ public enum ValueReducers {
         /// :nodoc:
         public mutating func value(_ newDbValues: [DatabaseValue]) -> [T?]? {
             if let dbValues = dbValues, dbValues == newDbValues {
+                // Don't notify consecutive identical dbValues
                 return nil
             }
             self.dbValues = newDbValues
@@ -613,38 +638,6 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingCount<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Raw<Int>>
-    {
-        return ValueObservation.tracking(request, fetch: request.fetchCount)
-    }
-    
-    /// Creates a ValueObservation which observes *request*, and notifies a
-    /// fresh count whenever the request is impacted by a database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.all()
-    ///     let observation = ValueObservation.trackingCount(withUniquing: request)
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { count: Int in
-    ///         print("number of players has changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(_:onError:onChage:)` method, a fresh
-    /// value is immediately notified on the dispatch queue which starts
-    /// the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func trackingCount<Request: FetchRequest>(withUniquing request: Request)
         -> ValueObservation<ValueReducers.Unique<Int>>
     {
         return ValueObservation.tracking(withUniquing: request, fetch: request.fetchCount)
@@ -681,39 +674,6 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Raw<[Row]>>
-        where Request.RowDecoder == Row
-    {
-        return ValueObservation.tracking(request, fetch: request.fetchAll)
-    }
-
-    /// Creates a ValueObservation which observes *request*, and notifies
-    /// fresh rows whenever the request is impacted by a database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = SQLRequest<Row>("SELECT * FROM player")
-    ///     let observation = ValueObservation.trackingAll(withUniquing: request)
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { rows: [Row] in
-    ///         print("players have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(_:onError:onChage:)` method, a fresh
-    /// value is immediately notified on the dispatch queue which starts
-    /// the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func trackingAll<Request: FetchRequest>(withUniquing request: Request)
         -> ValueObservation<ValueReducers.Unique<[Row]>>
         where Request.RowDecoder == Row
     {
@@ -747,39 +707,6 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a new ValueObservation<Int>.
     public static func trackingOne<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Raw<Row?>>
-        where Request.RowDecoder == Row
-    {
-        return ValueObservation.tracking(request, fetch: request.fetchOne)
-    }
-
-    /// Creates a ValueObservation which observes *request*, and notifies a
-    /// fresh row whenever the request is impacted by a database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = SQLRequest<Row>("SELECT * FROM player WHERE id = ?", arguments: [1])
-    ///     let observation = ValueObservation.trackingOne(withUniquing: request)
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { row: Row? in
-    ///         print("players have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(_:onError:onChage:)` method, a fresh
-    /// value is immediately notified on the dispatch queue which starts
-    /// the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a new ValueObservation<Int>.
-    public static func trackingOne<Request: FetchRequest>(withUniquing request: Request)
         -> ValueObservation<ValueReducers.Unique<Row?>>
         where Request.RowDecoder == Row
     {
@@ -818,46 +745,12 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>
+        -> ValueObservation<ValueReducers.Records<Request.RowDecoder>>
         where Request.RowDecoder: FetchableRecord
     {
-        return ValueObservation.tracking(request, fetch: request.fetchAll)
-    }
-    
-    /// Creates a ValueObservation which observes *request*, and notifies
-    /// fresh records whenever the request is impacted by a
-    /// database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.all()
-    ///     let observation = ValueObservation.trackingAll(withUniquing: request)
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("players have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(_:onError:onChage:)` method, a fresh
-    /// value is immediately notified on the dispatch queue which starts
-    /// the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func trackingAll<Request: FetchRequest>(withUniquing request: Request)
-        -> ValueObservation<ValueReducers.UniqueRecords<Request.RowDecoder>>
-        where Request.RowDecoder: FetchableRecord
-    {
-        return ValueObservation<ValueReducers.UniqueRecords<Request.RowDecoder>>.tracking(
+        return ValueObservation<ValueReducers.Records<Request.RowDecoder>>.tracking(
             request,
-            reducer: ValueReducers.UniqueRecords { try Row.fetchAll($0, request) })
+            reducer: ValueReducers.Records { try Row.fetchAll($0, request) })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -887,45 +780,12 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingOne<Request: FetchRequest>(_ request: Request) ->
-        ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>
+        ValueObservation<ValueReducers.Record<Request.RowDecoder>>
         where Request.RowDecoder: FetchableRecord
     {
-        return ValueObservation.tracking(request, fetch: request.fetchOne)
-    }
-    
-    /// Creates a ValueObservation which observes *request*, and notifies a
-    /// fresh record whenever the request is impacted by a database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.filter(key: 1)
-    ///     let observation = ValueObservation.trackingOne(withUniquing: request)
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { player: Player? in
-    ///         print("player has changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(_:onError:onChage:)` method, a fresh
-    /// value is immediately notified on the dispatch queue which starts
-    /// the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func trackingOne<Request: FetchRequest>(withUniquing request: Request) ->
-        ValueObservation<ValueReducers.UniqueRecord<Request.RowDecoder>>
-        where Request.RowDecoder: FetchableRecord
-    {
-        return ValueObservation<ValueReducers.UniqueRecord<Request.RowDecoder>>.tracking(
+        return ValueObservation<ValueReducers.Record<Request.RowDecoder>>.tracking(
             request,
-            reducer: ValueReducers.UniqueRecord { try Row.fetchOne($0, request) })
+            reducer: ValueReducers.Record { try Row.fetchOne($0, request) })
     }
 }
 
@@ -960,46 +820,12 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>
+        -> ValueObservation<ValueReducers.Values<Request.RowDecoder>>
         where Request.RowDecoder: DatabaseValueConvertible
     {
-        return ValueObservation.tracking(request, fetch: request.fetchAll)
-    }
-    
-    /// Creates a ValueObservation which observes *request*, and notifies
-    /// fresh values whenever the request is impacted by a
-    /// database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let observation = ValueObservation.trackingAll(withUniquing: request)
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { names: [String] in
-    ///         print("player name have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(_:onError:onChage:)` method, a fresh
-    /// value is immediately notified on the dispatch queue which starts
-    /// the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func trackingAll<Request: FetchRequest>(withUniquing request: Request)
-        -> ValueObservation<ValueReducers.UniqueValues<Request.RowDecoder>>
-        where Request.RowDecoder: DatabaseValueConvertible
-    {
-        return ValueObservation<ValueReducers.UniqueValues<Request.RowDecoder>>.tracking(
+        return ValueObservation<ValueReducers.Values<Request.RowDecoder>>.tracking(
             request,
-            reducer: ValueReducers.UniqueValues { try DatabaseValue.fetchAll($0, request) })
+            reducer: ValueReducers.Values { try DatabaseValue.fetchAll($0, request) })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -1029,116 +855,12 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingOne<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>
+        -> ValueObservation<ValueReducers.Value<Request.RowDecoder>>
         where Request.RowDecoder: DatabaseValueConvertible
     {
-        return ValueObservation.tracking(request, fetch: request.fetchOne)
-    }
-    
-    /// Creates a ValueObservation which observes *request*, and notifies a
-    /// fresh value whenever the request is impacted by a database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.select(max(Column("score")), as: Int.self)
-    ///     let observation = ValueObservation.trackingOne(withUniquing: request)
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { maxScore: Int? in
-    ///         print("maximum score has changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(_:onError:onChage:)` method, a fresh
-    /// value is immediately notified on the dispatch queue which starts
-    /// the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func trackingOne<Request: FetchRequest>(withUniquing request: Request)
-        -> ValueObservation<ValueReducers.UniqueValue<Request.RowDecoder>>
-        where Request.RowDecoder: DatabaseValueConvertible
-    {
-        return ValueObservation<ValueReducers.UniqueValue<Request.RowDecoder>>.tracking(
+        return ValueObservation<ValueReducers.Value<Request.RowDecoder>>.tracking(
             request,
-            reducer: ValueReducers.UniqueValue { try DatabaseValue.fetchOne($0, request) })
-    }
-}
-
-// MARK: - DatabaseValueConvertible & StatementColumnConvertible Observation
-
-extension ValueObservation where Reducer == Void {
-    /// Creates a ValueObservation which observes *request*, and notifies
-    /// fresh values whenever the request is impacted by a
-    /// database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let observation = ValueObservation.trackingAll(request)
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { names: [String] in
-    ///         print("player name have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(_:onError:onChage:)` method, a fresh
-    /// value is immediately notified on the dispatch queue which starts
-    /// the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>
-        where Request.RowDecoder: DatabaseValueConvertible & StatementColumnConvertible
-    {
-        return ValueObservation.tracking(request, fetch: request.fetchAll)
-    }
-    
-    /// Creates a ValueObservation which observes *request*, and notifies a
-    /// fresh value whenever the request is impacted by a database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.select(max(Column("score")), as: Int.self)
-    ///     let observation = ValueObservation.trackingOne(request)
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { maxScore: Int? in
-    ///         print("maximum score has changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(_:onError:onChage:)` method, a fresh
-    /// value is immediately notified on the dispatch queue which starts
-    /// the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func trackingOne<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>
-        where Request.RowDecoder: DatabaseValueConvertible & StatementColumnConvertible
-    {
-        return ValueObservation.tracking(request, fetch: request.fetchOne)
+            reducer: ValueReducers.Value { try DatabaseValue.fetchOne($0, request) })
     }
 }
 
@@ -1173,86 +895,12 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder._Wrapped?]>>
+        -> ValueObservation<ValueReducers.OptionalValues<Request.RowDecoder._Wrapped>>
         where Request.RowDecoder: _OptionalProtocol,
         Request.RowDecoder._Wrapped: DatabaseValueConvertible
     {
-        return ValueObservation.tracking(request, fetch: request.fetchAll)
-    }
-    
-    /// Creates a ValueObservation which observes *request*, and notifies
-    /// fresh values whenever the request is impacted by a
-    /// database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let observation = ValueObservation.trackingAll(withUniquing: request)
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { names: [String] in
-    ///         print("player name have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(_:onError:onChage:)` method, a fresh
-    /// value is immediately notified on the dispatch queue which starts
-    /// the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func trackingAll<Request: FetchRequest>(withUniquing request: Request)
-        -> ValueObservation<ValueReducers.UniqueOptionalValues<Request.RowDecoder._Wrapped>>
-        where Request.RowDecoder: _OptionalProtocol,
-        Request.RowDecoder._Wrapped: DatabaseValueConvertible
-    {
-        return ValueObservation<ValueReducers.UniqueOptionalValues<Request.RowDecoder._Wrapped>>.tracking(
+        return ValueObservation<ValueReducers.OptionalValues<Request.RowDecoder._Wrapped>>.tracking(
             request,
-            reducer: ValueReducers.UniqueOptionalValues { try DatabaseValue.fetchAll($0, request) })
-    }
-}
-
-// MARK: - Optional DatabaseValueConvertible & StatementColumnConvertible Observation
-
-extension ValueObservation where Reducer == Void {
-    /// Creates a ValueObservation which observes *request*, and notifies
-    /// fresh values whenever the request is impacted by a
-    /// database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let observation = ValueObservation.trackingAll(request)
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { names: [String] in
-    ///         print("player name have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(_:onError:onChage:)` method, a fresh
-    /// value is immediately notified on the dispatch queue which starts
-    /// the observation.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// See ValueObservation for more information.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder._Wrapped?]>>
-        where Request.RowDecoder: _OptionalProtocol,
-        Request.RowDecoder._Wrapped: DatabaseValueConvertible & StatementColumnConvertible
-    {
-        return ValueObservation.tracking(request, fetch: request.fetchAll)
+            reducer: ValueReducers.OptionalValues { try DatabaseValue.fetchAll($0, request) })
     }
 }
