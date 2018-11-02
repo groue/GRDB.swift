@@ -185,7 +185,7 @@ public struct AnyValueReducer<Fetched, Value>: ValueReducer {
 public enum ValueReducers {
     /// A reducer which outputs raw database values, without any processing.
     public struct Raw<Value>: ValueReducer {
-        let _fetch: (Database) throws -> Value
+        private let _fetch: (Database) throws -> Value
         
         public init(_ fetch: @escaping (Database) throws -> Value) {
             self._fetch = fetch
@@ -205,8 +205,8 @@ public enum ValueReducers {
     /// A reducer which outputs raw database values, filtering out consecutive
     /// values that are equal.
     public struct Distinct<Value: Equatable>: ValueReducer {
-        let _fetch: (Database) throws -> Value
-        var value: Value??
+        private let _fetch: (Database) throws -> Value
+        private var previousValue: Value??
         
         public init(_ fetch: @escaping (Database) throws -> Value) {
             self._fetch = fetch
@@ -218,20 +218,21 @@ public enum ValueReducers {
         }
         
         /// :nodoc:
-        public mutating func value(_ newValue: Value) -> Value? {
-            if let value = value, value == newValue {
+        public mutating func value(_ value: Value) -> Value? {
+            if let previousValue = previousValue, previousValue == value {
+                // Don't notify consecutive identical values
                 return nil
             }
-            self.value = newValue
-            return newValue
+            self.previousValue = value
+            return value
         }
     }
     
     /// A reducer which outputs arrays of records, filtering out consecutive
     /// identical database rows.
     public struct Records<Record: FetchableRecord>: ValueReducer {
-        let _fetch: (Database) throws -> [Row]
-        var rows: [Row]?
+        private let _fetch: (Database) throws -> [Row]
+        private var previousRows: [Row]?
         
         /// TODO
         public init(_ fetch: @escaping (Database) throws -> [Row]) {
@@ -244,21 +245,21 @@ public enum ValueReducers {
         }
         
         /// :nodoc:
-        public mutating func value(_ newRows: [Row]) -> [Record]? {
-            if let rows = rows, rows == newRows {
-                // Don't notify consecutive identical rows
+        public mutating func value(_ rows: [Row]) -> [Record]? {
+            if let previousRows = previousRows, previousRows == rows {
+                // Don't notify consecutive identical row arrays
                 return nil
             }
-            self.rows = newRows
-            return newRows.map(Record.init(row:))
+            self.previousRows = rows
+            return rows.map(Record.init(row:))
         }
     }
     
     /// A reducer which outputs optional records, filtering out consecutive
     /// identical database rows.
     public struct Record<Record: FetchableRecord>: ValueReducer {
-        let _fetch: (Database) throws -> Row?
-        var row: Row??
+        private let _fetch: (Database) throws -> Row?
+        private var previousRow: Row??
         
         /// TODO
         public init(_ fetch: @escaping (Database) throws -> Row?) {
@@ -271,21 +272,21 @@ public enum ValueReducers {
         }
         
         /// :nodoc:
-        public mutating func value(_ newRow: Row?) -> Record?? {
-            if let row = row, row == newRow {
-                // Don't notify consecutive identical row
+        public mutating func value(_ row: Row?) -> Record?? {
+            if let previousRow = previousRow, previousRow == row {
+                // Don't notify consecutive identical rows
                 return nil
             }
-            self.row = newRow
-            return .some(newRow.map(Record.init(row:)))
+            self.previousRow = row
+            return .some(row.map(Record.init(row:)))
         }
     }
     
     /// A reducer which outputs arrays of values, filtering out consecutive
     /// identical database values.
     public struct Values<T: DatabaseValueConvertible>: ValueReducer {
-        let _fetch: (Database) throws -> [DatabaseValue]
-        var dbValues: [DatabaseValue]?
+        private let _fetch: (Database) throws -> [DatabaseValue]
+        private var previousDbValues: [DatabaseValue]?
         
         /// TODO
         public init(_ fetch: @escaping (Database) throws -> [DatabaseValue]) {
@@ -298,22 +299,24 @@ public enum ValueReducers {
         }
         
         /// :nodoc:
-        public mutating func value(_ newDbValues: [DatabaseValue]) -> [T]? {
-            if let dbValues = dbValues, dbValues == newDbValues {
-                // Don't notify consecutive identical dbValues
+        public mutating func value(_ dbValues: [DatabaseValue]) -> [T]? {
+            if let previousDbValues = previousDbValues, previousDbValues == dbValues {
+                // Don't notify consecutive identical dbValue arrays
                 return nil
             }
-            self.dbValues = newDbValues
-            return newDbValues.map { T.decode(from: $0, conversionContext: nil) }
+            self.previousDbValues = dbValues
+            return dbValues.map {
+                T.decode(from: $0, conversionContext: nil)
+            }
         }
     }
     
     /// A reducer which outputs optional values, filtering out consecutive
     /// identical database values.
     public struct Value<T: DatabaseValueConvertible>: ValueReducer {
-        let _fetch: (Database) throws -> DatabaseValue?
-        var dbValue: DatabaseValue??
-        var previousValueWasNil = false
+        private let _fetch: (Database) throws -> DatabaseValue?
+        private var previousDbValue: DatabaseValue??
+        private var previousValueWasNil = false
         
         /// TODO
         public init(_ fetch: @escaping (Database) throws -> DatabaseValue?) {
@@ -326,31 +329,23 @@ public enum ValueReducers {
         }
         
         /// :nodoc:
-        public mutating func value(_ newDbValue: DatabaseValue?) -> T?? {
-            if let dbValue = dbValue, dbValue == newDbValue {
+        public mutating func value(_ dbValue: DatabaseValue?) -> T?? {
+            if let previousDbValue = previousDbValue, previousDbValue == dbValue {
                 // Don't notify consecutive identical dbValue
                 return nil
             }
-            self.dbValue = newDbValue
-            guard let dbValue = newDbValue else {
-                if previousValueWasNil {
-                    return nil
-                } else {
-                    previousValueWasNil = true
-                    return .some(nil)
-                }
-            }
-            let value = T.decodeIfPresent(from: dbValue, conversionContext: nil)
-            if let value = value {
+            self.previousDbValue = dbValue
+            if let dbValue = dbValue,
+                let value = T.decodeIfPresent(from: dbValue, conversionContext: nil)
+            {
                 previousValueWasNil = false
                 return .some(value)
+            } else if previousValueWasNil {
+                // Don't notify consecutive nil values
+                return nil
             } else {
-                if previousValueWasNil {
-                    return nil
-                } else {
-                    previousValueWasNil = true
-                    return .some(nil)
-                }
+                previousValueWasNil = true
+                return .some(nil)
             }
         }
     }
@@ -358,8 +353,8 @@ public enum ValueReducers {
     /// A reducer which outputs arrays of optional values, filtering out consecutive
     /// identical database values.
     public struct OptionalValues<T: DatabaseValueConvertible>: ValueReducer {
-        let _fetch: (Database) throws -> [DatabaseValue]
-        var dbValues: [DatabaseValue]?
+        private let _fetch: (Database) throws -> [DatabaseValue]
+        private var previousDbValues: [DatabaseValue]?
         
         /// TODO
         public init(_ fetch: @escaping (Database) throws -> [DatabaseValue]) {
@@ -372,13 +367,15 @@ public enum ValueReducers {
         }
         
         /// :nodoc:
-        public mutating func value(_ newDbValues: [DatabaseValue]) -> [T?]? {
-            if let dbValues = dbValues, dbValues == newDbValues {
-                // Don't notify consecutive identical dbValues
+        public mutating func value(_ dbValues: [DatabaseValue]) -> [T?]? {
+            if let previousDbValues = previousDbValues, previousDbValues == dbValues {
+                // Don't notify consecutive identical dbValue arrays
                 return nil
             }
-            self.dbValues = newDbValues
-            return newDbValues.map { T.decodeIfPresent(from: $0, conversionContext: nil) }
+            self.previousDbValues = dbValues
+            return dbValues.map {
+                T.decodeIfPresent(from: $0, conversionContext: nil)
+            }
         }
     }
 }
