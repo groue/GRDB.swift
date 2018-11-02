@@ -4489,7 +4489,7 @@ try ValueObservation.
 **FetchRequest** is the protocol for all requests that run from a single select statement, and know how fetched rows should be interpreted:
 
 ```swift
-protocol FetchRequest {
+protocol FetchRequest: DatabaseRegionConvertible {
     /// The type that tells how fetched rows should be decoded
     associatedtype RowDecoder
     
@@ -4498,9 +4498,6 @@ protocol FetchRequest {
     
     /// The number of rows fetched by the request.
     func fetchCount(_ db: Database) throws -> Int
-    
-    /// The database region that the request looks into.
-    func databaseRegion(_ db: Database) throws -> DatabaseRegion
 }
 ```
 
@@ -4510,7 +4507,7 @@ The `prepare` method returns a prepared statement and an optional row adapter. T
 
 The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
 
-The `databaseRegion` method is involved in [database observation](#database-changes-observation). It is given a default implementation, based on the statement returned by `prepare`. For more information, see [DatabaseRegion](#databaseregion), and [ValueObservation].
+The base `DatabaseRegionConvertible` protocol is involved in [database observation](#database-changes-observation). For more information, see [DatabaseRegion](#databaseregion), and [ValueObservation].
 
 The FetchRequest protocol is adopted, for example, by [query interface requests](#requests):
 
@@ -6122,13 +6119,15 @@ You can group regions:
 }
 ```
 
-Those regions provide support for the `observes(eventsOfKind:)` and `databaseDidChange(with:)` methods of transaction observers. For example:
+There are two special regions: `DatabaseRegion()` (the empty region), and `DatabaseRegion.fullDatabase` (the region that spans the whole database).
+
+Regions feed the `observes(eventsOfKind:)` and `databaseDidChange(with:)` methods of transaction observers. For example:
 
 ```swift
-// A region observer
+// A transaction observer which notifies all changes to a database region.
 class DatabaseRegionObserver: TransactionObserver {
     let region: DatabaseRegion
-    var regionModified = false
+    var regionIsModified = false
     
     init(region: DatabaseRegion) {
         self.region = region
@@ -6140,22 +6139,21 @@ class DatabaseRegionObserver: TransactionObserver {
     
     func databaseDidChange(with event: DatabaseEvent) {
         if region.isModified(by: event) {
-            regionModified = true
+            regionIsModified = true
             stopObservingDatabaseChangesUntilNextTransaction()
         }
     }
     
     func databaseDidRollback(_ db: Database) {
-        regionModified = false
+        regionIsModified = false
     }
     
     func databaseDidCommit(_ db: Database) {
-        if regionModified {
-            regionModified = false
-            
-            // You'll customize your handling of changes here:
-            print("Region changes have been committed.")
-        }
+        if regionIsModified == false { return }
+        regionIsModified = false
+        
+        // You'll customize your handling of changes here:
+        print("Region has been modified.")
     }
 }
 
@@ -6433,20 +6431,20 @@ The `fetch` method is called upon changes in the observed [database region](#dat
 
 The `value` method transforms a fetched value into a notified value. It returns nil if the observer should not be notified. This method runs inside a private dispatch queue.
 
-The sample code below counts the number of times the database is modified:
+The sample code below counts the number of times the player table is modified:
 
 ```swift
 var count = 0
 let reducer = AnyValueReducer(
-    fetch: { _ in /* don't fetch anything */ },
+    fetch: { _ in },
     value: { _ -> Int? in
         count += 1
         return count
     })
 let observer = ValueObservation
-    .tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+    .tracking(Player.all(), reducer: reducer)
     .start(in: dbQueue) { count: Int in
-        print("The database has been modified \(count) times.")
+        print("Players have been modified \(count) times.")
     }
 ```
 
