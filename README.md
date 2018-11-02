@@ -6455,9 +6455,10 @@ let observer = ValueObservation
 
 Some behaviors of value observations can be configured:
 
-- [ValueObservation.extent](#valueobservationextent): fine-grained control of the observation duration
-- [ValueObservation.scheduling](#valueobservationscheduling): control the dispatching of notified values
-- [ValueObservation.requiresWriteAccess](#valueobservationrequireswriteaccess): allow observations to write in the database
+- [ValueObservation.extent](#valueobservationextent): Precise control of the observation duration.
+- [ValueObservation.scheduling](#valueobservationscheduling): Control the dispatching of notified values.
+- [ValueObservation.requiresWriteAccess](#valueobservationrequireswriteaccess): Allow observations to write in the database.
+- [ValueObservation.map](#valueobservationmap): Transform notified values.
 - [ValueObservation Error Handling](#valueobservation-error-handling)
 
 
@@ -6570,6 +6571,22 @@ observation.requiresWriteAccess = true
 ```
 
 When you use a [database pool](#database-pools), don't use this flag unless you really need it. Observations with write access are less efficient because they block all writes for the whole duration of a fetch.
+
+
+#### ValueObservation.map
+
+The `map` method lets you transform the values notified by a ValueObservation.
+
+The transformation runs in a dispatch queue which does not block the main queue or the database, and is suitable for heavy computations:
+
+```swift
+let observation = ValueObservation
+    .trackingOne(Player.filter(key: 42))
+    .map { player in player?.computeValue() }
+    .start(in: dbQueue) { value in
+        print(value)
+    }
+```
 
 
 #### ValueObservation Error Handling
