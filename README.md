@@ -6228,11 +6228,11 @@ class PlayerViewController: UIViewController {
 }
 ```
 
-All values are notified on the main queue: views can be updated right from the change callback.
+By default, all values are notified on the main queue. Views can be updated right from the `onChange` callback.
 
 An initial fetch is performed as soon as the observation starts: the view is set up and ready when the `viewWillAppear` method returns.
 
-The view controller stores the observer returned by the `start` method in a property. This allows the view controller to control the duration of the observation. When the observer is deallocated, the observation stops. Meanwhile, all transactions that impact the observed player are notified, and the `nameLabel` is kept up-to-date.
+The observer returned by the `start` method is stored in a property of the view controller. This allows the view controller to control the duration of the observation. When the observer is deallocated, the observation stops. Meanwhile, all transactions that modify the observed player are notified, and the `nameLabel` is kept up-to-date.
 
 > :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that uses ValueObservation.
 
