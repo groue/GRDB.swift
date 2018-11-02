@@ -6582,9 +6582,9 @@ The transformation runs in a dispatch queue which does not block the main queue 
 ```swift
 let observation = ValueObservation
     .trackingOne(Player.filter(key: 42))
-    .map { player in player?.computeValue() }
-    .start(in: dbQueue) { value in
-        print(value)
+    .map { player in player?.loadBigProfileImage() }
+    .start(in: dbQueue) { image: UIImage? in
+        print("Player picture has changed")
     }
 ```
 
