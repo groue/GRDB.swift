@@ -212,13 +212,11 @@ extension DatabaseWriter {
             }
         }
         
-        // Enter database in order to start observation, and fetch initial
-        // value if needed. Use unsafeReentrantWrite so that observation can
-        // start from any dispatch queue.
+        // Use unsafeReentrantWrite so that observation can start from any
+        // dispatch queue.
         return try unsafeReentrantWrite { db in
-            // We have a take care of the order of notifications: initial value
-            // has to be dispatched before any future transaction triggers
-            // a change.
+            // Take care of initial value. Make sure it is dispatched before
+            // any future transaction can trigger a change.
             var reducer = observation.reducer
             switch observation.scheduling {
             case .mainQueue:
@@ -242,31 +240,10 @@ extension DatabaseWriter {
             }
 
             // Start observing the database
-            // The technique to fetch a fresh value after database has changed
-            // depends on the observation.readonly flag:
-            let fetch: (Database, Reducer) -> Future<Reducer.Fetched>
-            if observation.isReadOnly {
-                fetch = { [unowned self] (_, reducer) in
-                    // Concurrent fetch
-                    self.concurrentRead { db in try reducer.fetch(db) }
-                }
-            } else {
-                fetch = { (db, reducer) in
-                    // Synchronous fetch
-                    Future(Result {
-                        var fetchedValue: Reducer.Fetched!
-                        try db.inTransaction {
-                            fetchedValue = try reducer.fetch(db)
-                            return .commit
-                        }
-                        return fetchedValue
-                    })
-                }
-            }
             let valueObserver = try ValueObserver(
                 region: observation.observedRegion(db),
                 reducer: reducer,
-                fetch: fetch,
+                fetch: observation.fetchAfterChange(in: self),
                 notificationQueue: observation.notificationQueue,
                 onError: onError,
                 onChange: onChange)
@@ -289,6 +266,30 @@ extension ValueObservation where Reducer: ValueReducer {
                 return .commit
             }
             return fetchedValue
+        }
+    }
+    
+    /// Helper method for DatabaseWriter.add(observation:onError:onChange:)
+    fileprivate func fetchAfterChange(in writer: DatabaseWriter) -> (Database, Reducer) -> Future<Reducer.Fetched> {
+        // The technique to return a future value after database has changed
+        // depends on the isReadOnly flag:
+        if isReadOnly {
+            // Concurrent fetch
+            return { [unowned writer] (_, reducer) in
+                writer.concurrentRead(reducer.fetch)
+            }
+        } else {
+            // Synchronous fetch
+            return { (db, reducer) in
+                Future(Result {
+                    var fetchedValue: Reducer.Fetched!
+                    try db.inTransaction {
+                        fetchedValue = try reducer.fetch(db)
+                        return .commit
+                    }
+                    return fetchedValue
+                })
+            }
         }
     }
 }
@@ -324,8 +325,8 @@ private class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
             if let queue = notificationQueue {
                 self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation", qos: queue.qos)
             } else {
-                // TODO: provide a qos
-                self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation")
+                // Assume UI purpose
+                self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation", qos: .userInitiated)
             }
         } else {
             self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation")
@@ -370,8 +371,7 @@ private class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
                 }
             } catch {
                 guard strongSelf.onError != nil else {
-                    // Should we let an error unnoticed?
-                    try! { throw error }()
+                    // TODO: how can we let the user know about the error?
                     return
                 }
                 if let queue = strongSelf.notificationQueue {
