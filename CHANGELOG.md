@@ -13,17 +13,18 @@ let observer = ValueObversation
     }
 ```
 
-It is also highly configurable, and aims at providing support for any third-party code that needs to react to database changes. For example, [RxSwiftCommunity/RxGRDB#46](https://github.com/RxSwiftCommunity/RxGRDB/pull/46) is the pull request which implements RxGRDB, the companion library based on [RxSwift](https://github.com/ReactiveX/RxSwift), on top of ValueObservation.
+ValueObservation also aims at providing support for third-party code that needs to react to database changes. For example, [RxSwiftCommunity/RxGRDB#46](https://github.com/RxSwiftCommunity/RxGRDB/pull/46) is the pull request which implements RxGRDB, the companion library based on [RxSwift](https://github.com/ReactiveX/RxSwift), on top of ValueObservation.
 
 
 ### New
 
 - [#435](https://github.com/groue/GRDB.swift/pull/435): Improved support for values observation
+- It is now possible to observe database change from a [DatabaseReader](https://groue.github.io/GRDB.swift/docs/3.5/Protocols/DatabaseReader.html).
 
 
-### Fixed
+### Breaking Change
 
-- It used to be possible to define custom types that adopt the DatabaseReader and DatabaseWriter protocols, with a major drawback: it was impossible to add concurrency-related APIs to GRDB without breaking user code. Now all types that adopt those protocols are defined by GRDB: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. **Expanding this set is no longer supported.**
+It used to be possible to define custom types that adopt the [DatabaseReader and DatabaseWriter protocols](README.md#databasewriter-and-databasereader-protocols), with a major drawback: it was impossible to add concurrency-related APIs to GRDB without breaking user code. Now all types that adopt those protocols are defined by GRDB: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. **Expanding this set is no longer supported.**
 
 
 ### Documentation Diff
@@ -50,9 +51,9 @@ It is also highly configurable, and aims at providing support for any third-part
 +protocol DatabaseRegionConvertible {
 +    func databaseRegion(_ db: Database) throws -> DatabaseRegion
 +}
-
++
 +extension DatabaseRegion: DatabaseRegionConvertible { }
-
++
 +struct AnyDatabaseRegionConvertible: DatabaseRegionConvertible {
 +    init(_ region: @escaping (Database) throws -> DatabaseRegion)
 +    init(_ region: DatabaseRegionConvertible)
@@ -73,52 +74,53 @@ It is also highly configurable, and aims at providing support for any third-part
 +    func fetch(_ db: Database) throws -> Fetched
 +    mutating func value(_ fetched: Fetched) -> Value?
 +}
-
++
++extension ValueReducer {
++    func map<T>(_ transform: @escaping (Value) -> T?) -> MapValueReducer<Self, T>
++}
++
 +struct AnyValueReducer<Fetched, Value>: ValueReducer {
 +    init(fetch: @escaping (Database) throws -> Fetched, value: @escaping (Fetched) -> Value?)
 +    init<Reducer: ValueReducer>(_ reducer: Reducer) where Reducer.Fetched == Fetched, Reducer.Value == Value
 +}
 
 +struct ValueObservation<Reducer> {
-+    var isReadOnly: Bool
 +    var extent: Database.TransactionObservationExtent
++    var requiresWriteAccess: Bool
 +    var scheduling: ValueScheduling
 +    static func tracking(_ regions: DatabaseRegionConvertible..., reducer: Reducer) -> ValueObservation
 +}
-
++
 +extension ValueObservation where Reducer: ValueReducer {
-+    public func start(
++    func map<T>(_ transform: @escaping (Reducer.Value) -> T)
++        -> ValueObservation<MapValueReducer<Reducer, T>>
++    func start(
 +        in reader: DatabaseReader,
 +        onError: ((Error) -> Void)? = nil,
 +        onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
 +}
-
++
 +extension ValueObservation where Reducer == Void {
 +    static func tracking<Value>(
 +        _ regions: DatabaseRegionConvertible...,
 +        fetch: @escaping (Database) throws -> Value)
 +        -> ValueObservation<ValueReducers.Raw<Value>>
++
 +    static func tracking<Value>(
-+        withUniquing regions: DatabaseRegionConvertible...,
-+        fetch: @escaping (Database) throws -> Value)
-+        -> ValueObservation<ValueReducers.Unique<Value>>
++        _ regions: DatabaseRegionConvertible...,
++        fetchDistinct: @escaping (Database) throws -> Value)
++        -> ValueObservation<ValueReducers.Distinct<Value>>
 +        where Value: Equatable
 +
 +    static func trackingCount<Request: FetchRequest>(_ request: Request)
 +        -> ValueObservation<ValueReducers.Raw<Int>>
-+    static func trackingCount<Request: FetchRequest>(withUniquing request: Request)
-+        -> ValueObservation<ValueReducers.Unique<Int>>
-+
 +    static func trackingAll<Request: FetchRequest>(_ request: Request)
-+        -> ValueObservation<ValueReducers.Raw<[Row]>>
-+    static func trackingAll<Request: FetchRequest>(withUniquing request: Request)
-+        -> ValueObservation<ValueReducers.Unique<[Row]>>
++        -> ValueObservation<ValueReducers.Raw<[Request.RowDecoder]>>
 +    static func trackingOne<Request: FetchRequest>(_ request: Request)
-+        -> ValueObservation<ValueReducers.Raw<Row?>>
-+    static func trackingOne<Request: FetchRequest>(withUniquing request: Request)
-+        -> ValueObservation<ValueReducers.Unique<Row?>>
++        -> ValueObservation<ValueReducers.Raw<Request.RowDecoder?>>
 +}
 ```
+
 
 ## 3.4.0
 
@@ -193,7 +195,7 @@ This release comes with **Association Aggregates**. They let you compute values 
 +}
 
 +extension SQLSpecificExpressible {
-+    public func aliased(_ key: CodingKey) -> SQLSelectable
++    func aliased(_ key: CodingKey) -> SQLSelectable
 +}
 ```
 
