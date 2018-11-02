@@ -6194,7 +6194,9 @@ protocol TransactionObserverType : class {
 
 **ValueObservation tracks changes in the results of database [requests](#requests), and notifies fresh values whenever the database changes.**
 
-For example, here is a typical UIViewController which observes the database in order to keep its view up-to-date:
+Changes are only notified after they have been committed in the database. No insertion, update, or deletion in tracked tables is missed. This includes indirect changes triggered by [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
+
+Here is a typical UIViewController which observes the database in order to keep its view up-to-date:
 
 ```swift
 class PlayerViewController: UIViewController {
