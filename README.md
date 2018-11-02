@@ -7767,7 +7767,7 @@ Only five types adopt those protocols: DatabaseQueue, DatabasePool, DatabaseSnap
 
 DatabaseReader and DatabaseWriter provide the *smallest* common guarantees: they don't erase the differences between queues, pools, and snapshots. See for example [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools).
 
-However, you can easily prevent some parts of your application from writing in the database by giving them a DatabaseReader:
+However, you can prevent some parts of your application from writing in the database by giving them a DatabaseReader:
 
 ```swift
 // This class can read in the database, but can't write into it.
@@ -7782,6 +7782,14 @@ class MyReadOnlyComponent {
 let dbQueue: DatabaseQueue = ...
 let component = MyReadOnlyComponent(reader: dbQueue)
 ```
+
+> :point_up: **Note**: DatabaseReader is not a **secure** way to prevent an application component from writing in the database, because write access is just a cast away:
+>
+> ```swift
+> if let dbQueue = reader as? DatabaseQueue {
+>     try dbQueue.write { ... }
+> }
+> ```
 
 
 ### Unsafe Concurrency APIs
