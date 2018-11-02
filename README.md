@@ -6457,7 +6457,7 @@ Some behaviors of value observations can be configured:
 
 - [ValueObservation.extent](#valueobservationextent): fine-grained control of the observation duration
 - [ValueObservation.scheduling](#valueobservationscheduling): control the dispatching of notified values
-- [ValueObservation.isReadOnly](#valueobservationisreadonly): allow observations to write in the database
+- [ValueObservation.requiresWriteAccess](#valueobservationrequireswriteaccess): allow observations to write in the database
 - [ValueObservation Error Handling](#valueobservation-error-handling)
 
 
@@ -6558,15 +6558,15 @@ The `scheduling` property lets you control how fresh values are notified:
     > :point_up: **Note**: this unsafe mode is intended for third-party libraries that provide their own scheduling engine.
 
 
-#### ValueObservation.isReadOnly
+#### ValueObservation.requiresWriteAccess
 
-The `isReadOnly` property is true by default. When false, a ValueObservation has a write access to the database when it fetches fresh values:
+The `requiresWriteAccess` property is false by default. When true, a ValueObservation has a write access to the database when it fetches fresh values:
 
 ```swift
 var observation = ValueObservation.tracking(..., fetch: { db in
     // write access allowed
 })
-observation.isReadOnly = false
+observation.requiresWriteAccess = true
 ```
 
 The `fetch` closure is executed inside a [savepoint](#transactions-and-savepoints).

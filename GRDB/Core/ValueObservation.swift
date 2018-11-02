@@ -399,13 +399,13 @@ public struct ValueObservation<Reducer> {
     /// The reducer is triggered upon each database change in *observedRegion*.
     var reducer: Reducer
     
-    /// Default is true. Set this property to false when the observation
+    /// Default is false. Set this property to true when the observation
     /// requires write access in order to fetch fresh values. Fetches are then
     /// wrapped inside a savepoint.
     ///
     /// Don't set this flag to true unless you really need it. A read/write
     /// observation is less efficient than a read-only observation.
-    public var isReadOnly: Bool = true
+    public var requiresWriteAccess: Bool = false
     
     /// The extent of the database observation. The default is
     /// `.observerLifetime`: the observation lasts until the

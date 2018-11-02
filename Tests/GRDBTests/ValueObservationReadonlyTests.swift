@@ -80,7 +80,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
             return result
         })
         observation.extent = .databaseLifetime
-        observation.isReadOnly = false
+        observation.requiresWriteAccess = true
         _ = try observation.start(in: dbQueue) { count in
             counts.append(count)
             notificationExpectation.fulfill()
@@ -105,7 +105,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
             try db.execute("INSERT INTO t DEFAULT VALUES")
             throw TestError()
         })
-        observation.isReadOnly = false
+        observation.requiresWriteAccess = true
 
         do {
             _ = try observation.start(

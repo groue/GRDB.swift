@@ -257,28 +257,23 @@ extension DatabaseWriter {
 extension ValueObservation where Reducer: ValueReducer {
     /// Helper method for DatabaseWriter.add(observation:onError:onChange:)
     fileprivate func fetch(_ db: Database) throws -> Reducer.Fetched {
-        if isReadOnly {
-            return try db.readOnly { try reducer.fetch(db) }
-        } else {
+        if requiresWriteAccess {
             var fetchedValue: Reducer.Fetched!
             try db.inSavepoint {
                 fetchedValue = try reducer.fetch(db)
                 return .commit
             }
             return fetchedValue
+        } else {
+            return try db.readOnly { try reducer.fetch(db) }
         }
     }
     
     /// Helper method for DatabaseWriter.add(observation:onError:onChange:)
     fileprivate func fetchAfterChange(in writer: DatabaseWriter) -> (Database, Reducer) -> Future<Reducer.Fetched> {
         // The technique to return a future value after database has changed
-        // depends on the isReadOnly flag:
-        if isReadOnly {
-            // Concurrent fetch
-            return { [unowned writer] (_, reducer) in
-                writer.concurrentRead(reducer.fetch)
-            }
-        } else {
+        // depends on the requiresWriteAccess flag:
+        if requiresWriteAccess {
             // Synchronous fetch
             return { (db, reducer) in
                 Future(Result {
@@ -289,6 +284,11 @@ extension ValueObservation where Reducer: ValueReducer {
                     }
                     return fetchedValue
                 })
+            }
+        } else {
+            // Concurrent fetch
+            return { [unowned writer] (_, reducer) in
+                writer.concurrentRead(reducer.fetch)
             }
         }
     }
