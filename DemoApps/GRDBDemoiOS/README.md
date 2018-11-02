@@ -25,7 +25,7 @@ Demo Application
 
 - [PlayersViewController.swift](GRDBDemoiOS/PlayersViewController.swift)
     
-    `PlayersViewController` displays a list of players, and animates its table view according to database changes with [FetchedRecordsController](../../README.md#fetchedrecordscontroller).
+    `PlayersViewController` displays a list of players. It keeps its title up-to-date with [ValueObservation](../../README.md#valueobservation), and animates its table view according to database changes with [FetchedRecordsController](../../README.md#fetchedrecordscontroller).
 
 - [PlayerEditionViewController.swift](GRDBDemoiOS/PlayerEditionViewController.swift)
     

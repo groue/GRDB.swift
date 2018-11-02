@@ -1,22 +1,23 @@
 import UIKit
 import GRDB
 
+/// PlayersViewController displays the list of players.
 class PlayersViewController: UITableViewController {
-    enum PlayerOrdering {
+    private enum PlayerOrdering {
         case byName
         case byScore
     }
     
-    var playersController: FetchedRecordsController<Player>!
-    
-    var playerOrdering: PlayerOrdering = .byScore {
+    @IBOutlet private weak var newPlayerButtonItem: UIBarButtonItem!
+    private var playersController: FetchedRecordsController<Player>!
+    private var playerCountObserver: TransactionObserver?
+    private var playerOrdering: PlayerOrdering = .byScore {
         didSet {
             try! playersController.setRequest(playersRequest)
-            configureNavigationItem()
+            configureOrderingBarButtonItem()
         }
     }
-    
-    var playersRequest: QueryInterfaceRequest<Player> {
+    private var playersRequest: QueryInterfaceRequest<Player> {
         switch playerOrdering {
         case .byName:
             return Player.orderedByName()
@@ -25,57 +26,59 @@ class PlayersViewController: UITableViewController {
         }
     }
     
-    @IBOutlet weak var newPlayerButtonItem: UIBarButtonItem!
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureTableView()
         configureToolbar()
-        configureNavigationItem()
+        configureOrderingBarButtonItem()
+        configureTitle()
+        configureTableView()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.isToolbarHidden = false
     }
-}
-
-
-// MARK: - Navigation
-
-extension PlayersViewController {
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "Edit" {
-            let player = playersController.record(at: tableView.indexPathForSelectedRow!)
-            let controller = segue.destination as! PlayerEditionViewController
-            controller.title = player.name
-            controller.player = player
-            controller.presentation = .push
+    private func configureToolbar() {
+        toolbarItems = [
+            UIBarButtonItem(barButtonSystemItem: .trash, target: self, action: #selector(deletePlayers)),
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+            UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(refresh)),
+            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
+            UIBarButtonItem(title: "💣", style: .plain, target: self, action: #selector(stressTest)),
+        ]
+    }
+    
+    private func configureOrderingBarButtonItem() {
+        navigationItem.leftBarButtonItems = [editButtonItem, newPlayerButtonItem]
+        
+        switch playerOrdering {
+        case .byScore:
+            navigationItem.rightBarButtonItem = UIBarButtonItem(
+                title: "Score ⬇︎",
+                style: .plain,
+                target: self, action: #selector(sortByName))
+        case .byName:
+            navigationItem.rightBarButtonItem = UIBarButtonItem(
+                title: "Name ⬆︎",
+                style: .plain,
+                target: self, action: #selector(sortByScore))
         }
-        else if segue.identifier == "New" {
-            setEditing(false, animated: true)
-            let navigationController = segue.destination as! UINavigationController
-            let controller = navigationController.viewControllers.first as! PlayerEditionViewController
-            controller.title = "New Player"
-            controller.player = Player(id: nil, name: "", score: 0)
-            controller.presentation = .modal
+    }
+    
+    private func configureTitle() {
+        // Track changes in the number of players
+        playerCountObserver = try! ValueObservation
+            .trackingCount(playersRequest)
+            .start(in: dbQueue) { [unowned self] count in
+                switch count {
+                case 0: self.navigationItem.title = "No Player"
+                case 1: self.navigationItem.title = "1 Player"
+                default: self.navigationItem.title = "\(count) Players"
+                }
         }
     }
     
-    @IBAction func cancelPlayerEdition(_ segue: UIStoryboardSegue) {
-        // Player creation cancelled
-    }
-    
-    @IBAction func commitPlayerEdition(_ segue: UIStoryboardSegue) {
-        // Player creation committed
-    }
-}
-
-
-// MARK: - UITableViewDataSource
-
-extension PlayersViewController {
     private func configureTableView() {
         // Track changes in the database players
         playersController = try! FetchedRecordsController(dbQueue, request: playersRequest)
@@ -118,7 +121,44 @@ extension PlayersViewController {
         // Initial fetch
         try! playersController.performFetch()
     }
+}
+
+
+// MARK: - Navigation
+
+extension PlayersViewController {
     
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "Edit" {
+            let player = playersController.record(at: tableView.indexPathForSelectedRow!)
+            let controller = segue.destination as! PlayerEditionViewController
+            controller.title = player.name
+            controller.player = player
+            controller.presentation = .push
+        }
+        else if segue.identifier == "New" {
+            setEditing(false, animated: true)
+            let navigationController = segue.destination as! UINavigationController
+            let controller = navigationController.viewControllers.first as! PlayerEditionViewController
+            controller.title = "New Player"
+            controller.player = Player(id: nil, name: "", score: 0)
+            controller.presentation = .modal
+        }
+    }
+    
+    @IBAction func cancelPlayerEdition(_ segue: UIStoryboardSegue) {
+        // Player creation cancelled
+    }
+    
+    @IBAction func commitPlayerEdition(_ segue: UIStoryboardSegue) {
+        // Player creation committed
+    }
+}
+
+
+// MARK: - UITableViewDataSource
+
+extension PlayersViewController {
     override func numberOfSections(in tableView: UITableView) -> Int {
         return playersController.sections.count
     }
@@ -156,33 +196,6 @@ extension PlayersViewController {
 // MARK: - Actions
 
 extension PlayersViewController {
-    private func configureNavigationItem() {
-        navigationItem.leftBarButtonItems = [editButtonItem, newPlayerButtonItem]
-        
-        switch playerOrdering {
-        case .byScore:
-            navigationItem.rightBarButtonItem = UIBarButtonItem(
-                title: "Score ⬇︎",
-                style: .plain,
-                target: self, action: #selector(sortByName))
-        case .byName:
-            navigationItem.rightBarButtonItem = UIBarButtonItem(
-                title: "Name ⬆︎",
-                style: .plain,
-                target: self, action: #selector(sortByScore))
-        }
-    }
-    
-    private func configureToolbar() {
-        toolbarItems = [
-            UIBarButtonItem(barButtonSystemItem: .trash, target: self, action: #selector(deletePlayers)),
-            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-            UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(refresh)),
-            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-            UIBarButtonItem(title: "💣", style: .plain, target: self, action: #selector(stressTest)),
-        ]
-    }
-    
     @IBAction func sortByName() {
         setEditing(false, animated: true)
         playerOrdering = .byName

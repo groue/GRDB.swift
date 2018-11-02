@@ -37,6 +37,12 @@ XCODEVERSION := $(XCODEVERSION_MAJOR).$(XCODEVERSION_MINOR)
 # Used to determine if xcpretty is available
 XCPRETTY_PATH := $(shell command -v xcpretty 2> /dev/null)
 
+# Avoid the "No output has been received in the last 10m0s" error on Travis:
+COCOAPODS_EXTRA_TIME =
+ifeq ($(TRAVIS),true)
+  COCOAPODS_EXTRA_TIME = --verbose
+endif
+
 
 # Tests
 # =====
@@ -334,7 +340,7 @@ endif
 
 test_CocoaPodsLint_GRDB:
 ifdef POD
-	$(POD) lib lint GRDB.swift.podspec --allow-warnings
+	$(POD) lib lint GRDB.swift.podspec --allow-warnings $(COCOAPODS_EXTRA_TIME)
 else
 	@echo CocoaPods must be installed for test_CocoaPodsLint_GRDB
 	@exit 1
@@ -342,7 +348,7 @@ endif
 
 test_CocoaPodsLint_GRDBPlus:
 ifdef POD
-	$(POD) lib lint GRDBPlus.podspec --allow-warnings
+	$(POD) lib lint GRDBPlus.podspec --allow-warnings $(COCOAPODS_EXTRA_TIME)
 else
 	@echo CocoaPods must be installed for test_CocoaPodsLint_GRDBPlus
 	@exit 1
@@ -350,7 +356,7 @@ endif
 
 test_CocoaPodsLint_GRDBCipher:
 ifdef POD
-	$(POD) lib lint GRDBCipher.podspec --allow-warnings
+	$(POD) lib lint GRDBCipher.podspec --allow-warnings $(COCOAPODS_EXTRA_TIME)
 else
 	@echo CocoaPods must be installed for test_CocoaPodsLint_GRDBCipher
 	@exit 1

@@ -55,18 +55,18 @@ See [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md) if you are looking for your
 GRDB ships with:
 
 - [Access to raw SQL and SQLite](#sqlite-api)
-- [Records](#records): fetching and persistence methods for your custom structs and class hierarchies
-- [Query Interface](#the-query-interface): a swift way to avoid the SQL language
-- [WAL Mode Support](#database-pools): extra performance for multi-threaded applications
-- [Migrations](#migrations): transform your database as your application evolves
-- [Database Observation](#database-changes-observation): track database transactions, get notified of database changes
+- [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
+- [Query Interface](#the-query-interface): A swift way to avoid the SQL language.
+- [WAL Mode Support](#database-pools): Extra performance for multi-threaded applications.
+- [Migrations](#migrations): Transform your database as your application evolves.
+- [Database Observation](#database-changes-observation): Observe database changes and transactions.
 - [Full-Text Search](#full-text-search)
 - [Encryption](#encryption)
 - [Support for Custom SQLite Builds](Documentation/CustomSQLiteBuilds.md)
 
 Companion libraries that enhance and extend GRDB:
 
-- [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB): track database changes in a reactive way, with [RxSwift](https://github.com/ReactiveX/RxSwift).
+- [RxGRDB]: track database changes in a reactive way, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 - [GRDBObjc](https://github.com/groue/GRDBObjc): FMDB-compatible bindings to GRDB.
 
 
@@ -221,24 +221,14 @@ See the [Query Interface](#the-query-interface)
 
 ```swift
 let request = Place.order(Column("title"))
-
-// Track request changes with FetchedRecordsController
-let controller = FetchedRecordsController(dbQueue, request: request)
-controller.trackChanges { controller in
-    print("Places have changed.")
-    let places = controller.fetchedRecords // [Place]
-}
-try controller.performFetch()
-
-// Track request changes with RxSwift and RxGRDB
-request.rx
-    .fetchAll(in: dbQueue)
-    .subscribe(onNext: { places: [Place] in
+try ValueObservation
+    .trackingAll(request)
+    .start(in: dbQueue) { places: [Place] in
         print("Places have changed.")
-    })
+    }
 ```
 
-See [Database Changes Observation](#database-changes-observation), and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)
+See [Database Changes Observation](#database-changes-observation)
 
 </details>
 
@@ -272,8 +262,7 @@ Documentation
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Full-Text Search](#full-text-search): Perform efficient and customizable full-text searches.
 - [Joined Queries Support](#joined-queries-support): Consume complex joined queries.
-- [Database Changes Observation](#database-changes-observation): Perform post-commit and post-rollback actions.
-- [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of changes in a query results, plus UITableView animations.
+- [Database Changes Observation](#database-changes-observation): Observe database changes and transactions.
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
 - [Backup](#backup): Dump the content of a database to another.
 
@@ -358,17 +347,17 @@ If you decide to use Carthage despite this warning, and get any Carthage-related
 
 4. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
 
-See the [Demo Application](DemoApps/GRDBDemoiOS) for an example of such integration.
+> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an example of such integration.
 
 
 Demo Application
 ================
 
-The repository comes with a [demo application](DemoApps/GRDBDemoiOS) that shows you:
+The repository comes with a [demo application](DemoApps/GRDBDemoiOS/README.md) that shows you:
 
 - how to setup a database in an iOS app
 - how to define a simple [Codable Record](#codable-records)
-- how to track database changes and animate a table view with [FetchedRecordsController](#fetchedrecordscontroller).
+- how to track database changes with [ValueObservation] and [FetchedRecordsController].
 
 <p align="center">
     <img src="https://github.com/groue/GRDB.swift/raw/master/Documentation/Images/GRDBDemoScreenshot.png" width="50%">
@@ -451,7 +440,7 @@ let newPlaceCount = try dbQueue.write { db -> Int in
 
 **A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
-See the [Demo Application](DemoApps/GRDBDemoiOS) for a sample code that sets up a database queue on iOS.
+> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample code that sets up a database queue on iOS.
 
 
 ### DatabaseQueue Configuration
@@ -531,7 +520,7 @@ let newPlaceCount = try dbPool.write { db -> Int in
 
 **A database pool needs your application to follow rules in order to deliver its safety guarantees.** See the [Concurrency](#concurrency) chapter for more details about database pools, how they differ from database queues, and advanced use cases.
 
-See the [Demo Application](DemoApps/GRDBDemoiOS) for a sample code that sets up a database queue on iOS, and just replace DatabaseQueue with DatabasePool.
+> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample code that sets up a database queue on iOS, and just replace DatabaseQueue with DatabasePool.
 
 
 ### DatabasePool Configuration
@@ -2072,7 +2061,7 @@ Before jumping in the low-level wagon, here is the list of all SQLite APIs used 
 - `sqlite3_busy_handler`, `sqlite3_busy_timeout`: see [Configuration.busyMode](http://groue.github.io/GRDB.swift/docs/3.4/Structs/Configuration.html)
 - `sqlite3_changes`, `sqlite3_total_changes`: see [Database.changesCount and Database.totalChangesCount](http://groue.github.io/GRDB.swift/docs/3.4/Classes/Database.html)
 - `sqlite3_close`, `sqlite3_close_v2`, `sqlite3_next_stmt`, `sqlite3_open_v2`: see [Database Connections](#database-connections)
-- `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [TransactionObserver Protocol](#transactionobserver-protocol), [FetchedRecordsController](#fetchedrecordscontroller)
+- `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [TransactionObserver Protocol](#transactionobserver-protocol), [ValueObservation], [FetchedRecordsController]
 - `sqlite3_config`: see [Error Log](#error-log)
 - `sqlite3_create_collation_v2`: see [String Comparison](#string-comparison)
 - `sqlite3_db_release_memory`: see [Memory Management](#memory-management)
@@ -2100,13 +2089,17 @@ try dbQueue.write { db in
 }
 ```
 
-Of course, you need to open a [database connection](#database-connections), and [create a database table](#database-schema) first.
+Of course, you need to open a [database connection](#database-connections), and [create database tables](#database-schema) first.
 
-Your custom structs and classes can adopt each protocol individually, and opt in to focused sets of features. Or you can subclass the `Record` class, and get the full toolkit in one go: fetching methods, persistence methods, and record comparison. See the [list of record methods](#list-of-record-methods) for an overview.
+To define your custom records, you subclass the ready-made `Record` class, or you extend your structs and classes with protocols that come with focused sets of features: fetching methods, persistence methods, record comparison...
+
+Extending structs with record protocols is more "swifty". Subclassing the Record class is more "classic". You can choose either way. See some [examples of record definitions](#examples-of-record-definitions), and the [list of record methods](#list-of-record-methods) for an overview.
 
 > :point_up: **Note**: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, do not auto-update, and do not lazy-load. This is both a purpose, and a consequence of protocol-oriented programming. You should read [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3) for a general introduction.
 >
 > :bulb: **Tip**: after you have read this chapter, check the [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) Guide.
+>
+> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that uses records.
 
 **Overview**
 
@@ -2696,6 +2689,8 @@ For more information about Codable records, see:
 - [The userInfo Dictionary]
 - [Tip: Use Coding Keys as Columns](#tip-use-coding-keys-as-columns)
 
+> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that uses Codable records.
+
 
 ### JSON Columns
 
@@ -2743,7 +2738,7 @@ protocol MutablePersistableRecord {
 }
 ```
 
-> :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, and watchOS 4.0+. This option makes sure that the JSON output is stable. This stability is required for [Record Comparison] to work as expected, and database observation tools such as [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) to accurately recognize changed records.
+> :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, and watchOS 4.0+. This option makes sure that the JSON output is stable. This stability is required for [Record Comparison] to work as expected, and database observation tools such as [ValueObservation] to accurately recognize changed records.
 
 
 ### Date and UUID Coding Strategies
@@ -2868,15 +2863,15 @@ try dbQueue.read { db in
 }
 ```
 
-... and feed database observation tools such as [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
+... and feed database observation tools such as [ValueObservation]:
 
 ```swift
 // Observe changes
-Player.maximumScore.rx
-    .fetchOne(in: dbQueue)
-    .subscribe(onNext: { maxScore: Int? in
+try ValueObservation
+    .trackingOne(Player.maximumScore)
+    .start(in: dbQueue) { maxScore: Int? in
         print("The maximum score has changed")
-    })
+    }
 ```
 
 
@@ -3659,7 +3654,7 @@ Use an individual column as **primary**, **unique**, or **foreign key**. When de
 > }
 > ```
 >
-> The reason for this recommendation is that auto-incremented primary keys prevent the reuse of ids. This prevents your app or [database observation tools](#database-changes-observation) to think that a row was updated, when it was actually deleted, then replaced. Depending on your application needs, this may be OK. Or not.
+> The reason for this recommendation is that auto-incremented primary keys prevent the reuse of ids. This prevents your app or [database observation tools](#database-changes-observation) to think that a row was updated, when it was actually deleted, then replaced. Depending on your application needs, this may be acceptable. But usually it is not.
 
 **Create an index** on the column:
 
@@ -4243,7 +4238,7 @@ let minScore = row[0] as Int?
 let maxScore = row[1] as Int?
 ```
 
-When you also want to use database observation tools such as [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you have to go one step further, and change the type of the request:
+When you also want to use database observation tools such as [ValueObservation], you have to go one step further, and change the type of the request:
 
 - When you change the selection, prefer the `select(..., as:)` method:
     
@@ -4256,12 +4251,12 @@ When you also want to use database observation tools such as [FetchedRecordsCont
         try request.fetchOne(db) // Int?
     }
     
-    // Observe with RxGRDB
-    request.rx
-        .fetchOne(in: dbQueue)
-        .subscribe(onNext: { maxScore: Int? in
+    // Observe with ValueObservation
+    try ValueObservation
+        .trackingOne(request)
+        .start(in: dbQueue) { maxScore: Int? in
             print("The maximum score has changed")
-        })
+        }
     ```
 
 - Otherwise, use `asRequest(of:)`. Here is an example that uses [Associations]:
@@ -4282,13 +4277,12 @@ When you also want to use database observation tools such as [FetchedRecordsCont
         try request.fetchAll(db) // [BookInfo]
     }
     
-    // Observe with FetchedRecordsController
-    let controller = FetchedRecordsController(
-        dbQueue,
-        request: request,
-        isSameRecord: { (bookInfo1, bookInfo2) in
-            bookInfo1.book.id == bookInfo2.book.id
-        })
+    // Observe with ValueObservation
+    try ValueObservation
+        .trackingAll(request)
+        .start(in: dbQueue) { bookInfos: [BookInfo] in
+            print("Books have changed")
+        }
     ```
 
 
@@ -4355,14 +4349,14 @@ let request = Player.filter(key: ["email": "arthur@example.com"])
 let player = try request.fetchOne(db)    // Player?
 ```
 
-Those requests help observing the database with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
+Those requests can feed [ValueObservation]:
 
 ```swift
-Player.filter(key: 1).rx
-    .fetchOne(in: dbQueue)
-    .subscribe(onNext: { player: Player? in
+try ValueObservation.
+    .trackingOne(Player.filter(key: 1))
+    .start(in: dbQueue) { player: Player? in
         print("Player 1 has changed")
-    })
+    }
 ```
 
 
@@ -4475,14 +4469,14 @@ But you may prefer to bring some elegance back in, and build custom requests:
 try Player.customRequest().fetchAll(db) // [Player]
 ```
 
-Custom requests also grant [FetchedRecordsController](#fetchedrecordscontroller) and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) the ability to observe the database:
+Custom requests can also feed [ValueObservation]:
 
 ```swift
-Player.customRequest(...).rx
-    .fetchAll(in: dbQueue)
-    .subscribe(onNext: { players: [Player] in
+try ValueObservation.
+    .trackingAll(Player.customRequest(...))
+    .start(in: dbQueue) { players: [Player] in
         print("Players have changed")
-    })
+    }
 ```
 
 - [FetchRequest Protocol](#fetchrequest-protocol)
@@ -4495,7 +4489,7 @@ Player.customRequest(...).rx
 **FetchRequest** is the protocol for all requests that run from a single select statement, and know how fetched rows should be interpreted:
 
 ```swift
-protocol FetchRequest {
+protocol FetchRequest: DatabaseRegionConvertible {
     /// The type that tells how fetched rows should be decoded
     associatedtype RowDecoder
     
@@ -4504,9 +4498,6 @@ protocol FetchRequest {
     
     /// The number of rows fetched by the request.
     func fetchCount(_ db: Database) throws -> Int
-    
-    /// The database region that the request looks into.
-    func databaseRegion(_ db: Database) throws -> DatabaseRegion
 }
 ```
 
@@ -4516,7 +4507,7 @@ The `prepare` method returns a prepared statement and an optional row adapter. T
 
 The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
 
-The `databaseRegion` method is involved in [database observation](#database-changes-observation). It is given a default implementation, based on the statement returned by `prepare`. For more information, see [DatabaseRegion](#databaseregion), and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB).
+The base `DatabaseRegionConvertible` protocol is involved in [database observation](#database-changes-observation). For more information, see [DatabaseRegion](#databaseregion), and [ValueObservation].
 
 The FetchRequest protocol is adopted, for example, by [query interface requests](#requests):
 
@@ -5639,7 +5630,7 @@ let playerInfos = try dbQueue.read { db in
 
 ### Splitting Rows, the Request Way
 
-The `PlayerInfo.fetchAll` method [above](#splitting-rows-the-record-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation) with [FetchedRecordsController](#fetchedrecordscontroller) or [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), you'll need a [custom request](#custom-requests) that defines a database query.
+The `PlayerInfo.fetchAll` method [above](#splitting-rows-the-record-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation), you'll need a [custom request](#custom-requests) that defines a database query.
 
 It is recommended that you read the previous paragraphs before you dive in this sample code. We start with the same PlayerInfo record as above:
 
@@ -5792,15 +5783,10 @@ Database Changes Observation
 GRDB puts this SQLite feature to some good use, and lets you observe the database in various ways:
 
 - [After Commit Hook](#after-commit-hook): The simplest way to handle successful transactions.
-- [TransactionObserver Protocol](#transactionobserver-protocol): The low-level protocol for database observation
-    - [Activate a Transaction Observer](#activate-a-transaction-observer)
-    - [Database Changes And Transactions](#database-changes-and-transactions)
-    - [Filtering Database Events](#filtering-database-events)
-    - [Observation Extent](#observation-extent)
-    - [DatabaseRegion](#databaseregion)
-    - [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)
-- [FetchedRecordsController](#fetchedrecordscontroller): Automated tracking of changes in a query results, plus UITableView animations
-- [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB): Automated tracking of changes in a query results, based on [RxSwift](https://github.com/ReactiveX/RxSwift)
+- [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
+- [ValueObservation]: Automated tracking of database changes.
+- [FetchedRecordsController]: Automated tracking of database changes, with table view animations.
+- [RxGRDB]: Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 
 Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
 
@@ -5988,7 +5974,7 @@ do {
 > :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
 
-[FetchedRecordsController](#fetchedrecordscontroller) and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) are based on the TransactionObserver protocol.
+[ValueObservation], [FetchedRecordsController], and [RxGRDB] are based on the TransactionObserver protocol.
 
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
 
@@ -6133,13 +6119,15 @@ You can group regions:
 }
 ```
 
-Those regions provide support for the `observes(eventsOfKind:)` and `databaseDidChange(with:)` methods of transaction observers. For example:
+There are two special regions: `DatabaseRegion()` (the empty region), and `DatabaseRegion.fullDatabase` (the region that spans the whole database).
+
+Regions feed the `observes(eventsOfKind:)` and `databaseDidChange(with:)` methods of transaction observers. For example:
 
 ```swift
-// A region observer
+// A transaction observer which notifies all changes to a database region.
 class DatabaseRegionObserver: TransactionObserver {
     let region: DatabaseRegion
-    var regionModified = false
+    var regionIsModified = false
     
     init(region: DatabaseRegion) {
         self.region = region
@@ -6151,22 +6139,21 @@ class DatabaseRegionObserver: TransactionObserver {
     
     func databaseDidChange(with event: DatabaseEvent) {
         if region.isModified(by: event) {
-            regionModified = true
+            regionIsModified = true
             stopObservingDatabaseChangesUntilNextTransaction()
         }
     }
     
     func databaseDidRollback(_ db: Database) {
-        regionModified = false
+        regionIsModified = false
     }
     
     func databaseDidCommit(_ db: Database) {
-        if regionModified {
-            regionModified = false
-            
-            // You'll customize your handling of changes here:
-            print("Region changes have been committed.")
-        }
+        if regionIsModified == false { return }
+        regionIsModified = false
+        
+        // You'll customize your handling of changes here:
+        print("Region has been modified.")
     }
 }
 
@@ -6177,7 +6164,7 @@ try dbQueue.write { db in
 }
 ```
 
-Beware that a region notifies *potential* changes, not *actual* changes in the results of a request. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
+A region notifies *potential* changes, not *actual* changes in the results of a request. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
 
 For example, if you observe the region of `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
 
@@ -6203,19 +6190,432 @@ protocol TransactionObserverType : class {
 ```
 
 
+## ValueObservation
+
+**ValueObservation tracks changes in the results of database [requests](#requests), and notifies fresh values whenever the database changes.**
+
+Changes are only notified after they have been committed in the database. No insertion, update, or deletion in tracked tables is missed. This includes indirect changes triggered by [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
+
+Here is a typical UIViewController which observes the database in order to keep its view up-to-date:
+
+```swift
+class PlayerViewController: UIViewController {
+    @IBOutlet weak var nameLabel: UILabel!
+    private var observer: TransactionObserver?
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // Define a ValueObservation which tracks a player
+        let request = Player.filter(key: 42)
+        let observation = ValueObservation.trackingOne(request)
+        
+        // Start observing the database
+        observer = try! observation.start(
+            in: dbQueue,
+            onChange: { [unowned self] player: Player? in
+                // Player has changed: update view
+                self.nameLabel.text = player?.name
+            })
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        // Stop observing the database
+        observer = nil
+    }
+}
+```
+
+By default, all values are notified on the main queue. Views can be updated right from the `onChange` callback.
+
+An initial fetch is performed as soon as the observation starts: the view is set up and ready when the `viewWillAppear` method returns.
+
+The observer returned by the `start` method is stored in a property of the view controller. This allows the view controller to control the duration of the observation. When the observer is deallocated, the observation stops. Meanwhile, all transactions that modify the observed player are notified, and the `nameLabel` is kept up-to-date.
+
+> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that uses ValueObservation.
+
+- [ValueObservation.trackingCount, trackingOne, trackingAll](#valueobservationtrackingcount-trackingone-trackingall)
+- [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
+- [ValueObservation.tracking(_:reducer:)](#valueobservationtracking_reducer)
+- [ValueObservation Options](#valueobservation-options)
+
+
+### ValueObservation.trackingCount, trackingOne, trackingAll
+
+Given a [request](#requests), you can track its number of results, the first one, or all of them:
+
+```swift
+ValueObservation.trackingCount(request)
+ValueObservation.trackingOne(request)
+ValueObservation.trackingAll(request)
+```
+
+Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request methods:
+
+- `trackingCount` notifies counts:
+
+    ```swift
+    // Observe number of players
+    let observer = ValueObservation
+        .trackingCount(Player.all())
+        .start(in: dbQueue) { count: Int in
+            print("Number of players have changed: \(count)")
+        }
+    ```
+
+- `trackingOne` notifies optional values, built from a single database row (if any):
+
+    ```swift
+    // Observe a single player
+    let observer = ValueObservation
+        .trackingOne(Player.filter(key: 1))
+        .start(in: dbQueue) { player: Player? in
+            print("Player has changed: \(player)")
+        }
+    
+    // Observe the maximum score
+    let request = Player.select(max(Column("score")), as: Int.self)
+    let observer = ValueObservation
+        .trackingOne(request)
+        .start(in: dbQueue) { maximumScore: Int? in
+            print("Maximum score has changed: \(maximumScore)")
+        }
+    ```
+
+- `trackingAll` notifies arrays:
+
+    ```swift
+    // Observe all players
+    let observer = ValueObservation
+        .trackingAll(Player.all())
+        .start(in: dbQueue) { players: [Player] in
+            print("Players have changed: \(players)")
+        }
+    
+    // Observe all player names
+    let request = SQLRequest<String>("SELECT name FROM player")
+    let observer = ValueObservation
+        .trackingAll(request)
+        .start(in: dbQueue) { names: [String] in
+            print("Player names have changed: \(names)")
+        }
+    ```
+
+
+### ValueObservation.tracking(_:fetch:)
+
+Sometimes you need to observe several requests at the same time. For example, you need to observe changes in both a team and its players.
+
+When this happens, you create a ValueObservation with the `ValueObservation.tracking(_:fetch:)` method, which accepts two parameters:
+
+1. The list of observed requests.
+2. A closure that fetches a fresh value whenever one of the observed requests are modified.
+
+The fetch closure is granted an immutable view of the last committed state of the database: this means that fetched values are guaranteed to be **consistent**.
+
+For example:
+
+```swift
+// The two observed requests (the team and its players)
+let teamRequest = Team.filter(key: 1)
+let playersRequest = Player.filter(Column("teamId") == 1)
+
+// The fetched value
+struct TeamInfo {
+    var team: Team
+    var players: [Player]
+}
+
+let observation = ValueObservation.tracking(
+    teamRequest, playersRequest,
+    fetch: { db -> TeamInfo? in
+        guard let team = try teamRequest.fetchOne(db) else {
+            return nil
+        }
+        let players = try playersRequest.fetchAll(db)
+        return TeamInfo(team: team, players: players)
+    })
+
+let observer = observation.start(in: dbQueue) { teamInfo: TeamInfo? in
+    print("Team and players have changed.")
+}
+```
+
+It may happen that a database change does not modify the fetched values. In this case, you'll be notified with consecutive identical values. You can filter out those duplicates with the `ValueObservation.tracking(_:fetchDistinct:)` method. It requires the fetched value to adopt the Equatable protocol:
+
+```swift
+// When the `player` table is changed, fetch the total number of players, and
+// the ten best ones:
+struct HallOfFame: Equatable {
+    var count: Int
+    var players: [Player]
+}
+
+let observation = ValueObservation.tracking(
+    Player.all(),
+    fetchDistinct: { db -> HallOfFame in
+        let count = try Player.fetchCount(db)
+        let players = try Player
+            .order(Column("score").desc)
+            .limit(10)
+            .fetchAll(db)
+        return HallOfFame(count: count, players: players)
+    })
+
+let observer = observation.start(in: dbQueue) { hallOfFame: HallOfFame in
+    print("Best players out of \(hallOfFame.count): \(hallOfFame.players)")
+}
+```
+
+The initial parameter of the `ValueObservation.tracking(_:fetch:)` and `ValueObservation.tracking(_:fetchDistinct:)` methods can be fed with requests, and generally speaking, values that adopt the **DatabaseRegionConvertible** protocol.
+
+Use this protocol when you want to encapsulate your complex requests in a dedicated type. Our example above can be rewritten as below:
+
+```swift
+struct TeamInfoRequest: DatabaseRegionConvertible {
+    var teamId: Int64
+    
+    private var teamRequest: QueryInterfaceRequest<Team> {
+        return Team.filter(key: teamId)
+    }
+    
+    private var playersRequest: QueryInterfaceRequest<Player> {
+        return Player.filter(Column("teamId") == teamId)
+    }
+    
+    // DatabaseRegionConvertible adoption
+    func databaseRegion(_ db: Database) throws -> DatabaseRegion {
+        let teamRegion = try teamRequest.databaseRegion(db)
+        let playersRegion = try playersRequest.databaseRegion(db)
+        return teamRegion.union(playersRegion)
+    }
+    
+    func fetch(_ db: Database) throws -> TeamInfo? {
+        guard let team = try teamRequest.fetchOne(db) else {
+            return nil
+        }
+        let players = try playersRequest.fetchAll(db)
+        return TeamInfo(team: team, players: players)
+    }
+}
+
+let request = TeamInfoRequest(teamId: 1)
+let observer = ValueObservation
+    .tracking(request, fetch: request.fetch)
+    .start(in: dbQueue) { teamInfo: TeamInfo? in
+        print("Team and players have hanged.")
+    }
+```
+
+See [DatabaseRegion](#databaseregion) for more information.
+
+
+### ValueObservation.tracking(_:reducer:)
+
+The most general way to define a ValueObservation is to create one from an observed database region (see above), and a **reducer** that adopts the **ValueReducer** protocol:
+
+```swift
+protocol ValueReducer {
+    associatedtype Fetched
+    associatedtype Value
+    
+    /// Fetches a database value
+    func fetch(_ db: Database) throws -> Fetched
+    
+    /// Returns a notified value
+    mutating func value(_ fetched: Fetched) -> Value?
+}
+```
+
+The `fetch` method is called upon changes in the observed [database region](#databaseregion). It runs inside a dispatch queue which can access the database.
+
+The `value` method transforms a fetched value into a notified value. It returns nil if the observer should not be notified. This method runs inside a private dispatch queue.
+
+The sample code below counts the number of times the player table is modified:
+
+```swift
+var count = 0
+let reducer = AnyValueReducer(
+    fetch: { _ in },
+    value: { _ -> Int? in
+        count += 1
+        return count
+    })
+let observer = ValueObservation
+    .tracking(Player.all(), reducer: reducer)
+    .start(in: dbQueue) { count: Int in
+        print("Players have been modified \(count) times.")
+    }
+```
+
+
+### ValueObservation Options
+
+Some behaviors of value observations can be configured:
+
+- [ValueObservation.extent](#valueobservationextent): Precise control of the observation duration.
+- [ValueObservation.scheduling](#valueobservationscheduling): Control the dispatching of notified values.
+- [ValueObservation.requiresWriteAccess](#valueobservationrequireswriteaccess): Allow observations to write in the database.
+- [ValueObservation.map](#valueobservationmap): Transform notified values.
+- [ValueObservation Error Handling](#valueobservation-error-handling)
+
+
+#### ValueObservation.extent
+
+The `extent` property lets you specify the duration of the observation. See [Observation Extent](#observation-extent) for more details:
+
+```swift
+// This observation lasts until the database connection is closed
+var observation = ValueObservation...
+observation.extent = .databaseLifetime
+_ = observation.start(in: dbQueue) { newValue in ... }
+```
+
+The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deallocated.
+
+Regardless of the extent of an observation, you can always stop observation with the `remove(transactionObserver:)` method:
+
+```swift
+// Start
+let observer = observation.start(in: dbQueue) { ... }
+
+// Stop
+dbQueue.remove(transactionObserver: observer)
+```
+
+
+#### ValueObservation.scheduling
+    
+The `scheduling` property lets you control how fresh values are notified:
+
+- `.mainQueue` (the default): all values are notified on the main queue.
+    
+    If the observation starts on the main queue, an initial value is notified right upon subscription, synchronously:
+    
+    ```swift
+    // On main queue
+    let observer = ValueObservation
+        .trackingAll(Player.all())
+        .start(in: dbQueue) { players: [Player] in
+            // On main queue
+            print("fresh players: \(players)")
+        }
+    // <- here "fresh players" is already printed.
+    ```
+    
+    If the observation does not start on the main queue, an initial value is also notified on the main queue, but asynchronously:
+    
+    ```swift
+    // Not on the main queue
+    let observer = ValueObservation
+        .trackingAll(Player.all())
+        .start(in: dbQueue) { players: [Player] in
+            // On main queue
+            print("fresh players: \(players)")
+        }
+    ```
+    
+    When the database changes, fresh values are asynchronously notified:
+    
+    ```swift
+    // Eventually prints "fresh players" on the main queue
+    try dbQueue.write { db in
+        try Player(...).insert(db)
+    }
+    ```
+
+- `.onQueue(_:startImmediately:)`: all values are asychronously notified on the specified queue.
+    
+    An initial value is fetched and notified if `startImmediately` is true.
+    
+    ```swift
+    let customQueue = DispatchQueue(label: "customQueue")
+    var observation = ValueObservation.trackingAll(Player.all())
+    observation.scheduling = .onQueue(customQueue, startImmediately: true)
+    let observer = try observation.start(in: dbQueue) { players: [Player] in
+        // On customQueue
+        print("fresh players: \(players)")s
+    }
+    ```
+
+- `unsafe(startImmediately:)`: values are not all notified on the same dispatch queue.
+    
+    If `startImmediately` is true, an initial value is notified right upon subscription, synchronously, on the dispatch queue which starts the observation.
+    
+    ```swift
+    // On any queue
+    var observation = ValueObservation.trackingAll(Player.all())
+    observation.scheduling = .unsafe(startImmediately: true)
+    let observer = try observation.start(in: dbQueue) { players: [Player] in
+        print("fresh players: \(players)")
+    }
+    // <- here "fresh players" is already printed.
+    ```
+    
+    When the database changes, other values are notified on unspecified queues.
+    
+    > :point_up: **Note**: this unsafe mode is intended for third-party libraries that provide their own scheduling engine.
+
+
+#### ValueObservation.requiresWriteAccess
+
+The `requiresWriteAccess` property is false by default. When true, a ValueObservation has a write access to the database, and its fetches are automatically wrapped in a [savepoint](#transactions-and-savepoints):
+
+```swift
+var observation = ValueObservation.tracking(..., fetch: { db in
+    // write access allowed
+})
+observation.requiresWriteAccess = true
+```
+
+When you use a [database pool](#database-pools), don't use this flag unless you really need it. Observations with write access are less efficient because they block all writes for the whole duration of a fetch.
+
+
+#### ValueObservation.map
+
+The `map` method lets you transform the values notified by a ValueObservation.
+
+The transformation runs in a dispatch queue which does not block the main queue or the database, and is suitable for heavy computations:
+
+```swift
+let observation = ValueObservation
+    .trackingOne(Player.filter(key: 42))
+    .map { player in player?.computeValue() }
+    .start(in: dbQueue) { value in
+        print(value)
+    }
+```
+
+
+#### ValueObservation Error Handling
+
+When you start an observation, you can provide an `onError` callback. This callback is called whenever an error happens when a fresh value is fetched after a database change. It is scheduled just like values (see [ValueObservation.scheduling](#valueobservationscheduling)):
+
+```swift
+let observer = try observation.start(
+    in: dbQueue,
+    onError: { error in
+        print("fresh value could not be fetched")
+    },
+    onChange: { value in
+        print("fresh value: \(value)")
+    })
+```
+
+
 ## FetchedRecordsController
 
-**You use FetchedRecordsController to track changes in the results of an SQLite request.**
-
-**FetchedRecordsController can also feed table views, collection views, and animate cells when the results of the request change.**
+**FetchedRecordsController track changes in the results of a request, feedd table views, collection views, and animate cells when the results of the request change.**
 
 It looks and behaves very much like [Core Data's NSFetchedResultsController](https://developer.apple.com/library/ios/documentation/CoreData/Reference/NSFetchedResultsController_Class/).
 
 Given a fetch request, and a type that adopts the [FetchableRecord] protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to track changes in the results of the fetch request, notify of those changes, and return the results of the request in a form that is suitable for a table view or a collection view, with one cell per fetched record.
 
-See the [Demo Application](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController.
-
-See also [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB), an [RxSwift](https://github.com/ReactiveX/RxSwift) extension, for a reactive way to track request changes.
+> :point_up: **Note**: when you don't need to animate a table or a collection view, use [ValueObservation] or [RxGRDB] instead.
+>
+> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that uses FetchedRecordsController.
 
 - [Creating the Fetched Records Controller](#creating-the-fetched-records-controller)
 - [Responding to Changes](#responding-to-changes)
@@ -6509,10 +6909,10 @@ controller.trackChanges(
 ```
 
 > :warning: **Warning**: notification of individual record changes (the `onChange` callback) has FetchedRecordsController use a diffing algorithm that has a high complexity, a high memory consumption, and is thus **not suited for large result sets**. One hundred rows is probably OK, but one thousand is probably not. If your application experiences problems with large lists, see [Issue 263](https://github.com/groue/GRDB.swift/issues/263) for more information.
-
-See the [Demo Application](DemoApps/GRDBDemoiOS) for an sample app that uses FetchedRecordsController to animate a table view.
-
+>
 > :point_up: **Note**: our sample code above uses `unowned` references to the table view controller. This is a safe pattern as long as the table view controller owns the fetched records controller, and is deallocated from the main thread (this is usually the case). In other situations, prefer weak references.
+>
+> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that uses FetchedRecordsController to animate a table view.
 
 
 ### FetchedRecordsController Concurrency
@@ -7109,7 +7509,7 @@ Those guarantees hold as long as you follow three rules:
     
     This means that opening a new connection each time you access the database is a bad idea. Do share a single connection instead.
     
-    See the [Demo Application](DemoApps/GRDBDemoiOS) for an sample app that sets up a single database queue that is available throughout the application.
+    See the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that sets up a single database queue that is available throughout the application.
     
     If there are several instances of database queues or pools that write in the same database, a multi-threaded application will eventually face "database is locked" errors. See [Dealing with External Connections](#dealing-with-external-connections).
     
@@ -7359,10 +7759,37 @@ Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://groue.gith
 These protocols provide a unified API that let you write generic code that targets all concurrency modes. They fuel, for example:
 
 - [Migrations](#migrations)
-- [FetchedRecordsController](#fetchedrecordscontroller)
-- [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB)
+- [ValueObservation]
+- [FetchedRecordsController]
+- [RxGRDB]
 
-Caution: DatabaseReader and DatabaseWriter only provide the *smallest* common guarantees. They don't erase the differences between queues, pools, and snapshots. See for example [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools).
+Only five types adopt those protocols: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. Expanding this set is not supported: any future GRDB release may break your custom writers and readers, without notice.
+
+DatabaseReader and DatabaseWriter provide the *smallest* common guarantees: they don't erase the differences between queues, pools, and snapshots. See for example [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools).
+
+However, you can prevent some parts of your application from writing in the database by giving them a DatabaseReader:
+
+```swift
+// This class can read in the database, but can't write into it.
+class MyReadOnlyComponent {
+    let reader: DatabaseReader
+    
+    init(reader: DatabaseReader) {
+        self.reader = reader
+    }
+}
+
+let dbQueue: DatabaseQueue = ...
+let component = MyReadOnlyComponent(reader: dbQueue)
+```
+
+> :point_up: **Note**: DatabaseReader is not a **secure** way to prevent an application component from writing in the database, because write access is just a cast away:
+>
+> ```swift
+> if let dbQueue = reader as? DatabaseQueue {
+>     try dbQueue.write { ... }
+> }
+> ```
 
 
 ### Unsafe Concurrency APIs
@@ -7839,7 +8266,7 @@ Sample Code
 ===========
 
 - The [Documentation](#documentation) is full of GRDB snippets.
-- [Demo Application](DemoApps/GRDBDemoiOS): A sample iOS application.
+- [Demo Application](DemoApps/GRDBDemoiOS/README.md): A sample iOS application.
 - [WWDC Companion](https://github.com/groue/WWDCCompanion): A sample iOS application.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
 - How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift)
@@ -7893,3 +8320,6 @@ This chapter has been renamed [Beyond FetchableRecord].
 [Record Comparison]: #record-comparison
 [Record Customization Options]: #record-customization-options
 [TableRecord]: #tablerecord-protocol
+[ValueObservation]: #valueobservation
+[FetchedRecordsController]: #fetchedrecordscontroller
+[RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
