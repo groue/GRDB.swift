@@ -6560,7 +6560,7 @@ The `scheduling` property lets you control how fresh values are notified:
 
 #### ValueObservation.requiresWriteAccess
 
-The `requiresWriteAccess` property is false by default. When true, a ValueObservation has a write access to the database when it fetches fresh values:
+The `requiresWriteAccess` property is false by default. When true, a ValueObservation has a write access to the database, and its fetches are automatically wrapped in a [savepoint](#transactions-and-savepoints):
 
 ```swift
 var observation = ValueObservation.tracking(..., fetch: { db in
@@ -6569,9 +6569,7 @@ var observation = ValueObservation.tracking(..., fetch: { db in
 observation.requiresWriteAccess = true
 ```
 
-The `fetch` closure is executed inside a [savepoint](#transactions-and-savepoints).
-
-Don't use this flag unless you actually need it: when you use a [database pool](#database-pools), observations with write access are less efficient.
+When you use a [database pool](#database-pools), don't use this flag unless you really need it. Observations with write access are less efficient because they block all writes for the whole duration of a fetch.
 
 
 #### ValueObservation Error Handling
