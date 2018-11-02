@@ -8,7 +8,7 @@
 ///     try request.fetchCursor(db) // Cursor of Player
 ///     try request.fetchAll(db)    // [Player]
 ///     try request.fetchOne(db)    // Player?
-public protocol FetchRequest {
+public protocol FetchRequest: DatabaseRegionConvertible {
     /// The type that tells how fetched database rows should be interpreted.
     associatedtype RowDecoder
     
@@ -30,11 +30,6 @@ public protocol FetchRequest {
     ///
     /// - parameter db: A database connection.
     func fetchCount(_ db: Database) throws -> Int
-    
-    /// Returns the database region that the request looks into.
-    ///
-    /// - parameter db: A database connection.
-    func databaseRegion(_ db: Database) throws -> DatabaseRegion
 }
 
 extension FetchRequest {

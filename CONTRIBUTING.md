@@ -75,7 +75,6 @@ The ideas, in alphabetical order:
 - [CloudKit]
 - [Concurrency]
 - [Custom FTS5 Auxiliary Functions]
-- [Database Observation]
 - [Date and Time Functions]
 - [Decode NSDecimalNumber from Text Columns]
 - [Documentation]
@@ -86,6 +85,7 @@ The ideas, in alphabetical order:
 - [JSON]
 - [Linux]
 - [More SQL Generation]
+- [Reactive Database Observation]
 - [Records: Splitting Database Encoding from Ability to Write in the Database]
 - [SQL Console in the Debugger]
 - [SQLCipher in a Shared App Container]
@@ -158,24 +158,6 @@ The SQLite documentation provides [this description](https://www.sqlite.org/fts5
 Applications can define their own [custom FTS5 auxiliary functions](https://www.sqlite.org/fts5.html#custom_auxiliary_functions) with SQLite, but GRDB does not yet provide any Swift API for that.
 
 See issue [#421](https://github.com/groue/GRDB.swift/issues/421) for more information.
-
-
-### Database Observation
-
-:muscle: Hard
-
-[Database Observation](README#database-changes-observation) is currently available in three flavors:
-
-- The [TransactionObserver](README.md#transactionobserver-protocol) protocol: versatile, but low-level and challenging in terms of concurrency, especially when used in conjunction with database pools.
-
-- [FetchedRecordsController]: high-level and easier to use.
-
-- [RxGRDB]: high-level and easier to use, depends on [RxSwift](https://github.com/ReactiveX/RxSwift).
-
-Suggested contributions are:
-
-- Enhancements to FetchedRecordsController (see below).
-- More choices of reactive engines.
 
 
 ### Date and Time Functions
@@ -257,7 +239,7 @@ let stringRequest = Player.select(Column("name"), as: String.self)
 let rowRequest = SQLRequest<Row>("SELECT ...")
 ```
 
-This limitation does not apply to [RxGRDB], the reactive sibling of FetchedRecordsController. It would be nice if FetchedRecordsController would become just as versatile.
+This limitation does not apply to [ValueObservation] and [RxGRDB]. It would be nice if FetchedRecordsController would become just as versatile.
 
 
 ### FetchedRecordsController Support for Sections
@@ -310,6 +292,15 @@ There are several SQLite features that GRDB could natively support:
 - [RTree](https://sqlite.org/rtree.html)
 - [Windows Functions](https://www.sqlite.org/windowfunctions.html)
 - [More ideas](https://www.sqlite.org/lang.html)
+
+
+### Reactive Database Observation
+
+:baby: Starter Task
+
+We already have the [RxGRDB] companion library, which offers [RxSwift](https://github.com/ReactiveX/RxSwift) bindings.
+
+We need more choices of reactive engines.
 
 
 ### Records: Splitting Database Encoding from Ability to Write in the Database
@@ -416,3 +407,4 @@ Features that blur this focus are non-goals:
 [PersistableRecord]: README.md#persistablerecord-protocol
 [Record Comparison]: README.md#record-comparison
 [Requesting Associated Records]: Documentation/AssociationsBasics.md#requesting-associated-records
+[ValueObservation]: README.md#valueobservation

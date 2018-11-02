@@ -296,3 +296,37 @@ private struct TableRegion: Equatable {
         return TableRegion(columns: columnsUnion, rowIds: rowIdsUnion)
     }
 }
+
+// MARK: - DatabaseRegionConvertible
+
+public protocol DatabaseRegionConvertible {
+    /// Returns a database region.
+    ///
+    /// - parameter db: A database connection.
+    func databaseRegion(_ db: Database) throws -> DatabaseRegion
+}
+
+extension DatabaseRegion: DatabaseRegionConvertible {
+    /// :nodoc:
+    public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
+        return self
+    }
+}
+
+/// A type-erased DatabaseRegionConvertible
+public struct AnyDatabaseRegionConvertible: DatabaseRegionConvertible {
+    let _region: (Database) throws -> DatabaseRegion
+    
+    public init(_ region: @escaping (Database) throws -> DatabaseRegion) {
+        _region = region
+    }
+    
+    public init(_ region: DatabaseRegionConvertible) {
+        _region = { try region.databaseRegion($0) }
+    }
+    
+    /// :nodoc:
+    public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
+        return try _region(db)
+    }
+}

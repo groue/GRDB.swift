@@ -225,7 +225,8 @@ extension DatabaseQueue {
     
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
         // DatabaseQueue can't perform parallel reads.
-        let result = Result<T> {
+        // Perform a blocking read instead.
+        return Future(Result {
             // Check that we're on the writer queue...
             try writer.execute { db in
                 // ... and that no transaction is opened.
@@ -234,10 +235,7 @@ extension DatabaseQueue {
                     try block(db)
                 }
             }
-        }
-        return Future {
-            try result.unwrap()
-        }
+        })
     }
     
     // MARK: - Writing in Database
@@ -387,4 +385,3 @@ extension DatabaseQueue {
         writer.sync { $0.remove(collation: collation) }
     }
 }
-
