@@ -1,7 +1,9 @@
 Release Notes
 =============
 
-## Next Version
+## 3.5.0
+
+Released November 2, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.4.0...v3.5.0)
 
 This release comes with **[ValueObservation](README.md#valueobservation)**, a new type which tracks the results of database requests, and notifies fresh values whenever the database changes:
 
