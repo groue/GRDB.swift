@@ -6591,7 +6591,7 @@ let observation = ValueObservation
 
 #### ValueObservation Error Handling
 
-When you start an observation, you can provide an `onError` callback. This callback is called whenever an error happens when a fresh value is fetched after a database change:
+When you start an observation, you can provide an `onError` callback. This callback is called whenever an error happens when a fresh value is fetched after a database change. It is scheduled just like values (see [ValueObservation.scheduling](#valueobservationscheduling)):
 
 ```swift
 let observer = try observation.start(
