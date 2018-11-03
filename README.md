@@ -6607,7 +6607,7 @@ let observer = try observation.start(
 
 ## FetchedRecordsController
 
-**FetchedRecordsController track changes in the results of a request, feedd table views, collection views, and animate cells when the results of the request change.**
+**FetchedRecordsController tracks changes in the results of a request, feeds table views and collection views, and animates cells when the results of the request change.**
 
 It looks and behaves very much like [Core Data's NSFetchedResultsController](https://developer.apple.com/library/ios/documentation/CoreData/Reference/NSFetchedResultsController_Class/).
 
