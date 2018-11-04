@@ -29,8 +29,7 @@ class PlayersViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureToolbar()
-        configureOrderingBarButtonItem()
-        configureTitle()
+        configureNavigationItem()
         configureTableView()
     }
     
@@ -49,9 +48,13 @@ class PlayersViewController: UITableViewController {
         ]
     }
     
-    private func configureOrderingBarButtonItem() {
+    private func configureNavigationItem() {
         navigationItem.leftBarButtonItems = [editButtonItem, newPlayerButtonItem]
-        
+        configureOrderingBarButtonItem()
+        configureTitle()
+    }
+    
+    private func configureOrderingBarButtonItem() {
         switch playerOrdering {
         case .byScore:
             navigationItem.rightBarButtonItem = UIBarButtonItem(

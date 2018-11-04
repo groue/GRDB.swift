@@ -28,11 +28,11 @@ extension Player: Codable, FetchableRecord, MutablePersistableRecord {
 
 extension Player {
     static func orderedByName() -> QueryInterfaceRequest<Player> {
-        return order(CodingKeys.name)
+        return Player.order(CodingKeys.name)
     }
     
     static func orderedByScore() -> QueryInterfaceRequest<Player> {
-        return order(CodingKeys.score.desc, CodingKeys.name)
+        return Player.order(CodingKeys.score.desc, CodingKeys.name)
     }
 }
 
