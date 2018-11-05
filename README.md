@@ -2099,7 +2099,7 @@ Extending structs with record protocols is more "swifty". Subclassing the Record
 >
 > :bulb: **Tip**: after you have read this chapter, check the [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) Guide.
 >
-> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that uses records.
+> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample app that uses records.
 
 **Overview**
 
@@ -2689,7 +2689,7 @@ For more information about Codable records, see:
 - [The userInfo Dictionary]
 - [Tip: Use Coding Keys as Columns](#tip-use-coding-keys-as-columns)
 
-> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that uses Codable records.
+> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample app that uses Codable records.
 
 
 ### JSON Columns
@@ -6234,7 +6234,7 @@ An initial fetch is performed as soon as the observation starts: the view is set
 
 The observer returned by the `start` method is stored in a property of the view controller. This allows the view controller to control the duration of the observation. When the observer is deallocated, the observation stops. Meanwhile, all transactions that modify the observed player are notified, and the `nameLabel` is kept up-to-date.
 
-> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that uses ValueObservation.
+> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample app that uses ValueObservation.
 
 - [ValueObservation.trackingCount, trackingOne, trackingAll](#valueobservationtrackingcount-trackingone-trackingall)
 - [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
@@ -6615,7 +6615,7 @@ Given a fetch request, and a type that adopts the [FetchableRecord] protocol, su
 
 > :point_up: **Note**: when you don't need to animate a table or a collection view, use [ValueObservation] or [RxGRDB] instead.
 >
-> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that uses FetchedRecordsController.
+> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample app that uses FetchedRecordsController.
 
 - [Creating the Fetched Records Controller](#creating-the-fetched-records-controller)
 - [Responding to Changes](#responding-to-changes)
@@ -6912,7 +6912,7 @@ controller.trackChanges(
 >
 > :point_up: **Note**: our sample code above uses `unowned` references to the table view controller. This is a safe pattern as long as the table view controller owns the fetched records controller, and is deallocated from the main thread (this is usually the case). In other situations, prefer weak references.
 >
-> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that uses FetchedRecordsController to animate a table view.
+> :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample app that uses FetchedRecordsController to animate a table view.
 
 
 ### FetchedRecordsController Concurrency
@@ -7509,7 +7509,7 @@ Those guarantees hold as long as you follow three rules:
     
     This means that opening a new connection each time you access the database is a bad idea. Do share a single connection instead.
     
-    See the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for an sample app that sets up a single database queue that is available throughout the application.
+    See the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample app that sets up a single database queue that is available throughout the application.
     
     If there are several instances of database queues or pools that write in the same database, a multi-threaded application will eventually face "database is locked" errors. See [Dealing with External Connections](#dealing-with-external-connections).
     
