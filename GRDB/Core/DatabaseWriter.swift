@@ -220,7 +220,7 @@ extension DatabaseWriter {
             var reducer = observation.reducer
             switch observation.scheduling {
             case .mainQueue:
-                if let value = try reducer.value(observation.fetch(db)) {
+                if let value = try reducer.value(observation.fetchInitial(db)) {
                     if calledOnMainQueue {
                         startValue = value
                     } else {
@@ -229,13 +229,13 @@ extension DatabaseWriter {
                 }
             case let .onQueue(queue, startImmediately: startImmediately):
                 if startImmediately {
-                    if let value = try reducer.value(observation.fetch(db)) {
+                    if let value = try reducer.value(observation.fetchInitial(db)) {
                         queue.async { onChange(value) }
                     }
                 }
             case let .unsafe(startImmediately: startImmediately):
                 if startImmediately {
-                    startValue = try reducer.value(observation.fetch(db))
+                    startValue = try reducer.value(observation.fetchInitial(db))
                 }
             }
 
@@ -256,7 +256,7 @@ extension DatabaseWriter {
 
 extension ValueObservation where Reducer: ValueReducer {
     /// Helper method for DatabaseWriter.add(observation:onError:onChange:)
-    fileprivate func fetch(_ db: Database) throws -> Reducer.Fetched {
+    fileprivate func fetchInitial(_ db: Database) throws -> Reducer.Fetched {
         if requiresWriteAccess {
             var fetchedValue: Reducer.Fetched!
             try db.inSavepoint {
