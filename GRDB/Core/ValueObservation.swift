@@ -187,7 +187,7 @@ public enum ValueReducers {
     public struct Raw<Value>: ValueReducer {
         private let _fetch: (Database) throws -> Value
         
-        public init(_ fetch: @escaping (Database) throws -> Value) {
+        init(_ fetch: @escaping (Database) throws -> Value) {
             self._fetch = fetch
         }
         
@@ -208,7 +208,7 @@ public enum ValueReducers {
         private let _fetch: (Database) throws -> Value
         private var previousValue: Value??
         
-        public init(_ fetch: @escaping (Database) throws -> Value) {
+        init(_ fetch: @escaping (Database) throws -> Value) {
             self._fetch = fetch
         }
         
@@ -234,8 +234,7 @@ public enum ValueReducers {
         private let _fetch: (Database) throws -> [Row]
         private var previousRows: [Row]?
         
-        /// TODO
-        public init(_ fetch: @escaping (Database) throws -> [Row]) {
+        init(_ fetch: @escaping (Database) throws -> [Row]) {
             self._fetch = fetch
         }
         
@@ -261,8 +260,7 @@ public enum ValueReducers {
         private let _fetch: (Database) throws -> Row?
         private var previousRow: Row??
         
-        /// TODO
-        public init(_ fetch: @escaping (Database) throws -> Row?) {
+        init(_ fetch: @escaping (Database) throws -> Row?) {
             self._fetch = fetch
         }
         
@@ -288,8 +286,7 @@ public enum ValueReducers {
         private let _fetch: (Database) throws -> [DatabaseValue]
         private var previousDbValues: [DatabaseValue]?
         
-        /// TODO
-        public init(_ fetch: @escaping (Database) throws -> [DatabaseValue]) {
+        init(_ fetch: @escaping (Database) throws -> [DatabaseValue]) {
             self._fetch = fetch
         }
         
@@ -318,8 +315,7 @@ public enum ValueReducers {
         private var previousDbValue: DatabaseValue??
         private var previousValueWasNil = false
         
-        /// TODO
-        public init(_ fetch: @escaping (Database) throws -> DatabaseValue?) {
+        init(_ fetch: @escaping (Database) throws -> DatabaseValue?) {
             self._fetch = fetch
         }
         
@@ -356,8 +352,7 @@ public enum ValueReducers {
         private let _fetch: (Database) throws -> [DatabaseValue]
         private var previousDbValues: [DatabaseValue]?
         
-        /// TODO
-        public init(_ fetch: @escaping (Database) throws -> [DatabaseValue]) {
+        init(_ fetch: @escaping (Database) throws -> [DatabaseValue]) {
             self._fetch = fetch
         }
         
