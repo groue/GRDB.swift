@@ -6414,7 +6414,7 @@ See [DatabaseRegion](#databaseregion) for more information.
 
 ### ValueObservation.tracking(_:reducer:)
 
-The most general way to define a ValueObservation is to create one from an observed database region (see above), and a **reducer** that adopts the **ValueReducer** protocol:
+The most general way to define a ValueObservation is to create one from an observed database region (see above), and a **reducer** that adopts the **ValueReducer** protocol ([**:fire: EXPERIMENTAL**](#what-are-experimental-features)):
 
 ```swift
 protocol ValueReducer {

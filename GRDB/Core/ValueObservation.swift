@@ -83,6 +83,8 @@ extension DispatchQueue {
 
 // MARK: - ValueReducer
 
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
 /// The ValueReducer protocol supports ValueObservation.
 public protocol ValueReducer {
     /// The type of fetched database values
