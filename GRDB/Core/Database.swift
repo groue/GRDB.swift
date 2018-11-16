@@ -202,6 +202,16 @@ extension Database {
         var sqliteConnection: SQLiteConnection? = nil
         let code = sqlite3_open_v2(path, &sqliteConnection, flags, nil)
         guard code == SQLITE_OK else {
+            // https://www.sqlite.org/c3ref/open.html
+            // > Whether or not an error occurs when it is opened, resources
+            // > associated with the database connection handle should be
+            // > released by passing it to sqlite3_close() when it is no
+            // > longer required.
+            //
+            // https://www.sqlite.org/c3ref/close.html
+            // > Calling sqlite3_close() or sqlite3_close_v2() with a NULL
+            // > pointer argument is a harmless no-op.
+            sqlite3_close(sqliteConnection)
             throw DatabaseError(resultCode: code)
         }
         if let sqliteConnection = sqliteConnection {
