@@ -31,6 +31,25 @@ Release Notes
 +    func reindex(collation: Database.CollationName) throws
 +    func reindex(collation: DatabaseCollation) throws
  }
+
+ struct ValueObservation<Reducer> {
++    static func tracking(
++        _ regions: [DatabaseRegionConvertible],
++        reducer: Reducer)
++        -> ValueObservation
+ }
+ 
+ extension ValueObservation where Reducer == Void {
++    static func tracking<Value>(
++        _ regions: [DatabaseRegionConvertible],
++        fetch: @escaping (Database) throws -> Value)
++        -> ValueObservation<ValueReducers.Raw<Value>>
++    static func tracking<Value>(
++        _ regions: [DatabaseRegionConvertible],
++        fetchDistinct fetch: @escaping (Database) throws -> Value)
++        -> ValueObservation<ValueReducers.Distinct<Value>>
++        where Value: Equatable
+ }
 ```
 
 
