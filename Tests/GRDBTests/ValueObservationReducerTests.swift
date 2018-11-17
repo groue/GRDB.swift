@@ -13,6 +13,17 @@ import XCTest
 #endif
 
 class ValueObservationReducerTests: GRDBTestCase {
+    func testRegionsAPI() {
+        let reducer = AnyValueReducer(fetch: { _ in }, value: { })
+        
+        // single region
+        _ = ValueObservation.tracking(DatabaseRegion(), reducer: reducer)
+        // variadic
+        _ = ValueObservation.tracking(DatabaseRegion(), DatabaseRegion(), reducer: reducer)
+        // array
+        _ = ValueObservation.tracking([DatabaseRegion()], reducer: reducer)
+    }
+    
     func testReducer() throws {
         // We need something to change
         let dbQueue = try makeDatabaseQueue()

@@ -13,6 +13,18 @@ import XCTest
 #endif
 
 class ValueObservationFetchTests: GRDBTestCase {
+    func testRegionsAPI() {
+        // single region
+        _ = ValueObservation.tracking(DatabaseRegion(), fetch: { _ in })
+        _ = ValueObservation.tracking(DatabaseRegion(), fetchDistinct: { _ in 0 })
+        // variadic
+        _ = ValueObservation.tracking(DatabaseRegion(), DatabaseRegion(), fetch: { _ in })
+        _ = ValueObservation.tracking(DatabaseRegion(), DatabaseRegion(), fetchDistinct: { _ in 0 })
+        // array
+        _ = ValueObservation.tracking([DatabaseRegion()], fetch: { _ in })
+        _ = ValueObservation.tracking([DatabaseRegion()], fetchDistinct: { _ in 0 })
+    }
+    
     func testFetch() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
