@@ -216,6 +216,30 @@ extension Database {
     public func drop(index name: String) throws {
         try execute("DROP INDEX \(name.quotedDatabaseIdentifier)")
     }
+    
+    /// Delete and recreate from scratch all indices that use this collation.
+    ///
+    /// This method is useful when the definition of a collation sequence
+    /// has changed.
+    ///
+    /// See https://www.sqlite.org/lang_reindex.html
+    ///
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    public func reindex(collation: Database.CollationName) throws {
+        try execute("REINDEX \(collation.rawValue)")
+    }
+    
+    /// Delete and recreate from scratch all indices that use this collation.
+    ///
+    /// This method is useful when the definition of a collation sequence
+    /// has changed.
+    ///
+    /// See https://www.sqlite.org/lang_reindex.html
+    ///
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    public func reindex(collation: DatabaseCollation) throws {
+        try reindex(collation: Database.CollationName(collation.name))
+    }
 }
 
 /// The TableDefinition class lets you define table columns and constraints.

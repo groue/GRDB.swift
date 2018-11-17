@@ -573,4 +573,15 @@ class TableDefinitionTests: GRDBTestCase {
             XCTAssertTrue(try db.indexes(on: "test").isEmpty)
         }
     }
+    
+    func testReindex() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.reindex(collation: .binary)
+            assertEqualSQL(lastSQLQuery, "REINDEX BINARY")
+            
+            try db.reindex(collation: .localizedCompare)
+            assertEqualSQL(lastSQLQuery, "REINDEX swiftLocalizedCompare")
+        }
+    }
 }
