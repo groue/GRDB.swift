@@ -148,6 +148,13 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
     public mutating func formUnion(_ other: DatabaseRegion) {
         self = union(other)
     }
+    
+    func ignoring(_ tables: Set<String>) -> DatabaseRegion {
+        guard tables.isEmpty == false else { return self }
+        guard let tableRegions = tableRegions else { return .fullDatabase }
+        let filteredRegions = tableRegions.filter { tables.contains($0.key) == false }
+        return DatabaseRegion(tableRegions: filteredRegions)
+    }
 }
 
 extension DatabaseRegion {

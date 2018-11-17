@@ -238,7 +238,7 @@ extension DatabaseWriter {
                     startValue = try reducer.value(observation.fetchInitial(db))
                 }
             }
-
+            
             // Start observing the database
             let valueObserver = try ValueObserver(
                 region: observation.observedRegion(db),
@@ -297,8 +297,9 @@ extension ValueObservation where Reducer: ValueReducer {
 
 /// Support for ValueObservation.
 /// See DatabaseWriter.add(observation:onError:onChange:)
-private class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
-    private let region: DatabaseRegion
+/// Internal for testability
+/* private */ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
+    /* private */ let region: DatabaseRegion // Internal for testability
     private var reducer: Reducer
     private let fetch: (Database, Reducer) -> Future<Reducer.Fetched>
     private let notificationQueue: DispatchQueue?

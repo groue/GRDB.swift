@@ -484,7 +484,15 @@ public struct ValueObservation<Reducer> {
         tracking region: @escaping (Database) throws -> DatabaseRegion,
         reducer: Reducer)
     {
-        self.observedRegion = region
+        self.observedRegion = { db in
+            // Remove views from the observed region.
+            //
+            // We can do it because we are only interested in modifications in
+            // actual tables. And we want to do it because we have a fast path
+            // for simple regions that span a single table.
+            let views = try db.schema().names(ofType: .view)
+            return try region(db).ignoring(views)
+        }
         self.reducer = reducer
     }
     

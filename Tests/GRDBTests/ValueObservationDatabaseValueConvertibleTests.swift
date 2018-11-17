@@ -1,15 +1,15 @@
 import XCTest
 #if GRDBCIPHER
-    import GRDBCipher
+    @testable import GRDBCipher
 #elseif GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
+    @testable import GRDBCustomSQLite
 #else
     #if SWIFT_PACKAGE
         import CSQLite
     #else
         import SQLite3
     #endif
-    import GRDB
+    @testable import GRDB
 #endif
 
 private struct Name: DatabaseValueConvertible {
@@ -142,5 +142,59 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
             ["foo"],
             ["foo", nil],
             [nil]])
+    }
+    
+    func testViewOptimization() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write {
+            try $0.execute("""
+                CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);
+                CREATE VIEW v AS SELECT * FROM t
+                """)
+        }
+        
+        var results: [[Name]] = []
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 4
+        
+        // Test that view v is included in the request region
+        let request = SQLRequest<Name>("SELECT name FROM v ORDER BY id")
+        try dbQueue.inDatabase { db in
+            let region = try request.databaseRegion(db)
+            XCTAssertEqual(region.description, "t(id,name),v(id,name)")
+        }
+        
+        // Test that view v is not included in the observed region.
+        // This optimization helps observation of views that feed from a
+        // single table.
+        var observation = ValueObservation.trackingAll(request)
+        observation.extent = .databaseLifetime
+        let transactionObserver = try observation.start(in: dbQueue) { names in
+            results.append(names)
+            notificationExpectation.fulfill()
+        }
+        let valueObserver = transactionObserver as! ValueObserver<ValueReducers.Values<Name>>
+        XCTAssertEqual(valueObserver.region.description, "t(id,name)")
+        
+        // Test view observation
+        try dbQueue.inDatabase { db in
+            try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
+            try db.execute("UPDATE t SET name = 'foo' WHERE id = 1")     // =
+            try db.inTransaction {                                       // +1
+                try db.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
+                try db.execute("INSERT INTO t (id, name) VALUES (3, 'baz')")
+                try db.execute("DELETE FROM t WHERE id = 3")
+                return .commit
+            }
+            try db.execute("DELETE FROM t WHERE id = 1")                 // -1
+        }
+        
+        waitForExpectations(timeout: 1, handler: nil)
+        XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
+            [],
+            ["foo"],
+            ["foo", "bar"],
+            ["bar"]])
     }
 }
