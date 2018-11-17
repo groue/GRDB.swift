@@ -5,7 +5,7 @@ Release Notes
 
 ### New
 
-- ValueObservation has three new factory methods that accept an array of database regions, and complete the existing variadic methods (address [#441](https://github.com/groue/GRDB.swift/issues/441))
+- ValueObservation has three new factory methods that accept an array of database regions, and complete the existing variadic methods (addresses [#441](https://github.com/groue/GRDB.swift/issues/441)):
 
     ```swift
     let regions: [DatabaseRegionConvertible] = [Player.all(), Team.all()]
