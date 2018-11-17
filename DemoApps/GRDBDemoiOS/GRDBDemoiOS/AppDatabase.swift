@@ -8,11 +8,10 @@ struct AppDatabase {
     /// Creates a fully initialized database at path
     static func openDatabase(atPath path: String) throws -> DatabaseQueue {
         // Connect to the database
-        // See https://github.com/groue/GRDB.swift/#database-connections
-        dbQueue = try DatabaseQueue(path: path)
+        // See https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
+        let dbQueue = try DatabaseQueue(path: path)
         
-        // Use DatabaseMigrator to define the database schema
-        // See https://github.com/groue/GRDB.swift/#migrations
+        // Define the database schema
         try migrator.migrate(dbQueue)
         
         return dbQueue
@@ -20,8 +19,7 @@ struct AppDatabase {
     
     /// The DatabaseMigrator that defines the database schema.
     ///
-    /// This migrator is exposed so that migrations can be tested.
-    // See https://github.com/groue/GRDB.swift/#migrations
+    /// See https://github.com/groue/GRDB.swift/blob/master/README.md#migrations
     static var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
         
@@ -29,11 +27,10 @@ struct AppDatabase {
             // Create a table
             // See https://github.com/groue/GRDB.swift#create-tables
             try db.create(table: "player") { t in
-                // An integer primary key auto-generates unique IDs
-                t.column("id", .integer).primaryKey()
+                t.autoIncrementedPrimaryKey("id")
                 
                 // Sort player names in a localized case insensitive fashion by default
-                // See https://github.com/groue/GRDB.swift/#unicode
+                // See https://github.com/groue/GRDB.swift/blob/master/README.md#unicode
                 t.column("name", .text).notNull().collate(.localizedCaseInsensitiveCompare)
                 
                 t.column("score", .integer).notNull()

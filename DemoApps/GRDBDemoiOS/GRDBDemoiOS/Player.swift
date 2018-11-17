@@ -1,13 +1,17 @@
 import GRDB
 
+// A plain Player struct
 struct Player {
-    var id: Int64? // Auto-incremented database ids are Int64
+    // Prefer Int64 for auto-incremented database ids
+    var id: Int64?
     var name: String
     var score: Int
 }
 
 // MARK: - Persistence
 
+// Turn Player into a Codable Record.
+// See https://github.com/groue/GRDB.swift/blob/master/README.md#records
 extension Player: Codable, FetchableRecord, MutablePersistableRecord {
     // Add ColumnExpression to Codable's CodingKeys so that we can use them
     // as database columns.
@@ -26,6 +30,8 @@ extension Player: Codable, FetchableRecord, MutablePersistableRecord {
 
 // MARK: - Database access
 
+// Define some useful player requests.
+// See https://github.com/groue/GRDB.swift/blob/master/README.md#requests
 extension Player {
     static func orderedByName() -> QueryInterfaceRequest<Player> {
         return Player.order(CodingKeys.name)
