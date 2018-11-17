@@ -1,6 +1,22 @@
 Release Notes
 =============
 
+## Next Version
+
+### New
+
+- ValueObservation has three new factory methods that accept an array of database regions, and complete the existing variadic methods (address [#441](https://github.com/groue/GRDB.swift/issues/441))
+
+    ```swift
+    let regions: [DatabaseRegionConvertible] = [Player.all(), Team.all()]
+    ValueObservation.tracking(regions, fetch: { db in ... })
+    ValueObservation.tracking(regions, fetchDistinct: { db in ... })
+    ValueObservation.tracking(regions, reducer: ...)
+    ```
+
+- ValueReducer, the protocol that fuels ValueObservation, is flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). It will remain so until more experience has been acquired.
+
+
 ## 3.5.0
 
 Released November 2, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.4.0...v3.5.0)
