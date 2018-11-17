@@ -26,7 +26,7 @@ extension Database {
     
     /// Returns whether a table exists.
     public func tableExists(_ name: String) throws -> Bool {
-        return try exists(type: "table", name: name)
+        return try exists(type: .table, name: name)
     }
     
     /// Returns whether a table is an internal SQLite table.
@@ -53,26 +53,26 @@ extension Database {
     
     /// Returns whether a view exists.
     public func viewExists(_ name: String) throws -> Bool {
-        return try exists(type: "view", name: name)
+        return try exists(type: .view, name: name)
     }
     
     /// Returns whether a trigger exists.
     public func triggerExists(_ name: String) throws -> Bool {
-        return try exists(type: "trigger", name: name)
+        return try exists(type: .trigger, name: name)
     }
     
-    private func exists(type: String, name: String) throws -> Bool {
+    private func exists(type: SchemaObjectType, name: String) throws -> Bool {
         // SQlite identifiers are case-insensitive, case-preserving:
         // http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html
         let name = name.lowercased()
         
         if try makeSelectStatement("SELECT 1 FROM sqlite_master WHERE type = ? AND LOWER(name) = ?")
-            .makeCursor(arguments: [type, name])
+            .makeCursor(arguments: [type.rawValue, name])
             .isEmpty() == false
         { return true }
         
         if try makeSelectStatement("SELECT 1 FROM sqlite_temp_master WHERE type = ? AND LOWER(name) = ?")
-            .makeCursor(arguments: [type, name])
+            .makeCursor(arguments: [type.rawValue, name])
             .isEmpty() == false
         { return true }
         
@@ -291,7 +291,12 @@ extension Database {
     }
     
     func schema() throws -> SchemaInfo {
-        return try SchemaInfo(self)
+        if let schemaInfo = schemaCache.schemaInfo {
+            return schemaInfo
+        }
+        let schemaInfo = try SchemaInfo(self)
+        schemaCache.schemaInfo = schemaInfo
+        return schemaInfo
     }
 }
 
@@ -585,13 +590,31 @@ public struct ForeignKeyInfo {
     }
 }
 
+enum SchemaObjectType: String {
+    case view
+    case table
+    case trigger
+}
+
 struct SchemaInfo: Equatable {
     var objects: [SchemaKey: String?]
     
     init(_ db: Database) throws {
         objects = try Dictionary(uniqueKeysWithValues: Row
-            .fetchAll(db, "SELECT type, name, tbl_name, sql FROM sqlite_master")
+            .fetchAll(db, """
+                SELECT type, name, tbl_name, sql FROM sqlite_master
+                UNION
+                SELECT type, name, tbl_name, sql FROM sqlite_temp_master
+                """)
             .map { row in (SchemaKey(row: row), row["sql"]) })
+    }
+    
+    func names(ofType type: SchemaObjectType) -> Set<String> {
+        return objects.keys.reduce(into: []) { (set, key) in
+            if key.type == type.rawValue {
+                set.insert(key.name)
+            }
+        }
     }
     
     struct SchemaKey: Codable, Hashable, FetchableRecord {

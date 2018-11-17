@@ -606,7 +606,7 @@ class DatabaseRegionTests : GRDBTestCase {
         try dbQueue.inDatabase { db in
             do {
                 let statement = try db.makeUpdateStatement("CREATE TABLE foo (id INTEGER)")
-                XCTAssertFalse(statement.invalidatesDatabaseSchemaCache)
+                XCTAssertTrue(statement.invalidatesDatabaseSchemaCache)
                 try statement.execute()
             }
             do {

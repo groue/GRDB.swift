@@ -2,6 +2,8 @@
 protocol DatabaseSchemaCache {
     mutating func clear()
     
+    var schemaInfo: SchemaInfo? { get set }
+    
     func canonicalTableName(_ table: String) -> String?
     mutating func set(canonicalTableName: String, forTable table: String)
 
@@ -20,6 +22,7 @@ protocol DatabaseSchemaCache {
 
 /// A thread-unsafe database schema cache
 struct SimpleDatabaseSchemaCache: DatabaseSchemaCache {
+    var schemaInfo: SchemaInfo?
     private var canonicalTableNames: [String: String] = [:]
     private var primaryKeys: [String: PrimaryKeyInfo] = [:]
     private var columns: [String: [ColumnInfo]] = [:]
@@ -32,6 +35,7 @@ struct SimpleDatabaseSchemaCache: DatabaseSchemaCache {
         columns = [:]
         indexes = [:]
         foreignKeys = [:]
+        schemaInfo = nil
     }
     
     func canonicalTableName(_ table: String) -> String? {
@@ -78,6 +82,11 @@ struct SimpleDatabaseSchemaCache: DatabaseSchemaCache {
 /// An always empty database schema cache
 struct EmptyDatabaseSchemaCache: DatabaseSchemaCache {
     func clear() { }
+    
+    var schemaInfo: SchemaInfo? {
+        get { return nil }
+        set { }
+    }
     
     func canonicalTableName(_ table: String) -> String? { return nil }
     func set(canonicalTableName: String, forTable table: String) { }
