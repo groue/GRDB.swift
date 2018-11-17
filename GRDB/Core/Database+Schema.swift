@@ -65,18 +65,9 @@ extension Database {
         // SQlite identifiers are case-insensitive, case-preserving:
         // http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html
         let name = name.lowercased()
-        
-        if try makeSelectStatement("SELECT 1 FROM sqlite_master WHERE type = ? AND LOWER(name) = ?")
-            .makeCursor(arguments: [type.rawValue, name])
-            .isEmpty() == false
-        { return true }
-        
-        if try makeSelectStatement("SELECT 1 FROM sqlite_temp_master WHERE type = ? AND LOWER(name) = ?")
-            .makeCursor(arguments: [type.rawValue, name])
-            .isEmpty() == false
-        { return true }
-        
-        return false
+        return try schema()
+            .names(ofType: type)
+            .contains { $0.lowercased() == name }
     }
 
     /// The primary key for table named `tableName`.
@@ -271,23 +262,10 @@ extension Database {
     
     /// Returns the actual name of the database table
     func canonicalTableName(_ tableName: String) throws -> String {
-        if let canonicalTableName = schemaCache.canonicalTableName(tableName) {
-            return canonicalTableName
-        }
-        
-        guard let canonicalTableName = try String.fetchOne(self, """
-            SELECT name FROM (
-                SELECT name, type FROM sqlite_master
-                UNION
-                SELECT name, type FROM sqlite_temp_master)
-            WHERE type = 'table' AND LOWER(name) = ?
-            """, arguments: [tableName.lowercased()])
-        else {
+        guard let name = try schema().canonicalName(tableName, ofType: .table) else {
             throw DatabaseError(message: "no such table: \(tableName)")
         }
-        
-        schemaCache.set(canonicalTableName: canonicalTableName, forTable: tableName)
-        return canonicalTableName
+        return name
     }
     
     func schema() throws -> SchemaInfo {
@@ -591,13 +569,14 @@ public struct ForeignKeyInfo {
 }
 
 enum SchemaObjectType: String {
-    case view
+    case index
     case table
     case trigger
+    case view
 }
 
 struct SchemaInfo: Equatable {
-    var objects: [SchemaKey: String?]
+    private var objects: [SchemaKey: String?]
     
     init(_ db: Database) throws {
         objects = try Dictionary(uniqueKeysWithValues: Row
@@ -609,12 +588,22 @@ struct SchemaInfo: Equatable {
             .map { row in (SchemaKey(row: row), row["sql"]) })
     }
     
+    /// All names for a given type
     func names(ofType type: SchemaObjectType) -> Set<String> {
         return objects.keys.reduce(into: []) { (set, key) in
             if key.type == type.rawValue {
                 set.insert(key.name)
             }
         }
+    }
+    
+    /// Returns the canonical name of the object:
+    ///
+    ///     try db.execute("CREATE TABLE FooBar (...)")
+    ///     try db.schema().canonicalName("foobar", ofType: .table) // "FooBar"
+    func canonicalName(_ name: String, ofType type: SchemaObjectType) -> String? {
+        let name = name.lowercased()
+        return objects.keys.first { $0.name.lowercased() == name }?.name
     }
     
     struct SchemaKey: Codable, Hashable, FetchableRecord {
