@@ -402,23 +402,26 @@ extension DatabasePool : DatabaseReader {
         let semaphore = DispatchSemaphore(value: 0)
         
         var readError: Error? = nil
-        try readerPool.get { reader in
-            reader.async { db in
-                do {
-                    try db.beginSnapshotIsolation()
-                } catch {
-                    readError = error
-                    semaphore.signal() // Release the writer queue and rethrow error
-                    return
-                }
-                semaphore.signal() // We can release the writer queue now that we are isolated for good
-                
-                // Reset the schema cache before running user code in snapshot isolation
-                db.schemaCache = SimpleDatabaseSchemaCache()
-                block(db)
-                
+        let (reader, release) = try readerPool.get()
+        reader.async { db in
+            defer {
                 _ = try? db.commit() // Ignore commit error
+                release()
             }
+            do {
+                try db.beginSnapshotIsolation()
+            } catch {
+                // Snapshot isolation failure
+                readError = error
+                semaphore.signal() // Release the writer queue and rethrow error
+                return
+            }
+            semaphore.signal() // We can release the writer queue now that we are isolated for good
+            
+            // Reset the schema cache before running user code in snapshot isolation
+            db.schemaCache = SimpleDatabaseSchemaCache()
+            block(db)
+            
         }
         _ = semaphore.wait(timeout: .distantFuture)
         if let readError = readError {
@@ -448,29 +451,32 @@ extension DatabasePool : DatabaseReader {
         var futureResult: Result<T>? = nil
         
         do {
-            try readerPool.get { reader in
-                reader.async { db in
-                    defer { _ = try? db.commit() }
-                    do {
-                        try db.beginSnapshotIsolation()
-                    } catch {
-                        // Snapshot isolation failure
-                        futureResult = .failure(error)
-                        isolationSemaphore.signal()
-                        futureSemaphore.signal()
-                        return
-                    }
-                    
-                    // Release the writer queue
-                    isolationSemaphore.signal()
-                    
-                    // Reset the schema cache before running user code in snapshot isolation
-                    db.schemaCache = SimpleDatabaseSchemaCache()
-                    
-                    // Fetch and release the future
-                    futureResult = Result { try block(db) }
-                    futureSemaphore.signal()
+            let (reader, release) = try readerPool.get()
+            reader.async { db in
+                defer {
+                    try? db.commit() // Ignore commit error
+                    release()
                 }
+                do {
+                    try db.beginSnapshotIsolation()
+                } catch {
+                    // Snapshot isolation failure
+                    futureResult = .failure(error)
+                    isolationSemaphore.signal()
+                    futureSemaphore.signal()
+                    return
+                }
+                
+                // Release the writer queue
+                isolationSemaphore.signal()
+                
+                // Reset the schema cache before running user code in snapshot isolation
+                db.schemaCache = SimpleDatabaseSchemaCache()
+                
+                // Fetch and release the future
+                futureResult = Result { try block(db) }
+                futureSemaphore.signal()
+                
             }
         } catch {
             return Future { throw error }
