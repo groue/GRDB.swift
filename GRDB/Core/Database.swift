@@ -549,8 +549,8 @@ extension Database {
         // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         // Assume those pragmas never fail
-        try! execute("PRAGMA query_only = 1")
-        defer { try! execute("PRAGMA query_only = 0") }
+        try! internalCachedUpdateStatement("PRAGMA query_only = 1").execute()
+        defer { try! internalCachedUpdateStatement("PRAGMA query_only = 0").execute() }
         return try block()
     }
 }

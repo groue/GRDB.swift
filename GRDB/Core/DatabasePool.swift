@@ -451,7 +451,7 @@ extension DatabasePool : DatabaseReader {
                 do {
                     try db.beginTransaction(.deferred)
                     assert(db.isInsideTransaction)
-                    try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").makeCursor().next()
+                    try db.internalCachedSelectStatement("SELECT rootpage FROM sqlite_master").makeCursor().next()
                 } catch {
                     readError = error
                     semaphore.signal() // Release the writer queue and rethrow error
@@ -545,7 +545,7 @@ extension DatabasePool : DatabaseReader {
                     defer { _ = try? db.commit() }
                     do {
                         try db.beginTransaction(.deferred)
-                        try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").makeCursor().next()
+                        try db.internalCachedSelectStatement("SELECT rootpage FROM sqlite_master").makeCursor().next()
                     } catch {
                         // Snapshot isolation failure
                         futureResult = .failure(error)
