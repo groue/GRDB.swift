@@ -613,11 +613,12 @@ struct SchemaInfo: Equatable {
 
         #if !swift(>=4.2)
         var hashValue: Int {
-            return type.hashValue
-                ^ name.hashValue
-                ^ (tbl_name?.hashValue ?? 0)
-                ^ (sql?.hashValue ?? 0)
-                ^ isTemporary.hashValue
+            var hash = type.hashValue
+            hash ^= name.hashValue
+            hash ^= (tbl_name?.hashValue ?? 0)
+            hash ^= (sql?.hashValue ?? 0)
+            hash ^= isTemporary.hashValue
+            return hash
         }
         #endif
     }
