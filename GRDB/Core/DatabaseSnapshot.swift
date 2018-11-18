@@ -31,13 +31,7 @@ public class DatabaseSnapshot : DatabaseReader {
             guard journalMode == "wal" else {
                 throw DatabaseError(message: "WAL mode is not activated at path: \(path)")
             }
-            
-            // Establish snapshot isolation (see deinit)
-            try db.beginTransaction(.deferred)
-            
-            // Take snapshot
-            // See DatabasePool.concurrentRead for a complete discussion
-            try db.internalCachedSelectStatement("SELECT rootpage FROM sqlite_master").makeCursor().next()
+            try db.beginSnapshotIsolation()
         }
     }
     
