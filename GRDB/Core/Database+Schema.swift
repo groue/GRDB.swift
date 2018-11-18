@@ -576,21 +576,19 @@ enum SchemaObjectType: String {
 }
 
 struct SchemaInfo: Equatable {
-    private var objects: [SchemaKey: String?]
+    private var objects: Set<SchemaObject>
     
     init(_ db: Database) throws {
-        objects = try Dictionary(uniqueKeysWithValues: Row
-            .fetchAll(db, """
-                SELECT type, name, tbl_name, sql FROM sqlite_master
-                UNION
-                SELECT type, name, tbl_name, sql FROM sqlite_temp_master
-                """)
-            .map { row in (SchemaKey(row: row), row["sql"]) })
+        objects = try Set(SchemaObject.fetchCursor(db, """
+            SELECT type, name, tbl_name, sql, 0 AS isTemporary FROM sqlite_master \
+            UNION \
+            SELECT type, name, tbl_name, sql, 1 FROM sqlite_temp_master
+            """))
     }
     
     /// All names for a given type
     func names(ofType type: SchemaObjectType) -> Set<String> {
-        return objects.keys.reduce(into: []) { (set, key) in
+        return objects.reduce(into: []) { (set, key) in
             if key.type == type.rawValue {
                 set.insert(key.name)
             }
@@ -603,18 +601,24 @@ struct SchemaInfo: Equatable {
     ///     try db.schema().canonicalName("foobar", ofType: .table) // "FooBar"
     func canonicalName(_ name: String, ofType type: SchemaObjectType) -> String? {
         let name = name.lowercased()
-        return objects.keys.first { $0.name.lowercased() == name }?.name
+        return objects.first { $0.name.lowercased() == name }?.name
     }
     
-    struct SchemaKey: Codable, Hashable, FetchableRecord {
+    private struct SchemaObject: Codable, Hashable, FetchableRecord {
         var type: String
         var name: String
         var tbl_name: String?
-        
+        var sql: String?
+        var isTemporary: Bool
+
         #if !swift(>=4.2)
-            var hashValue: Int {
-                return type.hashValue ^ name.hashValue ^ (tbl_name?.hashValue ?? 0)
-            }
+        var hashValue: Int {
+            return type.hashValue
+                ^ name.hashValue
+                ^ (tbl_name?.hashValue ?? 0)
+                ^ (sql?.hashValue ?? 0)
+                ^ isTemporary.hashValue
+        }
         #endif
     }
 }
