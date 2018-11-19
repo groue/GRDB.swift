@@ -604,7 +604,7 @@ extension ValueObservation where Reducer == Void {
     ///         Player.all(),
     ///         fetch: { db in return try Player.fetchAll(db) })
     ///
-    ///     let observer = try observation.start(in: dbQueue) { player: [Player] in
+    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///         print("Players have changed")
     ///     }
     ///
@@ -637,7 +637,7 @@ extension ValueObservation where Reducer == Void {
     ///         [Player.all()],
     ///         fetch: { db in return try Player.fetchAll(db) })
     ///
-    ///     let observer = try observation.start(in: dbQueue) { player: [Player] in
+    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///         print("Players have changed")
     ///     }
     ///
@@ -673,7 +673,7 @@ extension ValueObservation where Reducer == Void {
     ///         Player.all(),
     ///         fetchDistinct: { db in return try Player.fetchAll(db) })
     ///
-    ///     let observer = try observation.start(in: dbQueue) { player: [Player] in
+    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///         print("Players have changed")
     ///     }
     ///
@@ -708,7 +708,7 @@ extension ValueObservation where Reducer == Void {
     ///         [Player.all()],
     ///         fetchDistinct: { db in return try Player.fetchAll(db) })
     ///
-    ///     let observer = try observation.start(in: dbQueue) { player: [Player] in
+    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///         print("Players have changed")
     ///     }
     ///
