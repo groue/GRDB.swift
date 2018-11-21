@@ -568,7 +568,7 @@ extension MutablePersistableRecord {
     ///     }
     ///
     /// - parameter db: A database connection.
-    /// - parameter change: A closure that modifise the record.
+    /// - parameter change: A closure that modifies the record.
     /// - returns: Whether the record had changes.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
@@ -992,7 +992,7 @@ extension PersistableRecord {
     ///     }
     ///
     /// - parameter db: A database connection.
-    /// - parameter change: A closure that modifise the record.
+    /// - parameter change: A closure that modifies the record.
     /// - returns: Whether the record had changes.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
