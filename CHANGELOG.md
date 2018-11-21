@@ -25,6 +25,14 @@ Release Notes
 +    func reindex(collation: Database.CollationName) throws
 +    func reindex(collation: DatabaseCollation) throws
  }
+ 
+ extension MutablePersistableRecord {
++    mutating func updateChanges(_ db: Database, with change: (inout Self) throws -> Void) throws -> Bool
+ }
+
+ extension PersistableRecord {
++    func updateChanges(_ db: Database, with change: (Self) throws -> Void) throws -> Bool
+ }
 
  struct ValueObservation<Reducer> {
 +    static func tracking(
