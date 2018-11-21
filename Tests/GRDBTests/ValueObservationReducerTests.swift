@@ -120,6 +120,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             XCTAssertEqual(fetchCount, 4)
             XCTAssertEqual(reduceCount, 4)
             XCTAssertEqual(errors.count, 0)
+            // TODO: Fix flacky test https://travis-ci.org/groue/GRDB.swift/jobs/458101713
             XCTAssertEqual(changes, ["0", "1", "5"])
         }
         
