@@ -624,7 +624,7 @@ extension MutablePersistableRecord {
         return Dictionary(uniqueKeysWithValues: databaseChangesIterator(from: PersistenceContainer(record)))
     }
     
-    fileprivate func databaseChangesIterator(from oldContainer: PersistenceContainer) -> AnyIterator<(String, DatabaseValue)> {
+    private func databaseChangesIterator(from oldContainer: PersistenceContainer) -> AnyIterator<(String, DatabaseValue)> {
         var newValueIterator = PersistenceContainer(self).makeIterator()
         return AnyIterator {
             // Loop until we find a change, or exhaust columns:
@@ -641,7 +641,7 @@ extension MutablePersistableRecord {
     }
     
     @discardableResult
-    fileprivate func updateChanges(_ db: Database, from container: PersistenceContainer) throws -> Bool {
+    private func updateChanges(_ db: Database, from container: PersistenceContainer) throws -> Bool {
         let changes = databaseChangesIterator(from: container)
         let changedColumns: Set<String> = changes.reduce(into: []) { $0.insert($1.0) }
         if changedColumns.isEmpty {
