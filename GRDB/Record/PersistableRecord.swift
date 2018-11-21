@@ -530,7 +530,7 @@ extension MutablePersistableRecord {
     ///
     /// For example:
     ///
-    ///     if let oldPlayer = Player.fetchOne(db, key: 42) {
+    ///     if let oldPlayer = try Player.fetchOne(db, key: 42) {
     ///         var newPlayer = oldPlayer
     ///         newPlayer.score += 10
     ///         newPlayer.hasAward = true
@@ -547,14 +547,7 @@ extension MutablePersistableRecord {
     @discardableResult
     public func updateChanges(_ db: Database, from record: MutablePersistableRecord) throws -> Bool {
         let oldContainer = PersistenceContainer(record)
-        let changes = databaseChangesIterator(from: oldContainer)
-        let changedColumns: Set<String> = changes.reduce(into: []) { $0.insert($1.0) }
-        if changedColumns.isEmpty {
-            return false
-        } else {
-            try update(db, columns: changedColumns)
-            return true
-        }
+        return try updateChanges(db, from: oldContainer)
     }
     
     /// Mutates the record according to the provided closure, and then, if the
@@ -567,7 +560,7 @@ extension MutablePersistableRecord {
     ///
     /// For example:
     ///
-    ///     if var player = Player.fetchOne(db, key: 42) {
+    ///     if var player = try Player.fetchOne(db, key: 42) {
     ///         try player.updateChanges(db) {
     ///             $0.score += 10
     ///             $0.hasAward = true
@@ -584,14 +577,7 @@ extension MutablePersistableRecord {
     public mutating func updateChanges(_ db: Database, with change: (inout Self) throws -> Void) throws -> Bool {
         let oldContainer = PersistenceContainer(self)
         try change(&self)
-        let changes = databaseChangesIterator(from: oldContainer)
-        let changedColumns: Set<String> = changes.reduce(into: []) { $0.insert($1.0) }
-        if changedColumns.isEmpty {
-            return false
-        } else {
-            try update(db, columns: changedColumns)
-            return true
-        }
+        return try updateChanges(db, from: oldContainer)
     }
 
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
@@ -652,6 +638,17 @@ extension MutablePersistableRecord {
             }
             return nil
         }
+    }
+    
+    @discardableResult
+    fileprivate func updateChanges(_ db: Database, from container: PersistenceContainer) throws -> Bool {
+        let changes = databaseChangesIterator(from: container)
+        let changedColumns: Set<String> = changes.reduce(into: []) { $0.insert($1.0) }
+        if changedColumns.isEmpty {
+            return false
+        }
+        try update(db, columns: changedColumns)
+        return true
     }
     
     // MARK: - CRUD Internals
