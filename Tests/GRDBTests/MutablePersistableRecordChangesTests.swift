@@ -317,7 +317,8 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
                 t.column("lastName", .text)
             }
             
-            var record = MyRecord(id: nil, firstName: "Arthur", lastName: "Smith")
+            // This `let` is part of the test
+            let record = MyRecord(id: nil, firstName: "Arthur", lastName: "Smith")
             try record.insert(db)
             
             do {
@@ -389,7 +390,8 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
                 t.column("lastName", .text)
             }
             
-            var record = MyRecord(id: nil, firstName: "Arthur", lastName: "Smith")
+            // This `let` is part of the test
+            let record = MyRecord(id: nil, firstName: "Arthur", lastName: "Smith")
             try record.insert(db)
             
             do {
