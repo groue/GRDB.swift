@@ -18,6 +18,12 @@ Release Notes
 
 - ValueReducer, the protocol that fuels ValueObservation, is flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). It will remain so until more experience has been acquired.
 
+
+### Documentation Diff
+
+- [Record Comparison](README.md#record-comparison): this chapter has been updated for the new `updateChanges(_:with:)` method.
+
+
 ### API diff
 
 ```diff
