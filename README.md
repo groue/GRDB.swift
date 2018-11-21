@@ -2940,9 +2940,9 @@ class Place: Record {
 
 This helps avoiding costly UPDATE statements when a record has not been edited.
 
-- The `updateChanges` Methods
-- The `databaseEquals` Method
-- The `databaseChanges` Methods
+- [The `updateChanges` Methods](#the-updatechanges-methods)
+- [The `databaseEquals` Method](#the-databaseequals-method)
+- [The `databaseChanges` and `hasDatabaseChanges` Methods](#the-databasechanges-and-hasdatabasechanges-methods)
 
 
 ### The `updateChanges` Methods
@@ -3006,7 +3006,7 @@ This method returns whether two records have the same database representation:
 ```swift
 let oldPlayer: Player = ...
 var newPlayer: Player = ...
-if newPlayer.databaseEquals(oldPlayer) {
+if newPlayer.databaseEquals(oldPlayer) == false {
     try newPlayer.save(db)
 }
 ```
@@ -3014,7 +3014,7 @@ if newPlayer.databaseEquals(oldPlayer) {
 > :point_up: **Note**: The comparison is performed on the database representation of records. As long as your record type adopts a PersistableRecord protocol, you don't need to care about Equatable.
 
 
-### The `databaseChanges` Methods
+### The `databaseChanges` and `hasDatabaseChanges` Methods
 
 This method lets you iterate the differences between two records:
 
