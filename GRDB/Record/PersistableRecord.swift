@@ -546,8 +546,7 @@ extension MutablePersistableRecord {
     /// - SeeAlso: updateChanges(_:with:)
     @discardableResult
     public func updateChanges(_ db: Database, from record: MutablePersistableRecord) throws -> Bool {
-        let oldContainer = PersistenceContainer(record)
-        return try updateChanges(db, from: oldContainer)
+        return try updateChanges(db, from: PersistenceContainer(record))
     }
     
     /// Mutates the record according to the provided closure, and then, if the
@@ -575,9 +574,9 @@ extension MutablePersistableRecord {
     ///   match any row in the database and record could not be updated.
     @discardableResult
     public mutating func updateChanges(_ db: Database, with change: (inout Self) throws -> Void) throws -> Bool {
-        let oldContainer = PersistenceContainer(self)
+        let container = PersistenceContainer(self)
         try change(&self)
-        return try updateChanges(db, from: oldContainer)
+        return try updateChanges(db, from: container)
     }
 
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
@@ -624,12 +623,12 @@ extension MutablePersistableRecord {
         return Dictionary(uniqueKeysWithValues: databaseChangesIterator(from: PersistenceContainer(record)))
     }
     
-    private func databaseChangesIterator(from oldContainer: PersistenceContainer) -> AnyIterator<(String, DatabaseValue)> {
+    private func databaseChangesIterator(from container: PersistenceContainer) -> AnyIterator<(String, DatabaseValue)> {
         var newValueIterator = PersistenceContainer(self).makeIterator()
         return AnyIterator {
             // Loop until we find a change, or exhaust columns:
             while let (column, newValue) = newValueIterator.next() {
-                let oldValue = oldContainer[caseInsensitive: column]
+                let oldValue = container[caseInsensitive: column]
                 let oldDbValue = oldValue?.databaseValue ?? .null
                 let newDbValue = newValue?.databaseValue ?? .null
                 if newDbValue != oldDbValue {
@@ -999,9 +998,9 @@ extension PersistableRecord {
     ///   match any row in the database and record could not be updated.
     @discardableResult
     public func updateChanges(_ db: Database, with change: (Self) throws -> Void) throws -> Bool {
-        let oldContainer = PersistenceContainer(self)
+        let container = PersistenceContainer(self)
         try change(self)
-        return try updateChanges(db, from: oldContainer)
+        return try updateChanges(db, from: container)
     }
 
     
