@@ -2936,39 +2936,72 @@ class Place: Record {
 
 ## Record Comparison
 
-**Records can compare against other records, or against previous versions of themselves.**
+**Records that adopt a [PersistableRecord] protocol can compare against other records, or against previous versions of themselves.**
 
 This helps avoiding costly UPDATE statements when a record has not been edited.
 
-You can use the `updateChanges` method, available on the [PersistableRecord] protocol, which performs an update of the changed columns only (and does nothing if record has no change):
+- [The `updateChanges` Methods](#the-updatechanges-methods)
+- [The `databaseEquals` Method](#the-databaseequals-method)
+- [The `databaseChanges` and `hasDatabaseChanges` Methods](#the-databasechanges-and-hasdatabasechanges-methods)
 
-```swift
-let oldPlayer = try Player.fetchOne(db, ...)
-var newPlayer = oldPlayer
-newPlayer.score = 100
-if try newPlayer.updateChanges(db, from: oldPlayer) {
-    print("player was modified, and updated in the database")
-} else {
-    print("player was not modified")
-}
-```
 
-> :point_up: **Note**: The comparison is performed on the database representation of records. As long as your record type adopts a PersistableRecord protocol, you don't need to care about Equatable.
+### The `updateChanges` Methods
 
-The [Record](#record-class) class is able to compare against itself, and knows if it has changes that have not been saved since it was last fetched or persisted:
+The `updateChanges` methods perform a database update of the changed columns only (and does nothing if record has no change).
 
-```swift
-// Record class only
-let player = try Player.fetchOne(db, ...)
-player.score = 100
-if try player.updateChanges(db) {
-    print("player was modified, and updated in the database")
-} else {
-    print("player was not modified")
-}
-```
+- `updateChanges(_:from:)`
 
-You can also use the `databaseEquals` method, which returns whether two records have the same database representation:
+    This method lets you compare two records:
+
+    ```swift
+    if let oldPlayer = try Player.fetchOne(db, key: 42) {
+        var newPlayer = oldPlayer
+        newPlayer.score = 100
+        if try newPlayer.updateChanges(db, from: oldPlayer) {
+            print("player was modified, and updated in the database")
+        } else {
+            print("player was not modified")
+        }
+    }
+    ```
+
+- `updateChanges(_:with:)`
+    
+    This method lets you update a record in place:
+    
+    ```swift
+    if var player = try Player.fetchOne(db, key: 42) {
+        let modified = player.updateChanges(db) {
+            $0.score = 100
+        }
+        if modified {
+            print("player was modified, and updated in the database")
+        } else {
+            print("player was not modified")
+        }
+    }
+    ```
+
+- `updateChanges(_:)` (Record class only)
+    
+    Instances of the [Record](#record-class) class are able to compare against themselves, and know if they have changes that have not been saved since the last fetch or saving:
+
+    ```swift
+    // Record class only
+    if let player = try Player.fetchOne(db, key: 42) {
+        player.score = 100
+        if try player.updateChanges(db) {
+            print("player was modified, and updated in the database")
+        } else {
+            print("player was not modified")
+        }
+    }
+    ```
+
+
+### The `databaseEquals` Method
+
+This method returns whether two records have the same database representation:
 
 ```swift
 let oldPlayer: Player = ...
@@ -2978,11 +3011,40 @@ if newPlayer.databaseEquals(oldPlayer) == false {
 }
 ```
 
-Again, [Record](#record-class) instances can compare against themselves, with the `hasDatabaseChanges` property:
+> :point_up: **Note**: The comparison is performed on the database representation of records. As long as your record type adopts a PersistableRecord protocol, you don't need to care about Equatable.
+
+
+### The `databaseChanges` and `hasDatabaseChanges` Methods
+
+`databaseChanges(from:)` returns a dictionary of differences between two records:
+
+```swift
+let oldPlayer = Player(id: 1, name: "Arthur", score: 100)
+let newPlayer = Player(id: 1, name: "Arthur", score: 1000)
+for (column, oldValue) in newPlayer.databaseChanges(from: oldPlayer) {
+    print("\(column) was \(oldValue)")
+}
+// prints "score was 100"
+```
+
+The [Record](#record-class) class is able to compare against itself:
 
 ```swift
 // Record class only
-player.score = 100
+let player = Player(id: 1, name: "Arthur", score: 100)
+try player.insert(db)
+player.score = 1000
+for (column, oldValue) in player.databaseChanges {
+    print("\(column) was \(oldValue)")
+}
+// prints "score was 100"
+```
+
+[Record](#record-class) instances also have a `hasDatabaseChanges` property:
+
+```swift
+// Record class only
+player.score = 1000
 if player.hasDatabaseChanges {
     try player.save(db)
 }
@@ -3429,6 +3491,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.update(db)` | [PersistableRecord] | |
 | `record.update(db, columns:...)` | [PersistableRecord] | |
 | `record.updateChanges(db, from:...)` | [PersistableRecord] | [*](#record-comparison) |
+| `record.updateChanges(db) { ... }` | [PersistableRecord] | [*](#record-comparison) |
 | `record.updateChanges(db)` | [Record](#record-class) | [*](#record-comparison) |
 | **Delete Records** | | |
 | `record.delete(db)` | [PersistableRecord] | |
@@ -3465,6 +3528,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.databaseEquals(...)` | [PersistableRecord] | |
 | `record.databaseChanges(from:...)` | [PersistableRecord] | |
 | `record.updateChanges(db, from:...)` | [PersistableRecord] | |
+| `record.updateChanges(db) { ... }` | [PersistableRecord] | |
 | `record.hasDatabaseChanges` | [Record](#record-class) | |
 | `record.databaseChanges` | [Record](#record-class) | |
 | `record.updateChanges(db)` | [Record](#record-class) | |

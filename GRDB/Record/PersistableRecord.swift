@@ -521,28 +521,62 @@ extension MutablePersistableRecord {
         try update(db, columns: Set(columns.map { $0.name }))
     }
     
-    /// If the record has differences from the other record, executes an UPDATE
-    /// statement so that those changes and only those changes are saved in
-    /// the database.
+    /// If the record has any difference from the other record, executes an
+    /// UPDATE statement so that those differences and only those difference are
+    /// saved in the database.
     ///
-    /// This method is guaranteed to have saved the eventual changes in the
+    /// This method is guaranteed to have saved the eventual differences in the
     /// database if it returns without error.
     ///
+    /// For example:
+    ///
+    ///     if let oldPlayer = try Player.fetchOne(db, key: 42) {
+    ///         var newPlayer = oldPlayer
+    ///         newPlayer.score += 10
+    ///         newPlayer.hasAward = true
+    ///         try newPlayer.updateChanges(db, from: oldRecord)
+    ///     }
+    ///
     /// - parameter db: A database connection.
-    /// - parameter columns: The columns to update.
+    /// - parameter record: The comparison record.
+    /// - returns: Whether the record had changes.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    ///   PersistenceError.recordNotFound is thrown if the primary key does not
+    ///   match any row in the database and record could not be updated.
+    /// - SeeAlso: updateChanges(_:with:)
+    @discardableResult
+    public func updateChanges(_ db: Database, from record: MutablePersistableRecord) throws -> Bool {
+        return try updateChanges(db, from: PersistenceContainer(record))
+    }
+    
+    /// Mutates the record according to the provided closure, and then, if the
+    /// record has any difference from its previous version, executes an
+    /// UPDATE statement so that those differences and only those difference are
+    /// saved in the database.
+    ///
+    /// This method is guaranteed to have saved the eventual differences in the
+    /// database if it returns without error.
+    ///
+    /// For example:
+    ///
+    ///     if var player = try Player.fetchOne(db, key: 42) {
+    ///         try player.updateChanges(db) {
+    ///             $0.score += 10
+    ///             $0.hasAward = true
+    ///         }
+    ///     }
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter change: A closure that modifies the record.
     /// - returns: Whether the record had changes.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database and record could not be updated.
     @discardableResult
-    public func updateChanges(_ db: Database, from record: MutablePersistableRecord) throws -> Bool {
-        let changedColumns = Set(databaseChanges(from: record).keys)
-        if changedColumns.isEmpty {
-            return false
-        } else {
-            try update(db, columns: changedColumns)
-            return true
-        }
+    public mutating func updateChanges(_ db: Database, with change: (inout Self) throws -> Void) throws -> Bool {
+        let container = PersistenceContainer(self)
+        try change(&self)
+        return try updateChanges(db, from: container)
     }
 
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
@@ -574,7 +608,7 @@ extension MutablePersistableRecord {
     /// Returns a boolean indicating whether this record and the other record
     /// have the same database representation.
     public func databaseEquals(_ record: Self) -> Bool {
-        return databaseChangesIterator(from: record).next() == nil
+        return databaseChangesIterator(from: PersistenceContainer(record)).next() == nil
     }
 
     /// A dictionary of values changed from the other record.
@@ -586,16 +620,15 @@ extension MutablePersistableRecord {
     /// same set of columns in their `encode(to:)` method, only the columns
     /// defined by the receiver record are considered.
     public func databaseChanges(from record: MutablePersistableRecord) -> [String: DatabaseValue] {
-        return Dictionary(uniqueKeysWithValues: databaseChangesIterator(from: record))
+        return Dictionary(uniqueKeysWithValues: databaseChangesIterator(from: PersistenceContainer(record)))
     }
     
-    fileprivate func databaseChangesIterator(from record: MutablePersistableRecord) -> AnyIterator<(String, DatabaseValue)> {
-        let oldContainer = PersistenceContainer(record)
+    private func databaseChangesIterator(from container: PersistenceContainer) -> AnyIterator<(String, DatabaseValue)> {
         var newValueIterator = PersistenceContainer(self).makeIterator()
         return AnyIterator {
             // Loop until we find a change, or exhaust columns:
             while let (column, newValue) = newValueIterator.next() {
-                let oldValue = oldContainer[caseInsensitive: column]
+                let oldValue = container[caseInsensitive: column]
                 let oldDbValue = oldValue?.databaseValue ?? .null
                 let newDbValue = newValue?.databaseValue ?? .null
                 if newDbValue != oldDbValue {
@@ -604,6 +637,17 @@ extension MutablePersistableRecord {
             }
             return nil
         }
+    }
+    
+    @discardableResult
+    fileprivate func updateChanges(_ db: Database, from container: PersistenceContainer) throws -> Bool {
+        let changes = databaseChangesIterator(from: container)
+        let changedColumns: Set<String> = changes.reduce(into: []) { $0.insert($1.0) }
+        if changedColumns.isEmpty {
+            return false
+        }
+        try update(db, columns: changedColumns)
+        return true
     }
     
     // MARK: - CRUD Internals
@@ -929,6 +973,36 @@ extension PersistableRecord {
         try performSave(db)
     }
     
+    /// Mutates the record according to the provided closure, and then, if the
+    /// record has any difference from its previous version, executes an
+    /// UPDATE statement so that those differences and only those difference are
+    /// saved in the database.
+    ///
+    /// This method is guaranteed to have saved the eventual differences in the
+    /// database if it returns without error.
+    ///
+    /// For example:
+    ///
+    ///     if let player = try Player.fetchOne(db, key: 42) {
+    ///         try player.updateChanges(db) {
+    ///             $0.score += 10
+    ///             $0.hasAward = true
+    ///         }
+    ///     }
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter change: A closure that modifies the record.
+    /// - returns: Whether the record had changes.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    ///   PersistenceError.recordNotFound is thrown if the primary key does not
+    ///   match any row in the database and record could not be updated.
+    @discardableResult
+    public func updateChanges(_ db: Database, with change: (Self) throws -> Void) throws -> Bool {
+        let container = PersistenceContainer(self)
+        try change(self)
+        return try updateChanges(db, from: container)
+    }
+
     
     // MARK: - Immutable CRUD Internals
     

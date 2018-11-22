@@ -6,13 +6,7 @@ Release Notes
 ### New
 
 - [#442](https://github.com/groue/GRDB.swift/pull/442): Reindex
-    
-    ```swift
-    // Deletes and recreates from scratch all indices that use this
-    // locale-dependent collation.
-    try db.reindex(collation: .localizedCompare)
-    ```
-
+- [#443](https://github.com/groue/GRDB.swift/pull/443): In place record update
 - ValueObservation has three new factory methods that accept an array of database regions, and complete the existing variadic methods (addresses [#441](https://github.com/groue/GRDB.swift/issues/441)):
 
     ```swift
@@ -24,12 +18,26 @@ Release Notes
 
 - ValueReducer, the protocol that fuels ValueObservation, is flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). It will remain so until more experience has been acquired.
 
+
+### Documentation Diff
+
+- [Record Comparison](README.md#record-comparison): this chapter has been updated for the new `updateChanges(_:with:)` method.
+
+
 ### API diff
 
 ```diff
  extension Database {
 +    func reindex(collation: Database.CollationName) throws
 +    func reindex(collation: DatabaseCollation) throws
+ }
+ 
+ extension MutablePersistableRecord {
++    mutating func updateChanges(_ db: Database, with change: (inout Self) throws -> Void) throws -> Bool
+ }
+
+ extension PersistableRecord {
++    func updateChanges(_ db: Database, with change: (Self) throws -> Void) throws -> Bool
  }
 
  struct ValueObservation<Reducer> {
