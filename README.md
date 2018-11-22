@@ -2982,9 +2982,9 @@ The `updateChanges` methods perform a database update of the changed columns onl
     }
     ```
 
-- `updateChanges(_:)` ([Record](#record-class) class only)
+- `updateChanges(_:)` (Record class only)
     
-    The Record class is able to compare against itself, and knows if it has changes that have not been saved since it was last fetched or persisted:
+    Instances of the [Record](#record-class) class are able to compare against themselves, and know if they have changes that have not been saved since the last fetch or saving:
 
     ```swift
     // Record class only
@@ -3016,7 +3016,7 @@ if newPlayer.databaseEquals(oldPlayer) == false {
 
 ### The `databaseChanges` and `hasDatabaseChanges` Methods
 
-This method lets you iterate the differences between two records:
+`databaseChanges(from:)` returns a dictionary of differences between two records:
 
 ```swift
 let oldPlayer = Player(id: 1, name: "Arthur", score: 100)
