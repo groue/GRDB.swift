@@ -39,7 +39,6 @@ class ValueObservationReducerTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 3
             
             // A reducer which tracks its progress
-            var dropNext = false // if true, reducer drops next value
             let reducer = AnyValueReducer(
                 fetch: { db -> Int in
                     fetchCount += 1
@@ -48,9 +47,8 @@ class ValueObservationReducerTests: GRDBTestCase {
             },
                 value: { count -> String? in
                     reduceCount += 1
-                    if dropNext {
+                    if count == 3 {
                         // test that reducer can drop values
-                        dropNext = false
                         return nil
                     }
                     // test that the fetched type and the notified type can be different
@@ -95,7 +93,6 @@ class ValueObservationReducerTests: GRDBTestCase {
                 }
                 
                 // Test a dropped transaction
-                dropNext = true
                 try db.inTransaction {
                     try db.execute("INSERT INTO t DEFAULT VALUES")
                     try db.execute("INSERT INTO t DEFAULT VALUES")
@@ -120,10 +117,6 @@ class ValueObservationReducerTests: GRDBTestCase {
             XCTAssertEqual(fetchCount, 4)
             XCTAssertEqual(reduceCount, 4)
             XCTAssertEqual(errors.count, 0)
-            // TODO: Fix flacky test:
-            // XCTAssertEqual failed: ("["0", "3", "5"]") is not equal to ("["0", "1", "5"]")
-            // - https://travis-ci.org/groue/GRDB.swift/jobs/458101713
-            // - https://travis-ci.org/groue/GRDB.swift/jobs/458283461
             XCTAssertEqual(changes, ["0", "1", "5"])
         }
         
