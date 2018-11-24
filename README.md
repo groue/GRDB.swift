@@ -6372,7 +6372,7 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
 
 Sometimes you need to observe several requests at the same time. For example, you need to observe changes in both a team and its players.
 
-When this happens, **combine** several observations together with the `ValueObservation.combine` method:
+When this happens, **combine** several observations together with the `ValueObservation.combine(...)` method:
 
 ```swift
 // The two observed requests (the team and its players)
