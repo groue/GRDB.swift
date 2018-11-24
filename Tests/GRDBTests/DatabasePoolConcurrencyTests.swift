@@ -1098,7 +1098,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
     
-    @available(OSX 10.12, *)
+    @available(OSX 10.12, iOS 10.0, *)
     func testTargetQueue() throws {
         func test(targetQueue: DispatchQueue) throws {
             dbConfiguration.targetQueue = targetQueue
