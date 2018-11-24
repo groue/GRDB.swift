@@ -1,4 +1,5 @@
 import XCTest
+import Dispatch
 #if GRDBCIPHER
     import GRDBCipher
 #elseif GRDBCUSTOMSQLITE
@@ -1095,6 +1096,74 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let blocks = [block1, block2]
         DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
             blocks[index]()
+        }
+    }
+    
+    func testTargetQueue() throws {
+        // dispatchPrecondition(condition:) availability
+        if #available(OSX 10.12, iOS 10.0, *) {
+            func test(targetQueue: DispatchQueue) throws {
+                dbConfiguration.targetQueue = targetQueue
+                let dbPool = try makeDatabasePool()
+                try dbPool.write { _ in
+                    dispatchPrecondition(condition: .onQueue(targetQueue))
+                }
+                try dbPool.read { _ in
+                    dispatchPrecondition(condition: .onQueue(targetQueue))
+                }
+            }
+            
+            // background queue
+            try test(targetQueue: .global(qos: .background))
+            
+            // main queue
+            let expectation = self.expectation(description: "main")
+            DispatchQueue.global(qos: .default).async {
+                try! test(targetQueue: .main)
+                expectation.fulfill()
+            }
+            waitForExpectations(timeout: 1, handler: nil)
+        }
+    }
+    
+    func testQoS() throws {
+        // dispatchPrecondition(condition:) availability
+        if #available(OSX 10.12, iOS 10.0, *) {
+            func test(qos: DispatchQoS) throws {
+                // https://forums.swift.org/t/what-is-the-default-target-queue-for-a-serial-queue/18094/5
+                //
+                // > [...] the default target queue [for a serial queue] is the
+                // > [default] overcommit [global concurrent] queue.
+                //
+                // We want this default target queue in order to test database QoS
+                // with dispatchPrecondition(condition:).
+                //
+                // > [...] You can get a reference to the overcommit queue by
+                // > dropping down to the C function dispatch_get_global_queue
+                // > (available in Swift with a __ prefix) and passing the private
+                // > value of DISPATCH_QUEUE_OVERCOMMIT.
+                // >
+                // > [...] Of course you should not do this in production code,
+                // > because DISPATCH_QUEUE_OVERCOMMIT is not a public API. I don't
+                // > know of a way to get a reference to the overcommit queue using
+                // > only public APIs.
+                let DISPATCH_QUEUE_OVERCOMMIT: UInt = 2
+                let targetQueue = __dispatch_get_global_queue(
+                    Int(qos.qosClass.rawValue.rawValue),
+                    DISPATCH_QUEUE_OVERCOMMIT)
+                
+                dbConfiguration.qos = qos
+                let dbPool = try makeDatabasePool()
+                try dbPool.write { _ in
+                    dispatchPrecondition(condition: .onQueue(targetQueue))
+                }
+                try dbPool.read { _ in
+                    dispatchPrecondition(condition: .onQueue(targetQueue))
+                }
+            }
+            
+            try test(qos: .background)
+            try test(qos: .userInitiated)
         }
     }
 }

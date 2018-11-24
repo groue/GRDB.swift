@@ -38,7 +38,11 @@ final class SerializedDatabase {
         config.threadingMode = .multiThread
         
         db = try Database(path: path, configuration: config, schemaCache: schemaCache)
-        queue = SchedulingWatchdog.makeSerializedQueue(allowingDatabase: db, label: label)
+        queue = SchedulingWatchdog.makeSerializedQueue(
+            allowingDatabase: db,
+            label: label,
+            qos: configuration.qos,
+            targetQueue: configuration.targetQueue)
         self.path = path
         try queue.sync {
             try db.setup()

@@ -8,6 +8,7 @@ Release Notes
 - [#442](https://github.com/groue/GRDB.swift/pull/442): Reindex
 - [#443](https://github.com/groue/GRDB.swift/pull/443): In place record update
 - [#444](https://github.com/groue/GRDB.swift/pull/444): Combine Value Observations
+- [#445](https://github.com/groue/GRDB.swift/pull/445): Quality of service and target dispatch queue
 - ValueObservation has three new factory methods that accept an array of database regions, and complete the existing variadic methods (addresses [#441](https://github.com/groue/GRDB.swift/issues/441)):
 
     ```swift

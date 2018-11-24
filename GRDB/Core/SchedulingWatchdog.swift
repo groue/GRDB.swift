@@ -30,8 +30,19 @@ final class SchedulingWatchdog {
         allowedDatabases = [database]
     }
     
-    static func makeSerializedQueue(allowingDatabase database: Database, label: String) -> DispatchQueue {
-        let queue = DispatchQueue(label: label)
+    static func makeSerializedQueue(
+        allowingDatabase database: Database,
+        label: String,
+        qos: DispatchQoS,
+        targetQueue: DispatchQueue?)
+        -> DispatchQueue
+    {
+        let queue: DispatchQueue
+        if let targetQueue = targetQueue {
+            queue = DispatchQueue(label: label, target: targetQueue)
+        } else {
+            queue = DispatchQueue(label: label, qos: qos)
+        }
         let watchdog = SchedulingWatchdog(allowedDatabase: database)
         queue.setSpecific(key: specificKey, value: watchdog)
         return queue

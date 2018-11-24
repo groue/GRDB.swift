@@ -243,6 +243,7 @@ extension DatabaseWriter {
             let valueObserver = try ValueObserver(
                 region: observation.observedRegion(db),
                 reducer: reducer,
+                reducerQoS: db.configuration.qos,
                 fetch: observation.fetchAfterChange(in: self),
                 notificationQueue: observation.notificationQueue,
                 onError: onError,
@@ -311,6 +312,7 @@ extension ValueObservation where Reducer: ValueReducer {
     init(
         region: DatabaseRegion,
         reducer: Reducer,
+        reducerQoS: DispatchQoS,
         fetch: @escaping (Database, Reducer) -> Future<Reducer.Fetched>,
         notificationQueue: DispatchQueue?,
         onError: ((Error) -> Void)?,
@@ -322,16 +324,7 @@ extension ValueObservation where Reducer: ValueReducer {
         self.notificationQueue = notificationQueue
         self.onChange = onChange
         self.onError = onError
-        if #available(OSX 10.10, *) {
-            if let queue = notificationQueue {
-                self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation", qos: queue.qos)
-            } else {
-                // Assume UI purpose
-                self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation", qos: .userInitiated)
-            }
-        } else {
-            self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation")
-        }
+        self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation.Reducer", qos: reducerQoS)
     }
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
