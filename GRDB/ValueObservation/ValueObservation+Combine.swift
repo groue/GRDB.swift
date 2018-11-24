@@ -111,10 +111,11 @@ func combine<R1: ValueReducer, R2: ValueReducer>(
             if let v1 = v1 { prev1 = v1 }
             if let v2 = v2 { prev2 = v2 }
         }
-        if  let r1 = v1 ?? prev1,
-            let r2 = v2 ?? prev2
+        if  v1 != nil || v2 != nil,
+            let c1 = v1 ?? prev1,
+            let c2 = v2 ?? prev2
         {
-            return (r1, r2)
+            return (c1, c2)
         } else {
             return nil
         }
@@ -151,11 +152,12 @@ func combine<R1: ValueReducer, R2: ValueReducer, R3: ValueReducer>(
             if let v2 = v2 { prev2 = v2 }
             if let v3 = v3 { prev3 = v3 }
         }
-        if  let r1 = v1 ?? prev1,
-            let r2 = v2 ?? prev2,
-            let r3 = v3 ?? prev3
+        if  v1 != nil || v2 != nil || v3 != nil,
+            let c1 = v1 ?? prev1,
+            let c2 = v2 ?? prev2,
+            let c3 = v3 ?? prev3
         {
-            return (r1, r2, r3)
+            return (c1, c2, c3)
         } else {
             return nil
         }
@@ -198,12 +200,13 @@ func combine<R1: ValueReducer, R2: ValueReducer, R3: ValueReducer, R4: ValueRedu
             if let v3 = v3 { prev3 = v3 }
             if let v4 = v4 { prev4 = v4 }
         }
-        if  let r1 = v1 ?? prev1,
-            let r2 = v2 ?? prev2,
-            let r3 = v3 ?? prev3,
-            let r4 = v4 ?? prev4
+        if  v1 != nil || v2 != nil || v3 != nil || v4 != nil,
+            let c1 = v1 ?? prev1,
+            let c2 = v2 ?? prev2,
+            let c3 = v3 ?? prev3,
+            let c4 = v4 ?? prev4
         {
-            return (r1, r2, r3, r4)
+            return (c1, c2, c3, c4)
         } else {
             return nil
         }
@@ -252,13 +255,14 @@ func combine<R1: ValueReducer, R2: ValueReducer, R3: ValueReducer, R4: ValueRedu
             if let v4 = v4 { prev4 = v4 }
             if let v5 = v5 { prev5 = v5 }
         }
-        if  let r1 = v1 ?? prev1,
-            let r2 = v2 ?? prev2,
-            let r3 = v3 ?? prev3,
-            let r4 = v4 ?? prev4,
-            let r5 = v5 ?? prev5
+        if  v1 != nil || v2 != nil || v3 != nil || v4 != nil || v5 != nil,
+            let c1 = v1 ?? prev1,
+            let c2 = v2 ?? prev2,
+            let c3 = v3 ?? prev3,
+            let c4 = v4 ?? prev4,
+            let c5 = v5 ?? prev5
         {
-            return (r1, r2, r3, r4, r5)
+            return (c1, c2, c3, c4, c5)
         } else {
             return nil
         }
