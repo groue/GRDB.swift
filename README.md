@@ -6396,7 +6396,7 @@ Combining observations provides the guarantee that notified values are [**consis
 
 > :point_up: **Note**: you can combine up to five observations together. Please submit a pull request if you need more.
 >
-> :point_up: **Note**: users who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the `ValueObservation.combine` method. The reactive operator does not care about consistency, though.
+> :point_up: **Note**: readers who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the `ValueObservation.combine` method. The reactive operator does not care about data consistency, though: if you use a Reactive layer such as [RxGRDB], compose observations with `ValueObservation.combine`, not with the CombineLatest operator.
 
 
 ### ValueObservation.tracking(_:fetch:)
