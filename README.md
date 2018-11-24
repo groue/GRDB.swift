@@ -6435,7 +6435,7 @@ In order to track changes in the Hall of Fame, we'll use the `ValueObservation.t
 1. A list of observed requests.
 2. A closure that fetches a fresh value whenever one of the observed requests are modified.
 
-In our case, any change to the `player` table can impact the Hall of Fame. We thus track the `Player.all()` request for all players, and fetch the Hall of Fame whenever players change:
+In our case, any change to the `player` table can impact the Hall of Fame. We thus track the request for all players, `Player.all()`, and fetch a new Hall of Fame whenever players change:
 
 ```swift
 let observation = ValueObservation.tracking(
@@ -6455,11 +6455,11 @@ let observer = observation.start(in: dbQueue) { hallOfFame: HallOfFame in
 
 #### Filtering out Consecutive Identical Values
 
-It may happen that a database change does not modify the fetched values. In your Hall of Fame example, changes to the worst players do not modify the count of players, or the best players.
+It may happen that a database change does not modify the fetched values. The Hall of Fame, for example, is not modified by changes that happen to the worst players.
 
-In this case, you'll be notified with consecutive identical values.
+When this happen, `ValueObservation.tracking(_:fetch:)` will notify identical consecutive values.
 
-You can filter out those duplicates with the `ValueObservation.tracking(_:fetchDistinct:)` method. It requires the fetched value to adopt the Equatable protocol:
+In order to filter out those duplicates, use `ValueObservation.tracking(_:fetchDistinct:)` instead. It requires the observed value to adopt the Equatable protocol:
 
 ```swift
 extension HallOfFame: Equatable { ... }
@@ -6488,6 +6488,8 @@ protocol DatabaseRegionConvertible {
     func databaseRegion(_ db: Database) throws -> DatabaseRegion
 }
 ```
+
+[DatabaseRegion](#databaseregion) is a type that helps observing the database.
 
 Use this protocol when you want to encapsulate your complex requests in a dedicated type. In the sample code below, `TeamInfoRequest` is not only able to fetch a team and its players, but also to be observed.
 
@@ -6537,8 +6539,6 @@ let observer = ValueObservation
         print("Team and its players have hanged.")
     }
 ```
-
-See [DatabaseRegion](#databaseregion) for more information.
 
 
 ### ValueObservation.tracking(_:reducer:)
