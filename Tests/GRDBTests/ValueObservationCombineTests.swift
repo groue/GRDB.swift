@@ -31,7 +31,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct T2: TableRecord { }
         let observation1 = ValueObservation.trackingCount(T1.all())
         let observation2 = ValueObservation.trackingCount(T2.all())
-        var observation = combine(observation1, observation2)
+        var observation = ValueObservation.combine(observation1, observation2)
         observation.extent = .databaseLifetime
         _ = try observation.start(in: dbQueue) { value in
             values.append(value)
@@ -91,7 +91,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation1 = ValueObservation.trackingCount(T1.all())
         let observation2 = ValueObservation.trackingCount(T2.all())
         let observation3 = ValueObservation.trackingCount(T3.all())
-        var observation = combine(observation1, observation2, observation3)
+        var observation = ValueObservation.combine(observation1, observation2, observation3)
         observation.extent = .databaseLifetime
         _ = try observation.start(in: dbQueue) { value in
             values.append(value)
@@ -165,7 +165,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation2 = ValueObservation.trackingCount(T2.all())
         let observation3 = ValueObservation.trackingCount(T3.all())
         let observation4 = ValueObservation.trackingCount(T4.all())
-        var observation = combine(observation1, observation2, observation3, observation4)
+        var observation = ValueObservation.combine(observation1, observation2, observation3, observation4)
         observation.extent = .databaseLifetime
         _ = try observation.start(in: dbQueue) { value in
             values.append(value)
@@ -253,7 +253,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation3 = ValueObservation.trackingCount(T3.all())
         let observation4 = ValueObservation.trackingCount(T4.all())
         let observation5 = ValueObservation.trackingCount(T5.all())
-        var observation = combine(observation1, observation2, observation3, observation4, observation5)
+        var observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5)
         observation.extent = .databaseLifetime
         _ = try observation.start(in: dbQueue) { value in
             values.append(value)
@@ -330,7 +330,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct V2 { }
         let observation1 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V1() })
         let observation2 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V2() })
-        let observation = combine(observation1, observation2)
+        let observation = ValueObservation.combine(observation1, observation2)
         var value: (V1, V2)?
         _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
         XCTAssertNotNil(value)
@@ -343,7 +343,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation1 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V1() })
         let observation2 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V2() })
         let observation3 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V3() })
-        let observation = combine(observation1, observation2, observation3)
+        let observation = ValueObservation.combine(observation1, observation2, observation3)
         var value: (V1, V2, V3)?
         _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
         XCTAssertNotNil(value)
@@ -358,7 +358,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation2 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V2() })
         let observation3 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V3() })
         let observation4 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V4() })
-        let observation = combine(observation1, observation2, observation3, observation4)
+        let observation = ValueObservation.combine(observation1, observation2, observation3, observation4)
         var value: (V1, V2, V3, V4)?
         _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
         XCTAssertNotNil(value)
@@ -375,7 +375,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation3 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V3() })
         let observation4 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V4() })
         let observation5 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V5() })
-        let observation = combine(observation1, observation2, observation3, observation4, observation5)
+        let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5)
         var value: (V1, V2, V3, V4, V5)?
         _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
         XCTAssertNotNil(value)

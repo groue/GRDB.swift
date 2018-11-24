@@ -6372,7 +6372,7 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
 
 Sometimes you need to observe several requests at the same time. For example, you need to observe changes in both a team and its players.
 
-When this happens, **combine** several observations together:
+When this happens, **combine** several observations together with the `ValueObservation.combine` method:
 
 ```swift
 // The two observed requests (the team and its players)
@@ -6384,7 +6384,7 @@ let teamObservation = ValueObservation.trackingOne(teamRequest)
 let playersObservation = ValueObservation.trackingAll(playersRequest)
 
 // The combined observation
-let observation = combine(teamObservation, playersObservation)
+let observation = ValueObservation.combine(teamObservation, playersObservation)
 
 // Start tracking players and teams
 let observer = observation.start(in: dbQueue) { team: Team?, players: [Player] in
@@ -6395,6 +6395,8 @@ let observer = observation.start(in: dbQueue) { team: Team?, players: [Player] i
 Combining observations provides the guarantee that notified values are [**consistent**](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
 
 > :point_up: **Note**: you can combine up to five observations together. Please submit a pull request if you need more.
+>
+> :point_up: **Note**: users who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the `ValueObservation.combine` method. The reactive operator does not care about consistency, though.
 
 
 ### ValueObservation.tracking(_:fetch:)
