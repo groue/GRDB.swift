@@ -6301,7 +6301,7 @@ The observer returned by the `start` method is stored in a property of the view 
 > :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample app that uses ValueObservation.
 
 - [ValueObservation.trackingCount, trackingOne, trackingAll](#valueobservationtrackingcount-trackingone-trackingall)
-- [Combining Value Observations](#combining-value-observations)
+- [ValueObservation.combine(...)](#valueobservationcombine)
 - [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
 - [ValueObservation.tracking(_:reducer:)](#valueobservationtracking_reducer)
 - [ValueObservation Options](#valueobservation-options)
@@ -6368,7 +6368,7 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
         }
     ```
 
-### Combining Value Observations
+### ValueObservation.combine(...)
 
 Sometimes you need to observe several requests at the same time. For example, you need to observe changes in both a team and its players.
 
