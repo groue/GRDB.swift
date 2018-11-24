@@ -7,6 +7,7 @@ Release Notes
 
 - [#442](https://github.com/groue/GRDB.swift/pull/442): Reindex
 - [#443](https://github.com/groue/GRDB.swift/pull/443): In place record update
+- [#444](https://github.com/groue/GRDB.swift/pull/444): Combine Value Observations
 - ValueObservation has three new factory methods that accept an array of database regions, and complete the existing variadic methods (addresses [#441](https://github.com/groue/GRDB.swift/issues/441)):
 
     ```swift
@@ -22,6 +23,7 @@ Release Notes
 ### Documentation Diff
 
 - [Record Comparison](README.md#record-comparison): this chapter has been updated for the new `updateChanges(_:with:)` method.
+- [ValueObservation](README.md#valueobservation): this chapter has been updated for the new `ValueObservation.combine(...)` method.
 
 
 ### API diff
@@ -57,6 +59,8 @@ Release Notes
 +        fetchDistinct fetch: @escaping (Database) throws -> Value)
 +        -> ValueObservation<ValueReducers.Distinct<Value>>
 +        where Value: Equatable
++    static func combine<R1: ValueReducer, ...>(_ o1: ValueObservation<R1>, ...)
++        -> ValueObservation<...>
  }
 ```
 
