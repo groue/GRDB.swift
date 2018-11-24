@@ -6401,9 +6401,9 @@ Combining observations provides the guarantee that notified values are [**consis
 
 ### ValueObservation.tracking(_:fetch:)
 
-Sometimes you need to observe the database in a way that is uneasy to express with simple requests, or the combination of several observations we have seen above.
+Observing the database is not always eaasy to express with simple requests, or the combination of several observations, as we have seen above.
 
-Let's say that we have a struct that defines a "Hall of Fame":
+For example, let's say that we have a struct that defines a "Hall of Fame":
 
 ```swift
 struct HallOfFame {
