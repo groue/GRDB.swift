@@ -132,67 +132,71 @@ class DatabaseQueueTests: GRDBTestCase {
         }
     }
     
-    @available(OSX 10.12, iOS 10.0, *)
     func testTargetQueue() throws {
-        func test(targetQueue: DispatchQueue) throws {
-            dbConfiguration.targetQueue = targetQueue
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.write { _ in
-                dispatchPrecondition(condition: .onQueue(targetQueue))
+        // dispatchPrecondition(condition:) availability
+        if #available(OSX 10.12, iOS 10.0, *) {
+            func test(targetQueue: DispatchQueue) throws {
+                dbConfiguration.targetQueue = targetQueue
+                let dbQueue = try makeDatabaseQueue()
+                try dbQueue.write { _ in
+                    dispatchPrecondition(condition: .onQueue(targetQueue))
+                }
+                dbQueue.read { _ in
+                    dispatchPrecondition(condition: .onQueue(targetQueue))
+                }
             }
-            dbQueue.read { _ in
-                dispatchPrecondition(condition: .onQueue(targetQueue))
+            
+            // background queue
+            try test(targetQueue: .global(qos: .background))
+            
+            // main queue
+            let expectation = self.expectation(description: "main")
+            DispatchQueue.global(qos: .default).async {
+                try! test(targetQueue: .main)
+                expectation.fulfill()
             }
+            waitForExpectations(timeout: 1, handler: nil)
         }
-        
-        // background queue
-        try test(targetQueue: .global(qos: .background))
-        
-        // main queue
-        let expectation = self.expectation(description: "main")
-        DispatchQueue.global(qos: .default).async {
-            try! test(targetQueue: .main)
-            expectation.fulfill()
-        }
-        waitForExpectations(timeout: 1, handler: nil)
     }
     
-    @available(OSX 10.12, iOS 10.0, *)
     func testQoS() throws {
-        func test(qos: DispatchQoS) throws {
-            // https://forums.swift.org/t/what-is-the-default-target-queue-for-a-serial-queue/18094/5
-            //
-            // > [...] the default target queue [for a serial queue] is the
-            // > [default] overcommit [global concurrent] queue.
-            //
-            // We want this default target queue in order to test database QoS
-            // with dispatchPrecondition(condition:).
-            //
-            // > [...] You can get a reference to the overcommit queue by
-            // > dropping down to the C function dispatch_get_global_queue
-            // > (available in Swift with a __ prefix) and passing the private
-            // > value of DISPATCH_QUEUE_OVERCOMMIT.
-            // >
-            // > [...] Of course you should not do this in production code,
-            // > because DISPATCH_QUEUE_OVERCOMMIT is not a public API. I don't
-            // > know of a way to get a reference to the overcommit queue using
-            // > only public APIs.
-            let DISPATCH_QUEUE_OVERCOMMIT: UInt = 2
-            let targetQueue = __dispatch_get_global_queue(
-                Int(qos.qosClass.rawValue.rawValue),
-                DISPATCH_QUEUE_OVERCOMMIT)
+        // dispatchPrecondition(condition:) availability
+        if #available(OSX 10.12, iOS 10.0, *) {
+            func test(qos: DispatchQoS) throws {
+                // https://forums.swift.org/t/what-is-the-default-target-queue-for-a-serial-queue/18094/5
+                //
+                // > [...] the default target queue [for a serial queue] is the
+                // > [default] overcommit [global concurrent] queue.
+                //
+                // We want this default target queue in order to test database QoS
+                // with dispatchPrecondition(condition:).
+                //
+                // > [...] You can get a reference to the overcommit queue by
+                // > dropping down to the C function dispatch_get_global_queue
+                // > (available in Swift with a __ prefix) and passing the private
+                // > value of DISPATCH_QUEUE_OVERCOMMIT.
+                // >
+                // > [...] Of course you should not do this in production code,
+                // > because DISPATCH_QUEUE_OVERCOMMIT is not a public API. I don't
+                // > know of a way to get a reference to the overcommit queue using
+                // > only public APIs.
+                let DISPATCH_QUEUE_OVERCOMMIT: UInt = 2
+                let targetQueue = __dispatch_get_global_queue(
+                    Int(qos.qosClass.rawValue.rawValue),
+                    DISPATCH_QUEUE_OVERCOMMIT)
+                
+                dbConfiguration.qos = qos
+                let dbQueue = try makeDatabaseQueue()
+                try dbQueue.write { _ in
+                    dispatchPrecondition(condition: .onQueue(targetQueue))
+                }
+                dbQueue.read { _ in
+                    dispatchPrecondition(condition: .onQueue(targetQueue))
+                }
+            }
             
-            dbConfiguration.qos = qos
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.write { _ in
-                dispatchPrecondition(condition: .onQueue(targetQueue))
-            }
-            dbQueue.read { _ in
-                dispatchPrecondition(condition: .onQueue(targetQueue))
-            }
+            try test(qos: .background)
+            try test(qos: .userInitiated)
         }
-        
-        try test(qos: .background)
-        try test(qos: .userInitiated)
     }
 }
