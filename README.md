@@ -6455,11 +6455,11 @@ let observer = observation.start(in: dbQueue) { hallOfFame: HallOfFame in
 
 #### Filtering out Consecutive Identical Values
 
-It may happen that a database change does not modify the fetched values. The Hall of Fame, for example, is not modified by changes that happen to the worst players.
+It may happen that a database change does not modify the observed values. The Hall of Fame, for example, is not affected by changes that happen to the worst players.
 
-When this happen, `ValueObservation.tracking(_:fetch:)` will notify identical consecutive values.
+When such a database change happens, `ValueObservation.tracking(_:fetch:)` notifies identical consecutive values.
 
-In order to filter out those duplicates, use `ValueObservation.tracking(_:fetchDistinct:)` instead. It requires the observed value to adopt the Equatable protocol:
+You can filter out those duplicates with the `ValueObservation.tracking(_:fetchDistinct:)` method. It requires the observed value to adopt the Equatable protocol:
 
 ```swift
 extension HallOfFame: Equatable { ... }
