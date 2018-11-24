@@ -63,6 +63,11 @@ Release Notes
 +    static func combine<R1: ValueReducer, ...>(_ o1: ValueObservation<R1>, ...)
 +        -> ValueObservation<...>
  }
+ 
+ struct Configuration {
++    var qos: DispatchQoS
++    var targetQueue: DispatchQueue?
+ }
 ```
 
 
