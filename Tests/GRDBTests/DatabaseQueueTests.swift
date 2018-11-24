@@ -8,6 +8,7 @@ import Dispatch
     import GRDB
 #endif
 
+@available(OSX 10.12, *)
 class DatabaseQueueTests: GRDBTestCase {
     
     // Until SPM tests can load resources, disable this test for SPM.
@@ -130,5 +131,30 @@ class DatabaseQueueTests: GRDBTestCase {
             let label = String(utf8String: __dispatch_queue_get_label(nil))
             XCTAssertEqual(label, "Toreador")
         }
+    }
+    
+    @available(OSX 10.12, *)
+    func testTargetQueue() throws {
+        func test(targetQueue: DispatchQueue) throws {
+            dbConfiguration.targetQueue = targetQueue
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { _ in
+                dispatchPrecondition(condition: .onQueue(targetQueue))
+            }
+            dbQueue.read { _ in
+                dispatchPrecondition(condition: .onQueue(targetQueue))
+            }
+        }
+        
+        // background queue
+        try test(targetQueue: .global(qos: .background))
+        
+        // main queue
+        let expectation = self.expectation(description: "main")
+        DispatchQueue.global(qos: .default).async {
+            try! test(targetQueue: .main)
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 1, handler: nil)
     }
 }

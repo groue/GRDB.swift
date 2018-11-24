@@ -1097,4 +1097,29 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             blocks[index]()
         }
     }
+    
+    @available(OSX 10.12, *)
+    func testTargetQueue() throws {
+        func test(targetQueue: DispatchQueue) throws {
+            dbConfiguration.targetQueue = targetQueue
+            let dbPool = try makeDatabasePool()
+            try dbPool.write { _ in
+                dispatchPrecondition(condition: .onQueue(targetQueue))
+            }
+            try dbPool.read { _ in
+                dispatchPrecondition(condition: .onQueue(targetQueue))
+            }
+        }
+        
+        // background queue
+        try test(targetQueue: .global(qos: .background))
+        
+        // main queue
+        let expectation = self.expectation(description: "main")
+        DispatchQueue.global(qos: .default).async {
+            try! test(targetQueue: .main)
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 1, handler: nil)
+    }
 }
