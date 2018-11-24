@@ -8,7 +8,6 @@ import Dispatch
     import GRDB
 #endif
 
-@available(OSX 10.12, *)
 class DatabaseQueueTests: GRDBTestCase {
     
     // Until SPM tests can load resources, disable this test for SPM.
