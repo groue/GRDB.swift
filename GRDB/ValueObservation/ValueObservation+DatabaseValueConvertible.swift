@@ -32,7 +32,7 @@ extension ValueObservation where Reducer == Void {
     {
         return ValueObservation<ValueReducers.Values<Request.RowDecoder>>.tracking(
             request,
-            reducer: ValueReducers.Values { try DatabaseValue.fetchAll($0, request) })
+            reducer: { _ in ValueReducers.Values { try DatabaseValue.fetchAll($0, request) } })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -64,7 +64,7 @@ extension ValueObservation where Reducer == Void {
     {
         return ValueObservation<ValueReducers.Value<Request.RowDecoder>>.tracking(
             request,
-            reducer: ValueReducers.Value { try DatabaseValue.fetchOne($0, request) })
+            reducer: { _ in ValueReducers.Value { try DatabaseValue.fetchOne($0, request) } })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies
@@ -98,7 +98,7 @@ extension ValueObservation where Reducer == Void {
     {
         return ValueObservation<ValueReducers.OptionalValues<Request.RowDecoder._Wrapped>>.tracking(
             request,
-            reducer: ValueReducers.OptionalValues { try DatabaseValue.fetchAll($0, request) })
+            reducer: { _ in ValueReducers.OptionalValues { try DatabaseValue.fetchAll($0, request) } })
     }
 }
 

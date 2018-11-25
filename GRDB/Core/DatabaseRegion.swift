@@ -344,3 +344,21 @@ public struct AnyDatabaseRegionConvertible: DatabaseRegionConvertible {
         return try _region(db)
     }
 }
+
+// MARK: - Utils
+
+extension DatabaseRegion {
+    static func union(_ regions: DatabaseRegion...) -> DatabaseRegion {
+        return regions.reduce(into: DatabaseRegion()) { union, region in
+            union.formUnion(region)
+        }
+    }
+    
+    static func union(_ regions: [DatabaseRegionConvertible]) -> (Database) throws -> DatabaseRegion {
+        return { db in
+            try regions.reduce(into: DatabaseRegion()) { union, region in
+                try union.formUnion(region.databaseRegion(db))
+            }
+        }
+    }
+}

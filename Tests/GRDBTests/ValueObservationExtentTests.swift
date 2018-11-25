@@ -34,7 +34,7 @@ class ValueObservationExtentTests: GRDBTestCase {
             value: { $0 })
         
         // Create an observation
-        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
         observation.extent = .databaseLifetime
         
         // Start observation
@@ -72,7 +72,7 @@ class ValueObservationExtentTests: GRDBTestCase {
             value: { $0 })
         
         // Create an observation
-        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
         observation.extent = .observerLifetime
         
         // Start observation and deallocate observer after second change
@@ -118,7 +118,7 @@ class ValueObservationExtentTests: GRDBTestCase {
             value: { $0 })
         
         // Create an observation
-        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
         observation.extent = .nextTransaction
         
         // Start observation

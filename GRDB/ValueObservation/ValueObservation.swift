@@ -77,8 +77,9 @@ public struct ValueObservation<Reducer> {
     /// the observed database region.
     var observedRegion: (Database) throws -> DatabaseRegion
     
-    /// The reducer is triggered upon each database change in *observedRegion*.
-    var reducer: Reducer
+    /// The reducer is created when observation starts, and is triggered upon
+    /// each database change in *observedRegion*.
+    var makeReducer: (Database) throws -> Reducer
     
     /// Default is false. Set this property to true when the observation
     /// requires write access in order to fetch fresh values. Fetches are then
@@ -166,7 +167,7 @@ public struct ValueObservation<Reducer> {
     // Not public. See ValueObservation.tracking(_:reducer:)
     init(
         tracking region: @escaping (Database) throws -> DatabaseRegion,
-        reducer: Reducer)
+        reducer: @escaping (Database) throws -> Reducer)
     {
         self.observedRegion = { db in
             // Remove views from the observed region.
@@ -177,7 +178,7 @@ public struct ValueObservation<Reducer> {
             let views = try db.schema().names(ofType: .view)
             return try region(db).ignoring(views)
         }
-        self.reducer = reducer
+        self.makeReducer = reducer
     }
 }
 
@@ -216,13 +217,13 @@ extension ValueObservation {
     /// table is modified:
     ///
     ///     var count = 0
-    ///     let reducer = AnyValueReducer(
-    ///         fetch: { _ in },
-    ///         value: { _ -> Int? in
-    ///             count += 1
-    ///             return count
+    ///     let observation = ValueObservation.tracking(Player.all(), reducer: ( db in
+    ///         AnyValueReducer(
+    ///             fetch: { _ in },
+    ///             value: { _ -> Int? in
+    ///                 count += 1
+    ///                 return count })
     ///     })
-    ///     let observation = ValueObservation.tracking(Player.all(), reducer: reducer)
     ///     let observer = observation.start(in: dbQueue) { count: Int in
     ///         print("Players have been modified \(count) times.")
     ///     }
@@ -242,7 +243,7 @@ extension ValueObservation {
     /// the ValueReducer protocol are supported.
     public static func tracking(
         _ regions: DatabaseRegionConvertible...,
-        reducer: Reducer)
+        reducer: @escaping (Database) -> Reducer)
         -> ValueObservation
     {
         return ValueObservation.tracking(regions, reducer: reducer)
@@ -258,13 +259,13 @@ extension ValueObservation {
     /// table is modified:
     ///
     ///     var count = 0
-    ///     let reducer = AnyValueReducer(
-    ///         fetch: { _ in },
-    ///         value: { _ -> Int? in
-    ///             count += 1
-    ///             return count
+    ///     let observation = ValueObservation.tracking([Player.all()], reducer: ( db in
+    ///         AnyValueReducer(
+    ///             fetch: { _ in },
+    ///             value: { _ -> Int? in
+    ///                 count += 1
+    ///                 return count })
     ///     })
-    ///     let observation = ValueObservation.tracking([Player.all()], reducer: reducer)
     ///     let observer = observation.start(in: dbQueue) { count: Int in
     ///         print("Players have been modified \(count) times.")
     ///     }
@@ -284,10 +285,12 @@ extension ValueObservation {
     /// the ValueReducer protocol are supported.
     public static func tracking(
         _ regions: [DatabaseRegionConvertible],
-        reducer: Reducer)
+        reducer: @escaping (Database) -> Reducer)
         -> ValueObservation
     {
-        return ValueObservation(tracking: union(regions), reducer: reducer)
+        return ValueObservation(
+            tracking: DatabaseRegion.union(regions),
+            reducer: reducer)
     }
 }
 
@@ -359,8 +362,8 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Raw<Value>>
     {
         return ValueObservation<ValueReducers.Raw<Value>>(
-            tracking: union(regions),
-            reducer: ValueReducers.Raw(fetch))
+            tracking: DatabaseRegion.union(regions),
+            reducer: { _ in ValueReducers.Raw(fetch) })
     }
     
     /// Creates a ValueObservation which observes *regions*, and notifies the
@@ -431,15 +434,7 @@ extension ValueObservation where Reducer == Void {
         where Value: Equatable
     {
         return ValueObservation<ValueReducers.Distinct<Value>>(
-            tracking: union(regions),
-            reducer: ValueReducers.Distinct(fetch))
-    }
-}
-
-private func union(_ regions: [DatabaseRegionConvertible]) -> (Database) throws -> DatabaseRegion {
-    return { db in
-        try regions.reduce(into: DatabaseRegion()) { union, region in
-            try union.formUnion(region.databaseRegion(db))
-        }
+            tracking: DatabaseRegion.union(regions),
+            reducer: { _ in ValueReducers.Distinct(fetch) })
     }
 }

@@ -4,9 +4,10 @@ extension ValueObservation where Reducer: ValueReducer {
     public func map<T>(_ transform: @escaping (Reducer.Value) -> T)
         -> ValueObservation<MapValueReducer<Reducer, T>>
     {
+        let makeReducer = self.makeReducer
         return ValueObservation<MapValueReducer<Reducer, T>>(
             tracking: observedRegion,
-            reducer: reducer.map(transform))
+            reducer: { db in try makeReducer(db).map(transform) })
     }
 }
 
