@@ -1,4 +1,5 @@
 import XCTest
+import Dispatch
 #if GRDBCIPHER
     import GRDBCipher
 #elseif GRDBCUSTOMSQLITE
@@ -327,5 +328,59 @@ class ValueObservationReducerTests: GRDBTestCase {
         
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
+    }
+    
+    func testReducerQueueLabel() throws {
+        func test(_ dbWriter: DatabaseWriter, expectedLabels: [String]) throws {
+            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            let reduceExpectation = expectation(description: "notification")
+            reduceExpectation.assertForOverFulfill = true
+            reduceExpectation.expectedFulfillmentCount = expectedLabels.count
+            
+            var labels: [String] = []
+            let reducer = AnyValueReducer(fetch: { _ in }, value: { _ in
+                // This test CAN break in future releases: the dispatch queue labels
+                // are documented to be a debug-only tool.
+                if let label = String(utf8String: __dispatch_queue_get_label(nil)) {
+                    labels.append(label)
+                }
+                reduceExpectation.fulfill()
+            })
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+            observation.extent = .databaseLifetime
+            _ = try observation.start(in: dbWriter, onChange: { _ in })
+            
+            try dbWriter.write { db in
+                try db.execute("INSERT INTO t DEFAULT VALUES")
+            }
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(labels, expectedLabels)
+        }
+        do {
+            // dbQueue with default label
+            dbConfiguration.label = nil
+            let dbQueue = try makeDatabaseQueue()
+            try test(dbQueue, expectedLabels: ["GRDB.DatabaseQueue", "GRDB.ValueObservation.reducer"])
+        }
+        do {
+            // dbQueue with custom label
+            dbConfiguration.label = "Custom"
+            let dbQueue = try makeDatabaseQueue()
+            try test(dbQueue, expectedLabels: ["Custom", "Custom.ValueObservation.reducer"])
+        }
+        do {
+            // dbPool with default label
+            dbConfiguration.label = nil
+            let dbPool = try makeDatabasePool()
+            try test(dbPool, expectedLabels: ["GRDB.DatabasePool.writer", "GRDB.ValueObservation.reducer"])
+        }
+        do {
+            // dbPool with custom label
+            dbConfiguration.label = "Custom"
+            let dbPool = try makeDatabasePool()
+            try test(dbPool, expectedLabels: ["Custom.writer", "Custom.ValueObservation.reducer"])
+        }
     }
 }
