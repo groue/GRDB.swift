@@ -1,6 +1,45 @@
 Release Notes
 =============
 
+All notable changes to this project will be documented in this file.
+
+GRDB adheres to [Semantic Versioning](https://semver.org/).
+
+#### 3.x Releases
+
+- `3.5.x` Releases - [3.5.0](#350)
+- `3.4.x` Releases - [3.4.0](#340)
+- `3.3.x` Releases - [3.3.1](#331) | [3.3.0](#330) | [3.3.0-beta1](#330-beta1)
+- `3.2.x` Releases - [3.2.0](#320)
+- `3.1.x` Releases - [3.1.0](#310)
+- `3.0.x` Releases - [3.0.0](#300)
+
+#### 2.x Releases
+
+- `2.10.x` Releases - [2.10.0](#2100)
+- `2.9.x` Releases - [2.9.0](#290)
+- `2.8.x` Releases - [2.8.0](#280)
+- `2.7.x` Releases - [2.7.0](#270)
+- `2.6.x` Releases - [2.6.1](#261) | [2.6.0](#260)
+- `2.5.x` Releases - [2.5.0](#250)
+- `2.4.x` Releases - [2.4.2](#242) | [2.4.1](#241) | [2.4.0](#240)
+- `2.3.x` Releases - [2.3.1](#231) | [2.3.0](#230)
+- `2.2.x` Releases - [2.2.0](#220)
+- `2.1.x` Releases - [2.1.0](#210)
+- `2.0.x` Releases - [2.0.3](#203) | [2.0.2](#202) | [2.0.1](#201) | [2.0.0](#200)
+
+#### 1.x Releases
+
+- `1.3.x` Releases - [1.3.0](#130)
+- `1.2.x` Releases - [1.2.2](#122) | [1.2.1](#121) | [1.2.0](#120)
+- `1.1.x` Releases - [1.1.0](#110)
+- `1.0.x` Releases - [1.0.0](#100)
+
+#### 0.x Releases
+
+- [0.110.0](#01100), ...
+
+
 ## Next Version
 
 ### New
@@ -9,15 +48,7 @@ Release Notes
 - [#443](https://github.com/groue/GRDB.swift/pull/443): In place record update
 - [#444](https://github.com/groue/GRDB.swift/pull/444): Combine Value Observations
 - [#445](https://github.com/groue/GRDB.swift/pull/445): Quality of service and target dispatch queue
-- ValueObservation has three new factory methods that accept an array of database regions, and complete the existing variadic methods (addresses [#441](https://github.com/groue/GRDB.swift/issues/441)):
-
-    ```swift
-    let regions: [DatabaseRegionConvertible] = [Player.all(), Team.all()]
-    ValueObservation.tracking(regions, fetch: { db in ... })
-    ValueObservation.tracking(regions, fetchDistinct: { db in ... })
-    ValueObservation.tracking(regions, reducer: ...)
-    ```
-
+- ValueObservation methods which used to accept a variadic list of observed regions now also accept an array.
 - ValueReducer, the protocol that fuels ValueObservation, is flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). It will remain so until more experience has been acquired.
 
 
@@ -1378,7 +1409,7 @@ Released July 19, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare
     It used to generate `= NULL` which would not behave as expected. 
     
 
-## 1.2
+## 1.2.0
 
 Released July 13, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v1.1...v1.2)
 
@@ -1477,7 +1508,7 @@ Released July 13, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare
 ```
 
 
-## 1.1
+## 1.1.0
 
 Released July 1, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v1.0...v1.1)
 
@@ -1539,9 +1570,9 @@ Released July 1, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/
 ```
 
 
-## 1.0 :tada:
+## 1.0.0
 
-Released June 20, 2017
+Released June 20, 2017 :tada:
 
 **GRDB 1.0 comes with enhancements, and API stability.**
 
