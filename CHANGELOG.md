@@ -53,6 +53,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 - ValueReducer, the protocol that fuels ValueObservation, is flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). It will remain so until more experience has been acquired.
 
 
+### Breaking Change
+
+- [#446](https://github.com/groue/GRDB.swift/pull/446): ValueObservation: delayed reducer creation
+
+
 ### Documentation Diff
 
 - [Record Comparison](README.md#record-comparison): this chapter has been updated for the new `updateChanges(_:with:)` method.
@@ -78,7 +83,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
  struct ValueObservation<Reducer> {
 +    static func tracking(
 +        _ regions: [DatabaseRegionConvertible],
-+        reducer: Reducer)
++        reducer: @escaping (Database) -> Reducer)
 +        -> ValueObservation
  }
  
