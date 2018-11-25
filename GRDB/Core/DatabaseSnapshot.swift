@@ -106,8 +106,7 @@ extension DatabaseSnapshot {
         // Deal with initial value
         switch observation.scheduling {
         case .mainQueue:
-            var reducer = observation.reducer
-            if let value = try reducer.value(unsafeReentrantRead(reducer.fetch)) {
+            if let value = try unsafeReentrantRead(observation.initialValue) {
                 if DispatchQueue.isMain {
                     onChange(value)
                 } else {
@@ -118,8 +117,7 @@ extension DatabaseSnapshot {
             }
         case let .onQueue(queue, startImmediately: startImmediately):
             if startImmediately {
-                var reducer = observation.reducer
-                if let value = try reducer.value(unsafeReentrantRead(reducer.fetch)) {
+                if let value = try unsafeReentrantRead(observation.initialValue) {
                     queue.async {
                         onChange(value)
                     }
@@ -127,8 +125,7 @@ extension DatabaseSnapshot {
             }
         case let .unsafe(startImmediately: startImmediately):
             if startImmediately {
-                var reducer = observation.reducer
-                if let value = try reducer.value(unsafeReentrantRead(reducer.fetch)) {
+                if let value = try unsafeReentrantRead(observation.initialValue) {
                     onChange(value)
                 }
             }
@@ -140,6 +137,15 @@ extension DatabaseSnapshot {
     
     public func remove(transactionObserver: TransactionObserver) {
         // Can't remove an observer which could not be added :-)
+    }
+}
+
+extension ValueObservation where Reducer: ValueReducer {
+    /// Helper method for DatabaseSnapshot.add(observation:onError:onChange:)
+    fileprivate func initialValue(_ db: Database) throws -> Reducer.Value? {
+        var reducer = try makeReducer(db)
+        let fetched = try reducer.fetch(db)
+        return reducer.value(fetched)
     }
 }
 

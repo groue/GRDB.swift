@@ -215,12 +215,14 @@ extension DatabaseWriter {
         // Use unsafeReentrantWrite so that observation can start from any
         // dispatch queue.
         return try unsafeReentrantWrite { db in
+            // Create the reducer
+            var reducer = try observation.makeReducer(db)
+            
             // Take care of initial value. Make sure it is dispatched before
             // any future transaction can trigger a change.
-            var reducer = observation.reducer
             switch observation.scheduling {
             case .mainQueue:
-                if let value = try reducer.value(observation.fetchInitial(db)) {
+                if let value = try reducer.initialValue(db, requiresWriteAccess: observation.requiresWriteAccess) {
                     if calledOnMainQueue {
                         startValue = value
                     } else {
@@ -229,13 +231,13 @@ extension DatabaseWriter {
                 }
             case let .onQueue(queue, startImmediately: startImmediately):
                 if startImmediately {
-                    if let value = try reducer.value(observation.fetchInitial(db)) {
+                    if let value = try reducer.initialValue(db, requiresWriteAccess: observation.requiresWriteAccess) {
                         queue.async { onChange(value) }
                     }
                 }
             case let .unsafe(startImmediately: startImmediately):
                 if startImmediately {
-                    startValue = try reducer.value(observation.fetchInitial(db))
+                    startValue = try reducer.initialValue(db, requiresWriteAccess: observation.requiresWriteAccess)
                 }
             }
             
@@ -255,21 +257,23 @@ extension DatabaseWriter {
     }
 }
 
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueReducer {
     /// Helper method for DatabaseWriter.add(observation:onError:onChange:)
-    fileprivate func fetchInitial(_ db: Database) throws -> Reducer.Fetched {
+    fileprivate mutating func initialValue(_ db: Database, requiresWriteAccess: Bool) throws -> Value? {
         if requiresWriteAccess {
-            var fetchedValue: Reducer.Fetched!
+            var fetchedValue: Fetched!
             try db.inSavepoint {
-                fetchedValue = try reducer.fetch(db)
+                fetchedValue = try fetch(db)
                 return .commit
             }
-            return fetchedValue
+            return value(fetchedValue)
         } else {
-            return try db.readOnly { try reducer.fetch(db) }
+            return try value(db.readOnly { try fetch(db) })
         }
     }
-    
+}
+
+extension ValueObservation where Reducer: ValueReducer {
     /// Helper method for DatabaseWriter.add(observation:onError:onChange:)
     fileprivate func fetchAfterChange(in writer: DatabaseWriter) -> (Database, Reducer) -> Future<Reducer.Fetched> {
         // The technique to return a future value after database has changed

@@ -8,13 +8,13 @@ extension ValueObservation where Reducer == Void {
     {
         return ValueObservation<AnyValueReducer<
             (R1.Fetched, R2.Fetched),
-            (R1.Value, R2.Value)>>.init(
-            tracking: union([
-                o1.observedRegion,
-                o2.observedRegion]),
-            reducer: ValueReducers.combine(
-                o1.reducer,
-                o2.reducer))
+            (R1.Value, R2.Value)>>(
+                tracking: { try DatabaseRegion.union(
+                    o1.observedRegion($0),
+                    o2.observedRegion($0)) },
+                reducer: { try ValueReducers.combine(
+                    o1.makeReducer($0),
+                    o2.makeReducer($0)) })
     }
     
     public static func combine<R1: ValueReducer, R2: ValueReducer, R3: ValueReducer>(
@@ -27,15 +27,15 @@ extension ValueObservation where Reducer == Void {
     {
         return ValueObservation<AnyValueReducer<
             (R1.Fetched, R2.Fetched, R3.Fetched),
-            (R1.Value, R2.Value, R3.Value)>>.init(
-            tracking: union([
-                o1.observedRegion,
-                o2.observedRegion,
-                o3.observedRegion]),
-            reducer: ValueReducers.combine(
-                o1.reducer,
-                o2.reducer,
-                o3.reducer))
+            (R1.Value, R2.Value, R3.Value)>>(
+                tracking: { try DatabaseRegion.union(
+                    o1.observedRegion($0),
+                    o2.observedRegion($0),
+                    o3.observedRegion($0)) },
+                reducer: { try ValueReducers.combine(
+                    o1.makeReducer($0),
+                    o2.makeReducer($0),
+                    o3.makeReducer($0)) })
     }
     
     public static func combine<R1: ValueReducer, R2: ValueReducer, R3: ValueReducer, R4: ValueReducer>(
@@ -49,17 +49,17 @@ extension ValueObservation where Reducer == Void {
     {
         return ValueObservation<AnyValueReducer<
             (R1.Fetched, R2.Fetched, R3.Fetched, R4.Fetched),
-            (R1.Value, R2.Value, R3.Value, R4.Value)>>.init(
-            tracking: union([
-                o1.observedRegion,
-                o2.observedRegion,
-                o3.observedRegion,
-                o4.observedRegion]),
-            reducer: ValueReducers.combine(
-                o1.reducer,
-                o2.reducer,
-                o3.reducer,
-                o4.reducer))
+            (R1.Value, R2.Value, R3.Value, R4.Value)>>(
+                tracking: { try DatabaseRegion.union(
+                    o1.observedRegion($0),
+                    o2.observedRegion($0),
+                    o3.observedRegion($0),
+                    o4.observedRegion($0)) },
+                reducer: { try ValueReducers.combine(
+                    o1.makeReducer($0),
+                    o2.makeReducer($0),
+                    o3.makeReducer($0),
+                    o4.makeReducer($0)) })
     }
     
     public static func combine<R1: ValueReducer, R2: ValueReducer, R3: ValueReducer, R4: ValueReducer, R5: ValueReducer>(
@@ -74,19 +74,19 @@ extension ValueObservation where Reducer == Void {
     {
         return ValueObservation<AnyValueReducer<
             (R1.Fetched, R2.Fetched, R3.Fetched, R4.Fetched, R5.Fetched),
-            (R1.Value, R2.Value, R3.Value, R4.Value, R5.Value)>>.init(
-            tracking: union([
-                o1.observedRegion,
-                o2.observedRegion,
-                o3.observedRegion,
-                o4.observedRegion,
-                o5.observedRegion]),
-            reducer: ValueReducers.combine(
-                o1.reducer,
-                o2.reducer,
-                o3.reducer,
-                o4.reducer,
-                o5.reducer))
+            (R1.Value, R2.Value, R3.Value, R4.Value, R5.Value)>>(
+                tracking: { try DatabaseRegion.union(
+                    o1.observedRegion($0),
+                    o2.observedRegion($0),
+                    o3.observedRegion($0),
+                    o4.observedRegion($0),
+                    o5.observedRegion($0)) },
+                reducer: { try ValueReducers.combine(
+                    o1.makeReducer($0),
+                    o2.makeReducer($0),
+                    o3.makeReducer($0),
+                    o4.makeReducer($0),
+                    o5.makeReducer($0)) })
     }
 }
 
@@ -271,13 +271,5 @@ extension ValueReducers {
             }
         }
         return AnyValueReducer(fetch: fetch, value: value)
-    }
-}
-
-private func union(_ regions: [(Database) throws -> DatabaseRegion]) -> (Database) throws -> DatabaseRegion {
-    return { db in
-        try regions.reduce(into: DatabaseRegion()) { union, region in
-            try union.formUnion(region(db))
-        }
     }
 }
