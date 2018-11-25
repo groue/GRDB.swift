@@ -217,13 +217,13 @@ extension ValueObservation {
     /// table is modified:
     ///
     ///     var count = 0
-    ///     let reducer = AnyValueReducer(
-    ///         fetch: { _ in },
-    ///         value: { _ -> Int? in
-    ///             count += 1
-    ///             return count
+    ///     let observation = ValueObservation.tracking(Player.all(), reducer: ( db in
+    ///         AnyValueReducer(
+    ///             fetch: { _ in },
+    ///             value: { _ -> Int? in
+    ///                 count += 1
+    ///                 return count })
     ///     })
-    ///     let observation = ValueObservation.tracking(Player.all(), reducer: reducer)
     ///     let observer = observation.start(in: dbQueue) { count: Int in
     ///         print("Players have been modified \(count) times.")
     ///     }
@@ -259,13 +259,13 @@ extension ValueObservation {
     /// table is modified:
     ///
     ///     var count = 0
-    ///     let reducer = AnyValueReducer(
-    ///         fetch: { _ in },
-    ///         value: { _ -> Int? in
-    ///             count += 1
-    ///             return count
+    ///     let observation = ValueObservation.tracking([Player.all()], reducer: ( db in
+    ///         AnyValueReducer(
+    ///             fetch: { _ in },
+    ///             value: { _ -> Int? in
+    ///                 count += 1
+    ///                 return count })
     ///     })
-    ///     let observation = ValueObservation.tracking([Player.all()], reducer: reducer)
     ///     let observer = observation.start(in: dbQueue) { count: Int in
     ///         print("Players have been modified \(count) times.")
     ///     }
