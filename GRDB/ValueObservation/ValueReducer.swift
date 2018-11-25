@@ -1,11 +1,3 @@
-//
-//  ValueReducer.swift
-//  GRDB
-//
-//  Created by Gwendal Roué on 24/11/2018.
-//  Copyright © 2018 Gwendal Roué. All rights reserved.
-//
-
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// The ValueReducer protocol supports ValueObservation.

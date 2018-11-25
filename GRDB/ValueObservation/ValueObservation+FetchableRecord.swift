@@ -1,11 +1,3 @@
-//
-//  ValueObservation+FetchableRecord.swift
-//  GRDB
-//
-//  Created by Gwendal Roué on 24/11/2018.
-//  Copyright © 2018 Gwendal Roué. All rights reserved.
-//
-
 extension ValueObservation where Reducer == Void {
 
     // MARK: - FetchableRecord Observation

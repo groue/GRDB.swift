@@ -1,11 +1,3 @@
-//
-//  ValueObservation+Combine.swift
-//  GRDB
-//
-//  Created by Gwendal Roué on 24/11/2018.
-//  Copyright © 2018 Gwendal Roué. All rights reserved.
-//
-
 extension ValueObservation where Reducer == Void {
     public static func combine<R1: ValueReducer, R2: ValueReducer>(
         _ o1: ValueObservation<R1>,

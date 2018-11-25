@@ -1,11 +1,3 @@
-//
-//  ValueObservation.swift
-//  GRDB
-//
-//  Created by Gwendal Roué on 23/10/2018.
-//  Copyright © 2018 Gwendal Roué. All rights reserved.
-//
-
 import Dispatch
 
 // MARK: - ValueScheduling
