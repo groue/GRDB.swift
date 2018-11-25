@@ -18,11 +18,11 @@ class ValueObservationReducerTests: GRDBTestCase {
         let reducer = AnyValueReducer(fetch: { _ in }, value: { })
         
         // single region
-        _ = ValueObservation.tracking(DatabaseRegion(), reducer: reducer)
+        _ = ValueObservation.tracking(DatabaseRegion(), reducer: { _ in reducer })
         // variadic
-        _ = ValueObservation.tracking(DatabaseRegion(), DatabaseRegion(), reducer: reducer)
+        _ = ValueObservation.tracking(DatabaseRegion(), DatabaseRegion(), reducer: { _ in reducer })
         // array
-        _ = ValueObservation.tracking([DatabaseRegion()], reducer: reducer)
+        _ = ValueObservation.tracking([DatabaseRegion()], reducer: { _ in reducer })
     }
     
     func testReducer() throws {
@@ -58,7 +58,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             
             // Create an observation
             let request = SQLRequest<Void>("SELECT * FROM t")
-            var observation = ValueObservation.tracking(request, reducer: reducer)
+            var observation = ValueObservation.tracking(request, reducer: { _ in reducer })
             observation.extent = .databaseLifetime
             
             // Start observation
@@ -133,7 +133,7 @@ class ValueObservationReducerTests: GRDBTestCase {
                 value: { _ in fatalError() })
             
             // Create an observation
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             
             // Start observation
             do {
@@ -174,7 +174,7 @@ class ValueObservationReducerTests: GRDBTestCase {
                 value: { $0 })
             
             // Create an observation
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             observation.extent = .databaseLifetime
             
             // Start observation
@@ -218,17 +218,15 @@ class ValueObservationReducerTests: GRDBTestCase {
             notificationExpectation.assertForOverFulfill = true
             notificationExpectation.expectedFulfillmentCount = 2
             
-            // The reducer
-            var count = 0
-            let reducer = AnyValueReducer(
-                fetch: { _ in /* don't fetch anything */ },
-                value: { _ -> Int? in
-                    count += 1
-                    return count
-            })
-            
             // Create an observation
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+            var count = 0
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in
+                AnyValueReducer(
+                    fetch: { _ in /* don't fetch anything */ },
+                    value: { _ -> Int? in
+                        defer { count += 1 }
+                        return count })
+            })
             observation.extent = .databaseLifetime
             
             // Start observation
@@ -242,7 +240,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(counts, [1, 2])
+            XCTAssertEqual(counts, [0, 1])
         }
         
         try test(makeDatabaseQueue())
@@ -262,7 +260,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             
             // The base reducer
             var count = 0
-            let reducer = AnyValueReducer(
+            let baseReducer = AnyValueReducer(
                 fetch: { _ in /* don't fetch anything */ },
                 value: { _ -> Int? in
                     count += 1
@@ -270,13 +268,13 @@ class ValueObservationReducerTests: GRDBTestCase {
             })
             
             // The mapped reducer
-            let mapReducer = reducer.map { count -> String? in
+            let reducer = baseReducer.map { count -> String? in
                 if count % 2 == 0 { return nil }
                 return "\(count)"
             }
             
             // Create an observation
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: mapReducer)
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             observation.extent = .databaseLifetime
             
             // Start observation
@@ -347,7 +345,7 @@ class ValueObservationReducerTests: GRDBTestCase {
                 }
                 reduceExpectation.fulfill()
             })
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             observation.extent = .databaseLifetime
             _ = try observation.start(in: dbWriter, onChange: { _ in })
             

@@ -113,7 +113,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                     }
             },
                 value: { $0 })
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             observation.extent = .databaseLifetime
             
             _ = try observation.start(
@@ -236,7 +236,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             let reducer = AnyValueReducer(
                 fetch: { _ in throw TestError() },
                 value: { $0 })
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             observation.extent = .databaseLifetime
             observation.scheduling = .onQueue(queue, startImmediately: false)
             
@@ -391,7 +391,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             let reducer = AnyValueReducer(
                 fetch: { _ in throw TestError() },
                 value: { $0 })
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             observation.extent = .databaseLifetime
             observation.scheduling = .unsafe(startImmediately: false)
             

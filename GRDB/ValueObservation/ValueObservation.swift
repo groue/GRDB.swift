@@ -243,7 +243,7 @@ extension ValueObservation {
     /// the ValueReducer protocol are supported.
     public static func tracking(
         _ regions: DatabaseRegionConvertible...,
-        reducer: Reducer)
+        reducer: @escaping (Database) -> Reducer)
         -> ValueObservation
     {
         return ValueObservation.tracking(regions, reducer: reducer)
@@ -285,12 +285,12 @@ extension ValueObservation {
     /// the ValueReducer protocol are supported.
     public static func tracking(
         _ regions: [DatabaseRegionConvertible],
-        reducer: Reducer)
+        reducer: @escaping (Database) -> Reducer)
         -> ValueObservation
     {
         return ValueObservation(
             tracking: DatabaseRegion.union(regions),
-            reducer: { _ in reducer })
+            reducer: reducer)
     }
 }
 
