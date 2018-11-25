@@ -83,7 +83,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
  struct ValueObservation<Reducer> {
 +    static func tracking(
 +        _ regions: [DatabaseRegionConvertible],
-+        reducer: @escaping (Database) -> Reducer)
++        reducer: @escaping (Database) throws -> Reducer)
 +        -> ValueObservation
  }
  
