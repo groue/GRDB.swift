@@ -416,6 +416,102 @@ extension MutablePersistableRecordEncodableTests {
         }
     }
     
+    func testArrayJSONEncoding() throws {
+        struct Record: PersistableRecord, Encodable {
+            let array: [String]
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "record") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("array", .text)
+            }
+            
+            try Record(array: []).insert(db)
+            try Record(array: ["foo"]).insert(db)
+            try Record(array: ["foo", "bar"]).insert(db)
+            
+            let rows = try Row.fetchAll(db, "SELECT * FROM record ORDER BY id")
+            XCTAssertEqual(rows.count, 3)
+            XCTAssertEqual(rows[0]["array"], "[]")
+            XCTAssertEqual(rows[1]["array"], "[\"foo\"]")
+            XCTAssertEqual(rows[2]["array"], "[\"foo\",\"bar\"]")
+        }
+    }
+    
+    func testOptionalArrayJSONEncoding() throws {
+        struct Record: PersistableRecord, Encodable {
+            let array: [String]?
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "record") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("array", .text)
+            }
+            
+            try Record(array: nil).insert(db)
+            try Record(array: []).insert(db)
+            try Record(array: ["foo"]).insert(db)
+            try Record(array: ["foo", "bar"]).insert(db)
+            
+            let rows = try Row.fetchAll(db, "SELECT * FROM record ORDER BY id")
+            XCTAssertEqual(rows.count, 4)
+            XCTAssertTrue(rows[0]["array"] == nil)
+            XCTAssertEqual(rows[1]["array"], "[]")
+            XCTAssertEqual(rows[2]["array"], "[\"foo\"]")
+            XCTAssertEqual(rows[3]["array"], "[\"foo\",\"bar\"]")
+        }
+    }
+
+    func testDictionaryJSONEncoding() throws {
+        struct Record: PersistableRecord, Encodable {
+            let dictionary: [String: Int]
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "record") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("dictionary", .text)
+            }
+            
+            try Record(dictionary: [:]).insert(db)
+            try Record(dictionary: ["foo": 1]).insert(db)
+
+            let rows = try Row.fetchAll(db, "SELECT * FROM record ORDER BY id")
+            XCTAssertEqual(rows.count, 2)
+            XCTAssertEqual(rows[0]["dictionary"], "{}")
+            XCTAssertEqual(rows[1]["dictionary"], "{\"foo\":1}")
+        }
+    }
+    
+    func testOptionalDictionaryJSONEncoding() throws {
+        struct Record: PersistableRecord, Encodable {
+            let dictionary: [String: Int]?
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "record") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("dictionary", .text)
+            }
+            
+            try Record(dictionary: nil).insert(db)
+            try Record(dictionary: [:]).insert(db)
+            try Record(dictionary: ["foo": 1]).insert(db)
+            
+            let rows = try Row.fetchAll(db, "SELECT * FROM record ORDER BY id")
+            XCTAssertEqual(rows.count, 3)
+            XCTAssertTrue(rows[0]["dictionary"] == nil)
+            XCTAssertEqual(rows[1]["dictionary"], "{}")
+            XCTAssertEqual(rows[2]["dictionary"], "{\"foo\":1}")
+        }
+    }
+
     func testJSONDataEncodingStrategy() throws {
         struct Record: PersistableRecord, Encodable {
             let data: Data
