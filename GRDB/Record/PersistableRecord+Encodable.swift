@@ -141,6 +141,9 @@ private class RecordEncoder<Record: MutablePersistableRecord>: Encoder {
                 let encoder = ColumnEncoder(recordEncoder: self, key: key)
                 try value.encode(to: encoder)
                 if let jsonContainer = encoder.requestedJSONContainer {
+                    // No JSONRequiredError was thrown, but the encoder was
+                    // asked a json container. This means that value is an
+                    // empty container. Let's encode it:
                     switch jsonContainer {
                     case .keyed:
                         // Empty dictionary
