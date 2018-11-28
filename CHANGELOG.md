@@ -43,6 +43,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 
 ## Next Version
 
+### Fixed
+
+- [#449](https://github.com/groue/GRDB.swift/pull/449): Fix JSON encoding of empty containers
+
+
 ### New
 
 - [#442](https://github.com/groue/GRDB.swift/pull/442): Reindex
