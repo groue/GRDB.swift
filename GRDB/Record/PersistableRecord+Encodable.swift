@@ -140,18 +140,9 @@ private class RecordEncoder<Record: MutablePersistableRecord>: Encoder {
                 // error happens, we'll switch to JSON encoding.
                 let encoder = ColumnEncoder(recordEncoder: self, key: key)
                 try value.encode(to: encoder)
-                if let jsonContainer = encoder.requestedJSONContainer {
-                    // No JSONRequiredError was thrown, but the encoder was
-                    // asked a json container. This means that value is an
-                    // empty container. Let's encode it:
-                    switch jsonContainer {
-                    case .keyed:
-                        // Empty dictionary
-                        persist("{}", forKey: key)
-                    case .unkeyed:
-                        // Empty array
-                        persist("[]", forKey: key)
-                    }
+                if encoder.requiresJSON {
+                    // Here we handle empty arrays and dictionaries.
+                    throw JSONRequiredError()
                 }
             } catch is JSONRequiredError {
                 // Encode to JSON
@@ -173,15 +164,11 @@ private class RecordEncoder<Record: MutablePersistableRecord>: Encoder {
 
 /// The encoder that encodes into a database column
 private class ColumnEncoder<Record: MutablePersistableRecord>: Encoder {
-    enum RequestedJSONContainer {
-        case keyed
-        case unkeyed
-    }
     var recordEncoder: RecordEncoder<Record>
     var key: CodingKey
     var codingPath: [CodingKey] { return [key] }
     var userInfo: [CodingUserInfoKey: Any] { return Record.databaseEncodingUserInfo }
-    var requestedJSONContainer: RequestedJSONContainer?
+    var requiresJSON = false
     
     init(recordEncoder: RecordEncoder<Record>, key: CodingKey) {
         self.recordEncoder = recordEncoder
@@ -192,7 +179,7 @@ private class ColumnEncoder<Record: MutablePersistableRecord>: Encoder {
         // Keyed values require JSON encoding: we need to throw
         // JSONRequiredError. Since we can't throw right from here, let's
         // delegate the job to a dedicated container.
-        requestedJSONContainer = .keyed
+        requiresJSON = true
         let container = JSONRequiredEncoder<Record>.KeyedContainer<Key>(codingPath: codingPath)
         return KeyedEncodingContainer(container)
     }
@@ -201,7 +188,7 @@ private class ColumnEncoder<Record: MutablePersistableRecord>: Encoder {
         // Keyed values require JSON encoding: we need to throw
         // JSONRequiredError. Since we can't throw right from here, let's
         // delegate the job to a dedicated container.
-        requestedJSONContainer = .unkeyed
+        requiresJSON = true
         return JSONRequiredEncoder<Record>(codingPath: codingPath)
     }
     
