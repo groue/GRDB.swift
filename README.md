@@ -6260,6 +6260,21 @@ protocol TransactionObserverType : class {
 
 Changes are only notified after they have been committed in the database. No insertion, update, or deletion in tracked tables is missed. This includes indirect changes triggered by [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
+
+- **[ValueObservation Usage](#valueobservation-usage)**
+- [ValueObservation.trackingCount, trackingOne, trackingAll](#valueobservationtrackingcount-trackingone-trackingall)
+- [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
+- [ValueObservation Transformations](#valueobservation-transformations)
+    - [ValueObservation.map](#valueobservationmap)
+    - [ValueObservation.compactMap](#valueobservationcompactmap)
+    - [ValueObservation.combine(...)](#valueobservationcombine)
+- [ValueObservation Error Handling](#valueobservation-error-handling)
+- [ValueObservation Options](#valueobservation-options)
+- [Advanced: ValueObservation.tracking(_:reducer:)](#advanced-valueobservationtracking_reducer)
+
+
+### ValueObservation Usage
+
 Here is a typical UIViewController which observes the database in order to keep its view up-to-date:
 
 ```swift
@@ -6299,16 +6314,6 @@ An initial fetch is performed as soon as the observation starts: the view is set
 The observer returned by the `start` method is stored in a property of the view controller. This allows the view controller to control the duration of the observation. When the observer is deallocated, the observation stops. Meanwhile, all transactions that modify the observed player are notified, and the `nameLabel` is kept up-to-date.
 
 > :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample app that uses ValueObservation.
-
-- [ValueObservation.trackingCount, trackingOne, trackingAll](#valueobservationtrackingcount-trackingone-trackingall)
-- [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
-- [ValueObservation Transformations](#valueobservation-transformations)
-    - [ValueObservation.map](#valueobservationmap)
-    - [ValueObservation.compactMap](#valueobservationcompactmap)
-    - [ValueObservation.combine(...)](#valueobservationcombine)
-- [ValueObservation Error Handling](#valueobservation-error-handling)
-- [ValueObservation Options](#valueobservation-options)
-- [Advanced: ValueObservation.tracking(_:reducer:)](#advanced-valueobservationtracking_reducer)
 
 
 ### ValueObservation.trackingCount, trackingOne, trackingAll
