@@ -1,6 +1,7 @@
 extension ValueObservation where Reducer: ValueReducer {
-    /// Returns a ValueObservation which transforms the values returned by
-    /// this ValueObservation.
+    /// Returns a ValueObservation which notifies the results of calling the
+    /// given transformation which each element notified by this
+    /// value observation.
     public func map<T>(_ transform: @escaping (Reducer.Value) -> T)
         -> ValueObservation<MapValueReducer<Reducer, T>>
     {
@@ -12,8 +13,9 @@ extension ValueObservation where Reducer: ValueReducer {
 }
 
 extension ValueReducer {
-    /// Returns a reducer which transforms the values returned by this reducer.
-    public func map<T>(_ transform: @escaping (Value) -> T?) -> MapValueReducer<Self, T> {
+    /// Returns a reducer which outputs the results of calling the given
+    /// transformation which each element emitted by this reducer.
+    public func map<T>(_ transform: @escaping (Value) -> T) -> MapValueReducer<Self, T> {
         return MapValueReducer(self, transform)
     }
 }
@@ -26,9 +28,9 @@ extension ValueReducer {
 /// :nodoc:
 public struct MapValueReducer<Base: ValueReducer, T>: ValueReducer {
     private var base: Base
-    private let transform: (Base.Value) -> T?
+    private let transform: (Base.Value) -> T
     
-    init(_ base: Base, _ transform: @escaping (Base.Value) -> T?) {
+    init(_ base: Base, _ transform: @escaping (Base.Value) -> T) {
         self.base = base
         self.transform = transform
     }
