@@ -53,6 +53,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 - [#442](https://github.com/groue/GRDB.swift/pull/442): Reindex
 - [#443](https://github.com/groue/GRDB.swift/pull/443): In place record update
 - [#444](https://github.com/groue/GRDB.swift/pull/444): Combine Value Observations
+- [#451](https://github.com/groue/GRDB.swift/pull/451): ValueObservation.compactMap
 - [#445](https://github.com/groue/GRDB.swift/pull/445): Quality of service and target dispatch queue
 - ValueObservation methods which used to accept a variadic list of observed regions now also accept an array.
 - ValueReducer, the protocol that fuels ValueObservation, is flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). It will remain so until more experience has been acquired.
@@ -66,7 +67,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 ### Documentation Diff
 
 - [Record Comparison](README.md#record-comparison): this chapter has been updated for the new `updateChanges(_:with:)` method.
-- [ValueObservation](README.md#valueobservation): this chapter has been updated for the new `ValueObservation.combine(...)` method.
+- [ValueObservation](README.md#valueobservation): this chapter has been updated for the new `ValueObservation.combine(...)` and `ValueObservation.compactMap(...)` methods.
 
 
 ### API diff
@@ -92,7 +93,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 +        -> ValueObservation
  }
  
- extension ValueObservation where Reducer == Void {
++extension ValueObservation where Reducer == Void {
 +    static func tracking<Value>(
 +        _ regions: [DatabaseRegionConvertible],
 +        fetch: @escaping (Database) throws -> Value)
@@ -104,7 +105,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 +        where Value: Equatable
 +    static func combine<R1: ValueReducer, ...>(_ o1: ValueObservation<R1>, ...)
 +        -> ValueObservation<...>
- }
++}
+ 
++extension ValueObservation where Reducer: ValueReducer {
++    func compactMap<T>(_ transform: @escaping (Reducer.Value) -> T?)
++        -> ValueObservation<CompactMapValueReducer<Reducer, T>>
++}
+ 
  
  struct Configuration {
 +    var qos: DispatchQoS
