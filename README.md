@@ -6301,10 +6301,13 @@ The observer returned by the `start` method is stored in a property of the view 
 > :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample app that uses ValueObservation.
 
 - [ValueObservation.trackingCount, trackingOne, trackingAll](#valueobservationtrackingcount-trackingone-trackingall)
-- [ValueObservation.combine(...)](#valueobservationcombine)
 - [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
-- [ValueObservation.tracking(_:reducer:)](#valueobservationtracking_reducer)
+- [ValueObservation Transformations](#valueobservation-transformations)
+    - [ValueObservation.map](#valueobservationmap): Transform notified values.
+    - [ValueObservation.compactMap](#valueobservationcompactmap): Transform and filter notified values.
+    - [ValueObservation.combine(...)](#valueobservationcombine)
 - [ValueObservation Options](#valueobservation-options)
+- [Advanced: ValueObservation.tracking(_:reducer:)](#advanced-valueobservationtracking_reducer)
 
 
 ### ValueObservation.trackingCount, trackingOne, trackingAll
@@ -6368,40 +6371,10 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
         }
     ```
 
-### ValueObservation.combine(...)
-
-Sometimes you need to observe several requests at the same time. For example, you need to observe changes in both a team and its players.
-
-When this happens, **combine** several observations together with the `ValueObservation.combine(...)` method:
-
-```swift
-// The two observed requests (the team and its players)
-let teamRequest = Team.filter(key: 1)
-let playersRequest = Player.filter(Column("teamId") == 1)
-
-// Two observations
-let teamObservation = ValueObservation.trackingOne(teamRequest)
-let playersObservation = ValueObservation.trackingAll(playersRequest)
-
-// The combined observation
-let observation = ValueObservation.combine(teamObservation, playersObservation)
-
-// Start tracking players and teams
-let observer = observation.start(in: dbQueue) { team: Team?, players: [Player] in
-    print("Team or players have changed.")
-}
-```
-
-Combining observations provides the guarantee that notified values are [**consistent**](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
-
-> :point_up: **Note**: you can combine up to five observations together. Please submit a pull request if you need more.
->
-> :point_up: **Note**: readers who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the `ValueObservation.combine` method. The reactive operator does not care about data consistency, though: if you use a Reactive layer such as [RxGRDB], compose observations with `ValueObservation.combine`, not with the CombineLatest operator.
-
 
 ### ValueObservation.tracking(_:fetch:)
 
-Observing the database is not always easy to express with simple requests, or the combination of several observations, as we have seen above.
+Observing the database is not always easy to express with simple requests, as above.
 
 For example, let's say that we have a struct that defines a "Hall of Fame":
 
@@ -6541,48 +6514,82 @@ let observer = ValueObservation
 ```
 
 
-### ValueObservation.tracking(_:reducer:)
+### ValueObservation Transformations
 
-The most general way to define a ValueObservation is to create one from an observed database region (see above), and a **reducer** that adopts the **ValueReducer** protocol ([**:fire: EXPERIMENTAL**](#what-are-experimental-features)):
+- [ValueObservation.map](#valueobservationmap): Transform notified values.
+- [ValueObservation.compactMap](#valueobservationcompactmap): Transform and filter notified values.
+- [ValueObservation.combine(...)](#valueobservationcombine)
+
+
+#### ValueObservation.map
+
+The `map` method lets you transform the values notified by a ValueObservation.
+
+For example:
 
 ```swift
-protocol ValueReducer {
-    associatedtype Fetched
-    associatedtype Value
-    
-    /// Fetches a database value
-    func fetch(_ db: Database) throws -> Fetched
-    
-    /// Returns a notified value
-    mutating func value(_ fetched: Fetched) -> Value?
+// Observe a player's profile image
+let observation = ValueObservation
+    .trackingOne(Player.filter(key: 42))
+    .map { player in player?.loadBigProfileImage() }
+
+let observer = observation.start(in: dbQueue) { image: UIImage? in
+    print("Player picture has changed")
 }
 ```
 
-The `fetch` method is called upon changes in the observed [database region](#databaseregion). It runs inside a dispatch queue which can access the database.
+The transformation closure does not run on the main queue, and is suitable for heavy computations.
 
-The `value` method transforms a fetched value into a notified value. It returns nil if the observer should not be notified. This method runs inside a private dispatch queue.
 
-The sample code below counts the number of times the player table is modified:
+#### ValueObservation.compactMap
+
+The `compactMap` method lets you transform the and filter values notified by a ValueObservation. Only non-nil transformed values are notified.
+
+For example:
 
 ```swift
-var count = 0
-let observation = ValueObservation.tracking(Player.all(), reducer: { _ in
-    AnyValueReducer(
-        fetch: { _ in /* don't fetch anything */ },
-        value: { _ -> Int? in
-            defer { count += 1 }
-            return count })
-})
-let observer = observation.start(in: dbQueue) { count: Int in
-    print("\(count) transaction(s) have modified the players.")
+// Observe a player
+let observation = ValueObservation
+    .trackingOne(Player.filter(key: 42))
+    .compactMap { $0 }
+    
+let observer = observation.start(in: dbQueue) { player: Player in
+    print("Player name: \(player.name)")
 }
-// Prints "0 transaction(s) have modified the players."
-
-try dbQueue.write { db in
-    try Player(...).insert(db)
-}
-// Prints "1 transaction(s) have modified the players."
 ```
+
+The transformation closure does not run on the main queue, and is suitable for heavy computations.
+
+
+#### ValueObservation.combine(...)
+
+Sometimes you need to observe several requests at the same time. For example, you need to observe changes in both a team and its players.
+
+When this happens, **combine** several observations together with the `ValueObservation.combine(...)` method:
+
+```swift
+// The two observed requests (the team and its players)
+let teamRequest = Team.filter(key: 1)
+let playersRequest = Player.filter(Column("teamId") == 1)
+
+// Two observations
+let teamObservation = ValueObservation.trackingOne(teamRequest)
+let playersObservation = ValueObservation.trackingAll(playersRequest)
+
+// The combined observation
+let observation = ValueObservation.combine(teamObservation, playersObservation)
+
+// Start tracking players and teams
+let observer = observation.start(in: dbQueue) { team: Team?, players: [Player] in
+    print("Team or players have changed.")
+}
+```
+
+Combining observations provides the guarantee that notified values are [**consistent**](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
+
+> :point_up: **Note**: you can combine up to five observations together. Please submit a pull request if you need more.
+>
+> :point_up: **Note**: readers who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the `ValueObservation.combine` method. The reactive operator does not care about data consistency, though: if you use a Reactive layer such as [RxGRDB], compose observations with `ValueObservation.combine`, not with the CombineLatest operator.
 
 
 ### ValueObservation Options
@@ -6592,7 +6599,6 @@ Some behaviors of value observations can be configured:
 - [ValueObservation.extent](#valueobservationextent): Precise control of the observation duration.
 - [ValueObservation.scheduling](#valueobservationscheduling): Control the dispatching of notified values.
 - [ValueObservation.requiresWriteAccess](#valueobservationrequireswriteaccess): Allow observations to write in the database.
-- [ValueObservation.map](#valueobservationmap): Transform notified values.
 - [ValueObservation Error Handling](#valueobservation-error-handling)
 
 
@@ -6707,22 +6713,6 @@ observation.requiresWriteAccess = true
 When you use a [database pool](#database-pools), don't use this flag unless you really need it. Observations with write access are less efficient because they block all writes for the whole duration of a fetch.
 
 
-#### ValueObservation.map
-
-The `map` method lets you transform the values notified by a ValueObservation.
-
-The transformation runs in a dispatch queue which does not block the main queue or the database, and is suitable for heavy computations:
-
-```swift
-let observation = ValueObservation
-    .trackingOne(Player.filter(key: 42))
-    .map { player in player?.loadBigProfileImage() }
-    .start(in: dbQueue) { image: UIImage? in
-        print("Player picture has changed")
-    }
-```
-
-
 #### ValueObservation Error Handling
 
 When you start an observation, you can provide an `onError` callback. This callback is called whenever an error happens when a fresh value is fetched after a database change. It is scheduled just like values (see [ValueObservation.scheduling](#valueobservationscheduling)):
@@ -6736,6 +6726,50 @@ let observer = try observation.start(
     onChange: { value in
         print("fresh value: \(value)")
     })
+```
+
+
+### Advanced: ValueObservation.tracking(_:reducer:)
+
+The most low-level way to define a ValueObservation is to create one from an observed database region (see above), and a **reducer** that adopts the **ValueReducer** protocol ([**:fire: EXPERIMENTAL**](#what-are-experimental-features)):
+
+```swift
+protocol ValueReducer {
+    associatedtype Fetched
+    associatedtype Value
+    
+    /// Fetches a database value
+    func fetch(_ db: Database) throws -> Fetched
+    
+    /// Returns a notified value
+    mutating func value(_ fetched: Fetched) -> Value?
+}
+```
+
+The `fetch` method is called upon changes in the observed [database region](#databaseregion). It runs inside a protected dispatch queue and is guaranteed an immutable view of the last committed state of the database.
+
+The `value` method transforms a fetched value into a notified value. It returns nil if the observer should not be notified. It runs inside a dispatch queue called the "reduce queue", which is not the main queue, and not a database queue.
+
+The sample code below counts the number of times the player table is modified:
+
+```swift
+var count = 0
+let observation = ValueObservation.tracking(Player.all(), reducer: { _ in
+    AnyValueReducer(
+        fetch: { _ in /* don't fetch anything */ },
+        value: { _ -> Int? in
+            defer { count += 1 }
+            return count })
+})
+let observer = observation.start(in: dbQueue) { count: Int in
+    print("\(count) transaction(s) have modified the players.")
+}
+// Prints "0 transaction(s) have modified the players."
+
+try dbQueue.write { db in
+    try Player(...).insert(db)
+}
+// Prints "1 transaction(s) have modified the players."
 ```
 
 
