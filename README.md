@@ -6303,8 +6303,8 @@ The observer returned by the `start` method is stored in a property of the view 
 - [ValueObservation.trackingCount, trackingOne, trackingAll](#valueobservationtrackingcount-trackingone-trackingall)
 - [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
 - [ValueObservation Transformations](#valueobservation-transformations)
-    - [ValueObservation.map](#valueobservationmap): Transform notified values.
-    - [ValueObservation.compactMap](#valueobservationcompactmap): Transform and filter notified values.
+    - [ValueObservation.map](#valueobservationmap)
+    - [ValueObservation.compactMap](#valueobservationcompactmap)
     - [ValueObservation.combine(...)](#valueobservationcombine)
 - [ValueObservation Options](#valueobservation-options)
 - [Advanced: ValueObservation.tracking(_:reducer:)](#advanced-valueobservationtracking_reducer)
@@ -6516,8 +6516,8 @@ let observer = ValueObservation
 
 ### ValueObservation Transformations
 
-- [ValueObservation.map](#valueobservationmap): Transform notified values.
-- [ValueObservation.compactMap](#valueobservationcompactmap): Transform and filter notified values.
+- [ValueObservation.map](#valueobservationmap)
+- [ValueObservation.compactMap](#valueobservationcompactmap)
 - [ValueObservation.combine(...)](#valueobservationcombine)
 
 
