@@ -56,4 +56,21 @@ class ValueObservationMapTests: GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
     }
+    
+    func testMapPreservesConfiguration() {
+        var observation = ValueObservation.tracking(DatabaseRegion(), fetch: { _ in })
+        observation.extent = .nextTransaction
+        observation.requiresWriteAccess = true
+        observation.scheduling = .unsafe(startImmediately: true)
+        
+        let mappedObservation = observation.map { _ in }
+        XCTAssertEqual(mappedObservation.extent, observation.extent)
+        XCTAssertEqual(mappedObservation.requiresWriteAccess, observation.requiresWriteAccess)
+        switch mappedObservation.scheduling {
+        case .unsafe:
+            break
+        default:
+            XCTFail()
+        }
+    }
 }
