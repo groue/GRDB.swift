@@ -6549,7 +6549,7 @@ The transformation closure does not run on the main queue, and is suitable for h
 
 #### ValueObservation.compactMap
 
-The `compactMap` method lets you transform the and filter values notified by a ValueObservation. Only non-nil transformed values are notified.
+The `compactMap` method lets you transform and filter the values notified by a ValueObservation. Only non-nil transformed values are notified.
 
 For example:
 
