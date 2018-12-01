@@ -52,7 +52,8 @@ public final class DatabasePool: DatabaseWriter {
             path: path,
             configuration: configuration,
             schemaCache: SimpleDatabaseSchemaCache(),
-            label: (configuration.label ?? "GRDB.DatabasePool") + ".writer")
+            defaultLabel: "GRDB.DatabasePool",
+            purpose: "writer")
         
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
@@ -89,7 +90,8 @@ public final class DatabasePool: DatabaseWriter {
                 path: path,
                 configuration: self.readerConfig,
                 schemaCache: SimpleDatabaseSchemaCache(),
-                label: (self.readerConfig.label ?? "GRDB.DatabasePool") + ".reader.\(readerCount)")
+                defaultLabel: "GRDB.DatabasePool",
+                purpose: "reader.\(readerCount)")
             reader.sync { self.setupDatabase($0) }
             return reader
         })
@@ -757,7 +759,8 @@ extension DatabasePool {
         let snapshot = try DatabaseSnapshot(
             path: path,
             configuration: writer.configuration,
-            labelSuffix: ".snapshot.\(snapshotCount.increment())")
+            defaultLabel: "GRDB.DatabasePool",
+            purpose: "snapshot.\(snapshotCount.increment())")
         snapshot.read { setupDatabase($0) }
         return snapshot
     }

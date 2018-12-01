@@ -14,7 +14,7 @@ public class DatabaseSnapshot : DatabaseReader {
         return serializedDatabase.configuration
     }
     
-    init(path: String, configuration: Configuration = Configuration(), labelSuffix: String) throws {
+    init(path: String, configuration: Configuration = Configuration(), defaultLabel: String, purpose: String) throws {
         var configuration = configuration
         configuration.readonly = true
         configuration.allowsUnsafeTransactions = true // Snaphost keeps a long-lived transaction
@@ -23,7 +23,8 @@ public class DatabaseSnapshot : DatabaseReader {
             path: path,
             configuration: configuration,
             schemaCache: SimpleDatabaseSchemaCache(),
-            label: (configuration.label ?? "GRDB.DatabasePool") + labelSuffix)
+            defaultLabel: defaultLabel,
+            purpose: purpose)
         
         try serializedDatabase.sync { db in
             // Assert WAL mode
