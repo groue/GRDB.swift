@@ -70,49 +70,49 @@ public struct AnyValueReducer<Fetched, Value>: ValueReducer {
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-public enum ValueReducers {
-    /// A reducer which outputs raw database values, without any processing.
-    public struct Raw<Value>: ValueReducer {
-        private let _fetch: (Database) throws -> Value
-        
-        init(_ fetch: @escaping (Database) throws -> Value) {
-            self._fetch = fetch
-        }
-        
-        /// :nodoc:
-        public func fetch(_ db: Database) throws -> Value {
-            return try _fetch(db)
-        }
-        
-        /// :nodoc:
-        public func value(_ fetched: Value) -> Value? {
-            return fetched
-        }
+///
+/// A reducer which outputs raw values.
+///
+/// :nodoc:
+public struct RawValueReducer<Value>: ValueReducer {
+    private let _fetch: (Database) throws -> Value
+    
+    public init(_ fetch: @escaping (Database) throws -> Value) {
+        self._fetch = fetch
     }
     
-    /// A reducer which outputs raw database values, filtering out consecutive
-    /// values that are equal.
-    public struct Distinct<Value: Equatable>: ValueReducer {
-        private let _fetch: (Database) throws -> Value
-        private var previousValue: Value??
-        
-        init(_ fetch: @escaping (Database) throws -> Value) {
-            self._fetch = fetch
+    public func fetch(_ db: Database) throws -> Value {
+        return try _fetch(db)
+    }
+    
+    public func value(_ fetched: Value) -> Value? {
+        return fetched
+    }
+}
+
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// A reducer which filters out consecutive values that are equal.
+///
+/// :nodoc:
+public struct DistinctValueReducer<Value: Equatable>: ValueReducer {
+    private let _fetch: (Database) throws -> Value
+    private var previousValue: Value??
+    
+    public init(_ fetch: @escaping (Database) throws -> Value) {
+        self._fetch = fetch
+    }
+    
+    public func fetch(_ db: Database) throws -> Value {
+        return try _fetch(db)
+    }
+    
+    public mutating func value(_ value: Value) -> Value? {
+        if let previousValue = previousValue, previousValue == value {
+            // Don't notify consecutive identical values
+            return nil
         }
-        
-        /// :nodoc:
-        public func fetch(_ db: Database) throws -> Value {
-            return try _fetch(db)
-        }
-        
-        /// :nodoc:
-        public mutating func value(_ value: Value) -> Value? {
-            if let previousValue = previousValue, previousValue == value {
-                // Don't notify consecutive identical values
-                return nil
-            }
-            self.previousValue = value
-            return value
-        }
+        self.previousValue = value
+        return value
     }
 }

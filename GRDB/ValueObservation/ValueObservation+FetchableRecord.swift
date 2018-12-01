@@ -1,5 +1,5 @@
 extension ValueObservation where Reducer == Void {
-
+    
     // MARK: - FetchableRecord Observation
     
     /// Creates a ValueObservation which observes *request*, and notifies
@@ -27,12 +27,12 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Records<Request.RowDecoder>>
+        -> ValueObservation<FetchableRecordsReducer<Request>>
         where Request.RowDecoder: FetchableRecord
     {
-        return ValueObservation<ValueReducers.Records<Request.RowDecoder>>.tracking(
-            request,
-            reducer: { _ in ValueReducers.Records { try Row.fetchAll($0, request) } })
+        return ValueObservation<FetchableRecordsReducer<Request>>.tracking(request, reducer: { _ in
+            FetchableRecordsReducer(request: request)
+        })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -59,65 +59,71 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingOne<Request: FetchRequest>(_ request: Request) ->
-        ValueObservation<ValueReducers.Record<Request.RowDecoder>>
+        ValueObservation<FetchableRecordReducer<Request>>
         where Request.RowDecoder: FetchableRecord
     {
-        return ValueObservation<ValueReducers.Record<Request.RowDecoder>>.tracking(
-            request,
-            reducer: { _ in ValueReducers.Record { try Row.fetchOne($0, request) } })
+        return ValueObservation<FetchableRecordReducer<Request>>.tracking(request, reducer: { _ in
+            FetchableRecordReducer(request: request)
+        })
     }
 }
 
-extension ValueReducers {
-    /// A reducer which outputs arrays of records, filtering out consecutive
-    /// identical database rows.
-    public struct Records<Record: FetchableRecord>: ValueReducer {
-        private let _fetch: (Database) throws -> [Row]
-        private var previousRows: [Row]?
-        
-        init(_ fetch: @escaping (Database) throws -> [Row]) {
-            self._fetch = fetch
-        }
-        
-        /// :nodoc:
-        public func fetch(_ db: Database) throws -> [Row] {
-            return try _fetch(db)
-        }
-        
-        /// :nodoc:
-        public mutating func value(_ rows: [Row]) -> [Record]? {
-            if let previousRows = previousRows, previousRows == rows {
-                // Don't notify consecutive identical row arrays
-                return nil
-            }
-            self.previousRows = rows
-            return rows.map(Record.init(row:))
-        }
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// A reducer which outputs arrays of records, filtering out consecutive
+/// identical database rows.
+///
+/// :nodoc:
+public struct FetchableRecordsReducer<Request: FetchRequest>: ValueReducer
+    where Request.RowDecoder: FetchableRecord
+{
+    public let request: Request
+    private var previousRows: [Row]?
+    
+    init(request: Request) {
+        self.request = request
     }
     
-    /// A reducer which outputs optional records, filtering out consecutive
-    /// identical database rows.
-    public struct Record<Record: FetchableRecord>: ValueReducer {
-        private let _fetch: (Database) throws -> Row?
-        private var previousRow: Row??
-        
-        init(_ fetch: @escaping (Database) throws -> Row?) {
-            self._fetch = fetch
+    public func fetch(_ db: Database) throws -> [Row] {
+        return try Row.fetchAll(db, request)
+    }
+    
+    public mutating func value(_ rows: [Row]) -> [Request.RowDecoder]? {
+        if let previousRows = previousRows, previousRows == rows {
+            // Don't notify consecutive identical row arrays
+            return nil
         }
-        
-        /// :nodoc:
-        public func fetch(_ db: Database) throws -> Row? {
-            return try _fetch(db)
+        self.previousRows = rows
+        return rows.map(Request.RowDecoder.init(row:))
+    }
+}
+
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// A reducer which outputs optional records, filtering out consecutive
+/// identical database rows.
+///
+/// :nodoc:
+public struct FetchableRecordReducer<Request: FetchRequest>: ValueReducer
+    where Request.RowDecoder: FetchableRecord
+{
+    public let request: Request
+    private var previousRow: Row??
+    
+    init(request: Request) {
+        self.request = request
+    }
+    
+    public func fetch(_ db: Database) throws -> Row? {
+        return try Row.fetchOne(db, request)
+    }
+    
+    public mutating func value(_ row: Row?) -> Request.RowDecoder?? {
+        if let previousRow = previousRow, previousRow == row {
+            // Don't notify consecutive identical rows
+            return nil
         }
-        
-        /// :nodoc:
-        public mutating func value(_ row: Row?) -> Record?? {
-            if let previousRow = previousRow, previousRow == row {
-                // Don't notify consecutive identical rows
-                return nil
-            }
-            self.previousRow = row
-            return .some(row.map(Record.init(row:)))
-        }
+        self.previousRow = row
+        return .some(row.map(Request.RowDecoder.init(row:)))
     }
 }

@@ -5,18 +5,13 @@ extension ValueObservation where Reducer: ValueReducer {
     public func compactMap<T>(_ transform: @escaping (Reducer.Value) -> T?)
         -> ValueObservation<CompactMapValueReducer<Reducer, T>>
     {
-        let makeReducer = self.makeReducer
-        var observation = ValueObservation<CompactMapValueReducer<Reducer, T>>(
-            tracking: observedRegion,
-            reducer: { db in try makeReducer(db).compactMap(transform) })
-        observation.extent = extent
-        observation.scheduling = scheduling
-        observation.requiresWriteAccess = requiresWriteAccess
-        return observation
+        return mapReducer { $1.compactMap(transform) }
     }
 }
 
 extension ValueReducer {
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
     /// Returns a reducer which outputs the non-nil results of calling the given
     /// transformation which each element emitted by this reducer.
     public func compactMap<T>(_ transform: @escaping (Value) -> T?) -> CompactMapValueReducer<Self, T> {
@@ -24,6 +19,8 @@ extension ValueReducer {
     }
 }
 
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
 /// See ValueReducer.compactMap(_:)
 ///
 /// :nodoc:

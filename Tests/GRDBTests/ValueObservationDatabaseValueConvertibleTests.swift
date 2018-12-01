@@ -174,8 +174,8 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
             results.append(names)
             notificationExpectation.fulfill()
         }
-        let valueObserver = transactionObserver as! ValueObserver<ValueReducers.Values<Name>>
-        XCTAssertEqual(valueObserver.region.description, "t(id,name)")
+        let valueObserver = transactionObserver as! ValueObserver<DatabaseValuesReducer<SQLRequest<Name>>>
+        XCTAssertEqual(valueObserver.region.description, "t(id,name)") // view is not tracked
         
         // Test view observation
         try dbQueue.inDatabase { db in
