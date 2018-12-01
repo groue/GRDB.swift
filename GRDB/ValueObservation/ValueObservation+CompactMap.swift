@@ -6,9 +6,13 @@ extension ValueObservation where Reducer: ValueReducer {
         -> ValueObservation<CompactMapValueReducer<Reducer, T>>
     {
         let makeReducer = self.makeReducer
-        return ValueObservation<CompactMapValueReducer<Reducer, T>>(
+        var observation = ValueObservation<CompactMapValueReducer<Reducer, T>>(
             tracking: observedRegion,
             reducer: { db in try makeReducer(db).compactMap(transform) })
+        observation.extent = extent
+        observation.scheduling = scheduling
+        observation.requiresWriteAccess = requiresWriteAccess
+        return observation
     }
 }
 

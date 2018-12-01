@@ -6,9 +6,13 @@ extension ValueObservation where Reducer: ValueReducer {
         -> ValueObservation<MapValueReducer<Reducer, T>>
     {
         let makeReducer = self.makeReducer
-        return ValueObservation<MapValueReducer<Reducer, T>>(
+        var observation = ValueObservation<MapValueReducer<Reducer, T>>(
             tracking: observedRegion,
             reducer: { db in try makeReducer(db).map(transform) })
+        observation.extent = extent
+        observation.scheduling = scheduling
+        observation.requiresWriteAccess = requiresWriteAccess
+        return observation
     }
 }
 
