@@ -171,6 +171,15 @@ public struct Configuration {
         let readWriteFlags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
         return threadingMode.SQLiteOpenFlags | readWriteFlags
     }
+    
+    func makeDispatchQueue(defaultLabel: String, purpose: String? = nil) -> DispatchQueue {
+        let label = (self.label ?? defaultLabel) + (purpose.map { "." + $0 } ?? "")
+        if let targetQueue = targetQueue {
+            return DispatchQueue(label: label, target: targetQueue)
+        } else {
+            return DispatchQueue(label: label, qos: qos)
+        }
+    }
 }
 
 /// A tracing function that takes an SQL string.
