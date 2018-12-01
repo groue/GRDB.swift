@@ -6306,6 +6306,7 @@ The observer returned by the `start` method is stored in a property of the view 
     - [ValueObservation.map](#valueobservationmap)
     - [ValueObservation.compactMap](#valueobservationcompactmap)
     - [ValueObservation.combine(...)](#valueobservationcombine)
+- [ValueObservation Error Handling](#valueobservation-error-handling)
 - [ValueObservation Options](#valueobservation-options)
 - [Advanced: ValueObservation.tracking(_:reducer:)](#advanced-valueobservationtracking_reducer)
 
@@ -6592,6 +6593,22 @@ Combining observations provides the guarantee that notified values are [**consis
 > :point_up: **Note**: readers who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the `ValueObservation.combine` method. The reactive operator does not care about data consistency, though: if you use a Reactive layer such as [RxGRDB], compose observations with `ValueObservation.combine`, not with the CombineLatest operator.
 
 
+### ValueObservation Error Handling
+
+When you start an observation, you can provide an `onError` callback. This callback is called whenever an error happens when a fresh value is fetched after a database change. It is scheduled just like values (see [ValueObservation.scheduling](#valueobservationscheduling)):
+
+```swift
+let observer = try observation.start(
+    in: dbQueue,
+    onError: { error in
+        print("fresh value could not be fetched")
+    },
+    onChange: { value in
+        print("fresh value: \(value)")
+    })
+```
+
+
 ### ValueObservation Options
 
 Some behaviors of value observations can be configured:
@@ -6599,7 +6616,6 @@ Some behaviors of value observations can be configured:
 - [ValueObservation.extent](#valueobservationextent): Precise control of the observation duration.
 - [ValueObservation.scheduling](#valueobservationscheduling): Control the dispatching of notified values.
 - [ValueObservation.requiresWriteAccess](#valueobservationrequireswriteaccess): Allow observations to write in the database.
-- [ValueObservation Error Handling](#valueobservation-error-handling)
 
 
 #### ValueObservation.extent
@@ -6711,22 +6727,6 @@ observation.requiresWriteAccess = true
 ```
 
 When you use a [database pool](#database-pools), don't use this flag unless you really need it. Observations with write access are less efficient because they block all writes for the whole duration of a fetch.
-
-
-#### ValueObservation Error Handling
-
-When you start an observation, you can provide an `onError` callback. This callback is called whenever an error happens when a fresh value is fetched after a database change. It is scheduled just like values (see [ValueObservation.scheduling](#valueobservationscheduling)):
-
-```swift
-let observer = try observation.start(
-    in: dbQueue,
-    onError: { error in
-        print("fresh value could not be fetched")
-    },
-    onChange: { value in
-        print("fresh value: \(value)")
-    })
-```
 
 
 ### Advanced: ValueObservation.tracking(_:reducer:)
