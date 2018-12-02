@@ -26,7 +26,7 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingCount<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Distinct<Int>>
+        -> ValueObservation<DistinctValueReducer<Int>>
     {
         return ValueObservation.tracking(request, fetchDistinct: request.fetchCount)
     }

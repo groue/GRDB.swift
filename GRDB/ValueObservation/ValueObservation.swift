@@ -326,7 +326,7 @@ extension ValueObservation where Reducer == Void {
     public static func tracking<Value>(
         _ regions: DatabaseRegionConvertible...,
         fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Raw<Value>>
+        -> ValueObservation<RawValueReducer<Value>>
     {
         return ValueObservation.tracking(regions, fetch: fetch)
     }
@@ -359,11 +359,11 @@ extension ValueObservation where Reducer == Void {
     public static func tracking<Value>(
         _ regions: [DatabaseRegionConvertible],
         fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Raw<Value>>
+        -> ValueObservation<RawValueReducer<Value>>
     {
-        return ValueObservation<ValueReducers.Raw<Value>>(
+        return ValueObservation<RawValueReducer<Value>>(
             tracking: DatabaseRegion.union(regions),
-            reducer: { _ in ValueReducers.Raw(fetch) })
+            reducer: { _ in RawValueReducer(fetch) })
     }
     
     /// Creates a ValueObservation which observes *regions*, and notifies the
@@ -395,7 +395,7 @@ extension ValueObservation where Reducer == Void {
     public static func tracking<Value>(
         _ regions: DatabaseRegionConvertible...,
         fetchDistinct fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Distinct<Value>>
+        -> ValueObservation<DistinctValueReducer<Value>>
         where Value: Equatable
     {
         return ValueObservation.tracking(regions, fetchDistinct: fetch)
@@ -430,11 +430,11 @@ extension ValueObservation where Reducer == Void {
     public static func tracking<Value>(
         _ regions: [DatabaseRegionConvertible],
         fetchDistinct fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Distinct<Value>>
+        -> ValueObservation<DistinctValueReducer<Value>>
         where Value: Equatable
     {
-        return ValueObservation<ValueReducers.Distinct<Value>>(
+        return ValueObservation<DistinctValueReducer<Value>>(
             tracking: DatabaseRegion.union(regions),
-            reducer: { _ in ValueReducers.Distinct(fetch) })
+            reducer: { _ in DistinctValueReducer(fetch) })
     }
 }

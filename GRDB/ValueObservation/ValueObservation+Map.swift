@@ -5,18 +5,13 @@ extension ValueObservation where Reducer: ValueReducer {
     public func map<T>(_ transform: @escaping (Reducer.Value) -> T)
         -> ValueObservation<MapValueReducer<Reducer, T>>
     {
-        let makeReducer = self.makeReducer
-        var observation = ValueObservation<MapValueReducer<Reducer, T>>(
-            tracking: observedRegion,
-            reducer: { db in try makeReducer(db).map(transform) })
-        observation.extent = extent
-        observation.scheduling = scheduling
-        observation.requiresWriteAccess = requiresWriteAccess
-        return observation
+        return mapReducer { $1.map(transform) }
     }
 }
 
 extension ValueReducer {
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
     /// Returns a reducer which outputs the results of calling the given
     /// transformation which each element emitted by this reducer.
     public func map<T>(_ transform: @escaping (Value) -> T) -> MapValueReducer<Self, T> {
@@ -24,6 +19,8 @@ extension ValueReducer {
     }
 }
 
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
 /// A ValueReducer whose values consist of those in a Base ValueReducer passed
 /// through a transform function.
 ///
