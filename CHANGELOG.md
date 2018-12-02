@@ -111,10 +111,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 +extension ValueObservation where Reducer: ValueReducer {
 +    func compactMap<T>(_ transform: @escaping (Reducer.Value) -> T?)
 +        -> ValueObservation<CompactMapValueReducer<Reducer, T>>
++}
+
++extension ValueObservation {
 +    func mapReducer<R>(_ transform: @escaping (Database, Reducer) throws -> R)
 +        -> ValueObservation<R>
 +}
- 
  
  struct Configuration {
 +    var qos: DispatchQoS
