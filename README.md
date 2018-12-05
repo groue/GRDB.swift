@@ -6785,22 +6785,21 @@ The sample code below counts the number of times the player table is modified:
 
 ```swift
 var count = 0
-let observation = ValueObservation.tracking(Player.all(), reducer: { _ in
-    AnyValueReducer(
-        fetch: { _ in /* don't fetch anything */ },
-        value: { _ -> Int? in
-            defer { count += 1 }
-            return count })
-})
+let reducer = AnyValueReducer(
+    fetch: { _ in /* don't fetch anything */ },
+    value: { _ -> Int? in
+        defer { count += 1 }
+        return count })
+let observation = ValueObservation.tracking(Player.all(), reducer: { _ in reducer })
 let observer = observation.start(in: dbQueue) { count: Int in
-    print("\(count) transaction(s) have modified the players.")
+    print("Number of transactions that have modified players: \(count)")
 }
-// Prints "0 transaction(s) have modified the players."
+// Prints "Number of transactions that have modified players: 0"
 
 try dbQueue.write { db in
     try Player(...).insert(db)
 }
-// Prints "1 transaction(s) have modified the players."
+// Prints "Number of transactions that have modified players: 1"
 ```
 
 

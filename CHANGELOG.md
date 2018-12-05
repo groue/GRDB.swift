@@ -52,6 +52,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 
 - [#442](https://github.com/groue/GRDB.swift/pull/442): Reindex
 - [#443](https://github.com/groue/GRDB.swift/pull/443): In place record update
+- [#446](https://github.com/groue/GRDB.swift/pull/446): ValueObservation: delayed reducer creation
 - [#444](https://github.com/groue/GRDB.swift/pull/444): Combine Value Observations
 - [#451](https://github.com/groue/GRDB.swift/pull/451): ValueObservation.compactMap
 - [#452](https://github.com/groue/GRDB.swift/pull/452): ValueObservation.mapReducer
@@ -59,11 +60,6 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 - [#445](https://github.com/groue/GRDB.swift/pull/445): Quality of service and target dispatch queue
 - ValueObservation methods which used to accept a variadic list of observed regions now also accept an array.
 - ValueReducer, the protocol that fuels ValueObservation, is flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). It will remain so until more experience has been acquired.
-
-
-### Breaking Change
-
-- [#446](https://github.com/groue/GRDB.swift/pull/446): ValueObservation: delayed reducer creation
 
 
 ### Documentation Diff

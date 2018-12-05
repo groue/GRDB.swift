@@ -205,6 +205,47 @@ class ValueObservationReducerTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    func testDeprecatedReadMeReducer() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            // Test for the reducer documented in the main README
+            
+            // We need something to change
+            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            // Track reducer process
+            var counts: [Int] = []
+            let notificationExpectation = expectation(description: "notification")
+            notificationExpectation.assertForOverFulfill = true
+            notificationExpectation.expectedFulfillmentCount = 2
+            
+            // Create an observation
+            var count = 0
+            let reducer = AnyValueReducer(
+                fetch: { _ in /* don't fetch anything */ },
+                value: { _ -> Int? in
+                    defer { count += 1 }
+                    return count })
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+            observation.extent = .databaseLifetime
+            
+            // Start observation
+            _ = try observation.start(in: dbWriter) { count in
+                counts.append(count)
+                notificationExpectation.fulfill()
+            }
+            
+            try dbWriter.write { db in
+                try db.execute("INSERT INTO t DEFAULT VALUES")
+            }
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(counts, [0, 1])
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
+
     func testReadMeReducer() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // Test for the reducer documented in the main README
@@ -220,13 +261,12 @@ class ValueObservationReducerTests: GRDBTestCase {
             
             // Create an observation
             var count = 0
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in
-                AnyValueReducer(
-                    fetch: { _ in /* don't fetch anything */ },
-                    value: { _ -> Int? in
-                        defer { count += 1 }
-                        return count })
-            })
+            let reducer = AnyValueReducer(
+                fetch: { _ in /* don't fetch anything */ },
+                value: { _ -> Int? in
+                    defer { count += 1 }
+                    return count })
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer})
             observation.extent = .databaseLifetime
             
             // Start observation
