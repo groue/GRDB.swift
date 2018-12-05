@@ -129,6 +129,8 @@ extension DatabaseWriter {
     /// Add a transaction observer, so that it gets notified of
     /// database changes.
     ///
+    /// To remove the observer, use `DatabaseReader.remove(transactionObserver:)`.
+    ///
     /// - parameter transactionObserver: A transaction observer.
     /// - parameter extent: The duration of the observation. The default is
     ///   the observer lifetime (observation lasts until observer
@@ -137,6 +139,8 @@ extension DatabaseWriter {
         writeWithoutTransaction { $0.add(transactionObserver: transactionObserver, extent: extent) }
     }
     
+    /// Default implementation for the DatabaseReader requirement.
+    /// :nodoc:
     public func remove(transactionObserver: TransactionObserver) {
         writeWithoutTransaction { $0.remove(transactionObserver: transactionObserver) }
     }
