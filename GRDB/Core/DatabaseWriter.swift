@@ -198,6 +198,8 @@ extension DatabaseWriter {
     
     // MARK: - Value Observation
     
+    /// Default implementation for the DatabaseReader requirement.
+    /// :nodoc:
     public func add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         onError: ((Error) -> Void)?,
