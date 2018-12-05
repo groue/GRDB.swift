@@ -6267,6 +6267,7 @@ Changes are only notified after they have been committed in the database. No ins
 - [ValueObservation Transformations](#valueobservation-transformations)
     - [ValueObservation.map](#valueobservationmap)
     - [ValueObservation.compactMap](#valueobservationcompactmap)
+    - [ValueObservation.distinctUntilChanged](#valueobservationdistinctuntilchanged)
     - [ValueObservation.combine(...)](#valueobservationcombine)
 - [ValueObservation Error Handling](#valueobservation-error-handling)
 - [ValueObservation Options](#valueobservation-options)
