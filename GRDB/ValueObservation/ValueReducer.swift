@@ -90,29 +90,3 @@ public struct RawValueReducer<Value>: ValueReducer {
     }
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// A reducer which filters out consecutive values that are equal.
-///
-/// :nodoc:
-public struct DistinctValueReducer<Value: Equatable>: ValueReducer {
-    private let _fetch: (Database) throws -> Value
-    private var previousValue: Value??
-    
-    public init(_ fetch: @escaping (Database) throws -> Value) {
-        self._fetch = fetch
-    }
-    
-    public func fetch(_ db: Database) throws -> Value {
-        return try _fetch(db)
-    }
-    
-    public mutating func value(_ value: Value) -> Value? {
-        if let previousValue = previousValue, previousValue == value {
-            // Don't notify consecutive identical values
-            return nil
-        }
-        self.previousValue = value
-        return value
-    }
-}

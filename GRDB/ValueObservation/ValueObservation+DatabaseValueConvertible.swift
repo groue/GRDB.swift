@@ -124,6 +124,7 @@ public struct DatabaseValuesReducer<Request: FetchRequest>: ValueReducer
     public mutating func value(_ dbValues: [DatabaseValue]) -> [Request.RowDecoder]? {
         if let previousDbValues = previousDbValues, previousDbValues == dbValues {
             // Don't notify consecutive identical dbValue arrays
+            // TODO: Remove this implicit `distinctUntilChanged` in GRDB 4
             return nil
         }
         self.previousDbValues = dbValues
@@ -157,6 +158,7 @@ public struct DatabaseValueReducer<Request: FetchRequest>: ValueReducer
     public mutating func value(_ dbValue: DatabaseValue?) -> Request.RowDecoder?? {
         if let previousDbValue = previousDbValue, previousDbValue == dbValue {
             // Don't notify consecutive identical dbValue
+            // TODO: Remove this implicit `distinctUntilChanged` in GRDB 4
             return nil
         }
         self.previousDbValue = dbValue
@@ -167,6 +169,7 @@ public struct DatabaseValueReducer<Request: FetchRequest>: ValueReducer
             return .some(value)
         } else if previousValueWasNil {
             // Don't notify consecutive nil values
+            // TODO: Remove this implicit `distinctUntilChanged` in GRDB 4
             return nil
         } else {
             previousValueWasNil = true
@@ -200,6 +203,7 @@ public struct OptionalDatabaseValuesReducer<Request: FetchRequest>: ValueReducer
     public mutating func value(_ dbValues: [DatabaseValue]) -> [Request.RowDecoder._Wrapped?]? {
         if let previousDbValues = previousDbValues, previousDbValues == dbValues {
             // Don't notify consecutive identical dbValue arrays
+            // TODO: Remove this implicit `distinctUntilChanged` in GRDB 4
             return nil
         }
         self.previousDbValues = dbValues
