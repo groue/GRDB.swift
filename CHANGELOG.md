@@ -55,7 +55,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 - [#444](https://github.com/groue/GRDB.swift/pull/444): Combine Value Observations
 - [#451](https://github.com/groue/GRDB.swift/pull/451): ValueObservation.compactMap
 - [#452](https://github.com/groue/GRDB.swift/pull/452): ValueObservation.mapReducer
-- [#454](https://github.com/groue/GRDB.swift/pull/454): Value.distinctUntilChanged
+- [#454](https://github.com/groue/GRDB.swift/pull/454): ValueObservation.distinctUntilChanged
 - [#445](https://github.com/groue/GRDB.swift/pull/445): Quality of service and target dispatch queue
 - ValueObservation methods which used to accept a variadic list of observed regions now also accept an array.
 - ValueReducer, the protocol that fuels ValueObservation, is flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). It will remain so until more experience has been acquired.
