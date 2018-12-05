@@ -392,49 +392,13 @@ extension ValueObservation where Reducer == Void {
     ///
     /// - parameter regions: A list of observed regions.
     /// - parameter fetch: A closure that fetches a value.
+    @available(*, deprecated, message: "Use distinctUntilChanged() instead")
     public static func tracking<Value>(
         _ regions: DatabaseRegionConvertible...,
         fetchDistinct fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<DistinctValueReducer<Value>>
+        -> ValueObservation<DistinctUntilChangedValueReducer<RawValueReducer<Value>>>
         where Value: Equatable
     {
-        return ValueObservation.tracking(regions, fetchDistinct: fetch)
-    }
-    
-    /// Creates a ValueObservation which observes *regions*, and notifies the
-    /// values returned by the *fetch* closure whenever one of the observed
-    /// regions is modified by a database transaction. Consecutive equal values
-    /// are filtered out.
-    ///
-    /// For example:
-    ///
-    ///     let observation = ValueObservation.tracking(
-    ///         [Player.all()],
-    ///         fetchDistinct: { db in return try Player.fetchAll(db) })
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("Players have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(in:onError:onChange:)` method, a fresh
-    /// value is immediately notified on the main queue.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// - parameter regions: A list of observed regions.
-    /// - parameter fetch: A closure that fetches a value.
-    public static func tracking<Value>(
-        _ regions: [DatabaseRegionConvertible],
-        fetchDistinct fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<DistinctValueReducer<Value>>
-        where Value: Equatable
-    {
-        return ValueObservation<DistinctValueReducer<Value>>(
-            tracking: DatabaseRegion.union(regions),
-            reducer: { _ in DistinctValueReducer(fetch) })
+        return ValueObservation.tracking(regions, fetch: fetch).distinctUntilChanged()
     }
 }
