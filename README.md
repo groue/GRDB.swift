@@ -6377,6 +6377,8 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
         }
     ```
 
+> :point_up: **Note**: the observations returned by the [ValueObservation.trackingCount, trackingOne, and trackingAll](#valueobservationtrackingcount-trackingone-trackingall) methods perform a filtering of consecutive identical values, based on raw database values.
+
 
 ### ValueObservation.tracking(_:fetch:)
 
@@ -6436,18 +6438,16 @@ let observer = observation.start(in: dbQueue) { hallOfFame: HallOfFame in
 
 It may happen that a database change does not modify the observed values. The Hall of Fame, for example, is not affected by changes that happen to the worst players.
 
-When such a database change happens, `ValueObservation.tracking(_:fetch:)` notifies identical consecutive values.
+When such a database change happens, `ValueObservation.tracking(_:fetch:)` is triggered, just in case the best players would be modified, and ends up notifying identical consecutive values.
 
-You can filter out those duplicates with the `ValueObservation.tracking(_:fetchDistinct:)` method. It requires the observed value to adopt the Equatable protocol:
+You can filter out those duplicates with the [ValueObservation.distinctUntilChanged](#valueobservationdistinctuntilchanged) method. It requires the observed value to adopt the Equatable protocol:
 
 ```swift
 extension HallOfFame: Equatable { ... }
 
-let observation = ValueObservation.tracking(
-    Player.all(),
-    fetchDistinct: { db -> HallOfFame in
-        return HallOfFame.fetch(db)
-    })
+let observation = ValueObservation
+    .tracking(Player.all(), fetch: HallOfFame.fetch)
+    .distinctUntilChanged()
 
 let observer = observation.start(in: dbQueue) { hallOfFame: HallOfFame in
     print("""
@@ -6524,6 +6524,7 @@ let observer = ValueObservation
 
 - [ValueObservation.map](#valueobservationmap)
 - [ValueObservation.compactMap](#valueobservationcompactmap)
+- [ValueObservation.distinctUntilChanged](#valueobservationdistinctuntilchanged)
 - [ValueObservation.combine(...)](#valueobservationcombine)
 
 
@@ -6565,6 +6566,30 @@ let observer = observation.start(in: dbQueue) { player: Player in
 ```
 
 The transformation closure does not run on the main queue, and is suitable for heavy computations.
+
+
+#### ValueObservation.distinctUntilChanged
+
+The `distinctUntilChanged` method filters out the consecutive equal values notified by a ValueObservation. The observed values must adopt the standard Equatable protocol.
+
+For example:
+
+```swift
+let observation = ValueObservation
+    .trackingOne(Player.filter(key: 42))
+    .map { player in player != nil } // existence test
+    .distinctUntilChanged()
+
+let observer = observation.start(in: dbQueue) { exists: Bool in
+    if exists {
+        print("Player 42 exists.")
+    } else {
+        print("Player 42 does not exist.")
+    }
+}
+```
+
+> :point_up: **Note**: the observations returned by the [ValueObservation.trackingCount, trackingOne, and trackingAll](#valueobservationtrackingcount-trackingone-trackingall) methods already perform a similar filtering, based on raw database values.
 
 
 #### ValueObservation.combine(...)
