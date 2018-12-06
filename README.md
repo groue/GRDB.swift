@@ -5925,7 +5925,7 @@ let valueObservation = ValueObservation.trackingAll(request)
 let regionObservation = DatabaseRegionObservation(tracking: request)
 ```
 
-[ValueObservation] notifies your application with **fresh values**. This is what most applications need:
+[ValueObservation] notifies your application with **fresh values** (this is what most applications need :+1:):
 
 ```swift
 let observer = valueObservation.start(in: dbQueue) { players: [Player] in
@@ -5939,7 +5939,7 @@ try dbQueue.write { db in
 
 ```
 
-[DatabaseRegionObservation] notifies your application with **database connections**, right after an impactful database transaction has been committed:
+[DatabaseRegionObservation] notifies your application with **database connections**, right after an impactful database transaction has been committed (reserved for advanced use cases :nerd_face:):
 
 ```swift
 let observer = regionObservation.start(in: dbQueue) { db: Database in
@@ -5951,8 +5951,6 @@ try dbQueue.write { db in
 }
 // Prints "Players have changed."
 ```
-
-Both observations are based on the low-level [TransactionObserver Protocol](#transactionobserver-protocol).
 
 
 ## DatabaseRegionObservation
@@ -6044,11 +6042,7 @@ Changes are only notified after they have been committed in the database. No ins
 - **[ValueObservation Usage](#valueobservation-usage)**
 - [ValueObservation.trackingCount, trackingOne, trackingAll](#valueobservationtrackingcount-trackingone-trackingall)
 - [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
-- [ValueObservation Transformations](#valueobservation-transformations)
-    - [ValueObservation.map](#valueobservationmap)
-    - [ValueObservation.compactMap](#valueobservationcompactmap)
-    - [ValueObservation.distinctUntilChanged](#valueobservationdistinctuntilchanged)
-    - [ValueObservation.combine(...)](#valueobservationcombine)
+- [ValueObservation Transformations](#valueobservation-transformations): ([map](#valueobservationmap), [compactMap](#valueobservationcompactmap), ...)
 - [ValueObservation Error Handling](#valueobservation-error-handling)
 - [ValueObservation Options](#valueobservation-options)
 - [Advanced: ValueObservation.tracking(_:reducer:)](#advanced-valueobservationtracking_reducer)
