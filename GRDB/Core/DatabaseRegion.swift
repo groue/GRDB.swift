@@ -18,15 +18,15 @@
 ///
 /// - `SelectStatement.databaseRegion`:
 ///
-///     let statement = db.makeSelectStatement("SELECT name, score FROM player")
-///     print(statement.databaseRegion)
-///     // prints "player(name,score)"
+///         let statement = db.makeSelectStatement("SELECT name, score FROM player")
+///         print(statement.databaseRegion)
+///         // prints "player(name,score)"
 ///
 /// - `FetchRequest.databaseRegion(_:)`
 ///
-///     let request = Player.filter(key: 1)
-///     try print(request.databaseRegion(db))
-///     // prints "player(*)[1]"
+///         let request = Player.filter(key: 1)
+///         try print(request.databaseRegion(db))
+///         // prints "player(*)[1]"
 ///
 /// Database regions returned by requests can be more precise than regions
 /// returned by select statements. Especially, regions returned by statements
