@@ -6052,7 +6052,7 @@ Changes are only notified after they have been committed in the database. No ins
 - **[ValueObservation Usage](#valueobservation-usage)**
 - [ValueObservation.trackingCount, trackingOne, trackingAll](#valueobservationtrackingcount-trackingone-trackingall)
 - [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
-- [ValueObservation Transformations](#valueobservation-transformations): ([map](#valueobservationmap), [compactMap](#valueobservationcompactmap), ...)
+- [ValueObservation Transformations](#valueobservation-transformations): [map](#valueobservationmap), [compactMap](#valueobservationcompactmap), ...
 - [ValueObservation Error Handling](#valueobservation-error-handling)
 - [ValueObservation Options](#valueobservation-options)
 - [Advanced: ValueObservation.tracking(_:reducer:)](#advanced-valueobservationtracking_reducer)
