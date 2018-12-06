@@ -276,6 +276,8 @@
 		564CE52721B312B700652B19 /* ValueObservation+MapReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CE51A21B3128400652B19 /* ValueObservation+MapReducer.swift */; };
 		564CE5A621B7A9D600652B19 /* ValueObservation+DistinctUntilChanged.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CE5A421B7A9D600652B19 /* ValueObservation+DistinctUntilChanged.swift */; };
 		564CE5A721B7A9D600652B19 /* ValueObservation+DistinctUntilChanged.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CE5A421B7A9D600652B19 /* ValueObservation+DistinctUntilChanged.swift */; };
+		564CE5BB21B8FBFD00652B19 /* DatabaseRegionObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CE5B921B8FBFD00652B19 /* DatabaseRegionObservation.swift */; };
+		564CE5BC21B8FBFD00652B19 /* DatabaseRegionObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CE5B921B8FBFD00652B19 /* DatabaseRegionObservation.swift */; };
 		564E73EF203DA2A2000C443C /* JoinSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564E73EB203DA29B000C443C /* JoinSupportTests.swift */; };
 		564E73F0203DA2A3000C443C /* JoinSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564E73EB203DA29B000C443C /* JoinSupportTests.swift */; };
 		564E73F1203DA2A3000C443C /* JoinSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564E73EB203DA29B000C443C /* JoinSupportTests.swift */; };
@@ -1093,6 +1095,7 @@
 		564CE4F021B2E08A00652B19 /* ValueObservationMapTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservationMapTests.swift; sourceTree = "<group>"; };
 		564CE51A21B3128400652B19 /* ValueObservation+MapReducer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ValueObservation+MapReducer.swift"; sourceTree = "<group>"; };
 		564CE5A421B7A9D600652B19 /* ValueObservation+DistinctUntilChanged.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ValueObservation+DistinctUntilChanged.swift"; sourceTree = "<group>"; };
+		564CE5B921B8FBFD00652B19 /* DatabaseRegionObservation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseRegionObservation.swift; sourceTree = "<group>"; };
 		564E73EB203DA29B000C443C /* JoinSupportTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JoinSupportTests.swift; sourceTree = "<group>"; };
 		564F9C1D1F069B4E00877A00 /* DatabaseAggregateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseAggregateTests.swift; sourceTree = "<group>"; };
 		564F9C2C1F075DD200877A00 /* DatabaseFunction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseFunction.swift; sourceTree = "<group>"; };
@@ -1887,6 +1890,7 @@
 				56A238741B9C75030082EB20 /* DatabaseQueue.swift */,
 				563363BF1C942C04000BE133 /* DatabaseReader.swift */,
 				569EF0E8200D387000A9FA45 /* DatabaseRegion.swift */,
+				564CE5B921B8FBFD00652B19 /* DatabaseRegionObservation.swift */,
 				5695311E1C907A8C00CF1A2B /* DatabaseSchemaCache.swift */,
 				566A842720413D6E00E50BFD /* DatabaseSnapshot.swift */,
 				56A238751B9C75030082EB20 /* DatabaseValue.swift */,
@@ -2409,6 +2413,7 @@
 				566AD8B31D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
 				5613ED7F21A95E8400DC7A68 /* ValueObservation+Map.swift in Sources */,
 				5698AD221DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
+				564CE5BB21B8FBFD00652B19 /* DatabaseRegionObservation.swift in Sources */,
 				560FC53C1CB003810014AA8E /* DatabaseQueue.swift in Sources */,
 				5653EB9720961FC000F46237 /* ForeignKey.swift in Sources */,
 				569A98FC2039B72D008D7DBF /* Fixits-3.0.swift in Sources */,
@@ -2894,6 +2899,7 @@
 				566AD8B61D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
 				5613ED8021A95E8400DC7A68 /* ValueObservation+Map.swift in Sources */,
 				5698AD251DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
+				564CE5BC21B8FBFD00652B19 /* DatabaseRegionObservation.swift in Sources */,
 				56AFCA121CB1A8BB00F48B96 /* NSNumber.swift in Sources */,
 				5653EB9820961FC000F46237 /* ForeignKey.swift in Sources */,
 				569A98FD2039B72D008D7DBF /* Fixits-3.0.swift in Sources */,

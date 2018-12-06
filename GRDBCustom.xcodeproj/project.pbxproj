@@ -107,6 +107,8 @@
 		564CE52521B312AD00652B19 /* ValueObservation+MapReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CE52321B312AC00652B19 /* ValueObservation+MapReducer.swift */; };
 		564CE5A221B7A9C700652B19 /* ValueObservation+DistinctUntilChanged.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CE5A021B7A9C700652B19 /* ValueObservation+DistinctUntilChanged.swift */; };
 		564CE5A321B7A9C700652B19 /* ValueObservation+DistinctUntilChanged.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CE5A021B7A9C700652B19 /* ValueObservation+DistinctUntilChanged.swift */; };
+		564CE5B721B8FBEB00652B19 /* DatabaseRegionObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CE5B521B8FBEA00652B19 /* DatabaseRegionObservation.swift */; };
+		564CE5B821B8FBEB00652B19 /* DatabaseRegionObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CE5B521B8FBEA00652B19 /* DatabaseRegionObservation.swift */; };
 		564E73F3203DA2AC000C443C /* JoinSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564E73E7203DA278000C443C /* JoinSupportTests.swift */; };
 		564E73F4203DA2AD000C443C /* JoinSupportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564E73E7203DA278000C443C /* JoinSupportTests.swift */; };
 		564F9C211F069B4E00877A00 /* DatabaseAggregateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564F9C1D1F069B4E00877A00 /* DatabaseAggregateTests.swift */; };
@@ -730,6 +732,7 @@
 		564CE4E221B2E05400652B19 /* ValueObservationMapTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservationMapTests.swift; sourceTree = "<group>"; };
 		564CE52321B312AC00652B19 /* ValueObservation+MapReducer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ValueObservation+MapReducer.swift"; sourceTree = "<group>"; };
 		564CE5A021B7A9C700652B19 /* ValueObservation+DistinctUntilChanged.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ValueObservation+DistinctUntilChanged.swift"; sourceTree = "<group>"; };
+		564CE5B521B8FBEA00652B19 /* DatabaseRegionObservation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseRegionObservation.swift; sourceTree = "<group>"; };
 		564E73E7203DA278000C443C /* JoinSupportTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JoinSupportTests.swift; sourceTree = "<group>"; };
 		564F9C1D1F069B4E00877A00 /* DatabaseAggregateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseAggregateTests.swift; sourceTree = "<group>"; };
 		564F9C2C1F075DD200877A00 /* DatabaseFunction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseFunction.swift; sourceTree = "<group>"; };
@@ -1497,6 +1500,7 @@
 				56A238741B9C75030082EB20 /* DatabaseQueue.swift */,
 				563363BF1C942C04000BE133 /* DatabaseReader.swift */,
 				569EF0E5200D37FC00A9FA45 /* DatabaseRegion.swift */,
+				564CE5B521B8FBEA00652B19 /* DatabaseRegionObservation.swift */,
 				5695311E1C907A8C00CF1A2B /* DatabaseSchemaCache.swift */,
 				566A842B20413D9A00E50BFD /* DatabaseSnapshot.swift */,
 				56A238751B9C75030082EB20 /* DatabaseValue.swift */,
@@ -2048,6 +2052,7 @@
 				566AD8B71D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
 				5613ED6621A95E6100DC7A68 /* ValueObservation+Map.swift in Sources */,
 				5698AD261DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
+				564CE5B821B8FBEB00652B19 /* DatabaseRegionObservation.swift in Sources */,
 				F3BA802C1CFB289B003DC1BA /* SQLCollatedExpression.swift in Sources */,
 				5653EB4A20961F6100F46237 /* ForeignKey.swift in Sources */,
 				569A98F92039B716008D7DBF /* Fixits-3.0.swift in Sources */,
@@ -2354,6 +2359,7 @@
 				566AD8B41D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
 				5613ED6521A95E6100DC7A68 /* ValueObservation+Map.swift in Sources */,
 				5698AD231DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
+				564CE5B721B8FBEB00652B19 /* DatabaseRegionObservation.swift in Sources */,
 				F3BA80881CFB2E70003DC1BA /* SQLCollatedExpression.swift in Sources */,
 				5653EB4920961F6100F46237 /* ForeignKey.swift in Sources */,
 				569A98F82039B716008D7DBF /* Fixits-3.0.swift in Sources */,
