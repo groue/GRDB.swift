@@ -2061,7 +2061,7 @@ Before jumping in the low-level wagon, here is the list of all SQLite APIs used 
 - `sqlite3_busy_handler`, `sqlite3_busy_timeout`: see [Configuration.busyMode](http://groue.github.io/GRDB.swift/docs/3.5/Structs/Configuration.html)
 - `sqlite3_changes`, `sqlite3_total_changes`: see [Database.changesCount and Database.totalChangesCount](http://groue.github.io/GRDB.swift/docs/3.5/Classes/Database.html)
 - `sqlite3_close`, `sqlite3_close_v2`, `sqlite3_next_stmt`, `sqlite3_open_v2`: see [Database Connections](#database-connections)
-- `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [TransactionObserver Protocol](#transactionobserver-protocol), [ValueObservation], [FetchedRecordsController]
+- `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [TransactionObserver Protocol](#transactionobserver-protocol), [DatabaseRegionObservation], [ValueObservation], [FetchedRecordsController]
 - `sqlite3_config`: see [Error Log](#error-log)
 - `sqlite3_create_collation_v2`: see [String Comparison](#string-comparison)
 - `sqlite3_db_release_memory`: see [Memory Management](#memory-management)
@@ -4571,7 +4571,7 @@ The `prepare` method returns a prepared statement and an optional row adapter. T
 
 The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
 
-The base `DatabaseRegionConvertible` protocol is involved in [database observation](#database-changes-observation). For more information, see [DatabaseRegion](#databaseregion), and [ValueObservation].
+The base `DatabaseRegionConvertible` protocol is involved in [database observation](#database-changes-observation). For more information, see [DatabaseRegion](#databaseregion), [DatabaseRegionObservation], and [ValueObservation].
 
 The FetchRequest protocol is adopted, for example, by [query interface requests](#requests):
 
@@ -5848,6 +5848,7 @@ GRDB puts this SQLite feature to some good use, and lets you observe the databas
 
 - [After Commit Hook](#after-commit-hook): The simplest way to handle successful transactions.
 - [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
+- [DatabaseRegionObservation]: Focused tracking of database transactions.
 - [ValueObservation]: Automated tracking of database changes.
 - [FetchedRecordsController]: Automated tracking of database changes, with table view animations.
 - [RxGRDB]: Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
@@ -6038,7 +6039,7 @@ do {
 > :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
 
-[ValueObservation], [FetchedRecordsController], and [RxGRDB] are based on the TransactionObserver protocol.
+[DatabaseRegionObservation], [ValueObservation], [FetchedRecordsController], and [RxGRDB] are based on the TransactionObserver protocol.
 
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
 
@@ -6250,6 +6251,23 @@ protocol TransactionObserverType : class {
     /// need to keep it longer, store a copy: event.copy().
     func databaseWillChange(with event: DatabasePreUpdateEvent)
     #endif
+}
+```
+
+
+## DatabaseRegionObservation
+
+**ValueObservation tracks changes in the results of database [requests](#requests), and notifies each impactful [transaction](#transactions-and-savepoints).**
+
+Transactions are only notified after they have been committed in the database. No insertion, update, or deletion in tracked tables is missed. This includes indirect changes triggered by [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
+
+
+### DatabaseRegionObservation Usage
+
+```swift
+let observation = DatabaseRegionObservation(tracking: Player.all())
+let observer = observation.start(in: dbQueue) { db: Database in
+    print("Players were changed")
 }
 ```
 
@@ -7957,6 +7975,7 @@ Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://groue.gith
 These protocols provide a unified API that let you write generic code that targets all concurrency modes. They fuel, for example:
 
 - [Migrations](#migrations)
+- [DatabaseRegionObservation]
 - [ValueObservation]
 - [FetchedRecordsController]
 - [RxGRDB]
@@ -8519,5 +8538,6 @@ This chapter has been renamed [Beyond FetchableRecord].
 [Record Customization Options]: #record-customization-options
 [TableRecord]: #tablerecord-protocol
 [ValueObservation]: #valueobservation
+[DatabaseRegionObservation]: #databaseregionobservation
 [FetchedRecordsController]: #fetchedrecordscontroller
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
