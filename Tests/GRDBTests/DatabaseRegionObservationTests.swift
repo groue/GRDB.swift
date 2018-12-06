@@ -185,6 +185,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         try dbQueue.write { db in
             try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')")
         }
+        // not notified
         try dbQueue.write { db in
             try db.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
         }
