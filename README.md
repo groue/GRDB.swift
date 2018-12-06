@@ -5848,8 +5848,6 @@ GRDB puts this SQLite feature to some good use, and lets you observe the databas
 
 - [After Commit Hook](#after-commit-hook): Handle successful transactions one by one.
 - [ValueObservation and DatabaseRegionObservation](#valueobservation-and-databaseregionobservation): Automated tracking of database requests.
-    - [DatabaseRegionObservation]
-    - [ValueObservation]
 - [FetchedRecordsController]: Animate table views according to database changes.
 - [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
 - [RxGRDB]: Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
