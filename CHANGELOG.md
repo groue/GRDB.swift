@@ -121,6 +121,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 +    var qos: DispatchQoS
 +    var targetQueue: DispatchQueue?
  }
+ 
++struct DatabaseRegionObservation {
++    var extent: Database.TransactionObservationExtent
++    init(tracking regions: DatabaseRegionConvertible...)
++    init(tracking regions: [DatabaseRegionConvertible])
++    func start(in dbWriter: DatabaseWriter, onChange: @escaping (Database) -> Void) throws -> TransactionObserver
++}
 ```
 
 
