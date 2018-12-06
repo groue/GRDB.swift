@@ -1,4 +1,6 @@
-public final class DatabaseRegionObservation {
+public struct DatabaseRegionObservation {
+    public var extent = Database.TransactionObservationExtent.observerLifetime
+    
     /// A closure that is evaluated when the observation starts, and returns
     /// the observed database region.
     var observedRegion: (Database) throws -> DatabaseRegion
@@ -15,21 +17,23 @@ public final class DatabaseRegionObservation {
         }
     }
     
-    public convenience init(tracking regions: DatabaseRegionConvertible...) {
+    public init(tracking regions: DatabaseRegionConvertible...) {
         self.init(tracking: regions)
     }
     
-    public convenience init(tracking regions: [DatabaseRegionConvertible]) {
+    public init(tracking regions: [DatabaseRegionConvertible]) {
         self.init(tracking: DatabaseRegion.union(regions))
     }
 }
 
-extension DatabaseWriter {
-    public func add(observation: DatabaseRegionObservation, onChange: @escaping (Database) -> Void) throws -> TransactionObserver {
-        return try writeWithoutTransaction { db -> TransactionObserver in
-            let region = try observation.observedRegion(db)
+extension DatabaseRegionObservation {
+    public func start(in dbWriter: DatabaseWriter, onChange: @escaping (Database) -> Void) throws -> TransactionObserver {
+        // Use unsafeReentrantWrite so that observation can start from any
+        // dispatch queue.
+        return try dbWriter.unsafeReentrantWrite { db -> TransactionObserver in
+            let region = try observedRegion(db)
             let observer = DatabaseRegionObserver(region: region, onChange: onChange)
-            add(transactionObserver: observer)
+            db.add(transactionObserver: observer, extent: extent)
             return observer
         }
     }
