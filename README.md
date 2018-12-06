@@ -4571,7 +4571,7 @@ The `prepare` method returns a prepared statement and an optional row adapter. T
 
 The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
 
-The base `DatabaseRegionConvertible` protocol is involved in [database observation](#database-changes-observation). For more information, see [DatabaseRegion](#databaseregion), [DatabaseRegionObservation], and [ValueObservation].
+The base `DatabaseRegionConvertible` protocol is involved in [database observation](#database-changes-observation). For more information, see [DatabaseRegion], [DatabaseRegionObservation], and [ValueObservation].
 
 The FetchRequest protocol is adopted, for example, by [query interface requests](#requests):
 
@@ -6955,7 +6955,7 @@ protocol TransactionObserver : class {
 - [Database Changes And Transactions](#database-changes-and-transactions)
 - [Filtering Database Events](#filtering-database-events)
 - [Observation Extent](#observation-extent)
-- [DatabaseRegion](#databaseregion)
+- [DatabaseRegion]
 - [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)
 
 
@@ -7103,7 +7103,7 @@ class PureTransactionObserver: TransactionObserver {
 }
 ```
 
-For more information about event filtering, see [DatabaseRegion](#databaseregion).
+For more information about event filtering, see [DatabaseRegion].
 
 
 ### Observation Extent
@@ -8600,3 +8600,4 @@ This chapter has been renamed [Beyond FetchableRecord].
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
 [DatabaseRegionConvertible]: #the-databaseregionconvertible-protocol
 [ValueObservation and DatabaseRegionObservation]: #valueobservation-and-databaseregionobservation
+[DatabaseRegion]: #databaseregion
