@@ -5847,7 +5847,7 @@ Database Changes Observation
 GRDB puts this SQLite feature to some good use, and lets you observe the database in various ways:
 
 - [After Commit Hook](#after-commit-hook): Handle successful transactions one by one.
-- [ValueObservation and DatabaseRegionObservation](#valueobservation-and-databaseregionobservation): Automated tracking of database requests.
+- [ValueObservation and DatabaseRegionObservation]: Automated tracking of database requests.
 - [FetchedRecordsController]: Animate table views according to database changes.
 - [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
 - [RxGRDB]: Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
@@ -5989,6 +5989,16 @@ try dbQueue.write { db in
 ```
 
 By default, the observation lasts until the observer returned by the `start` method is deallocated. See [DatabaseRegionObservation.extent](#databaseregionobservationextent) for more details.
+
+You can also feed DatabaseRegionObservation with [DatabaseRegion], or any type which conforms to the [DatabaseRegionConvertible] protocol. For example:
+
+```swift
+// Observe the full database
+let observation = DatabaseRegionObservation(tracking: DatabaseRegion.fullDatabase)
+let observer = observation.start(in: dbQueue) { db: Database in
+    print("Database was changed")
+}
+```
 
 
 ### DatabaseRegionObservation Use Cases
@@ -6233,19 +6243,11 @@ let observer = observation.start(in: dbQueue) { hallOfFame: HallOfFame in
 ```
 
 
-#### The DatabaseRegionConvertible Protocol
+#### DatabaseRegionConvertible Observation
 
-The initial parameter of the `ValueObservation.tracking(_:fetch:)` and `ValueObservation.tracking(_:fetchDistinct:)` methods can be fed with requests, and generally speaking, values that adopt the **DatabaseRegionConvertible** protocol.
+The initial parameter of the `ValueObservation.tracking(_:fetch:)` method can be fed with requests, and generally speaking, values that adopt the [DatabaseRegionConvertible] protocol.
 
-```swift
-protocol DatabaseRegionConvertible {
-    func databaseRegion(_ db: Database) throws -> DatabaseRegion
-}
-```
-
-[DatabaseRegion](#databaseregion) is a type that helps observing the database.
-
-Use this protocol when you want to encapsulate your complex requests in a dedicated type. In the sample code below, `TeamInfoRequest` is not only able to fetch a team and its players, but also to be observed.
+Thanks to DatabaseRegionConvertible, `TeamInfoRequest` below is not only able to fetch a team and its players, but also to be observed.
 
 ```swift
 struct TeamInfo {
@@ -6286,7 +6288,7 @@ let request = TeamInfoRequest(teamId: 1)
 // Simple fetch
 let teamInfo: TeamInfo? = try dbQueue.read(request.fetch)
 
-// Observatin
+// Observation
 let observer = ValueObservation
     .tracking(request, fetch: request.fetch)
     .start(in: dbQueue) { teamInfo: TeamInfo? in
@@ -7169,74 +7171,32 @@ After `stopObservingDatabaseChangesUntilNextTransaction()`, the `databaseDidChan
 
 **[DatabaseRegion](https://groue.github.io/GRDB.swift/docs/3.5/Structs/DatabaseRegion.html) is a type that helps observing changes in the results of a database [request](#requests)**.
 
-A request knows which database modifications can impact its results. It can communicate this information to a transaction observer by the way of a database region.
+A request knows which database modifications can impact its results. It can communicate this information to [transaction observers](#transactionobserver-protocol) by the way of a DatabaseRegion.
 
-You start by building regions:
+DatabaseRegion fuels, for example, [ValueObservation and DatabaseRegionObservation].
 
-```swift
-try dbQueue.write { db in
-    let teamRegion = try Team.filter(key: 1).databaseRegion(db)
-    let playersRegion = try SQLRequest<Player>("SELECT * FROM player").databaseRegion(db)
-    let maxScoreRegion = try Player.select(max(Column("score"))).databaseRegion(db)
-```
-
-You can group regions:
-
-```swift
-    let region = teamRegion.union(playersRegion).union(maxScoreRegion)
-}
-```
-
-There are two special regions: `DatabaseRegion()` (the empty region), and `DatabaseRegion.fullDatabase` (the region that spans the whole database).
-
-Regions feed the `observes(eventsOfKind:)` and `databaseDidChange(with:)` methods of transaction observers. For example:
-
-```swift
-// A transaction observer which notifies all changes to a database region.
-class DatabaseRegionObserver: TransactionObserver {
-    let region: DatabaseRegion
-    var regionIsModified = false
-    
-    init(region: DatabaseRegion) {
-        self.region = region
-    }
-    
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return region.isModified(byEventsOfKind: eventKind)
-    }
-    
-    func databaseDidChange(with event: DatabaseEvent) {
-        if region.isModified(by: event) {
-            regionIsModified = true
-            stopObservingDatabaseChangesUntilNextTransaction()
-        }
-    }
-    
-    func databaseDidRollback(_ db: Database) {
-        regionIsModified = false
-    }
-    
-    func databaseDidCommit(_ db: Database) {
-        if regionIsModified == false { return }
-        regionIsModified = false
-        
-        // You'll customize your handling of changes here:
-        print("Region has been modified.")
-    }
-}
-
-// Observe a region
-try dbQueue.write { db in
-    observer = DatabaseRegionObserver(region: region)
-    db.add(transactionObserver: observer)
-}
-```
-
-A region notifies *potential* changes, not *actual* changes in the results of a request. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
+**A region notifies *potential* changes, not *actual* changes in the results of a request.** A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
 
 For example, if you observe the region of `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
 
-Similarly, observing the region of `Country.filter(key: "FR")` will notify all changes that happen to the whole `country` table. That is because SQLite only notifies the numerical [rowid](https://www.sqlite.org/rowidtable.html) of changed rows, and we can't check if it is the row "FR" that has been changed, or another. This limitation does not apply to tables whose primary key *is* the rowid: `Player.filter(key: 42)` will only notify of changes performed on the row with id 42.
+Similarly, observing the region of `Country.filter(key: "FR")` will notify all changes that happen to the whole `country` table. That is because SQLite only notifies the numerical [rowid](https://www.sqlite.org/rowidtable.html) of changed rows, and we can't check if it is the row "FR" that has been changed, or another. This limitation does not apply to tables whose primary key is the rowid: `Player.filter(key: 42)` will only notify of changes performed on the row with id 42.
+
+For more details, see the [reference](http://groue.github.io/GRDB.swift/docs/3.5/Structs/DatabaseRegion.html#/s:4GRDB14DatabaseRegionV10isModified2bySbAA0B5EventV_tF).
+
+
+#### The DatabaseRegionConvertible Protocol
+
+**DatabaseRegionConvertible** is a protocol for all types that can turn into a [DatabaseRegion]:
+
+```swift
+protocol DatabaseRegionConvertible {
+    func databaseRegion(_ db: Database) throws -> DatabaseRegion
+}
+```
+
+All [requests](#requests) adopt this protocol, and this allows them to be observed with [DatabaseRegionObservation] and [ValueObservation].
+
+Use this protocol when you want to encapsulate your complex requests in a dedicated type, and still profit from observation APIs. See [DatabaseRegionConvertible Observation](#databaseregionconvertible-observation) for more information.
 
 
 ### Support for SQLite Pre-Update Hooks
@@ -8638,3 +8598,5 @@ This chapter has been renamed [Beyond FetchableRecord].
 [DatabaseRegionObservation]: #databaseregionobservation
 [FetchedRecordsController]: #fetchedrecordscontroller
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
+[DatabaseRegionConvertible]: #the-databaseregionconvertible-protocol
+[ValueObservation and DatabaseRegionObservation]: #valueobservation-and-databaseregionobservation
