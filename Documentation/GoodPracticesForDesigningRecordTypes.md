@@ -308,11 +308,13 @@ This synchronization is not automatic with GRDB: records do not "auto-update". T
 
 Instead, have a look at [Database Observation]:
 
-> :bulb: **Tip**: Use [FetchedRecordsController] when a table or collection views should remained synchronized with the database, in an animated way.
+> :bulb: **Tip**: [ValueObservation] performs automated tracking of database changes.
 >
-> :bulb: **Tip**: Use [RxGRDB] when your application needs to react to all changes in the results of a database request.
+> :bulb: **Tip**: [FetchedRecordsController] performs automated tracking of database changes, and can animate the cells of a table or collection view.
 >
-> :bulb: **Tip**: Use [TransactionObserver], the low-level protocol for database observation, for your most advanced needs.
+> :bulb: **Tip**: [RxGRDB] performs automated tracking of database changes, in the [RxSwift](https://github.com/ReactiveX/RxSwift) way.
+>
+> :bulb: **Tip**: [TransactionObserver] provides low-level database observation, for your most advanced needs.
 >
 > :bulb: **Tip**: Don't try to write complex methods that both modify the database and the values in memory at the same time. Instead, modify the database with plain record types, and rely on database observation for automatically refreshing values, even complex ones.
 
@@ -337,6 +339,7 @@ Instead, have a look at [Database Observation]:
 [Concurrency Guide]: ../README.md#concurrency
 [PersistableRecord]: ../README.md#persistablerecord-protocol
 [Database Observation]: ../README.md#database-changes-observation
+[ValueObservation]: ../README.md#valueobservation
 [FetchedRecordsController]: ../README.md#fetchedrecordscontroller
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
 [TransactionObserver]: ../README.md#transactionobserver-protocol

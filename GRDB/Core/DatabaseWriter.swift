@@ -129,6 +129,8 @@ extension DatabaseWriter {
     /// Add a transaction observer, so that it gets notified of
     /// database changes.
     ///
+    /// To remove the observer, use `DatabaseReader.remove(transactionObserver:)`.
+    ///
     /// - parameter transactionObserver: A transaction observer.
     /// - parameter extent: The duration of the observation. The default is
     ///   the observer lifetime (observation lasts until observer
@@ -137,6 +139,8 @@ extension DatabaseWriter {
         writeWithoutTransaction { $0.add(transactionObserver: transactionObserver, extent: extent) }
     }
     
+    /// Default implementation for the DatabaseReader requirement.
+    /// :nodoc:
     public func remove(transactionObserver: TransactionObserver) {
         writeWithoutTransaction { $0.remove(transactionObserver: transactionObserver) }
     }
@@ -198,6 +202,8 @@ extension DatabaseWriter {
     
     // MARK: - Value Observation
     
+    /// Default implementation for the DatabaseReader requirement.
+    /// :nodoc:
     public func add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         onError: ((Error) -> Void)?,
@@ -215,12 +221,14 @@ extension DatabaseWriter {
         // Use unsafeReentrantWrite so that observation can start from any
         // dispatch queue.
         return try unsafeReentrantWrite { db in
+            // Create the reducer
+            var reducer = try observation.makeReducer(db)
+            
             // Take care of initial value. Make sure it is dispatched before
             // any future transaction can trigger a change.
-            var reducer = observation.reducer
             switch observation.scheduling {
             case .mainQueue:
-                if let value = try reducer.value(observation.fetchInitial(db)) {
+                if let value = try reducer.initialValue(db, requiresWriteAccess: observation.requiresWriteAccess) {
                     if calledOnMainQueue {
                         startValue = value
                     } else {
@@ -229,20 +237,21 @@ extension DatabaseWriter {
                 }
             case let .onQueue(queue, startImmediately: startImmediately):
                 if startImmediately {
-                    if let value = try reducer.value(observation.fetchInitial(db)) {
+                    if let value = try reducer.initialValue(db, requiresWriteAccess: observation.requiresWriteAccess) {
                         queue.async { onChange(value) }
                     }
                 }
             case let .unsafe(startImmediately: startImmediately):
                 if startImmediately {
-                    startValue = try reducer.value(observation.fetchInitial(db))
+                    startValue = try reducer.initialValue(db, requiresWriteAccess: observation.requiresWriteAccess)
                 }
             }
-
+            
             // Start observing the database
             let valueObserver = try ValueObserver(
                 region: observation.observedRegion(db),
                 reducer: reducer,
+                configuration: db.configuration,
                 fetch: observation.fetchAfterChange(in: self),
                 notificationQueue: observation.notificationQueue,
                 onError: onError,
@@ -254,21 +263,23 @@ extension DatabaseWriter {
     }
 }
 
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueReducer {
     /// Helper method for DatabaseWriter.add(observation:onError:onChange:)
-    fileprivate func fetchInitial(_ db: Database) throws -> Reducer.Fetched {
+    fileprivate mutating func initialValue(_ db: Database, requiresWriteAccess: Bool) throws -> Value? {
         if requiresWriteAccess {
-            var fetchedValue: Reducer.Fetched!
+            var fetchedValue: Fetched!
             try db.inSavepoint {
-                fetchedValue = try reducer.fetch(db)
+                fetchedValue = try fetch(db)
                 return .commit
             }
-            return fetchedValue
+            return value(fetchedValue)
         } else {
-            return try db.readOnly { try reducer.fetch(db) }
+            return try value(db.readOnly { try fetch(db) })
         }
     }
-    
+}
+
+extension ValueObservation where Reducer: ValueReducer {
     /// Helper method for DatabaseWriter.add(observation:onError:onChange:)
     fileprivate func fetchAfterChange(in writer: DatabaseWriter) -> (Database, Reducer) -> Future<Reducer.Fetched> {
         // The technique to return a future value after database has changed
@@ -291,103 +302,6 @@ extension ValueObservation where Reducer: ValueReducer {
                 writer.concurrentRead(reducer.fetch)
             }
         }
-    }
-}
-
-
-/// Support for ValueObservation.
-/// See DatabaseWriter.add(observation:onError:onChange:)
-private class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
-    private let region: DatabaseRegion
-    private var reducer: Reducer
-    private let fetch: (Database, Reducer) -> Future<Reducer.Fetched>
-    private let notificationQueue: DispatchQueue?
-    private let onError: ((Error) -> Void)?
-    private let onChange: (Reducer.Value) -> Void
-    private let reduceQueue: DispatchQueue
-    private var isChanged = false
-    
-    init(
-        region: DatabaseRegion,
-        reducer: Reducer,
-        fetch: @escaping (Database, Reducer) -> Future<Reducer.Fetched>,
-        notificationQueue: DispatchQueue?,
-        onError: ((Error) -> Void)?,
-        onChange: @escaping (Reducer.Value) -> Void)
-    {
-        self.region = region
-        self.reducer = reducer
-        self.fetch = fetch
-        self.notificationQueue = notificationQueue
-        self.onChange = onChange
-        self.onError = onError
-        if #available(OSX 10.10, *) {
-            if let queue = notificationQueue {
-                self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation", qos: queue.qos)
-            } else {
-                // Assume UI purpose
-                self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation", qos: .userInitiated)
-            }
-        } else {
-            self.reduceQueue = DispatchQueue(label: "GRDB.ValueObservation")
-        }
-    }
-    
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return region.isModified(byEventsOfKind: eventKind)
-    }
-    
-    func databaseDidChange(with event: DatabaseEvent) {
-        if region.isModified(by: event) {
-            isChanged = true
-            stopObservingDatabaseChangesUntilNextTransaction()
-        }
-    }
-    
-    func databaseDidCommit(_ db: Database) {
-        guard isChanged else { return }
-        isChanged = false
-        
-        // Grab future fetched values from the database writer queue
-        let future = fetch(db, reducer)
-        
-        // Wait for future fetched values in reduceQueue. This guarantees:
-        // - that notifications have the same ordering as transactions.
-        // - that expensive reduce operations are computed without blocking
-        // any database dispatch queue.
-        reduceQueue.async { [weak self] in
-            guard let strongSelf = self else { return }
-            
-            do {
-                if let value = try strongSelf.reducer.value(future.wait()) {
-                    if let queue = strongSelf.notificationQueue {
-                        queue.async {
-                            guard let strongSelf = self else { return }
-                            strongSelf.onChange(value)
-                        }
-                    } else {
-                        strongSelf.onChange(value)
-                    }
-                }
-            } catch {
-                guard strongSelf.onError != nil else {
-                    // TODO: how can we let the user know about the error?
-                    return
-                }
-                if let queue = strongSelf.notificationQueue {
-                    queue.async {
-                        guard let strongSelf = self else { return }
-                        strongSelf.onError?(error)
-                    }
-                } else {
-                    strongSelf.onError?(error)
-                }
-            }
-        }
-    }
-    
-    func databaseDidRollback(_ db: Database) {
-        isChanged = false
     }
 }
 

@@ -477,24 +477,44 @@ extension FetchableRecordDecodableTests {
             try db.create(table: "t1") { t in
                 t.column("nested", .text)
             }
-
-            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
-            let value = StructWithNestedType(nested: [nested, nested])
+        }
+        
+        try dbQueue.inTransaction { db in
+            let value = StructWithNestedType(nested: [
+                NestedStruct(firstName: "Bob", lastName: "Dylan"),
+                NestedStruct(firstName: "Bob", lastName: "Dylan")])
             try value.insert(db)
             
-            let parentModel = try StructWithNestedType.fetchAll(db)
+            let parentModel = try StructWithNestedType.fetchOne(db)
             
-            guard let arrayOfNestedModel = parentModel.first?.nested, let firstNestedModelInArray = arrayOfNestedModel.first else {
+            guard let nested = parentModel?.nested else {
                 XCTFail()
-                return
+                return .rollback
             }
             
             // Check there are two models in array
-            XCTAssertTrue(arrayOfNestedModel.count == 2)
+            XCTAssertEqual(nested.count, 2)
             
             // Check the nested model contains the expected values of first and last name
-            XCTAssertEqual(firstNestedModelInArray.firstName, "Bob")
-            XCTAssertEqual(firstNestedModelInArray.lastName, "Dylan")
+            XCTAssertEqual(nested[0].firstName, "Bob")
+            XCTAssertEqual(nested[0].lastName, "Dylan")
+            
+            return .rollback
+        }
+        
+        try dbQueue.inTransaction { db in
+            let value = StructWithNestedType(nested: [])
+            try value.insert(db)
+            
+            let parentModel = try StructWithNestedType.fetchOne(db)
+            
+            guard let nested = parentModel?.nested else {
+                XCTFail()
+                return .rollback
+            }
+            
+            XCTAssertTrue(nested.isEmpty)
+            return .rollback
         }
     }
 

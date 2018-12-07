@@ -1,11 +1,3 @@
-//
-//  OrderedDictionary.swift
-//  GRDB
-//
-//  Created by Gwendal Roué on 29/09/2018.
-//  Copyright © 2018 Gwendal Roué. All rights reserved.
-//
-
 struct OrderedDictionary<Key: Hashable, Value> {
     private var keys: [Key]
     private var values: [Key: Value]

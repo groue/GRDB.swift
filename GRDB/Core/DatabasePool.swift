@@ -52,7 +52,8 @@ public final class DatabasePool: DatabaseWriter {
             path: path,
             configuration: configuration,
             schemaCache: SimpleDatabaseSchemaCache(),
-            label: (configuration.label ?? "GRDB.DatabasePool") + ".writer")
+            defaultLabel: "GRDB.DatabasePool",
+            purpose: "writer")
         
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
@@ -89,7 +90,8 @@ public final class DatabasePool: DatabaseWriter {
                 path: path,
                 configuration: self.readerConfig,
                 schemaCache: SimpleDatabaseSchemaCache(),
-                label: (self.readerConfig.label ?? "GRDB.DatabasePool") + ".reader.\(readerCount)")
+                defaultLabel: "GRDB.DatabasePool",
+                purpose: "reader.\(readerCount)")
             reader.sync { self.setupDatabase($0) }
             return reader
         })
@@ -386,50 +388,6 @@ extension DatabasePool : DatabaseReader {
     ///   happen while establishing the read access to the database.
     @available(*, deprecated, message: "Use concurrentRead instead")
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
-        // https://www.sqlite.org/isolation.html
-        //
-        // > In WAL mode, SQLite exhibits "snapshot isolation". When a read
-        // > transaction starts, that reader continues to see an unchanging
-        // > "snapshot" of the database file as it existed at the moment in time
-        // > when the read transaction started. Any write transactions that
-        // > commit while the read transaction is active are still invisible to
-        // > the read transaction, because the reader is seeing a snapshot of
-        // > database file from a prior moment in time.
-        //
-        // That's exactly what we need. But what does "when read transaction
-        // starts" mean?
-        //
-        // http://www.sqlite.org/lang_transaction.html
-        //
-        // > Deferred [transaction] means that no locks are acquired on the
-        // > database until the database is first accessed. [...] Locks are not
-        // > acquired until the first read or write operation. [...] Because the
-        // > acquisition of locks is deferred until they are needed, it is
-        // > possible that another thread or process could create a separate
-        // > transaction and write to the database after the BEGIN on the
-        // > current thread has executed.
-        //
-        // Now that's precise enough: SQLite defers "snapshot isolation" until
-        // the first SELECT:
-        //
-        //     Reader                       Writer
-        //     BEGIN DEFERRED TRANSACTION
-        //                                  UPDATE ... (1)
-        //     Here the change (1) is visible
-        //     SELECT ...
-        //                                  UPDATE ... (2)
-        //     Here the change (2) is not visible
-        //
-        // The readFromCurrentState method says that no change should be visible
-        // at all. We thus have to perform a select that establishes the
-        // snapshot isolation before we release the writer queue:
-        //
-        //     Reader                       Writer
-        //     BEGIN DEFERRED TRANSACTION
-        //     SELECT anything
-        //                                  UPDATE ...
-        //     Here the change is not visible by GRDB user
-        
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
@@ -445,79 +403,36 @@ extension DatabasePool : DatabaseReader {
         // isolation has been established:
         let semaphore = DispatchSemaphore(value: 0)
         
-        var readError: Error? = nil
-        try readerPool.get { reader in
-            reader.async { db in
-                do {
-                    try db.beginTransaction(.deferred)
-                    assert(db.isInsideTransaction)
-                    try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").makeCursor().next()
-                } catch {
-                    readError = error
-                    semaphore.signal() // Release the writer queue and rethrow error
-                    return
-                }
-                semaphore.signal() // We can release the writer queue now that we are isolated for good
-                
-                // Reset the schema cache before running user code in snapshot isolation
-                db.schemaCache = SimpleDatabaseSchemaCache()
-                block(db)
-                
+        var snapshotIsolationError: Error? = nil
+        let (reader, releaseReader) = try readerPool.get()
+        reader.async { db in
+            defer {
                 _ = try? db.commit() // Ignore commit error
+                releaseReader()
             }
+            do {
+                try db.beginSnapshotIsolation()
+            } catch {
+                snapshotIsolationError = error
+                semaphore.signal() // Release the writer queue and rethrow error
+                return
+            }
+            semaphore.signal() // We can release the writer queue now that we are isolated for good
+            
+            // Reset the schema cache before running user code in snapshot isolation
+            db.schemaCache = SimpleDatabaseSchemaCache()
+            block(db)
         }
+        
         _ = semaphore.wait(timeout: .distantFuture)
-        if let readError = readError {
+        
+        if let error = snapshotIsolationError {
             // TODO: write a test for this
-            throw readError
+            throw error
         }
     }
     
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
-        // https://www.sqlite.org/isolation.html
-        //
-        // > In WAL mode, SQLite exhibits "snapshot isolation". When a read
-        // > transaction starts, that reader continues to see an unchanging
-        // > "snapshot" of the database file as it existed at the moment in time
-        // > when the read transaction started. Any write transactions that
-        // > commit while the read transaction is active are still invisible to
-        // > the read transaction, because the reader is seeing a snapshot of
-        // > database file from a prior moment in time.
-        //
-        // That's exactly what we need. But what does "when read transaction
-        // starts" mean?
-        //
-        // http://www.sqlite.org/lang_transaction.html
-        //
-        // > Deferred [transaction] means that no locks are acquired on the
-        // > database until the database is first accessed. [...] Locks are not
-        // > acquired until the first read or write operation. [...] Because the
-        // > acquisition of locks is deferred until they are needed, it is
-        // > possible that another thread or process could create a separate
-        // > transaction and write to the database after the BEGIN on the
-        // > current thread has executed.
-        //
-        // Now that's precise enough: SQLite defers "snapshot isolation" until
-        // the first SELECT:
-        //
-        //     Reader                       Writer
-        //     BEGIN DEFERRED TRANSACTION
-        //                                  UPDATE ... (1)
-        //     Here the change (1) is visible
-        //     SELECT ...
-        //                                  UPDATE ... (2)
-        //     Here the change (2) is not visible
-        //
-        // The readFromCurrentState method says that no change should be visible
-        // at all. We thus have to perform a select that establishes the
-        // snapshot isolation before we release the writer queue:
-        //
-        //     Reader                       Writer
-        //     BEGIN DEFERRED TRANSACTION
-        //     SELECT anything
-        //                                  UPDATE ...
-        //     Here the change is not visible by GRDB user
-        
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
@@ -538,32 +453,30 @@ extension DatabasePool : DatabaseReader {
         var futureResult: Result<T>? = nil
         
         do {
-            try readerPool.get { reader in
-                reader.async { db in
-                    // Open a deferred transaction and access the database in
-                    // order to establish snapshot isolation.
-                    defer { _ = try? db.commit() }
-                    do {
-                        try db.beginTransaction(.deferred)
-                        try db.makeSelectStatement("SELECT rootpage FROM sqlite_master").makeCursor().next()
-                    } catch {
-                        // Snapshot isolation failure
-                        futureResult = .failure(error)
-                        isolationSemaphore.signal()
-                        futureSemaphore.signal()
-                        return
-                    }
-                    
-                    // Release the writer queue
-                    isolationSemaphore.signal()
-                    
-                    // Reset the schema cache before running user code in snapshot isolation
-                    db.schemaCache = SimpleDatabaseSchemaCache()
-                    
-                    // Fetch and release the future
-                    futureResult = Result { try block(db) }
-                    futureSemaphore.signal()
+            let (reader, releaseReader) = try readerPool.get()
+            reader.async { db in
+                defer {
+                    try? db.commit() // Ignore commit error
+                    releaseReader()
                 }
+                do {
+                    try db.beginSnapshotIsolation()
+                } catch {
+                    futureResult = .failure(error)
+                    isolationSemaphore.signal()
+                    futureSemaphore.signal()
+                    return
+                }
+                
+                // Release the writer queue
+                isolationSemaphore.signal()
+                
+                // Reset the schema cache before running user code in snapshot isolation
+                db.schemaCache = SimpleDatabaseSchemaCache()
+                
+                // Fetch and release the future
+                futureResult = Result { try block(db) }
+                futureSemaphore.signal()
             }
         } catch {
             return Future { throw error }
@@ -844,7 +757,8 @@ extension DatabasePool {
         let snapshot = try DatabaseSnapshot(
             path: path,
             configuration: writer.configuration,
-            labelSuffix: ".snapshot.\(snapshotCount.increment())")
+            defaultLabel: "GRDB.DatabasePool",
+            purpose: "snapshot.\(snapshotCount.increment())")
         snapshot.read { setupDatabase($0) }
         return snapshot
     }

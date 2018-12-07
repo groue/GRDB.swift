@@ -26,7 +26,7 @@ extension Database {
     
     /// Returns whether a table exists.
     public func tableExists(_ name: String) throws -> Bool {
-        return try exists(type: "table", name: name)
+        return try exists(type: .table, name: name)
     }
     
     /// Returns whether a table is an internal SQLite table.
@@ -53,30 +53,21 @@ extension Database {
     
     /// Returns whether a view exists.
     public func viewExists(_ name: String) throws -> Bool {
-        return try exists(type: "view", name: name)
+        return try exists(type: .view, name: name)
     }
     
     /// Returns whether a trigger exists.
     public func triggerExists(_ name: String) throws -> Bool {
-        return try exists(type: "trigger", name: name)
+        return try exists(type: .trigger, name: name)
     }
     
-    private func exists(type: String, name: String) throws -> Bool {
+    private func exists(type: SchemaObjectType, name: String) throws -> Bool {
         // SQlite identifiers are case-insensitive, case-preserving:
         // http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html
         let name = name.lowercased()
-        
-        if try makeSelectStatement("SELECT 1 FROM sqlite_master WHERE type = ? AND LOWER(name) = ?")
-            .makeCursor(arguments: [type, name])
-            .isEmpty() == false
-        { return true }
-        
-        if try makeSelectStatement("SELECT 1 FROM sqlite_temp_master WHERE type = ? AND LOWER(name) = ?")
-            .makeCursor(arguments: [type, name])
-            .isEmpty() == false
-        { return true }
-        
-        return false
+        return try schema()
+            .names(ofType: type)
+            .contains { $0.lowercased() == name }
     }
 
     /// The primary key for table named `tableName`.
@@ -271,27 +262,19 @@ extension Database {
     
     /// Returns the actual name of the database table
     func canonicalTableName(_ tableName: String) throws -> String {
-        if let canonicalTableName = schemaCache.canonicalTableName(tableName) {
-            return canonicalTableName
-        }
-        
-        guard let canonicalTableName = try String.fetchOne(self, """
-            SELECT name FROM (
-                SELECT name, type FROM sqlite_master
-                UNION
-                SELECT name, type FROM sqlite_temp_master)
-            WHERE type = 'table' AND LOWER(name) = ?
-            """, arguments: [tableName.lowercased()])
-        else {
+        guard let name = try schema().canonicalName(tableName, ofType: .table) else {
             throw DatabaseError(message: "no such table: \(tableName)")
         }
-        
-        schemaCache.set(canonicalTableName: canonicalTableName, forTable: tableName)
-        return canonicalTableName
+        return name
     }
     
     func schema() throws -> SchemaInfo {
-        return try SchemaInfo(self)
+        if let schemaInfo = schemaCache.schemaInfo {
+            return schemaInfo
+        }
+        let schemaInfo = try SchemaInfo(self)
+        schemaCache.schemaInfo = schemaInfo
+        return schemaInfo
     }
 }
 
@@ -585,24 +568,58 @@ public struct ForeignKeyInfo {
     }
 }
 
+enum SchemaObjectType: String {
+    case index
+    case table
+    case trigger
+    case view
+}
+
 struct SchemaInfo: Equatable {
-    var objects: [SchemaKey: String?]
+    private var objects: Set<SchemaObject>
     
     init(_ db: Database) throws {
-        objects = try Dictionary(uniqueKeysWithValues: Row
-            .fetchAll(db, "SELECT type, name, tbl_name, sql FROM sqlite_master")
-            .map { row in (SchemaKey(row: row), row["sql"]) })
+        objects = try Set(SchemaObject.fetchCursor(db, """
+            SELECT type, name, tbl_name, sql, 0 AS isTemporary FROM sqlite_master \
+            UNION \
+            SELECT type, name, tbl_name, sql, 1 FROM sqlite_temp_master
+            """))
     }
     
-    struct SchemaKey: Codable, Hashable, FetchableRecord {
+    /// All names for a given type
+    func names(ofType type: SchemaObjectType) -> Set<String> {
+        return objects.reduce(into: []) { (set, key) in
+            if key.type == type.rawValue {
+                set.insert(key.name)
+            }
+        }
+    }
+    
+    /// Returns the canonical name of the object:
+    ///
+    ///     try db.execute("CREATE TABLE FooBar (...)")
+    ///     try db.schema().canonicalName("foobar", ofType: .table) // "FooBar"
+    func canonicalName(_ name: String, ofType type: SchemaObjectType) -> String? {
+        let name = name.lowercased()
+        return objects.first { $0.name.lowercased() == name }?.name
+    }
+    
+    private struct SchemaObject: Codable, Hashable, FetchableRecord {
         var type: String
         var name: String
         var tbl_name: String?
-        
+        var sql: String?
+        var isTemporary: Bool
+
         #if !swift(>=4.2)
-            var hashValue: Int {
-                return type.hashValue ^ name.hashValue ^ (tbl_name?.hashValue ?? 0)
-            }
+        var hashValue: Int {
+            var hash = type.hashValue
+            hash ^= name.hashValue
+            hash ^= (tbl_name?.hashValue ?? 0)
+            hash ^= (sql?.hashValue ?? 0)
+            hash ^= isTemporary.hashValue
+            return hash
+        }
         #endif
     }
 }

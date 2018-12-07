@@ -1,6 +1,136 @@
 Release Notes
 =============
 
+All notable changes to this project will be documented in this file.
+
+GRDB adheres to [Semantic Versioning](https://semver.org/).
+
+#### 3.x Releases
+
+- `3.5.x` Releases - [3.5.0](#350)
+- `3.4.x` Releases - [3.4.0](#340)
+- `3.3.x` Releases - [3.3.0](#330) | [3.3.1](#331)
+- `3.3.0` Betas - [3.3.0-beta1](#330-beta1)
+- `3.2.x` Releases - [3.2.0](#320)
+- `3.1.x` Releases - [3.1.0](#310)
+- `3.0.x` Releases - [3.0.0](#300)
+
+#### 2.x Releases
+
+- `2.10.x` Releases - [2.10.0](#2100)
+- `2.9.x` Releases - [2.9.0](#290)
+- `2.8.x` Releases - [2.8.0](#280)
+- `2.7.x` Releases - [2.7.0](#270)
+- `2.6.x` Releases - [2.6.0](#260) | [2.6.1](#261)
+- `2.5.x` Releases - [2.5.0](#250)
+- `2.4.x` Releases - [2.4.0](#240) | [2.4.1](#241) | [2.4.2](#242)
+- `2.3.x` Releases - [2.3.0](#230) | [2.3.1](#231)
+- `2.2.x` Releases - [2.2.0](#220)
+- `2.1.x` Releases - [2.1.0](#210)
+- `2.0.x` Releases - [2.0.0](#200) | [2.0.1](#201) | [2.0.2](#202) | [2.0.3](#203)
+
+#### 1.x Releases
+
+- `1.3.x` Releases - [1.3.0](#130)
+- `1.2.x` Releases - [1.2.0](#120) | [1.2.1](#121) | [1.2.2](#122)
+- `1.1.x` Releases - [1.1.0](#110)
+- `1.0.x` Releases - [1.0.0](#100)
+
+#### 0.x Releases
+
+- [0.110.0](#01100), ...
+
+
+## Next Version
+
+### Fixed
+
+- [#449](https://github.com/groue/GRDB.swift/pull/449): Fix JSON encoding of empty containers
+
+
+### New
+
+- [#442](https://github.com/groue/GRDB.swift/pull/442): Reindex
+- [#443](https://github.com/groue/GRDB.swift/pull/443): In place record update
+- [#445](https://github.com/groue/GRDB.swift/pull/445): Quality of service and target dispatch queue
+- [#446](https://github.com/groue/GRDB.swift/pull/446): ValueObservation: delayed reducer creation
+- [#444](https://github.com/groue/GRDB.swift/pull/444): Combine Value Observations
+- [#451](https://github.com/groue/GRDB.swift/pull/451): ValueObservation.compactMap
+- [#452](https://github.com/groue/GRDB.swift/pull/452): ValueObservation.mapReducer
+- [#454](https://github.com/groue/GRDB.swift/pull/454): ValueObservation.distinctUntilChanged
+- [#455](https://github.com/groue/GRDB.swift/pull/455): DatabaseRegionObservation
+- ValueObservation methods which used to accept a variadic list of observed regions now also accept an array.
+- ValueReducer, the protocol that fuels ValueObservation, is flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). It will remain so until more experience has been acquired.
+
+
+### Documentation Diff
+
+- [Record Comparison](README.md#record-comparison): this chapter has been updated for the new `updateChanges(_:with:)` method.
+- [ValueObservation](README.md#valueobservation): this chapter has been updated for the new `ValueObservation.combine`, `ValueObservation.compactMap`, and `Value.distinctUntilChanged` methods.
+- [DatabaseRegionObservation](README.md#databaseregionobservation): this chapter describes the new `DatabaseRegionObservation` type.
+
+
+### API diff
+
+```diff
+ extension Database {
++    func reindex(collation: Database.CollationName) throws
++    func reindex(collation: DatabaseCollation) throws
+ }
+ 
+ extension MutablePersistableRecord {
++    mutating func updateChanges(_ db: Database, with change: (inout Self) throws -> Void) throws -> Bool
+ }
+
+ extension PersistableRecord {
++    func updateChanges(_ db: Database, with change: (Self) throws -> Void) throws -> Bool
+ }
+
+ struct ValueObservation<Reducer> {
++    static func tracking(
++        _ regions: [DatabaseRegionConvertible],
++        reducer: @escaping (Database) throws -> Reducer)
++        -> ValueObservation
+ }
+ 
++extension ValueObservation where Reducer == Void {
++    static func tracking<Value>(
++        _ regions: [DatabaseRegionConvertible],
++        fetch: @escaping (Database) throws -> Value)
++        -> ValueObservation<ValueReducers.Raw<Value>>
++    static func tracking<Value>(
++        _ regions: [DatabaseRegionConvertible],
++        fetchDistinct fetch: @escaping (Database) throws -> Value)
++        -> ValueObservation<ValueReducers.Distinct<Value>>
++        where Value: Equatable
++    static func combine<R1: ValueReducer, ...>(_ o1: ValueObservation<R1>, ...)
++        -> ValueObservation<...>
++}
+ 
++extension ValueObservation where Reducer: ValueReducer {
++    func compactMap<T>(_ transform: @escaping (Reducer.Value) -> T?)
++        -> ValueObservation<CompactMapValueReducer<Reducer, T>>
++}
+
++extension ValueObservation {
++    func mapReducer<R>(_ transform: @escaping (Database, Reducer) throws -> R)
++        -> ValueObservation<R>
++}
+ 
+ struct Configuration {
++    var qos: DispatchQoS
++    var targetQueue: DispatchQueue?
+ }
+ 
++struct DatabaseRegionObservation {
++    var extent: Database.TransactionObservationExtent
++    init(tracking regions: DatabaseRegionConvertible...)
++    init(tracking regions: [DatabaseRegionConvertible])
++    func start(in dbWriter: DatabaseWriter, onChange: @escaping (Database) -> Void) throws -> TransactionObserver
++}
+```
+
+
 ## 3.5.0
 
 Released November 2, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.4.0...v3.5.0)
@@ -1308,7 +1438,7 @@ Released July 19, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare
     It used to generate `= NULL` which would not behave as expected. 
     
 
-## 1.2
+## 1.2.0
 
 Released July 13, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v1.1...v1.2)
 
@@ -1407,7 +1537,7 @@ Released July 13, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare
 ```
 
 
-## 1.1
+## 1.1.0
 
 Released July 1, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v1.0...v1.1)
 
@@ -1469,9 +1599,9 @@ Released July 1, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/
 ```
 
 
-## 1.0 :tada:
+## 1.0.0
 
-Released June 20, 2017
+Released June 20, 2017 :tada:
 
 **GRDB 1.0 comes with enhancements, and API stability.**
 

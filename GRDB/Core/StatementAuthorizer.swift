@@ -49,18 +49,18 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
         
         switch actionCode {
         case SQLITE_DROP_TABLE, SQLITE_DROP_VTABLE, SQLITE_DROP_TEMP_TABLE,
-             SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX:
+             SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX,
+             SQLITE_DROP_VIEW, SQLITE_DROP_TEMP_VIEW,
+             SQLITE_DROP_TRIGGER, SQLITE_DROP_TEMP_TRIGGER:
             isDropStatement = true
             invalidatesDatabaseSchemaCache = true
             return SQLITE_OK
             
-        case SQLITE_DROP_VIEW, SQLITE_DROP_TEMP_VIEW,
-             SQLITE_DROP_TRIGGER, SQLITE_CREATE_TEMP_TRIGGER:
-            isDropStatement = true
-            return SQLITE_OK
-            
-        case SQLITE_DETACH, SQLITE_ALTER_TABLE,
-             SQLITE_CREATE_INDEX, SQLITE_CREATE_TEMP_INDEX:
+        case SQLITE_ALTER_TABLE, SQLITE_DETACH,
+             SQLITE_CREATE_INDEX, SQLITE_CREATE_TABLE,
+             SQLITE_CREATE_TEMP_INDEX, SQLITE_CREATE_TEMP_TABLE,
+             SQLITE_CREATE_TEMP_TRIGGER, SQLITE_CREATE_TEMP_VIEW,
+             SQLITE_CREATE_TRIGGER, SQLITE_CREATE_VIEW:
             invalidatesDatabaseSchemaCache = true
             return SQLITE_OK
             

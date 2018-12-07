@@ -1,4 +1,5 @@
 import Foundation
+import Dispatch
 #if SWIFT_PACKAGE
     import CSQLite
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
@@ -136,11 +137,28 @@ public struct Configuration {
     /// Default: 5
     public var maximumReaderCount: Int = 5
     
+    /// The quality of service class for the work performed by the database.
+    ///
+    /// The quality of service is ignored if you supply a target queue.
+    ///
+    /// Default: .default (.unspecified on macOS < 10.10)
+    public var qos: DispatchQoS
+    
+    /// The target queue for the work performed by the database.
+    ///
+    /// Default: nil
+    public var targetQueue: DispatchQueue? = nil
     
     // MARK: - Factory Configuration
     
     /// Creates a factory configuration
-    public init() { }
+    public init() {
+        if #available(OSX 10.10, *) {
+            qos = .default
+        } else {
+            qos = .unspecified
+        }
+    }
     
     
     // MARK: - Not Public
@@ -152,6 +170,15 @@ public struct Configuration {
     var SQLiteOpenFlags: Int32 {
         let readWriteFlags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
         return threadingMode.SQLiteOpenFlags | readWriteFlags
+    }
+    
+    func makeDispatchQueue(defaultLabel: String, purpose: String? = nil) -> DispatchQueue {
+        let label = (self.label ?? defaultLabel) + (purpose.map { "." + $0 } ?? "")
+        if let targetQueue = targetQueue {
+            return DispatchQueue(label: label, target: targetQueue)
+        } else {
+            return DispatchQueue(label: label, qos: qos)
+        }
     }
 }
 

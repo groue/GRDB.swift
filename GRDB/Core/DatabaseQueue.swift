@@ -40,7 +40,7 @@ public final class DatabaseQueue: DatabaseWriter {
             path: path,
             configuration: configuration,
             schemaCache: SimpleDatabaseSchemaCache(),
-            label: configuration.label ?? "GRDB.DatabaseQueue")
+            defaultLabel: "GRDB.DatabaseQueue")
     }
     
     /// Opens an in-memory SQLite database.
@@ -56,7 +56,7 @@ public final class DatabaseQueue: DatabaseWriter {
             path: ":memory:",
             configuration: configuration,
             schemaCache: SimpleDatabaseSchemaCache(),
-            label: configuration.label ?? "GRDB.DatabaseQueue")
+            defaultLabel: "GRDB.DatabaseQueue")
     }
     
     #if os(iOS)

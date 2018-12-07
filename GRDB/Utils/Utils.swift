@@ -69,3 +69,15 @@ extension Array {
         }
     }
 }
+
+extension DispatchQueue {
+    private static var mainKey: DispatchSpecificKey<()> = {
+        let key = DispatchSpecificKey<()>()
+        DispatchQueue.main.setSpecific(key: key, value: ())
+        return key
+    }()
+
+    static var isMain: Bool {
+        return DispatchQueue.getSpecific(key: mainKey) != nil
+    }
+}

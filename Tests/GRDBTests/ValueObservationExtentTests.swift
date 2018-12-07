@@ -23,7 +23,7 @@ class ValueObservationExtentTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
-        // Track reducer proceess
+        // Track reducer process
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 3
@@ -34,7 +34,7 @@ class ValueObservationExtentTests: GRDBTestCase {
             value: { $0 })
         
         // Create an observation
-        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
         observation.extent = .databaseLifetime
         
         // Start observation
@@ -60,7 +60,7 @@ class ValueObservationExtentTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
-        // Track reducer proceess
+        // Track reducer process
         var changesCount = 0
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
@@ -72,7 +72,7 @@ class ValueObservationExtentTests: GRDBTestCase {
             value: { $0 })
         
         // Create an observation
-        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
         observation.extent = .observerLifetime
         
         // Start observation and deallocate observer after second change
@@ -107,7 +107,7 @@ class ValueObservationExtentTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
-        // Track reducer proceess
+        // Track reducer process
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 2
@@ -118,7 +118,7 @@ class ValueObservationExtentTests: GRDBTestCase {
             value: { $0 })
         
         // Create an observation
-        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: reducer)
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
         observation.extent = .nextTransaction
         
         // Start observation
