@@ -563,8 +563,8 @@ Your help is needed. You have to instruct GRDB which foreign key to use:
 ```swift
 struct Book: TableRecord {
     // Define foreign keys
-    static let authorForeignKey = ForeignKey(["authorId"]))
-    static let translatorForeignKey = ForeignKey(["translatorId"]))
+    static let authorForeignKey = ForeignKey(["authorId"])
+    static let translatorForeignKey = ForeignKey(["translatorId"])
     
     // Use foreign keys to define associations:
     static let author = belongsTo(Person.self, using: authorForeignKey)
