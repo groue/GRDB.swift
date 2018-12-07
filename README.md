@@ -6162,27 +6162,24 @@ The initial parameter of the `ValueObservation.tracking(_:fetch:)` method can be
 Thanks to DatabaseRegionConvertible, `TeamInfoRequest` below is not only able to fetch a team and its players, but also to be observed.
 
 ```swift
+/// A team and its players
 struct TeamInfo {
     var team: Team
     var players: [Player]
 }
 
-struct TeamInfoRequest: DatabaseRegionConvertible {
+/// A request that can fetch TeamInfo, given a team id.
+struct TeamInfoRequest {
     var teamId: Int64
     
+    /// The request for the team
     private var teamRequest: QueryInterfaceRequest<Team> {
         return Team.filter(key: teamId)
     }
     
+    /// The request for the players
     private var playersRequest: QueryInterfaceRequest<Player> {
         return Player.filter(Column("teamId") == teamId)
-    }
-    
-    /// DatabaseRegionConvertible adoption
-    func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        let teamRegion = try teamRequest.databaseRegion(db)
-        let playersRegion = try playersRequest.databaseRegion(db)
-        return teamRegion.union(playersRegion)
     }
     
     /// Fetch a TeamInfo
@@ -6192,6 +6189,15 @@ struct TeamInfoRequest: DatabaseRegionConvertible {
         }
         let players = try playersRequest.fetchAll(db)
         return TeamInfo(team: team, players: players)
+    }
+}
+
+extension TeamInfoRequest: DatabaseRegionConvertible {
+    func databaseRegion(_ db: Database) throws -> DatabaseRegion {
+        // Returns the union of the team region and the players region
+        let teamRegion = try teamRequest.databaseRegion(db)
+        let playersRegion = try playersRequest.databaseRegion(db)
+        return teamRegion.union(playersRegion)
     }
 }
 
