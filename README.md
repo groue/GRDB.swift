@@ -2174,7 +2174,7 @@ It is possible to [avoid useless updates](#record-comparison):
 
 ```swift
 if let player = try Player.fetchOne(db, key: 1) {
-    // does nothing if score has not changed
+    // does not hit the database if score has not changed
     try player.updateChanges(db) {
         $0.score = 1000
     }
@@ -2960,7 +2960,7 @@ The `updateChanges` methods perform a database update of the changed columns onl
         if try newPlayer.updateChanges(db, from: oldPlayer) {
             print("player was modified, and updated in the database")
         } else {
-            print("player was not modified")
+            print("player was not modified, and database was not hit")
         }
     }
     ```
@@ -2977,7 +2977,7 @@ The `updateChanges` methods perform a database update of the changed columns onl
         if modified {
             print("player was modified, and updated in the database")
         } else {
-            print("player was not modified")
+            print("player was not modified, and database was not hit")
         }
     }
     ```
@@ -2993,7 +2993,7 @@ The `updateChanges` methods perform a database update of the changed columns onl
         if try player.updateChanges(db) {
             print("player was modified, and updated in the database")
         } else {
-            print("player was not modified")
+            print("player was not modified, and database was not hit")
         }
     }
     ```
