@@ -6192,6 +6192,7 @@ struct TeamInfoRequest {
     }
 }
 
+/// Make TeamInfoRequest observable
 extension TeamInfoRequest: DatabaseRegionConvertible {
     func databaseRegion(_ db: Database) throws -> DatabaseRegion {
         // Returns the union of the team region and the players region
