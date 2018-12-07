@@ -359,9 +359,6 @@ The repository comes with a [demo application](DemoApps/GRDBDemoiOS/README.md) t
 - how to define a simple [Codable Record](#codable-records)
 - how to track database changes with [ValueObservation] and [FetchedRecordsController].
 
-<p align="center">
-    <img src="https://github.com/groue/GRDB.swift/raw/master/Documentation/Images/GRDBDemoScreenshot.png" width="50%">
-</p>
 
 Database Connections
 ====================
