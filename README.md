@@ -2061,7 +2061,7 @@ Before jumping in the low-level wagon, here is the list of all SQLite APIs used 
 - `sqlite3_busy_handler`, `sqlite3_busy_timeout`: see [Configuration.busyMode](http://groue.github.io/GRDB.swift/docs/3.5/Structs/Configuration.html)
 - `sqlite3_changes`, `sqlite3_total_changes`: see [Database.changesCount and Database.totalChangesCount](http://groue.github.io/GRDB.swift/docs/3.5/Classes/Database.html)
 - `sqlite3_close`, `sqlite3_close_v2`, `sqlite3_next_stmt`, `sqlite3_open_v2`: see [Database Connections](#database-connections)
-- `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [TransactionObserver Protocol](#transactionobserver-protocol), [ValueObservation], [FetchedRecordsController]
+- `sqlite3_commit_hook`, `sqlite3_rollback_hook`, `sqlite3_update_hook`: see [TransactionObserver Protocol](#transactionobserver-protocol), [DatabaseRegionObservation], [ValueObservation], [FetchedRecordsController]
 - `sqlite3_config`: see [Error Log](#error-log)
 - `sqlite3_create_collation_v2`: see [String Comparison](#string-comparison)
 - `sqlite3_db_release_memory`: see [Memory Management](#memory-management)
@@ -4571,7 +4571,7 @@ The `prepare` method returns a prepared statement and an optional row adapter. T
 
 The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
 
-The base `DatabaseRegionConvertible` protocol is involved in [database observation](#database-changes-observation). For more information, see [DatabaseRegion](#databaseregion), and [ValueObservation].
+The base `DatabaseRegionConvertible` protocol is involved in [database observation](#database-changes-observation). For more information, see [DatabaseRegion], [DatabaseRegionObservation], and [ValueObservation].
 
 The FetchRequest protocol is adopted, for example, by [query interface requests](#requests):
 
@@ -5846,10 +5846,10 @@ Database Changes Observation
 
 GRDB puts this SQLite feature to some good use, and lets you observe the database in various ways:
 
-- [After Commit Hook](#after-commit-hook): The simplest way to handle successful transactions.
+- [After Commit Hook](#after-commit-hook): Handle successful transactions one by one.
+- [ValueObservation and DatabaseRegionObservation]: Automated tracking of database requests.
+- [FetchedRecordsController]: Animate table views according to database changes.
 - [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
-- [ValueObservation]: Automated tracking of database changes.
-- [FetchedRecordsController]: Automated tracking of database changes, with table view animations.
 - [RxGRDB]: Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 
 Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
@@ -5914,343 +5914,131 @@ try dbQueue.write { db in
 ```
 
 
-## TransactionObserver Protocol
+## ValueObservation and DatabaseRegionObservation
 
-The `TransactionObserver` protocol lets you **observe database changes and transactions**:
+**ValueObservation and DatabaseRegionObservation** are two database observations tools that track changes in database [requests](#requests):
 
 ```swift
-protocol TransactionObserver : class {
-    /// Notifies a database change:
-    /// - event.kind (insert, update, or delete)
-    /// - event.tableName
-    /// - event.rowID
-    ///
-    /// For performance reasons, the event is only valid for the duration of
-    /// this method call. If you need to keep it longer, store a copy:
-    /// event.copy().
-    func databaseDidChange(with event: DatabaseEvent)
-    
-    /// Filters the database changes that should be notified to the
-    /// `databaseDidChange(with:)` method.
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
-    
-    /// An opportunity to rollback pending changes by throwing an error.
-    func databaseWillCommit() throws
-    
-    /// Database changes have been committed.
-    func databaseDidCommit(_ db: Database)
-    
-    /// Database changes have been rollbacked.
-    func databaseDidRollback(_ db: Database)
-}
+// Two observations that track the players:
+let request = Player.all()
+let valueObservation = ValueObservation.trackingAll(request)
+let regionObservation = DatabaseRegionObservation(tracking: request)
 ```
 
-- [Activate a Transaction Observer](#activate-a-transaction-observer)
-- [Database Changes And Transactions](#database-changes-and-transactions)
-- [Filtering Database Events](#filtering-database-events)
-- [Observation Extent](#observation-extent)
-- [DatabaseRegion](#databaseregion)
-- [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)
-
-
-### Activate a Transaction Observer
-
-**To activate a transaction observer, add it to the database queue or pool:**
+[ValueObservation] notifies your application with **fresh values** (this is what most applications need :+1:):
 
 ```swift
-let observer = MyObserver()
-dbQueue.add(transactionObserver: observer)
-```
-
-By default, database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated. See [Observation Extent](#observation-extent) for more options.
-
-
-### Database Changes And Transactions
-
-**A transaction observer is notified of all database changes**: inserts, updates and deletes. This includes indirect changes triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions), and [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
-
-> :point_up: **Note**: the changes that are not notified are changes to internal system tables (such as `sqlite_master`), changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables, and the deletion of duplicate rows triggered by [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) clauses (this last exception might change in a future release of SQLite).
-
-Notified changes are not actually written to disk until the [transaction](#transactions-and-savepoints) commits, and the `databaseDidCommit` callback is called. On the other side, `databaseDidRollback` confirms their invalidation:
-
-```swift
-try dbQueue.write { db in
-    try db.execute("INSERT ...") // 1. didChange
-    try db.execute("UPDATE ...") // 2. didChange
-}                                // 3. willCommit, 4. didCommit
-
-try dbQueue.inTransaction { db in
-    try db.execute("INSERT ...") // 1. didChange
-    try db.execute("UPDATE ...") // 2. didChange
-    return .rollback             // 3. didRollback
+let observer = valueObservation.start(in: dbQueue) { players: [Player] in
+    print("Player have changed: \(players)")
 }
 
 try dbQueue.write { db in
-    try db.execute("INSERT ...") // 1. didChange
-    throw SomeError()
-}                                // 2. didRollback
+    try Player(name: "Arthur").insert(db)
+}
+// Prints "Players have changed: ..."
+
 ```
 
-Database statements that are executed outside of any transaction do not drop off the radar:
+[DatabaseRegionObservation] notifies your application with **database connections**, right after an impactful database transaction has been committed (reserved for advanced use cases :nerd_face:):
 
 ```swift
-try dbQueue.inDatabase { db in
-    try db.execute("INSERT ...") // 1. didChange, 2. willCommit, 3. didCommit
-    try db.execute("UPDATE ...") // 4. didChange, 5. willCommit, 6. didCommit
+let observer = regionObservation.start(in: dbQueue) { db: Database in
+    print("Player have changed.")
+}
+
+try dbQueue.write { db in
+    try Player(name: "Barbara").insert(db)
+}
+// Prints "Players have changed."
+```
+
+
+## DatabaseRegionObservation
+
+**DatabaseRegionObservation tracks changes in database [requests](#requests), and notifies each impactful [transaction](#transactions-and-savepoints).**
+
+No insertion, update, or deletion in the tracked tables is missed. This includes indirect changes triggered by [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
+
+DatabaseRegionObservation calls your application right after changes have been committed in the database, and before any other thread had any opportunity to perform further changes. *This is a pretty strong guarantee, that most applications do not really need.* Instead, most applications prefer to be notified with fresh values: make sure you check [ValueObservation] before using DatabaseRegionObservation.
+
+
+### DatabaseRegionObservation Usage
+
+Define an observation by providing one or several requests to track:
+
+```swift
+// Track all players
+let observation = DatabaseRegionObservation(tracking: Player.all())
+```
+
+Then start the observation from a [database queue](#database-queues) or [pool](#database-pools):
+
+```swift
+let observer = observation.start(in: dbQueue) { db: Database in
+    print("Players were changed")
 }
 ```
 
-Changes that are on hold because of a [savepoint](https://www.sqlite.org/lang_savepoint.html) are only notified after the savepoint has been released. This makes sure that notified events are only events that have an opportunity to be committed:
+And enjoy the changes notifications:
 
 ```swift
-try dbQueue.inTransaction { db in
-    try db.execute("INSERT ...")            // 1. didChange
-    
-    try db.execute("SAVEPOINT foo")
-    try db.execute("UPDATE ...")            // delayed
-    try db.execute("UPDATE ...")            // delayed
-    try db.execute("RELEASE SAVEPOINT foo") // 2. didChange, 3. didChange
-    
-    try db.execute("SAVEPOINT foo")
-    try db.execute("UPDATE ...")            // not notified
-    try db.execute("ROLLBACK TO SAVEPOINT foo")
-    
-    return .commit                          // 4. willCommit, 5. didCommit
+try dbQueue.write { db in
+    try Player(name: "Arthur").insert(db)
+}
+// Prints "Players were changed"
+```
+
+By default, the observation lasts until the observer returned by the `start` method is deallocated. See [DatabaseRegionObservation.extent](#databaseregionobservationextent) for more details.
+
+You can also feed DatabaseRegionObservation with [DatabaseRegion], or any type which conforms to the [DatabaseRegionConvertible] protocol. For example:
+
+```swift
+// Observe the full database
+let observation = DatabaseRegionObservation(tracking: DatabaseRegion.fullDatabase)
+let observer = observation.start(in: dbQueue) { db: Database in
+    print("Database was changed")
 }
 ```
 
 
-**Eventual errors** thrown from `databaseWillCommit` are exposed to the application code:
+### DatabaseRegionObservation Use Cases
+
+**There are very few use cases for DatabaseRegionObservation**.
+
+For example:
+
+- One needs to write in the database after an impactful transaction.
+
+- One needs to synchronize the content of the database file with some external resources, like other files, or system sensors like CLRegion monitoring.
+
+- On iOS, one needs to process a database transaction before the operating system had any opportunity to put the application in the suspended state.
+
+- One want to build a [database snapshot](#database-snapshots) with a guaranteed snapshot content.
+
+Outside of those use cases, it is much likely *wrong* to use a DatabaseRegionObservation. Please check other [Database Observation](#database-changes-observation) options.
+
+
+### DatabaseRegionObservation.extent
+
+The `extent` property lets you specify the duration of the observation. See [Observation Extent](#observation-extent) for more details:
 
 ```swift
-do {
-    try dbQueue.inTransaction { db in
-        ...
-        return .commit           // 1. willCommit (throws), 2. didRollback
-    }
-} catch {
-    // 3. The error thrown by the transaction observer.
-}
+// This observation lasts until the database connection is closed
+var observation = DatabaseRegionObservation...
+observation.extent = .databaseLifetime
+_ = observation.start(in: dbQueue) { db in ... }
 ```
 
-> :point_up: **Note**: all callbacks are called in a protected dispatch queue, and serialized with all database updates.
->
-> :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
+The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deallocated.
 
-
-[ValueObservation], [FetchedRecordsController], and [RxGRDB] are based on the TransactionObserver protocol.
-
-See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
-
-
-### Filtering Database Events
-
-**Transaction observers can avoid being notified of database changes they are not interested in.**
-
-The filtering happens in the `observes(eventsOfKind:)` method, which tells whether the observer wants notification of specific kinds of changes, or not. For example, here is how an observer can focus on the changes that happen on the "player" database table:
+Regardless of the extent of an observation, you can always stop observation with the `remove(transactionObserver:)` method:
 
 ```swift
-class PlayerObserver: TransactionObserver {
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        // Only observe changes to the "player" table.
-        return eventKind.tableName == "player"
-    }
-    
-    func databaseDidChange(with event: DatabaseEvent) {
-        // This method is only called for changes that happen to
-        // the "player" table.
-    }
-}
-```
+// Start
+let observer = observation.start(in: dbQueue) { db in ... }
 
-Generally speaking, the `observes(eventsOfKind:)` method can distinguish insertions from deletions and updates, and is also able to inspect the columns that are about to be changed:
-
-```swift
-class PlayerScoreObserver: TransactionObserver {
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        // Only observe changes to the "score" column of the "player" table.
-        switch eventKind {
-        case .insert(let tableName):
-            return tableName == "player"
-        case .delete(let tableName):
-            return tableName == "player"
-        case .update(let tableName, let columnNames):
-            return tableName == "player" && columnNames.contains("score")
-        }
-    }
-}
-```
-
-When the `observes(eventsOfKind:)` method returns false for all event kinds, the observer is still notified of commits and rollbacks:
-
-```swift
-class PureTransactionObserver: TransactionObserver {
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        // Ignore all individual changes
-        return false
-    }
-    
-    func databaseDidChange(with event: DatabaseEvent) { /* Never called */ }
-    func databaseWillCommit() throws { /* Called before commit */ }
-    func databaseDidRollback(_ db: Database) { /* Called on rollback */ }
-    func databaseDidCommit(_ db: Database) { /* Called on commit */ }
-}
-```
-
-For more information about event filtering, see [DatabaseRegion](#databaseregion).
-
-
-### Observation Extent
-
-**You can specify how long an observer is notified of database changes and transactions.**
-
-The `remove(transactionObserver:)` method explicitly stops notifications, at any time:
-
-```swift
-// From a database queue or pool:
+// Stop
 dbQueue.remove(transactionObserver: observer)
-
-// From a database connection:
-dbQueue.inDatabase { db in
-    db.remove(transactionObserver: observer)
-}
-```
-
-Alternatively, use the `extent` parameter of the `add(transactionObserver:extent:)` method:
-
-```swift
-let observer = MyObserver()
-
-// On a database queue or pool:
-dbQueue.add(transactionObserver: observer) // default extent
-dbQueue.add(transactionObserver: observer, extent: .observerLifetime)
-dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
-dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
-
-// On a database connection:
-dbQueue.inDatabase { db in
-    db.add(transactionObserver: ...)
-}
-```
-
-- The default extent is `.observerLifetime`: the database holds a weak reference to the observer, and the observation automatically ends when the observer is deallocated. Meanwhile, observer is notified of all changes and transactions.
-
-- `.nextTransaction` activates the observer until the current or next transaction completes. The database keeps a strong reference to the observer until its `databaseDidCommit` or `databaseDidRollback` method is eventually called. Hereafter the observer won't get any further notification.
-
-- `.databaseLifetime` has the database retain and notify the observer until the database connection is closed.
-
-Finally, an observer may ignore all database changes until the end of the current transaction:
-
-```swift
-class PlayerObserver: TransactionObserver {
-    var playerTableWasModified = false
-    
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return eventKind.tableName == "player"
-    }
-    
-    func databaseDidChange(with event: DatabaseEvent) {
-        playerTableWasModified = true
-        
-        // It is pointless to keep on tracking further changes:
-        stopObservingDatabaseChangesUntilNextTransaction()
-    }
-}
-```
-
-After `stopObservingDatabaseChangesUntilNextTransaction()`, the `databaseDidChange(with:)` method will not be notified of any change for the remaining duration of the current transaction. This helps GRDB optimize database observation.
-
-
-### DatabaseRegion
-
-**[DatabaseRegion](https://groue.github.io/GRDB.swift/docs/3.5/Structs/DatabaseRegion.html) is a type that helps observing changes in the results of a database [request](#requests)**.
-
-A request knows which database modifications can impact its results. It can communicate this information to a transaction observer by the way of a database region.
-
-You start by building regions:
-
-```swift
-try dbQueue.write { db in
-    let teamRegion = try Team.filter(key: 1).databaseRegion(db)
-    let playersRegion = try SQLRequest<Player>("SELECT * FROM player").databaseRegion(db)
-    let maxScoreRegion = try Player.select(max(Column("score"))).databaseRegion(db)
-```
-
-You can group regions:
-
-```swift
-    let region = teamRegion.union(playersRegion).union(maxScoreRegion)
-}
-```
-
-There are two special regions: `DatabaseRegion()` (the empty region), and `DatabaseRegion.fullDatabase` (the region that spans the whole database).
-
-Regions feed the `observes(eventsOfKind:)` and `databaseDidChange(with:)` methods of transaction observers. For example:
-
-```swift
-// A transaction observer which notifies all changes to a database region.
-class DatabaseRegionObserver: TransactionObserver {
-    let region: DatabaseRegion
-    var regionIsModified = false
-    
-    init(region: DatabaseRegion) {
-        self.region = region
-    }
-    
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return region.isModified(byEventsOfKind: eventKind)
-    }
-    
-    func databaseDidChange(with event: DatabaseEvent) {
-        if region.isModified(by: event) {
-            regionIsModified = true
-            stopObservingDatabaseChangesUntilNextTransaction()
-        }
-    }
-    
-    func databaseDidRollback(_ db: Database) {
-        regionIsModified = false
-    }
-    
-    func databaseDidCommit(_ db: Database) {
-        if regionIsModified == false { return }
-        regionIsModified = false
-        
-        // You'll customize your handling of changes here:
-        print("Region has been modified.")
-    }
-}
-
-// Observe a region
-try dbQueue.write { db in
-    observer = DatabaseRegionObserver(region: region)
-    db.add(transactionObserver: observer)
-}
-```
-
-A region notifies *potential* changes, not *actual* changes in the results of a request. A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
-
-For example, if you observe the region of `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
-
-Similarly, observing the region of `Country.filter(key: "FR")` will notify all changes that happen to the whole `country` table. That is because SQLite only notifies the numerical [rowid](https://www.sqlite.org/rowidtable.html) of changed rows, and we can't check if it is the row "FR" that has been changed, or another. This limitation does not apply to tables whose primary key *is* the rowid: `Player.filter(key: 42)` will only notify of changes performed on the row with id 42.
-
-
-### Support for SQLite Pre-Update Hooks
-
-A [custom SQLite build](Documentation/CustomSQLiteBuilds.md) can activate [SQLite "preupdate hooks"](https://sqlite.org/c3ref/preupdate_count.html). In this case, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
-
-```swift
-protocol TransactionObserverType : class {
-    #if SQLITE_ENABLE_PREUPDATE_HOOK
-    /// Notifies before a database change (insert, update, or delete)
-    /// with change information (initial / final values for the row's
-    /// columns).
-    ///
-    /// The event is only valid for the duration of this method call. If you
-    /// need to keep it longer, store a copy: event.copy().
-    func databaseWillChange(with event: DatabasePreUpdateEvent)
-    #endif
-}
 ```
 
 
@@ -6264,11 +6052,7 @@ Changes are only notified after they have been committed in the database. No ins
 - **[ValueObservation Usage](#valueobservation-usage)**
 - [ValueObservation.trackingCount, trackingOne, trackingAll](#valueobservationtrackingcount-trackingone-trackingall)
 - [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
-- [ValueObservation Transformations](#valueobservation-transformations)
-    - [ValueObservation.map](#valueobservationmap)
-    - [ValueObservation.compactMap](#valueobservationcompactmap)
-    - [ValueObservation.distinctUntilChanged](#valueobservationdistinctuntilchanged)
-    - [ValueObservation.combine(...)](#valueobservationcombine)
+- [ValueObservation Transformations](#valueobservation-transformations): [map](#valueobservationmap), [compactMap](#valueobservationcompactmap), ...
 - [ValueObservation Error Handling](#valueobservation-error-handling)
 - [ValueObservation Options](#valueobservation-options)
 - [Advanced: ValueObservation.tracking(_:reducer:)](#advanced-valueobservationtracking_reducer)
@@ -6459,19 +6243,11 @@ let observer = observation.start(in: dbQueue) { hallOfFame: HallOfFame in
 ```
 
 
-#### The DatabaseRegionConvertible Protocol
+#### DatabaseRegionConvertible Observation
 
-The initial parameter of the `ValueObservation.tracking(_:fetch:)` and `ValueObservation.tracking(_:fetchDistinct:)` methods can be fed with requests, and generally speaking, values that adopt the **DatabaseRegionConvertible** protocol.
+The initial parameter of the `ValueObservation.tracking(_:fetch:)` method can be fed with requests, and generally speaking, values that adopt the [DatabaseRegionConvertible] protocol.
 
-```swift
-protocol DatabaseRegionConvertible {
-    func databaseRegion(_ db: Database) throws -> DatabaseRegion
-}
-```
-
-[DatabaseRegion](#databaseregion) is a type that helps observing the database.
-
-Use this protocol when you want to encapsulate your complex requests in a dedicated type. In the sample code below, `TeamInfoRequest` is not only able to fetch a team and its players, but also to be observed.
+Thanks to DatabaseRegionConvertible, `TeamInfoRequest` below is not only able to fetch a team and its players, but also to be observed.
 
 ```swift
 struct TeamInfo {
@@ -6512,7 +6288,7 @@ let request = TeamInfoRequest(teamId: 1)
 // Simple fetch
 let teamInfo: TeamInfo? = try dbQueue.read(request.fetch)
 
-// Observatin
+// Observation
 let observer = ValueObservation
     .tracking(request, fetch: request.fetch)
     .start(in: dbQueue) { teamInfo: TeamInfo? in
@@ -6801,6 +6577,7 @@ try dbQueue.write { db in
 }
 // Prints "Number of transactions that have modified players: 1"
 ```
+
 
 
 ## FetchedRecordsController
@@ -7141,6 +6918,304 @@ try controller.performFetch()
 >     try controller.performFetch()
 > }
 > ```
+
+
+## TransactionObserver Protocol
+
+The `TransactionObserver` protocol lets you **observe individual database changes and transactions**:
+
+```swift
+protocol TransactionObserver : class {
+    /// Notifies a database change:
+    /// - event.kind (insert, update, or delete)
+    /// - event.tableName
+    /// - event.rowID
+    ///
+    /// For performance reasons, the event is only valid for the duration of
+    /// this method call. If you need to keep it longer, store a copy:
+    /// event.copy().
+    func databaseDidChange(with event: DatabaseEvent)
+    
+    /// Filters the database changes that should be notified to the
+    /// `databaseDidChange(with:)` method.
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
+    
+    /// An opportunity to rollback pending changes by throwing an error.
+    func databaseWillCommit() throws
+    
+    /// Database changes have been committed.
+    func databaseDidCommit(_ db: Database)
+    
+    /// Database changes have been rollbacked.
+    func databaseDidRollback(_ db: Database)
+}
+```
+
+- [Activate a Transaction Observer](#activate-a-transaction-observer)
+- [Database Changes And Transactions](#database-changes-and-transactions)
+- [Filtering Database Events](#filtering-database-events)
+- [Observation Extent](#observation-extent)
+- [DatabaseRegion]
+- [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)
+
+
+### Activate a Transaction Observer
+
+**To activate a transaction observer, add it to the database queue or pool:**
+
+```swift
+let observer = MyObserver()
+dbQueue.add(transactionObserver: observer)
+```
+
+By default, database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated. See [Observation Extent](#observation-extent) for more options.
+
+
+### Database Changes And Transactions
+
+**A transaction observer is notified of all database changes**: inserts, updates and deletes. This includes indirect changes triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions), and [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
+
+> :point_up: **Note**: the changes that are not notified are changes to internal system tables (such as `sqlite_master`), changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables, and the deletion of duplicate rows triggered by [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) clauses (this last exception might change in a future release of SQLite).
+
+Notified changes are not actually written to disk until the [transaction](#transactions-and-savepoints) commits, and the `databaseDidCommit` callback is called. On the other side, `databaseDidRollback` confirms their invalidation:
+
+```swift
+try dbQueue.write { db in
+    try db.execute("INSERT ...") // 1. didChange
+    try db.execute("UPDATE ...") // 2. didChange
+}                                // 3. willCommit, 4. didCommit
+
+try dbQueue.inTransaction { db in
+    try db.execute("INSERT ...") // 1. didChange
+    try db.execute("UPDATE ...") // 2. didChange
+    return .rollback             // 3. didRollback
+}
+
+try dbQueue.write { db in
+    try db.execute("INSERT ...") // 1. didChange
+    throw SomeError()
+}                                // 2. didRollback
+```
+
+Database statements that are executed outside of any transaction do not drop off the radar:
+
+```swift
+try dbQueue.inDatabase { db in
+    try db.execute("INSERT ...") // 1. didChange, 2. willCommit, 3. didCommit
+    try db.execute("UPDATE ...") // 4. didChange, 5. willCommit, 6. didCommit
+}
+```
+
+Changes that are on hold because of a [savepoint](https://www.sqlite.org/lang_savepoint.html) are only notified after the savepoint has been released. This makes sure that notified events are only events that have an opportunity to be committed:
+
+```swift
+try dbQueue.inTransaction { db in
+    try db.execute("INSERT ...")            // 1. didChange
+    
+    try db.execute("SAVEPOINT foo")
+    try db.execute("UPDATE ...")            // delayed
+    try db.execute("UPDATE ...")            // delayed
+    try db.execute("RELEASE SAVEPOINT foo") // 2. didChange, 3. didChange
+    
+    try db.execute("SAVEPOINT foo")
+    try db.execute("UPDATE ...")            // not notified
+    try db.execute("ROLLBACK TO SAVEPOINT foo")
+    
+    return .commit                          // 4. willCommit, 5. didCommit
+}
+```
+
+
+**Eventual errors** thrown from `databaseWillCommit` are exposed to the application code:
+
+```swift
+do {
+    try dbQueue.inTransaction { db in
+        ...
+        return .commit           // 1. willCommit (throws), 2. didRollback
+    }
+} catch {
+    // 3. The error thrown by the transaction observer.
+}
+```
+
+> :point_up: **Note**: all callbacks are called in a protected dispatch queue, and serialized with all database updates.
+>
+> :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
+
+
+[DatabaseRegionObservation], [ValueObservation], [FetchedRecordsController], and [RxGRDB] are based on the TransactionObserver protocol.
+
+See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
+
+
+### Filtering Database Events
+
+**Transaction observers can avoid being notified of database changes they are not interested in.**
+
+The filtering happens in the `observes(eventsOfKind:)` method, which tells whether the observer wants notification of specific kinds of changes, or not. For example, here is how an observer can focus on the changes that happen on the "player" database table:
+
+```swift
+class PlayerObserver: TransactionObserver {
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        // Only observe changes to the "player" table.
+        return eventKind.tableName == "player"
+    }
+    
+    func databaseDidChange(with event: DatabaseEvent) {
+        // This method is only called for changes that happen to
+        // the "player" table.
+    }
+}
+```
+
+Generally speaking, the `observes(eventsOfKind:)` method can distinguish insertions from deletions and updates, and is also able to inspect the columns that are about to be changed:
+
+```swift
+class PlayerScoreObserver: TransactionObserver {
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        // Only observe changes to the "score" column of the "player" table.
+        switch eventKind {
+        case .insert(let tableName):
+            return tableName == "player"
+        case .delete(let tableName):
+            return tableName == "player"
+        case .update(let tableName, let columnNames):
+            return tableName == "player" && columnNames.contains("score")
+        }
+    }
+}
+```
+
+When the `observes(eventsOfKind:)` method returns false for all event kinds, the observer is still notified of commits and rollbacks:
+
+```swift
+class PureTransactionObserver: TransactionObserver {
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        // Ignore all individual changes
+        return false
+    }
+    
+    func databaseDidChange(with event: DatabaseEvent) { /* Never called */ }
+    func databaseWillCommit() throws { /* Called before commit */ }
+    func databaseDidRollback(_ db: Database) { /* Called on rollback */ }
+    func databaseDidCommit(_ db: Database) { /* Called on commit */ }
+}
+```
+
+For more information about event filtering, see [DatabaseRegion].
+
+
+### Observation Extent
+
+**You can specify how long an observer is notified of database changes and transactions.**
+
+The `remove(transactionObserver:)` method explicitly stops notifications, at any time:
+
+```swift
+// From a database queue or pool:
+dbQueue.remove(transactionObserver: observer)
+
+// From a database connection:
+dbQueue.inDatabase { db in
+    db.remove(transactionObserver: observer)
+}
+```
+
+Alternatively, use the `extent` parameter of the `add(transactionObserver:extent:)` method:
+
+```swift
+let observer = MyObserver()
+
+// On a database queue or pool:
+dbQueue.add(transactionObserver: observer) // default extent
+dbQueue.add(transactionObserver: observer, extent: .observerLifetime)
+dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
+dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
+
+// On a database connection:
+dbQueue.inDatabase { db in
+    db.add(transactionObserver: ...)
+}
+```
+
+- The default extent is `.observerLifetime`: the database holds a weak reference to the observer, and the observation automatically ends when the observer is deallocated. Meanwhile, observer is notified of all changes and transactions.
+
+- `.nextTransaction` activates the observer until the current or next transaction completes. The database keeps a strong reference to the observer until its `databaseDidCommit` or `databaseDidRollback` method is eventually called. Hereafter the observer won't get any further notification.
+
+- `.databaseLifetime` has the database retain and notify the observer until the database connection is closed.
+
+Finally, an observer may ignore all database changes until the end of the current transaction:
+
+```swift
+class PlayerObserver: TransactionObserver {
+    var playerTableWasModified = false
+    
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        return eventKind.tableName == "player"
+    }
+    
+    func databaseDidChange(with event: DatabaseEvent) {
+        playerTableWasModified = true
+        
+        // It is pointless to keep on tracking further changes:
+        stopObservingDatabaseChangesUntilNextTransaction()
+    }
+}
+```
+
+After `stopObservingDatabaseChangesUntilNextTransaction()`, the `databaseDidChange(with:)` method will not be notified of any change for the remaining duration of the current transaction. This helps GRDB optimize database observation.
+
+
+### DatabaseRegion
+
+**[DatabaseRegion](https://groue.github.io/GRDB.swift/docs/3.5/Structs/DatabaseRegion.html) is a type that helps observing changes in the results of a database [request](#requests)**.
+
+A request knows which database modifications can impact its results. It can communicate this information to [transaction observers](#transactionobserver-protocol) by the way of a DatabaseRegion.
+
+DatabaseRegion fuels, for example, [ValueObservation and DatabaseRegionObservation].
+
+**A region notifies *potential* changes, not *actual* changes in the results of a request.** A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
+
+For example, if you observe the region of `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
+
+Similarly, observing the region of `Country.filter(key: "FR")` will notify all changes that happen to the whole `country` table. That is because SQLite only notifies the numerical [rowid](https://www.sqlite.org/rowidtable.html) of changed rows, and we can't check if it is the row "FR" that has been changed, or another. This limitation does not apply to tables whose primary key is the rowid: `Player.filter(key: 42)` will only notify of changes performed on the row with id 42.
+
+For more details, see the [reference](http://groue.github.io/GRDB.swift/docs/3.5/Structs/DatabaseRegion.html#/s:4GRDB14DatabaseRegionV10isModified2bySbAA0B5EventV_tF).
+
+
+#### The DatabaseRegionConvertible Protocol
+
+**DatabaseRegionConvertible** is a protocol for all types that can turn into a [DatabaseRegion]:
+
+```swift
+protocol DatabaseRegionConvertible {
+    func databaseRegion(_ db: Database) throws -> DatabaseRegion
+}
+```
+
+All [requests](#requests) adopt this protocol, and this allows them to be observed with [DatabaseRegionObservation] and [ValueObservation].
+
+Use this protocol when you want to encapsulate your complex requests in a dedicated type, and still profit from observation APIs. See [DatabaseRegionConvertible Observation](#databaseregionconvertible-observation) for more information.
+
+
+### Support for SQLite Pre-Update Hooks
+
+A [custom SQLite build](Documentation/CustomSQLiteBuilds.md) can activate [SQLite "preupdate hooks"](https://sqlite.org/c3ref/preupdate_count.html). In this case, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
+
+```swift
+protocol TransactionObserverType : class {
+    #if SQLITE_ENABLE_PREUPDATE_HOOK
+    /// Notifies before a database change (insert, update, or delete)
+    /// with change information (initial / final values for the row's
+    /// columns).
+    ///
+    /// The event is only valid for the duration of this method call. If you
+    /// need to keep it longer, store a copy: event.copy().
+    func databaseWillChange(with event: DatabasePreUpdateEvent)
+    #endif
+}
+```
 
 
 Encryption
@@ -7957,6 +8032,7 @@ Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://groue.gith
 These protocols provide a unified API that let you write generic code that targets all concurrency modes. They fuel, for example:
 
 - [Migrations](#migrations)
+- [DatabaseRegionObservation]
 - [ValueObservation]
 - [FetchedRecordsController]
 - [RxGRDB]
@@ -8519,5 +8595,9 @@ This chapter has been renamed [Beyond FetchableRecord].
 [Record Customization Options]: #record-customization-options
 [TableRecord]: #tablerecord-protocol
 [ValueObservation]: #valueobservation
+[DatabaseRegionObservation]: #databaseregionobservation
 [FetchedRecordsController]: #fetchedrecordscontroller
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
+[DatabaseRegionConvertible]: #the-databaseregionconvertible-protocol
+[ValueObservation and DatabaseRegionObservation]: #valueobservation-and-databaseregionobservation
+[DatabaseRegion]: #databaseregion

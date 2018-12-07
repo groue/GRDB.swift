@@ -91,7 +91,7 @@ public struct FetchableRecordsReducer<Request: FetchRequest>: ValueReducer
     public mutating func value(_ rows: [Row]) -> [Request.RowDecoder]? {
         if let previousRows = previousRows, previousRows == rows {
             // Don't notify consecutive identical row arrays
-            // TODO: Remove this implicit `distinctUntilChanged` in GRDB 4
+            // TODO: Remove this implicit `distinctUntilDatabaseChanged` in GRDB 4
             return nil
         }
         self.previousRows = rows
@@ -122,7 +122,7 @@ public struct FetchableRecordReducer<Request: FetchRequest>: ValueReducer
     public mutating func value(_ row: Row?) -> Request.RowDecoder?? {
         if let previousRow = previousRow, previousRow == row {
             // Don't notify consecutive identical rows
-            // TODO: Remove this implicit `distinctUntilChanged` in GRDB 4
+            // TODO: Remove this implicit `distinctUntilDatabaseChanged` in GRDB 4
             return nil
         }
         self.previousRow = row

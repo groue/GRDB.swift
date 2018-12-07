@@ -164,7 +164,8 @@ public struct ValueObservation<Reducer> {
         }
     }
     
-    // Not public. See ValueObservation.tracking(_:reducer:)
+    // Not public because we foster DatabaseRegionConvertible.
+    // See ValueObservation.tracking(_:reducer:)
     init(
         tracking region: @escaping (Database) throws -> DatabaseRegion,
         reducer: @escaping (Database) throws -> Reducer)
