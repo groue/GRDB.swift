@@ -28,7 +28,6 @@ To release a new GRDB version:
 - `pod trunk push --allow-warnings GRDBPlus.podspec`
 - `pod trunk push --allow-warnings GRDBCipher.podspec`
 - `make doc`, and update index.html in the `gh-pages` branch
-- Update http://github.com/groue/GRDBDemo
 - Update http://github.com/groue/WWDCCompanion
 - Update [performance comparison](https://github.com/groue/GRDB.swift/wiki/Performance):
 
