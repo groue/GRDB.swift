@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 
 #### 3.x Releases
 
+- `3.6.x` Releases - [3.6.0](#360)
 - `3.5.x` Releases - [3.5.0](#350)
 - `3.4.x` Releases - [3.4.0](#340)
 - `3.3.x` Releases - [3.3.0](#330) | [3.3.1](#331)
@@ -41,7 +42,28 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 - [0.110.0](#01100), ...
 
 
-## Next Version
+## 3.6.0
+
+Released December 7, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.5.0...v3.6.0)
+
+This release comes with:
+
+- A nice sugar for updating records (my personal favorite of this release):
+    
+    ```swift
+    // Does not hit the database if player is not modified
+    try player.update(db) {
+        $0.score = 1000
+        $0.hasAward = true
+    }
+    ```
+    
+- Enhanced [ValueObservation](README.md#valueobservation), with methods such as `compactMap`, `combine`, ...
+
+- Observation of specific transactions, with the new [DatabaseRegionObservation](README.md#databaseregionobservation).
+
+- Various other improvements listed below.
+
 
 ### Fixed
 

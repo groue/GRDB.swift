@@ -51,7 +51,12 @@ endif
 TEST_ACTIONS = clean build build-for-testing test-without-building
 
 # When adding support for an Xcode version, look for available devices with `instruments -s devices`
-ifeq ($(XCODEVERSION),10.0)
+ifeq ($(XCODEVERSION),10.1)
+  MIN_SWIFT_VERSION = 4.0
+  MAX_SWIFT_VERSION = 4.2
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone XS,OS=12.1"
+  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
+else ifeq ($(XCODEVERSION),10.0)
   MIN_SWIFT_VERSION = 4.0
   MAX_SWIFT_VERSION = 4.2
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=12.0"
@@ -436,10 +441,10 @@ ifdef JAZZY
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
 	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v3.5.0 \
-	  --module-version 3.5 \
+	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v3.6.0 \
+	  --module-version 3.6 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/3.5/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/3.6/ \
 	  --output Documentation/Reference \
 	  --xcodebuild-arguments -project,GRDB.xcodeproj,-scheme,GRDBiOS
 else
