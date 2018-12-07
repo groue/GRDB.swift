@@ -6103,7 +6103,7 @@ struct HallOfFame {
     }
 }
 
-let hallOfFame = try dbQueue.read { try HallOfFame.fetch($0) }
+let hallOfFame = try dbQueue.read { db in try HallOfFame.fetch(db) }
 print("""
     Best players out of \(hallOfFame.totalPlayerCount):
     \(hallOfFame.bestPlayers)
@@ -6118,11 +6118,9 @@ In order to track changes in the Hall of Fame, we'll use the `ValueObservation.t
 In our case, any change to the `player` table can impact the Hall of Fame. We thus track the request for all players, `Player.all()`, and fetch a new Hall of Fame whenever players change:
 
 ```swift
-let observation = ValueObservation.tracking(
-    Player.all(),
-    fetch: { db -> HallOfFame in
-        return HallOfFame.fetch(db)
-    })
+let observation = ValueObservation.tracking(Player.all(), fetch: { db in
+    try HallOfFame.fetch(db)
+})
 
 let observer = observation.start(in: dbQueue) { hallOfFame: HallOfFame in
     print("""
