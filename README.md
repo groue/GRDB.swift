@@ -2174,8 +2174,10 @@ It is possible to [avoid useless updates](#record-comparison):
 
 ```swift
 if let player = try Player.fetchOne(db, key: 1) {
-    player.score = 1000
-    try player.updateChanges(db) // does nothing if score has not changed
+    // does nothing if score has not changed
+    try player.updateChanges(db) {
+        $0.score = 1000
+    }
 }
 ```
 
@@ -2578,6 +2580,7 @@ try place.insert(db)                   // INSERT
 try place.update(db)                   // UPDATE
 try place.update(db, columns: ...)     // UPDATE
 try place.updateChanges(db, from: ...) // Maybe UPDATE
+try place.updateChanges(db) { ... }    // Maybe UPDATE
 try place.updateChanges(db)            // Maybe UPDATE (Record class only)
 try place.delete(db)                   // DELETE
 try place.exists(db)
