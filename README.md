@@ -5916,33 +5916,33 @@ try dbQueue.write { db in
 
 ## ValueObservation and DatabaseRegionObservation
 
-**ValueObservation and DatabaseRegionObservation** are two database observations tools that track changes in database [requests](#requests):
+**ValueObservation and DatabaseRegionObservation** are two database observations tools that track changes in database [requests](#requests).
 
 ```swift
-// Two observations that track the players:
+// Let's observe all players!
 let request = Player.all()
-let valueObservation = ValueObservation.trackingAll(request)
-let regionObservation = DatabaseRegionObservation(tracking: request)
 ```
 
 [ValueObservation] notifies your application with **fresh values** (this is what most applications need :+1:):
 
 ```swift
-let observer = valueObservation.start(in: dbQueue) { players: [Player] in
-    print("Player have changed: \(players)")
+let observation = ValueObservation.trackingAll(request)
+let observer = observation.start(in: dbQueue) { players: [Player]? in
+    let names = players.map { $0.name }.joined(separator: ", ")
+    print("Fresh players: \(names)")
 }
 
 try dbQueue.write { db in
     try Player(name: "Arthur").insert(db)
 }
-// Prints "Players have changed: ..."
-
+// Prints "Fresh players: Arthur, ..."
 ```
 
-[DatabaseRegionObservation] notifies your application with **database connections**, right after an impactful database transaction has been committed (reserved for advanced use cases :nerd_face:):
+[DatabaseRegionObservation] notifies your application with **database connections**, right after an impactful database transaction has been committed (reserved for more advanced use cases :nerd_face:):
 
 ```swift
-let observer = regionObservation.start(in: dbQueue) { db: Database in
+let observation = DatabaseRegionObservation(tracking: request)
+let observer = observation.start(in: dbQueue) { db: Database in
     print("Player have changed.")
 }
 
@@ -5952,94 +5952,8 @@ try dbQueue.write { db in
 // Prints "Players have changed."
 ```
 
-
-## DatabaseRegionObservation
-
-**DatabaseRegionObservation tracks changes in database [requests](#requests), and notifies each impactful [transaction](#transactions-and-savepoints).**
-
-No insertion, update, or deletion in the tracked tables is missed. This includes indirect changes triggered by [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
-
-DatabaseRegionObservation calls your application right after changes have been committed in the database, and before any other thread had any opportunity to perform further changes. *This is a pretty strong guarantee, that most applications do not really need.* Instead, most applications prefer to be notified with fresh values: make sure you check [ValueObservation] before using DatabaseRegionObservation.
-
-
-### DatabaseRegionObservation Usage
-
-Define an observation by providing one or several requests to track:
-
-```swift
-// Track all players
-let observation = DatabaseRegionObservation(tracking: Player.all())
-```
-
-Then start the observation from a [database queue](#database-queues) or [pool](#database-pools):
-
-```swift
-let observer = observation.start(in: dbQueue) { db: Database in
-    print("Players were changed")
-}
-```
-
-And enjoy the changes notifications:
-
-```swift
-try dbQueue.write { db in
-    try Player(name: "Arthur").insert(db)
-}
-// Prints "Players were changed"
-```
-
-By default, the observation lasts until the observer returned by the `start` method is deallocated. See [DatabaseRegionObservation.extent](#databaseregionobservationextent) for more details.
-
-You can also feed DatabaseRegionObservation with [DatabaseRegion], or any type which conforms to the [DatabaseRegionConvertible] protocol. For example:
-
-```swift
-// Observe the full database
-let observation = DatabaseRegionObservation(tracking: DatabaseRegion.fullDatabase)
-let observer = observation.start(in: dbQueue) { db: Database in
-    print("Database was changed")
-}
-```
-
-
-### DatabaseRegionObservation Use Cases
-
-**There are very few use cases for DatabaseRegionObservation**.
-
-For example:
-
-- One needs to write in the database after an impactful transaction.
-
-- One needs to synchronize the content of the database file with some external resources, like other files, or system sensors like CLRegion monitoring.
-
-- On iOS, one needs to process a database transaction before the operating system had any opportunity to put the application in the suspended state.
-
-- One want to build a [database snapshot](#database-snapshots) with a guaranteed snapshot content.
-
-Outside of those use cases, it is much likely *wrong* to use a DatabaseRegionObservation. Please check other [Database Observation](#database-changes-observation) options.
-
-
-### DatabaseRegionObservation.extent
-
-The `extent` property lets you specify the duration of the observation. See [Observation Extent](#observation-extent) for more details:
-
-```swift
-// This observation lasts until the database connection is closed
-var observation = DatabaseRegionObservation...
-observation.extent = .databaseLifetime
-_ = observation.start(in: dbQueue) { db in ... }
-```
-
-The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deallocated.
-
-Regardless of the extent of an observation, you can always stop observation with the `remove(transactionObserver:)` method:
-
-```swift
-// Start
-let observer = observation.start(in: dbQueue) { db in ... }
-
-// Stop
-dbQueue.remove(transactionObserver: observer)
-```
+- [ValueObservation]
+- [DatabaseRegionObservation]
 
 
 ## ValueObservation
@@ -6578,6 +6492,94 @@ try dbQueue.write { db in
 // Prints "Number of transactions that have modified players: 1"
 ```
 
+
+## DatabaseRegionObservation
+
+**DatabaseRegionObservation tracks changes in database [requests](#requests), and notifies each impactful [transaction](#transactions-and-savepoints).**
+
+No insertion, update, or deletion in the tracked tables is missed. This includes indirect changes triggered by [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
+
+DatabaseRegionObservation calls your application right after changes have been committed in the database, and before any other thread had any opportunity to perform further changes. *This is a pretty strong guarantee, that most applications do not really need.* Instead, most applications prefer to be notified with fresh values: make sure you check [ValueObservation] before using DatabaseRegionObservation.
+
+
+### DatabaseRegionObservation Usage
+
+Define an observation by providing one or several requests to track:
+
+```swift
+// Track all players
+let observation = DatabaseRegionObservation(tracking: Player.all())
+```
+
+Then start the observation from a [database queue](#database-queues) or [pool](#database-pools):
+
+```swift
+let observer = observation.start(in: dbQueue) { db: Database in
+    print("Players were changed")
+}
+```
+
+And enjoy the changes notifications:
+
+```swift
+try dbQueue.write { db in
+    try Player(name: "Arthur").insert(db)
+}
+// Prints "Players were changed"
+```
+
+By default, the observation lasts until the observer returned by the `start` method is deallocated. See [DatabaseRegionObservation.extent](#databaseregionobservationextent) for more details.
+
+You can also feed DatabaseRegionObservation with [DatabaseRegion], or any type which conforms to the [DatabaseRegionConvertible] protocol. For example:
+
+```swift
+// Observe the full database
+let observation = DatabaseRegionObservation(tracking: DatabaseRegion.fullDatabase)
+let observer = observation.start(in: dbQueue) { db: Database in
+    print("Database was changed")
+}
+```
+
+
+### DatabaseRegionObservation Use Cases
+
+**There are very few use cases for DatabaseRegionObservation**.
+
+For example:
+
+- One needs to write in the database after an impactful transaction.
+
+- One needs to synchronize the content of the database file with some external resources, like other files, or system sensors like CLRegion monitoring.
+
+- On iOS, one needs to process a database transaction before the operating system had any opportunity to put the application in the suspended state.
+
+- One want to build a [database snapshot](#database-snapshots) with a guaranteed snapshot content.
+
+Outside of those use cases, it is much likely *wrong* to use a DatabaseRegionObservation. Please check other [Database Observation](#database-changes-observation) options.
+
+
+### DatabaseRegionObservation.extent
+
+The `extent` property lets you specify the duration of the observation. See [Observation Extent](#observation-extent) for more details:
+
+```swift
+// This observation lasts until the database connection is closed
+var observation = DatabaseRegionObservation...
+observation.extent = .databaseLifetime
+_ = observation.start(in: dbQueue) { db in ... }
+```
+
+The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deallocated.
+
+Regardless of the extent of an observation, you can always stop observation with the `remove(transactionObserver:)` method:
+
+```swift
+// Start
+let observer = observation.start(in: dbQueue) { db in ... }
+
+// Stop
+dbQueue.remove(transactionObserver: observer)
+```
 
 
 ## FetchedRecordsController
