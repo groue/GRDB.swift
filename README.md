@@ -57,6 +57,7 @@ GRDB ships with:
 - [Access to raw SQL and SQLite](#sqlite-api)
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
 - [Query Interface](#the-query-interface): A swift way to avoid the SQL language.
+- [Associations](Documentation/AssociationsBasics.md): Relations and joins between record types.
 - [WAL Mode Support](#database-pools): Extra performance for multi-threaded applications.
 - [Migrations](#migrations): Transform your database as your application evolves.
 - [Database Observation](#database-changes-observation): Observe database changes and transactions.
