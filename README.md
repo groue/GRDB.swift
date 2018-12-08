@@ -6307,7 +6307,7 @@ let playersObservation = ValueObservation.trackingAll(playersRequest)
 let observation = ValueObservation.combine(teamObservation, playersObservation)
 
 // Start tracking players and teams
-let observer = observation.start(in: dbQueue) { team: Team?, players: [Player] in
+let observer = observation.start(in: dbQueue) { (team: Team?, players: [Player]) in
     print("Team or players have changed.")
 }
 ```
