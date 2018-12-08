@@ -86,6 +86,8 @@ extension Place: PersistableRecord { ... }
 try place.delete(db)
 ```
 
+For your convenience, those record protocols can be derived from the [Decodable and Encodable](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types) protocols of the standard library. [Codable records] are even given free support for JSON columns and other niceties.
+
 Being a protocol-oriented library that welcomes immutable types, GRDB records are unlike records in other ORM libraries. Particularly, records do not auto-update, and records are not uniqued. We'll see below that the lack of those features can be replaced with **database change notifications**, with many advantages.
 
 
@@ -291,3 +293,4 @@ Happy GRDB! :gift:
 [TransactionObserver]: ../README.md#transactionobserver-protocol
 [query interface]: ../README.md#the-query-interface
 [associations]: AssociationsBasics.md
+[Codable records]: ../README.md#codable-records
