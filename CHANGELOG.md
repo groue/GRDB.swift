@@ -120,11 +120,6 @@ This release comes with:
 +        _ regions: [DatabaseRegionConvertible],
 +        fetch: @escaping (Database) throws -> Value)
 +        -> ValueObservation<ValueReducers.Raw<Value>>
-+    static func tracking<Value>(
-+        _ regions: [DatabaseRegionConvertible],
-+        fetchDistinct fetch: @escaping (Database) throws -> Value)
-+        -> ValueObservation<ValueReducers.Distinct<Value>>
-+        where Value: Equatable
 +    static func combine<R1: ValueReducer, ...>(_ o1: ValueObservation<R1>, ...)
 +        -> ValueObservation<...>
 +}
@@ -133,6 +128,11 @@ This release comes with:
 +    func compactMap<T>(_ transform: @escaping (Reducer.Value) -> T?)
 +        -> ValueObservation<CompactMapValueReducer<Reducer, T>>
 +}
+
++ extension ValueObservation where Reducer: ValueReducer, Reducer.Value: Equatable {
++     public func distinctUntilChanged()
++         -> ValueObservation<DistinctUntilChangedValueReducer<Reducer>>
++ }
 
 +extension ValueObservation {
 +    func mapReducer<R>(_ transform: @escaping (Database, Reducer) throws -> R)
