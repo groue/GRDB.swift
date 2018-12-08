@@ -589,8 +589,8 @@ struct Book: TableRecord {
         case id, title, authorId, translatorId
     }
     
-    static let authorForeignKey = ForeignKey([Columns.authorId]))
-    static let translatorForeignKey = ForeignKey([Columns.translatorId]))
+    static let authorForeignKey = ForeignKey([Columns.authorId])
+    static let translatorForeignKey = ForeignKey([Columns.translatorId])
 }
 ```
 
@@ -598,7 +598,7 @@ When the destination table of a foreign key does not define any primary key, you
 
 ```swift
 struct Book: TableRecord {
-    static let authorForeignKey = ForeignKey(["authorId"], to: ["id"]))
+    static let authorForeignKey = ForeignKey(["authorId"], to: ["id"])
     static let author = belongsTo(Person.self, using: authorForeignKey)
 }
 ```
