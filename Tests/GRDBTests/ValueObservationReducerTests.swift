@@ -469,4 +469,64 @@ class ValueObservationReducerTests: GRDBTestCase {
             try test(dbPool, expectedLabels: ["Custom.writer", "Custom.ValueObservation.reducer"])
         }
     }
+    
+    func testObserverInvalidation1() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            let notificationExpectation = expectation(description: "notification")
+            notificationExpectation.isInverted = true
+            
+            var observer: TransactionObserver? = nil
+            _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in
+                AnyValueReducer<Void, Void>(
+                    fetch: { _ in observer = nil /* late deallocation */  },
+                    value: { _ in () })
+            })
+            observation.scheduling = .unsafe(startImmediately: false)
+            observer = try observation.start(in: dbWriter) { count in
+                XCTFail("unexpected change notification")
+                notificationExpectation.fulfill()
+            }
+            
+            try dbWriter.write { db in
+                try db.execute("INSERT INTO t DEFAULT VALUES")
+            }
+            waitForExpectations(timeout: 0.1, handler: nil)
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
+    
+    func testObserverInvalidation2() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            let notificationExpectation = expectation(description: "notification")
+            notificationExpectation.isInverted = true
+            
+            var observer: TransactionObserver? = nil
+            _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in
+                AnyValueReducer<Void, Void>(
+                    fetch: { _ in },
+                    value: { _ in observer = nil /* deallocation right before notification */ })
+            })
+            observation.scheduling = .unsafe(startImmediately: false)
+            observer = try observation.start(in: dbWriter) { count in
+                XCTFail("unexpected change notification")
+                notificationExpectation.fulfill()
+            }
+            
+            try dbWriter.write { db in
+                try db.execute("INSERT INTO t DEFAULT VALUES")
+            }
+            waitForExpectations(timeout: 0.1, handler: nil)
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
 }
