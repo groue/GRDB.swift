@@ -6354,7 +6354,7 @@ The default extent is `.observerLifetime`: the observation stops when the observ
 You can use the `.databaseLifetime` extent to specify that the observation lasts until the database connection is closed:
 
 ```swift
-// No need to retain the observer retained by the start method:
+// No need to retain the observer returned by the start method:
 var observation = ValueObservation...
 observation.extent = .databaseLifetime
 _ = observation.start(in: dbQueue) { newValue in ... }
