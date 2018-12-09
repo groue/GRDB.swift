@@ -15,7 +15,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
     
     ```sh
     cd [GRDB directory]
-    git checkout v3.6.0
+    git checkout v3.6.1
     git submodule update --init SQLiteCustom/src
     ````
     

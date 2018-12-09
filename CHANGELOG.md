@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 
 #### 3.x Releases
 
-- `3.6.x` Releases - [3.6.0](#360)
+- `3.6.x` Releases - [3.6.0](#360) | [3.6.1](#361)
 - `3.5.x` Releases - [3.5.0](#350)
 - `3.4.x` Releases - [3.4.0](#340)
 - `3.3.x` Releases - [3.3.0](#330) | [3.3.1](#331)
@@ -40,6 +40,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 #### 0.x Releases
 
 - [0.110.0](#01100), ...
+
+
+## 3.6.1
+
+Released December 9, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.6.0...v3.6.1)
+
+### Fixed
+
+- [#458](https://github.com/groue/GRDB.swift/pull/458): Fix ValueObservation duration - code & doc
 
 
 ## 3.6.0
