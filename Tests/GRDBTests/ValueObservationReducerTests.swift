@@ -477,17 +477,19 @@ class ValueObservationReducerTests: GRDBTestCase {
             let notificationExpectation = expectation(description: "notification")
             notificationExpectation.isInverted = true
             
-            var observer: TransactionObserver? = nil
-            _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in
-                AnyValueReducer<Void, Void>(
-                    fetch: { _ in observer = nil /* late deallocation */  },
-                    value: { _ in () })
-            })
-            observation.scheduling = .unsafe(startImmediately: false)
-            observer = try observation.start(in: dbWriter) { count in
-                XCTFail("unexpected change notification")
-                notificationExpectation.fulfill()
+            do {
+                var observer: TransactionObserver? = nil
+                _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
+                var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in
+                    AnyValueReducer<Void, Void>(
+                        fetch: { _ in observer = nil /* late deallocation */  },
+                        value: { _ in () })
+                })
+                observation.scheduling = .unsafe(startImmediately: false)
+                observer = try observation.start(in: dbWriter) { count in
+                    XCTFail("unexpected change notification")
+                    notificationExpectation.fulfill()
+                }
             }
             
             try dbWriter.write { db in
@@ -507,17 +509,19 @@ class ValueObservationReducerTests: GRDBTestCase {
             let notificationExpectation = expectation(description: "notification")
             notificationExpectation.isInverted = true
             
-            var observer: TransactionObserver? = nil
-            _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in
-                AnyValueReducer<Void, Void>(
-                    fetch: { _ in },
-                    value: { _ in observer = nil /* deallocation right before notification */ })
-            })
-            observation.scheduling = .unsafe(startImmediately: false)
-            observer = try observation.start(in: dbWriter) { count in
-                XCTFail("unexpected change notification")
-                notificationExpectation.fulfill()
+            do {
+                var observer: TransactionObserver? = nil
+                _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
+                var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in
+                    AnyValueReducer<Void, Void>(
+                        fetch: { _ in },
+                        value: { _ in observer = nil /* deallocation right before notification */ })
+                })
+                observation.scheduling = .unsafe(startImmediately: false)
+                observer = try observation.start(in: dbWriter) { count in
+                    XCTFail("unexpected change notification")
+                    notificationExpectation.fulfill()
+                }
             }
             
             try dbWriter.write { db in
