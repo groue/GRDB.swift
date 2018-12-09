@@ -53,31 +53,29 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
         // - that expensive reduce operations are computed without blocking
         // any database dispatch queue.
         reduceQueue.async { [weak self] in
-            guard let strongSelf = self else { return }
-            
+            // Never ever retain self so that notifications stop when self
+            // is deallocated by the user.
             do {
-                if let value = try strongSelf.reducer.value(future.wait()) {
-                    if let queue = strongSelf.notificationQueue {
+                if let value = try self?.reducer.value(future.wait()) {
+                    if let queue = self?.notificationQueue {
                         queue.async {
-                            guard let strongSelf = self else { return }
-                            strongSelf.onChange(value)
+                            self?.onChange(value)
                         }
                     } else {
-                        strongSelf.onChange(value)
+                        self?.onChange(value)
                     }
                 }
             } catch {
-                guard strongSelf.onError != nil else {
+                guard self?.onError != nil else {
                     // TODO: how can we let the user know about the error?
                     return
                 }
-                if let queue = strongSelf.notificationQueue {
+                if let queue = self?.notificationQueue {
                     queue.async {
-                        guard let strongSelf = self else { return }
-                        strongSelf.onError?(error)
+                        self?.onError?(error)
                     }
                 } else {
-                    strongSelf.onError?(error)
+                    self?.onError?(error)
                 }
             }
         }

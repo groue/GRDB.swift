@@ -6347,26 +6347,20 @@ Some behaviors of value observations can be configured:
 
 #### ValueObservation.extent
 
-The `extent` property lets you specify the duration of the observation. See [Observation Extent](#observation-extent) for more details:
+The `extent` property lets you specify the duration of the observation.
+
+The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deallocated.
+
+You can use the `.databaseLifetime` extent to specify that the observation lasts until the database connection is closed:
 
 ```swift
-// This observation lasts until the database connection is closed
+// No need to retain the observer retained by the start method:
 var observation = ValueObservation...
 observation.extent = .databaseLifetime
 _ = observation.start(in: dbQueue) { newValue in ... }
 ```
 
-The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deallocated.
-
-Regardless of the extent of an observation, you can always stop observation with the `remove(transactionObserver:)` method:
-
-```swift
-// Start
-let observer = observation.start(in: dbQueue) { ... }
-
-// Stop
-dbQueue.remove(transactionObserver: observer)
-```
+> :warning: **Warning**: Don't use the `.nextTransaction` lifetime, because it produces unreliable results. A future version of GRDB will deprecate `ValueObservation.extent`, and provide a better API.
 
 
 #### ValueObservation.scheduling
@@ -7129,6 +7123,8 @@ dbQueue.inDatabase { db in
     db.remove(transactionObserver: observer)
 }
 ```
+
+> :point_up: **Note**: removing a transaction observer makes it sure it won't be notified of any future transaction - there is no race condition. However, this does not stop eventual concurrent processing of previous transactions. For example, `remove(transactionObserver:)` is not a correct way to stop observers started by [ValueObservation]. In this case, the correct way is deallocating the observer.
 
 Alternatively, use the `extent` parameter of the `add(transactionObserver:extent:)` method:
 
