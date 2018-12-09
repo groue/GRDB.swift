@@ -52,7 +52,9 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
         // - that notifications have the same ordering as transactions.
         // - that expensive reduce operations are computed without blocking
         // any database dispatch queue.
-        reduceQueue.async { [weak self] /* never ever retain self */ in
+        reduceQueue.async { [weak self] in
+            // Never ever retain self so that notifications stop when self
+            // is deallocated by the user.
             do {
                 if let value = try self?.reducer.value(future.wait()) {
                     if let queue = self?.notificationQueue {
@@ -81,4 +83,5 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
     
     func databaseDidRollback(_ db: Database) {
         isChanged = false
-    }}
+    }
+}
