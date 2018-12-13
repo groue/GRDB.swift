@@ -24,6 +24,7 @@
 - [ ] Allow joining methods on DerivableRequest
 - [ ] DatabaseWriter.assertWriteAccess()
 - [ ] Configuration.crashOnError = true
+- [ ] Remove associated record from PersistenceError.recordNotFound. It should be possible, in userland, to write a method that throws this error without having a fully constructed record.
 - [ ] Support for "INSERT INTO ... SELECT ...". For example:
     
     ```swift
