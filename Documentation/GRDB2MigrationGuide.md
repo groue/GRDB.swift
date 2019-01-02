@@ -446,14 +446,16 @@ Now you'll write instead:
 
 ```swift
 // GRDB 3
-dbQueue.rx
-    .fetch(from: [request, ...]) { db in try fetchResult(db) }
+ValueObservation
+    .tracking([request, ...], fetch: { db in try fetchResult(db) })
+    .rx
+    .fetch(in: dbQueue)
     .subscribe(...)
 ```
 
 It's just a syntactic change, without any impact on the runtime.
 
-RxGRDB for GRDB 3 also introduces a new protocol, [DatabaseRegionConvertible], that allows a better encapsulation of complex requests, and a streamlined observable definition.
+GRDB 3.6 also introduces a new protocol, [DatabaseRegionConvertible], that allows a better encapsulation of complex requests, and a streamlined observable definition.
 
 For example:
 
@@ -478,8 +480,9 @@ dbQueue.rx
 // GRDB 3: Track a team and its players
 struct TeamInfoRequest: DatabaseRegionConvertible { ... }
 let request = TeamInfoRequest(teamId: 1)
-dbQueue.rx
-    .fetch(from: [request]) { try request.fetchOne($0) }
+ValueObservation.tracking(request, fetch: { try request.fetchOne($0) })
+    .rx
+    .fetch(in: dbQueue)
     .subscribe(onNext: { teamInfo: TeamInfo? in
         ...
     })
@@ -526,5 +529,5 @@ If you have time, you may dig deeper in GRDB 3 with those updated documentation 
 [record protocols]: ../README.md#record-protocols-overview
 [Custom requests]: ../README.md#custom-requests
 [query interface]: ../README.md#the-query-interface
-[DatabaseRegionConvertible]: https://github.com/groue/RxGRDB/blob/master/README.md#databaseregionconvertible-protocol
+[DatabaseRegionConvertible]: https://github.com/groue/GRDB.swift#the-databaseregionconvertible-protocol
 [conditional conformances]: https://github.com/apple/swift-evolution/blob/master/proposals/0143-conditional-conformances.md
