@@ -813,7 +813,7 @@
             <h1 id='grdb-3-a-href-https-developer-apple-com-swift-img-src-https-img-shields-io-badge-swift-4-1-orange-svg-style-flat-alt-swift-a-a-href-https-developer-apple-com-swift-img-src-https-img-shields-io-badge-swift-4-2-orange-svg-style-flat-alt-swift-a-a-href-https-developer-apple-com-swift-img-src-https-img-shields-io-cocoapods-p-grdb-swift-svg-alt-platforms-a-a-href-license-img-src-https-img-shields-io-github-license-groue-grdb-swift-svg-maxage-2592000-alt-license-a-a-href-https-travis-ci-org-groue-grdb-swift-img-src-https-travis-ci-org-groue-grdb-swift-svg-branch-master-alt-build-status-a' class='heading'>GRDB 3 <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/swift-4.1-orange.svg?style=flat" alt="Swift"></a> <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/swift-4.2-orange.svg?style=flat" alt="Swift"></a> <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/cocoapods/p/GRDB.swift.svg" alt="Platforms"></a> <a href="/LICENSE"><img src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000" alt="License"></a> <a href="https://travis-ci.org/groue/GRDB.swift"><img src="https://travis-ci.org/groue/GRDB.swift.svg?branch=master" alt="Build Status"></a></h1>
 <h3 id='a-toolkit-for-sqlite-databases-with-a-focus-on-application-development' class='heading'>A toolkit for SQLite databases, with a focus on application development</h3>
 
-<p><strong>Latest release</strong>: December 9, 2018 • version 3.6.1 • <a href="CHANGELOG.md">CHANGELOG</a> • <a href="Documentation/GRDB2MigrationGuide.md">Migrating From GRDB 2 to GRDB 3</a></p>
+<p><strong>Latest release</strong>: January 5, 2018 • version 3.6.2 • <a href="CHANGELOG.md">CHANGELOG</a> • <a href="Documentation/GRDB2MigrationGuide.md">Migrating From GRDB 2 to GRDB 3</a></p>
 
 <p><strong>Requirements</strong>: iOS 8.0+ / macOS 10.9+ / watchOS 2.0+ &bull; Swift 4.1+ / Xcode 9.3+</p>
 
@@ -825,11 +825,11 @@
 </thead><tbody>
 <tr>
 <td><strong>Swift 4.2</strong></td>
-<td><strong>v3.6.1</strong></td>
+<td><strong>v3.6.2</strong></td>
 </tr>
 <tr>
 <td><strong>Swift 4.1</strong></td>
-<td><strong>v3.6.1</strong></td>
+<td><strong>v3.6.2</strong></td>
 </tr>
 <tr>
 <td>Swift 4</td>
@@ -1153,7 +1153,7 @@ See [Database Changes Observation](#database-changes-observation)
 <p>The <a href="https://swift.org/package-manager/">Swift Package Manager</a> automates the distribution of Swift code. To use GRDB with SPM, add a dependency to your <code>Package.swift</code> file:</p>
 <pre class="highlight swift"><code><span class="k">let</span> <span class="nv">package</span> <span class="o">=</span> <span class="nf">Package</span><span class="p">(</span>
     <span class="nv">dependencies</span><span class="p">:</span> <span class="p">[</span>
-        <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/groue/GRDB.swift.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"3.6.1"</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/groue/GRDB.swift.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"3.6.2"</span><span class="p">)</span>
     <span class="p">]</span>
 <span class="p">)</span>
 </code></pre>
@@ -1167,7 +1167,7 @@ See [Database Changes Observation](#database-changes-observation)
 <h2 id='manually' class='heading'>Manually</h2>
 
 <ol>
-<li><p><a href="https://github.com/groue/GRDB.swift/releases/tag/v3.6.1">Download</a> a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the <code>git checkout v3.6.1</code> command.</p></li>
+<li><p><a href="https://github.com/groue/GRDB.swift/releases/tag/v3.6.2">Download</a> a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the <code>git checkout v3.6.2</code> command.</p></li>
 <li><p>Embed the <code>GRDB.xcodeproj</code> project in your own project.</p></li>
 <li><p>Add the <code>GRDBOSX</code>, <code>GRDBiOS</code>, or <code>GRDBWatchOS</code> target in the <strong>Target Dependencies</strong> section of the <strong>Build Phases</strong> tab of your application target (extension target for WatchOS).</p></li>
 <li><p>Add the <code>GRDB.framework</code> from the targetted platform to the <strong>Embedded Binaries</strong> section of the <strong>General</strong>  tab of your application target (extension target for WatchOS).</p></li>
@@ -6863,7 +6863,7 @@ class Place: Record {
 <p>The default extent is <code>.observerLifetime</code>: the observation stops when the observer returned by <code>start</code> is deallocated.</p>
 
 <p>You can use the <code>.databaseLifetime</code> extent to specify that the observation lasts until the database connection is closed:</p>
-<pre class="highlight swift"><code><span class="c1">// No need to retain the observer retained by the start method:</span>
+<pre class="highlight swift"><code><span class="c1">// No need to retain the observer returned by the start method:</span>
 <span class="k">var</span> <span class="nv">observation</span> <span class="o">=</span> <span class="kt">ValueObservation</span><span class="o">...</span>
 <span class="n">observation</span><span class="o">.</span><span class="n">extent</span> <span class="o">=</span> <span class="o">.</span><span class="n">databaseLifetime</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">observation</span><span class="o">.</span><span class="nf">start</span><span class="p">(</span><span class="nv">in</span><span class="p">:</span> <span class="n">dbQueue</span><span class="p">)</span> <span class="p">{</span> <span class="n">newValue</span> <span class="k">in</span> <span class="o">...</span> <span class="p">}</span>
@@ -7629,7 +7629,7 @@ the fetch.</p>
 <ol>
 <li><p>Clone the GRDB git repository, checkout the latest tagged version, and download SQLCipher sources:</p>
 <pre class="highlight shell"><code><span class="nb">cd</span> <span class="o">[</span>GRDB directory]
-git checkout v3.6.1
+git checkout v3.6.2
 git submodule update <span class="nt">--init</span> SQLCipher/src
 </code></pre></li>
 <li><p>Embed the <code>GRDBCipher.xcodeproj</code> project in your own project.</p></li>
@@ -8791,7 +8791,7 @@ dbQueue.setupMemoryManagement(in: UIApplication.shared)
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2018 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2018-12-09)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-01-05)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.4</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
