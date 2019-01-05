@@ -438,7 +438,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
         }
     }
     
-    func testUpdateChangesWithStruct() throws {
+    func testUpdateChangesWithMutableStruct() throws {
         struct MyRecord: Codable, MutablePersistableRecord {
             var id: Int64?
             var firstName: String?
@@ -458,6 +458,68 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             }
             
             var record = MyRecord(id: nil, firstName: "Arthur", lastName: "Smith")
+            try record.insert(db)
+            
+            do {
+                sqlQueries = []
+                let modified = try record.updateChanges(db) { _ in }
+                XCTAssertFalse(modified)
+                XCTAssert(sqlQueries.isEmpty)
+            }
+            
+            do {
+                sqlQueries = []
+                let modified = try record.updateChanges(db) {
+                    $0.firstName = "Arthur"
+                }
+                XCTAssertFalse(modified)
+                XCTAssert(sqlQueries.isEmpty)
+            }
+            
+            do {
+                sqlQueries = []
+                let modified = try record.updateChanges(db) {
+                    $0.firstName = nil
+                }
+                XCTAssertEqual(record.firstName, nil)
+                XCTAssertEqual(record.lastName, "Smith")
+                XCTAssertTrue(modified)
+                XCTAssertEqual(lastSQLQuery, "UPDATE \"myRecord\" SET \"firstName\"=NULL WHERE \"id\"=1")
+            }
+            
+            do {
+                sqlQueries = []
+                let modified = try record.updateChanges(db) {
+                    $0.firstName = "Bob"
+                    $0.lastName = "Johnson"
+                }
+                XCTAssertEqual(record.firstName, "Bob")
+                XCTAssertEqual(record.lastName, "Johnson")
+                XCTAssertTrue(modified)
+                XCTAssertTrue([
+                    "UPDATE \"myRecord\" SET \"firstName\"=\'Bob\', \"lastName\"=\'Johnson\' WHERE \"id\"=1",
+                    "UPDATE \"myRecord\" SET \"lastName\"=\'Johnson\', \"firstName\"=\'Bob\' WHERE \"id\"=1"]
+                    .contains(lastSQLQuery))
+            }
+        }
+    }
+    
+    func testUpdateChangesWithImmutableStruct() throws {
+        struct MyRecord: Codable, PersistableRecord {
+            var id: Int64
+            var firstName: String?
+            var lastName: String?
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "myRecord") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("firstName", .text)
+                t.column("lastName", .text)
+            }
+            
+            var record = MyRecord(id: 1, firstName: "Arthur", lastName: "Smith")
             try record.insert(db)
             
             do {
