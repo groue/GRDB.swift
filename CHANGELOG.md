@@ -42,7 +42,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 - [0.110.0](#01100), ...
 
 
-### 3.6.2
+## 3.6.2
 
 Released January 5, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.6.1...v3.6.2)
 
