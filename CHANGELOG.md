@@ -42,6 +42,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 - [0.110.0](#01100), ...
 
 
+## Next Release
+
+
+### Fixed
+
+- [#464](https://github.com/groue/GRDB.swift/pull/464): Make updateChanges(_:with:) available to PersistableRecord structs
+
+
 ## 3.6.1
 
 Released December 9, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.6.0...v3.6.1)
