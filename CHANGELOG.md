@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 
 #### 3.x Releases
 
-- `3.6.x` Releases - [3.6.0](#360) | [3.6.1](#361)
+- `3.6.x` Releases - [3.6.0](#360) | [3.6.1](#361) | [3.6.2](#362)
 - `3.5.x` Releases - [3.5.0](#350)
 - `3.4.x` Releases - [3.4.0](#340)
 - `3.3.x` Releases - [3.3.0](#330) | [3.3.1](#331)
@@ -42,8 +42,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 - [0.110.0](#01100), ...
 
 
-## Next Release
+### 3.6.2
 
+Released January 5, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.6.1...v3.6.2)
 
 ### Fixed
 

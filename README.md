@@ -3,14 +3,14 @@ GRDB 3 [![Swift](https://img.shields.io/badge/swift-4.1-orange.svg?style=flat)](
 
 ### A toolkit for SQLite databases, with a focus on application development
 
-**Latest release**: December 9, 2018 • version 3.6.1 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 2 to GRDB 3](Documentation/GRDB2MigrationGuide.md)
+**Latest release**: January 5, 2018 • version 3.6.2 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 2 to GRDB 3](Documentation/GRDB2MigrationGuide.md)
 
 **Requirements**: iOS 8.0+ / macOS 10.9+ / watchOS 2.0+ &bull; Swift 4.1+ / Xcode 9.3+
 
 | Swift version | GRDB version                                                |
 | ------------- | ----------------------------------------------------------- |
-| **Swift 4.2** | **v3.6.1**                                                  |
-| **Swift 4.1** | **v3.6.1**                                                  |
+| **Swift 4.2** | **v3.6.2**                                                  |
+| **Swift 4.1** | **v3.6.2**                                                  |
 | Swift 4       | [v2.10.0](https://github.com/groue/GRDB.swift/tree/v2.10.0) |
 | Swift 3.2     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
 | Swift 3.1     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
@@ -323,7 +323,7 @@ The [Swift Package Manager](https://swift.org/package-manager/) automates the di
 ```swift
 let package = Package(
     dependencies: [
-        .package(url: "https://github.com/groue/GRDB.swift.git", from: "3.6.1")
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "3.6.2")
     ]
 )
 ```
@@ -340,7 +340,7 @@ If you decide to use Carthage despite this warning, and get any Carthage-related
 
 ## Manually
 
-1. [Download](https://github.com/groue/GRDB.swift/releases/tag/v3.6.1) a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the `git checkout v3.6.1` command.
+1. [Download](https://github.com/groue/GRDB.swift/releases/tag/v3.6.2) a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the `git checkout v3.6.2` command.
 
 2. Embed the `GRDB.xcodeproj` project in your own project.
 
@@ -7240,7 +7240,7 @@ Alternatively, perform a manual installation of GRDB and SQLCipher:
     
     ```sh
     cd [GRDB directory]
-    git checkout v3.6.1
+    git checkout v3.6.2
     git submodule update --init SQLCipher/src
     ```
     
