@@ -5928,7 +5928,7 @@ let request = Player.all()
 
 ```swift
 let observation = ValueObservation.trackingAll(request)
-let observer = observation.start(in: dbQueue) { players: [Player]? in
+let observer = observation.start(in: dbQueue) { players: [Player] in
     let names = players.map { $0.name }.joined(separator: ", ")
     print("Fresh players: \(names)")
 }
@@ -5944,7 +5944,7 @@ try dbQueue.write { db in
 ```swift
 let observation = DatabaseRegionObservation(tracking: request)
 let observer = observation.start(in: dbQueue) { db: Database in
-    print("Player have changed.")
+    print("Players have changed.")
 }
 
 try dbQueue.write { db in
