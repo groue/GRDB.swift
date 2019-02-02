@@ -15,6 +15,20 @@ public /* TODO: make internal when possible */ struct SQLRelation {
     var alias: TableAlias? {
         return source.alias
     }
+    
+    init(
+        source: SQLSource,
+        selection: [SQLSelectable] = [],
+        filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil),
+        ordering: QueryOrdering = QueryOrdering(),
+        joins: OrderedDictionary<String, Join> = [:])
+    {
+        self.source = source
+        self.selection = selection
+        self.filterPromise = filterPromise
+        self.ordering = ordering
+        self.joins = joins
+    }
 }
 
 extension SQLRelation {
@@ -48,6 +62,10 @@ extension SQLRelation {
         var relation = self
         relation.ordering = ordering
         return relation
+    }
+    
+    func unordered() -> SQLRelation {
+        return order(QueryOrdering())
     }
     
     func appendingJoin(_ join: Join, forKey key: String) -> SQLRelation {
@@ -86,7 +104,7 @@ extension SQLRelation {
         return relation
     }
     
-    /// precondition: self is the result of finalizedRelation
+    /// - precondition: self is the result of finalizedRelation
     var finalizedAliases: [TableAlias] {
         var aliases: [TableAlias] = []
         if let alias = alias {
@@ -97,21 +115,21 @@ extension SQLRelation {
         }
     }
     
-    /// precondition: self is the result of finalizedRelation
+    /// - precondition: self is the result of finalizedRelation
     var finalizedSelection: [SQLSelectable] {
         return joins.reduce(into: selection) {
             $0.append(contentsOf: $1.value.finalizedSelection)
         }
     }
     
-    /// precondition: self is the result of finalizedRelation
+    /// - precondition: self is the result of finalizedRelation
     var finalizedOrdering: QueryOrdering {
         return joins.reduce(ordering) {
             $0.appending($1.value.finalizedOrdering)
         }
     }
     
-    /// precondition: self is the result of finalizedRelation
+    /// - precondition: self is the result of finalizedRelation
     func finalizedRowAdapter(_ db: Database, fromIndex startIndex: Int, forKeyPath keyPath: [String]) throws -> (adapter: RowAdapter, endIndex: Int)? {
         let selectionWidth = try selection
             .map { try $0.columnCount(db) }

@@ -9,7 +9,7 @@ public struct QueryInterfaceRequest<T> {
     }
     
     init(relation: SQLRelation) {
-        self.query = QueryInterfaceQuery(relation)
+        self.query = QueryInterfaceQuery(relation: relation)
     }
 }
 
@@ -238,17 +238,13 @@ extension QueryInterfaceRequest {
     var relation: SQLRelation {
         let query = self.query
         
+        // Prevent information loss
         GRDBPrecondition(!query.isDistinct, "Not implemented: join distinct queries")
         GRDBPrecondition(query.groupPromise == nil, "Can't join aggregated queries")
         GRDBPrecondition(query.havingExpression == nil, "Can't join aggregated queries")
         GRDBPrecondition(query.limit == nil, "Can't join limited queries")
         
-        return SQLRelation(
-            source: query.source,
-            selection: query.selection,
-            filterPromise: query.filterPromise,
-            ordering: query.ordering,
-            joins: query.joins)
+        return query.relation
     }
 }
 
@@ -294,9 +290,10 @@ extension TableRecord {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public static func all() -> QueryInterfaceRequest<Self> {
-        let query = QueryInterfaceQuery(
+        let relation = SQLRelation(
             source: .table(tableName: databaseTableName, alias: nil),
             selection: databaseSelection)
+        let query = QueryInterfaceQuery(relation: relation)
         return QueryInterfaceRequest(query: query)
     }
     

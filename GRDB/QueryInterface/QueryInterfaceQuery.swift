@@ -17,63 +17,42 @@ struct DatabasePromise<T> {
 }
 
 struct QueryInterfaceQuery {
-    var source: SQLSource
-    var selection: [SQLSelectable]
+    var relation: SQLRelation
     var isDistinct: Bool
-    var filterPromise: DatabasePromise<SQLExpression?>
     var groupPromise: DatabasePromise<[SQLExpression]>?
-    var ordering: QueryOrdering
     var havingExpression: SQLExpression?
     var limit: SQLLimit?
-    var joins: OrderedDictionary<String, Join>
     
     init(
-        source: SQLSource,
-        selection: [SQLSelectable] = [],
+        relation: SQLRelation,
         isDistinct: Bool = false,
-        filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil),
         groupPromise: DatabasePromise<[SQLExpression]>? = nil,
-        ordering: QueryOrdering = QueryOrdering(),
         havingExpression: SQLExpression? = nil,
-        limit: SQLLimit? = nil,
-        joins: OrderedDictionary<String, Join> = [:])
+        limit: SQLLimit? = nil)
     {
-        self.source = source
-        self.selection = selection
+        self.relation = relation
         self.isDistinct = isDistinct
-        self.filterPromise = filterPromise
         self.groupPromise = groupPromise
-        self.ordering = ordering
         self.havingExpression = havingExpression
         self.limit = limit
-        self.joins = joins
-    }
-    
-    init(_ relation: SQLRelation) {
-        self.init(
-            source: relation.source,
-            selection: relation.selection,
-            filterPromise: relation.filterPromise,
-            ordering: relation.ordering,
-            joins: relation.joins)
     }
     
     var alias: TableAlias? {
-        return source.alias
+        return relation.alias
     }
 }
 
-extension QueryInterfaceQuery {
+extension QueryInterfaceQuery: SelectionRequest, FilteredRequest, OrderedRequest {
     func select(_ selection: [SQLSelectable]) -> QueryInterfaceQuery {
-        var query = self
-        query.selection = selection
-        return query
+        return mapRelation { $0.select(selection) }
     }
     
     func annotated(with selection: [SQLSelectable]) -> QueryInterfaceQuery {
-        var query = self
-        query.selection.append(contentsOf: selection)
-        return query
+        return mapRelation {
+            var relation = $0
+            relation.selection.append(contentsOf: selection)
+            return relation
+        }
     }
     
     func distinct() -> QueryInterfaceQuery {
@@ -83,15 +62,7 @@ extension QueryInterfaceQuery {
     }
     
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceQuery {
-        var query = self
-        query.filterPromise = query.filterPromise.map { (db, filter) in
-            if let filter = filter {
-                return try filter && predicate(db)
-            } else {
-                return try predicate(db).sqlExpression
-            }
-        }
-        return query
+        return mapRelation { $0.filter(predicate) }
     }
     
     func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceQuery {
@@ -111,23 +82,15 @@ extension QueryInterfaceQuery {
     }
 
     func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> QueryInterfaceQuery {
-        return order(QueryOrdering(orderings: orderings))
+        return mapRelation { $0.order(orderings) }
     }
     
     func reversed() -> QueryInterfaceQuery {
-        return order(ordering.reversed)
-    }
-    
-    private func order(_ ordering: QueryOrdering) -> QueryInterfaceQuery {
-        var query = self
-        query.ordering = ordering
-        return query
+        return mapRelation { $0.reversed() }
     }
     
     func unordered() -> QueryInterfaceQuery {
-        var query = self
-        query.ordering = QueryOrdering()
-        return query
+        return mapRelation { $0.unordered() }
     }
 
     func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceQuery {
@@ -137,22 +100,16 @@ extension QueryInterfaceQuery {
     }
     
     func appendingJoin(_ join: Join, forKey key: String) -> QueryInterfaceQuery {
-        var query = self
-        if let existingJoin = query.joins.removeValue(forKey: key) {
-            guard let mergedJoin = existingJoin.merged(with: join) else {
-                // can't merge
-                fatalError("The association key \"\(key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
-            }
-            query.joins.append(value: mergedJoin, forKey: key)
-        } else {
-            query.joins.append(value: join, forKey: key)
-        }
-        return query
+        return mapRelation { $0.appendingJoin(join, forKey: key) }
     }
 
     func qualified(with alias: TableAlias) -> QueryInterfaceQuery {
+        return mapRelation { $0.qualified(with: alias) }
+    }
+    
+    private func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> QueryInterfaceQuery {
         var query = self
-        query.source = source.qualified(with: alias)
+        query.relation = transform(relation)
         return query
     }
 }
@@ -162,74 +119,31 @@ extension QueryInterfaceQuery {
     var finalizedQuery: QueryInterfaceQuery {
         var query = self
         
-        let alias = TableAlias()
-        query.source = source.qualified(with: alias)
-        query.selection = query.selection.map { $0.qualifiedSelectable(with: alias) }
-        query.filterPromise = query.filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
+        query.relation = query.relation.finalizedRelation
+        let alias = query.relation.alias!
         query.groupPromise = query.groupPromise?.map { [alias] (_, exprs) in exprs.map { $0.qualifiedExpression(with: alias) } }
-        query.ordering = query.ordering.qualified(with: alias)
         query.havingExpression = query.havingExpression?.qualifiedExpression(with: alias)
-        
-        query.joins = query.joins.mapValues { $0.finalizedJoin }
         
         return query
     }
     
-    /// precondition: self is the result of finalizedQuery
-    var finalizedAliases: [TableAlias] {
-        var aliases: [TableAlias] = []
-        if let alias = alias {
-            aliases.append(alias)
-        }
-        return joins.reduce(into: aliases) {
-            $0.append(contentsOf: $1.value.finalizedAliases)
-        }
-    }
-    
-    /// precondition: self is the result of finalizedQuery
-    var finalizedSelection: [SQLSelectable] {
-        return joins.reduce(into: selection) {
-            $0.append(contentsOf: $1.value.finalizedSelection)
-        }
-    }
-    
-    /// precondition: self is the result of finalizedQuery
-    var finalizedOrdering: QueryOrdering {
-        return joins.reduce(ordering) {
-            $0.appending($1.value.finalizedOrdering)
-        }
-    }
-    
-    /// precondition: self is the result of finalizedQuery
+    /// - precondition: self is the result of finalizedQuery
     private func finalizedRowAdapter(_ db: Database) throws -> RowAdapter? {
-        if joins.isEmpty {
+        // No join => no adapter
+        if relation.joins.isEmpty {
             return nil
         }
         
-        let selectionWidth = try selection
-            .map { try $0.columnCount(db) }
-            .reduce(0, +)
-        
-        var endIndex = selectionWidth
-        var scopes: [String: RowAdapter] = [:]
-        for (key, join) in joins {
-            if let (joinAdapter, joinEndIndex) = try join.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: [key]) {
-                scopes[key] = joinAdapter
-                endIndex = joinEndIndex
-            }
-        }
-        
-        if selectionWidth == 0 && scopes.isEmpty {
+        guard let (adapter, _) = try relation.finalizedRowAdapter(db, fromIndex: 0, forKeyPath: []) else {
             return nil
         }
         
-        let adapter = RangeRowAdapter(0 ..< (0 + selectionWidth))
-        return adapter.addingScopes(scopes)
+        return adapter
     }
 }
 
 extension QueryInterfaceQuery {
-    /// precondition: self is the result of finalizedQuery
+    /// - precondition: self is the result of finalizedQuery
     func sql(_ db: Database, _ context: inout SQLGenerationContext) throws -> String {
         var sql = "SELECT"
         
@@ -237,17 +151,17 @@ extension QueryInterfaceQuery {
             sql += " DISTINCT"
         }
         
-        let selection = finalizedSelection
+        let selection = relation.finalizedSelection
         GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with empty selection")
         sql += " " + selection.map { $0.resultColumnSQL(&context) }.joined(separator: ", ")
         
-        sql += try " FROM " + source.sourceSQL(db, &context)
+        sql += try " FROM " + relation.source.sourceSQL(db, &context)
         
-        for (_, join) in joins {
+        for (_, join) in relation.joins {
             sql += try " " + join.joinSQL(db, &context, leftAlias: alias!, isRequiredAllowed: true)
         }
         
-        if let filter = try filterPromise.resolve(db) {
+        if let filter = try relation.filterPromise.resolve(db) {
             sql += " WHERE " + filter.expressionSQL(&context)
         }
         
@@ -261,7 +175,7 @@ extension QueryInterfaceQuery {
             sql += " HAVING " + havingExpression.expressionSQL(&context)
         }
         
-        let orderings = try finalizedOrdering.resolve(db)
+        let orderings = try relation.finalizedOrdering.resolve(db)
         if !orderings.isEmpty {
             sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
         }
@@ -273,16 +187,16 @@ extension QueryInterfaceQuery {
         return sql
     }
     
-    /// precondition: self is the result of finalizedQuery
+    /// - precondition: self is the result of finalizedQuery
     private func makeSelectStatement(_ db: Database) throws -> SelectStatement {
-        var context = SQLGenerationContext.queryGenerationContext(aliases: finalizedAliases)
+        var context = SQLGenerationContext.queryGenerationContext(aliases: relation.finalizedAliases)
         let sql = try self.sql(db, &context)
         let statement = try db.makeSelectStatement(sql)
         statement.arguments = context.arguments!
         return statement
     }
     
-    /// precondition: self is the result of finalizedQuery
+    /// - precondition: self is the result of finalizedQuery
     func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
         if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
             // Programmer error
@@ -294,26 +208,26 @@ extension QueryInterfaceQuery {
             fatalError("Can't delete query with HAVING clause")
         }
         
-        guard joins.isEmpty else {
+        guard relation.joins.isEmpty else {
             // Programmer error
             fatalError("Can't delete query with JOIN clause")
         }
         
-        guard case .table = source else {
+        guard case .table = relation.source else {
             // Programmer error
             fatalError("Can't delete without any database table")
         }
         
-        var context = SQLGenerationContext.queryGenerationContext(aliases: finalizedAliases)
+        var context = SQLGenerationContext.queryGenerationContext(aliases: relation.finalizedAliases)
         
-        var sql = try "DELETE FROM " + source.sourceSQL(db, &context)
+        var sql = try "DELETE FROM " + relation.source.sourceSQL(db, &context)
         
-        if let filter = try filterPromise.resolve(db) {
+        if let filter = try relation.filterPromise.resolve(db) {
             sql += " WHERE " + filter.expressionSQL(&context)
         }
         
         if let limit = limit {
-            let orderings = try finalizedOrdering.resolve(db)
+            let orderings = try relation.finalizedOrdering.resolve(db)
             if !orderings.isEmpty {
                 sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
             }
@@ -330,7 +244,7 @@ extension QueryInterfaceQuery {
         return statement
     }
     
-    /// precondition: self is the result of finalizedQuery
+    /// - precondition: self is the result of finalizedQuery
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
         return try (makeSelectStatement(db), finalizedRowAdapter(db))
     }
@@ -341,7 +255,7 @@ extension QueryInterfaceQuery {
     }
     
     /// The database region that the request looks into.
-    /// precondition: self is the result of finalizedQuery
+    /// - precondition: self is the result of finalizedQuery
     func databaseRegion(_ db: Database) throws -> DatabaseRegion {
         let statement = try makeSelectStatement(db)
         let databaseRegion = statement.databaseRegion
@@ -349,7 +263,7 @@ extension QueryInterfaceQuery {
         // Can we intersect the region with rowIds?
         //
         // Give up unless request feeds from a single database table
-        guard case .table(tableName: let tableName, alias: _) = source else {
+        guard case .table(tableName: let tableName, alias: _) = relation.source else {
             // TODO: try harder
             return databaseRegion
         }
@@ -361,7 +275,7 @@ extension QueryInterfaceQuery {
         }
         
         // Give up unless there is a where clause
-        guard let filter = try filterPromise.resolve(db) else {
+        guard let filter = try relation.filterPromise.resolve(db) else {
             return databaseRegion
         }
         
@@ -382,19 +296,18 @@ extension QueryInterfaceQuery {
             return trivialCountQuery
         }
         
-        guard joins.isEmpty, case .table = source else {
+        guard relation.joins.isEmpty, case .table = relation.source else {
             // SELECT ... FROM (something which is not a plain table)
             return trivialCountQuery
         }
         
-        GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with empty selection")
-        if selection.count == 1 {
-            guard let count = self.selection[0].count(distinct: isDistinct) else {
+        GRDBPrecondition(!relation.selection.isEmpty, "Can't generate SQL with empty selection")
+        if relation.selection.count == 1 {
+            guard let count = relation.selection[0].count(distinct: isDistinct) else {
                 return trivialCountQuery
             }
-            var countQuery = self.unordered()
+            var countQuery = self.unordered().select(count.sqlSelectable)
             countQuery.isDistinct = false
-            countQuery.selection = [count.sqlSelectable]
             return countQuery
         } else {
             // SELECT [DISTINCT] expr1, expr2, ... FROM tableName ...
@@ -406,17 +319,16 @@ extension QueryInterfaceQuery {
             // SELECT expr1, expr2, ... FROM tableName ...
             // ->
             // SELECT COUNT(*) FROM tableName ...
-            var countQuery = self.unordered()
-            countQuery.selection = [SQLExpressionCount(AllColumns())]
-            return countQuery
+            return self.unordered().select(SQLExpressionCount(AllColumns()))
         }
     }
     
     // SELECT COUNT(*) FROM (self)
     private var trivialCountQuery: QueryInterfaceQuery {
-        return QueryInterfaceQuery(
+        let relation = SQLRelation(
             source: .query(unordered()),
             selection: [SQLExpressionCount(AllColumns())])
+        return QueryInterfaceQuery(relation: relation)
     }
 }
 
@@ -577,7 +489,7 @@ struct Join {
         return try relation.finalizedRowAdapter(db, fromIndex: startIndex, forKeyPath: keyPath)
     }
     
-    /// precondition: relation is the result of finalizedRelation
+    /// - precondition: relation is the result of finalizedRelation
     func joinSQL(_ db: Database,_ context: inout SQLGenerationContext, leftAlias: TableAlias, isRequiredAllowed: Bool) throws -> String {
         var isRequiredAllowed = isRequiredAllowed
         var sql = ""
