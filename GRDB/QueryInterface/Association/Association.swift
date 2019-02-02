@@ -4,15 +4,40 @@
 ///
 /// :nodoc:
 public protocol _Association {
+    /// Returns a transformed association.
+    ///
+    /// This method provides fundamental support for association derivation:
+    ///
+    ///     // Invokes Book.author.mapQuery { $0.filter(...) }
+    ///     Book.author.filter(...)
     func mapQuery(_ transform: (JoinQuery) -> JoinQuery) -> Self
+    
+    /// Returns a request joined with self.
+    ///
+    /// This method provides fundamental support for joining methods:
+    ///
+    ///     // Invokes Book.author.joinedRequest(Book.all(), .required)
+    ///     Book.including(required: Book.author)
     func joinedRequest<T>(_ request: QueryInterfaceRequest<T>, joinOperator: JoinOperator) -> QueryInterfaceRequest<T>
+    
+    /// Returns a query joined with self.
+    ///
+    /// This method provides fundamental support for joining methods:
+    ///
+    ///     // Invokes Book.author.mapQuery { Author.country.joinedQuery($0, .optional) }
+    ///     Book.including(required: Book.author.including(optional: Author.country)
     func joinedQuery(_ query: JoinQuery, joinOperator: JoinOperator) -> JoinQuery
     
-    // TODO: remove those properties.
+    // TODO: remove query & joinCondition properties.
     //
-    // They prevent has-one-through and has-many-through from being implemented.
+    // They assume that an association is implemented as a direct join to an
+    // associated table. This is limiting: has-one-through and has-many-through
+    // associations can't be implemented in such context.
     //
-    // But they are currently used by Association.request(from:) below.
+    // Their impact is limited yet. Those propertise are currently only used by
+    // Association.request(from:). When this method gets a new implementation
+    // that does not need a direct join to an associated table, we'll be able to
+    // remove those properties.
     var query: JoinQuery { get }
     var joinCondition: JoinCondition { get }
 }
@@ -24,18 +49,20 @@ public protocol _Association {
 public protocol Association: _Association, DerivableRequest {
     /// The record type at the origin of the association.
     ///
-    /// In the sample code below, it is Book:
+    /// In the `belongsTo` association below, it is Book:
     ///
-    ///     struct Book: FetchableRecord, TableRecord {
+    ///     struct Book: TableRecord {
+    ///         // BelongsToAssociation<Book, Author>
     ///         static let author = belongsTo(Author.self)
     ///     }
     associatedtype OriginRowDecoder
     
     /// The associated record type.
     ///
-    /// In the sample code below, it is Author:
+    /// In the `belongsTo` association below, it is Author:
     ///
-    ///     struct Book: FetchableRecord, TableRecord {
+    ///     struct Book: TableRecord {
+    ///         // BelongsToAssociation<Book, Author>
     ///         static let author = belongsTo(Author.self)
     ///     }
     associatedtype RowDecoder
@@ -238,29 +265,49 @@ extension Association {
 
 /// The condition that links two joined tables.
 ///
-/// We only support one kind of join condition, today: foreign keys.
+/// Currently, we only support one kind of join condition: foreign keys.
 ///
-///     SELECT ...
-///     FROM book
-///     JOIN author ON author.id = book.authorId
-///                    <--the join condition--->
+///     SELECT ... FROM book JOIN author ON author.id = book.authorId
+///                                         <- the join condition -->
 ///
 /// When we eventually add support for new ways to join tables, JoinCondition
 /// is the type we'll need to update.
 ///
-/// The Equatable conformance is used when we merge associations. Two
-/// associations can be merged if and only if their join conditions
-/// are equal:
-///
-///     let request = Book
-///         .include(required: Book.author)
-///         .include(required: Book.author)
-/// TODO: Hide if possible
 /// :nodoc:
-public struct JoinCondition: Equatable {
+public /* TODO: make internal when possible */ struct JoinCondition {
+    /// Definition of a foreign key
     var foreignKeyRequest: ForeignKeyRequest
+    
+    /// True if the table at the origin of the foreign key is on the left of
+    /// the sql JOIN operator.
+    ///
+    /// Let's consider the `book.authorId -> author.id` foreign key.
+    /// Its origin table is `book`.
+    ///
+    /// The origin table `book` is on the left of the JOIN operator for
+    /// the BelongsTo association:
+    ///
+    ///     -- Book.including(required: Book.author)
+    ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
+    ///
+    /// The origin table `book`is on the right of the JOIN operator for
+    /// the HasMany and HasOne associations:
+    ///
+    ///     -- Author.including(required: Author.books)
+    ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
     var originIsLeft: Bool
     
+    /// Returns an SQL expression for the join condition.
+    ///
+    ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
+    ///                                         <- the SQL expression -->
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter leftAlias: A TableAlias for the table on the left of the
+    ///   JOIN operator.
+    /// - parameter rightAlias: A TableAlias for the table on the right of the
+    ///   JOIN operator.
+    /// - Returns: An SQL expression.
     func sqlExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLExpression? {
         let foreignKeyMapping = try foreignKeyRequest.fetch(db).mapping
         let columnMapping: [(left: Column, right: Column)]
@@ -275,6 +322,25 @@ public struct JoinCondition: Equatable {
             .joined(operator: .and)
     }
 }
+
+/// JoinCondition equality allows merging of associations:
+///
+///     // request1 and request2 are equivalent
+///     let request1 = Book
+///         .including(required: Book.author)
+///     let request2 = Book
+///         .including(required: Book.author)
+///         .including(required: Book.author)
+///
+///     // request3 and request4 are equivalent
+///     let request3 = Book
+///         .including(required: Book.author.filter(condition1 && condition2))
+///     let request4 = Book
+///         .joining(required: Book.author.filter(condition1))
+///         .including(optional: Book.author.filter(condition2))
+///
+/// :nodoc:
+extension JoinCondition: Equatable { }
 
 extension Association {
     /// Creates an association that includes another one. The columns of the

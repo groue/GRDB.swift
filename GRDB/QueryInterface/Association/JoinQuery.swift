@@ -1,7 +1,7 @@
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-/// TODO: Hide if possible
+///
 /// :nodoc:
-public struct JoinQuery {
+public /* TODO: make internal when possible */ struct JoinQuery {
     var source: SQLSource
     var selection: [SQLSelectable]
     var filterPromise: DatabasePromise<SQLExpression?>

@@ -465,9 +465,9 @@ extension QueryInterfaceQuery {
 ///
 ///     // what is my meaning?
 ///     A.including(optional: A.b.including(required: B.c))
-/// TODO: Hide if possible
+///
 /// :nodoc:
-public enum JoinOperator {
+public /* TODO: make internal when possible */ enum JoinOperator {
     case required, optional
 }
 
