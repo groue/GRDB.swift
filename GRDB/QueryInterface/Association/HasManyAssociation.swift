@@ -65,24 +65,28 @@ public struct HasManyAssociation<Origin, Destination>: Association {
     /// :nodoc:
     public typealias RowDecoder = Destination
 
-    /// :nodoc:
-    public var _impl: _HasManyAssociationImpl
-}
-
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// :nodoc:
-public struct _HasManyAssociationImpl: _AssociationImpl {
     public var key: String
-    public /* TODO: make internal when no longer required by _AssociationImpl */ let joinCondition: JoinCondition
-    public /* TODO: make internal when no longer required by _AssociationImpl */ var query: JoinQuery
+
+    /// :nodoc:
+    public /* TODO: make internal when no longer required by Association */ let joinCondition: JoinCondition
     
-    public func mapQuery(_ transform: (JoinQuery) -> JoinQuery) -> _HasManyAssociationImpl {
+    /// :nodoc:
+    public /* TODO: make internal when no longer required by Association */ var query: JoinQuery
+    
+    public func forKey(_ key: String) -> HasManyAssociation<Origin, Destination> {
+        var assoc = self
+        assoc.key = key
+        return assoc
+    }
+    
+    /// :nodoc:
+    public func mapQuery(_ transform: (JoinQuery) -> JoinQuery) -> HasManyAssociation<Origin, Destination> {
         var impl = self
         impl.query = transform(query)
         return impl
     }
     
+    /// :nodoc:
     public func joinedRequest<T>(_ request: QueryInterfaceRequest<T>, joinOperator: JoinOperator) -> QueryInterfaceRequest<T> {
         let join = Join(
             joinOperator: joinOperator,
@@ -91,6 +95,7 @@ public struct _HasManyAssociationImpl: _AssociationImpl {
         return QueryInterfaceRequest(query: request.query.appendingJoin(join, forKey: key))
     }
     
+    /// :nodoc:
     public func joinedQuery(_ query: JoinQuery, joinOperator: JoinOperator) -> JoinQuery {
         let join = Join(
             joinOperator: joinOperator,
@@ -268,9 +273,9 @@ extension TableRecord {
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: false)
         
-        return HasManyAssociation(_impl: _HasManyAssociationImpl(
+        return HasManyAssociation(
             key: key ?? Destination.databaseTableName,
             joinCondition: joinCondition,
-            query: JoinQuery(Destination.all().query)))
+            query: JoinQuery(Destination.all().query))
     }
 }
