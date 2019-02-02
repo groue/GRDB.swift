@@ -373,8 +373,24 @@ public /* TODO: make internal when possible */ enum JoinOperator {
 /// When we eventually add support for new ways to join tables, JoinCondition
 /// is the type we'll need to update.
 ///
+/// JoinCondition equality allows merging of associations:
+///
+///     // request1 and request2 are equivalent
+///     let request1 = Book
+///         .including(required: Book.author)
+///     let request2 = Book
+///         .including(required: Book.author)
+///         .including(required: Book.author)
+///
+///     // request3 and request4 are equivalent
+///     let request3 = Book
+///         .including(required: Book.author.filter(condition1 && condition2))
+///     let request4 = Book
+///         .joining(required: Book.author.filter(condition1))
+///         .including(optional: Book.author.filter(condition2))
+///
 /// :nodoc:
-public /* TODO: make internal when possible */ struct JoinCondition {
+public /* TODO: make internal when possible */ struct JoinCondition: Equatable {
     /// Definition of a foreign key
     var foreignKeyRequest: ForeignKeyRequest
     
@@ -422,25 +438,6 @@ public /* TODO: make internal when possible */ struct JoinCondition {
             .joined(operator: .and)
     }
 }
-
-/// JoinCondition equality allows merging of associations:
-///
-///     // request1 and request2 are equivalent
-///     let request1 = Book
-///         .including(required: Book.author)
-///     let request2 = Book
-///         .including(required: Book.author)
-///         .including(required: Book.author)
-///
-///     // request3 and request4 are equivalent
-///     let request3 = Book
-///         .including(required: Book.author.filter(condition1 && condition2))
-///     let request4 = Book
-///         .joining(required: Book.author.filter(condition1))
-///         .including(optional: Book.author.filter(condition2))
-///
-/// :nodoc:
-extension JoinCondition: Equatable { }
 
 struct Join {
     var joinOperator: JoinOperator
