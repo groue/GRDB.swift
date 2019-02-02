@@ -74,8 +74,8 @@ public struct HasManyAssociation<Origin, Destination>: Association {
 /// :nodoc:
 public struct _HasManyAssociationImpl: _AssociationImpl {
     public var key: String
-    let joinCondition: JoinCondition
-    var query: JoinQuery
+    public /* TODO: make internal when no longer required by _AssociationImpl */ let joinCondition: JoinCondition
+    public /* TODO: make internal when no longer required by _AssociationImpl */ var query: JoinQuery
     
     public func mapQuery(_ transform: (JoinQuery) -> JoinQuery) -> _HasManyAssociationImpl {
         var impl = self
