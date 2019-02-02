@@ -65,25 +65,38 @@ public struct BelongsToAssociation<Origin, Destination>: Association {
     /// :nodoc:
     public typealias RowDecoder = Destination
 
-    public var key: String
-    
     /// :nodoc:
-    public let joinCondition: JoinCondition
-    
-    /// :nodoc:
-    public var request: AssociationRequest<Destination>
+    public var _impl: _BelongsToAssociationImpl
+}
 
-    public func forKey(_ key: String) -> BelongsToAssociation<Origin, Destination> {
-        var association = self
-        association.key = key
-        return association
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// :nodoc:
+public struct _BelongsToAssociationImpl: _AssociationImpl {
+    public var key: String
+    let joinCondition: JoinCondition
+    var query: JoinQuery
+    
+    public func mapQuery(_ transform: (JoinQuery) -> JoinQuery) -> _BelongsToAssociationImpl {
+        var impl = self
+        impl.query = transform(query)
+        return impl
     }
     
-    /// :nodoc:
-    public func mapRequest(_ transform: (AssociationRequest<Destination>) -> AssociationRequest<Destination>) -> BelongsToAssociation<Origin, Destination> {
-        var association = self
-        association.request = transform(request)
-        return association
+    public func joinedRequest<T>(_ request: QueryInterfaceRequest<T>, joinOperator: JoinOperator) -> QueryInterfaceRequest<T> {
+        let join = Join(
+            joinOperator: joinOperator,
+            joinCondition: joinCondition,
+            query: query)
+        return QueryInterfaceRequest(query: request.query.appendingJoin(join, forKey: key))
+    }
+    
+    public func joinedQuery(_ query: JoinQuery, joinOperator: JoinOperator) -> JoinQuery {
+        let join = Join(
+            joinOperator: joinOperator,
+            joinCondition: joinCondition,
+            query: self.query)
+        return query.appendingJoin(join, forKey: key)
     }
 }
 
@@ -165,10 +178,10 @@ extension TableRecord {
         let joinCondition = JoinCondition(
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: true)
-
-        return BelongsToAssociation(
+        
+        return BelongsToAssociation(_impl: _BelongsToAssociationImpl(
             key: key ?? Destination.databaseTableName,
             joinCondition: joinCondition,
-            request: AssociationRequest(Destination.all()))
+            query: JoinQuery(Destination.all().query)))
     }
 }

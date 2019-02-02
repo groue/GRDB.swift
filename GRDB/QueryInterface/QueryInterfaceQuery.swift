@@ -25,7 +25,7 @@ struct QueryInterfaceQuery {
     var ordering: QueryOrdering
     var havingExpression: SQLExpression?
     var limit: SQLLimit?
-    var joins: OrderedDictionary<String, AssociationJoin>
+    var joins: OrderedDictionary<String, Join>
     
     init(
         source: SQLSource,
@@ -36,7 +36,7 @@ struct QueryInterfaceQuery {
         ordering: QueryOrdering = QueryOrdering(),
         havingExpression: SQLExpression? = nil,
         limit: SQLLimit? = nil,
-        joins: OrderedDictionary<String, AssociationJoin> = [:])
+        joins: OrderedDictionary<String, Join> = [:])
     {
         self.source = source
         self.selection = selection
@@ -49,7 +49,7 @@ struct QueryInterfaceQuery {
         self.joins = joins
     }
     
-    init(_ query: AssociationQuery) {
+    init(_ query: JoinQuery) {
         self.init(
             source: query.source,
             selection: query.selection,
@@ -136,7 +136,7 @@ extension QueryInterfaceQuery {
         return query
     }
     
-    func appendingJoin(_ join: AssociationJoin, forKey key: String) -> QueryInterfaceQuery {
+    func appendingJoin(_ join: Join, forKey key: String) -> QueryInterfaceQuery {
         var query = self
         if let existingJoin = query.joins.removeValue(forKey: key) {
             guard let mergedJoin = existingJoin.merged(with: join) else {
@@ -420,11 +420,11 @@ extension QueryInterfaceQuery {
     }
 }
 
-// MARK: - AssociationJoin
+// MARK: - Join
 
 /// Not to be mismatched with SQL join operators (inner join, left join).
 ///
-/// AssociationJoinOperator is designed to be hierarchically nested, unlike
+/// JoinOperator is designed to be hierarchically nested, unlike
 /// SQL join operators.
 ///
 /// Consider the following request for (A, B, C) tuples:
@@ -465,16 +465,18 @@ extension QueryInterfaceQuery {
 ///
 ///     // what is my meaning?
 ///     A.including(optional: A.b.including(required: B.c))
-enum AssociationJoinOperator {
+/// TODO: Hide if possible
+/// :nodoc:
+public enum JoinOperator {
     case required, optional
 }
 
-struct AssociationJoin {
-    var joinOperator: AssociationJoinOperator
+struct Join {
+    var joinOperator: JoinOperator
     var joinCondition: JoinCondition
-    var query: AssociationQuery
+    var query: JoinQuery
 
-    var finalizedJoin: AssociationJoin {
+    var finalizedJoin: Join {
         var join = self
         join.query = query.finalizedQuery
         return join
@@ -531,7 +533,7 @@ struct AssociationJoin {
     }
     
     /// Returns nil if joins can't be merged (conflict in condition, query...)
-    func merged(with other: AssociationJoin) -> AssociationJoin? {
+    func merged(with other: Join) -> Join? {
         guard joinCondition == other.joinCondition else {
             // can't merge
             return nil
@@ -542,7 +544,7 @@ struct AssociationJoin {
             return nil
         }
         
-        let mergedJoinOperator: AssociationJoinOperator
+        let mergedJoinOperator: JoinOperator
         switch (joinOperator, other.joinOperator) {
         case (.required, _), (_, .required):
             mergedJoinOperator = .required
@@ -550,7 +552,7 @@ struct AssociationJoin {
             mergedJoinOperator = .optional
         }
         
-        return AssociationJoin(
+        return Join(
             joinOperator: mergedJoinOperator,
             joinCondition: joinCondition,
             query: mergedQuery)

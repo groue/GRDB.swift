@@ -1,5 +1,5 @@
 /// QueryOrdering provides the order clause to QueryInterfaceQuery
-/// and AssociationQuery.
+/// and JoinQuery.
 struct QueryOrdering {
     private enum Element {
         case orderingTerms((Database) throws -> [SQLOrderingTerm])

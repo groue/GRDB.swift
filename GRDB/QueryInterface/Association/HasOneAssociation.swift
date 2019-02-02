@@ -66,26 +66,39 @@ public struct HasOneAssociation<Origin, Destination> : Association {
     
     /// :nodoc:
     public typealias RowDecoder = Destination
-    
+
+    /// :nodoc:
+    public var _impl: _HasOneAssociationImpl
+}
+
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// :nodoc:
+public struct _HasOneAssociationImpl: _AssociationImpl {
     public var key: String
+    let joinCondition: JoinCondition
+    var query: JoinQuery
     
-    /// :nodoc:
-    public let joinCondition: JoinCondition
-    
-    /// :nodoc:
-    public var request: AssociationRequest<Destination>
-    
-    public func forKey(_ key: String) -> HasOneAssociation<Origin, Destination> {
-        var association = self
-        association.key = key
-        return association
+    public func mapQuery(_ transform: (JoinQuery) -> JoinQuery) -> _HasOneAssociationImpl {
+        var impl = self
+        impl.query = transform(query)
+        return impl
     }
     
-    /// :nodoc:
-    public func mapRequest(_ transform: (AssociationRequest<Destination>) -> AssociationRequest<Destination>) -> HasOneAssociation<Origin, Destination> {
-        var association = self
-        association.request = transform(request)
-        return association
+    public func joinedRequest<T>(_ request: QueryInterfaceRequest<T>, joinOperator: JoinOperator) -> QueryInterfaceRequest<T> {
+        let join = Join(
+            joinOperator: joinOperator,
+            joinCondition: joinCondition,
+            query: query)
+        return QueryInterfaceRequest(query: request.query.appendingJoin(join, forKey: key))
+    }
+    
+    public func joinedQuery(_ query: JoinQuery, joinOperator: JoinOperator) -> JoinQuery {
+        let join = Join(
+            joinOperator: joinOperator,
+            joinCondition: joinCondition,
+            query: self.query)
+        return query.appendingJoin(join, forKey: key)
     }
 }
 
@@ -168,9 +181,9 @@ extension TableRecord {
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: false)
         
-        return HasOneAssociation(
+        return HasOneAssociation(_impl: _HasOneAssociationImpl(
             key: key ?? Destination.databaseTableName,
             joinCondition: joinCondition,
-            request: AssociationRequest(Destination.all()))
+            query: JoinQuery(Destination.all().query)))
     }
 }

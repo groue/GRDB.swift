@@ -1,16 +1,19 @@
-struct AssociationQuery {
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+/// TODO: Hide if possible
+/// :nodoc:
+public struct JoinQuery {
     var source: SQLSource
     var selection: [SQLSelectable]
     var filterPromise: DatabasePromise<SQLExpression?>
     var ordering: QueryOrdering
-    var joins: OrderedDictionary<String, AssociationJoin>
+    var joins: OrderedDictionary<String, Join>
     
     var alias: TableAlias? {
         return source.alias
     }
 }
 
-extension AssociationQuery {
+extension JoinQuery {
     init(_ query: QueryInterfaceQuery) {
         GRDBPrecondition(!query.isDistinct, "Not implemented: join distinct queries")
         GRDBPrecondition(query.groupPromise == nil, "Can't join aggregated queries")
@@ -26,14 +29,14 @@ extension AssociationQuery {
     }
 }
 
-extension AssociationQuery {
-    func select(_ selection: [SQLSelectable]) -> AssociationQuery {
+extension JoinQuery {
+    func select(_ selection: [SQLSelectable]) -> JoinQuery {
         var query = self
         query.selection = selection
         return query
     }
     
-    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> AssociationQuery {
+    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> JoinQuery {
         var query = self
         query.filterPromise = query.filterPromise.map { (db, filter) in
             if let filter = filter {
@@ -45,21 +48,21 @@ extension AssociationQuery {
         return query
     }
     
-    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> AssociationQuery {
+    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> JoinQuery {
         return order(QueryOrdering(orderings: orderings))
     }
     
-    func reversed() -> AssociationQuery {
+    func reversed() -> JoinQuery {
         return order(ordering.reversed)
     }
     
-    private func order(_ ordering: QueryOrdering) -> AssociationQuery {
+    private func order(_ ordering: QueryOrdering) -> JoinQuery {
         var query = self
         query.ordering = ordering
         return query
     }
     
-    func appendingJoin(_ join: AssociationJoin, forKey key: String) -> AssociationQuery {
+    func appendingJoin(_ join: Join, forKey key: String) -> JoinQuery {
         var query = self
         if let existingJoin = query.joins.removeValue(forKey: key) {
             guard let mergedJoin = existingJoin.merged(with: join) else {
@@ -73,16 +76,16 @@ extension AssociationQuery {
         return query
     }
     
-    func qualified(with alias: TableAlias) -> AssociationQuery {
+    func qualified(with alias: TableAlias) -> JoinQuery {
         var query = self
         query.source = source.qualified(with: alias)
         return query
     }
 }
 
-extension AssociationQuery {
+extension JoinQuery {
     /// A finalized query is ready for SQL generation
-    var finalizedQuery: AssociationQuery {
+    var finalizedQuery: JoinQuery {
         var query = self
         
         let alias = TableAlias()
@@ -144,9 +147,9 @@ extension AssociationQuery {
     }
 }
 
-extension AssociationQuery {
+extension JoinQuery {
     /// Returns nil if queries can't be merged (conflict in source, joins...)
-    func merged(with other: AssociationQuery) -> AssociationQuery? {
+    func merged(with other: JoinQuery) -> JoinQuery? {
         guard let mergedSource = source.merged(with: other.source) else {
             // can't merge
             return nil
@@ -161,7 +164,7 @@ extension AssociationQuery {
             return expressions.joined(operator: .and)
         }
         
-        var mergedJoins: OrderedDictionary<String, AssociationJoin> = [:]
+        var mergedJoins: OrderedDictionary<String, Join> = [:]
         for (key, join) in joins {
             if let otherJoin = other.joins[key] {
                 guard let mergedJoin = join.merged(with: otherJoin) else {
@@ -183,7 +186,7 @@ extension AssociationQuery {
         // replace ordering unless empty
         let mergedOrdering = other.ordering.isEmpty ? ordering : other.ordering
         
-        return AssociationQuery(
+        return JoinQuery(
             source: mergedSource,
             selection: mergedSelection,
             filterPromise: mergedFilterPromise,

@@ -5,7 +5,20 @@
 public protocol Association: DerivableRequest {
     associatedtype OriginRowDecoder
     associatedtype RowDecoder
-    
+    associatedtype _Impl: _AssociationImpl
+    var _impl: _Impl { get set }
+}
+
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+/// :nodoc:
+public protocol _AssociationImpl {
+    var key: String { get set }
+    func mapQuery(_ transform: (JoinQuery) -> JoinQuery) -> Self
+    func joinedRequest<T>(_ request: QueryInterfaceRequest<T>, joinOperator: JoinOperator) -> QueryInterfaceRequest<T>
+    func joinedQuery(_ query: JoinQuery, joinOperator: JoinOperator) -> JoinQuery
+}
+
+extension Association {
     /// The association key defines how rows fetched from this association
     /// should be consumed.
     ///
@@ -30,7 +43,9 @@ public protocol Association: DerivableRequest {
     ///     for row in Row.fetchAll(db, request) {
     ///         let team: Team = row["custom"]
     ///     }
-    var key: String { get }
+    public var key: String {
+        return _impl.key
+    }
     
     /// Creates an association with the given key.
     ///
@@ -46,19 +61,18 @@ public protocol Association: DerivableRequest {
     ///     for row in Row.fetchAll(db, request) {
     ///         let team: Team = row["custom"]
     ///     }
-    func forKey(_ key: String) -> Self
+    public func forKey(_ key: String) -> Self {
+        var association = self
+        association._impl.key = key
+        return association
+    }
     
-    /// :nodoc:
-    var request: AssociationRequest<RowDecoder> { get }
+    private func mapQuery(_ transform: (JoinQuery) -> JoinQuery) -> Self {
+        var association = self
+        association._impl = _impl.mapQuery(transform)
+        return association
+    }
     
-    /// :nodoc:
-    var joinCondition: JoinCondition { get }
-    
-    /// :nodoc:
-    func mapRequest(_ transform: (AssociationRequest<RowDecoder>) -> AssociationRequest<RowDecoder>) -> Self
-}
-
-extension Association {
     /// Creates an association which selects *selection*.
     ///
     ///     struct Player: TableRecord {
@@ -81,7 +95,7 @@ extension Association {
     ///         .select([Column("color")])
     ///     var request = Player.including(required: association)
     public func select(_ selection: [SQLSelectable]) -> Self {
-        return mapRequest { $0.select(selection) }
+        return mapQuery { $0.select(selection) }
     }
     
     /// Creates an association with the provided *predicate promise* added to
@@ -97,7 +111,7 @@ extension Association {
     ///     let association = Player.team.filter { db in true }
     ///     var request = Player.including(required: association)
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        return mapRequest { $0.filter(predicate) }
+        return mapQuery { $0.filter(predicate) }
     }
     
     /// Creates an association with the provided *orderings promise*.
@@ -125,7 +139,7 @@ extension Association {
     ///         .order{ _ in [Column("name")] }
     ///     var request = Player.including(required: association)
     public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
-        return mapRequest { $0.order(orderings) }
+        return mapQuery { $0.order(orderings) }
     }
     
     /// Creates an association that reverses applied orderings.
@@ -149,7 +163,7 @@ extension Association {
     ///     let association = Player.team.reversed()
     ///     var request = Player.including(required: association)
     public func reversed() -> Self {
-        return mapRequest { $0.reversed() }
+        return mapQuery { $0.reversed() }
     }
     
     /// Creates an association with the given key.
@@ -207,7 +221,7 @@ extension Association {
     ///         .including(required: Player.team.aliased(teamAlias))
     ///         .filter(sql: "custom.color = ?", arguments: ["red"])
     public func aliased(_ alias: TableAlias) -> Self {
-        return mapRequest { $0.aliased(alias) }
+        return mapQuery { $0.qualified(with: alias) }
     }
 }
 
@@ -230,6 +244,8 @@ extension Association {
 ///     let request = Book
 ///         .include(required: Book.author)
 ///         .include(required: Book.author)
+/// TODO: Hide if possible
+/// :nodoc:
 public struct JoinCondition: Equatable {
     var foreignKeyRequest: ForeignKeyRequest
     var originIsLeft: Bool
@@ -254,28 +270,28 @@ extension Association {
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRequest { $0.joining(.optional, association) }
+        return mapQuery { association._impl.joinedQuery($0, joinOperator: .optional) }
     }
     
     /// Creates an association that includes another one. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRequest { $0.joining(.required, association) }
+        return mapQuery { association._impl.joinedQuery($0, joinOperator: .required) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRequest { $0.joining(.optional, association.select([])) }
+        return mapQuery { association.select([])._impl.joinedQuery($0, joinOperator: .optional) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRequest { $0.joining(.required, association.select([])) }
+        return mapQuery { association.select([])._impl.joinedQuery($0, joinOperator: .required) }
     }
 }
 
@@ -294,38 +310,43 @@ extension Association where OriginRowDecoder: MutablePersistableRecord {
     ///     let team: Team = ...
     ///     let players = try team.players.fetchAll(db) // [Player]
     func request(from record: OriginRowDecoder) -> QueryInterfaceRequest<RowDecoder> {
-        // Goal: turn `JOIN association ON association.recordId = record.id`
-        // into a regular request `SELECT * FROM association WHERE association.recordId = 123`
-        
-        // We need table aliases to build the joining condition
-        let associationAlias = TableAlias()
-        let recordAlias = TableAlias()
-        
-        // Turn the association request into a query interface request:
-        // JOIN association -> SELECT FROM association
-        return QueryInterfaceRequest(request)
-            
-            // Turn the JOIN condition into a regular WHERE condition
-            .filter { db in
-                // Build a join condition: `association.recordId = record.id`
-                // We still need to replace `record.id` with the actual record id.
-                guard let joinExpression = try self.joinCondition.sqlExpression(db, leftAlias: recordAlias, rightAlias: associationAlias) else {
-                    fatalError("Can't request from record without join condition")
-                }
-                
-                // Serialize record: ["id": 123, ...]
-                // We do it as late as possible, when request is about to be
-                // executed, in order to support long-lived reference types.
-                let container = PersistenceContainer(record)
-                
-                // Replace `record.id` with 123
-                return joinExpression.resolvedExpression(inContext: [recordAlias: container])
-            }
-            
-            // We just added a condition qualified with associationAlias. Don't
-            // risk introducing conflicting aliases that would prevent the user
-            // from setting a custom alias name: force the same alias for the
-            // whole request.
-            .aliased(associationAlias)
+        let query = QueryInterfaceQuery(
+            source: .table(tableName: "TODO", alias: nil),
+            selection: [AllColumns()])
+        return QueryInterfaceRequest(query: query)
+//        fatalError("not implemented")
+//        // Goal: turn `JOIN association ON association.recordId = record.id`
+//        // into a regular request `SELECT * FROM association WHERE association.recordId = 123`
+//
+//        // We need table aliases to build the joining condition
+//        let associationAlias = TableAlias()
+//        let recordAlias = TableAlias()
+//
+//        // Turn the association query into a query interface request:
+//        // JOIN association -> SELECT FROM association
+//        return QueryInterfaceRequest(query: query)
+//
+//            // Turn the JOIN condition into a regular WHERE condition
+//            .filter { db in
+//                // Build a join condition: `association.recordId = record.id`
+//                // We still need to replace `record.id` with the actual record id.
+//                guard let joinExpression = try self.joinCondition.sqlExpression(db, leftAlias: recordAlias, rightAlias: associationAlias) else {
+//                    fatalError("Can't request from record without join condition")
+//                }
+//
+//                // Serialize record: ["id": 123, ...]
+//                // We do it as late as possible, when request is about to be
+//                // executed, in order to support long-lived reference types.
+//                let container = PersistenceContainer(record)
+//
+//                // Replace `record.id` with 123
+//                return joinExpression.resolvedExpression(inContext: [recordAlias: container])
+//            }
+//
+//            // We just added a condition qualified with associationAlias. Don't
+//            // risk introducing conflicting aliases that would prevent the user
+//            // from setting a custom alias name: force the same alias for the
+//            // whole request.
+//            .aliased(associationAlias)
     }
 }

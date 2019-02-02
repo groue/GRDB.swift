@@ -8,8 +8,8 @@ public struct QueryInterfaceRequest<T> {
         self.query = query
     }
     
-    init(_ request: AssociationRequest<T>) {
-        self.query = QueryInterfaceQuery(request.query)
+    init(query: JoinQuery) {
+        self.query = QueryInterfaceQuery(query)
     }
 }
 
