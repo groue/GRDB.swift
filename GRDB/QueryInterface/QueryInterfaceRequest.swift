@@ -226,6 +226,32 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     }
 }
 
+extension QueryInterfaceRequest {
+    /// Turns a request into a JoinQuery.
+    ///
+    /// This method helps initializing associations:
+    ///
+    ///     struct Book: TableRecord {
+    ///         // invokes Author.all().asJoinQuery()
+    ///         static let author = belongsTo(Author.self)
+    ///     }
+    func asJoinQuery() -> JoinQuery {
+        let query = self.query
+        
+        GRDBPrecondition(!query.isDistinct, "Not implemented: join distinct queries")
+        GRDBPrecondition(query.groupPromise == nil, "Can't join aggregated queries")
+        GRDBPrecondition(query.havingExpression == nil, "Can't join aggregated queries")
+        GRDBPrecondition(query.limit == nil, "Can't join limited queries")
+        
+        return JoinQuery(
+            source: query.source,
+            selection: query.selection,
+            filterPromise: query.filterPromise,
+            ordering: query.ordering,
+            joins: query.joins)
+    }
+}
+
 /// Conditional conformance to TableRequest when RowDecoder conforms
 /// to TableRecord:
 ///

@@ -187,6 +187,6 @@ extension TableRecord {
         return BelongsToAssociation(
             key: key ?? Destination.databaseTableName,
             joinCondition: joinCondition,
-            query: JoinQuery(Destination.all().query))
+            query: Destination.all().asJoinQuery())
     }
 }

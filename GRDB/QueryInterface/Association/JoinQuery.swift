@@ -14,22 +14,6 @@ public /* TODO: make internal when possible */ struct JoinQuery {
 }
 
 extension JoinQuery {
-    init(_ query: QueryInterfaceQuery) {
-        GRDBPrecondition(!query.isDistinct, "Not implemented: join distinct queries")
-        GRDBPrecondition(query.groupPromise == nil, "Can't join aggregated queries")
-        GRDBPrecondition(query.havingExpression == nil, "Can't join aggregated queries")
-        GRDBPrecondition(query.limit == nil, "Can't join limited queries")
-        
-        self.init(
-            source: query.source,
-            selection: query.selection,
-            filterPromise: query.filterPromise,
-            ordering: query.ordering,
-            joins: query.joins)
-    }
-}
-
-extension JoinQuery {
     func select(_ selection: [SQLSelectable]) -> JoinQuery {
         var query = self
         query.selection = selection
