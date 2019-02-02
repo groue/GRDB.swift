@@ -1,7 +1,11 @@
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
+/// A "relation" as defined by the [relational terminology](https://en.wikipedia.org/wiki/Relational_database#Terminology):
+///
+/// > A set of tuples sharing the same attributes; a set of columns and rows.
+///
 /// :nodoc:
-public /* TODO: make internal when possible */ struct JoinQuery {
+public /* TODO: make internal when possible */ struct SQLRelation {
     var source: SQLSource
     var selection: [SQLSelectable]
     var filterPromise: DatabasePromise<SQLExpression?>
@@ -13,76 +17,76 @@ public /* TODO: make internal when possible */ struct JoinQuery {
     }
 }
 
-extension JoinQuery {
-    func select(_ selection: [SQLSelectable]) -> JoinQuery {
-        var query = self
-        query.selection = selection
-        return query
+extension SQLRelation {
+    func select(_ selection: [SQLSelectable]) -> SQLRelation {
+        var relation = self
+        relation.selection = selection
+        return relation
     }
     
-    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> JoinQuery {
-        var query = self
-        query.filterPromise = query.filterPromise.map { (db, filter) in
+    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLRelation {
+        var relation = self
+        relation.filterPromise = relation.filterPromise.map { (db, filter) in
             if let filter = filter {
                 return try filter && predicate(db)
             } else {
                 return try predicate(db).sqlExpression
             }
         }
-        return query
+        return relation
     }
     
-    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> JoinQuery {
+    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> SQLRelation {
         return order(QueryOrdering(orderings: orderings))
     }
     
-    func reversed() -> JoinQuery {
+    func reversed() -> SQLRelation {
         return order(ordering.reversed)
     }
     
-    private func order(_ ordering: QueryOrdering) -> JoinQuery {
-        var query = self
-        query.ordering = ordering
-        return query
+    private func order(_ ordering: QueryOrdering) -> SQLRelation {
+        var relation = self
+        relation.ordering = ordering
+        return relation
     }
     
-    func appendingJoin(_ join: Join, forKey key: String) -> JoinQuery {
-        var query = self
-        if let existingJoin = query.joins.removeValue(forKey: key) {
+    func appendingJoin(_ join: Join, forKey key: String) -> SQLRelation {
+        var relation = self
+        if let existingJoin = relation.joins.removeValue(forKey: key) {
             guard let mergedJoin = existingJoin.merged(with: join) else {
                 // can't merge
                 fatalError("The association key \"\(key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
             }
-            query.joins.append(value: mergedJoin, forKey: key)
+            relation.joins.append(value: mergedJoin, forKey: key)
         } else {
-            query.joins.append(value: join, forKey: key)
+            relation.joins.append(value: join, forKey: key)
         }
-        return query
+        return relation
     }
     
-    func qualified(with alias: TableAlias) -> JoinQuery {
-        var query = self
-        query.source = source.qualified(with: alias)
-        return query
+    func qualified(with alias: TableAlias) -> SQLRelation {
+        var relation = self
+        relation.source = source.qualified(with: alias)
+        return relation
     }
 }
 
-extension JoinQuery {
-    /// A finalized query is ready for SQL generation
-    var finalizedQuery: JoinQuery {
-        var query = self
+extension SQLRelation {
+    /// A finalized relation is ready for SQL generation
+    var finalizedRelation: SQLRelation {
+        var relation = self
         
         let alias = TableAlias()
-        query.source = source.qualified(with: alias)
-        query.selection = selection.map { $0.qualifiedSelectable(with: alias) }
-        query.filterPromise = filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
-        query.ordering = ordering.qualified(with: alias)
-        query.joins = joins.mapValues { $0.finalizedJoin }
+        relation.source = source.qualified(with: alias)
+        relation.selection = selection.map { $0.qualifiedSelectable(with: alias) }
+        relation.filterPromise = filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
+        relation.ordering = ordering.qualified(with: alias)
+        relation.joins = joins.mapValues { $0.finalizedJoin }
         
-        return query
+        return relation
     }
     
-    /// precondition: self is the result of finalizedQuery
+    /// precondition: self is the result of finalizedRelation
     var finalizedAliases: [TableAlias] {
         var aliases: [TableAlias] = []
         if let alias = alias {
@@ -93,21 +97,21 @@ extension JoinQuery {
         }
     }
     
-    /// precondition: self is the result of finalizedQuery
+    /// precondition: self is the result of finalizedRelation
     var finalizedSelection: [SQLSelectable] {
         return joins.reduce(into: selection) {
             $0.append(contentsOf: $1.value.finalizedSelection)
         }
     }
     
-    /// precondition: self is the result of finalizedQuery
+    /// precondition: self is the result of finalizedRelation
     var finalizedOrdering: QueryOrdering {
         return joins.reduce(ordering) {
             $0.appending($1.value.finalizedOrdering)
         }
     }
     
-    /// precondition: self is the result of finalizedQuery
+    /// precondition: self is the result of finalizedRelation
     func finalizedRowAdapter(_ db: Database, fromIndex startIndex: Int, forKeyPath keyPath: [String]) throws -> (adapter: RowAdapter, endIndex: Int)? {
         let selectionWidth = try selection
             .map { try $0.columnCount(db) }
@@ -131,9 +135,9 @@ extension JoinQuery {
     }
 }
 
-extension JoinQuery {
+extension SQLRelation {
     /// Returns nil if queries can't be merged (conflict in source, joins...)
-    func merged(with other: JoinQuery) -> JoinQuery? {
+    func merged(with other: SQLRelation) -> SQLRelation? {
         guard let mergedSource = source.merged(with: other.source) else {
             // can't merge
             return nil
@@ -170,7 +174,7 @@ extension JoinQuery {
         // replace ordering unless empty
         let mergedOrdering = other.ordering.isEmpty ? ordering : other.ordering
         
-        return JoinQuery(
+        return SQLRelation(
             source: mergedSource,
             selection: mergedSelection,
             filterPromise: mergedFilterPromise,

@@ -121,8 +121,6 @@
 		5653EB4220961F6100F46237 /* BelongsToAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB3720961F6000F46237 /* BelongsToAssociation.swift */; };
 		5653EB4320961F6100F46237 /* HasOneAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB3820961F6000F46237 /* HasOneAssociation.swift */; };
 		5653EB4420961F6100F46237 /* HasOneAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB3820961F6000F46237 /* HasOneAssociation.swift */; };
-		5653EB4520961F6100F46237 /* JoinQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB3920961F6000F46237 /* JoinQuery.swift */; };
-		5653EB4620961F6100F46237 /* JoinQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB3920961F6000F46237 /* JoinQuery.swift */; };
 		5653EB4720961F6100F46237 /* HasManyAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB3A20961F6000F46237 /* HasManyAssociation.swift */; };
 		5653EB4820961F6100F46237 /* HasManyAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB3A20961F6000F46237 /* HasManyAssociation.swift */; };
 		5653EB4920961F6100F46237 /* ForeignKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB3B20961F6000F46237 /* ForeignKey.swift */; };
@@ -384,6 +382,8 @@
 		56D507651F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D5075D1F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift */; };
 		56D51D021EA789FA0074638A /* FetchableRecord+TableRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D51CFF1EA789FA0074638A /* FetchableRecord+TableRecord.swift */; };
 		56D51D051EA789FA0074638A /* FetchableRecord+TableRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D51CFF1EA789FA0074638A /* FetchableRecord+TableRecord.swift */; };
+		56D91A9F2205E02300770D8D /* SQLRelation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D91A9E2205E02300770D8D /* SQLRelation.swift */; };
+		56D91AA02205E02300770D8D /* SQLRelation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D91A9E2205E02300770D8D /* SQLRelation.swift */; };
 		56DAA2D51DE99DAB006E10C8 /* DatabaseCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DAA2D11DE99DAB006E10C8 /* DatabaseCursorTests.swift */; };
 		56DAA2D91DE99DAB006E10C8 /* DatabaseCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DAA2D11DE99DAB006E10C8 /* DatabaseCursorTests.swift */; };
 		56DAA2DD1DE9C827006E10C8 /* Cursor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DAA2DA1DE9C827006E10C8 /* Cursor.swift */; };
@@ -739,7 +739,6 @@
 		564F9C2C1F075DD200877A00 /* DatabaseFunction.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseFunction.swift; sourceTree = "<group>"; };
 		5653EB3720961F6000F46237 /* BelongsToAssociation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BelongsToAssociation.swift; sourceTree = "<group>"; };
 		5653EB3820961F6000F46237 /* HasOneAssociation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HasOneAssociation.swift; sourceTree = "<group>"; };
-		5653EB3920961F6000F46237 /* JoinQuery.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JoinQuery.swift; sourceTree = "<group>"; };
 		5653EB3A20961F6000F46237 /* HasManyAssociation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HasManyAssociation.swift; sourceTree = "<group>"; };
 		5653EB3B20961F6000F46237 /* ForeignKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ForeignKey.swift; sourceTree = "<group>"; };
 		5653EB3C20961F6000F46237 /* ForeignKeyRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ForeignKeyRequest.swift; sourceTree = "<group>"; };
@@ -929,6 +928,7 @@
 		56D121591ED34978001347D2 /* Fixits-0.109.0.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Fixits-0.109.0.swift"; sourceTree = "<group>"; };
 		56D5075D1F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryKeyInfoTests.swift; sourceTree = "<group>"; };
 		56D51CFF1EA789FA0074638A /* FetchableRecord+TableRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "FetchableRecord+TableRecord.swift"; sourceTree = "<group>"; };
+		56D91A9E2205E02300770D8D /* SQLRelation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLRelation.swift; sourceTree = "<group>"; };
 		56DAA2D11DE99DAB006E10C8 /* DatabaseCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseCursorTests.swift; sourceTree = "<group>"; };
 		56DAA2DA1DE9C827006E10C8 /* Cursor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Cursor.swift; sourceTree = "<group>"; };
 		56DE7B101C3D93ED00861EB8 /* StatementArgumentsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatementArgumentsTests.swift; sourceTree = "<group>"; };
@@ -1225,6 +1225,7 @@
 				56FC98771D969DEF00E3C842 /* SQLExpression+QueryInterface.swift */,
 				5653EC072098737400F46237 /* SQLGenerationContext.swift */,
 				56CEB5431EAA359A00BFAF62 /* SQLOrdering.swift */,
+				56D91A9E2205E02300770D8D /* SQLRelation.swift */,
 				56CEB5441EAA359A00BFAF62 /* SQLSelectable.swift */,
 				566475A11D9810A400FF74B8 /* SQLSelectable+QueryInterface.swift */,
 				566475B91D981AD200FF74B8 /* SQLSpecificExpressible+QueryInterface.swift */,
@@ -1277,7 +1278,6 @@
 				5653EB3C20961F6000F46237 /* ForeignKeyRequest.swift */,
 				5653EB3A20961F6000F46237 /* HasManyAssociation.swift */,
 				5653EB3820961F6000F46237 /* HasOneAssociation.swift */,
-				5653EB3920961F6000F46237 /* JoinQuery.swift */,
 			);
 			path = Association;
 			sourceTree = "<group>";
@@ -2026,12 +2026,12 @@
 				5674A6ED1F307F0E0095F066 /* DatabaseValueConvertible+Encodable.swift in Sources */,
 				5657AB141D10899D006283EF /* URL.swift in Sources */,
 				5613ED6A21A95E6100DC7A68 /* ValueObservation+FetchableRecord.swift in Sources */,
+				56D91AA02205E02300770D8D /* SQLRelation.swift in Sources */,
 				5644DE7920F8C8EA001FFDDE /* DatabaseValueConversion.swift in Sources */,
 				56DAA2E01DE9C827006E10C8 /* Cursor.swift in Sources */,
 				F3BA800C1CFB286F003DC1BA /* DatabaseError.swift in Sources */,
 				566B91301FA4D0CC0012D5B0 /* StatementAuthorizer.swift in Sources */,
 				F3BA80221CFB288C003DC1BA /* NSNumber.swift in Sources */,
-				5653EB4620961F6100F46237 /* JoinQuery.swift in Sources */,
 				F3BA80321CFB28A4003DC1BA /* FetchedRecordsController.swift in Sources */,
 				5659F48D1EA8D94E004A4992 /* Utils.swift in Sources */,
 				F3BA80231CFB288C003DC1BA /* NSString.swift in Sources */,
@@ -2333,12 +2333,12 @@
 				5674A6EC1F307F0E0095F066 /* DatabaseValueConvertible+Encodable.swift in Sources */,
 				5657AB111D10899D006283EF /* URL.swift in Sources */,
 				5613ED6921A95E6100DC7A68 /* ValueObservation+FetchableRecord.swift in Sources */,
+				56D91A9F2205E02300770D8D /* SQLRelation.swift in Sources */,
 				5644DE7820F8C8EA001FFDDE /* DatabaseValueConversion.swift in Sources */,
 				56DAA2DD1DE9C827006E10C8 /* Cursor.swift in Sources */,
 				F3BA80681CFB2E55003DC1BA /* DatabaseError.swift in Sources */,
 				566B912D1FA4D0CC0012D5B0 /* StatementAuthorizer.swift in Sources */,
 				F3BA807E1CFB2E61003DC1BA /* NSNumber.swift in Sources */,
-				5653EB4520961F6100F46237 /* JoinQuery.swift in Sources */,
 				F3BA808E1CFB2E7A003DC1BA /* FetchedRecordsController.swift in Sources */,
 				5659F48A1EA8D94E004A4992 /* Utils.swift in Sources */,
 				F3BA807F1CFB2E61003DC1BA /* NSString.swift in Sources */,

@@ -73,7 +73,7 @@ public struct HasOneAssociation<Origin, Destination> : Association {
     public /* TODO: make internal when no longer required by Association */ let joinCondition: JoinCondition
     
     /// :nodoc:
-    public /* TODO: make internal when no longer required by Association */ var query: JoinQuery
+    public /* TODO: make internal when no longer required by Association */ var relation: SQLRelation
     
     public func forKey(_ key: String) -> HasOneAssociation<Origin, Destination> {
         var assoc = self
@@ -82,10 +82,10 @@ public struct HasOneAssociation<Origin, Destination> : Association {
     }
     
     /// :nodoc:
-    public func mapQuery(_ transform: (JoinQuery) -> JoinQuery) -> HasOneAssociation<Origin, Destination> {
-        var impl = self
-        impl.query = transform(query)
-        return impl
+    public func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> HasOneAssociation<Origin, Destination> {
+        var assoc = self
+        assoc.relation = transform(relation)
+        return assoc
     }
     
     /// :nodoc:
@@ -93,17 +93,17 @@ public struct HasOneAssociation<Origin, Destination> : Association {
         let join = Join(
             joinOperator: joinOperator,
             joinCondition: joinCondition,
-            query: query)
-        return QueryInterfaceRequest(query: request.query.appendingJoin(join, forKey: key))
+            relation: relation)
+        return QueryInterfaceRequest(relation: request.relation.appendingJoin(join, forKey: key))
     }
     
     /// :nodoc:
-    public func joinedQuery(_ query: JoinQuery, joinOperator: JoinOperator) -> JoinQuery {
+    public func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
         let join = Join(
             joinOperator: joinOperator,
             joinCondition: joinCondition,
-            query: self.query)
-        return query.appendingJoin(join, forKey: key)
+            relation: self.relation)
+        return relation.appendingJoin(join, forKey: key)
     }
 }
 
@@ -189,6 +189,6 @@ extension TableRecord {
         return HasOneAssociation(
             key: key ?? Destination.databaseTableName,
             joinCondition: joinCondition,
-            query: Destination.all().asJoinQuery())
+            relation: Destination.all().relation)
     }
 }

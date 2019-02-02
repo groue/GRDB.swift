@@ -8,8 +8,8 @@ public struct QueryInterfaceRequest<T> {
         self.query = query
     }
     
-    init(query: JoinQuery) {
-        self.query = QueryInterfaceQuery(query)
+    init(relation: SQLRelation) {
+        self.query = QueryInterfaceQuery(relation)
     }
 }
 
@@ -232,10 +232,10 @@ extension QueryInterfaceRequest {
     /// This method helps initializing associations:
     ///
     ///     struct Book: TableRecord {
-    ///         // invokes Author.all().asJoinQuery()
+    ///         // invokes Author.all().relation
     ///         static let author = belongsTo(Author.self)
     ///     }
-    func asJoinQuery() -> JoinQuery {
+    var relation: SQLRelation {
         let query = self.query
         
         GRDBPrecondition(!query.isDistinct, "Not implemented: join distinct queries")
@@ -243,7 +243,7 @@ extension QueryInterfaceRequest {
         GRDBPrecondition(query.havingExpression == nil, "Can't join aggregated queries")
         GRDBPrecondition(query.limit == nil, "Can't join limited queries")
         
-        return JoinQuery(
+        return SQLRelation(
             source: query.source,
             selection: query.selection,
             filterPromise: query.filterPromise,

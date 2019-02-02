@@ -10,7 +10,7 @@ public protocol _Association {
     ///
     ///     // Invokes Book.author.mapQuery { $0.filter(...) }
     ///     Book.author.filter(...)
-    func mapQuery(_ transform: (JoinQuery) -> JoinQuery) -> Self
+    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self
     
     /// Returns a request joined with self.
     ///
@@ -24,11 +24,11 @@ public protocol _Association {
     ///
     /// This method provides fundamental support for joining methods:
     ///
-    ///     // Invokes Book.author.mapQuery { Author.country.joinedQuery($0, .optional) }
+    ///     // Invokes Book.author.mapQuery { Author.country.joinedRelation($0, .optional) }
     ///     Book.including(required: Book.author.including(optional: Author.country)
-    func joinedQuery(_ query: JoinQuery, joinOperator: JoinOperator) -> JoinQuery
+    func joinedRelation(_ query: SQLRelation, joinOperator: JoinOperator) -> SQLRelation
     
-    // TODO: remove query & joinCondition properties.
+    // TODO: remove relation & joinCondition properties.
     //
     // They assume that an association is implemented as a direct join to an
     // associated table. This is limiting: has-one-through and has-many-through
@@ -38,7 +38,7 @@ public protocol _Association {
     // Association.request(from:). When this method gets a new implementation
     // that does not need a direct join to an associated table, we'll be able to
     // remove those properties.
-    var query: JoinQuery { get }
+    var relation: SQLRelation { get }
     var joinCondition: JoinCondition { get }
 }
 
@@ -133,7 +133,7 @@ extension Association {
     ///         .select([Column("color")])
     ///     var request = Player.including(required: association)
     public func select(_ selection: [SQLSelectable]) -> Self {
-        return mapQuery { $0.select(selection) }
+        return mapRelation { $0.select(selection) }
     }
     
     /// Creates an association with the provided *predicate promise* added to
@@ -149,7 +149,7 @@ extension Association {
     ///     let association = Player.team.filter { db in true }
     ///     var request = Player.including(required: association)
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        return mapQuery { $0.filter(predicate) }
+        return mapRelation { $0.filter(predicate) }
     }
     
     /// Creates an association with the provided *orderings promise*.
@@ -177,7 +177,7 @@ extension Association {
     ///         .order{ _ in [Column("name")] }
     ///     var request = Player.including(required: association)
     public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
-        return mapQuery { $0.order(orderings) }
+        return mapRelation { $0.order(orderings) }
     }
     
     /// Creates an association that reverses applied orderings.
@@ -201,7 +201,7 @@ extension Association {
     ///     let association = Player.team.reversed()
     ///     var request = Player.including(required: association)
     public func reversed() -> Self {
-        return mapQuery { $0.reversed() }
+        return mapRelation { $0.reversed() }
     }
     
     /// Creates an association with the given key.
@@ -259,7 +259,7 @@ extension Association {
     ///         .including(required: Player.team.aliased(teamAlias))
     ///         .filter(sql: "custom.color = ?", arguments: ["red"])
     public func aliased(_ alias: TableAlias) -> Self {
-        return mapQuery { $0.qualified(with: alias) }
+        return mapRelation { $0.qualified(with: alias) }
     }
 }
 
@@ -268,28 +268,28 @@ extension Association {
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapQuery { association.joinedQuery($0, joinOperator: .optional) }
+        return mapRelation { association.joinedRelation($0, joinOperator: .optional) }
     }
     
     /// Creates an association that includes another one. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapQuery { association.joinedQuery($0, joinOperator: .required) }
+        return mapRelation { association.joinedRelation($0, joinOperator: .required) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapQuery { association.select([]).joinedQuery($0, joinOperator: .optional) }
+        return mapRelation { association.select([]).joinedRelation($0, joinOperator: .optional) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapQuery { association.select([]).joinedQuery($0, joinOperator: .required) }
+        return mapRelation { association.select([]).joinedRelation($0, joinOperator: .required) }
     }
 }
 
@@ -317,7 +317,7 @@ extension Association where OriginRowDecoder: MutablePersistableRecord {
 
         // Turn the association query into a query interface request:
         // JOIN association -> SELECT FROM association
-        return QueryInterfaceRequest(query: query)
+        return QueryInterfaceRequest(relation: relation)
 
             // Turn the JOIN condition into a regular WHERE condition
             .filter { db in

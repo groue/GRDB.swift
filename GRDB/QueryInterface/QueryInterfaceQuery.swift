@@ -49,13 +49,13 @@ struct QueryInterfaceQuery {
         self.joins = joins
     }
     
-    init(_ query: JoinQuery) {
+    init(_ relation: SQLRelation) {
         self.init(
-            source: query.source,
-            selection: query.selection,
-            filterPromise: query.filterPromise,
-            ordering: query.ordering,
-            joins: query.joins)
+            source: relation.source,
+            selection: relation.selection,
+            filterPromise: relation.filterPromise,
+            ordering: relation.ordering,
+            joins: relation.joins)
     }
     
     var alias: TableAlias? {
@@ -553,31 +553,31 @@ extension JoinCondition: Equatable { }
 struct Join {
     var joinOperator: JoinOperator
     var joinCondition: JoinCondition
-    var query: JoinQuery
+    var relation: SQLRelation
 
     var finalizedJoin: Join {
         var join = self
-        join.query = query.finalizedQuery
+        join.relation = relation.finalizedRelation
         return join
     }
     
     var finalizedAliases: [TableAlias] {
-        return query.finalizedAliases
+        return relation.finalizedAliases
     }
     
     var finalizedSelection: [SQLSelectable] {
-        return query.finalizedSelection
+        return relation.finalizedSelection
     }
     
     var finalizedOrdering: QueryOrdering {
-        return query.finalizedOrdering
+        return relation.finalizedOrdering
     }
     
     func finalizedRowAdapter(_ db: Database, fromIndex startIndex: Int, forKeyPath keyPath: [String]) throws -> (adapter: RowAdapter, endIndex: Int)? {
-        return try query.finalizedRowAdapter(db, fromIndex: startIndex, forKeyPath: keyPath)
+        return try relation.finalizedRowAdapter(db, fromIndex: startIndex, forKeyPath: keyPath)
     }
     
-    /// precondition: query is the result of finalizedQuery
+    /// precondition: relation is the result of finalizedRelation
     func joinSQL(_ db: Database,_ context: inout SQLGenerationContext, leftAlias: TableAlias, isRequiredAllowed: Bool) throws -> String {
         var isRequiredAllowed = isRequiredAllowed
         var sql = ""
@@ -593,32 +593,32 @@ struct Join {
             sql += "JOIN"
         }
         
-        sql += try " " + query.source.sourceSQL(db, &context)
+        sql += try " " + relation.source.sourceSQL(db, &context)
         
-        let rightAlias = query.alias!
+        let rightAlias = relation.alias!
         let filters = try [
             joinCondition.sqlExpression(db, leftAlias: leftAlias, rightAlias: rightAlias),
-            query.filterPromise.resolve(db)
+            relation.filterPromise.resolve(db)
             ].compactMap { $0 }
         if !filters.isEmpty {
             sql += " ON " + filters.joined(operator: .and).expressionSQL(&context)
         }
         
-        for (_, join) in query.joins {
+        for (_, join) in relation.joins {
             sql += try " " + join.joinSQL(db, &context, leftAlias: rightAlias, isRequiredAllowed: isRequiredAllowed)
         }
         
         return sql
     }
     
-    /// Returns nil if joins can't be merged (conflict in condition, query...)
+    /// Returns nil if joins can't be merged (conflict in condition, relation...)
     func merged(with other: Join) -> Join? {
         guard joinCondition == other.joinCondition else {
             // can't merge
             return nil
         }
         
-        guard let mergedQuery = query.merged(with: other.query) else {
+        guard let mergedRelation = relation.merged(with: other.relation) else {
             // can't merge
             return nil
         }
@@ -634,7 +634,7 @@ struct Join {
         return Join(
             joinOperator: mergedJoinOperator,
             joinCondition: joinCondition,
-            query: mergedQuery)
+            relation: mergedRelation)
     }
 }
 
