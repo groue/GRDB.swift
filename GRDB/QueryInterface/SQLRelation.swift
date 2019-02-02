@@ -248,7 +248,7 @@ extension SQLRelation {
             return nil
         }
         
-        let mergedFilterPromise = filterPromise.map { (db, expression) in
+        let mergedFilterPromise = filterPromise.map { (db, expression) -> SQLExpression? in
             let otherExpression = try other.filterPromise.resolve(db)
             let expressions = [expression, otherExpression].compactMap { $0 }
             if expressions.isEmpty {

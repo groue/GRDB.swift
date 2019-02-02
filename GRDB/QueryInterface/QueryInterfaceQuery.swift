@@ -1,21 +1,3 @@
-struct DatabasePromise<T> {
-    let resolve: (Database) throws -> T
-    
-    init(value: T) {
-        self.resolve = { _ in value }
-    }
-    
-    init(_ resolve: @escaping (Database) throws -> T) {
-        self.resolve = resolve
-    }
-    
-    func map(_ transform: @escaping (Database, T) throws -> T) -> DatabasePromise {
-        return DatabasePromise { db in
-            try transform(db, self.resolve(db))
-        }
-    }
-}
-
 struct QueryInterfaceQuery {
     var relation: SQLRelation
     var isDistinct: Bool
