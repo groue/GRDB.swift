@@ -125,6 +125,12 @@ extension SQLRelation {
         return relation
     }
     
+    func annotated(with selection: [SQLSelectable]) -> SQLRelation {
+        var relation = self
+        relation.selection.append(contentsOf: selection)
+        return relation
+    }
+
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLRelation {
         var relation = self
         relation.filterPromise = relation.filterPromise.map { (db, filter) in

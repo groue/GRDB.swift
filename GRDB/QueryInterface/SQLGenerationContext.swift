@@ -17,7 +17,7 @@ public struct SQLGenerationContext {
             qualifierNeeded: false)
     }
     
-    /// Used for QueryInterfaceQuery.makeSelectStatement() and QueryInterfaceQuery.makeDeleteStatement()
+    /// Used for SQLSelectQuery.makeSelectStatement() and SQLSelectQuery.makeDeleteStatement()
     static func queryGenerationContext(aliases: [TableAlias]) -> SQLGenerationContext {
         return SQLGenerationContext(
             arguments: [],

@@ -2,7 +2,7 @@
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
 public struct QueryInterfaceRequest<T> {
-    let query: QueryInterfaceQuery
+    let query: SQLSelectQuery
 }
 
 extension QueryInterfaceRequest : FetchRequest {
@@ -285,7 +285,7 @@ extension TableRecord {
         let relation = SQLRelation(
             source: .table(tableName: databaseTableName, alias: nil),
             selection: databaseSelection)
-        let query = QueryInterfaceQuery(relation: relation)
+        let query = SQLSelectQuery(relation: relation)
         return QueryInterfaceRequest(query: query)
     }
     

@@ -1,4 +1,5 @@
-struct QueryInterfaceQuery {
+/// The SQLSelectQuery generates SQL for query interface requests.
+struct SQLSelectQuery {
     var relation: SQLRelation
     var isDistinct: Bool
     var groupPromise: DatabasePromise<[SQLExpression]>?
@@ -24,36 +25,32 @@ struct QueryInterfaceQuery {
     }
 }
 
-extension QueryInterfaceQuery: SelectionRequest, FilteredRequest, OrderedRequest {
-    func select(_ selection: [SQLSelectable]) -> QueryInterfaceQuery {
+extension SQLSelectQuery: SelectionRequest, FilteredRequest, OrderedRequest {
+    func select(_ selection: [SQLSelectable]) -> SQLSelectQuery {
         return mapRelation { $0.select(selection) }
     }
     
-    func annotated(with selection: [SQLSelectable]) -> QueryInterfaceQuery {
-        return mapRelation {
-            var relation = $0
-            relation.selection.append(contentsOf: selection)
-            return relation
-        }
+    func annotated(with selection: [SQLSelectable]) -> SQLSelectQuery {
+        return mapRelation { $0.annotated(with: selection) }
     }
     
-    func distinct() -> QueryInterfaceQuery {
+    func distinct() -> SQLSelectQuery {
         var query = self
         query.isDistinct = true
         return query
     }
     
-    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceQuery {
+    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLSelectQuery {
         return mapRelation { $0.filter(predicate) }
     }
     
-    func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceQuery {
+    func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> SQLSelectQuery {
         var query = self
         query.groupPromise = DatabasePromise { db in try expressions(db).map { $0.sqlExpression } }
         return query
     }
     
-    func having(_ predicate: SQLExpressible) -> QueryInterfaceQuery {
+    func having(_ predicate: SQLExpressible) -> SQLSelectQuery {
         var query = self
         if let havingExpression = query.havingExpression {
             query.havingExpression = (havingExpression && predicate).sqlExpression
@@ -63,42 +60,42 @@ extension QueryInterfaceQuery: SelectionRequest, FilteredRequest, OrderedRequest
         return query
     }
 
-    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> QueryInterfaceQuery {
+    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> SQLSelectQuery {
         return mapRelation { $0.order(orderings) }
     }
     
-    func reversed() -> QueryInterfaceQuery {
+    func reversed() -> SQLSelectQuery {
         return mapRelation { $0.reversed() }
     }
     
-    func unordered() -> QueryInterfaceQuery {
+    func unordered() -> SQLSelectQuery {
         return mapRelation { $0.unordered() }
     }
 
-    func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceQuery {
+    func limit(_ limit: Int, offset: Int? = nil) -> SQLSelectQuery {
         var query = self
         query.limit = SQLLimit(limit: limit, offset: offset)
         return query
     }
     
-    func appendingJoin(_ join: Join, forKey key: String) -> QueryInterfaceQuery {
+    func appendingJoin(_ join: Join, forKey key: String) -> SQLSelectQuery {
         return mapRelation { $0.appendingJoin(join, forKey: key) }
     }
 
-    func qualified(with alias: TableAlias) -> QueryInterfaceQuery {
+    func qualified(with alias: TableAlias) -> SQLSelectQuery {
         return mapRelation { $0.qualified(with: alias) }
     }
     
-    private func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> QueryInterfaceQuery {
+    private func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLSelectQuery {
         var query = self
         query.relation = transform(relation)
         return query
     }
 }
 
-extension QueryInterfaceQuery {
+extension SQLSelectQuery {
     /// A finalized query is ready for SQL generation
-    var finalizedQuery: QueryInterfaceQuery {
+    var finalizedQuery: SQLSelectQuery {
         var query = self
         
         query.relation = query.relation.finalizedRelation
@@ -124,7 +121,7 @@ extension QueryInterfaceQuery {
     }
 }
 
-extension QueryInterfaceQuery {
+extension SQLSelectQuery {
     /// - precondition: self is the result of finalizedQuery
     func sql(_ db: Database, _ context: inout SQLGenerationContext) throws -> String {
         var sql = "SELECT"
@@ -271,7 +268,7 @@ extension QueryInterfaceQuery {
         return databaseRegion.tableIntersection(canonicalTableName, rowIds: rowIds)
     }
     
-    private var countQuery: QueryInterfaceQuery {
+    private var countQuery: SQLSelectQuery {
         guard groupPromise == nil && limit == nil else {
             // SELECT ... GROUP BY ...
             // SELECT ... LIMIT ...
@@ -306,11 +303,11 @@ extension QueryInterfaceQuery {
     }
     
     // SELECT COUNT(*) FROM (self)
-    private var trivialCountQuery: QueryInterfaceQuery {
+    private var trivialCountQuery: SQLSelectQuery {
         let relation = SQLRelation(
             source: .query(unordered()),
             selection: [SQLExpressionCount(AllColumns())])
-        return QueryInterfaceQuery(relation: relation)
+        return SQLSelectQuery(relation: relation)
     }
 }
 
@@ -520,7 +517,7 @@ struct Join {
 
 enum SQLSource {
     case table(tableName: String, alias: TableAlias?)
-    indirect case query(QueryInterfaceQuery)
+    indirect case query(SQLSelectQuery)
     
     var alias: TableAlias? {
         switch self {
