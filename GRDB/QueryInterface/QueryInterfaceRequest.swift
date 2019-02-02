@@ -21,7 +21,7 @@
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
 public struct QueryInterfaceRequest<T> {
-    let query: SQLSelectQuery
+    var query: SQLSelectQuery
 }
 
 extension QueryInterfaceRequest : FetchRequest {
@@ -70,8 +70,8 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///     request
     ///         .select([Column("id")])
     ///         .select([Column("email")])
-    public func select(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<T> {
-        return QueryInterfaceRequest(query: query.select(selection))
+    public func select(_ selection: [SQLSelectable]) -> QueryInterfaceRequest {
+        return mapQuery { $0.select(selection) }
     }
     
     /// Creates a request which selects *selection*, and fetches values of
@@ -83,7 +83,7 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
     public func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
-        return QueryInterfaceRequest<RowDecoder>(query: query.select(selection))
+        return mapQuery { $0.select(selection) }.asRequest(of: RowDecoder.self)
     }
     
     /// Creates a request which selects *selection*, and fetches values of
@@ -117,8 +117,8 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///     request = request
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: [Column("name")])
-    public func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest<T> {
-        return QueryInterfaceRequest(query: query.annotated(with: selection))
+    public func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest {
+        return mapQuery { $0.annotated(with: selection) }
     }
 
     /// Creates a request which returns distinct rows.
@@ -130,8 +130,8 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///     // SELECT DISTINCT name FROM player
     ///     var request = Player.select(Column("name"))
     ///     request = request.distinct()
-    public func distinct() -> QueryInterfaceRequest<T> {
-        return QueryInterfaceRequest(query: query.distinct())
+    public func distinct() -> QueryInterfaceRequest {
+        return mapQuery { $0.distinct() }
     }
     
     /// Creates a request with the provided *predicate promise* added to the
@@ -140,19 +140,19 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///     // SELECT * FROM player WHERE 1
     ///     var request = Player.all()
     ///     request = request.filter { db in true }
-    public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest<T> {
-        return QueryInterfaceRequest(query: query.filter(predicate))
+    public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
+        return mapQuery { $0.filter(predicate) }
     }
     
     /// Creates a request grouped according to *expressions promise*.
-    public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceRequest<T> {
-        return QueryInterfaceRequest(query: query.group(expressions))
+    public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceRequest {
+        return mapQuery { $0.group(expressions) }
     }
     
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
-    public func having(_ predicate: SQLExpressible) -> QueryInterfaceRequest<T> {
-        return QueryInterfaceRequest(query: query.having(predicate))
+    public func having(_ predicate: SQLExpressible) -> QueryInterfaceRequest {
+        return mapQuery { $0.having(predicate) }
     }
     
     /// Creates a request with the provided *orderings promise*.
@@ -168,8 +168,8 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///         .order{ _ in [Column("email")] }
     ///         .reversed()
     ///         .order{ _ in [Column("name")] }
-    public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> QueryInterfaceRequest<T> {
-        return QueryInterfaceRequest(query: query.order(orderings))
+    public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> QueryInterfaceRequest {
+        return mapQuery { $0.order(orderings) }
     }
     
     /// Creates a request that reverses applied orderings.
@@ -183,8 +183,8 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///     // SELECT * FROM player
     ///     var request = Player.all()
     ///     request = request.reversed()
-    public func reversed() -> QueryInterfaceRequest<T> {
-        return QueryInterfaceRequest(query: query.reversed())
+    public func reversed() -> QueryInterfaceRequest {
+        return mapQuery { $0.reversed() }
     }
     
     /// Creates a request which fetches *limit* rows, starting at *offset*.
@@ -194,8 +194,8 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///     request = request.limit(1)
     ///
     /// Any previous limit is replaced.
-    public func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest<T> {
-        return QueryInterfaceRequest(query: query.limit(limit, offset: offset))
+    public func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest {
+        return mapQuery { $0.limit(limit, offset: offset) }
     }
     
     /// Creates a request that allows you to define expressions that target
@@ -216,7 +216,7 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///         .aliased(playerAlias)
     ///         .including(required: Player.team.filter(Column("avgScore") < playerAlias[Column("score")])
     public func aliased(_ alias: TableAlias) -> QueryInterfaceRequest {
-        return QueryInterfaceRequest(query: query.qualified(with: alias))
+        return mapQuery { $0.qualified(with: alias) }
     }
     
     /// Creates a request bound to type Target.
@@ -232,8 +232,15 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///
     /// - parameter type: The fetched type Target
     /// - returns: A typed request bound to type Target.
-    public func asRequest<Target>(of type: Target.Type) -> QueryInterfaceRequest<Target> {
-        return QueryInterfaceRequest<Target>(query: query)
+    public func asRequest<RowDecoder>(of type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+        return QueryInterfaceRequest<RowDecoder>(query: query)
+    }
+    
+    /// Returns a request whose query is transformed by the given closure.
+    func mapQuery(_ transform: (SQLSelectQuery) -> SQLSelectQuery) -> QueryInterfaceRequest {
+        var request = self
+        request.query = transform(query)
+        return request
     }
 }
 

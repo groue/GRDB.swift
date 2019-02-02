@@ -4,29 +4,19 @@
 ///
 /// :nodoc:
 public protocol _Association {
-    /// Returns a transformed association.
+    /// Returns an association whose relation is transformed by the
+    /// given closure.
     ///
     /// This method provides fundamental support for association derivation:
     ///
-    ///     // Invokes Book.author.mapQuery { $0.filter(...) }
+    ///     // Invokes Book.author.mapRelation { $0.filter(...) }
     ///     Book.author.filter(...)
     func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self
     
-    /// Returns a request joined with self.
+    /// Returns a relation joined with self.
     ///
-    /// This method provides fundamental support for joining methods:
-    ///
-    ///     // Invokes Book.author.joinedRequest(Book.all(), .required)
-    ///     Book.including(required: Book.author)
-    func joinedRequest<T>(_ request: QueryInterfaceRequest<T>, joinOperator: JoinOperator) -> QueryInterfaceRequest<T>
-    
-    /// Returns a query joined with self.
-    ///
-    /// This method provides fundamental support for joining methods:
-    ///
-    ///     // Invokes Book.author.mapQuery { Author.country.joinedRelation($0, .optional) }
-    ///     Book.including(required: Book.author.including(optional: Author.country)
-    func joinedRelation(_ query: SQLRelation, joinOperator: JoinOperator) -> SQLRelation
+    /// This method provides fundamental support for joining methods.
+    func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation
     
     // TODO: remove relation & joinCondition properties.
     //
@@ -40,6 +30,13 @@ public protocol _Association {
     // remove those properties.
     var relation: SQLRelation { get }
     var joinCondition: JoinCondition { get }
+}
+
+extension _Association {
+    /// Returns a request joined with self.
+    func joinedRequest<T>(_ request: QueryInterfaceRequest<T>, joinOperator: JoinOperator) -> QueryInterfaceRequest<T> {
+        return request.mapQuery { $0.mapRelation { joinedRelation($0, joinOperator: joinOperator) } }
+    }
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)

@@ -86,7 +86,8 @@ extension SQLSelectQuery: SelectionRequest, FilteredRequest, OrderedRequest {
         return mapRelation { $0.qualified(with: alias) }
     }
     
-    private func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLSelectQuery {
+    /// Returns a query whose relation is transformed by the given closure.
+    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLSelectQuery {
         var query = self
         query.relation = transform(relation)
         return query

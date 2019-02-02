@@ -16,9 +16,8 @@ extension QueryInterfaceRequest {
             return none()
         }
         let alias = TableAlias()
-        let qualifiedQuery = query.qualified(with: alias)
         let matchExpression = TableMatchExpression(alias: alias, pattern: pattern.databaseValue)
-        return QueryInterfaceRequest(query: qualifiedQuery).filter(matchExpression)
+        return self.aliased(alias).filter(matchExpression)
     }
 }
 

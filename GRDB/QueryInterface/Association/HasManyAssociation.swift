@@ -87,15 +87,6 @@ public struct HasManyAssociation<Origin, Destination>: Association {
     }
     
     /// :nodoc:
-    public func joinedRequest<T>(_ request: QueryInterfaceRequest<T>, joinOperator: JoinOperator) -> QueryInterfaceRequest<T> {
-        let join = Join(
-            joinOperator: joinOperator,
-            joinCondition: joinCondition,
-            relation: relation)
-        return QueryInterfaceRequest(query: request.query.appendingJoin(join, forKey: key))
-    }
-    
-    /// :nodoc:
     public func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
         let join = Join(
             joinOperator: joinOperator,
