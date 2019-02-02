@@ -3,14 +3,6 @@
 /// See https://github.com/groue/GRDB.swift#the-query-interface
 public struct QueryInterfaceRequest<T> {
     let query: QueryInterfaceQuery
-    
-    init(query: QueryInterfaceQuery) {
-        self.query = query
-    }
-    
-    init(relation: SQLRelation) {
-        self.query = QueryInterfaceQuery(relation: relation)
-    }
 }
 
 extension QueryInterfaceRequest : FetchRequest {
@@ -227,7 +219,7 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
 }
 
 extension QueryInterfaceRequest {
-    /// Turns a request into a JoinQuery.
+    /// Turns a request into a SQLRelation.
     ///
     /// This method helps initializing associations:
     ///

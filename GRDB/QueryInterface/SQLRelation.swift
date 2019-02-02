@@ -9,7 +9,7 @@ public /* TODO: make internal when possible */ struct SQLRelation {
     var source: SQLSource
     var selection: [SQLSelectable]
     var filterPromise: DatabasePromise<SQLExpression?>
-    var ordering: QueryOrdering
+    var ordering: SQLRelation.Ordering
     var joins: OrderedDictionary<String, Join>
     
     var alias: TableAlias? {
@@ -20,7 +20,7 @@ public /* TODO: make internal when possible */ struct SQLRelation {
         source: SQLSource,
         selection: [SQLSelectable] = [],
         filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil),
-        ordering: QueryOrdering = QueryOrdering(),
+        ordering: SQLRelation.Ordering = SQLRelation.Ordering(),
         joins: OrderedDictionary<String, Join> = [:])
     {
         self.source = source
@@ -28,6 +28,93 @@ public /* TODO: make internal when possible */ struct SQLRelation {
         self.filterPromise = filterPromise
         self.ordering = ordering
         self.joins = joins
+    }
+}
+
+extension SQLRelation {
+    /// SQLRelation.Ordering provides the order clause to SQLRelation.
+    struct Ordering {
+        private enum Element {
+            case terms(DatabasePromise<[SQLOrderingTerm]>)
+            case ordering(SQLRelation.Ordering)
+            
+            var reversed: Element {
+                switch self {
+                case .terms(let terms):
+                    return .terms(terms.map { (db, terms) in terms.map { $0.reversed } })
+                case .ordering(let ordering):
+                    return .ordering(ordering.reversed)
+                }
+            }
+            
+            func qualified(with alias: TableAlias) -> Element {
+                switch self {
+                case .terms(let terms):
+                    return .terms(terms.map { (db, terms) in terms.map { $0.qualifiedOrdering(with: alias) } })
+                case .ordering(let ordering):
+                    return .ordering(ordering.qualified(with: alias))
+                }
+            }
+            
+            func resolve(_ db: Database) throws -> [SQLOrderingTerm] {
+                switch self {
+                case .terms(let terms):
+                    return try terms.resolve(db)
+                case .ordering(let ordering):
+                    return try ordering.resolve(db)
+                }
+            }
+        }
+        
+        private var elements: [Element] = []
+        var isReversed: Bool
+        
+        var isEmpty: Bool {
+            return elements.isEmpty
+        }
+        
+        private init(elements: [Element], isReversed: Bool) {
+            self.elements = elements
+            self.isReversed = isReversed
+        }
+        
+        init() {
+            self.init(
+                elements: [],
+                isReversed: false)
+        }
+        
+        init(orderings: @escaping (Database) throws -> [SQLOrderingTerm]) {
+            self.init(
+                elements: [.terms(DatabasePromise(orderings))],
+                isReversed: false)
+        }
+        
+        var reversed: Ordering {
+            return Ordering(
+                elements: elements,
+                isReversed: !isReversed)
+        }
+        
+        func qualified(with alias: TableAlias) -> Ordering {
+            return Ordering(
+                elements: elements.map { $0.qualified(with: alias) },
+                isReversed: isReversed)
+        }
+        
+        func appending(_ ordering: Ordering) -> Ordering {
+            return Ordering(
+                elements: elements + [.ordering(ordering)],
+                isReversed: isReversed)
+        }
+        
+        func resolve(_ db: Database) throws -> [SQLOrderingTerm] {
+            if isReversed {
+                return try elements.flatMap { try $0.reversed.resolve(db) }
+            } else {
+                return try elements.flatMap { try $0.resolve(db) }
+            }
+        }
     }
 }
 
@@ -51,21 +138,21 @@ extension SQLRelation {
     }
     
     func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> SQLRelation {
-        return order(QueryOrdering(orderings: orderings))
+        return order(SQLRelation.Ordering(orderings: orderings))
     }
     
     func reversed() -> SQLRelation {
         return order(ordering.reversed)
     }
     
-    private func order(_ ordering: QueryOrdering) -> SQLRelation {
+    private func order(_ ordering: SQLRelation.Ordering) -> SQLRelation {
         var relation = self
         relation.ordering = ordering
         return relation
     }
     
     func unordered() -> SQLRelation {
-        return order(QueryOrdering())
+        return order(SQLRelation.Ordering())
     }
     
     func appendingJoin(_ join: Join, forKey key: String) -> SQLRelation {
@@ -111,21 +198,21 @@ extension SQLRelation {
             aliases.append(alias)
         }
         return joins.reduce(into: aliases) {
-            $0.append(contentsOf: $1.value.finalizedAliases)
+            $0.append(contentsOf: $1.value.relation.finalizedAliases)
         }
     }
     
     /// - precondition: self is the result of finalizedRelation
     var finalizedSelection: [SQLSelectable] {
         return joins.reduce(into: selection) {
-            $0.append(contentsOf: $1.value.finalizedSelection)
+            $0.append(contentsOf: $1.value.relation.finalizedSelection)
         }
     }
     
     /// - precondition: self is the result of finalizedRelation
-    var finalizedOrdering: QueryOrdering {
+    var finalizedOrdering: SQLRelation.Ordering {
         return joins.reduce(ordering) {
-            $0.appending($1.value.finalizedOrdering)
+            $0.appending($1.value.relation.finalizedOrdering)
         }
     }
     
@@ -138,7 +225,7 @@ extension SQLRelation {
         var endIndex = startIndex + selectionWidth
         var scopes: [String: RowAdapter] = [:]
         for (key, join) in joins {
-            if let (joinAdapter, joinEndIndex) = try join.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [key]) {
+            if let (joinAdapter, joinEndIndex) = try join.relation.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [key]) {
                 scopes[key] = joinAdapter
                 endIndex = joinEndIndex
             }

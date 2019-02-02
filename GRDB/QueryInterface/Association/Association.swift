@@ -317,7 +317,7 @@ extension Association where OriginRowDecoder: MutablePersistableRecord {
 
         // Turn the association query into a query interface request:
         // JOIN association -> SELECT FROM association
-        return QueryInterfaceRequest(relation: relation)
+        return QueryInterfaceRequest(query: QueryInterfaceQuery(relation: relation))
 
             // Turn the JOIN condition into a regular WHERE condition
             .filter { db in

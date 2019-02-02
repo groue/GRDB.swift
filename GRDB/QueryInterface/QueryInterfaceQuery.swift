@@ -473,22 +473,6 @@ struct Join {
         return join
     }
     
-    var finalizedAliases: [TableAlias] {
-        return relation.finalizedAliases
-    }
-    
-    var finalizedSelection: [SQLSelectable] {
-        return relation.finalizedSelection
-    }
-    
-    var finalizedOrdering: QueryOrdering {
-        return relation.finalizedOrdering
-    }
-    
-    func finalizedRowAdapter(_ db: Database, fromIndex startIndex: Int, forKeyPath keyPath: [String]) throws -> (adapter: RowAdapter, endIndex: Int)? {
-        return try relation.finalizedRowAdapter(db, fromIndex: startIndex, forKeyPath: keyPath)
-    }
-    
     /// - precondition: relation is the result of finalizedRelation
     func joinSQL(_ db: Database,_ context: inout SQLGenerationContext, leftAlias: TableAlias, isRequiredAllowed: Bool) throws -> String {
         var isRequiredAllowed = isRequiredAllowed

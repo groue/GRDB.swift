@@ -366,8 +366,6 @@
 		5653EC18209873A400F46237 /* SQLExpression+QueryInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EC15209873A400F46237 /* SQLExpression+QueryInterface.swift */; };
 		5653EC1A209873E600F46237 /* SQLGenerationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EC19209873E600F46237 /* SQLGenerationContext.swift */; };
 		5653EC1B209873E600F46237 /* SQLGenerationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EC19209873E600F46237 /* SQLGenerationContext.swift */; };
-		5656BF5E20C7248700F98521 /* QueryOrdering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656BF5C20C7248700F98521 /* QueryOrdering.swift */; };
-		5656BF5F20C7248700F98521 /* QueryOrdering.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656BF5C20C7248700F98521 /* QueryOrdering.swift */; };
 		5657AABA1D107001006283EF /* NSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5657AAB81D107001006283EF /* NSData.swift */; };
 		5657AABD1D107001006283EF /* NSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5657AAB81D107001006283EF /* NSData.swift */; };
 		5657AB101D10899D006283EF /* URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5657AB0E1D10899D006283EF /* URL.swift */; };
@@ -1125,7 +1123,6 @@
 		5653EBB320961FE800F46237 /* AssociationBelongsToRowScopeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationBelongsToRowScopeTests.swift; sourceTree = "<group>"; };
 		5653EC15209873A400F46237 /* SQLExpression+QueryInterface.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SQLExpression+QueryInterface.swift"; sourceTree = "<group>"; };
 		5653EC19209873E600F46237 /* SQLGenerationContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLGenerationContext.swift; sourceTree = "<group>"; };
-		5656BF5C20C7248700F98521 /* QueryOrdering.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryOrdering.swift; sourceTree = "<group>"; };
 		5657AAB81D107001006283EF /* NSData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSData.swift; sourceTree = "<group>"; };
 		5657AB0E1D10899D006283EF /* URL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URL.swift; sourceTree = "<group>"; };
 		5657AB2F1D108BA9006283EF /* FoundationDataTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationDataTests.swift; sourceTree = "<group>"; };
@@ -1608,7 +1605,6 @@
 				5605F18C1C6B1A8700235C62 /* QueryInterfaceQuery.swift */,
 				56300B6F1C53F592005A543B /* QueryInterfaceRequest.swift */,
 				5653EBA120961FCA00F46237 /* QueryInterfaceRequest+Association.swift */,
-				5656BF5C20C7248700F98521 /* QueryOrdering.swift */,
 				5616AAF8207CD5A900AC3664 /* RequestProtocols.swift */,
 				5605F1891C6B1A8700235C62 /* SQLCollatedExpression.swift */,
 				566475991D97D8A000FF74B8 /* SQLCollection.swift */,
@@ -2377,7 +2373,6 @@
 				56CEB55B1EAA359A00BFAF62 /* SQLOrdering.swift in Sources */,
 				56BF6D301DEF47DA006039A3 /* Fixits-0-84-0.swift in Sources */,
 				560FC52A1CB003810014AA8E /* DatabaseError.swift in Sources */,
-				5656BF5E20C7248700F98521 /* QueryOrdering.swift in Sources */,
 				56D51D011EA789FA0074638A /* FetchableRecord+TableRecord.swift in Sources */,
 				566475BB1D981AD200FF74B8 /* SQLSpecificExpressible+QueryInterface.swift in Sources */,
 				5613ED8721A95E8400DC7A68 /* ValueReducer.swift in Sources */,
@@ -2864,7 +2859,6 @@
 				56CEB55E1EAA359A00BFAF62 /* SQLOrdering.swift in Sources */,
 				56BF6D331DEF47DA006039A3 /* Fixits-0-84-0.swift in Sources */,
 				56AFC9FF1CB1A8BB00F48B96 /* DatabaseValueConvertible.swift in Sources */,
-				5656BF5F20C7248700F98521 /* QueryOrdering.swift in Sources */,
 				56D51D041EA789FA0074638A /* FetchableRecord+TableRecord.swift in Sources */,
 				566475BE1D981AD200FF74B8 /* SQLSpecificExpressible+QueryInterface.swift in Sources */,
 				5613ED8821A95E8400DC7A68 /* ValueReducer.swift in Sources */,

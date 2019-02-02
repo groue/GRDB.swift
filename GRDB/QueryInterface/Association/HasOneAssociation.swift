@@ -94,7 +94,7 @@ public struct HasOneAssociation<Origin, Destination> : Association {
             joinOperator: joinOperator,
             joinCondition: joinCondition,
             relation: relation)
-        return QueryInterfaceRequest(relation: request.relation.appendingJoin(join, forKey: key))
+        return QueryInterfaceRequest(query: request.query.appendingJoin(join, forKey: key))
     }
     
     /// :nodoc:
