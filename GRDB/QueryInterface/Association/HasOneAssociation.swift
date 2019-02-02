@@ -66,9 +66,9 @@ public struct HasOneAssociation<Origin, Destination> : Association {
     
     /// :nodoc:
     public typealias RowDecoder = Destination
-
+    
     public var key: String
-
+    
     /// :nodoc:
     public /* TODO: make internal when no longer required by Association */ let joinCondition: JoinCondition
     
