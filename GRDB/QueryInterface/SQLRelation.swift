@@ -6,7 +6,7 @@
 ///
 /// :nodoc:
 public /* TODO: internal */ struct SQLRelation {
-    var source: SQLSource
+    var source: SQLRelation.Source
     var selection: [SQLSelectable]
     var filterPromise: DatabasePromise<SQLExpression?>
     var ordering: SQLRelation.Ordering
@@ -17,7 +17,7 @@ public /* TODO: internal */ struct SQLRelation {
     }
     
     init(
-        source: SQLSource,
+        source: SQLRelation.Source,
         selection: [SQLSelectable] = [],
         filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil),
         ordering: SQLRelation.Ordering = SQLRelation.Ordering(),
@@ -28,93 +28,6 @@ public /* TODO: internal */ struct SQLRelation {
         self.filterPromise = filterPromise
         self.ordering = ordering
         self.joins = joins
-    }
-}
-
-extension SQLRelation {
-    /// SQLRelation.Ordering provides the order clause to SQLRelation.
-    struct Ordering {
-        private enum Element {
-            case terms(DatabasePromise<[SQLOrderingTerm]>)
-            case ordering(SQLRelation.Ordering)
-            
-            var reversed: Element {
-                switch self {
-                case .terms(let terms):
-                    return .terms(terms.map { (db, terms) in terms.map { $0.reversed } })
-                case .ordering(let ordering):
-                    return .ordering(ordering.reversed)
-                }
-            }
-            
-            func qualified(with alias: TableAlias) -> Element {
-                switch self {
-                case .terms(let terms):
-                    return .terms(terms.map { (db, terms) in terms.map { $0.qualifiedOrdering(with: alias) } })
-                case .ordering(let ordering):
-                    return .ordering(ordering.qualified(with: alias))
-                }
-            }
-            
-            func resolve(_ db: Database) throws -> [SQLOrderingTerm] {
-                switch self {
-                case .terms(let terms):
-                    return try terms.resolve(db)
-                case .ordering(let ordering):
-                    return try ordering.resolve(db)
-                }
-            }
-        }
-        
-        private var elements: [Element] = []
-        var isReversed: Bool
-        
-        var isEmpty: Bool {
-            return elements.isEmpty
-        }
-        
-        private init(elements: [Element], isReversed: Bool) {
-            self.elements = elements
-            self.isReversed = isReversed
-        }
-        
-        init() {
-            self.init(
-                elements: [],
-                isReversed: false)
-        }
-        
-        init(orderings: @escaping (Database) throws -> [SQLOrderingTerm]) {
-            self.init(
-                elements: [.terms(DatabasePromise(orderings))],
-                isReversed: false)
-        }
-        
-        var reversed: Ordering {
-            return Ordering(
-                elements: elements,
-                isReversed: !isReversed)
-        }
-        
-        func qualified(with alias: TableAlias) -> Ordering {
-            return Ordering(
-                elements: elements.map { $0.qualified(with: alias) },
-                isReversed: isReversed)
-        }
-        
-        func appending(_ ordering: Ordering) -> Ordering {
-            return Ordering(
-                elements: elements + [.ordering(ordering)],
-                isReversed: isReversed)
-        }
-        
-        func resolve(_ db: Database) throws -> [SQLOrderingTerm] {
-            if isReversed {
-                return try elements.flatMap { try $0.reversed.resolve(db) }
-            } else {
-                return try elements.flatMap { try $0.resolve(db) }
-            }
-        }
     }
 }
 
@@ -291,5 +204,166 @@ extension SQLRelation {
             filterPromise: mergedFilterPromise,
             ordering: mergedOrdering,
             joins: mergedJoins)
+    }
+}
+
+// MARK: - SQLRelation.Source
+
+extension SQLRelation {
+    enum Source {
+        case table(tableName: String, alias: TableAlias?)
+        indirect case query(SQLSelectQuery)
+        
+        var alias: TableAlias? {
+            switch self {
+            case .table(_, let alias):
+                return alias
+            case .query(let query):
+                return query.alias
+            }
+        }
+        
+        func sourceSQL(_ db: Database, _ context: inout SQLGenerationContext) throws -> String {
+            switch self {
+            case .table(let tableName, let alias):
+                if let alias = alias, let aliasName = context.aliasName(for: alias) {
+                    return "\(tableName.quotedDatabaseIdentifier) \(aliasName.quotedDatabaseIdentifier)"
+                } else {
+                    return "\(tableName.quotedDatabaseIdentifier)"
+                }
+            case .query(let query):
+                return try "(\(query.sql(db, &context)))"
+            }
+        }
+        
+        func qualified(with alias: TableAlias) -> Source {
+            switch self {
+            case .table(let tableName, let sourceAlias):
+                if let sourceAlias = sourceAlias {
+                    alias.becomeProxy(of: sourceAlias)
+                    return self
+                } else {
+                    alias.setTableName(tableName)
+                    return .table(tableName: tableName, alias: alias)
+                }
+            case .query(let query):
+                return .query(query.qualified(with: alias))
+            }
+        }
+        
+        /// Returns nil if sources can't be merged (conflict in tables, aliases...)
+        func merged(with other: Source) -> Source? {
+            switch (self, other) {
+            case let (.table(tableName: tableName, alias: alias), .table(tableName: otherTableName, alias: otherAlias)):
+                guard tableName == otherTableName else {
+                    // can't merge
+                    return nil
+                }
+                switch (alias, otherAlias) {
+                case (nil, nil):
+                    return .table(tableName: tableName, alias: nil)
+                case let (alias?, nil), let (nil, alias?):
+                    return .table(tableName: tableName, alias: alias)
+                case let (alias?, otherAlias?):
+                    guard let mergedAlias = alias.merge(with: otherAlias) else {
+                        // can't merge
+                        return nil
+                    }
+                    return .table(tableName: tableName, alias: mergedAlias)
+                }
+            default:
+                // can't merge
+                return nil
+            }
+        }
+    }
+}
+
+// MARK: - SQLRelation.Ordering
+
+extension SQLRelation {
+    /// SQLRelation.Ordering provides the order clause to SQLRelation.
+    struct Ordering {
+        private enum Element {
+            case terms(DatabasePromise<[SQLOrderingTerm]>)
+            case ordering(SQLRelation.Ordering)
+            
+            var reversed: Element {
+                switch self {
+                case .terms(let terms):
+                    return .terms(terms.map { (db, terms) in terms.map { $0.reversed } })
+                case .ordering(let ordering):
+                    return .ordering(ordering.reversed)
+                }
+            }
+            
+            func qualified(with alias: TableAlias) -> Element {
+                switch self {
+                case .terms(let terms):
+                    return .terms(terms.map { (db, terms) in terms.map { $0.qualifiedOrdering(with: alias) } })
+                case .ordering(let ordering):
+                    return .ordering(ordering.qualified(with: alias))
+                }
+            }
+            
+            func resolve(_ db: Database) throws -> [SQLOrderingTerm] {
+                switch self {
+                case .terms(let terms):
+                    return try terms.resolve(db)
+                case .ordering(let ordering):
+                    return try ordering.resolve(db)
+                }
+            }
+        }
+        
+        private var elements: [Element] = []
+        var isReversed: Bool
+        
+        var isEmpty: Bool {
+            return elements.isEmpty
+        }
+        
+        private init(elements: [Element], isReversed: Bool) {
+            self.elements = elements
+            self.isReversed = isReversed
+        }
+        
+        init() {
+            self.init(
+                elements: [],
+                isReversed: false)
+        }
+        
+        init(orderings: @escaping (Database) throws -> [SQLOrderingTerm]) {
+            self.init(
+                elements: [.terms(DatabasePromise(orderings))],
+                isReversed: false)
+        }
+        
+        var reversed: Ordering {
+            return Ordering(
+                elements: elements,
+                isReversed: !isReversed)
+        }
+        
+        func qualified(with alias: TableAlias) -> Ordering {
+            return Ordering(
+                elements: elements.map { $0.qualified(with: alias) },
+                isReversed: isReversed)
+        }
+        
+        func appending(_ ordering: Ordering) -> Ordering {
+            return Ordering(
+                elements: elements + [.ordering(ordering)],
+                isReversed: isReversed)
+        }
+        
+        func resolve(_ db: Database) throws -> [SQLOrderingTerm] {
+            if isReversed {
+                return try elements.flatMap { try $0.reversed.resolve(db) }
+            } else {
+                return try elements.flatMap { try $0.resolve(db) }
+            }
+        }
     }
 }
