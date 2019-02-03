@@ -360,9 +360,7 @@ extension Association where OriginRowDecoder: MutablePersistableRecord {
             .filter { db in
                 // Build a join condition: `association.recordId = record.id`
                 // We still need to replace `record.id` with the actual record id.
-                guard let joinExpression = try self._impl.joinCondition.sqlExpression(db, leftAlias: recordAlias, rightAlias: associationAlias) else {
-                    fatalError("Can't request from record without join condition")
-                }
+                let joinExpression = try self._impl.joinCondition.sqlExpression(db, leftAlias: recordAlias, rightAlias: associationAlias)
                 
                 // Serialize record: ["id": 123, ...]
                 // We do it as late as possible, when request is about to be

@@ -1,4 +1,4 @@
-/// The SQLSelectQuery generates SQL for query interface requests.
+/// SQLSelectQuery generates SQL for query interface requests.
 struct SQLSelectQuery {
     var relation: SQLRelation
     var isDistinct: Bool
@@ -424,7 +424,7 @@ public /* TODO: internal */ struct JoinCondition: Equatable {
     /// - parameter rightAlias: A TableAlias for the table on the right of the
     ///   JOIN operator.
     /// - Returns: An SQL expression.
-    func sqlExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLExpression? {
+    func sqlExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLExpression {
         let foreignKeyMapping = try foreignKeyRequest.fetch(db).mapping
         let columnMapping: [(left: Column, right: Column)]
         if originIsLeft {
