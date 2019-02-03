@@ -1,4 +1,6 @@
-/// SQLSelectQuery generates SQL for query interface requests.
+/// SQLSelectQuery is a representation of an SQL SELECT query.
+///
+/// See SQLSelectQueryGenerator for actual SQL generation.
 struct SQLSelectQuery {
     var relation: SQLRelation
     var isDistinct: Bool
@@ -91,178 +93,9 @@ extension SQLSelectQuery: SelectionRequest, FilteredRequest, OrderedRequest {
 }
 
 extension SQLSelectQuery {
-    /// A finalized query is ready for SQL generation
-    var finalizedQuery: SQLSelectQuery {
-        var query = self
-        
-        query.relation = query.relation.finalizedRelation
-        let alias = query.relation.alias!
-        query.groupPromise = query.groupPromise?.map { [alias] (_, exprs) in exprs.map { $0.qualifiedExpression(with: alias) } }
-        query.havingExpression = query.havingExpression?.qualifiedExpression(with: alias)
-        
-        return query
-    }
-    
-    /// - precondition: self is the result of finalizedQuery
-    private func finalizedRowAdapter(_ db: Database) throws -> RowAdapter? {
-        // No join => no adapter
-        if relation.joins.isEmpty {
-            return nil
-        }
-        
-        guard let (adapter, _) = try relation.finalizedRowAdapter(db, fromIndex: 0, forKeyPath: []) else {
-            return nil
-        }
-        
-        return adapter
-    }
-}
-
-extension SQLSelectQuery {
-    /// - precondition: self is the result of finalizedQuery
-    func sql(_ db: Database, _ context: inout SQLGenerationContext) throws -> String {
-        var sql = "SELECT"
-        
-        if isDistinct {
-            sql += " DISTINCT"
-        }
-        
-        let selection = relation.finalizedSelection
-        GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with empty selection")
-        sql += " " + selection.map { $0.resultColumnSQL(&context) }.joined(separator: ", ")
-        
-        sql += try " FROM " + relation.source.sourceSQL(db, &context)
-        
-        for (_, join) in relation.joins {
-            sql += try " " + join.joinSQL(db, &context, leftAlias: alias!, isRequiredAllowed: true)
-        }
-        
-        if let filter = try relation.filterPromise.resolve(db) {
-            sql += " WHERE " + filter.expressionSQL(&context)
-        }
-        
-        if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
-            sql += " GROUP BY "
-            sql += groupExpressions.map { $0.expressionSQL(&context) }
-                .joined(separator: ", ")
-        }
-        
-        if let havingExpression = havingExpression {
-            sql += " HAVING " + havingExpression.expressionSQL(&context)
-        }
-        
-        let orderings = try relation.finalizedOrdering.resolve(db)
-        if !orderings.isEmpty {
-            sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
-        }
-        
-        if let limit = limit {
-            sql += " LIMIT " + limit.sql
-        }
-        
-        return sql
-    }
-    
-    /// - precondition: self is the result of finalizedQuery
-    private func makeSelectStatement(_ db: Database) throws -> SelectStatement {
-        var context = SQLGenerationContext.queryGenerationContext(aliases: relation.finalizedAliases)
-        let sql = try self.sql(db, &context)
-        let statement = try db.makeSelectStatement(sql)
-        statement.arguments = context.arguments!
-        return statement
-    }
-    
-    /// - precondition: self is the result of finalizedQuery
-    func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
-        if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
-            // Programmer error
-            fatalError("Can't delete query with GROUP BY clause")
-        }
-        
-        guard havingExpression == nil else {
-            // Programmer error
-            fatalError("Can't delete query with HAVING clause")
-        }
-        
-        guard relation.joins.isEmpty else {
-            // Programmer error
-            fatalError("Can't delete query with JOIN clause")
-        }
-        
-        guard case .table = relation.source else {
-            // Programmer error
-            fatalError("Can't delete without any database table")
-        }
-        
-        var context = SQLGenerationContext.queryGenerationContext(aliases: relation.finalizedAliases)
-        
-        var sql = try "DELETE FROM " + relation.source.sourceSQL(db, &context)
-        
-        if let filter = try relation.filterPromise.resolve(db) {
-            sql += " WHERE " + filter.expressionSQL(&context)
-        }
-        
-        if let limit = limit {
-            let orderings = try relation.finalizedOrdering.resolve(db)
-            if !orderings.isEmpty {
-                sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
-            }
-            
-            if Database.sqliteCompileOptions.contains("ENABLE_UPDATE_DELETE_LIMIT") {
-                sql += " LIMIT " + limit.sql
-            } else {
-                fatalError("Can't delete query with limit")
-            }
-        }
-        
-        let statement = try db.makeUpdateStatement(sql)
-        statement.arguments = context.arguments!
-        return statement
-    }
-    
-    /// - precondition: self is the result of finalizedQuery
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-        return try (makeSelectStatement(db), finalizedRowAdapter(db))
-    }
-    
     func fetchCount(_ db: Database) throws -> Int {
-        let (statement, adapter) = try countQuery.prepare(db)
+        let (statement, adapter) = try SQLSelectQueryGenerator(countQuery).prepare(db)
         return try Int.fetchOne(statement, adapter: adapter)!
-    }
-    
-    /// The database region that the request looks into.
-    /// - precondition: self is the result of finalizedQuery
-    func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        let statement = try makeSelectStatement(db)
-        let databaseRegion = statement.databaseRegion
-        
-        // Can we intersect the region with rowIds?
-        //
-        // Give up unless request feeds from a single database table
-        guard case .table(tableName: let tableName, alias: _) = relation.source else {
-            // TODO: try harder
-            return databaseRegion
-        }
-        
-        // Give up unless primary key is rowId
-        let primaryKeyInfo = try db.primaryKey(tableName)
-        guard primaryKeyInfo.isRowID else {
-            return databaseRegion
-        }
-        
-        // Give up unless there is a where clause
-        guard let filter = try relation.filterPromise.resolve(db) else {
-            return databaseRegion
-        }
-        
-        // The filter knows better
-        guard let rowIds = filter.matchedRowIds(rowIdName: primaryKeyInfo.rowIDColumn) else {
-            return databaseRegion
-        }
-        
-        // Database regions are case-insensitive: use the canonical table name
-        let canonicalTableName = try db.canonicalTableName(tableName)
-        return databaseRegion.tableIntersection(canonicalTableName, rowIds: rowIds)
     }
     
     private var countQuery: SQLSelectQuery {
@@ -282,8 +115,14 @@ extension SQLSelectQuery {
             guard let count = relation.selection[0].count(distinct: isDistinct) else {
                 return trivialCountQuery
             }
-            var countQuery = self.unordered().select(count.sqlSelectable)
+            var countQuery = self.unordered()
             countQuery.isDistinct = false
+            switch count {
+            case .all:
+                countQuery = countQuery.select(SQLExpressionCount(AllColumns()))
+            case .distinct(let expression):
+                countQuery = countQuery.select(SQLExpressionCountDistinct(expression))
+            }
             return countQuery
         } else {
             // SELECT [DISTINCT] expr1, expr2, ... FROM tableName ...
@@ -317,17 +156,6 @@ struct SQLLimit {
             return "\(limit) OFFSET \(offset)"
         } else {
             return "\(limit)"
-        }
-    }
-}
-
-extension SQLCount {
-    fileprivate var sqlSelectable: SQLSelectable {
-        switch self {
-        case .all:
-            return SQLExpressionCount(AllColumns())
-        case .distinct(let expression):
-            return SQLExpressionCountDistinct(expression)
         }
     }
 }

@@ -34,7 +34,7 @@ extension QueryInterfaceRequest : FetchRequest {
     /// - returns: A prepared statement and an eventual row adapter.
     /// :nodoc:
     public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-        return try query.finalizedQuery.prepare(db)
+        return try SQLSelectQueryGenerator(query).prepare(db)
     }
     
     /// Returns the number of rows fetched by the request.
@@ -50,7 +50,7 @@ extension QueryInterfaceRequest : FetchRequest {
     /// - parameter db: A database connection.
     /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        return try query.finalizedQuery.databaseRegion(db)
+        return try SQLSelectQueryGenerator(query).databaseRegion(db)
     }
 }
 
@@ -290,7 +290,7 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public func deleteAll(_ db: Database) throws -> Int {
-        try query.makeDeleteStatement(db).execute()
+        try SQLSelectQueryGenerator(query).makeDeleteStatement(db).execute()
         return db.changesCount
     }
 }

@@ -6,22 +6,22 @@
 ///
 /// :nodoc:
 public /* TODO: internal */ struct SQLRelation {
-    var source: SQLRelation.Source
+    var source: SQLSource
     var selection: [SQLSelectable]
     var filterPromise: DatabasePromise<SQLExpression?>
     var ordering: SQLRelation.Ordering
-    var joins: OrderedDictionary<String, Join>
+    var joins: OrderedDictionary<String, SQLJoin>
     
     var alias: TableAlias? {
         return source.alias
     }
     
     init(
-        source: SQLRelation.Source,
+        source: SQLSource,
         selection: [SQLSelectable] = [],
         filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil),
         ordering: SQLRelation.Ordering = SQLRelation.Ordering(),
-        joins: OrderedDictionary<String, Join> = [:])
+        joins: OrderedDictionary<String, SQLJoin> = [:])
     {
         self.source = source
         self.selection = selection
@@ -74,7 +74,7 @@ extension SQLRelation {
         return order(SQLRelation.Ordering())
     }
     
-    func appendingJoin(_ join: Join, forKey key: String) -> SQLRelation {
+    func appendingJoin(_ join: SQLJoin, forKey key: String) -> SQLRelation {
         var relation = self
         if let existingJoin = relation.joins.removeValue(forKey: key) {
             guard let mergedJoin = existingJoin.merged(with: join) else {
@@ -95,48 +95,33 @@ extension SQLRelation {
     }
 }
 
-// MARK: - SQLRelation.Source
+// MARK: - SQLSource
 
-extension SQLRelation {
-    enum Source {
-        case table(tableName: String, alias: TableAlias?)
-        indirect case query(SQLSelectQuery)
-        
-        var alias: TableAlias? {
-            switch self {
-            case .table(_, let alias):
-                return alias
-            case .query(let query):
-                return query.alias
-            }
+enum SQLSource {
+    case table(tableName: String, alias: TableAlias?)
+    indirect case query(SQLSelectQuery)
+    
+    var alias: TableAlias? {
+        switch self {
+        case .table(_, let alias):
+            return alias
+        case .query(let query):
+            return query.alias
         }
-        
-        func sourceSQL(_ db: Database, _ context: inout SQLGenerationContext) throws -> String {
-            switch self {
-            case .table(let tableName, let alias):
-                if let alias = alias, let aliasName = context.aliasName(for: alias) {
-                    return "\(tableName.quotedDatabaseIdentifier) \(aliasName.quotedDatabaseIdentifier)"
-                } else {
-                    return "\(tableName.quotedDatabaseIdentifier)"
-                }
-            case .query(let query):
-                return try "(\(query.sql(db, &context)))"
+    }
+    
+    func qualified(with alias: TableAlias) -> SQLSource {
+        switch self {
+        case .table(let tableName, let sourceAlias):
+            if let sourceAlias = sourceAlias {
+                alias.becomeProxy(of: sourceAlias)
+                return self
+            } else {
+                alias.setTableName(tableName)
+                return .table(tableName: tableName, alias: alias)
             }
-        }
-        
-        func qualified(with alias: TableAlias) -> Source {
-            switch self {
-            case .table(let tableName, let sourceAlias):
-                if let sourceAlias = sourceAlias {
-                    alias.becomeProxy(of: sourceAlias)
-                    return self
-                } else {
-                    alias.setTableName(tableName)
-                    return .table(tableName: tableName, alias: alias)
-                }
-            case .query(let query):
-                return .query(query.qualified(with: alias))
-            }
+        case .query(let query):
+            return .query(query.qualified(with: alias))
         }
     }
 }
@@ -230,7 +215,7 @@ extension SQLRelation {
     }
 }
 
-// MARK: - Join
+// MARK: - SQLJoin
 
 /// Not to be mismatched with SQL join operators (inner join, left join).
 ///
@@ -357,50 +342,10 @@ public /* TODO: internal */ struct JoinCondition: Equatable {
     }
 }
 
-struct Join {
+struct SQLJoin {
     var joinOperator: JoinOperator
     var joinCondition: JoinCondition
     var relation: SQLRelation
-    
-    var finalizedJoin: Join {
-        var join = self
-        join.relation = relation.finalizedRelation
-        return join
-    }
-    
-    /// - precondition: relation is the result of finalizedRelation
-    func joinSQL(_ db: Database,_ context: inout SQLGenerationContext, leftAlias: TableAlias, isRequiredAllowed: Bool) throws -> String {
-        var isRequiredAllowed = isRequiredAllowed
-        var sql = ""
-        switch joinOperator {
-        case .optional:
-            isRequiredAllowed = false
-            sql += "LEFT JOIN"
-        case .required:
-            guard isRequiredAllowed else {
-                // TODO: chainOptionalRequired
-                fatalError("Not implemented: chaining a required association behind an optional association")
-            }
-            sql += "JOIN"
-        }
-        
-        sql += try " " + relation.source.sourceSQL(db, &context)
-        
-        let rightAlias = relation.alias!
-        let filters = try [
-            joinCondition.sqlExpression(db, leftAlias: leftAlias, rightAlias: rightAlias),
-            relation.filterPromise.resolve(db)
-            ].compactMap { $0 }
-        if !filters.isEmpty {
-            sql += " ON " + filters.joined(operator: .and).expressionSQL(&context)
-        }
-        
-        for (_, join) in relation.joins {
-            sql += try " " + join.joinSQL(db, &context, leftAlias: rightAlias, isRequiredAllowed: isRequiredAllowed)
-        }
-        
-        return sql
-    }
 }
 
 // MARK: - Merging
@@ -435,7 +380,7 @@ extension SQLRelation {
             return expressions.joined(operator: .and)
         }
         
-        var mergedJoins: OrderedDictionary<String, Join> = [:]
+        var mergedJoins: OrderedDictionary<String, SQLJoin> = [:]
         for (key, join) in joins {
             if let otherJoin = other.joins[key] {
                 guard let mergedJoin = join.merged(with: otherJoin) else {
@@ -466,9 +411,9 @@ extension SQLRelation {
     }
 }
 
-extension SQLRelation.Source {
+extension SQLSource {
     /// Returns nil if sources can't be merged (conflict in tables, aliases...)
-    func merged(with other: SQLRelation.Source) -> SQLRelation.Source? {
+    func merged(with other: SQLSource) -> SQLSource? {
         switch (self, other) {
         case let (.table(tableName: tableName, alias: alias), .table(tableName: otherTableName, alias: otherAlias)):
             guard tableName == otherTableName else {
@@ -494,9 +439,9 @@ extension SQLRelation.Source {
     }
 }
 
-extension Join {
+extension SQLJoin {
     /// Returns nil if joins can't be merged (conflict in condition, relation...)
-    func merged(with other: Join) -> Join? {
+    func merged(with other: SQLJoin) -> SQLJoin? {
         guard joinCondition == other.joinCondition else {
             // can't merge
             return nil
@@ -515,78 +460,9 @@ extension Join {
             mergedJoinOperator = .optional
         }
         
-        return Join(
+        return SQLJoin(
             joinOperator: mergedJoinOperator,
             joinCondition: joinCondition,
             relation: mergedRelation)
-    }
-}
-
-// MARK: - Finalization
-//
-// "Finalization" is the operation which gathers all information required
-// for SQL generation.
-
-extension SQLRelation {
-    /// A finalized relation is ready for SQL generation
-    var finalizedRelation: SQLRelation {
-        var relation = self
-        
-        let alias = TableAlias()
-        relation.source = source.qualified(with: alias)
-        relation.selection = selection.map { $0.qualifiedSelectable(with: alias) }
-        relation.filterPromise = filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
-        relation.ordering = ordering.qualified(with: alias)
-        relation.joins = joins.mapValues { $0.finalizedJoin }
-        
-        return relation
-    }
-    
-    /// - precondition: self is the result of finalizedRelation
-    var finalizedAliases: [TableAlias] {
-        var aliases: [TableAlias] = []
-        if let alias = alias {
-            aliases.append(alias)
-        }
-        return joins.reduce(into: aliases) {
-            $0.append(contentsOf: $1.value.relation.finalizedAliases)
-        }
-    }
-    
-    /// - precondition: self is the result of finalizedRelation
-    var finalizedSelection: [SQLSelectable] {
-        return joins.reduce(into: selection) {
-            $0.append(contentsOf: $1.value.relation.finalizedSelection)
-        }
-    }
-    
-    /// - precondition: self is the result of finalizedRelation
-    var finalizedOrdering: SQLRelation.Ordering {
-        return joins.reduce(ordering) {
-            $0.appending($1.value.relation.finalizedOrdering)
-        }
-    }
-    
-    /// - precondition: self is the result of finalizedRelation
-    func finalizedRowAdapter(_ db: Database, fromIndex startIndex: Int, forKeyPath keyPath: [String]) throws -> (adapter: RowAdapter, endIndex: Int)? {
-        let selectionWidth = try selection
-            .map { try $0.columnCount(db) }
-            .reduce(0, +)
-        
-        var endIndex = startIndex + selectionWidth
-        var scopes: [String: RowAdapter] = [:]
-        for (key, join) in joins {
-            if let (joinAdapter, joinEndIndex) = try join.relation.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [key]) {
-                scopes[key] = joinAdapter
-                endIndex = joinEndIndex
-            }
-        }
-        
-        if selectionWidth == 0 && scopes.isEmpty {
-            return nil
-        }
-        
-        let adapter = RangeRowAdapter(startIndex ..< (startIndex + selectionWidth))
-        return (adapter: adapter.addingScopes(scopes), endIndex: endIndex)
     }
 }

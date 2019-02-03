@@ -398,7 +398,7 @@ public /* TODO: internal */ struct JoinAssociationImpl: AssociationImpl {
     }
     
     public func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
-        let join = Join(
+        let join = SQLJoin(
             joinOperator: joinOperator,
             joinCondition: joinCondition,
             relation: self.relation)

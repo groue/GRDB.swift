@@ -41,6 +41,15 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         try migrator.migrate(dbWriter)
     }
     
+    // MARK: - Preparation
+    
+    func testSimpleRequestDoesNotUseAnyRowAdapter() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let (statement, adapter) = try Reader.all().prepare(db)
+            XCTAssertNil(adapter)
+        }
+    }
     
     // MARK: - Fetch rows
     
