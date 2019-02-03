@@ -83,13 +83,6 @@ public /* TODO: internal */ protocol AssociationImpl {
     var joinCondition: JoinCondition { get }
 }
 
-extension AssociationImpl {
-    /// Returns a request joined with self.
-    func joinedRequest<T>(_ request: QueryInterfaceRequest<T>, joinOperator: JoinOperator) -> QueryInterfaceRequest<T> {
-        return request.mapQuery { $0.mapRelation { joinedRelation($0, joinOperator: joinOperator) } }
-    }
-}
-
 extension Association {
     private func mapImpl(_ transform: (Impl) throws -> Impl) rethrows -> Self {
         return try Self.init(_impl: transform(_impl))
