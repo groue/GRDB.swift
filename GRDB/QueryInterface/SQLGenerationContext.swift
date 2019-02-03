@@ -201,7 +201,7 @@ public class TableAlias: Hashable {
     }
     
     /// Returns nil if aliases can't be merged (conflict in tables, aliases...)
-    func merge(with other: TableAlias) -> TableAlias? {
+    func merged(with other: TableAlias) -> TableAlias? {
         let root = self.root
         let otherRoot = other.root
         switch (root.impl, otherRoot.impl) {

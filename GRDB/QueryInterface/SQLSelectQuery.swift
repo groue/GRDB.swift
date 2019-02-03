@@ -78,10 +78,6 @@ extension SQLSelectQuery: SelectionRequest, FilteredRequest, OrderedRequest {
         return query
     }
     
-    func appendingJoin(_ join: Join, forKey key: String) -> SQLSelectQuery {
-        return mapRelation { $0.appendingJoin(join, forKey: key) }
-    }
-
     func qualified(with alias: TableAlias) -> SQLSelectQuery {
         return mapRelation { $0.qualified(with: alias) }
     }

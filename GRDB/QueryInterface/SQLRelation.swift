@@ -95,118 +95,6 @@ extension SQLRelation {
     }
 }
 
-extension SQLRelation {
-    /// A finalized relation is ready for SQL generation
-    var finalizedRelation: SQLRelation {
-        var relation = self
-        
-        let alias = TableAlias()
-        relation.source = source.qualified(with: alias)
-        relation.selection = selection.map { $0.qualifiedSelectable(with: alias) }
-        relation.filterPromise = filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
-        relation.ordering = ordering.qualified(with: alias)
-        relation.joins = joins.mapValues { $0.finalizedJoin }
-        
-        return relation
-    }
-    
-    /// - precondition: self is the result of finalizedRelation
-    var finalizedAliases: [TableAlias] {
-        var aliases: [TableAlias] = []
-        if let alias = alias {
-            aliases.append(alias)
-        }
-        return joins.reduce(into: aliases) {
-            $0.append(contentsOf: $1.value.relation.finalizedAliases)
-        }
-    }
-    
-    /// - precondition: self is the result of finalizedRelation
-    var finalizedSelection: [SQLSelectable] {
-        return joins.reduce(into: selection) {
-            $0.append(contentsOf: $1.value.relation.finalizedSelection)
-        }
-    }
-    
-    /// - precondition: self is the result of finalizedRelation
-    var finalizedOrdering: SQLRelation.Ordering {
-        return joins.reduce(ordering) {
-            $0.appending($1.value.relation.finalizedOrdering)
-        }
-    }
-    
-    /// - precondition: self is the result of finalizedRelation
-    func finalizedRowAdapter(_ db: Database, fromIndex startIndex: Int, forKeyPath keyPath: [String]) throws -> (adapter: RowAdapter, endIndex: Int)? {
-        let selectionWidth = try selection
-            .map { try $0.columnCount(db) }
-            .reduce(0, +)
-        
-        var endIndex = startIndex + selectionWidth
-        var scopes: [String: RowAdapter] = [:]
-        for (key, join) in joins {
-            if let (joinAdapter, joinEndIndex) = try join.relation.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [key]) {
-                scopes[key] = joinAdapter
-                endIndex = joinEndIndex
-            }
-        }
-        
-        if selectionWidth == 0 && scopes.isEmpty {
-            return nil
-        }
-        
-        let adapter = RangeRowAdapter(startIndex ..< (startIndex + selectionWidth))
-        return (adapter: adapter.addingScopes(scopes), endIndex: endIndex)
-    }
-}
-
-extension SQLRelation {
-    /// Returns nil if queries can't be merged (conflict in source, joins...)
-    func merged(with other: SQLRelation) -> SQLRelation? {
-        guard let mergedSource = source.merged(with: other.source) else {
-            // can't merge
-            return nil
-        }
-        
-        let mergedFilterPromise = filterPromise.map { (db, expression) -> SQLExpression? in
-            let otherExpression = try other.filterPromise.resolve(db)
-            let expressions = [expression, otherExpression].compactMap { $0 }
-            if expressions.isEmpty {
-                return nil
-            }
-            return expressions.joined(operator: .and)
-        }
-        
-        var mergedJoins: OrderedDictionary<String, Join> = [:]
-        for (key, join) in joins {
-            if let otherJoin = other.joins[key] {
-                guard let mergedJoin = join.merged(with: otherJoin) else {
-                    // can't merge
-                    return nil
-                }
-                mergedJoins.append(value: mergedJoin, forKey: key)
-            } else {
-                mergedJoins.append(value: join, forKey: key)
-            }
-        }
-        for (key, join) in other.joins where mergedJoins[key] == nil {
-            mergedJoins.append(value: join, forKey: key)
-        }
-        
-        // replace selection unless empty
-        let mergedSelection = other.selection.isEmpty ? selection : other.selection
-        
-        // replace ordering unless empty
-        let mergedOrdering = other.ordering.isEmpty ? ordering : other.ordering
-        
-        return SQLRelation(
-            source: mergedSource,
-            selection: mergedSelection,
-            filterPromise: mergedFilterPromise,
-            ordering: mergedOrdering,
-            joins: mergedJoins)
-    }
-}
-
 // MARK: - SQLRelation.Source
 
 extension SQLRelation {
@@ -248,32 +136,6 @@ extension SQLRelation {
                 }
             case .query(let query):
                 return .query(query.qualified(with: alias))
-            }
-        }
-        
-        /// Returns nil if sources can't be merged (conflict in tables, aliases...)
-        func merged(with other: Source) -> Source? {
-            switch (self, other) {
-            case let (.table(tableName: tableName, alias: alias), .table(tableName: otherTableName, alias: otherAlias)):
-                guard tableName == otherTableName else {
-                    // can't merge
-                    return nil
-                }
-                switch (alias, otherAlias) {
-                case (nil, nil):
-                    return .table(tableName: tableName, alias: nil)
-                case let (alias?, nil), let (nil, alias?):
-                    return .table(tableName: tableName, alias: alias)
-                case let (alias?, otherAlias?):
-                    guard let mergedAlias = alias.merge(with: otherAlias) else {
-                        // can't merge
-                        return nil
-                    }
-                    return .table(tableName: tableName, alias: mergedAlias)
-                }
-            default:
-                // can't merge
-                return nil
             }
         }
     }
@@ -539,7 +401,100 @@ struct Join {
         
         return sql
     }
-    
+}
+
+// MARK: - Merging
+//
+// "Merging" is an operation that takes two relations and, if they are
+// compatible, gathers them into a merged relation.
+//
+// It is an important feature that allows the user to define associated requests
+// in several steps. For example, in the sample code below, both requests are
+// equivalent and generate the same SQL query, thanks to merging:
+//
+//      let request1 = Book.including(required: Book.author)
+//
+//      let request2 = Book
+//          .including(required: Book.author)
+//          .including(required: Book.author)
+
+extension SQLRelation {
+    /// Returns nil if relations can't be merged (conflict in source, joins...)
+    func merged(with other: SQLRelation) -> SQLRelation? {
+        guard let mergedSource = source.merged(with: other.source) else {
+            // can't merge
+            return nil
+        }
+        
+        let mergedFilterPromise = filterPromise.map { (db, expression) -> SQLExpression? in
+            let otherExpression = try other.filterPromise.resolve(db)
+            let expressions = [expression, otherExpression].compactMap { $0 }
+            if expressions.isEmpty {
+                return nil
+            }
+            return expressions.joined(operator: .and)
+        }
+        
+        var mergedJoins: OrderedDictionary<String, Join> = [:]
+        for (key, join) in joins {
+            if let otherJoin = other.joins[key] {
+                guard let mergedJoin = join.merged(with: otherJoin) else {
+                    // can't merge
+                    return nil
+                }
+                mergedJoins.append(value: mergedJoin, forKey: key)
+            } else {
+                mergedJoins.append(value: join, forKey: key)
+            }
+        }
+        for (key, join) in other.joins where mergedJoins[key] == nil {
+            mergedJoins.append(value: join, forKey: key)
+        }
+        
+        // replace selection unless empty
+        let mergedSelection = other.selection.isEmpty ? selection : other.selection
+        
+        // replace ordering unless empty
+        let mergedOrdering = other.ordering.isEmpty ? ordering : other.ordering
+        
+        return SQLRelation(
+            source: mergedSource,
+            selection: mergedSelection,
+            filterPromise: mergedFilterPromise,
+            ordering: mergedOrdering,
+            joins: mergedJoins)
+    }
+}
+
+extension SQLRelation.Source {
+    /// Returns nil if sources can't be merged (conflict in tables, aliases...)
+    func merged(with other: SQLRelation.Source) -> SQLRelation.Source? {
+        switch (self, other) {
+        case let (.table(tableName: tableName, alias: alias), .table(tableName: otherTableName, alias: otherAlias)):
+            guard tableName == otherTableName else {
+                // can't merge
+                return nil
+            }
+            switch (alias, otherAlias) {
+            case (nil, nil):
+                return .table(tableName: tableName, alias: nil)
+            case let (alias?, nil), let (nil, alias?):
+                return .table(tableName: tableName, alias: alias)
+            case let (alias?, otherAlias?):
+                guard let mergedAlias = alias.merged(with: otherAlias) else {
+                    // can't merge
+                    return nil
+                }
+                return .table(tableName: tableName, alias: mergedAlias)
+            }
+        default:
+            // can't merge
+            return nil
+        }
+    }
+}
+
+extension Join {
     /// Returns nil if joins can't be merged (conflict in condition, relation...)
     func merged(with other: Join) -> Join? {
         guard joinCondition == other.joinCondition else {
@@ -564,5 +519,74 @@ struct Join {
             joinOperator: mergedJoinOperator,
             joinCondition: joinCondition,
             relation: mergedRelation)
+    }
+}
+
+// MARK: - Finalization
+//
+// "Finalization" is the operation which gathers all information required
+// for SQL generation.
+
+extension SQLRelation {
+    /// A finalized relation is ready for SQL generation
+    var finalizedRelation: SQLRelation {
+        var relation = self
+        
+        let alias = TableAlias()
+        relation.source = source.qualified(with: alias)
+        relation.selection = selection.map { $0.qualifiedSelectable(with: alias) }
+        relation.filterPromise = filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
+        relation.ordering = ordering.qualified(with: alias)
+        relation.joins = joins.mapValues { $0.finalizedJoin }
+        
+        return relation
+    }
+    
+    /// - precondition: self is the result of finalizedRelation
+    var finalizedAliases: [TableAlias] {
+        var aliases: [TableAlias] = []
+        if let alias = alias {
+            aliases.append(alias)
+        }
+        return joins.reduce(into: aliases) {
+            $0.append(contentsOf: $1.value.relation.finalizedAliases)
+        }
+    }
+    
+    /// - precondition: self is the result of finalizedRelation
+    var finalizedSelection: [SQLSelectable] {
+        return joins.reduce(into: selection) {
+            $0.append(contentsOf: $1.value.relation.finalizedSelection)
+        }
+    }
+    
+    /// - precondition: self is the result of finalizedRelation
+    var finalizedOrdering: SQLRelation.Ordering {
+        return joins.reduce(ordering) {
+            $0.appending($1.value.relation.finalizedOrdering)
+        }
+    }
+    
+    /// - precondition: self is the result of finalizedRelation
+    func finalizedRowAdapter(_ db: Database, fromIndex startIndex: Int, forKeyPath keyPath: [String]) throws -> (adapter: RowAdapter, endIndex: Int)? {
+        let selectionWidth = try selection
+            .map { try $0.columnCount(db) }
+            .reduce(0, +)
+        
+        var endIndex = startIndex + selectionWidth
+        var scopes: [String: RowAdapter] = [:]
+        for (key, join) in joins {
+            if let (joinAdapter, joinEndIndex) = try join.relation.finalizedRowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [key]) {
+                scopes[key] = joinAdapter
+                endIndex = joinEndIndex
+            }
+        }
+        
+        if selectionWidth == 0 && scopes.isEmpty {
+            return nil
+        }
+        
+        let adapter = RangeRowAdapter(startIndex ..< (startIndex + selectionWidth))
+        return (adapter: adapter.addingScopes(scopes), endIndex: endIndex)
     }
 }
