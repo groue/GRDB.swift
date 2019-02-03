@@ -5,7 +5,7 @@
 /// > A set of tuples sharing the same attributes; a set of columns and rows.
 ///
 /// :nodoc:
-public /* TODO: make internal when possible */ struct SQLRelation {
+public /* TODO: internal */ struct SQLRelation {
     var source: SQLSource
     var selection: [SQLSelectable]
     var filterPromise: DatabasePromise<SQLExpression?>

@@ -65,28 +65,33 @@ public struct BelongsToAssociation<Origin, Destination>: Association {
     /// :nodoc:
     public typealias RowDecoder = Destination
     
+    /// :nodoc:
+    public var _impl: BelongsToAssociationImpl
+    
+    /// :nodoc:
+    public init(_impl: BelongsToAssociationImpl) {
+        self._impl = _impl
+    }
+}
+
+/// :nodoc:
+public /* TODO: internal */ struct BelongsToAssociationImpl: AssociationImpl {
     public var key: String
+    public let joinCondition: JoinCondition
+    public var relation: SQLRelation
     
-    /// :nodoc:
-    public /* TODO: make internal when no longer required by Association */ let joinCondition: JoinCondition
-    
-    /// :nodoc:
-    public /* TODO: make internal when no longer required by Association */ var relation: SQLRelation
-    
-    public func forKey(_ key: String) -> BelongsToAssociation<Origin, Destination> {
+    public func forKey(_ key: String) -> BelongsToAssociationImpl {
         var assoc = self
         assoc.key = key
         return assoc
     }
     
-    /// :nodoc:
-    public func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> BelongsToAssociation<Origin, Destination> {
+    public func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> BelongsToAssociationImpl {
         var assoc = self
         assoc.relation = transform(relation)
         return assoc
     }
     
-    /// :nodoc:
     public func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
         let join = Join(
             joinOperator: joinOperator,
@@ -175,9 +180,9 @@ extension TableRecord {
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: true)
         
-        return BelongsToAssociation(
+        return BelongsToAssociation(_impl: BelongsToAssociationImpl(
             key: key ?? Destination.databaseTableName,
             joinCondition: joinCondition,
-            relation: Destination.all().relation)
+            relation: Destination.all().relation))
     }
 }

@@ -60,35 +60,40 @@
 ///     }
 ///
 /// See ForeignKey for more information.
-public struct HasOneAssociation<Origin, Destination> : Association {
+public struct HasOneAssociation<Origin, Destination>: Association {
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
     
     /// :nodoc:
     public typealias RowDecoder = Destination
     
+    /// :nodoc:
+    public var _impl: HasOneAssociationImpl
+    
+    /// :nodoc:
+    public init(_impl: HasOneAssociationImpl) {
+        self._impl = _impl
+    }
+}
+
+/// :nodoc:
+public /* TODO: internal */ struct HasOneAssociationImpl: AssociationImpl {
     public var key: String
+    public let joinCondition: JoinCondition
+    public var relation: SQLRelation
     
-    /// :nodoc:
-    public /* TODO: make internal when no longer required by Association */ let joinCondition: JoinCondition
-    
-    /// :nodoc:
-    public /* TODO: make internal when no longer required by Association */ var relation: SQLRelation
-    
-    public func forKey(_ key: String) -> HasOneAssociation<Origin, Destination> {
+    public func forKey(_ key: String) -> HasOneAssociationImpl {
         var assoc = self
         assoc.key = key
         return assoc
     }
     
-    /// :nodoc:
-    public func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> HasOneAssociation<Origin, Destination> {
+    public func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> HasOneAssociationImpl {
         var assoc = self
         assoc.relation = transform(relation)
         return assoc
     }
     
-    /// :nodoc:
     public func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
         let join = Join(
             joinOperator: joinOperator,
@@ -177,9 +182,9 @@ extension TableRecord {
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: false)
         
-        return HasOneAssociation(
+        return HasOneAssociation(_impl: HasOneAssociationImpl(
             key: key ?? Destination.databaseTableName,
             joinCondition: joinCondition,
-            relation: Destination.all().relation)
+            relation: Destination.all().relation))
     }
 }

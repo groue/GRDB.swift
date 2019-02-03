@@ -65,28 +65,33 @@ public struct HasManyAssociation<Origin, Destination>: Association {
     /// :nodoc:
     public typealias RowDecoder = Destination
     
+    /// :nodoc:
+    public var _impl: HasManyAssociationImpl
+    
+    /// :nodoc:
+    public init(_impl: HasManyAssociationImpl) {
+        self._impl = _impl
+    }
+}
+
+/// :nodoc:
+public /* TODO: internal */ struct HasManyAssociationImpl: AssociationImpl {
     public var key: String
+    public let joinCondition: JoinCondition
+    public var relation: SQLRelation
     
-    /// :nodoc:
-    public /* TODO: make internal when no longer required by Association */ let joinCondition: JoinCondition
-    
-    /// :nodoc:
-    public /* TODO: make internal when no longer required by Association */ var relation: SQLRelation
-    
-    public func forKey(_ key: String) -> HasManyAssociation<Origin, Destination> {
+    public func forKey(_ key: String) -> HasManyAssociationImpl {
         var assoc = self
         assoc.key = key
         return assoc
     }
     
-    /// :nodoc:
-    public func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> HasManyAssociation<Origin, Destination> {
+    public func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> HasManyAssociationImpl {
         var assoc = self
         assoc.relation = transform(relation)
         return assoc
     }
     
-    /// :nodoc:
     public func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
         let join = Join(
             joinOperator: joinOperator,
@@ -264,9 +269,9 @@ extension TableRecord {
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: false)
         
-        return HasManyAssociation(
+        return HasManyAssociation(_impl: HasManyAssociationImpl(
             key: key ?? Destination.databaseTableName,
             joinCondition: joinCondition,
-            relation: Destination.all().relation)
+            relation: Destination.all().relation))
     }
 }

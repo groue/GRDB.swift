@@ -5,28 +5,28 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder {
-        return association.joinedRequest(self, joinOperator: .optional)
+        return association._impl.joinedRequest(self, joinOperator: .optional)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder {
-        return association.joinedRequest(self, joinOperator: .required)
+        return association._impl.joinedRequest(self, joinOperator: .required)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder {
-        return association.select([]).joinedRequest(self, joinOperator: .optional)
+        return association.select([])._impl.joinedRequest(self, joinOperator: .optional)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder {
-        return association.select([]).joinedRequest(self, joinOperator: .required)
+        return association.select([])._impl.joinedRequest(self, joinOperator: .required)
     }
     
     // MARK: - Association Aggregates

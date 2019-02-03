@@ -359,7 +359,7 @@ extension SQLSelectQuery {
 ///     A.including(optional: A.b.including(required: B.c))
 ///
 /// :nodoc:
-public /* TODO: make internal when possible */ enum JoinOperator {
+public /* TODO: internal */ enum JoinOperator {
     case required, optional
 }
 
@@ -390,7 +390,7 @@ public /* TODO: make internal when possible */ enum JoinOperator {
 ///         .including(optional: Book.author.filter(condition2))
 ///
 /// :nodoc:
-public /* TODO: make internal when possible */ struct JoinCondition: Equatable {
+public /* TODO: internal */ struct JoinCondition: Equatable {
     /// Definition of a foreign key
     var foreignKeyRequest: ForeignKeyRequest
     
