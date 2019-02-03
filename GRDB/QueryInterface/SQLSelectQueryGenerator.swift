@@ -11,17 +11,23 @@ struct SQLSelectQueryGenerator {
         // expressions, etc, are identified with table aliases.
         //
         // All those aliases let us disambiguate tables at the SQL level, and
-        // prefix columns names, as in the example below:
+        // prefix columns names. For example, the following request...
         //
-        //      // SELECT book.*, person1.*, person2.*, COUNT(DISTINCT awards.id)
-        //      // FROM book
-        //      // LEFT JOIN person person1 WHERE person1.id = book.authorId
-        //      // LEFT JOIN person person2 WHERE person2.id = book.translatorId
-        //      // LEFT JOIN award WHERE award.bookId = book.id
-        //      let request = Book
+        //      Book.filter(Column("kind") == Book.Kind.novel)
         //          .including(optional: Book.author)
         //          .including(optional: Book.translator)
         //          .annotated(with: Book.awards.count)
+        //
+        // ... generates the following SQL, where all identifiers are correctly
+        // disambiguated and qualified:
+        //
+        //      SELECT book.*, person1.*, person2.*, COUNT(DISTINCT award.id)
+        //      FROM book
+        //      LEFT JOIN person person1 ON person1.id = book.authorId
+        //      LEFT JOIN person person2 ON person2.id = book.translatorId
+        //      LEFT JOIN award ON award.bookId = book.id
+        //      GROUP BY book.id
+        //      WHERE book.kind = 'novel'
         relation = SQLQualifiedRelation(query.relation)
         
         // Qualify group expressions and having clause with the relation alias.
@@ -44,7 +50,7 @@ struct SQLSelectQueryGenerator {
             sql += " DISTINCT"
         }
         
-        let selection = relation.fullSelection
+        let selection = relation.selection
         GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with empty selection")
         sql += " " + selection.map { $0.resultColumnSQL(&context) }.joined(separator: ", ")
         
@@ -164,28 +170,66 @@ struct SQLSelectQueryGenerator {
         return statement
     }
     
+    /// Returns a select statement
     private func makeSelectStatement(_ db: Database) throws -> SelectStatement {
+        // Build an SQK generation context with all aliases found in the query,
+        // so that we can disambiguate tables that are used several times with
+        // SQL aliases.
         var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
-        let statement = try db.makeSelectStatement(sql(db, &context))
-        statement.arguments = context.arguments!
+        
+        // Generate SQL
+        let sql = try self.sql(db, &context)
+        
+        // Compile & set arguments
+        let statement = try db.makeSelectStatement(sql)
+        statement.arguments = context.arguments! // not nil for this kind of context
         return statement
     }
     
+    /// Returns the row adapter which presents the fetched rows according to the
+    /// tree of joined relations.
+    ///
+    /// The adapter is nil for queries without any included relation,
+    /// because the fetched rows don't need any processing:
+    ///
+    ///     // SELECT * FROM book
+    ///     let request = Book.all()
+    ///     for row in try Row.fetchAll(db, request) {
+    ///         row // [id:1, title:"Moby-Dick"]
+    ///         let book = Book(row: row)
+    ///     }
+    ///
+    /// But as soon as the selection includes columns of a included relation,
+    /// we need an adapter:
+    ///
+    ///     // SELECT book.*, author.* FROM book JOIN author ON author.id = book.authorId
+    ///     let request = Book.including(required: Book.author)
+    ///     for row in try Row.fetchAll(db, request) {
+    ///         row // [id:1, title:"Moby-Dick"]
+    ///         let book = Book(row: row)
+    ///
+    ///         row.scopes["author"] // [id:12, name:"Herman Melville"]
+    ///         let author: Author = row["author"]
+    ///     }
     private func rowAdapter(_ db: Database) throws -> RowAdapter? {
-        return try relation.rowAdapter(db, fromIndex: 0, forKeyPath: [])?.adapter
+        return try relation.rowAdapter(db, fromIndex: 0)?.adapter
     }
 }
 
 /// A "qualified" relation, where all tables are identified with a table alias.
 private struct SQLQualifiedRelation {
-    /// The alias for the source
+    /// The alias for the relation
     ///
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
     ///                            ^ alias
     let alias: TableAlias
     
-    /// Own alias plus aliases of all joined relations
-    let allAliases: [TableAlias]
+    /// All aliases, including aliases of joined relations
+    var allAliases: [TableAlias] {
+        return joins.reduce(into: [alias]) {
+            $0.append(contentsOf: $1.value.relation.allAliases)
+        }
+    }
     
     /// The source
     ///
@@ -200,7 +244,11 @@ private struct SQLQualifiedRelation {
     ///
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
     ///            ^ fullSelection
-    let fullSelection: [SQLSelectable]
+    var selection: [SQLSelectable] {
+        return joins.reduce(into: ownSelection) {
+            $0.append(contentsOf: $1.value.relation.selection)
+        }
+    }
     
     /// The filtering clause
     ///
@@ -208,11 +256,18 @@ private struct SQLQualifiedRelation {
     ///                                               ^ filterPromise
     let filterPromise: DatabasePromise<SQLExpression?>
     
-    /// The ordering
+    /// The ordering, not including ordering of joined relations
+    private let ownOrdering: SQLRelation.Ordering
+    
+    /// The full ordering, including orderings of joined relations
     ///
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
-    ///                                                           ^ ordering
-    let ordering: SQLRelation.Ordering
+    ///                                                            ^ ordering
+    var ordering: SQLRelation.Ordering {
+        return joins.reduce(ownOrdering) {
+            $0.appending($1.value.relation.ordering)
+        }
+    }
     
     /// The joins
     ///
@@ -221,49 +276,83 @@ private struct SQLQualifiedRelation {
     let joins: OrderedDictionary<String, SQLQualifiedJoin>
     
     init(_ relation: SQLRelation) {
+        // The alias that qualifies this relation
         let alias = TableAlias()
         self.alias = alias
+        
+        // Qualify the source, so that it be disambiguated with an SQL alias
+        // if needed (when a select query uses the same table several times).
+        // This disambiguation job will be actually performed by
+        // SQLGenerationContext, when the SQLSelectQueryGenerator which owns
+        // this SQLQualifiedRelation generates SQL.
         source = SQLQualifiedSource(relation.source.qualified(with: alias))
+        
+        // Qualify all joins, selection, filter, and ordering, so that all
+        // identifiers can be correctly disambiguated and qualified.
         joins = relation.joins.mapValues(SQLQualifiedJoin.init)
         ownSelection = relation.selection.map { $0.qualifiedSelectable(with: alias) }
-        fullSelection = joins.reduce(into: ownSelection) {
-            $0.append(contentsOf: $1.value.relation.fullSelection)
-        }
         filterPromise = relation.filterPromise.map { [alias] (_, expr) in expr?.qualifiedExpression(with: alias) }
-        let ownOrdering = relation.ordering.qualified(with: alias)
-        ordering = joins.reduce(ownOrdering) {
-            $0.appending($1.value.relation.ordering)
-        }
-        allAliases = joins.reduce(into: [alias]) {
-            $0.append(contentsOf: $1.value.relation.allAliases)
-        }
+        ownOrdering = relation.ordering.qualified(with: alias)
     }
     
-    func rowAdapter(_ db: Database, fromIndex startIndex: Int, forKeyPath keyPath: [String]) throws -> (adapter: RowAdapter, endIndex: Int)? {
+    /// See SQLSelectQueryGenerator.rowAdapter(_:)
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter startIndex: The index of the leftmost selected column of
+    ///   this relation in a full SQL query. `startIndex` is 0 for the relation
+    ///   at the root of a SQLSelectQueryGenerator (as opposed to the
+    ///   joined relations).
+    /// - returns: An optional tuple made of a RowAdapter and the index past the
+    ///   rightmost selected column of this relation. Nil is returned if this
+    ///   relations does not need any row adapter.
+    func rowAdapter(_ db: Database, fromIndex startIndex: Int) throws -> (adapter: RowAdapter, endIndex: Int)? {
+        // Root relation && no join => no need for any adapter
         if startIndex == 0 && joins.isEmpty {
-            // Root relation + no join => no adapter
             return nil
         }
         
+        // The number of columns in own selection. Columns selected by joined
+        // relations are appended after.
         let selectionWidth = try ownSelection
             .map { try $0.columnCount(db) }
             .reduce(0, +)
         
+        // Recursively build adapters for each joined relation with a selection.
+        // Name them according to the join keys.
         var endIndex = startIndex + selectionWidth
         var scopes: [String: RowAdapter] = [:]
         for (key, join) in joins {
-            if let (joinAdapter, joinEndIndex) = try join.relation.rowAdapter(db, fromIndex: endIndex, forKeyPath: keyPath + [key]) {
+            if let (joinAdapter, joinEndIndex) = try join.relation.rowAdapter(db, fromIndex: endIndex) {
                 scopes[key] = joinAdapter
                 endIndex = joinEndIndex
             }
         }
         
-        if selectionWidth == 0 && scopes.isEmpty {
+        // (Root relation || empty selection) && no included relation => no need for any adapter
+        if (startIndex == 0 || selectionWidth == 0) && scopes.isEmpty {
             return nil
         }
         
-        let adapter = RangeRowAdapter(startIndex ..< (startIndex + selectionWidth))
-        return (adapter: adapter.addingScopes(scopes), endIndex: endIndex)
+        // Build a RangeRowAdapter extended with the adapters of joined relations.
+        //
+        //      // SELECT book.*, author.* FROM book JOIN author ON author.id = book.authorId
+        //      let request = Book.including(required: Book.author)
+        //      for row in try Row.fetchAll(db, request) {
+        //
+        // The RangeRowAdapter hides the columns appended by joined relations:
+        //
+        //          row // [id:1, title:"Moby-Dick"]
+        //          let book = Book(row: row)
+        //
+        // Scopes give access to those joined relations:
+        //
+        //          row.scopes["author"] // [id:12, name:"Herman Melville"]
+        //          let author: Author = row["author"]
+        //      }
+        let rangeAdapter = RangeRowAdapter(startIndex ..< (startIndex + selectionWidth))
+        let adapter = rangeAdapter.addingScopes(scopes)
+        
+        return (adapter: adapter, endIndex: endIndex)
     }
 }
 
