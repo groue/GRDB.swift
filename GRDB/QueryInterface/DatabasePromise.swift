@@ -36,9 +36,16 @@ struct DatabasePromise<T> {
     }
     
     /// Returns a promise whose value is transformed by the given closure.
-    func map<U>(_ transform: @escaping (Database, T) throws -> U) -> DatabasePromise<U> {
+    func map<U>(_ transform: @escaping (T) throws -> U) -> DatabasePromise<U> {
         return DatabasePromise<U> { db in
-            try transform(db, self.resolve(db))
+            try transform(self.resolve(db))
+        }
+    }
+    
+    // TODO: write human-readable documentation for this classic monadic operation
+    func flatMap<U>(_ transform: @escaping (T) -> DatabasePromise<U>) -> DatabasePromise<U> {
+        return DatabasePromise<U> { db in
+            try transform(self.resolve(db)).resolve(db)
         }
     }
 }

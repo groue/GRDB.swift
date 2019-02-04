@@ -46,11 +46,11 @@ extension SQLRelation {
 
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLRelation {
         var relation = self
-        relation.filterPromise = relation.filterPromise.map { (db, filter) in
+        relation.filterPromise = relation.filterPromise.flatMap { filter in
             if let filter = filter {
-                return try filter && predicate(db)
+                return DatabasePromise { try filter && predicate($0) }
             } else {
-                return try predicate(db).sqlExpression
+                return DatabasePromise { try predicate($0).sqlExpression }
             }
         }
         return relation
@@ -138,7 +138,7 @@ extension SQLRelation {
             var reversed: Element {
                 switch self {
                 case .terms(let terms):
-                    return .terms(terms.map { (db, terms) in terms.map { $0.reversed } })
+                    return .terms(terms.map { $0.map { $0.reversed } })
                 case .ordering(let ordering):
                     return .ordering(ordering.reversed)
                 }
@@ -147,7 +147,7 @@ extension SQLRelation {
             func qualified(with alias: TableAlias) -> Element {
                 switch self {
                 case .terms(let terms):
-                    return .terms(terms.map { (db, terms) in terms.map { $0.qualifiedOrdering(with: alias) } })
+                    return .terms(terms.map { $0.map { $0.qualifiedOrdering(with: alias) } })
                 case .ordering(let ordering):
                     return .ordering(ordering.qualified(with: alias))
                 }
@@ -371,13 +371,16 @@ extension SQLRelation {
             return nil
         }
         
-        let mergedFilterPromise = filterPromise.map { (db, expression) -> SQLExpression? in
-            let otherExpression = try other.filterPromise.resolve(db)
-            let expressions = [expression, otherExpression].compactMap { $0 }
-            if expressions.isEmpty {
-                return nil
+        let mergedFilterPromise: DatabasePromise<SQLExpression?> = filterPromise.flatMap { expression in
+            return DatabasePromise { db in
+                let otherExpression = try other.filterPromise.resolve(db)
+                let expressions = [expression, otherExpression].compactMap { $0 }
+                if expressions.isEmpty {
+                    return nil
+                } else {
+                    return expressions.joined(operator: .and)
+                }
             }
-            return expressions.joined(operator: .and)
         }
         
         var mergedJoins: OrderedDictionary<String, SQLJoin> = [:]
