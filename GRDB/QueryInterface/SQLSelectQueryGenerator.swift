@@ -1,6 +1,6 @@
 /// SQLSelectQueryGenerator is able to generate an SQL SELECT query.
 struct SQLSelectQueryGenerator {
-    private let relation: SQLQualifiedRelation
+    fileprivate let relation: SQLQualifiedRelation
     private let isDistinct: Bool
     private let groupPromise: DatabasePromise<[SQLExpression]>?
     private let havingExpression: SQLExpression?
@@ -65,9 +65,7 @@ struct SQLSelectQueryGenerator {
         }
         
         if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
-            sql += " GROUP BY "
-            sql += groupExpressions.map { $0.expressionSQL(&context) }
-                .joined(separator: ", ")
+            sql += " GROUP BY " + groupExpressions.map { $0.expressionSQL(&context) }.joined(separator: ", ")
         }
         
         if let havingExpression = havingExpression {
@@ -276,16 +274,14 @@ private struct SQLQualifiedRelation {
     let joins: OrderedDictionary<String, SQLQualifiedJoin>
     
     init(_ relation: SQLRelation) {
-        // The alias that qualifies this relation
-        let alias = TableAlias()
-        self.alias = alias
-        
         // Qualify the source, so that it be disambiguated with an SQL alias
         // if needed (when a select query uses the same table several times).
         // This disambiguation job will be actually performed by
         // SQLGenerationContext, when the SQLSelectQueryGenerator which owns
         // this SQLQualifiedRelation generates SQL.
-        source = SQLQualifiedSource(relation.source.qualified(with: alias))
+        source = SQLQualifiedSource(relation.source)
+        let alias = source.alias
+        self.alias = alias
         
         // Qualify all joins, selection, filter, and ordering, so that all
         // identifiers can be correctly disambiguated and qualified.
@@ -361,10 +357,20 @@ private enum SQLQualifiedSource {
     case table(tableName: String, alias: TableAlias)
     indirect case query(SQLSelectQueryGenerator)
     
+    var alias: TableAlias {
+        switch self {
+        case .table(_, let alias):
+            return alias
+        case .query(let query):
+            return query.relation.alias
+        }
+    }
+    
     init(_ source: SQLSource) {
         switch source {
-        case .table(let tableName, let sourceAlias):
-            self = .table(tableName: tableName, alias: sourceAlias ?? TableAlias())
+        case .table(let tableName, let alias):
+            let alias = alias ?? TableAlias(tableName: tableName)
+            self = .table(tableName: tableName, alias: alias)
         case .query(let query):
             self = .query(SQLSelectQueryGenerator(query))
         }
