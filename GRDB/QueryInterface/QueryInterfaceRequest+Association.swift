@@ -1,48 +1,37 @@
 extension QueryInterfaceRequest where RowDecoder: TableRecord {
-    func joining<A: Association>(_ joinOperator: AssociationJoinOperator, _ association: A)
-        -> QueryInterfaceRequest<RowDecoder>
-        where A.OriginRowDecoder == RowDecoder
-    {
-        let join = AssociationJoin(
-            joinOperator: joinOperator,
-            joinCondition: association.joinCondition,
-            query: association.request.query)
-        return QueryInterfaceRequest(query: query.appendingJoin(join, forKey: association.key))
-    }
-    
     // MARK: - Associations
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
-    public func including<A: Association>(optional association: A) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder {
-        return joining(.optional, association)
+    public func including<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
+        return mapQuery { $0.mapRelation { association._impl.joinedRelation($0, joinOperator: .optional) } }
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
-    public func including<A: Association>(required association: A) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder {
-        return joining(.required, association)
+    public func including<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
+        return mapQuery { $0.mapRelation { association._impl.joinedRelation($0, joinOperator: .required) } }
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
-    public func joining<A: Association>(optional association: A) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder {
-        return joining(.optional, association.select([]))
+    public func joining<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
+        return mapQuery { $0.mapRelation { association.select([])._impl.joinedRelation($0, joinOperator: .optional) } }
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
-    public func joining<A: Association>(required association: A) -> QueryInterfaceRequest<RowDecoder> where A.OriginRowDecoder == RowDecoder {
-        return joining(.required, association.select([]))
+    public func joining<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
+        return mapQuery { $0.mapRelation { association.select([])._impl.joinedRelation($0, joinOperator: .required) } }
     }
     
     // MARK: - Association Aggregates
     
-    private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
+    private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest {
         let (request, expression) = aggregate.prepare(self)
         if let alias = aggregate.alias {
             return request.annotated(with: [expression.aliased(alias)])
@@ -57,7 +46,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     ///     // FROM player LEFT JOIN book ...
     ///     var request = Player.all()
     ///     request = request.annotated(with: Player.books.count)
-    public func annotated(with aggregates: AssociationAggregate<RowDecoder>...) -> QueryInterfaceRequest<RowDecoder> {
+    public func annotated(with aggregates: AssociationAggregate<RowDecoder>...) -> QueryInterfaceRequest {
         return annotated(with: aggregates)
     }
 
@@ -67,7 +56,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     ///     // FROM player LEFT JOIN book ...
     ///     var request = Player.all()
     ///     request = request.annotated(with: [Player.books.count])
-    public func annotated(with aggregates: [AssociationAggregate<RowDecoder>]) -> QueryInterfaceRequest<RowDecoder> {
+    public func annotated(with aggregates: [AssociationAggregate<RowDecoder>]) -> QueryInterfaceRequest {
         return aggregates.reduce(self) { request, aggregate in
             request.annotated(with: aggregate)
         }
@@ -81,7 +70,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     ///     // HAVING COUNT(DISTINCT book.rowid) = 0
     ///     var request = Player.all()
     ///     request = request.having(Player.books.isEmpty)
-    public func having(_ predicate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
+    public func having(_ predicate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest {
         let (request, expression) = predicate.prepare(self)
         return request.having(expression)
     }

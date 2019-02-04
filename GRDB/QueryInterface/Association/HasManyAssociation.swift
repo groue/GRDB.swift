@@ -64,26 +64,13 @@ public struct HasManyAssociation<Origin, Destination>: Association {
     
     /// :nodoc:
     public typealias RowDecoder = Destination
-
-    public var key: String
     
     /// :nodoc:
-    public let joinCondition: JoinCondition
+    public var _impl: JoinAssociationImpl
     
     /// :nodoc:
-    public var request: AssociationRequest<Destination>
-    
-    public func forKey(_ key: String) -> HasManyAssociation<Origin, Destination> {
-        var association = self
-        association.key = key
-        return association
-    }
-    
-    /// :nodoc:
-    public func mapRequest(_ transform: (AssociationRequest<Destination>) -> AssociationRequest<Destination>) -> HasManyAssociation<Origin, Destination> {
-        var association = self
-        association.request = transform(request)
-        return association
+    public init(_impl: JoinAssociationImpl) {
+        self._impl = _impl
     }
 }
 
@@ -166,7 +153,7 @@ extension HasManyAssociation where Origin: TableRecord, Destination: TableRecord
             return aggregate
         }
     }
-
+    
     /// The sum of the given expression in associated records.
     ///
     /// For example:
@@ -255,9 +242,9 @@ extension TableRecord {
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: false)
         
-        return HasManyAssociation(
+        return HasManyAssociation(_impl: JoinAssociationImpl(
             key: key ?? Destination.databaseTableName,
             joinCondition: joinCondition,
-            request: AssociationRequest(Destination.all()))
+            relation: Destination.all().relation))
     }
 }

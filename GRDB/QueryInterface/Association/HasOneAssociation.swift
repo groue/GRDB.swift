@@ -60,32 +60,19 @@
 ///     }
 ///
 /// See ForeignKey for more information.
-public struct HasOneAssociation<Origin, Destination> : Association {
+public struct HasOneAssociation<Origin, Destination>: Association {
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
     
     /// :nodoc:
     public typealias RowDecoder = Destination
     
-    public var key: String
+    /// :nodoc:
+    public var _impl: JoinAssociationImpl
     
     /// :nodoc:
-    public let joinCondition: JoinCondition
-    
-    /// :nodoc:
-    public var request: AssociationRequest<Destination>
-    
-    public func forKey(_ key: String) -> HasOneAssociation<Origin, Destination> {
-        var association = self
-        association.key = key
-        return association
-    }
-    
-    /// :nodoc:
-    public func mapRequest(_ transform: (AssociationRequest<Destination>) -> AssociationRequest<Destination>) -> HasOneAssociation<Origin, Destination> {
-        var association = self
-        association.request = transform(request)
-        return association
+    public init(_impl: JoinAssociationImpl) {
+        self._impl = _impl
     }
 }
 
@@ -168,9 +155,9 @@ extension TableRecord {
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: false)
         
-        return HasOneAssociation(
+        return HasOneAssociation(_impl: JoinAssociationImpl(
             key: key ?? Destination.databaseTableName,
             joinCondition: joinCondition,
-            request: AssociationRequest(Destination.all()))
+            relation: Destination.all().relation))
     }
 }

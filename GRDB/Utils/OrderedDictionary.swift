@@ -1,16 +1,31 @@
+/// A dictionary with guaranteed keys ordering.
+///
+///     var dict = OrderedDictionary<String, Int>()
+///     dict.append(1, forKey: "foo")
+///     dict.append(2, forKey: "bar")
+///
+///     dict["foo"] // 1
+///     dict["bar"] // 2
+///     dict["qux"] // nil
+///     dict.map { $0.key } // ["foo", "bar"], in this order.
 struct OrderedDictionary<Key: Hashable, Value> {
     private var keys: [Key]
     private var values: [Key: Value]
     
+    /// Creates an empty ordered dictionary.
     init() {
         self.keys = []
         self.values = [:]
     }
     
+    /// Returns the value associated with key, or nil.
     subscript(_ key: Key) -> Value? {
         return values[key]
     }
     
+    /// Appends the given value for the given key.
+    ///
+    /// - precondition: There is no value associated with key yet.
     mutating func append(value: Value, forKey key: Key) {
         guard values.updateValue(value, forKey: key) == nil else {
             fatalError("key is already defined")
@@ -18,6 +33,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
         keys.append(key)
     }
     
+    /// Removes the value associated with key.
     @discardableResult
     mutating func removeValue(forKey key: Key) -> Value? {
         guard let value = values.removeValue(forKey: key) else {
@@ -28,13 +44,12 @@ struct OrderedDictionary<Key: Hashable, Value> {
         return value
     }
     
+    /// Returns a new ordered dictionary containing the keys of this dictionary
+    /// with the values transformed by the given closure.
     func mapValues<T>(_ transform: (Value) throws -> T) rethrows -> OrderedDictionary<Key, T> {
-        var result = OrderedDictionary<Key, T>()
-        for key in keys {
-            let value = values[key]!
-            try result.append(value: transform(value), forKey: key)
+        return try reduce(into: OrderedDictionary<Key, T>()) { dict, pair in
+            dict.append(value: try transform(pair.value), forKey: pair.key)
         }
-        return result
     }
 }
 

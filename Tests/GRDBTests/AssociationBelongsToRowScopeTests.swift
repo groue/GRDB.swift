@@ -43,6 +43,15 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
         }
     }
     
+    func testJoiningDoesNotUseAnyRowAdapter() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = Player.joining(required: Player.defaultTeam)
+            let (_, adapter) = try request.prepare(db)
+            XCTAssertNil(adapter)
+        }
+    }
+    
     func testDefaultScopeIncludingRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.including(required: Player.defaultTeam)
