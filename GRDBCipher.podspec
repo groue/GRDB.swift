@@ -9,7 +9,7 @@ Pod::Spec.new do |s|
 	s.source   = { :git => 'https://github.com/groue/GRDB.swift.git', :tag => "v#{s.version}" }
 	s.module_name = 'GRDBCipher'
 	
-	s.ios.deployment_target = '8.0'
+	s.ios.deployment_target = '9.0'
 	s.osx.deployment_target = '10.9'
 	s.watchos.deployment_target = '2.0'
 	
