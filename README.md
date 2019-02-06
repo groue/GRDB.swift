@@ -1,16 +1,21 @@
-GRDB 3 [![Swift](https://img.shields.io/badge/swift-4.1-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Swift](https://img.shields.io/badge/swift-4.2-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE) [![Build Status](https://travis-ci.org/groue/GRDB.swift.svg?branch=master)](https://travis-ci.org/groue/GRDB.swift)
+GRDB 4 [![Swift](https://img.shields.io/badge/swift-4.2-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Swift](https://img.shields.io/badge/swift-5-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE) [![Build Status](https://travis-ci.org/groue/GRDB.swift.svg?branch=master)](https://travis-ci.org/groue/GRDB.swift)
 ==========
+
+:construction: GRDB 4 is currently in development, and is not ready for production.
+
+---
 
 ### A toolkit for SQLite databases, with a focus on application development
 
 **Latest release**: January 5, 2019 • version 3.6.2 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 2 to GRDB 3](Documentation/GRDB2MigrationGuide.md)
 
-**Requirements**: iOS 8.0+ / macOS 10.9+ / watchOS 2.0+ &bull; Swift 4.1+ / Xcode 9.3+
+**Requirements**: iOS 9.0+ / macOS 10.9+ / watchOS 2.0+ &bull; Swift 4.2+ / Xcode 10.0+
 
 | Swift version | GRDB version                                                |
 | ------------- | ----------------------------------------------------------- |
-| **Swift 4.2** | **v3.6.2**                                                  |
-| **Swift 4.1** | **v3.6.2**                                                  |
+| **Swift 5**   | **v4.0.0** :construction: in development                    |
+| Swift 4.2     | [v3.6.2](https://github.com/groue/GRDB.swift/tree/v3.6.2)   |
+| Swift 4.1     | [v3.6.2](https://github.com/groue/GRDB.swift/tree/v3.6.2)   |
 | Swift 4       | [v2.10.0](https://github.com/groue/GRDB.swift/tree/v2.10.0) |
 | Swift 3.2     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
 | Swift 3.1     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
@@ -1693,7 +1698,7 @@ When the same query will be used several times in the lifetime of your applicati
 
 **Don't cache statements yourself.**
 
-> :point_up: **Note**: This is because you don't have the necessary tools. Statements are tied to specific SQLite connections and dispatch queues which you don't manage yourself, especially when you use [database pools](#database-pools). A change in the database schema [may, or may not](https://www.sqlite.org/compile.html#max_schema_retry) invalidate a statement. On systems earlier than iOS 8.2 and OSX 10.10 that don't have the [sqlite3_close_v2 function](https://www.sqlite.org/c3ref/close.html), SQLite connections won't close properly if statements have been kept alive.
+> :point_up: **Note**: This is because you don't have the necessary tools. Statements are tied to specific SQLite connections and dispatch queues which you don't manage yourself, especially when you use [database pools](#database-pools). A change in the database schema [may, or may not](https://www.sqlite.org/compile.html#max_schema_retry) invalidate a statement. On systems earlier than OSX 10.10 that don't have the [sqlite3_close_v2 function](https://www.sqlite.org/c3ref/close.html), SQLite connections won't close properly if statements have been kept alive.
 
 Instead, use the `cachedUpdateStatement` and `cachedSelectStatement` methods. GRDB does all the hard caching and [memory management](#memory-management) stuff for you:
 
@@ -5080,7 +5085,7 @@ The version of SQLite that ships with iOS, macOS and watchOS does not always sup
     pod 'GRDBPlus'
     ```
 
-2. Use the GRDBCipher CocoaPod. It uses SQLCipher (see [encryption](#encryption)), and requires iOS 8.0+ / macOS 10.9+ / watchOS 2.0+:
+2. Use the GRDBCipher CocoaPod. It uses SQLCipher (see [encryption](#encryption)), and requires iOS 9.0+ / macOS 10.9+ / watchOS 2.0+:
     
     ```ruby
     pod 'GRDBCipher'
@@ -7441,7 +7446,7 @@ do {
 }
 ```
 
-> :warning: **Warning**: SQLite has progressively introduced extended result codes accross its versions. For example, `SQLITE_CONSTRAINT_FOREIGNKEY` wasn't introduced yet on iOS 8.1. The [SQLite release notes](http://www.sqlite.org/changes.html) are unfortunately not quite clear about that: write your handling of extended result codes with care.
+> :warning: **Warning**: SQLite has progressively introduced extended result codes accross its versions. The [SQLite release notes](http://www.sqlite.org/changes.html) are unfortunately not quite clear about that: write your handling of extended result codes with care.
 
 
 ### PersistenceError
