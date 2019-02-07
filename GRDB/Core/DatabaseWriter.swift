@@ -62,31 +62,6 @@ public protocol DatabaseWriter : DatabaseReader {
     
     // MARK: - Reading from Database
     
-    /// This method is deprecated. Use concurrentRead instead.
-    ///
-    /// Synchronously or asynchronously executes a read-only block that takes a
-    /// database connection.
-    ///
-    /// This method must be called from a writing dispatch queue, outside of any
-    /// transaction. You'll get a fatal error otherwise.
-    ///
-    /// The *block* argument is guaranteed to see the database in the last
-    /// committed state at the moment this method is called. Eventual concurrent
-    /// database updates are *not visible* inside the block.
-    ///
-    /// For example:
-    ///
-    ///     try writer.writeWithoutTransaction { db in
-    ///         try db.execute("DELETE FROM player")
-    ///         try writer.readFromCurrentState { db in
-    ///             // Guaranteed to be zero
-    ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM player")!
-    ///         }
-    ///         try db.execute("INSERT INTO player ...")
-    ///     }
-    @available(*, deprecated, message: "Use concurrentRead instead")
-    func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
-    
     /// Concurrently executes a read-only block that takes a
     /// database connection.
     ///
@@ -345,35 +320,29 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     }
     
     // MARK: - Reading from Database
-
+    
     /// :nodoc:
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
         return try base.read(block)
     }
-
+    
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
         return try base.unsafeRead(block)
     }
-
+    
     /// :nodoc:
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
         return try base.unsafeReentrantRead(block)
-    }
-
-    /// :nodoc:
-    @available(*, deprecated, message: "Use concurrentRead instead")
-    public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
-        try base.readFromCurrentState(block)
     }
     
     /// :nodoc:
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
         return base.concurrentRead(block)
     }
-
+    
     // MARK: - Writing in Database
-
+    
     /// :nodoc:
     public func write<T>(_ block: (Database) throws -> T) throws -> T {
         return try base.write(block)
@@ -383,7 +352,7 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     public func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try base.writeWithoutTransaction(block)
     }
-
+    
     /// :nodoc:
     public func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try base.unsafeReentrantWrite(block)
