@@ -144,11 +144,6 @@ extension Cursor {
         return map(transform).filter { $0 != nil }.map { $0! }
     }
     
-    @available(*, deprecated, renamed: "compactMap")
-    public func flatMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult> {
-        return compactMap(transform)
-    }
-    
     /// Returns a cursor that skips any initial elements that satisfy
     /// `predicate`.
     ///
