@@ -177,13 +177,16 @@ extension DatabasePool {
     public func setupMemoryManagement(in application: UIApplication) {
         self.application = application
         let center = NotificationCenter.default
-        #if swift(>=4.2)
-        center.addObserver(self, selector: #selector(DatabasePool.applicationDidReceiveMemoryWarning(_:)), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
-        center.addObserver(self, selector: #selector(DatabasePool.applicationDidEnterBackground(_:)), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
-        #else
-        center.addObserver(self, selector: #selector(DatabasePool.applicationDidReceiveMemoryWarning(_:)), name: .UIApplicationDidReceiveMemoryWarning, object: nil)
-        center.addObserver(self, selector: #selector(DatabasePool.applicationDidEnterBackground(_:)), name: .UIApplicationDidEnterBackground, object: nil)
-        #endif
+        center.addObserver(
+            self,
+            selector: #selector(DatabasePool.applicationDidReceiveMemoryWarning(_:)),
+            name: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil)
+        center.addObserver(
+            self,
+            selector: #selector(DatabasePool.applicationDidEnterBackground(_:)),
+            name: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil)
     }
     
     @objc private func applicationDidEnterBackground(_ notification: NSNotification) {
@@ -192,12 +195,7 @@ extension DatabasePool {
         }
         
         let task: UIBackgroundTaskIdentifier = application.beginBackgroundTask(expirationHandler: nil)
-        #if swift(>=4.2)
-        let taskIsInvalid = task == UIBackgroundTaskIdentifier.invalid
-        #else
-        let taskIsInvalid = task == UIBackgroundTaskInvalid
-        #endif
-        if taskIsInvalid {
+        if task == .invalid {
             // Perform releaseMemory() synchronously.
             releaseMemory()
         } else {
