@@ -119,7 +119,7 @@ public struct DatabaseMigrator {
             registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: true, migrate: migrate))
         }
     #else
-        @available(iOS 8.2, OSX 10.10, *)
+        @available(OSX 10.10, *)
         /// Registers an advanced migration, as described at https://www.sqlite.org/lang_altertable.html#otheralter
         ///
         ///     // Add a NOT NULL constraint on players.name:

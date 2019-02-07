@@ -67,7 +67,7 @@ public struct FTS3TokenizerDescriptor {
     ///       these characters as token characters.
     ///
     /// See https://www.sqlite.org/fts3.html#tokenizer
-    @available(iOS 8.2, OSX 10.10, *)
+    @available(OSX 10.10, *)
     public static func unicode61(removeDiacritics: Bool = true, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS3TokenizerDescriptor {
         // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
@@ -96,7 +96,7 @@ public struct FTS3TokenizerDescriptor {
         return _tokenize(string)
     }
     #else
-    @available(iOS 8.2, OSX 10.10, *)
+    @available(OSX 10.10, *)
     func tokenize(_ string: String) -> [String] {
         return _tokenize(string)
     }

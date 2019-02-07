@@ -248,12 +248,17 @@ struct StatementCache {
         //
         // However SQLITE_PREPARE_PERSISTENT was only introduced in
         // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
-        //
-        // TODO: use SQLITE_PREPARE_PERSISTENT if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *)
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
-            let statement = try db.makeSelectStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        let statement = try db.makeSelectStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         #else
-            let statement = try db.makeSelectStatement(sql)
+        let statement: SelectStatement
+        if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
+            // SQLite 3.24.0 or more
+            statement = try db.makeSelectStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        } else {
+            // SQLite 3.19.3 or less
+            statement = try db.makeSelectStatement(sql)
+        }
         #endif
         selectStatements[sql] = statement
         return statement
@@ -273,12 +278,17 @@ struct StatementCache {
         //
         // However SQLITE_PREPARE_PERSISTENT was only introduced in
         // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
-        //
-        // TODO: use SQLITE_PREPARE_PERSISTENT if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *)
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
             let statement = try db.makeUpdateStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         #else
-            let statement = try db.makeUpdateStatement(sql)
+        let statement: UpdateStatement
+        if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
+            // SQLite 3.24.0 or more
+            statement = try db.makeUpdateStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        } else {
+            // SQLite 3.19.3 or less
+            statement = try db.makeUpdateStatement(sql)
+        }
         #endif
         updateStatements[sql] = statement
         return statement

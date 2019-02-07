@@ -54,7 +54,7 @@ extension Database {
     ///     - withoutRowID: If true, uses WITHOUT ROWID optimization.
     ///     - body: A closure that defines table columns and constraints.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    @available(iOS 8.2, OSX 10.10, *)
+    @available(OSX 10.10, *)
     public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool, body: (TableDefinition) -> Void) throws {
         // WITHOUT ROWID was added in SQLite 3.8.2 http://www.sqlite.org/changes.html#version_3_8_2
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
@@ -198,7 +198,7 @@ extension Database {
     ///     - unique: If true, creates a unique index.
     ///     - ifNotExists: If false, no error is thrown if index already exists.
     ///     - condition: The condition that indexed rows must verify.
-    @available(iOS 8.2, OSX 10.10, *)
+    @available(OSX 10.10, *)
     public func create(index name: String, on table: String, columns: [String], unique: Bool = false, ifNotExists: Bool = false, condition: SQLExpressible) throws {
         // Partial indexes were introduced in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)

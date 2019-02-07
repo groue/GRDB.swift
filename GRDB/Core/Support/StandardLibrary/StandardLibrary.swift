@@ -543,7 +543,7 @@ extension DatabaseFunction {
     ///     let nameColumn = Column("name")
     ///     let request = Player.select(nameColumn.localizedCapitalized)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
+    @available(OSX 10.11, watchOS 3.0, *)
     public static let localizedCapitalize = DatabaseFunction("swiftLocalizedCapitalizedString", argumentCount: 1, pure: true) { dbValues in
         guard let string = String.fromDatabaseValue(dbValues[0]) else {
             return nil
@@ -563,7 +563,7 @@ extension DatabaseFunction {
     ///     let nameColumn = Column("name")
     ///     let request = Player.select(nameColumn.localizedLowercased)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
+    @available(OSX 10.11, watchOS 3.0, *)
     public static let localizedLowercase = DatabaseFunction("swiftLocalizedLowercaseString", argumentCount: 1, pure: true) { dbValues in
         guard let string = String.fromDatabaseValue(dbValues[0]) else {
             return nil
@@ -583,7 +583,7 @@ extension DatabaseFunction {
     ///     let nameColumn = Column("name")
     ///     let request = Player.select(nameColumn.localizedUppercased)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
+    @available(OSX 10.11, watchOS 3.0, *)
     public static let localizedUppercase = DatabaseFunction("swiftLocalizedUppercaseString", argumentCount: 1, pure: true) { dbValues in
         guard let string = String.fromDatabaseValue(dbValues[0]) else {
             return nil
