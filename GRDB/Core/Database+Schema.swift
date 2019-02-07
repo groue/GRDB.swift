@@ -610,16 +610,5 @@ struct SchemaInfo: Equatable {
         var tbl_name: String?
         var sql: String?
         var isTemporary: Bool
-
-        #if !swift(>=4.2)
-        var hashValue: Int {
-            var hash = type.hashValue
-            hash ^= name.hashValue
-            hash ^= (tbl_name?.hashValue ?? 0)
-            hash ^= (sql?.hashValue ?? 0)
-            hash ^= isTemporary.hashValue
-            return hash
-        }
-        #endif
     }
 }

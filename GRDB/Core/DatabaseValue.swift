@@ -149,7 +149,6 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
 // Hashable
 extension DatabaseValue {
     
-    #if swift(>=4.2)
     /// :nodoc:
     public func hash(into hasher: inout Hasher) {
         switch storage {
@@ -166,24 +165,6 @@ extension DatabaseValue {
             hasher.combine(data)
         }
     }
-    #else
-    /// :nodoc:
-    public var hashValue: Int {
-        switch storage {
-        case .null:
-            return 0
-        case .int64(let int64):
-            // 1 == 1.0, hence 1 and 1.0 must have the same hash:
-            return Double(int64).hashValue
-        case .double(let double):
-            return double.hashValue
-        case .string(let string):
-            return string.hashValue
-        case .blob(let data):
-            return data.hashValue
-        }
-    }
-    #endif
     
     /// Returns whether two DatabaseValues are equal.
     ///

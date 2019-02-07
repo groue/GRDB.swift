@@ -1262,10 +1262,6 @@ private struct InsertQuery: Hashable {
     let onConflict: Database.ConflictResolution
     let tableName: String
     let insertedColumns: [String]
-    
-    #if !swift(>=4.2)
-    var hashValue: Int { return tableName.hashValue }
-    #endif
 }
 
 extension InsertQuery {
@@ -1296,10 +1292,6 @@ private struct UpdateQuery: Hashable {
     let tableName: String
     let updatedColumns: [String]
     let conditionColumns: [String]
-    
-    #if !swift(>=4.2)
-    var hashValue: Int { return tableName.hashValue }
-    #endif
 }
 
 extension UpdateQuery {

@@ -212,18 +212,6 @@ public struct SQLBinaryOperator : Hashable {
         }
         return SQLBinaryOperator(negatedSQL, negated: sql)
     }
-    
-    #if !swift(>=4.2)
-    /// :nodoc:
-    public var hashValue: Int {
-        return sql.hashValue ^ (negatedSQL?.hashValue ?? 0)
-    }
-    
-    /// :nodoc:
-    public static func == (lhs: SQLBinaryOperator, rhs: SQLBinaryOperator) -> Bool {
-        return lhs.sql == rhs.sql && lhs.negatedSQL == rhs.negatedSQL
-    }
-    #endif
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)

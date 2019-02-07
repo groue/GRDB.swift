@@ -39,17 +39,10 @@ extension DatabaseCollation: Hashable {
     // implies hash equality) is thus non trivial. But it's not that
     // important, since this hashValue is only used when one adds
     // or removes a collation from a database connection.
-    #if swift(>=4.2)
     /// :nodoc:
     public func hash(into hasher: inout Hasher) {
         hasher.combine(0)
     }
-    #else
-    /// :nodoc:
-    public var hashValue: Int {
-        return 0
-    }
-    #endif
     
     /// Two collations are equal if they share the same name (case insensitive)
     /// :nodoc:
