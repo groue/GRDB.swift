@@ -139,43 +139,19 @@
             // So let's see which SQLite version we are linked against:
             
             #if GRDBCUSTOMSQLITE || GRDBCIPHER
-                // GRDB is linked against SQLCipher or a custom SQLite build: SQLite 3.20.0 or more.
-                return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
+            // GRDB is linked against SQLCipher or a custom SQLite build: SQLite 3.20.0 or more.
+            return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
             #else
-                // GRDB is linked against the system SQLite.
-                //
-                // Do we use SQLite 3.19.3 (iOS 11.4), or SQLite 3.24.0 (iOS 12.0)?
-                // We need to check for available(iOS 12.0, OSX 10.14, watchOS 5.0, *).
-                //
-                // This test requires the Swift 4.2 compiler.
-                //
-                // It does not need the Swift 4.2 language, though: the Swift 4.2
-                // compiler running in Swift 4.0 compatibility mode is OK.
-                //
-                // On top of that, we want to preserve compatibility with Xcode 9.3+.
-                //
-                // So let's check exactly which compiler version we are using.
-                //
-                // Fortunately, this horribly complex check has been solved
-                // by @hartbit: see https://forums.swift.org/t/compiler-version-directive/11952
-                // and https://github.com/hartbit/swift-evolution/blob/compiler-directive/proposals/XXXX-compiler-version-directive.md
-                #if swift(>=4.1.50) || (swift(>=3.4) && !swift(>=4.0))
-                    if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
-                        // SQLite 3.24.0 or more
-                        // setup: Xcode 10.0, SWIFT_VERSION = 4.0, iOS 12
-                        // setup: Xcode 10.0, SWIFT_VERSION = 4.2, iOS 12
-                        return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
-                    } else {
-                        // SQLite 3.19.3 or less
-                        // setup: Xcode 10.0, SWIFT_VERSION = 4.0, iOS 11
-                        // setup: Xcode 10.0, SWIFT_VERSION = 4.2, iOS 11
-                        return api_v1(db)
-                    }
-                #else
-                    // SQLite 3.19.3 or less
-                    // setup: Xcode 9.4.1, iOS 11
-                    return api_v1(db)
-                #endif
+            // GRDB is linked against the system SQLite.
+            //
+            // Do we use SQLite 3.19.3 (iOS 11.4), or SQLite 3.24.0 (iOS 12.0)?
+            if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
+                // SQLite 3.24.0 or more
+                return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
+            } else {
+                // SQLite 3.19.3 or less
+                return api_v1(db)
+            }
             #endif
         }
         
