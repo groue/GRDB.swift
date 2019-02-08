@@ -26,14 +26,14 @@ extension DatabaseValueConvertible where Self: ReferenceConvertible, Self.Refere
     }
 }
 
-public extension DatabaseValueConvertible where Self: Decodable & ReferenceConvertible, Self.ReferenceType: DatabaseValueConvertible {
+extension DatabaseValueConvertible where Self: Decodable & ReferenceConvertible, Self.ReferenceType: DatabaseValueConvertible {
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
         // Preserve custom database decoding
         return ReferenceType.fromDatabaseValue(databaseValue).flatMap { cast($0) }
     }
 }
 
-public extension DatabaseValueConvertible where Self: Encodable & ReferenceConvertible, Self.ReferenceType: DatabaseValueConvertible {
+extension DatabaseValueConvertible where Self: Encodable & ReferenceConvertible, Self.ReferenceType: DatabaseValueConvertible {
     public var databaseValue: DatabaseValue {
         // Preserve custom database encoding
         return (self as! ReferenceType).databaseValue

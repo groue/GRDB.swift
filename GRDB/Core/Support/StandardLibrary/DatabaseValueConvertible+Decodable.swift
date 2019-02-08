@@ -178,13 +178,13 @@ private struct DatabaseValueDecoder: Decoder {
     }
 }
 
-public extension DatabaseValueConvertible where Self: Decodable {
+extension DatabaseValueConvertible where Self: Decodable {
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
         return try? self.init(from: DatabaseValueDecoder(dbValue: databaseValue, codingPath: []))
     }
 }
 
-public extension DatabaseValueConvertible where Self: Decodable & RawRepresentable, Self.RawValue: DatabaseValueConvertible {
+extension DatabaseValueConvertible where Self: Decodable & RawRepresentable, Self.RawValue: DatabaseValueConvertible {
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
         // Preserve custom database decoding
         return RawValue.fromDatabaseValue(databaseValue).flatMap { self.init(rawValue: $0) }
