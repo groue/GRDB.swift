@@ -103,9 +103,6 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
     }
 }
 
-@available(*, deprecated, renamed: "FastDatabaseValueCursor")
-public typealias ColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> = FastDatabaseValueCursor<Value>
-
 /// A cursor of optional database values extracted from a single column.
 /// For example:
 ///
@@ -158,9 +155,6 @@ public final class FastNullableDatabaseValueCursor<Value: DatabaseValueConvertib
         }
     }
 }
-
-@available(*, deprecated, renamed: "FastNullableDatabaseValueCursor")
-public typealias NullableColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> = FastNullableDatabaseValueCursor<Value>
 
 /// Types that adopt both DatabaseValueConvertible and
 /// StatementColumnConvertible can be efficiently initialized from
