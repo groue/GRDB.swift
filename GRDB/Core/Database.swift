@@ -254,9 +254,15 @@ extension Database {
     
     private static func set(passphrase: String, forConnection sqliteConnection: SQLiteConnection) throws {
         let data = passphrase.data(using: .utf8)!
-        let code = data.withUnsafeBytes { bytes in
-            sqlite3_key(sqliteConnection, bytes, Int32(data.count))
+        #if swift(>=5.0)
+        let code = data.withUnsafeBytes {
+            sqlite3_key(sqliteConnection, $0.baseAddress, Int32($0.count))
         }
+        #else
+        let code = data.withUnsafeBytes {
+            sqlite3_key(sqliteConnection, $0, Int32(data.count))
+        }
+        #endif
         guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
@@ -892,9 +898,15 @@ extension Database {
             // > schema of the original db into the new one:
             // > https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/
             let data = passphrase.data(using: .utf8)!
-            let code = data.withUnsafeBytes { bytes in
-                sqlite3_rekey(sqliteConnection, bytes, Int32(data.count))
+            #if swift(>=5.0)
+            let code = data.withUnsafeBytes {
+                sqlite3_rekey(sqliteConnection, $0.baseAddress, Int32($0.count))
             }
+            #else
+            let code = data.withUnsafeBytes {
+                sqlite3_rekey(sqliteConnection, $0, Int32(data.count))
+            }
+            #endif
             guard code == SQLITE_OK else {
                 throw DatabaseError(resultCode: code, message: lastErrorMessage)
             }

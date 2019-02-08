@@ -159,7 +159,15 @@
             guard let data = try! Data.fetchOne(db, "SELECT fts5()") else {
                 fatalError("FTS5 is not available")
             }
-            return data.withUnsafeBytes { $0.pointee }
+            #if swift(>=5.0)
+            return data.withUnsafeBytes {
+                $0.bindMemory(to: UnsafePointer<fts5_api>.self).first!
+            }
+            #else
+            return data.withUnsafeBytes {
+                $0.pointee
+            }
+            #endif
         }
         
         // Technique given by Jordan Rose:

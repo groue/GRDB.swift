@@ -294,9 +294,15 @@ public final class DatabaseFunction: Hashable {
         case .string(let string):
             sqlite3_result_text(sqliteContext, string, -1, SQLITE_TRANSIENT)
         case .blob(let data):
-            data.withUnsafeBytes { bytes in
-                sqlite3_result_blob(sqliteContext, bytes, Int32(data.count), SQLITE_TRANSIENT)
+            #if swift(>=5.0)
+            data.withUnsafeBytes {
+                sqlite3_result_blob(sqliteContext, $0.baseAddress, Int32($0.count), SQLITE_TRANSIENT)
             }
+            #else
+            data.withUnsafeBytes {
+                sqlite3_result_blob(sqliteContext, $0, Int32(data.count), SQLITE_TRANSIENT)
+            }
+            #endif
         }
     }
     
