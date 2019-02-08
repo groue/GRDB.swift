@@ -52,7 +52,7 @@ func GRDBPrecondition(_ condition: @autoclosure() -> Bool, _ message: @autoclosu
     /// https://bugs.swift.org/browse/SR-905 and
     /// https://github.com/groue/GRDB.swift/issues/37
     if !condition() {
-        fatalError(message, file: file, line: line)
+        fatalError(message(), file: file, line: line)
     }
 }
 

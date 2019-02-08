@@ -189,11 +189,11 @@ final class SerializedDatabase {
     
     /// Fatal error if current dispatch queue is not valid.
     func preconditionValidQueue(_ message: @autoclosure() -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
-        SchedulingWatchdog.preconditionValidQueue(db, message, file: file, line: line)
+        SchedulingWatchdog.preconditionValidQueue(db, message(), file: file, line: line)
     }
     
     /// Fatal error if a transaction has been left opened.
     private func preconditionNoUnsafeTransactionLeft(_ db: Database, _ message: @autoclosure() -> String = "A transaction has been left opened at the end of a database access", file: StaticString = #file, line: UInt = #line) {
-        GRDBPrecondition(configuration.allowsUnsafeTransactions || !db.isInsideTransaction, message, file: file, line: line)
+        GRDBPrecondition(configuration.allowsUnsafeTransactions || !db.isInsideTransaction, message(), file: file, line: line)
     }
 }
