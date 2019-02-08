@@ -100,6 +100,7 @@
         /// See https://www.sqlite.org/fts5.html#unicode61_tokenizer
         public static func unicode61(removeDiacritics: Bool = true, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS5TokenizerDescriptor {
             var components: [String] = ["unicode61"]
+            // TODO: Support for remove_diacritics=2 (SQLite 3.27.0)
             if !removeDiacritics {
                 components.append(contentsOf: ["remove_diacritics", "0"])
             }
