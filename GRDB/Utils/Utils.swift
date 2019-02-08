@@ -61,10 +61,19 @@ func cast<T, U>(_ value: T) -> U? {
     return value as? U
 }
 
-extension Array {
+extension RangeReplaceableCollection {
     /// Removes the first object that matches *predicate*.
-    mutating func removeFirst(_ predicate: (Element) throws -> Bool) rethrows {
-        if let index = try index(where: predicate) {
+    mutating func removeFirst(where predicate: (Element) throws -> Bool) rethrows {
+        if let index = try firstIndex(where: predicate) {
+            remove(at: index)
+        }
+    }
+}
+
+extension Dictionary {
+    /// Removes the first object that matches *predicate*.
+    mutating func removeFirst(where predicate: (Element) throws -> Bool) rethrows {
+        if let index = try firstIndex(where: predicate) {
             remove(at: index)
         }
     }

@@ -1309,7 +1309,7 @@ private struct ArrayRowImpl : RowImpl {
     
     func index(ofColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
-        return columns.index { (column, _) in column.lowercased() == lowercaseName }
+        return columns.firstIndex { (column, _) in column.lowercased() == lowercaseName }
     }
     
     func copiedRow(_ row: Row) -> Row {
@@ -1348,7 +1348,7 @@ private struct StatementCopyRowImpl : RowImpl {
     
     func index(ofColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
-        return columnNames.index { $0.lowercased() == lowercaseName }
+        return columnNames.firstIndex { $0.lowercased() == lowercaseName }
     }
     
     func copiedRow(_ row: Row) -> Row {

@@ -887,7 +887,7 @@ extension FetchedRecordsController where Record: MutablePersistableRecord {
     ///   if record could not be found.
     public func indexPath(for record: Record) -> IndexPath? {
         let item = Item<Record>(row: Row(record))
-        guard let fetchedItems = fetchedItems, let index = fetchedItems.index(where: { itemsAreIdentical($0, item) }) else {
+        guard let fetchedItems = fetchedItems, let index = fetchedItems.firstIndex(where: { itemsAreIdentical($0, item) }) else {
             return nil
         }
         return IndexPath(indexes: [0, index])

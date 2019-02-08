@@ -305,14 +305,10 @@ struct StatementCache {
     }
     
     mutating func remove(_ statement: SelectStatement) {
-        if let index = selectStatements.index(where: { $0.1 === statement }) {
-            selectStatements.remove(at: index)
-        }
+        selectStatements.removeFirst { $0.value === statement }
     }
     
     mutating func remove(_ statement: UpdateStatement) {
-        if let index = updateStatements.index(where: { $0.1 === statement }) {
-            updateStatements.remove(at: index)
-        }
+        updateStatements.removeFirst { $0.value === statement }
     }
 }

@@ -439,7 +439,7 @@ public final class TableDefinition {
             let primaryKeyColumns: [String]
             if let (columns, _) = primaryKeyConstraint {
                 primaryKeyColumns = columns
-            } else if let index = columns.index(where: { $0.primaryKey != nil }) {
+            } else if let index = columns.firstIndex(where: { $0.primaryKey != nil }) {
                 primaryKeyColumns = [columns[index].name]
             } else {
                 // WITHOUT ROWID optimization requires a primary key. If the

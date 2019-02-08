@@ -39,7 +39,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
         guard let value = values.removeValue(forKey: key) else {
             return nil
         }
-        let index = keys.index { $0 == key }!
+        let index = keys.firstIndex { $0 == key }!
         keys.remove(at: index)
         return value
     }

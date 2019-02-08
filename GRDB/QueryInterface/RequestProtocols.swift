@@ -205,8 +205,8 @@ extension TableRequest where Self: FilteredRequest {
                     return key
                         // Preserve ordering of columns in the unique index
                         .sorted { (kv1, kv2) in
-                            let index1 = lowercaseColumns.index(of: kv1.key.lowercased())!
-                            let index2 = lowercaseColumns.index(of: kv2.key.lowercased())!
+                            let index1 = lowercaseColumns.firstIndex(of: kv1.key.lowercased())!
+                            let index2 = lowercaseColumns.firstIndex(of: kv2.key.lowercased())!
                             return index1 < index2
                         }
                         .map { (column, value) in Column(column) == value }
