@@ -280,6 +280,7 @@ extension ValueObservation where Reducer: ValueReducer {
     }
 }
 
+// TODO: Rename in order to avoid conflict with "real" Future libraries.
 /// A future value.
 public class Future<Value> {
     private var consumed = false
