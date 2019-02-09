@@ -36,14 +36,14 @@ class IndexInfoTests: GRDBTestCase {
                 let indexes = try db.indexes(on: "citizenships")
                 
                 XCTAssertEqual(indexes.count, 2)
-                if let i = indexes.index(where: { $0.columns == ["year"] }) {
+                if let i = indexes.firstIndex(where: { $0.columns == ["year"] }) {
                     XCTAssertEqual(indexes[i].name, "citizenshipsOnYear")
                     XCTAssertEqual(indexes[i].columns, ["year"])
                     XCTAssertFalse(indexes[i].isUnique)
                 } else {
                     XCTFail()
                 }
-                if let i = indexes.index(where: { $0.columns == ["personId", "countryIsoCode"] }) {
+                if let i = indexes.firstIndex(where: { $0.columns == ["personId", "countryIsoCode"] }) {
                     XCTAssertEqual(indexes[i].name, "sqlite_autoindex_citizenships_1")
                     XCTAssertEqual(indexes[i].columns, ["personId", "countryIsoCode"])
                     XCTAssertTrue(indexes[i].isUnique)
