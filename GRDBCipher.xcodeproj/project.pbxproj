@@ -577,6 +577,12 @@
 		567E55EE1D2BDD3F00CC6F79 /* EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567156701CB18050007DC145 /* EncryptionTests.swift */; };
 		567E55F31D2BDDFE00CC6F79 /* EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567156701CB18050007DC145 /* EncryptionTests.swift */; };
 		567E55F41D2BDDFF00CC6F79 /* EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567156701CB18050007DC145 /* EncryptionTests.swift */; };
+		567F0B2A220F0DDF00D111FB /* SQLInterpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F0B28220F0DDF00D111FB /* SQLInterpolation.swift */; };
+		567F0B2B220F0DDF00D111FB /* SQLInterpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F0B28220F0DDF00D111FB /* SQLInterpolation.swift */; };
+		567F0B33220F196F00D111FB /* SQLInterpolationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F0B32220F196F00D111FB /* SQLInterpolationTests.swift */; };
+		567F0B34220F196F00D111FB /* SQLInterpolationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F0B32220F196F00D111FB /* SQLInterpolationTests.swift */; };
+		567F0B35220F196F00D111FB /* SQLInterpolationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F0B32220F196F00D111FB /* SQLInterpolationTests.swift */; };
+		567F0B36220F196F00D111FB /* SQLInterpolationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F0B32220F196F00D111FB /* SQLInterpolationTests.swift */; };
 		567F45A91F888B2600030B59 /* TruncateOptimizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F45A71F888B2600030B59 /* TruncateOptimizationTests.swift */; };
 		567F45AA1F888B2600030B59 /* TruncateOptimizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F45A71F888B2600030B59 /* TruncateOptimizationTests.swift */; };
 		567F45AD1F888B2600030B59 /* TruncateOptimizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F45A71F888B2600030B59 /* TruncateOptimizationTests.swift */; };
@@ -1171,6 +1177,8 @@
 		567A80521D41350C00C7DCEC /* IndexInfoTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IndexInfoTests.swift; sourceTree = "<group>"; };
 		567DAF141EAB61ED00FC0928 /* grdb_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = grdb_config.h; sourceTree = "<group>"; };
 		567DAF341EAB789800FC0928 /* DatabaseLogErrorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseLogErrorTests.swift; sourceTree = "<group>"; };
+		567F0B28220F0DDF00D111FB /* SQLInterpolation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLInterpolation.swift; sourceTree = "<group>"; };
+		567F0B32220F196F00D111FB /* SQLInterpolationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLInterpolationTests.swift; sourceTree = "<group>"; };
 		567F45A71F888B2600030B59 /* TruncateOptimizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TruncateOptimizationTests.swift; sourceTree = "<group>"; };
 		568068301EBBA26100EFB8AA /* SQLRequestTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLRequestTests.swift; sourceTree = "<group>"; };
 		5687359E1CEDE16C009B9116 /* Betty.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Betty.jpeg; sourceTree = "<group>"; };
@@ -1581,6 +1589,7 @@
 				563EF45821631E51007DAACD /* QueryInterfacePromiseTests.swift */,
 				56300B5D1C53C38F005A543B /* QueryInterfaceRequestTests.swift */,
 				56300B841C54DC95005A543B /* Record+QueryInterfaceRequestTests.swift */,
+				567F0B32220F196F00D111FB /* SQLInterpolationTests.swift */,
 				566AD8C51D531BE4002EC1A8 /* TableDefinitionTests.swift */,
 				56300B6A1C53D3E8005A543B /* TableRecord+QueryInterfaceRequestTests.swift */,
 				5698AC7F1DA380A20056AF8C /* VirtualTableModuleTests.swift */,
@@ -1605,6 +1614,7 @@
 				56CEB5421EAA359A00BFAF62 /* SQLExpression.swift */,
 				5653EC15209873A400F46237 /* SQLExpression+QueryInterface.swift */,
 				5653EC19209873E600F46237 /* SQLGenerationContext.swift */,
+				567F0B28220F0DDF00D111FB /* SQLInterpolation.swift */,
 				56CEB5431EAA359A00BFAF62 /* SQLOrdering.swift */,
 				56D91A9B2205DD5200770D8D /* SQLRelation.swift */,
 				56CEB5441EAA359A00BFAF62 /* SQLSelectable.swift */,
@@ -2322,6 +2332,7 @@
 				5653EC17209873A400F46237 /* SQLExpression+QueryInterface.swift in Sources */,
 				564CE52621B312B500652B19 /* ValueObservation+MapReducer.swift in Sources */,
 				5659F4A11EA8D997004A4992 /* Result.swift in Sources */,
+				567F0B2A220F0DDF00D111FB /* SQLInterpolation.swift in Sources */,
 				560FC5201CB003810014AA8E /* Date.swift in Sources */,
 				560FC5221CB003810014AA8E /* DatabaseValueConvertible+RawRepresentable.swift in Sources */,
 				563EF424215F8A88007DAACD /* OrderedDictionary.swift in Sources */,
@@ -2445,6 +2456,7 @@
 				56EA63CC209C7F31009715B8 /* DerivableRequestTests.swift in Sources */,
 				560FC5701CB00B880014AA8E /* DatabasePoolCollationTests.swift in Sources */,
 				560FC5711CB00B880014AA8E /* RecordPrimaryKeySingleTests.swift in Sources */,
+				567F0B33220F196F00D111FB /* SQLInterpolationTests.swift in Sources */,
 				5674A7191F3087710095F066 /* DatabaseValueConvertibleDecodableTests.swift in Sources */,
 				56B021CA1D8C0D3900B239BB /* MutablePersistableRecordPersistenceConflictPolicyTests.swift in Sources */,
 				563B07082186280600B38F35 /* ValueObservationRowTests.swift in Sources */,
@@ -2625,6 +2637,7 @@
 				56C3F7551CF9F12400F6A361 /* DatabaseSavepointTests.swift in Sources */,
 				5672DE5B1CDB72520022BA81 /* DatabaseQueueBackupTests.swift in Sources */,
 				56B021CB1D8C0D3900B239BB /* MutablePersistableRecordPersistenceConflictPolicyTests.swift in Sources */,
+				567F0B34220F196F00D111FB /* SQLInterpolationTests.swift in Sources */,
 				5674A71B1F3087710095F066 /* DatabaseValueConvertibleDecodableTests.swift in Sources */,
 				56B14E811D4DAE54000BF4A3 /* RowFromDictionaryLiteralTests.swift in Sources */,
 				563B07092186280600B38F35 /* ValueObservationRowTests.swift in Sources */,
@@ -2803,6 +2816,7 @@
 				5653EC18209873A400F46237 /* SQLExpression+QueryInterface.swift in Sources */,
 				564CE52721B312B700652B19 /* ValueObservation+MapReducer.swift in Sources */,
 				5659F4A41EA8D997004A4992 /* Result.swift in Sources */,
+				567F0B2B220F0DDF00D111FB /* SQLInterpolation.swift in Sources */,
 				56AFC9F41CB1A8BB00F48B96 /* CGFloat.swift in Sources */,
 				56AFC9F51CB1A8BB00F48B96 /* Date.swift in Sources */,
 				563EF425215F8A88007DAACD /* OrderedDictionary.swift in Sources */,
@@ -2926,6 +2940,7 @@
 				56EA63CE209C7F31009715B8 /* DerivableRequestTests.swift in Sources */,
 				56AFCA3F1CB1AA9900F48B96 /* RecordPrimaryKeySingleTests.swift in Sources */,
 				56AFCA421CB1AA9900F48B96 /* DatabasePoolFunctionTests.swift in Sources */,
+				567F0B35220F196F00D111FB /* SQLInterpolationTests.swift in Sources */,
 				5674A7181F3087710095F066 /* DatabaseValueConvertibleDecodableTests.swift in Sources */,
 				56AFCA441CB1AA9900F48B96 /* RowCopiedFromStatementTests.swift in Sources */,
 				563B070A2186280600B38F35 /* ValueObservationRowTests.swift in Sources */,
@@ -3106,6 +3121,7 @@
 				56EA63CF209C7F31009715B8 /* DerivableRequestTests.swift in Sources */,
 				5657AB641D108BA9006283EF /* FoundationNSURLTests.swift in Sources */,
 				56FF455C1D2CDA5200F21EF9 /* RecordUniqueIndexTests.swift in Sources */,
+				567F0B36220F196F00D111FB /* SQLInterpolationTests.swift in Sources */,
 				56AFCA971CB1ABC800F48B96 /* DatabasePoolCollationTests.swift in Sources */,
 				5674A7151F3087710095F066 /* DatabaseValueConvertibleDecodableTests.swift in Sources */,
 				563B070B2186280600B38F35 /* ValueObservationRowTests.swift in Sources */,
@@ -3571,7 +3587,7 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -3618,7 +3634,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
