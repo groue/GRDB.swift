@@ -152,7 +152,9 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
                 let ids = [id1, id2]
                 let cursor = try Item.fetchCursor(db, keys: ids)
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
+                let fetchedNames = Set(fetchedRecords.map { $0.name! })
+                let expectedNames = Set([record1, record2].map { $0.name! })
+                XCTAssertEqual(fetchedNames, expectedNames)
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
         }
@@ -178,7 +180,9 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
                 let ids = [id1, id2]
                 let fetchedRecords = try Item.fetchAll(db, keys: ids)
                 XCTAssertEqual(fetchedRecords.count, 2)
-                XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
+                let fetchedNames = Set(fetchedRecords.map { $0.name! })
+                let expectedNames = Set([record1, record2].map { $0.name! })
+                XCTAssertEqual(fetchedNames, expectedNames)
             }
         }
     }
@@ -226,7 +230,9 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
                 let ids = [id1, id2]
                 let cursor = try Item.filter(keys: ids).fetchCursor(db)
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
+                let fetchedNames = Set(fetchedRecords.map { $0.name! })
+                let expectedNames = Set([record1, record2].map { $0.name! })
+                XCTAssertEqual(fetchedNames, expectedNames)
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
         }
@@ -252,7 +258,9 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
                 let ids = [id1, id2]
                 let fetchedRecords = try Item.filter(keys: ids).fetchAll(db)
                 XCTAssertEqual(fetchedRecords.count, 2)
-                XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
+                let fetchedNames = Set(fetchedRecords.map { $0.name! })
+                let expectedNames = Set([record1, record2].map { $0.name! })
+                XCTAssertEqual(fetchedNames, expectedNames)
             }
         }
     }
