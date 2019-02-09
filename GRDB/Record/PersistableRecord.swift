@@ -1180,7 +1180,9 @@ final class DAO {
         let primaryKeyValues = primaryKeyColumns.map {
             persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
         }
-        guard primaryKeyValues.contains(where: { !$0.isNull }) else { return nil }
+        if primaryKeyValues.allSatisfy({ $0.isNull }) {
+            return nil
+        }
         
         // Don't update columns not present in columns
         // Don't update columns not present in the persistenceContainer
@@ -1227,7 +1229,9 @@ final class DAO {
         let primaryKeyValues = primaryKeyColumns.map {
             persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
         }
-        guard primaryKeyValues.contains(where: { !$0.isNull }) else { return nil }
+        if primaryKeyValues.allSatisfy({ $0.isNull }) {
+            return nil
+        }
         
         let query = DeleteQuery(
             tableName: databaseTableName,
@@ -1244,7 +1248,9 @@ final class DAO {
         let primaryKeyValues = primaryKeyColumns.map {
             persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
         }
-        guard primaryKeyValues.contains(where: { !$0.isNull }) else { return nil }
+        if primaryKeyValues.allSatisfy({ $0.isNull }) {
+            return nil
+        }
         
         let query = ExistsQuery(
             tableName: databaseTableName,
