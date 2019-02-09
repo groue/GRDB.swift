@@ -1,49 +1,34 @@
-enum Result<Value> {
-    case success(Value)
+#if compiler(>=5.0)
+typealias Result<Success> = Swift.Result<Success, Error>
+#else
+enum Result<Success> {
+    case success(Success)
     case failure(Error)
     
-    init(value: () throws -> Value) {
+    init(catching body: () throws -> Success) {
         do {
-            self = try .success(value())
+            self = try .success(body())
         } catch {
             self = .failure(error)
         }
     }
     
-    /// Evaluates the given closure when this `Result` is a success, passing the
-    /// unwrapped value as a parameter.
-    ///
-    /// Use the `map` method with a closure that does not throw. For example:
-    ///
-    ///     let possibleData: Result<Data> = .success(Data())
-    ///     let possibleInt = possibleData.map { $0.count }
-    ///     try print(possibleInt.unwrap())
-    ///     // Prints "0"
-    ///
-    ///     let noData: Result<Data> = .failure(error)
-    ///     let noInt = noData.map { $0.count }
-    ///     try print(noInt.unwrap())
-    ///     // Throws error
-    ///
-    /// - parameter transform: A closure that takes the success value of
-    ///   the instance.
-    /// - returns: A `Result` containing the result of the given closure. If
-    ///   this instance is a failure, returns the same failure.
-    func map<T>(_ transform: (Value) -> T) -> Result<T> {
+    func map<T>(_ transform: (Success) -> T) -> Result<T> {
         switch self {
-        case .success(let value):
-            return .success(transform(value))
+        case .success(let success):
+            return .success(transform(success))
         case .failure(let error):
             return .failure(error)
         }
     }
     
-    func unwrap() throws -> Value {
+    func get() throws -> Success {
         switch self {
-        case .success(let value):
-            return value
+        case .success(let success):
+            return success
         case .failure(let error):
             throw error
         }
     }
 }
+#endif

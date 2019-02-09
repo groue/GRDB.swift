@@ -413,7 +413,7 @@ extension DatabasePool : DatabaseReader {
         return Future {
             // Block the future until results are fetched
             _ = futureSemaphore.wait(timeout: .distantFuture)
-            return try futureResult!.unwrap()
+            return try futureResult!.get()
         }
     }
     
