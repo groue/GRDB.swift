@@ -161,7 +161,7 @@ public struct SQLRequest<T> : FetchRequest {
     public typealias RowDecoder = T
     
     public var sql: String
-    public var arguments: StatementArguments?
+    public var arguments: StatementArguments
     public var adapter: RowAdapter?
     private let cache: Cache?
     
@@ -209,7 +209,7 @@ public struct SQLRequest<T> : FetchRequest {
     /// - returns: A SQLRequest
     init(_ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, fromCache cache: Cache?) {
         self.sql = sql
-        self.arguments = arguments
+        self.arguments = arguments ?? StatementArguments()
         self.adapter = adapter
         self.cache = cache
     }
@@ -230,9 +230,7 @@ public struct SQLRequest<T> : FetchRequest {
         case .internal?:
             statement = try db.internalCachedSelectStatement(sql)
         }
-        if let arguments = arguments {
-            try statement.setArgumentsWithValidation(arguments)
-        }
+        try statement.setArgumentsWithValidation(arguments)
         return (statement, adapter)
     }
     
