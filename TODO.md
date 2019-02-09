@@ -42,12 +42,16 @@
 - [ ] Consider renaming dbQueue.inDatabase, dbPool.writeWithoutTransaction -> dbQueue/Pool.exclusive
 - [ ] FetchedRecordsController diff algorithm: check https://github.com/RxSwiftCommunity/RxDataSources/issues/256
 
+GRDB 4.0
+
+- SQLite 3.27.0
+- SQLCipher 4
+- Mark unavailable the deprecated methods
+
 Swift 4.2
 
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0210-key-path-offset.md
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0208-package-manager-system-library-targets.md
-- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0207-containsOnly.md
-- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0206-hashable-enhancements.md
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0202-random-unification.md
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0201-package-manager-local-dependencies.md
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0193-cross-module-inlining-and-specialization.md

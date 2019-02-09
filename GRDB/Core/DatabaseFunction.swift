@@ -262,7 +262,7 @@ public final class DatabaseFunction: Hashable {
         let stride = MemoryLayout<Unmanaged<AggregateContext>>.stride
         let aggregateContextBufferP = UnsafeMutableRawBufferPointer(start: sqlite3_aggregate_context(sqliteContext, Int32(stride))!, count: stride)
         
-        if aggregateContextBufferP.contains(where: { $0 != 0 }) {
+        if aggregateContextBufferP.contains(where: { $0 != 0 }) { // TODO: This testt looks weird. Review.
             // Buffer contains non-null pointer: load aggregate context
             let aggregateContextP = aggregateContextBufferP.baseAddress!.assumingMemoryBound(to: Unmanaged<AggregateContext>.self)
             return aggregateContextP.pointee
