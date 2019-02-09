@@ -44,17 +44,15 @@
 
 GRDB 4.0
 
-- SQLite 3.27.0
-- SQLCipher 4
-- Mark unavailable the deprecated methods
+- [ ] SQLite 3.27.0
+- [ ] SQLCipher 4
+- [ ] Mark unavailable the deprecated methods
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0193-cross-module-inlining-and-specialization.md
 
 Swift 4.2
 
-- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0210-key-path-offset.md
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0208-package-manager-system-library-targets.md
-- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0202-random-unification.md
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0201-package-manager-local-dependencies.md
-- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0193-cross-module-inlining-and-specialization.md
 
 Not sure
 
