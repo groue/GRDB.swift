@@ -17,12 +17,12 @@ class DataMemoryTests: GRDBTestCase {
     func testMemoryBehavior() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE datas (data BLOB)")
+            // Make sure Data is on the heap (15 bytes is enough)
+            // For more context, see:
+            // https://forums.swift.org/t/swift-5-how-to-test-data-bytesnocopydeallocator/20299/2?u=gwendal.roue
+            let data = Data(repeating: 0xaa, count: 15)
             
-            let data = "foo".data(using: .utf8)
-            try db.execute("INSERT INTO datas (data) VALUES (?)", arguments: [data])
-            
-            let rows = try Row.fetchCursor(db, "SELECT * FROM datas")
+            let rows = try Row.fetchCursor(db, "SELECT ?", arguments: [data])
             while let row = try rows.next() {
                 let sqliteStatement = row.sqliteStatement
                 let sqliteBytes = sqlite3_column_blob(sqliteStatement, 0)
@@ -46,8 +46,8 @@ class DataMemoryTests: GRDBTestCase {
                 }
             }
             
-            let row = try Row.fetchOne(db, "SELECT * FROM datas")!
-            let dbValue = row.first!.1
+            let row = try Row.fetchOne(db, "SELECT ?", arguments: [data])!
+            let dbValue = row.first!.1 // TODO: think about exposing a (column:,databaseValue:) tuple
             switch dbValue.storage {
             case .blob(let data):
                 data.withUnsafeBytes { (dataBytes: UnsafePointer<UInt8>) -> Void in
