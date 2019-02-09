@@ -71,4 +71,88 @@ class SQLRequestTests: GRDBTestCase {
             XCTAssertEqual(try sqlRequest.fetchOne(db)!, ["a": 1, "b": "foo"])
         }
     }
+    
+    func testSQLInterpolation() throws {
+        struct Player: Codable, TableRecord {
+            var id: Int64?
+            var name: String
+            
+            static func filter(id: Int64) -> SQLRequest<Player> {
+                return """
+                    SELECT *
+                    FROM \(self)
+                    WHERE \(CodingKeys.id) = \(id)
+                    """
+            }
+
+            static func filter(ids: [Int64]) -> SQLRequest<Player> {
+                return """
+                    SELECT *
+                    FROM \(self)
+                    WHERE \(CodingKeys.id) IN \(ids)
+                    """
+            }
+
+            static func genericFilter<S>(ids: S) -> SQLRequest<Player> where S: Sequence, S.Element == Int64 {
+                return """
+                    SELECT *
+                    FROM \(self)
+                    WHERE \(CodingKeys.id) IN \(ids)
+                    """
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+            }
+            
+            do {
+                let request = Player.filter(id: 42)
+                XCTAssertEqual(request.sql, """
+                    SELECT *
+                    FROM "player"
+                    WHERE "id" = ?
+                    """)
+                _ = try Row.fetchOne(db, request)
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT *
+                    FROM "player"
+                    WHERE "id" = 42
+                    """)
+            }
+            
+            do {
+                let request = Player.filter(ids: [1, 2, 3])
+                XCTAssertEqual(request.sql, """
+                    SELECT *
+                    FROM "player"
+                    WHERE "id" IN (?,?,?)
+                    """)
+                _ = try Row.fetchOne(db, request)
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT *
+                    FROM "player"
+                    WHERE "id" IN (1,2,3)
+                    """)
+            }
+            
+            do {
+                let request = Player.genericFilter(ids: [42, 666])
+                XCTAssertEqual(request.sql, """
+                    SELECT *
+                    FROM "player"
+                    WHERE "id" IN (?,?)
+                    """)
+                _ = try Row.fetchOne(db, request)
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT *
+                    FROM "player"
+                    WHERE "id" IN (42,666)
+                    """)
+            }
+        }
+    }
 }

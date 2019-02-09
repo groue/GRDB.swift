@@ -246,3 +246,25 @@ public struct SQLRequest<T> : FetchRequest {
         case `internal`
     }
 }
+
+extension SQLRequest: ExpressibleByStringInterpolation {
+    /// :nodoc
+    public init(unicodeScalarLiteral: String) {
+        self.init(unicodeScalarLiteral)
+    }
+    
+    /// :nodoc:
+    public init(extendedGraphemeClusterLiteral: String) {
+        self.init(extendedGraphemeClusterLiteral)
+    }
+    
+    /// :nodoc:
+    public init(stringLiteral: String) {
+        self.init(stringLiteral)
+    }
+    
+    /// :nodoc:
+    public init(stringInterpolation sqlInterpolation: SQLInterpolation) {
+        self.init(sqlInterpolation.sql, arguments: sqlInterpolation.arguments)
+    }
+}
