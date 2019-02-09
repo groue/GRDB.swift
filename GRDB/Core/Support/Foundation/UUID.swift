@@ -45,8 +45,7 @@ extension NSUUID: DatabaseValueConvertible {
 /// UUID adopts DatabaseValueConvertible
 extension UUID: DatabaseValueConvertible {
     public var databaseValue: DatabaseValue {
-        var uuid_t = uuid
-        return withUnsafeBytes(of: &uuid_t) {
+        return withUnsafeBytes(of: uuid) {
             Data(bytes: $0.baseAddress!, count: $0.count).databaseValue
         }
     }

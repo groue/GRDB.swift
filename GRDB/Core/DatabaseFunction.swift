@@ -275,8 +275,8 @@ public final class DatabaseFunction: Hashable {
             
             // retain and store in SQLite's buffer
             let aggregateContextU = Unmanaged.passRetained(aggregateContext)
-            var aggregateContextP = aggregateContextU.toOpaque()
-            withUnsafeBytes(of: &aggregateContextP) {
+            let aggregateContextP = aggregateContextU.toOpaque()
+            withUnsafeBytes(of: aggregateContextP) {
                 aggregateContextBufferP.copyMemory(from: $0)
             }
             return aggregateContextU
