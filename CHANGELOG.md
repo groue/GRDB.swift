@@ -3,7 +3,7 @@ Release Notes
 
 All notable changes to this project will be documented in this file.
 
-GRDB adheres to [Semantic Versioning](https://semver.org/).
+GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
 #### 3.x Releases
 
@@ -40,6 +40,16 @@ GRDB adheres to [Semantic Versioning](https://semver.org/).
 #### 0.x Releases
 
 - [0.110.0](#01100), ...
+
+
+## GRDB-4.0 branch
+
+### Breaking Changes
+
+- Swift 4.0 and Swift 4.1 are no longer supported
+- iOS 8 is no longer supported. Minimum deployment target is now iOS 9.0
+- Deprecated APIs are no longer available.
+- `SQLRequest.arguments` is no longer optional
 
 
 ## 3.6.2
