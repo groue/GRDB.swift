@@ -217,7 +217,9 @@ extension FetchableRecord {
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
-        return try fetchCursor(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
+        // TODO: make arguments non optional
+        // TODO: force sql parameter name: fetchCursor(db, sql:...)
+        return try fetchCursor(db, SQLString(sql: sql, arguments: arguments ?? []), adapter: adapter)
     }
     
     /// Returns an array of records fetched from an SQL query.
@@ -232,7 +234,9 @@ extension FetchableRecord {
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self] {
-        return try fetchAll(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
+        // TODO: make arguments non optional
+        // TODO: force sql parameter name: fetchCursor(db, sql:...)
+        return try fetchAll(db, SQLString(sql: sql, arguments: arguments ?? []), adapter: adapter)
     }
     
     /// Returns a single record fetched from an SQL query.
@@ -247,7 +251,94 @@ extension FetchableRecord {
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
-        return try fetchOne(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
+        // TODO: make arguments non optional
+        // TODO: force sql parameter name: fetchCursor(db, sql:...)
+        return try fetchOne(db, SQLString(sql: sql, arguments: arguments ?? []), adapter: adapter)
+    }
+}
+
+extension FetchableRecord {
+    
+    // MARK: Fetching From SQLString
+    
+    /// Returns a cursor over records fetched from an SQL query.
+    ///
+    ///     let players = try Player.fetchCursor(db, SQLString(sql: """
+    ///         SELECT * FROM player WHERE lastName = ?
+    ///         """, arguments: ["O'Brien"])) // Cursor of Player
+    ///     while let player = try players.next() { // Player
+    ///         ...
+    ///     }
+    ///
+    /// With Swift 5, you can profit from string interpolation:
+    ///
+    ///     let players = try Player.fetchCursor(db, SQLString("""
+    ///         SELECT * FROM player WHERE lastName = \("O'Brien")
+    ///         """) // Cursor of Player
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sqlString: An SQLString.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchCursor(_ db: Database, _ sqlString: SQLString, adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
+        return try fetchCursor(db, SQLRequest<Void>(sqlString, adapter: adapter))
+    }
+    
+    /// Returns an array of records fetched from an SQL query.
+    ///
+    ///     let players = try Player.fetchAll(db, SQLString(sql: """
+    ///         SELECT * FROM player WHERE lastName = ?
+    ///         """, arguments: ["O'Brien"])) // [Player]
+    ///     for player in players {
+    ///         ...
+    ///     }
+    ///
+    /// With Swift 5, you can profit from string interpolation:
+    ///
+    ///     let players = try Player.fetchAll(db, SQLString("""
+    ///         SELECT * FROM player WHERE lastName = \("O'Brien")
+    ///         """) // [Player]
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sqlString: An SQLString.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: An array of records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchAll(_ db: Database, _ sqlString: SQLString, adapter: RowAdapter? = nil) throws -> [Self] {
+        return try fetchAll(db, SQLRequest<Void>(sqlString, adapter: adapter))
+    }
+    
+    /// Returns a single record fetched from an SQL query.
+    ///
+    ///     let player = try Player.fetchOne(db, SQLString(sql: """
+    ///         SELECT * FROM player WHERE lastName = ?
+    ///         """, arguments: ["O'Brien"])) // Player?
+    ///     if let player = player {
+    ///         ...
+    ///     }
+    ///
+    /// With Swift 5, you can profit from string interpolation:
+    ///
+    ///     let player = try Player.fetchOne(db, SQLString("""
+    ///         SELECT * FROM player WHERE lastName = \("O'Brien")
+    ///         """) // Player?
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sqlString: An SQLString.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: An optional record.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchOne(_ db: Database, _ sqlString: SQLString, adapter: RowAdapter? = nil) throws -> Self? {
+        return try fetchOne(db, SQLRequest<Void>(sqlString, adapter: adapter))
     }
 }
 
