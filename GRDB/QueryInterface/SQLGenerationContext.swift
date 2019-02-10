@@ -5,7 +5,7 @@
 ///
 /// :nodoc:
 public struct SQLGenerationContext {
-    private(set) var arguments: StatementArguments?
+    var arguments: StatementArguments?
     private var resolvedNames: [TableAlias: String]
     private var qualifierNeeded: Bool
     

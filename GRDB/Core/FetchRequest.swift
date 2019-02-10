@@ -178,7 +178,7 @@ public struct SQLRequest<T> : FetchRequest {
     ///     - cached: Defaults to false. If true, the request reuses a cached
     ///       prepared statement.
     /// - returns: A SQLRequest
-    public init(_ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, cached: Bool = false) {
+    public init(_ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, cached: Bool = false) { // TODO: make this optional arguments non optional
         self.init(sql, arguments: arguments, adapter: adapter, fromCache: cached ? .public : nil)
     }
     
@@ -247,6 +247,7 @@ public struct SQLRequest<T> : FetchRequest {
     }
 }
 
+#if swift(>=5.0)
 extension SQLRequest: ExpressibleByStringInterpolation {
     /// :nodoc
     public init(unicodeScalarLiteral: String) {
@@ -268,3 +269,4 @@ extension SQLRequest: ExpressibleByStringInterpolation {
         self.init(sqlInterpolation.sql, arguments: sqlInterpolation.arguments)
     }
 }
+#endif

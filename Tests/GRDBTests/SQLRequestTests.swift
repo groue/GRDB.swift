@@ -72,6 +72,7 @@ class SQLRequestTests: GRDBTestCase {
         }
     }
     
+    #if swift(>=5.0)
     func testSQLInterpolation() throws {
         struct Player: Codable, TableRecord {
             var id: Int64?
@@ -155,4 +156,5 @@ class SQLRequestTests: GRDBTestCase {
             }
         }
     }
+    #endif
 }

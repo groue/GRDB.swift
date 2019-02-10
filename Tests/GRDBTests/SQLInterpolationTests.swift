@@ -9,6 +9,20 @@ import XCTest
 #endif
 
 class SQLInterpolationTests: GRDBTestCase {
+    func testSQLInterpolation() {
+        var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 2)
+        
+        sql.appendInterpolation(sql: "\(1)"); sql.appendLiteral("\n")
+        sql.appendInterpolation(sql: ":name", arguments: ["name": "Arthur"])
+
+        XCTAssertEqual(sql.sql, """
+            1
+            :name
+            """)
+        XCTAssert(sql.arguments.values.isEmpty)
+        XCTAssertEqual(sql.arguments.namedValues, ["name": "Arthur".databaseValue])
+    }
+    
     func testSelectableInterpolation() {
         var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 2)
         
@@ -30,9 +44,9 @@ class SQLInterpolationTests: GRDBTestCase {
         struct Player: TableRecord { }
         sql.appendInterpolation(Player.self)
         
-        XCTAssertEqual(sql.sql, #"""
+        XCTAssertEqual(sql.sql, """
             "player"
-            """#)
+            """)
         XCTAssert(sql.arguments.isEmpty)
     }
     
@@ -52,7 +66,7 @@ class SQLInterpolationTests: GRDBTestCase {
         sql.appendInterpolation(nilInteger); sql.appendLiteral("\n")
         sql.appendInterpolation(a == nilInteger)
         
-        XCTAssertEqual(sql.sql, #"""
+        XCTAssertEqual(sql.sql, """
             "a"
             ("a" + ?)
             ("a" < "b")
@@ -60,8 +74,22 @@ class SQLInterpolationTests: GRDBTestCase {
             ?
             NULL
             ("a" IS NULL)
-            """#)
+            """)
         XCTAssertEqual(sql.arguments.values, [1.databaseValue, 1.databaseValue, 2.databaseValue])
+        XCTAssert(sql.arguments.namedValues.isEmpty)
+    }
+    
+    func testQualifiedExpressionInterpolation() {
+        var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 1)
+        
+        sql.appendInterpolation(Column("name").aliased("foo")); sql.appendLiteral("\n")
+        sql.appendInterpolation(1.databaseValue.aliased("bar"))
+        
+        XCTAssertEqual(sql.sql, """
+            "name" AS "foo"
+            ? AS "bar"
+            """)
+        XCTAssertEqual(sql.arguments.values, [1.databaseValue])
         XCTAssert(sql.arguments.namedValues.isEmpty)
     }
     
@@ -73,14 +101,28 @@ class SQLInterpolationTests: GRDBTestCase {
         }
         sql.appendInterpolation(CodingKeys.name)
         
-        XCTAssertEqual(sql.sql, #"""
+        XCTAssertEqual(sql.sql, """
             "name"
-            """#)
+            """)
+        XCTAssert(sql.arguments.isEmpty)
+    }
+    
+    func testCodingKeyColumnInterpolation() {
+        var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 1)
+        
+        enum CodingKeys: String, CodingKey, ColumnExpression {
+            case name
+        }
+        sql.appendInterpolation(CodingKeys.name)
+        
+        XCTAssertEqual(sql.sql, """
+            "name"
+            """)
         XCTAssert(sql.arguments.isEmpty)
     }
     
     func testExpressibleSequenceInterpolation() {
-        var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 1)
+        var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 3)
         
         let set: Set = [1]
         let array = ["foo", "bar", "baz"]
@@ -89,11 +131,11 @@ class SQLInterpolationTests: GRDBTestCase {
         sql.appendInterpolation(array); sql.appendLiteral("\n")
         sql.appendInterpolation(expressions)
 
-        XCTAssertEqual(sql.sql, #"""
+        XCTAssertEqual(sql.sql, """
             (?)
             (?,?,?)
             ("a",("b" + ?))
-            """#)
+            """)
         XCTAssertEqual(sql.arguments.values, [1.databaseValue, "foo".databaseValue, "bar".databaseValue, "baz".databaseValue, 2.databaseValue])
         XCTAssert(sql.arguments.namedValues.isEmpty)
     }
@@ -103,10 +145,22 @@ class SQLInterpolationTests: GRDBTestCase {
         
         sql.appendInterpolation(Column("name").desc)
         
-        XCTAssertEqual(sql.sql, #"""
+        XCTAssertEqual(sql.sql, """
             "name" DESC
-            """#)
+            """)
         XCTAssert(sql.arguments.isEmpty)
+    }
+    
+    func testSQLStringInterpolation() {
+        var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 3)
+        
+        sql.appendInterpolation(1)
+        sql.appendInterpolation(SQLString(" + \(2) + "))
+        sql.appendInterpolation(3)
+        
+        XCTAssertEqual(sql.sql, "? + ? + ?")
+        XCTAssertEqual(sql.arguments.values, [1.databaseValue, 2.databaseValue, 3.databaseValue])
+        XCTAssert(sql.arguments.namedValues.isEmpty)
     }
 }
 #endif
