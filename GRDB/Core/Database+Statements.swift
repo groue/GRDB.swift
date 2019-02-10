@@ -52,7 +52,7 @@ extension Database {
     public func cachedSelectStatement(_ sql: String) throws -> SelectStatement {
         return try publicStatementCache.selectStatement(sql)
     }
-    
+
     /// Returns a cached statement that does not conflict with user's cached statements.
     func internalCachedSelectStatement(_ sql: String) throws -> SelectStatement {
         return try internalStatementCache.selectStatement(sql)
@@ -117,7 +117,7 @@ extension Database {
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
-    ///         """, arguments; ['Arthur', 'Barbara', 'Craig'])
+    ///         """, arguments: ["Arthur", "Barbara", "O'Brien"])
     ///
     /// This method may throw a DatabaseError.
     ///
@@ -189,6 +189,38 @@ extension Database {
         // Force arguments validity: it is a programmer error to provide
         // arguments that do not match the statement.
         try! validateRemainingArguments()   // throws if there are remaining arguments.
+    }
+    
+    /// Executes one or several SQL statements, separated by semi-colons.
+    ///
+    ///     try db.execute(SQLString(
+    ///         sql: "INSERT INTO player (name) VALUES (:name)",
+    ///         arguments: ["name": "Arthur"]))
+    ///
+    ///     try db.execute(SQLString(sql: """
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         """, arguments: ["Arthur", "Barbara", "O'Brien"]))
+    ///
+    /// With Swift 5, you can profit from string interpolation:
+    ///
+    ///     try db.execute(SQLString("""
+    ///         INSERT INTO player (name) VALUES (\("Arthur"))
+    ///         """))
+    ///
+    ///     try db.execute(SQLString("""
+    ///         INSERT INTO player (name) VALUES (\("Arthur"));
+    ///         INSERT INTO player (name) VALUES (\("Barbara"));
+    ///         INSERT INTO player (name) VALUES (\("O'Brien"));
+    ///         """))
+    ///
+    /// This method may throw a DatabaseError.
+    ///
+    /// - parameter sqlString: An SQLString
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    public func execute(_ sqlString: SQLString) throws {
+        try execute(sqlString.sql, arguments: sqlString.arguments)
     }
 }
 
