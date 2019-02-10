@@ -1,4 +1,5 @@
 #if swift(>=5.0)
+/// :nodoc:
 extension SQLInterpolation {
     /// "SELECT * FROM \(Player.self)"
     public mutating func appendInterpolation<T: TableRecord>(_ table: T.Type) {

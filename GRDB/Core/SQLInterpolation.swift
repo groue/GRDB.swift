@@ -1,4 +1,5 @@
 #if swift(>=5.0)
+/// :nodoc:
 public struct SQLInterpolation: StringInterpolationProtocol {
     var sql: String
     var arguments: StatementArguments {

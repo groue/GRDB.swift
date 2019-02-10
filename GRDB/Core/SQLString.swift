@@ -1,3 +1,4 @@
+// TODO: documentation
 public struct SQLString {
     private(set) public var sql: String
     private(set) public var arguments: StatementArguments
