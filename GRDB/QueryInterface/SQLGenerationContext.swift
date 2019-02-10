@@ -10,6 +10,7 @@ public struct SQLGenerationContext {
     private var qualifierNeeded: Bool
     
     /// Used for SQLExpression -> SQLExpressionLiteral conversion
+    /// and SQLInterpolation
     static func literalGenerationContext(withArguments: Bool) -> SQLGenerationContext {
         return SQLGenerationContext(
             arguments: withArguments ? [] : nil,
@@ -26,7 +27,7 @@ public struct SQLGenerationContext {
     }
     
     /// Used for TableRecord.selectionSQL
-    static func recordSelectionGenerationContext(alias: TableAlias) -> SQLGenerationContext {
+    static func recordSelectionGenerationContext() -> SQLGenerationContext {
         return SQLGenerationContext(
             arguments: nil,
             resolvedNames: [:],
