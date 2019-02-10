@@ -44,11 +44,12 @@ public class Statement {
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
     /// - throws: DatabaseError in case of compilation error, and
     ///   EmptyStatementError if the compiled string is blank or empty.
-    init(
+    required init(
         database: Database,
         statementStart: UnsafePointer<Int8>,
         statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
-        prepFlags: Int32) throws
+        prepFlags: Int32,
+        authorizer: StatementCompilationAuthorizer) throws
     {
         SchedulingWatchdog.preconditionValidQueue(database)
         
@@ -216,30 +217,15 @@ public class Statement {
     }
 }
 
-// MARK: - AuthorizedStatement
+// MARK: - Statement Preparation
 
-/// A common protocol for UpdateStatement and SelectStatement
-protocol AuthorizedStatement {
-    // This initializer should be a required initializer of Statement.
-    //
-    // But Swift requires this required initializer to be public:
-    // https://bugs.swift.org/browse/SR-2347
-    //
-    // We work around SR-2347 with this internal protocol.
-    //
-    // TODO: hasn't this bug been fixed in Swift 4.2? https://github.com/apple/swift/blob/master/CHANGELOG.md#swift-42
-    init(
-        database: Database,
-        statementStart: UnsafePointer<Int8>,
-        statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
-        prepFlags: Int32,
-        authorizer: StatementCompilationAuthorizer) throws
-}
-
-extension AuthorizedStatement {
-    // Static function instead of an initializer because initializer doesn't
-    // compile due to the "capturing of an uninitialized self" in
-    // `sqlCodeUnits.withUnsafeBufferPointer`.
+/// A common protocol for UpdateStatement and SelectStatement, only used as
+/// support for SelectStatement.prepare(...) and UpdateStatement.prepare(...).
+protocol StatementProtocol { }
+extension Statement: StatementProtocol { }
+extension StatementProtocol where Self: Statement {
+    // Static method instead of an initializer because initializer can't run
+    // inside `sqlCodeUnits.withUnsafeBufferPointer`.
     static func prepare(sql: String, prepFlags: Int32, in database: Database) throws -> Self {
         let authorizer = StatementCompilationAuthorizer()
         database.authorizer = authorizer
@@ -299,7 +285,7 @@ extension AuthorizedStatement {
 ///     }
 public final class SelectStatement : Statement {    
     /// The database region that the statement looks into.
-    public private(set) var databaseRegion: DatabaseRegion
+    public private(set) var databaseRegion = DatabaseRegion()
     
     /// Creates a prepared statement.
     ///
@@ -313,19 +299,19 @@ public final class SelectStatement : Statement {
     /// - authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error, and
     ///   EmptyStatementError if the compiled string is blank or empty.
-    init(
+    required init(
         database: Database,
         statementStart: UnsafePointer<Int8>,
         statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
         prepFlags: Int32,
         authorizer: StatementCompilationAuthorizer) throws
     {
-        self.databaseRegion = DatabaseRegion()
         try super.init(
             database: database,
             statementStart: statementStart,
             statementEnd: statementEnd,
-            prepFlags: prepFlags)
+            prepFlags: prepFlags,
+            authorizer: authorizer)
         
         GRDBPrecondition(authorizer.invalidatesDatabaseSchemaCache == false, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         GRDBPrecondition(authorizer.transactionEffect == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
@@ -370,9 +356,6 @@ public final class SelectStatement : Statement {
         try! reset()
     }
 }
-
-// Hide AuthorizedStatement from Jazzy
-extension SelectStatement: AuthorizedStatement { }
 
 // TODO: remove public qualifier, or expose SelectStatement.makeCursor()
 /// A cursor that iterates a database statement without producing any value.
@@ -445,10 +428,10 @@ public final class UpdateStatement : Statement {
     
     /// If true, the database schema cache gets invalidated after this statement
     /// is executed.
-    private(set) var invalidatesDatabaseSchemaCache: Bool
+    private(set) var invalidatesDatabaseSchemaCache: Bool = false
     
     private(set) var transactionEffect: TransactionEffect?
-    private(set) var databaseEventKinds: [DatabaseEventKind]
+    private(set) var databaseEventKinds: [DatabaseEventKind] = []
     
     /// Creates a prepared statement.
     ///
@@ -462,20 +445,19 @@ public final class UpdateStatement : Statement {
     /// - authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error, and
     ///   EmptyStatementError if the compiled string is blank or empty.
-    init(
+    required init(
         database: Database,
         statementStart: UnsafePointer<Int8>,
         statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
         prepFlags: Int32,
         authorizer: StatementCompilationAuthorizer) throws
     {
-        self.invalidatesDatabaseSchemaCache = false
-        self.databaseEventKinds = []
         try super.init(
             database: database,
             statementStart: statementStart,
             statementEnd: statementEnd,
-            prepFlags: prepFlags)
+            prepFlags: prepFlags,
+            authorizer: authorizer)
         self.invalidatesDatabaseSchemaCache = authorizer.invalidatesDatabaseSchemaCache
         self.transactionEffect = authorizer.transactionEffect
         self.databaseEventKinds = authorizer.databaseEventKinds
@@ -523,10 +505,6 @@ public final class UpdateStatement : Statement {
         }
     }
 }
-
-// Hide AuthorizedStatement from Jazzy
-extension UpdateStatement: AuthorizedStatement { }
-
 
 // MARK: - StatementArguments
 
