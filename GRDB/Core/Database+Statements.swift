@@ -126,6 +126,8 @@ extension Database {
     ///     - arguments: Optional statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(_ sql: String, arguments: StatementArguments? = nil) throws {
+        // TODO: force sql parameter name: execute(sql:...)
+        
         // This method is like sqlite3_exec (https://www.sqlite.org/c3ref/exec.html)
         // It adds support for arguments, and the tricky part is to consume
         // arguments as statements are executed.

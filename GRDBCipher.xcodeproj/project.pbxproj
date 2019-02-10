@@ -947,6 +947,8 @@
 		56FBFECF221068AC00945324 /* SQLStringStatementsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FBFECD221068AC00945324 /* SQLStringStatementsTests.swift */; };
 		56FBFED0221068AC00945324 /* SQLStringStatementsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FBFECD221068AC00945324 /* SQLStringStatementsTests.swift */; };
 		56FBFED1221068AC00945324 /* SQLStringStatementsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FBFECD221068AC00945324 /* SQLStringStatementsTests.swift */; };
+		56FBFED3221072E500945324 /* SQLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FBFED2221072E500945324 /* SQLRequest.swift */; };
+		56FBFED4221072E500945324 /* SQLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FBFED2221072E500945324 /* SQLRequest.swift */; };
 		56FEE7FC1F47253700D930EA /* TableRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FEE7FA1F47253700D930EA /* TableRecordTests.swift */; };
 		56FEE7FD1F47253700D930EA /* TableRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FEE7FA1F47253700D930EA /* TableRecordTests.swift */; };
 		56FEE8001F47253700D930EA /* TableRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FEE7FA1F47253700D930EA /* TableRecordTests.swift */; };
@@ -1324,6 +1326,7 @@
 		56F0B98E1B6001C600A2F135 /* FoundationNSDateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationNSDateTests.swift; sourceTree = "<group>"; };
 		56F3E7481E66F83A00BF0F01 /* ResultCodeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultCodeTests.swift; sourceTree = "<group>"; };
 		56FBFECD221068AC00945324 /* SQLStringStatementsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLStringStatementsTests.swift; sourceTree = "<group>"; };
+		56FBFED2221072E500945324 /* SQLRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLRequest.swift; sourceTree = "<group>"; };
 		56FDECE11BB32DFD009AD709 /* RowFromStatementTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowFromStatementTests.swift; sourceTree = "<group>"; };
 		56FEE7FA1F47253700D930EA /* TableRecordTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableRecordTests.swift; sourceTree = "<group>"; };
 		56FF453F1D2C23BA00F21EF9 /* MutablePersistableRecordDeleteTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MutablePersistableRecordDeleteTests.swift; sourceTree = "<group>"; };
@@ -1923,6 +1926,7 @@
 				56BB6EA81D3009B100A1CA52 /* SchedulingWatchdog.swift */,
 				560A37A61C8FF6E500949E71 /* SerializedDatabase.swift */,
 				56E9FAC7221046A100C703A8 /* SQLInterpolation.swift */,
+				56FBFED2221072E500945324 /* SQLRequest.swift */,
 				56E9FADB221053EC00C703A8 /* SQLString.swift */,
 				56A238781B9C75030082EB20 /* Statement.swift */,
 				566B912A1FA4D0CC0012D5B0 /* StatementAuthorizer.swift */,
@@ -2417,6 +2421,7 @@
 				561408A5221596B100DAD589 /* GRDB-4.0.swift in Sources */,
 				560FC53A1CB003810014AA8E /* NSNull.swift in Sources */,
 				56CEB51A1EAA328900BFAF62 /* FTS5+QueryInterface.swift in Sources */,
+				56FBFED3221072E500945324 /* SQLRequest.swift in Sources */,
 				564CE44021AA957000652B19 /* ValueObserver.swift in Sources */,
 				5674A7011F307F600095F066 /* FetchableRecord+Decodable.swift in Sources */,
 				5698AC791DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,
@@ -2907,6 +2912,7 @@
 				561408A6221596B100DAD589 /* GRDB-4.0.swift in Sources */,
 				56AFCA101CB1A8BB00F48B96 /* DatabaseQueue.swift in Sources */,
 				56CEB51D1EAA328900BFAF62 /* FTS5+QueryInterface.swift in Sources */,
+				56FBFED4221072E500945324 /* SQLRequest.swift in Sources */,
 				564CE44121AA957000652B19 /* ValueObserver.swift in Sources */,
 				5674A6FE1F307F600095F066 /* FetchableRecord+Decodable.swift in Sources */,
 				5698AC7C1DA37DCB0056AF8C /* VirtualTableModule.swift in Sources */,

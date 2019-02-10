@@ -72,8 +72,41 @@ class SQLRequestTests: GRDBTestCase {
         }
     }
     
+    func testSQLStringInitializer() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = SQLRequest<String>(SQLString(sql: """
+                SELECT ?
+                """, arguments: ["O'Brien"]))
+            XCTAssertEqual(request.sql, """
+                SELECT ?
+                """)
+            let string = try request.fetchOne(db)!
+            XCTAssertEqual(string, "O'Brien")
+        }
+    }
+    
+    #if swift(>=5.0)
+    func testSQLStringInitializerWithInterpolation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = SQLRequest<String>(SQLString("""
+                SELECT \("O'Brien")
+                """))
+            XCTAssertEqual(request.sql, """
+                SELECT ?
+                """)
+            let string = try request.fetchOne(db)!
+            XCTAssertEqual(string, "O'Brien")
+        }
+    }
+    #endif
+
     #if swift(>=5.0)
     func testSQLInterpolation() throws {
+        // This test assumes SQLRequest interpolation is based on
+        // SQLInterpolation, just like SQLString. We thus test much less
+        // cases.
         struct Player: Codable, TableRecord {
             var id: Int64?
             var name: String
