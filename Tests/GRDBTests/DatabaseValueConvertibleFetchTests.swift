@@ -63,11 +63,11 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     func testFetchCursorWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let cursor = try String.fetchCursor(db, SQLString("""
-                SELECT \("O'Brien")
+            let cursor = try Fetched.fetchCursor(db, SQLString("""
+                SELECT \(42)
                 """))
-            let string = try cursor.next()!
-            XCTAssertEqual(string, "O'Brien")
+            let fetched = try cursor.next()!
+            XCTAssertEqual(fetched.int, 42)
         }
     }
     #endif
@@ -183,14 +183,14 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     func testFetchAllWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let strings = try String.fetchAll(db, SQLString("""
-                SELECT \("O'Brien")
+            let array = try Fetched.fetchAll(db, SQLString("""
+                SELECT \(42)
                 """))
-            XCTAssertEqual(strings[0], "O'Brien")
+            XCTAssertEqual(array[0].int, 42)
         }
     }
     #endif
-
+    
     func testFetchAllStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -343,10 +343,10 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     func testFetchOneWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let string = try String.fetchOne(db, SQLString("""
-                SELECT \("O'Brien")
+            let fetched = try Fetched.fetchOne(db, SQLString("""
+                SELECT \(42)
                 """))
-            XCTAssertEqual(string!, "O'Brien")
+            XCTAssertEqual(fetched!.int, 42)
         }
     }
     #endif
@@ -458,15 +458,15 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     func testOptionalFetchCursorWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let cursor = try Optional<String>.fetchCursor(db, SQLString("""
-                SELECT \("O'Brien")
+            let cursor = try Optional<Fetched>.fetchCursor(db, SQLString("""
+                SELECT \(42)
                 """))
-            let string = try cursor.next()!
-            XCTAssertEqual(string!, "O'Brien")
+            let fetched = try cursor.next()!
+            XCTAssertEqual(fetched!.int, 42)
         }
     }
     #endif
-
+    
     func testOptionalFetchCursorStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -580,14 +580,14 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     func testOptionalFetchAllWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let strings = try Optional<String>.fetchAll(db, SQLString("""
-                SELECT \("O'Brien")
+            let array = try Optional<Fetched>.fetchAll(db, SQLString("""
+                SELECT \(42)
                 """))
-            XCTAssertEqual(strings[0]!, "O'Brien")
+            XCTAssertEqual(array[0]!.int, 42)
         }
     }
     #endif
-
+    
     func testOptionalFetchAllStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
