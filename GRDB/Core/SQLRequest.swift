@@ -39,7 +39,8 @@ public struct SQLRequest<T> : FetchRequest {
     ///         SELECT * FROM player WHERE name = ?
     ///         """, arguments: ["O'Brien"]))
     ///
-    /// With Swift 5, you can profit from string interpolation:
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     let request = SQLRequest<Player>(SQLString("""
     ///         SELECT * FROM player WHERE name = \("O'brien")

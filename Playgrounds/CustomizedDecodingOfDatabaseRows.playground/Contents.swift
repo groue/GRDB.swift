@@ -361,7 +361,8 @@ try dbQueue.read { db in
 //:             """, arguments: ["O'Brien"]) // [Base]
 //:     }
 //:
-//: With Swift 5, you can profit from string interpolation:
+//: With Swift 5, you can safely embed raw values in your SQL queries,
+//: without any risk of syntax errors or SQL injection:
 //:
 //:     try dbQueue.read { db in
 //:         try Base.fetchAll(db, SQLString("""

@@ -300,7 +300,8 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     ///         ...
     ///     }
     ///
-    /// With Swift 5, you can profit from string interpolation:
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     let firstNames = try String.fetchCursor(db, SQLString("""
     ///         SELECT firstName FROM player
@@ -332,7 +333,8 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     ///         ...
     ///     }
     ///
-    /// With Swift 5, you can profit from string interpolation:
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     let firstNames = try String.fetchAll(db, SQLString("""
     ///         SELECT firstName FROM player
@@ -359,7 +361,8 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     ///         WHERE lastName = ?
     ///         """, arguments: ["O'Brien"])) // String?
     ///
-    /// With Swift 5, you can profit from string interpolation:
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     let firstName = try String.fetchOne(db, SQLString("""
     ///         SELECT firstName FROM player
@@ -601,7 +604,8 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
     ///         ...
     ///     }
     ///
-    /// With Swift 5, you can profit from string interpolation:
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     let firstNames = try Optional<String>.fetchCursor(db, SQLString("""
     ///         SELECT firstName FROM player
@@ -633,7 +637,8 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
     ///         ...
     ///     }
     ///
-    /// With Swift 5, you can profit from string interpolation:
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     let firstNames = try Optional<String>.fetchAll(db, SQLString("""
     ///         SELECT firstName FROM player

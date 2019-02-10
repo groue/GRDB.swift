@@ -205,11 +205,8 @@ extension Database {
     ///         INSERT INTO player (name) VALUES (?);
     ///         """, arguments: ["Arthur", "Barbara", "O'Brien"]))
     ///
-    /// With Swift 5, you can profit from string interpolation:
-    ///
-    ///     try db.execute(SQLString("""
-    ///         INSERT INTO player (name) VALUES (\("Arthur"))
-    ///         """))
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     try db.execute(SQLString("""
     ///         INSERT INTO player (name) VALUES (\("Arthur"));

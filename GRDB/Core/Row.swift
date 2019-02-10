@@ -812,7 +812,8 @@ extension Row {
     ///         let lastName: String = row["lastName"]
     ///     }
     ///
-    /// With Swift 5, you can profit from string interpolation:
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     let rows = try Row.fetchCursor(db, SQLString("""
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
@@ -852,7 +853,8 @@ extension Row {
     ///         let lastName: String = row["lastName"]
     ///     }
     ///
-    /// With Swift 5, you can profit from string interpolation:
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     let rows = try Row.fetchAll(db, SQLString("""
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
@@ -879,7 +881,8 @@ extension Row {
     ///         let lastName: String = row["lastName"]
     ///     }
     ///
-    /// With Swift 5, you can profit from string interpolation:
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     let row = try Row.fetchOne(db, SQLString("""
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
