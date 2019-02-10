@@ -42,6 +42,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let statement = try db.makeSelectStatement(sql)
                 try test(Fetched.fetchCursor(db, sql))
                 try test(Fetched.fetchCursor(statement))
+                try test(Fetched.fetchCursor(db, SQLString(sql: sql)))
                 try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql)))
                 try test(SQLRequest<Fetched>(sql).fetchCursor(db))
             }
@@ -51,11 +52,25 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchCursor(db, sql, adapter: adapter))
                 try test(Fetched.fetchCursor(statement, adapter: adapter))
+                try test(Fetched.fetchCursor(db, SQLString(sql: sql), adapter: adapter))
                 try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql, adapter: adapter)))
                 try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchCursor(db))
             }
         }
     }
+    
+    #if swift(>=5.0)
+    func testFetchCursorWithInterpolation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let cursor = try String.fetchCursor(db, SQLString("""
+                SELECT \("O'Brien")
+                """))
+            let string = try cursor.next()!
+            XCTAssertEqual(string, "O'Brien")
+        }
+    }
+    #endif
 
     func testFetchCursorStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -86,6 +101,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT throw()"
                 try test(Fetched.fetchCursor(db, sql), sql: sql)
                 try test(Fetched.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
+                try test(Fetched.fetchCursor(db, SQLString(sql: sql)), sql: sql)
                 try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql)), sql: sql)
                 try test(SQLRequest<Fetched>(sql).fetchCursor(db), sql: sql)
             }
@@ -94,6 +110,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchCursor(db, sql, adapter: adapter), sql: sql)
                 try test(Fetched.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                try test(Fetched.fetchCursor(db, SQLString(sql: sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchCursor(db), sql: sql)
             }
@@ -118,6 +135,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT * FROM nonExistingTable"
                 try test(Fetched.fetchCursor(db, sql), sql: sql)
                 try test(Fetched.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
+                try test(Fetched.fetchCursor(db, SQLString(sql: sql)), sql: sql)
                 try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql)), sql: sql)
                 try test(SQLRequest<Fetched>(sql).fetchCursor(db), sql: sql)
             }
@@ -126,6 +144,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchCursor(db, sql, adapter: adapter), sql: sql)
                 try test(Fetched.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                try test(Fetched.fetchCursor(db, SQLString(sql: sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchCursor(db), sql: sql)
             }
@@ -143,6 +162,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let statement = try db.makeSelectStatement(sql)
                 try test(Fetched.fetchAll(db, sql))
                 try test(Fetched.fetchAll(statement))
+                try test(Fetched.fetchAll(db, SQLString(sql: sql)))
                 try test(Fetched.fetchAll(db, SQLRequest<Void>(sql)))
                 try test(SQLRequest<Fetched>(sql).fetchAll(db))
             }
@@ -152,11 +172,24 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchAll(db, sql, adapter: adapter))
                 try test(Fetched.fetchAll(statement, adapter: adapter))
+                try test(Fetched.fetchAll(db, SQLString(sql: sql), adapter: adapter))
                 try test(Fetched.fetchAll(db, SQLRequest<Void>(sql, adapter: adapter)))
                 try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchAll(db))
             }
         }
     }
+    
+    #if swift(>=5.0)
+    func testFetchAllWithInterpolation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let strings = try String.fetchAll(db, SQLString("""
+                SELECT \("O'Brien")
+                """))
+            XCTAssertEqual(strings[0], "O'Brien")
+        }
+    }
+    #endif
 
     func testFetchAllStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -178,6 +211,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT throw()"
                 try test(Fetched.fetchAll(db, sql), sql: sql)
                 try test(Fetched.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                try test(Fetched.fetchAll(db, SQLString(sql: sql)), sql: sql)
                 try test(Fetched.fetchAll(db, SQLRequest<Void>(sql)), sql: sql)
                 try test(SQLRequest<Fetched>(sql).fetchAll(db), sql: sql)
             }
@@ -186,6 +220,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchAll(db, sql, adapter: adapter), sql: sql)
                 try test(Fetched.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                try test(Fetched.fetchAll(db, SQLString(sql: sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchAll(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchAll(db), sql: sql)
             }
@@ -210,6 +245,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT * FROM nonExistingTable"
                 try test(Fetched.fetchAll(db, sql), sql: sql)
                 try test(Fetched.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                try test(Fetched.fetchAll(db, SQLString(sql: sql)), sql: sql)
                 try test(Fetched.fetchAll(db, SQLRequest<Void>(sql)), sql: sql)
                 try test(SQLRequest<Fetched>(sql).fetchAll(db), sql: sql)
             }
@@ -218,6 +254,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchAll(db, sql, adapter: adapter), sql: sql)
                 try test(Fetched.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                try test(Fetched.fetchAll(db, SQLString(sql: sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchAll(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchAll(db), sql: sql)
             }
@@ -236,6 +273,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(Fetched.fetchOne(db, sql))
                     try test(Fetched.fetchOne(statement))
+                    try test(Fetched.fetchOne(db, SQLString(sql: sql)))
                     try test(Fetched.fetchOne(db, SQLRequest<Void>(sql)))
                     try test(SQLRequest<Fetched>(sql).fetchOne(db))
                 }
@@ -245,6 +283,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Fetched.fetchOne(db, sql, adapter: adapter))
                     try test(Fetched.fetchOne(statement, adapter: adapter))
+                    try test(Fetched.fetchOne(db, SQLString(sql: sql), adapter: adapter))
                     try test(Fetched.fetchOne(db, SQLRequest<Void>(sql, adapter: adapter)))
                     try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchOne(db))
                 }
@@ -258,6 +297,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(Fetched.fetchOne(db, sql))
                     try test(Fetched.fetchOne(statement))
+                    try test(Fetched.fetchOne(db, SQLString(sql: sql)))
                     try test(Fetched.fetchOne(db, SQLRequest<Void>(sql)))
                     try test(SQLRequest<Fetched>(sql).fetchOne(db))
                 }
@@ -267,6 +307,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Fetched.fetchOne(db, sql, adapter: adapter))
                     try test(Fetched.fetchOne(statement, adapter: adapter))
+                    try test(Fetched.fetchOne(db, SQLString(sql: sql), adapter: adapter))
                     try test(Fetched.fetchOne(db, SQLRequest<Void>(sql, adapter: adapter)))
                     try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchOne(db))
                 }
@@ -280,6 +321,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                     let statement = try db.makeSelectStatement(sql)
                     try test(Fetched.fetchOne(db, sql))
                     try test(Fetched.fetchOne(statement))
+                    try test(Fetched.fetchOne(db, SQLString(sql: sql)))
                     try test(Fetched.fetchOne(db, SQLRequest<Void>(sql)))
                     try test(SQLRequest<Fetched>(sql).fetchOne(db))
                 }
@@ -289,13 +331,26 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Fetched.fetchOne(db, sql, adapter: adapter))
                     try test(Fetched.fetchOne(statement, adapter: adapter))
+                    try test(Fetched.fetchOne(db, SQLString(sql: sql), adapter: adapter))
                     try test(Fetched.fetchOne(db, SQLRequest<Void>(sql, adapter: adapter)))
                     try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchOne(db))
                 }
             }
         }
     }
-
+    
+    #if swift(>=5.0)
+    func testFetchOneWithInterpolation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let string = try String.fetchOne(db, SQLString("""
+                SELECT \("O'Brien")
+                """))
+            XCTAssertEqual(string!, "O'Brien")
+        }
+    }
+    #endif
+    
     func testFetchOneStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -316,6 +371,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT throw()"
                 try test(Fetched.fetchOne(db, sql), sql: sql)
                 try test(Fetched.fetchOne(db.makeSelectStatement(sql)), sql: sql)
+                try test(Fetched.fetchOne(db, SQLString(sql: sql)), sql: sql)
                 try test(Fetched.fetchOne(db, SQLRequest<Void>(sql)), sql: sql)
                 try test(SQLRequest<Fetched>(sql).fetchOne(db), sql: sql)
             }
@@ -324,6 +380,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchOne(db, sql, adapter: adapter), sql: sql)
                 try test(Fetched.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                try test(Fetched.fetchOne(db, SQLString(sql: sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchOne(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchOne(db), sql: sql)
             }
@@ -348,6 +405,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT * FROM nonExistingTable"
                 try test(Fetched.fetchOne(db, sql), sql: sql)
                 try test(Fetched.fetchOne(db.makeSelectStatement(sql)), sql: sql)
+                try test(Fetched.fetchOne(db, SQLString(sql: sql)), sql: sql)
                 try test(Fetched.fetchOne(db, SQLRequest<Void>(sql)), sql: sql)
                 try test(SQLRequest<Fetched>(sql).fetchOne(db), sql: sql)
             }
@@ -356,6 +414,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchOne(db, sql, adapter: adapter), sql: sql)
                 try test(Fetched.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                try test(Fetched.fetchOne(db, SQLString(sql: sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchOne(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchOne(db), sql: sql)
             }
@@ -378,6 +437,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let statement = try db.makeSelectStatement(sql)
                 try test(Optional<Fetched>.fetchCursor(db, sql))
                 try test(Optional<Fetched>.fetchCursor(statement))
+                try test(Optional<Fetched>.fetchCursor(db, SQLString(sql: sql)))
                 try test(Optional<Fetched>.fetchCursor(db, SQLRequest<Void>(sql)))
                 try test(SQLRequest<Fetched?>(sql).fetchCursor(db))
             }
@@ -387,11 +447,25 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Optional<Fetched>.fetchCursor(db, sql, adapter: adapter))
                 try test(Optional<Fetched>.fetchCursor(statement, adapter: adapter))
+                try test(Optional<Fetched>.fetchCursor(db, SQLString(sql: sql), adapter: adapter))
                 try test(Optional<Fetched>.fetchCursor(db, SQLRequest<Void>(sql, adapter: adapter)))
                 try test(SQLRequest<Fetched?>(sql, adapter: adapter).fetchCursor(db))
             }
         }
     }
+    
+    #if swift(>=5.0)
+    func testOptionalFetchCursorWithInterpolation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let cursor = try Optional<String>.fetchCursor(db, SQLString("""
+                SELECT \("O'Brien")
+                """))
+            let string = try cursor.next()!
+            XCTAssertEqual(string!, "O'Brien")
+        }
+    }
+    #endif
 
     func testOptionalFetchCursorStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -422,6 +496,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT throw()"
                 try test(Optional<Fetched>.fetchCursor(db, sql), sql: sql)
                 try test(Optional<Fetched>.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
+                try test(Optional<Fetched>.fetchCursor(db, SQLString(sql: sql)), sql: sql)
                 try test(Optional<Fetched>.fetchCursor(db, SQLRequest<Void>(sql)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql).fetchCursor(db), sql: sql)
             }
@@ -430,6 +505,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Optional<Fetched>.fetchCursor(db, sql, adapter: adapter), sql: sql)
                 try test(Optional<Fetched>.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                try test(Optional<Fetched>.fetchCursor(db, SQLString(sql: sql), adapter: adapter), sql: sql)
                 try test(Optional<Fetched>.fetchCursor(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql, adapter: adapter).fetchCursor(db), sql: sql)
             }
@@ -454,6 +530,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT * FROM nonExistingTable"
                 try test(Optional<Fetched>.fetchCursor(db, sql), sql: sql)
                 try test(Optional<Fetched>.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
+                try test(Optional<Fetched>.fetchCursor(db, SQLString(sql: sql)), sql: sql)
                 try test(Optional<Fetched>.fetchCursor(db, SQLRequest<Void>(sql)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql).fetchCursor(db), sql: sql)
             }
@@ -462,6 +539,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Optional<Fetched>.fetchCursor(db, sql, adapter: adapter), sql: sql)
                 try test(Optional<Fetched>.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                try test(Optional<Fetched>.fetchCursor(db, SQLString(sql: sql), adapter: adapter), sql: sql)
                 try test(Optional<Fetched>.fetchCursor(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql, adapter: adapter).fetchCursor(db), sql: sql)
             }
@@ -481,6 +559,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let statement = try db.makeSelectStatement(sql)
                 try test(Optional<Fetched>.fetchAll(db, sql))
                 try test(Optional<Fetched>.fetchAll(statement))
+                try test(Optional<Fetched>.fetchAll(db, SQLString(sql: sql)))
                 try test(Optional<Fetched>.fetchAll(db, SQLRequest<Void>(sql)))
                 try test(SQLRequest<Fetched?>(sql).fetchAll(db))
             }
@@ -490,11 +569,24 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Optional<Fetched>.fetchAll(db, sql, adapter: adapter))
                 try test(Optional<Fetched>.fetchAll(statement, adapter: adapter))
+                try test(Optional<Fetched>.fetchAll(db, SQLString(sql: sql), adapter: adapter))
                 try test(Optional<Fetched>.fetchAll(db, SQLRequest<Void>(sql, adapter: adapter)))
                 try test(SQLRequest<Fetched?>(sql, adapter: adapter).fetchAll(db))
             }
         }
     }
+    
+    #if swift(>=5.0)
+    func testOptionalFetchAllWithInterpolation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let strings = try Optional<String>.fetchAll(db, SQLString("""
+                SELECT \("O'Brien")
+                """))
+            XCTAssertEqual(strings[0]!, "O'Brien")
+        }
+    }
+    #endif
 
     func testOptionalFetchAllStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -516,6 +608,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT throw()"
                 try test(Optional<Fetched>.fetchAll(db, sql), sql: sql)
                 try test(Optional<Fetched>.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                try test(Optional<Fetched>.fetchAll(db, SQLString(sql: sql)), sql: sql)
                 try test(Optional<Fetched>.fetchAll(db, SQLRequest<Void>(sql)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql).fetchAll(db), sql: sql)
             }
@@ -524,6 +617,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Optional<Fetched>.fetchAll(db, sql, adapter: adapter), sql: sql)
                 try test(Optional<Fetched>.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                try test(Optional<Fetched>.fetchAll(db, SQLString(sql: sql), adapter: adapter), sql: sql)
                 try test(Optional<Fetched>.fetchAll(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql, adapter: adapter).fetchAll(db), sql: sql)
             }
@@ -548,6 +642,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT * FROM nonExistingTable"
                 try test(Optional<Fetched>.fetchAll(db, sql), sql: sql)
                 try test(Optional<Fetched>.fetchAll(db.makeSelectStatement(sql)), sql: sql)
+                try test(Optional<Fetched>.fetchAll(db, SQLString(sql: sql)), sql: sql)
                 try test(Optional<Fetched>.fetchAll(db, SQLRequest<Void>(sql)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql).fetchAll(db), sql: sql)
             }
@@ -556,6 +651,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Optional<Fetched>.fetchAll(db, sql, adapter: adapter), sql: sql)
                 try test(Optional<Fetched>.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
+                try test(Optional<Fetched>.fetchAll(db, SQLString(sql: sql), adapter: adapter), sql: sql)
                 try test(Optional<Fetched>.fetchAll(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql, adapter: adapter).fetchAll(db), sql: sql)
             }
