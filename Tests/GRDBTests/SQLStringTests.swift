@@ -1,4 +1,3 @@
-#if swift(>=5.0)
 import XCTest
 #if GRDBCIPHER
     @testable import GRDBCipher
@@ -23,10 +22,10 @@ class SQLStringTests: GRDBTestCase {
     }
     
     func testSQLStringInitializer() {
-        let sql = SQLString("""
+        let sql = SQLString(SQLString(sql: """
             SELECT * FROM player
-            WHERE id = \(1)
-            """)
+            WHERE id = ?
+            """, arguments: [1]))
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player
             WHERE id = ?
@@ -35,6 +34,54 @@ class SQLStringTests: GRDBTestCase {
         XCTAssert(sql.arguments.namedValues.isEmpty)
     }
     
+    func testPlusOperator() {
+        var sql = SQLString(sql: "SELECT * ")
+        sql = sql + SQLString(sql: "FROM player ")
+        sql = sql + SQLString(sql: "WHERE id = ?", arguments: [1])
+        XCTAssertEqual(sql.sql, """
+            SELECT * FROM player WHERE id = ?
+            """)
+        XCTAssertEqual(sql.arguments.values, [1.databaseValue])
+        XCTAssert(sql.arguments.namedValues.isEmpty)
+    }
+    
+    func testPlusEqualOperator() {
+        var sql = SQLString(sql: "SELECT * ")
+        sql += SQLString(sql: "FROM player ")
+        sql += SQLString(sql: "WHERE id = ?", arguments: [1])
+        XCTAssertEqual(sql.sql, """
+            SELECT * FROM player WHERE id = ?
+            """)
+        XCTAssertEqual(sql.arguments.values, [1.databaseValue])
+        XCTAssert(sql.arguments.namedValues.isEmpty)
+    }
+    
+    func testAppend() {
+        var sql = SQLString(sql: "SELECT * ")
+        sql.append(SQLString(sql: "FROM player "))
+        sql.append(SQLString(sql: "WHERE id = ?", arguments: [1]))
+        XCTAssertEqual(sql.sql, """
+            SELECT * FROM player WHERE id = ?
+            """)
+        XCTAssertEqual(sql.arguments.values, [1.databaseValue])
+        XCTAssert(sql.arguments.namedValues.isEmpty)
+    }
+    
+    func testAppendSQL() {
+        var sql = SQLString(sql: "SELECT * ")
+        sql.append(sql: "FROM player ")
+        sql.append(sql: "WHERE score > \(1000) ")
+        sql.append(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])
+        XCTAssertEqual(sql.sql, """
+            SELECT * FROM player WHERE score > 1000 AND name = :name
+            """)
+        XCTAssert(sql.arguments.values.isEmpty)
+        XCTAssertEqual(sql.arguments.namedValues, ["name": "Arthur".databaseValue])
+    }
+}
+
+#if swift(>=5.0)
+extension SQLStringTests {
     func testSQLInterpolation() {
         let sql: SQLString = """
             SELECT *
@@ -209,8 +256,21 @@ class SQLStringTests: GRDBTestCase {
         XCTAssertEqual(sql.arguments.values, [true.databaseValue, "Arthur".databaseValue, 1000.databaseValue])
         XCTAssert(sql.arguments.namedValues.isEmpty)
     }
-    
-    func testPlusOperator() {
+
+    func testSQLStringInitializerWithInterpolation() {
+        let sql = SQLString("""
+            SELECT * FROM player
+            WHERE id = \(1)
+            """)
+        XCTAssertEqual(sql.sql, """
+            SELECT * FROM player
+            WHERE id = ?
+            """)
+        XCTAssertEqual(sql.arguments.values, [1.databaseValue])
+        XCTAssert(sql.arguments.namedValues.isEmpty)
+    }
+
+    func testPlusOperatorWithInterpolation() {
         var sql: SQLString = "SELECT \(AllColumns()) "
         sql = sql + "FROM player "
         sql = sql + "WHERE id = \(1)"
@@ -220,8 +280,8 @@ class SQLStringTests: GRDBTestCase {
         XCTAssertEqual(sql.arguments.values, [1.databaseValue])
         XCTAssert(sql.arguments.namedValues.isEmpty)
     }
-    
-    func testPlusEqualOperator() {
+
+    func testPlusEqualOperatorWithInterpolation() {
         var sql: SQLString = "SELECT \(AllColumns()) "
         sql += "FROM player "
         sql += "WHERE id = \(1)"
@@ -231,8 +291,8 @@ class SQLStringTests: GRDBTestCase {
         XCTAssertEqual(sql.arguments.values, [1.databaseValue])
         XCTAssert(sql.arguments.namedValues.isEmpty)
     }
-    
-    func testAppend() {
+
+    func testAppendWithInterpolation() {
         var sql: SQLString = "SELECT \(AllColumns()) "
         sql.append("FROM player ")
         sql.append("WHERE id = \(1)")
@@ -242,8 +302,8 @@ class SQLStringTests: GRDBTestCase {
         XCTAssertEqual(sql.arguments.values, [1.databaseValue])
         XCTAssert(sql.arguments.namedValues.isEmpty)
     }
-    
-    func testAppendSQL() {
+
+    func testAppendSQLWithInterpolation() {
         var sql: SQLString = "SELECT \(AllColumns()) "
         sql.append(sql: "FROM player ")
         sql.append(sql: "WHERE score > \(1000) ")
