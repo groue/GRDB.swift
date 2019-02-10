@@ -749,12 +749,18 @@ extension Row {
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RowCursor {
-        return try fetchCursor(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
+        // TODO: make arguments non optional
+        // TODO: force sql parameter name: fetchCursor(db, sql:...)
+        return try fetchCursor(db, SQLString(sql: sql, arguments: arguments ?? []), adapter: adapter)
     }
     
     /// Returns an array of rows fetched from an SQL query.
     ///
-    ///     let rows = try Row.fetchAll(db, "SELECT ...")
+    ///     let rows = try Row.fetchAll(db, "SELECT id, name FROM player") // [Row]
+    ///     for row in rows {
+    ///         let id: Int64 = row[0]
+    ///         let name: String = row[1]
+    ///     }
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -764,12 +770,18 @@ extension Row {
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
-        return try fetchAll(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
+        // TODO: make arguments non optional
+        // TODO: force sql parameter name: fetchCursor(db, sql:...)
+        return try fetchAll(db, SQLString(sql: sql, arguments: arguments ?? []), adapter: adapter)
     }
     
     /// Returns a single row fetched from an SQL query.
     ///
-    ///     let row = try Row.fetchOne(db, "SELECT ...")
+    ///     let row = try Row.fetchOne(db, "SELECT id, name FROM player") // Row?
+    ///     if let row = row {
+    ///         let id: Int64 = row[0]
+    ///         let name: String = row[1]
+    ///     }
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -779,7 +791,108 @@ extension Row {
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row? {
-        return try fetchOne(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
+        // TODO: make arguments non optional
+        // TODO: force sql parameter name: fetchCursor(db, sql:...)
+        return try fetchOne(db, SQLString(sql: sql, arguments: arguments ?? []), adapter: adapter)
+    }
+}
+
+extension Row {
+    
+    // MARK: - Fetching From SQLString
+    
+    /// Returns a cursor over rows fetched from an SQL query.
+    ///
+    ///     let rows = try Row.fetchCursor(db, SQLString(sql: """
+    ///         SELECT * FROM player WHERE lastName = ?
+    ///         """, arguments: ["O'Brien"])) // RowCursor
+    ///     while let row = try rows.next() { // Row
+    ///         let id: Int64 = row["id"]
+    ///         let firstName: String = row["firstName"]
+    ///         let lastName: String = row["lastName"]
+    ///     }
+    ///
+    /// With Swift 5, you can profit from string interpolation:
+    ///
+    ///     let rows = try Row.fetchCursor(db, SQLString("""
+    ///         SELECT * FROM player WHERE lastName = \("O'Brien")
+    ///         """) // RowCursor
+    ///
+    /// Fetched rows are reused during the cursor iteration: don't turn a row
+    /// cursor into an array with `Array(rows)` or `rows.filter { ... }` since
+    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
+    /// instead.
+    ///
+    /// For the same reason, make sure you make a copy whenever you extract a
+    /// row for later use: `row.copy()`.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sqlString: An SQLString.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: A cursor over fetched rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchCursor(_ db: Database, _ sqlString: SQLString, adapter: RowAdapter? = nil) throws -> RowCursor {
+        return try fetchCursor(db, SQLRequest<Void>(sqlString, adapter: adapter))
+    }
+    
+    /// Returns an array of rows fetched from an SQL query.
+    ///
+    ///     let rows = try Row.fetchAll(db, SQLString(sql: """
+    ///         SELECT * FROM player WHERE lastName = ?
+    ///         """, arguments: ["O'Brien"])) // [Row]
+    ///     for row in rows {
+    ///         let id: Int64 = row["id"]
+    ///         let firstName: String = row["firstName"]
+    ///         let lastName: String = row["lastName"]
+    ///     }
+    ///
+    /// With Swift 5, you can profit from string interpolation:
+    ///
+    ///     let rows = try Row.fetchAll(db, SQLString("""
+    ///         SELECT * FROM player WHERE lastName = \("O'Brien")
+    ///         """) // [Row]
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sqlString: An SQLString.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: An array of rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchAll(_ db: Database, _ sqlString: SQLString, adapter: RowAdapter? = nil) throws -> [Row] {
+        return try fetchAll(db, SQLRequest<Void>(sqlString, adapter: adapter))
+    }
+    
+    /// Returns a single row fetched from an SQL query.
+    ///
+    ///     let row = try Row.fetchOne(db, SQLString(sql: """
+    ///         SELECT * FROM player WHERE lastName = ?
+    ///         """, arguments: ["O'Brien"])) // Row?
+    ///     if let row = row {
+    ///         let id: Int64 = row["id"]
+    ///         let firstName: String = row["firstName"]
+    ///         let lastName: String = row["lastName"]
+    ///     }
+    ///
+    /// With Swift 5, you can profit from string interpolation:
+    ///
+    ///     let row = try Row.fetchOne(db, SQLString("""
+    ///         SELECT * FROM player WHERE lastName = \("O'Brien")
+    ///         """) // Row?
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sqlString: An SQLString.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: An optional row.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchOne(_ db: Database, _ sqlString: SQLString, adapter: RowAdapter? = nil) throws -> Row? {
+        return try fetchOne(db, SQLRequest<Void>(sqlString, adapter: adapter))
     }
 }
 

@@ -219,7 +219,7 @@ extension Database {
     ///
     /// This method may throw a DatabaseError.
     ///
-    /// - parameter sqlString: An SQLString
+    /// - parameter sqlString: An SQLString.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(_ sqlString: SQLString) throws {
         try execute(sqlString.sql, arguments: sqlString.arguments)
