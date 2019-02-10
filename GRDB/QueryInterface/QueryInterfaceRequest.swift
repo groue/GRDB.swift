@@ -107,7 +107,39 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
     public func select<RowDecoder>(sql: String, arguments: StatementArguments? = nil, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
-        return select(SQLSelectionLiteral(sql, arguments: arguments), as: type)
+        // TODO: make arguments non optional
+        return select(SQLString(sql: sql, arguments: arguments ?? []), as: type)
+    }
+    
+    /// Creates a request which selects *sql*, and fetches values of
+    /// type *type*.
+    ///
+    ///     try dbQueue.read { db in
+    ///         // SELECT IFNULL(name, 'Anonymous') FROM player WHERE id = 42
+    ///         let request = Player.
+    ///             .filter(primaryKey: 42)
+    ///             .select(
+    ///                 SQLString(
+    ///                     sql: "IFNULL(name, ?)",
+    ///                     arguments: ["Anonymous"]),
+    ///                 as: String.self)
+    ///         let name: String? = try request.fetchOne(db)
+    ///     }
+    ///
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
+    ///
+    ///     try dbQueue.read { db in
+    ///         // SELECT IFNULL(name, 'Anonymous') FROM player WHERE id = 42
+    ///         let request = Player.
+    ///             .filter(primaryKey: 42)
+    ///             .select(
+    ///                 SQLString("IFNULL(name, \("Anonymous"))"),
+    ///                 as: String.self)
+    ///         let name: String? = try request.fetchOne(db)
+    ///     }
+    public func select<RowDecoder>(_ sqlString: SQLString, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+        return select(SQLSelectionLiteral(sqlString: sqlString), as: type)
     }
     
     /// Creates a request which appends *selection*.
@@ -341,7 +373,16 @@ extension TableRecord {
     ///     // SELECT id, email FROM player
     ///     let request = Player.select(sql: "id, email")
     public static func select(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self> {
-        return all().select(sql: sql, arguments: arguments)
+        // TODO: make arguments non optional
+        return select(SQLString(sql: sql, arguments: arguments ?? []))
+    }
+    
+    /// Creates a request which selects *sql*.
+    ///
+    ///     // SELECT id, email FROM player
+    ///     let request = Player.select(SQLString("id, email"))
+    public static func select(_ sqlString: SQLString) -> QueryInterfaceRequest<Self> {
+        return all().select(sqlString)
     }
     
     /// Creates a request which selects *selection*, and fetches values of
@@ -377,9 +418,22 @@ extension TableRecord {
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
     public static func select<RowDecoder>(sql: String, arguments: StatementArguments? = nil, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
-        return all().select(sql: sql, arguments: arguments, as: type)
+        // TODO: make arguments non optional
+        return all().select(SQLString(sql: sql, arguments: arguments ?? []), as: type)
     }
 
+    /// Creates a request which selects *sql*, and fetches values of
+    /// type *type*.
+    ///
+    ///     try dbQueue.read { db in
+    ///         // SELECT max(score) FROM player
+    ///         let request = Player.select(SQLString("max(score)"), as: Int.self)
+    ///         let maxScore: Int? = try request.fetchOne(db)
+    ///     }
+    public static func select<RowDecoder>(_ sqlString: SQLString, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+        return all().select(sqlString, as: type)
+    }
+    
     /// Creates a request with the provided *predicate*.
     ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'

@@ -26,16 +26,16 @@ public protocol SQLSelectable {
 // MARK: - SQLSelectionLiteral
 
 struct SQLSelectionLiteral : SQLSelectable {
-    let sql: String
-    let arguments: StatementArguments?
+    private let sql: String
+    private let arguments: StatementArguments
     
-    init(_ sql: String, arguments: StatementArguments? = nil) {
-        self.sql = sql
-        self.arguments = arguments
+    init(sqlString: SQLString) {
+        self.sql = sqlString.sql
+        self.arguments = sqlString.arguments
     }
     
     func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
-        if let arguments = arguments {
+        if !arguments.isEmpty {
             if context.appendArguments(arguments) == false {
                 // GRDB limitation: we don't know how to look for `?` in sql and
                 // replace them with with literals.

@@ -52,7 +52,37 @@ extension SelectionRequest {
     ///         .select(sql: "id")
     ///         .select(sql: "email")
     public func select(sql: String, arguments: StatementArguments? = nil) -> Self {
-        return select(SQLSelectionLiteral(sql, arguments: arguments))
+        // TODO: make arguments non optional
+        return select(SQLString(sql: sql, arguments: arguments ?? []))
+    }
+    
+    /// Creates a request which selects *sql*.
+    ///
+    ///     // SELECT id, email, score + 1000 FROM player
+    ///     let bonus = 1000
+    ///     var request = Player.all()
+    ///     request = request.select(SQLString(sql: """
+    ///         id, email, score + ?
+    ///         """, arguments: [bonus]))
+    ///
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
+    ///
+    ///     // SELECT id, email, score + 1000 FROM player
+    ///     let bonus = 1000
+    ///     var request = Player.all()
+    ///     request = request.select(SQLString("""
+    ///         id, email, score + \(bonus)
+    ///         """)
+    ///
+    /// Any previous selection is replaced:
+    ///
+    ///     // SELECT email FROM player
+    ///     request
+    ///         .select(...)
+    ///         .select(SQLString(sql: "email"))
+    public func select(_ sqlString: SQLString) -> Self {
+        return select(SQLSelectionLiteral(sqlString: sqlString))
     }
 }
 
