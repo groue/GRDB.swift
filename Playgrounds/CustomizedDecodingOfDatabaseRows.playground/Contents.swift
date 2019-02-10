@@ -217,6 +217,8 @@ extension Base: MyDatabaseDecoder {
 //:     }
 
 extension MyDatabaseDecoder {
+    // MARK: - Fetch from SelectStatement
+    
     // SelectStatement, StatementArguments, and RowAdapter are the fundamental
     // fetching parameters of GRDB. Make sure to accept them all:
     static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
@@ -258,6 +260,8 @@ try dbQueue.read { db in
 //:         try Base.fetchOne(db, request)    // Base?
 //:     }
 extension MyDatabaseDecoder {
+    // MARK: - Fetch from FetchRequest
+    
     static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> MapCursor<RowCursor, DecodedType> {
         let (statement, adapter) = try request.prepare(db)
         return try fetchCursor(statement, adapter: adapter)
@@ -293,6 +297,8 @@ try dbQueue.read { db in
 //:         try request.fetchOne(db)    // Base?
 //:     }
 extension FetchRequest where RowDecoder: MyDatabaseDecoder {
+    // MARK: - FetchRequest fetching methods
+    
     func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder.DecodedType> {
         return try RowDecoder.fetchCursor(db, self)
     }
@@ -324,6 +330,8 @@ try dbQueue.read { db in
 //:         try Base.fetchOne(db)    // Base?
 //:     }
 extension MyDatabaseDecoder where Self: TableRecord {
+    // MARK: - Static fetching methods
+    
     static func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, DecodedType> {
         return try all().fetchCursor(db)
     }
@@ -345,25 +353,54 @@ try dbQueue.read { db in
     }
 }
 
-//: Finally, you don't have a true GRDB record unless it allows fetching from
-//: raw SQL:
+//: Finally, you can support raw SQL as well:
 //:
 //:     try dbQueue.read { db in
-//:         try Base.fetchCursor(db, "SELECT ...") // Cursor of Base
-//:         try Base.fetchAll(db, "SELECT ...")    // [Base]
-//:         try Base.fetchOne(db, "SELECT ...")    // Base?
+//:         try Base.fetchAll(db, """
+//:             SELECT ... WHERE name = ?
+//:             """, arguments: ["O'Brien"]) // [Base]
+//:     }
+//:
+//: With Swift 5, you can profit from string interpolation:
+//:
+//:     try dbQueue.read { db in
+//:         try Base.fetchAll(db, SQLString("""
+//:             SELECT ... WHERE name = \("O'Brien")
+//:             """)) // [Base]
 //:     }
 extension MyDatabaseDecoder {
+    // MARK: - Fetch from SQLString
+    
+    static func fetchCursor(_ db: Database, _ sqlString: SQLString, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
+        return try fetchCursor(db, SQLRequest<Self>(sqlString, adapter: adapter))
+    }
+    
+    static func fetchAll(_ db: Database, _ sqlString: SQLString, adapter: RowAdapter? = nil) throws -> [DecodedType] {
+        return try fetchAll(db, SQLRequest<Self>(sqlString, adapter: adapter))
+    }
+    
+    static func fetchOne(_ db: Database, _ sqlString: SQLString, adapter: RowAdapter? = nil) throws -> DecodedType? {
+        return try fetchOne(db, SQLRequest<Self>(sqlString, adapter: adapter))
+    }
+    
+    // MARK: - Fetch from SQL
+    
     static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
-        return try fetchCursor(db, SQLRequest<Self>(sql, arguments: arguments, adapter: adapter))
+        // TODO: make arguments non optional
+        // TODO: force sql parameter name: fetchCursor(db, sql:...)
+        return try fetchCursor(db, SQLString(sql: sql, arguments: arguments), adapter: adapter)
     }
     
     static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [DecodedType] {
-        return try fetchAll(db, SQLRequest<Self>(sql, arguments: arguments, adapter: adapter))
+        // TODO: make arguments non optional
+        // TODO: force sql parameter name: fetchCursor(db, sql:...)
+        return try fetchAll(db, SQLString(sql: sql, arguments: arguments), adapter: adapter)
     }
     
     static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DecodedType? {
-        return try fetchOne(db, SQLRequest<Self>(sql, arguments: arguments, adapter: adapter))
+        // TODO: make arguments non optional
+        // TODO: force sql parameter name: fetchCursor(db, sql:...)
+        return try fetchOne(db, SQLString(sql: sql, arguments: arguments), adapter: adapter)
     }
 }
 
