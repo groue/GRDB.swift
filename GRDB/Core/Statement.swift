@@ -96,7 +96,7 @@ public class Statement {
     // MARK: Arguments
     
     var argumentsNeedValidation = true
-    var _arguments: StatementArguments = []
+    var _arguments = StatementArguments()
     
     lazy var sqliteArgumentCount: Int = {
         Int(sqlite3_bind_parameter_count(self.sqliteStatement))
@@ -599,7 +599,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable, Expressibl
     // MARK: Empty Arguments
     
     /// Creates empty StatementArguments.
-    init() {
+    public init() {
     }
     
     // MARK: Positional Arguments

@@ -127,7 +127,36 @@ extension Database {
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(_ sql: String, arguments: StatementArguments? = nil) throws {
         // TODO: force sql parameter name: execute(sql:...)
-        
+        // TODO: make arguments non optional
+        try execute(SQLString(sql: sql, arguments: arguments ?? .init()))
+    }
+    
+    /// Executes one or several SQL statements, separated by semi-colons.
+    ///
+    ///     try db.execute(SQLString(
+    ///         sql: "INSERT INTO player (name) VALUES (:name)",
+    ///         arguments: ["name": "Arthur"]))
+    ///
+    ///     try db.execute(SQLString(sql: """
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         """, arguments: ["Arthur", "Barbara", "O'Brien"]))
+    ///
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
+    ///
+    ///     try db.execute(SQLString("""
+    ///         INSERT INTO player (name) VALUES (\("Arthur"));
+    ///         INSERT INTO player (name) VALUES (\("Barbara"));
+    ///         INSERT INTO player (name) VALUES (\("O'Brien"));
+    ///         """))
+    ///
+    /// This method may throw a DatabaseError.
+    ///
+    /// - parameter sqlString: An SQLString.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    public func execute(_ sqlString: SQLString) throws {
         // This method is like sqlite3_exec (https://www.sqlite.org/c3ref/exec.html)
         // It adds support for arguments, and the tricky part is to consume
         // arguments as statements are executed.
@@ -138,7 +167,9 @@ extension Database {
         //   all statements have been executed, in the same way
         //   as Statement.validate(arguments:)
         
-        var arguments = arguments ?? StatementArguments()
+        let sql = sqlString.sql
+        var arguments = sqlString.arguments
+        
         let initialValuesCount = arguments.values.count
         let consumeArguments = { (statement: UpdateStatement) throws -> StatementArguments in
             let bindings = try arguments.consume(statement, allowingRemainingValues: true)
@@ -191,35 +222,6 @@ extension Database {
         // Force arguments validity: it is a programmer error to provide
         // arguments that do not match the statement.
         try! validateRemainingArguments()   // throws if there are remaining arguments.
-    }
-    
-    /// Executes one or several SQL statements, separated by semi-colons.
-    ///
-    ///     try db.execute(SQLString(
-    ///         sql: "INSERT INTO player (name) VALUES (:name)",
-    ///         arguments: ["name": "Arthur"]))
-    ///
-    ///     try db.execute(SQLString(sql: """
-    ///         INSERT INTO player (name) VALUES (?);
-    ///         INSERT INTO player (name) VALUES (?);
-    ///         INSERT INTO player (name) VALUES (?);
-    ///         """, arguments: ["Arthur", "Barbara", "O'Brien"]))
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     try db.execute(SQLString("""
-    ///         INSERT INTO player (name) VALUES (\("Arthur"));
-    ///         INSERT INTO player (name) VALUES (\("Barbara"));
-    ///         INSERT INTO player (name) VALUES (\("O'Brien"));
-    ///         """))
-    ///
-    /// This method may throw a DatabaseError.
-    ///
-    /// - parameter sqlString: An SQLString.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(_ sqlString: SQLString) throws {
-        try execute(sqlString.sql, arguments: sqlString.arguments)
     }
 }
 

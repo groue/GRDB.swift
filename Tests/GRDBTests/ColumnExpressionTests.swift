@@ -70,9 +70,9 @@ class ColumnExpressionTests: GRDBTestCase {
             
             // Test FTS3 match expression
             let expression = try Player.Columns.name.match(FTS3Pattern(rawPattern: "foo"))
-            let literal = expression.literal
-            XCTAssertEqual(literal.sql, "(\"name\" MATCH ?)")
-            XCTAssertEqual(literal.arguments, ["foo"])
+            let sqlString = expression.sqlString
+            XCTAssertEqual(sqlString.sql, "(\"name\" MATCH ?)")
+            XCTAssertEqual(sqlString.arguments, ["foo"])
         }
     }
     
@@ -131,9 +131,9 @@ class ColumnExpressionTests: GRDBTestCase {
             
             // Test FTS3 match expression
             let expression = try Player.Columns.name.match(FTS3Pattern(rawPattern: "foo"))
-            let literal = expression.literal
-            XCTAssertEqual(literal.sql, "(\"name\" MATCH ?)")
-            XCTAssertEqual(literal.arguments, ["foo"])
+            let sqlString = expression.sqlString
+            XCTAssertEqual(sqlString.sql, "(\"name\" MATCH ?)")
+            XCTAssertEqual(sqlString.arguments, ["foo"])
         }
     }
     
@@ -180,9 +180,9 @@ class ColumnExpressionTests: GRDBTestCase {
             
             // Test FTS3 match expression
             let expression = try Player.CodingKeys.name.match(FTS3Pattern(rawPattern: "foo"))
-            let literal = expression.literal
-            XCTAssertEqual(literal.sql, "(\"full_name\" MATCH ?)")
-            XCTAssertEqual(literal.arguments, ["foo"])
+            let sqlString = expression.sqlString
+            XCTAssertEqual(sqlString.sql, "(\"full_name\" MATCH ?)")
+            XCTAssertEqual(sqlString.arguments, ["foo"])
         }
     }
 }

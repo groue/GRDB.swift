@@ -248,7 +248,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> FastDatabaseValueCursor<Self> {
         // TODO: make arguments non optional
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchCursor(db, SQLString(sql: sql, arguments: arguments ?? []), adapter: adapter)
+        return try fetchCursor(db, SQLString(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
     }
     
     /// Returns an array of values fetched from an SQL query.
@@ -265,7 +265,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self] {
         // TODO: make arguments non optional
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchAll(db, SQLString(sql: sql, arguments: arguments ?? []), adapter: adapter)
+        return try fetchAll(db, SQLString(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -282,7 +282,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
         // TODO: make arguments non optional
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchOne(db, SQLString(sql: sql, arguments: arguments ?? []), adapter: adapter)
+        return try fetchOne(db, SQLString(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
     }
 }
 
@@ -569,7 +569,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
     public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> FastNullableDatabaseValueCursor<Wrapped> {
         // TODO: make arguments non optional
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchCursor(db, SQLString(sql: sql, arguments: arguments ?? []), adapter: adapter)
+        return try fetchCursor(db, SQLString(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
     }
     
     /// Returns an array of optional values fetched from an SQL query.
@@ -586,7 +586,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Wrapped?] {
         // TODO: make arguments non optional
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchAll(db, SQLString(sql: sql, arguments: arguments ?? []), adapter: adapter)
+        return try fetchAll(db, SQLString(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
     }
 }
 

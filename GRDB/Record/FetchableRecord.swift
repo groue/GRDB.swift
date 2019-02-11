@@ -219,7 +219,7 @@ extension FetchableRecord {
     public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
         // TODO: make arguments non optional
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchCursor(db, SQLString(sql: sql, arguments: arguments ?? []), adapter: adapter)
+        return try fetchCursor(db, SQLString(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
     }
     
     /// Returns an array of records fetched from an SQL query.
@@ -236,7 +236,7 @@ extension FetchableRecord {
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self] {
         // TODO: make arguments non optional
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchAll(db, SQLString(sql: sql, arguments: arguments ?? []), adapter: adapter)
+        return try fetchAll(db, SQLString(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
     }
     
     /// Returns a single record fetched from an SQL query.
@@ -253,7 +253,7 @@ extension FetchableRecord {
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
         // TODO: make arguments non optional
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchOne(db, SQLString(sql: sql, arguments: arguments ?? []), adapter: adapter)
+        return try fetchOne(db, SQLString(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
     }
 }
 

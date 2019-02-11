@@ -108,7 +108,7 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///     }
     public func select<RowDecoder>(sql: String, arguments: StatementArguments? = nil, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
         // TODO: make arguments non optional
-        return select(SQLString(sql: sql, arguments: arguments ?? []), as: type)
+        return select(SQLString(sql: sql, arguments: arguments ?? .init()), as: type)
     }
     
     /// Creates a request which selects *sql*, and fetches values of
@@ -139,7 +139,7 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///         let name: String? = try request.fetchOne(db)
     ///     }
     public func select<RowDecoder>(_ sqlString: SQLString, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
-        return select(SQLSelectionLiteral(sqlString: sqlString), as: type)
+        return select(SQLSelectionLiteral(sqlString), as: type)
     }
     
     /// Creates a request which appends *selection*.
@@ -374,7 +374,7 @@ extension TableRecord {
     ///     let request = Player.select(sql: "id, email")
     public static func select(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self> {
         // TODO: make arguments non optional
-        return select(SQLString(sql: sql, arguments: arguments ?? []))
+        return select(SQLString(sql: sql, arguments: arguments ?? .init()))
     }
     
     /// Creates a request which selects *sql*.
@@ -419,7 +419,7 @@ extension TableRecord {
     ///     }
     public static func select<RowDecoder>(sql: String, arguments: StatementArguments? = nil, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
         // TODO: make arguments non optional
-        return all().select(SQLString(sql: sql, arguments: arguments ?? []), as: type)
+        return all().select(SQLString(sql: sql, arguments: arguments ?? .init()), as: type)
     }
 
     /// Creates a request which selects *sql*, and fetches values of
@@ -509,9 +509,28 @@ extension TableRecord {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public static func filter(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self> {
-        return all().filter(sql: sql, arguments: arguments)
+        // TODO: make arguments non optional
+        return filter(SQLString(sql: sql, arguments: arguments ?? .init()))
     }
     
+    /// Creates a request with the provided *predicate*.
+    ///
+    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
+    ///     let request = Player.filter(SQLString(sql: "email = ?", arguments: ["arthur@example.com"]))
+    ///
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
+    ///
+    ///     let request = Player.filter(SQLString("email = \("arthur@example.com")))
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
+    public static func filter(_ sqlString: SQLString) -> QueryInterfaceRequest<Self> {
+        // NOT TESTED
+        return all().filter(sqlString)
+    }
+
     /// Creates a request sorted according to the
     /// provided *orderings*.
     ///

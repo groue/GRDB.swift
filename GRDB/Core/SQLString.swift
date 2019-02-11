@@ -3,7 +3,7 @@ public struct SQLString {
     private(set) public var sql: String
     private(set) public var arguments: StatementArguments
     
-    public init(sql: String, arguments: StatementArguments = []) {
+    public init(sql: String, arguments: StatementArguments = StatementArguments()) {
         self.sql = sql
         self.arguments = arguments
     }
