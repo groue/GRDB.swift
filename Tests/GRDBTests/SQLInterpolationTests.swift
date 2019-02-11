@@ -19,8 +19,7 @@ class SQLInterpolationTests: GRDBTestCase {
             1
             :name
             """)
-        XCTAssert(sql.arguments.values.isEmpty)
-        XCTAssertEqual(sql.arguments.namedValues, ["name": "Arthur".databaseValue])
+        XCTAssertEqual(sql.arguments, ["name": "Arthur"])
     }
     
     func testSelectableInterpolation() {
@@ -75,8 +74,7 @@ class SQLInterpolationTests: GRDBTestCase {
             NULL
             ("a" IS NULL)
             """)
-        XCTAssertEqual(sql.arguments.values, [1.databaseValue, 1.databaseValue, 2.databaseValue])
-        XCTAssert(sql.arguments.namedValues.isEmpty)
+        XCTAssertEqual(sql.arguments, [1, 1, 2])
     }
     
     func testQualifiedExpressionInterpolation() {
@@ -89,8 +87,7 @@ class SQLInterpolationTests: GRDBTestCase {
             "name" AS "foo"
             ? AS "bar"
             """)
-        XCTAssertEqual(sql.arguments.values, [1.databaseValue])
-        XCTAssert(sql.arguments.namedValues.isEmpty)
+        XCTAssertEqual(sql.arguments, [1])
     }
     
     func testCodingKeyInterpolation() {
@@ -136,8 +133,7 @@ class SQLInterpolationTests: GRDBTestCase {
             (?,?,?)
             ("a",("b" + ?))
             """)
-        XCTAssertEqual(sql.arguments.values, [1.databaseValue, "foo".databaseValue, "bar".databaseValue, "baz".databaseValue, 2.databaseValue])
-        XCTAssert(sql.arguments.namedValues.isEmpty)
+        XCTAssertEqual(sql.arguments, [1, "foo", "bar", "baz", 2])
     }
     
     func testOrderingTermInterpolation() {
@@ -159,8 +155,7 @@ class SQLInterpolationTests: GRDBTestCase {
         sql.appendInterpolation(3)
         
         XCTAssertEqual(sql.sql, "? + ? + ?")
-        XCTAssertEqual(sql.arguments.values, [1.databaseValue, 2.databaseValue, 3.databaseValue])
-        XCTAssert(sql.arguments.namedValues.isEmpty)
+        XCTAssertEqual(sql.arguments, [1, 2, 3])
     }
 }
 #endif
