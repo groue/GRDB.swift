@@ -20,18 +20,6 @@ class SQLLiteralTests: GRDBTestCase {
         XCTAssertEqual(sql.arguments, [1])
     }
     
-    func testSQLLiteralInitializer() {
-        let sql = SQLLiteral(literal: SQLLiteral(sql: """
-            SELECT * FROM player
-            WHERE id = ?
-            """, arguments: [1]))
-        XCTAssertEqual(sql.sql, """
-            SELECT * FROM player
-            WHERE id = ?
-            """)
-        XCTAssertEqual(sql.arguments, [1])
-    }
-    
     func testPlusOperator() {
         var sql = SQLLiteral(sql: "SELECT * ")
         sql = sql + SQLLiteral(sql: "FROM player ")
@@ -248,18 +236,6 @@ extension SQLLiteralTests {
             WHERE name = ? AND score > ?
             """)
         XCTAssertEqual(sql.arguments, [true, "Arthur", 1000])
-    }
-
-    func testSQLLiteralInitializerWithInterpolation() {
-        let sql = SQLLiteral("""
-            SELECT * FROM player
-            WHERE id = \(1)
-            """)
-        XCTAssertEqual(sql.sql, """
-            SELECT * FROM player
-            WHERE id = ?
-            """)
-        XCTAssertEqual(sql.arguments, [1])
     }
 
     func testPlusOperatorWithInterpolation() {

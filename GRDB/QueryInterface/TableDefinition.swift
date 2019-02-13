@@ -416,7 +416,22 @@ public final class TableDefinition {
     ///
     /// - parameter sql: An SQL snippet
     public func check(sql: String) {
-        var expression = SQLExpressionLiteral(sql)
+        check(literal: SQLLiteral(sql: sql))
+    }
+    
+    /// Adds a CHECK constraint.
+    ///
+    ///     try db.create(table: "player") { t in
+    ///         t.column("personalPhone", .text)
+    ///         t.column("workPhone", .text)
+    ///         t.check(literal: SQLLiteral(sql: "personalPhone IS NOT NULL OR workPhone IS NOT NULL"))
+    ///     }
+    ///
+    /// See https://www.sqlite.org/lang_createtable.html#ckconst
+    ///
+    /// - parameter sqlLiteral: An SQLLiteral
+    public func check(literal sqlLiteral: SQLLiteral) {
+        var expression = SQLExpressionLiteral(literal: sqlLiteral)
         expression.unsafeRaw = true // It's safe because this expression can't be composed with others
         checkConstraints.append(expression)
     }
@@ -721,7 +736,29 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func check(sql: String) -> Self {
-        var expression = SQLExpressionLiteral(sql)
+        return check(literal: SQLLiteral(sql: sql))
+    }
+    
+    /// Adds a CHECK constraint on the column.
+    ///
+    ///     try db.create(table: "player") { t in
+    ///         t.column("name", .text).check(literal: SQLLiteral(sql: "LENGTH(name) > 0"))
+    ///     }
+    ///
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
+    ///
+    ///     try db.create(table: "player") { t in
+    ///         t.column("name", .text).check(literal: "LENGTH(name) > \(minLength)")
+    ///     }
+    ///
+    /// See https://www.sqlite.org/lang_createtable.html#ckconst
+    ///
+    /// - parameter sqlLiteral: An SQLLiteral
+    /// - returns: Self so that you can further refine the column definition.
+    @discardableResult
+    public func check(literal sqlLiteral: SQLLiteral) -> Self {
+        var expression = SQLExpressionLiteral(literal: sqlLiteral)
         expression.unsafeRaw = true // It's safe because this expression can't be composed with others
         checkConstraints.append(expression)
         return self

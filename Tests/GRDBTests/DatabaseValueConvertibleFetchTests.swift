@@ -63,9 +63,9 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     func testFetchCursorWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let cursor = try Fetched.fetchCursor(db, literal: SQLLiteral("""
+            let cursor = try Fetched.fetchCursor(db, literal: """
                 SELECT \(42)
-                """))
+                """)
             let fetched = try cursor.next()!
             XCTAssertEqual(fetched.int, 42)
         }
@@ -183,9 +183,9 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     func testFetchAllWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let array = try Fetched.fetchAll(db, literal: SQLLiteral("""
+            let array = try Fetched.fetchAll(db, literal: """
                 SELECT \(42)
-                """))
+                """)
             XCTAssertEqual(array[0].int, 42)
         }
     }
@@ -343,9 +343,9 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     func testFetchOneWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let fetched = try Fetched.fetchOne(db, literal: SQLLiteral("""
+            let fetched = try Fetched.fetchOne(db, literal: """
                 SELECT \(42)
-                """))
+                """)
             XCTAssertEqual(fetched!.int, 42)
         }
     }
@@ -458,9 +458,9 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     func testOptionalFetchCursorWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let cursor = try Optional<Fetched>.fetchCursor(db, literal: SQLLiteral("""
+            let cursor = try Optional<Fetched>.fetchCursor(db, literal: """
                 SELECT \(42)
-                """))
+                """)
             let fetched = try cursor.next()!
             XCTAssertEqual(fetched!.int, 42)
         }
@@ -580,9 +580,9 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     func testOptionalFetchAllWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let array = try Optional<Fetched>.fetchAll(db, literal: SQLLiteral("""
+            let array = try Optional<Fetched>.fetchAll(db, literal: """
                 SELECT \(42)
-                """))
+                """)
             XCTAssertEqual(array[0]!.int, 42)
         }
     }

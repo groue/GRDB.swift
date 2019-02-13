@@ -56,9 +56,9 @@ class RowFetchTests: GRDBTestCase {
     func testFetchCursorWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let cursor = try Row.fetchCursor(db, literal: SQLLiteral("""
+            let cursor = try Row.fetchCursor(db, literal: """
                 SELECT \("O'Brien")
-                """))
+                """)
             let row = try cursor.next()!
             XCTAssertEqual(row[0], "O'Brien")
         }
@@ -177,9 +177,9 @@ class RowFetchTests: GRDBTestCase {
     func testFetchAllWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let rows = try Row.fetchAll(db, literal: SQLLiteral("""
+            let rows = try Row.fetchAll(db, literal: """
                 SELECT \("O'Brien")
-                """))
+                """)
             XCTAssertEqual(rows[0][0], "O'Brien")
         }
     }
@@ -314,9 +314,9 @@ class RowFetchTests: GRDBTestCase {
     func testFetchOneWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let row = try Row.fetchOne(db, literal: SQLLiteral("""
+            let row = try Row.fetchOne(db, literal: """
                 SELECT \("O'Brien")
-                """))
+                """)
             XCTAssertEqual(row![0], "O'Brien")
         }
     }

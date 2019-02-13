@@ -66,9 +66,9 @@ class FetchableRecordTests: GRDBTestCase {
     func testFetchCursorWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let cursor = try Fetched.fetchCursor(db, literal: SQLLiteral("""
+            let cursor = try Fetched.fetchCursor(db, literal: """
                 SELECT \("Arthur") AS firstName, \("O'Brien") AS lastName
-                """))
+                """)
             let fetched = try cursor.next()!
             XCTAssertEqual(fetched.firstName, "Arthur")
             XCTAssertEqual(fetched.lastName, "O'Brien")
@@ -188,9 +188,9 @@ class FetchableRecordTests: GRDBTestCase {
     func testFetchAllWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let array = try Fetched.fetchAll(db, literal: SQLLiteral("""
+            let array = try Fetched.fetchAll(db, literal: """
                 SELECT \("Arthur") AS firstName, \("O'Brien") AS lastName
-                """))
+                """)
             XCTAssertEqual(array[0].firstName, "Arthur")
             XCTAssertEqual(array[0].lastName, "O'Brien")
         }
@@ -326,9 +326,9 @@ class FetchableRecordTests: GRDBTestCase {
     func testFetchOneWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let fetched = try Fetched.fetchOne(db, literal: SQLLiteral("""
+            let fetched = try Fetched.fetchOne(db, literal: """
                 SELECT \("Arthur") AS firstName, \("O'Brien") AS lastName
-                """))
+                """)
             XCTAssertEqual(fetched!.firstName, "Arthur")
             XCTAssertEqual(fetched!.lastName, "O'Brien")
         }

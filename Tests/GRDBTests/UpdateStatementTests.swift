@@ -356,11 +356,11 @@ class UpdateStatementTests : GRDBTestCase {
     func testExecuteSQLLiteralWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
-            try db.execute(literal: SQLLiteral("""
+            try db.execute(literal: """
                 CREATE TABLE t(a);
                 INSERT INTO t(a) VALUES (\(1));
                 INSERT INTO t(a) VALUES (\(2));
-                """))
+                """)
             let value = try Int.fetchOne(db, "SELECT SUM(a) FROM t")
             XCTAssertEqual(value, 3)
         }

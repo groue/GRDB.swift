@@ -7,10 +7,6 @@ public struct SQLLiteral {
         self.sql = sql
         self.arguments = arguments
     }
-    
-    public init(literal sqlLiteral: SQLLiteral) {
-        self = sqlLiteral
-    }
 }
 
 extension SQLLiteral {
