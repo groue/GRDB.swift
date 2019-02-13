@@ -21,7 +21,7 @@ class SQLLiteralTests: GRDBTestCase {
     }
     
     func testSQLLiteralInitializer() {
-        let sql = SQLLiteral(SQLLiteral(sql: """
+        let sql = SQLLiteral(literal: SQLLiteral(sql: """
             SELECT * FROM player
             WHERE id = ?
             """, arguments: [1]))
@@ -54,11 +54,11 @@ class SQLLiteralTests: GRDBTestCase {
         XCTAssertEqual(sql.arguments, [1, "Arthur"])
     }
     
-    func testAppend() {
+    func testAppendLiteral() {
         var sql = SQLLiteral(sql: "SELECT * ")
-        sql.append(SQLLiteral(sql: "FROM player "))
-        sql.append(SQLLiteral(sql: "WHERE id = ? ", arguments: [1]))
-        sql.append(SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"]))
+        sql.append(literal: SQLLiteral(sql: "FROM player "))
+        sql.append(literal: SQLLiteral(sql: "WHERE id = ? ", arguments: [1]))
+        sql.append(literal: SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"]))
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player WHERE id = ? AND name = ?
             """)
@@ -241,7 +241,7 @@ extension SQLLiteralTests {
         let condition: SQLLiteral = "name = \("Arthur")"
         let sql: SQLLiteral = """
             SELECT *, \(true) FROM player
-            WHERE \(condition) AND score > \(1000)
+            WHERE \(literal: condition) AND score > \(1000)
             """
         XCTAssertEqual(sql.sql, """
             SELECT *, ? FROM player
@@ -282,10 +282,10 @@ extension SQLLiteralTests {
         XCTAssertEqual(sql.arguments, [1])
     }
 
-    func testAppendWithInterpolation() {
+    func testAppendLiteralWithInterpolation() {
         var sql: SQLLiteral = "SELECT \(AllColumns()) "
-        sql.append("FROM player ")
-        sql.append("WHERE id = \(1)")
+        sql.append(literal: "FROM player ")
+        sql.append(literal: "WHERE id = \(1)")
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player WHERE id = ?
             """)

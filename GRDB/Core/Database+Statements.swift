@@ -127,16 +127,16 @@ extension Database {
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(_ sql: String, arguments: StatementArguments = StatementArguments()) throws {
         // TODO: force sql parameter name: execute(sql:...)
-        try execute(SQLLiteral(sql: sql, arguments: arguments))
+        try execute(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
-    ///     try db.execute(SQLLiteral(
+    ///     try db.execute(literal: SQLLiteral(
     ///         sql: "INSERT INTO player (name) VALUES (:name)",
     ///         arguments: ["name": "Arthur"]))
     ///
-    ///     try db.execute(SQLLiteral(sql: """
+    ///     try db.execute(literal: SQLLiteral(sql: """
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
@@ -145,7 +145,7 @@ extension Database {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     try db.execute(SQLLiteral("""
+    ///     try db.execute(literal: SQLLiteral("""
     ///         INSERT INTO player (name) VALUES (\("Arthur"));
     ///         INSERT INTO player (name) VALUES (\("Barbara"));
     ///         INSERT INTO player (name) VALUES (\("O'Brien"));
@@ -155,7 +155,7 @@ extension Database {
     ///
     /// - parameter sqlLiteral: An SQLLiteral.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(_ sqlLiteral: SQLLiteral) throws {
+    public func execute(literal sqlLiteral: SQLLiteral) throws {
         // This method is like sqlite3_exec (https://www.sqlite.org/c3ref/exec.html)
         // It adds support for arguments, and the tricky part is to consume
         // arguments as statements are executed.

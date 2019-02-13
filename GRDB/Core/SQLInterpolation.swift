@@ -18,14 +18,14 @@ public struct SQLInterpolation: StringInterpolationProtocol {
         self.sql += sql
     }
 
-    /// "SELECT * FROM \(raw: "player")"
+    /// "SELECT * FROM \(sql: "player")"
     public mutating func appendInterpolation(sql: String, arguments: StatementArguments = StatementArguments()) {
         self.sql += sql
         self.arguments += arguments
     }
 
-    /// "SELECT * FROM player WHERE \(condition)"
-    public mutating func appendInterpolation(_ sqlLiteral: SQLLiteral) {
+    /// "SELECT * FROM player WHERE \(literal: condition)"
+    public mutating func appendInterpolation(literal sqlLiteral: SQLLiteral) {
         sql += sqlLiteral.sql
         arguments += sqlLiteral.arguments
     }

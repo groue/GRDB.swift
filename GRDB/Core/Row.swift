@@ -750,7 +750,7 @@ extension Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RowCursor {
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchCursor(db, SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchCursor(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }
     
     /// Returns an array of rows fetched from an SQL query.
@@ -770,7 +770,7 @@ extension Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Row] {
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchAll(db, SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchAll(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -790,7 +790,7 @@ extension Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Row? {
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchOne(db, SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchOne(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }
 }
 
@@ -800,7 +800,7 @@ extension Row {
     
     /// Returns a cursor over rows fetched from an SQL query.
     ///
-    ///     let rows = try Row.fetchCursor(db, SQLLiteral(sql: """
+    ///     let rows = try Row.fetchCursor(db, literal: SQLLiteral(sql: """
     ///         SELECT * FROM player WHERE lastName = ?
     ///         """, arguments: ["O'Brien"])) // RowCursor
     ///     while let row = try rows.next() { // Row
@@ -812,7 +812,7 @@ extension Row {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let rows = try Row.fetchCursor(db, SQLLiteral("""
+    ///     let rows = try Row.fetchCursor(db, literal: SQLLiteral("""
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
     ///         """) // RowCursor
     ///
@@ -835,13 +835,13 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, _ sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> RowCursor {
-        return try fetchCursor(db, SQLRequest<Void>(sqlLiteral, adapter: adapter))
+    public static func fetchCursor(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> RowCursor {
+        return try fetchCursor(db, SQLRequest<Void>(literal: sqlLiteral, adapter: adapter))
     }
     
     /// Returns an array of rows fetched from an SQL query.
     ///
-    ///     let rows = try Row.fetchAll(db, SQLLiteral(sql: """
+    ///     let rows = try Row.fetchAll(db, literal: SQLLiteral(sql: """
     ///         SELECT * FROM player WHERE lastName = ?
     ///         """, arguments: ["O'Brien"])) // [Row]
     ///     for row in rows {
@@ -853,7 +853,7 @@ extension Row {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let rows = try Row.fetchAll(db, SQLLiteral("""
+    ///     let rows = try Row.fetchAll(db, literal: SQLLiteral("""
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
     ///         """) // [Row]
     ///
@@ -863,13 +863,13 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, _ sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> [Row] {
-        return try fetchAll(db, SQLRequest<Void>(sqlLiteral, adapter: adapter))
+    public static func fetchAll(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> [Row] {
+        return try fetchAll(db, SQLRequest<Void>(literal: sqlLiteral, adapter: adapter))
     }
     
     /// Returns a single row fetched from an SQL query.
     ///
-    ///     let row = try Row.fetchOne(db, SQLLiteral(sql: """
+    ///     let row = try Row.fetchOne(db, literal: SQLLiteral(sql: """
     ///         SELECT * FROM player WHERE lastName = ?
     ///         """, arguments: ["O'Brien"])) // Row?
     ///     if let row = row {
@@ -881,7 +881,7 @@ extension Row {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let row = try Row.fetchOne(db, SQLLiteral("""
+    ///     let row = try Row.fetchOne(db, literal: SQLLiteral("""
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
     ///         """) // Row?
     ///
@@ -891,8 +891,8 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, _ sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> Row? {
-        return try fetchOne(db, SQLRequest<Void>(sqlLiteral, adapter: adapter))
+    public static func fetchOne(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> Row? {
+        return try fetchOne(db, SQLRequest<Void>(literal: sqlLiteral, adapter: adapter))
     }
 }
 

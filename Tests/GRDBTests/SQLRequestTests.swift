@@ -75,7 +75,7 @@ class SQLRequestTests: GRDBTestCase {
     func testSQLLiteralInitializer() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<String>(SQLLiteral(sql: """
+            let request = SQLRequest<String>(literal: SQLLiteral(sql: """
                 SELECT ?
                 """, arguments: ["O'Brien"]))
             XCTAssertEqual(request.sql, """
@@ -90,7 +90,7 @@ class SQLRequestTests: GRDBTestCase {
     func testSQLLiteralInitializerWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<String>(SQLLiteral("""
+            let request = SQLRequest<String>(literal: SQLLiteral("""
                 SELECT \("O'Brien")
                 """))
             XCTAssertEqual(request.sql, """

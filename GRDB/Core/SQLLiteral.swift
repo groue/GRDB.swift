@@ -8,7 +8,7 @@ public struct SQLLiteral {
         self.arguments = arguments
     }
     
-    public init(_ sqlLiteral: SQLLiteral) {
+    public init(literal sqlLiteral: SQLLiteral) {
         self = sqlLiteral
     }
 }
@@ -25,13 +25,12 @@ extension SQLLiteral {
         lhs.arguments += rhs.arguments
     }
     
-    public mutating func append(_ other: SQLLiteral) {
-        self += other
+    public mutating func append(literal sqlLiteral: SQLLiteral) {
+        self += sqlLiteral
     }
 
     public mutating func append(sql: String, arguments: StatementArguments = StatementArguments()) {
-        self.sql += sql
-        self.arguments += arguments
+        self += SQLLiteral(sql: sql, arguments: arguments)
     }
 }
 

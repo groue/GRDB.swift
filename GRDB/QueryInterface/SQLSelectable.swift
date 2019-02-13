@@ -28,7 +28,7 @@ public protocol SQLSelectable {
 struct SQLSelectionLiteral : SQLSelectable {
     private let sqlLiteral: SQLLiteral
     
-    init(_ sqlLiteral: SQLLiteral) {
+    init(literal sqlLiteral: SQLLiteral) {
         self.sqlLiteral = sqlLiteral
     }
     

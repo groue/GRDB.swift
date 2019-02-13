@@ -342,7 +342,7 @@ class UpdateStatementTests : GRDBTestCase {
     func testExecuteSQLLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
-            try db.execute(SQLLiteral(sql: """
+            try db.execute(literal: SQLLiteral(sql: """
                 CREATE TABLE t(a);
                 INSERT INTO t(a) VALUES (?);
                 INSERT INTO t(a) VALUES (?);
@@ -356,7 +356,7 @@ class UpdateStatementTests : GRDBTestCase {
     func testExecuteSQLLiteralWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
-            try db.execute(SQLLiteral("""
+            try db.execute(literal: SQLLiteral("""
                 CREATE TABLE t(a);
                 INSERT INTO t(a) VALUES (\(1));
                 INSERT INTO t(a) VALUES (\(2));

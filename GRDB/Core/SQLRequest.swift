@@ -28,22 +28,22 @@ public struct SQLRequest<T> : FetchRequest {
     /// - returns: A SQLRequest
     public init(_ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil, cached: Bool = false) {
         // TODO: force sql parameter name: init(sql:...)
-        self.init(SQLLiteral(sql: sql, arguments: arguments), adapter: adapter, fromCache: cached ? .public : nil)
+        self.init(literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter, fromCache: cached ? .public : nil)
     }
     
     /// Creates a request from an SQLLiteral, and optional row adapter.
     ///
-    ///     let request = SQLRequest<String>(SQLLiteral(sql: """
+    ///     let request = SQLRequest<String>(literal: SQLLiteral(sql: """
     ///         SELECT name FROM player
     ///         """))
-    ///     let request = SQLRequest<Player>(SQLLiteral(sql: """
+    ///     let request = SQLRequest<Player>(literal: SQLLiteral(sql: """
     ///         SELECT * FROM player WHERE name = ?
     ///         """, arguments: ["O'Brien"]))
     ///
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let request = SQLRequest<Player>(SQLLiteral("""
+    ///     let request = SQLRequest<Player>(literal: SQLLiteral("""
     ///         SELECT * FROM player WHERE name = \("O'brien")
     ///         """))
     ///
@@ -53,9 +53,9 @@ public struct SQLRequest<T> : FetchRequest {
     ///     - cached: Defaults to false. If true, the request reuses a cached
     ///       prepared statement.
     /// - returns: A SQLRequest
-    public init(_ sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, cached: Bool = false) {
+    public init(literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, cached: Bool = false) {
         // TODO: make this optional arguments non optional
-        self.init(sqlLiteral, adapter: adapter, fromCache: cached ? .public : nil)
+        self.init(literal: sqlLiteral, adapter: adapter, fromCache: cached ? .public : nil)
     }
 
     /// Creates an SQL request from any other fetch request.
@@ -68,7 +68,7 @@ public struct SQLRequest<T> : FetchRequest {
     /// - returns: An SQLRequest
     public init<Request: FetchRequest>(_ db: Database, request: Request, cached: Bool = false) throws where Request.RowDecoder == RowDecoder {
         let (statement, adapter) = try request.prepare(db)
-        self.init(SQLLiteral(sql: statement.sql, arguments: statement.arguments), adapter: adapter, cached: cached)
+        self.init(literal: SQLLiteral(sql: statement.sql, arguments: statement.arguments), adapter: adapter, cached: cached)
     }
     
     /// Creates an SQL request from an SQL string, optional arguments, and
@@ -83,7 +83,7 @@ public struct SQLRequest<T> : FetchRequest {
     ///     - adapter: Optional RowAdapter.
     ///     - statementCacheName: Optional statement cache name.
     /// - returns: A SQLRequest
-    init(_ sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, fromCache cache: Cache?) {
+    init(literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, fromCache cache: Cache?) {
         self.sqlLiteral = sqlLiteral
         self.adapter = adapter
         self.cache = cache

@@ -51,22 +51,22 @@ public struct SQLExpressionLiteral : SQLExpression {
     ///     SQLExpressionLiteral(":one + :two", arguments: ["one": 1, "two": 2])
     public init(_ sql: String, arguments: StatementArguments = StatementArguments()) {
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        self.init(SQLLiteral(sql: sql, arguments: arguments))
+        self.init(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Creates an SQL literal expression.
     ///
-    ///     SQLExpressionLiteral(SQLLiteral(sql: "1 + 2")
-    ///     SQLExpressionLiteral(SQLLiteral(sql: "? + ?", arguments: [1, 2]))
-    ///     SQLExpressionLiteral(SQLLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2]))
+    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: "1 + 2")
+    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: "? + ?", arguments: [1, 2]))
+    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2]))
     ///
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     SQLExpressionLiteral(SQLLiteral("\(1) + \(2)"))
-    public init(_ sqlLiteral: SQLLiteral) {
+    ///     SQLExpressionLiteral(literal: SQLLiteral("\(1) + \(2)"))
+    public init(literal sqlLiteral: SQLLiteral) {
         self.sqlLiteral = sqlLiteral
     }
 

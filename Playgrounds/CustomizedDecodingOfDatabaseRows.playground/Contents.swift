@@ -365,40 +365,40 @@ try dbQueue.read { db in
 //: without any risk of syntax errors or SQL injection:
 //:
 //:     try dbQueue.read { db in
-//:         try Base.fetchAll(db, SQLLiteral("""
+//:         try Base.fetchAll(db, literal: SQLLiteral("""
 //:             SELECT ... WHERE name = \("O'Brien")
 //:             """)) // [Base]
 //:     }
 extension MyDatabaseDecoder {
     // MARK: - Fetch from SQLLiteral
     
-    static func fetchCursor(_ db: Database, _ sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
-        return try fetchCursor(db, SQLRequest<Self>(sqlLiteral, adapter: adapter))
+    static func fetchCursor(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
+        return try fetchCursor(db, SQLRequest<Self>(literal: sqlLiteral, adapter: adapter))
     }
     
-    static func fetchAll(_ db: Database, _ sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> [DecodedType] {
-        return try fetchAll(db, SQLRequest<Self>(sqlLiteral, adapter: adapter))
+    static func fetchAll(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> [DecodedType] {
+        return try fetchAll(db, SQLRequest<Self>(literal: sqlLiteral, adapter: adapter))
     }
     
-    static func fetchOne(_ db: Database, _ sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> DecodedType? {
-        return try fetchOne(db, SQLRequest<Self>(sqlLiteral, adapter: adapter))
+    static func fetchOne(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> DecodedType? {
+        return try fetchOne(db, SQLRequest<Self>(literal: sqlLiteral, adapter: adapter))
     }
     
     // MARK: - Fetch from SQL
     
     static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchCursor(db, SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchCursor(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }
     
     static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [DecodedType] {
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchAll(db, SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchAll(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }
     
     static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> DecodedType? {
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchOne(db, SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchOne(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }
 }
 

@@ -52,7 +52,7 @@ extension SelectionRequest {
     ///         .select(sql: "id")
     ///         .select(sql: "email")
     public func select(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return select(SQLLiteral(sql: sql, arguments: arguments))
+        return select(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request which selects *sql*.
@@ -60,7 +60,7 @@ extension SelectionRequest {
     ///     // SELECT id, email, score + 1000 FROM player
     ///     let bonus = 1000
     ///     var request = Player.all()
-    ///     request = request.select(SQLLiteral(sql: """
+    ///     request = request.select(literal: SQLLiteral(sql: """
     ///         id, email, score + ?
     ///         """, arguments: [bonus]))
     ///
@@ -70,7 +70,7 @@ extension SelectionRequest {
     ///     // SELECT id, email, score + 1000 FROM player
     ///     let bonus = 1000
     ///     var request = Player.all()
-    ///     request = request.select(SQLLiteral("""
+    ///     request = request.select(literal: SQLLiteral("""
     ///         id, email, score + \(bonus)
     ///         """)
     ///
@@ -79,10 +79,10 @@ extension SelectionRequest {
     ///     // SELECT email FROM player
     ///     request
     ///         .select(...)
-    ///         .select(SQLLiteral(sql: "email"))
-    public func select(_ sqlLiteral: SQLLiteral) -> Self {
+    ///         .select(literal: SQLLiteral(sql: "email"))
+    public func select(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return select(SQLSelectionLiteral(sqlLiteral))
+        return select(SQLSelectionLiteral(literal: sqlLiteral))
     }
 }
 
@@ -122,7 +122,7 @@ extension FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.filter(sql: "email = ?", arguments: ["arthur@example.com"])
     public func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return filter(SQLLiteral(sql: sql, arguments: arguments))
+        return filter(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *predicate* added to the
@@ -130,7 +130,7 @@ extension FilteredRequest {
     ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     var request = Player.all()
-    ///     request = request.filter(SQLLiteral(sql: """
+    ///     request = request.filter(literal: SQLLiteral(sql: """
     ///         email = ?
     ///         """, arguments: ["arthur@example.com"])
     ///
@@ -139,12 +139,12 @@ extension FilteredRequest {
     ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     var request = Player.all()
-    ///     request = request.filter(SQLLiteral("""
+    ///     request = request.filter(literal: SQLLiteral("""
     ///         email = \("arthur@example.com")
     ///         """)
-    public func filter(_ sqlLiteral: SQLLiteral) -> Self {
+    public func filter(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return filter(SQLExpressionLiteral(sqlLiteral))
+        return filter(SQLExpressionLiteral(literal: sqlLiteral))
     }
 
     /// Creates a request that matches nothing.
@@ -321,11 +321,11 @@ extension AggregatingRequest {
     
     /// Creates a request with a new grouping.
     public func group(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return group(SQLLiteral(sql: sql, arguments: arguments))
+        return group(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with a new grouping.
-    public func group(_ sqlLiteral: SQLLiteral) -> Self {
+    public func group(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
         // This "expression" is not a real expression. We support raw sql which
         // actually contains several expressions:
@@ -335,7 +335,7 @@ extension AggregatingRequest {
         // This is why we use the "unsafe" flag, so that the SQLExpressionLiteral
         // does not output its safe wrapping parenthesis, and generates
         // invalid SQL.
-        var expression = SQLExpressionLiteral(sqlLiteral)
+        var expression = SQLExpressionLiteral(literal: sqlLiteral)
         expression.unsafeRaw = true
         return group(expression)
     }
@@ -343,14 +343,14 @@ extension AggregatingRequest {
     /// Creates a request with the provided *sql* added to the
     /// eventual set of already applied predicates.
     public func having(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return having(SQLLiteral(sql: sql, arguments: arguments))
+        return having(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
 
     /// Creates a request with the provided *sql* added to the
     /// eventual set of already applied predicates.
-    public func having(_ sqlLiteral: SQLLiteral) -> Self {
+    public func having(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return having(SQLExpressionLiteral(sqlLiteral))
+        return having(SQLExpressionLiteral(literal: sqlLiteral))
     }
 }
 
@@ -440,7 +440,7 @@ extension OrderedRequest {
     ///         .order(sql: "email")
     ///         .order(sql: "name")
     public func order(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return order(SQLLiteral(sql: sql, arguments: arguments))
+        return order(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *sql* used for sorting.
@@ -455,7 +455,7 @@ extension OrderedRequest {
     ///     request
     ///         .order(sql: "email")
     ///         .order(sql: "name")
-    public func order(_ sqlLiteral: SQLLiteral) -> Self {
+    public func order(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
         // This "expression" is not a real expression. We support raw sql which
         // actually contains several expressions:
@@ -465,7 +465,7 @@ extension OrderedRequest {
         // This is why we use the "unsafe" flag, so that the SQLExpressionLiteral
         // does not output its safe wrapping parenthesis, and generates
         // invalid SQL.
-        var expression = SQLExpressionLiteral(sqlLiteral)
+        var expression = SQLExpressionLiteral(literal: sqlLiteral)
         expression.unsafeRaw = true
         return order([expression])
     }
