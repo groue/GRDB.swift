@@ -147,11 +147,11 @@ class SQLInterpolationTests: GRDBTestCase {
         XCTAssert(sql.arguments.isEmpty)
     }
     
-    func testSQLStringInterpolation() {
+    func testSQLLiteralInterpolation() {
         var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 3)
         
         sql.appendInterpolation(1)
-        sql.appendInterpolation(SQLString(" + \(2) + "))
+        sql.appendInterpolation(SQLLiteral(" + \(2) + "))
         sql.appendInterpolation(3)
         
         XCTAssertEqual(sql.sql, "? + ? + ?")

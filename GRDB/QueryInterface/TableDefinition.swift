@@ -507,7 +507,7 @@ public final class TableDefinition {
                 for checkExpression in checkConstraints {
                     var chunks: [String] = []
                     chunks.append("CHECK")
-                    chunks.append("(" + checkExpression.sql + ")")
+                    chunks.append("(" + checkExpression.quotedSQL() + ")")
                     items.append(chunks.joined(separator: " "))
                 }
                 
@@ -861,12 +861,12 @@ public final class ColumnDefinition {
         
         for checkConstraint in checkConstraints {
             chunks.append("CHECK")
-            chunks.append("(" + checkConstraint.sql + ")")
+            chunks.append("(" + checkConstraint.quotedSQL() + ")")
         }
         
         if let defaultExpression = defaultExpression {
             chunks.append("DEFAULT")
-            chunks.append(defaultExpression.sql)
+            chunks.append(defaultExpression.quotedSQL())
         }
         
         if let collationName = collationName {
@@ -943,7 +943,7 @@ private struct IndexDefinition {
         chunks.append("\(table.quotedDatabaseIdentifier)(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
         if let condition = condition {
             chunks.append("WHERE")
-            chunks.append(condition.sql)
+            chunks.append(condition.quotedSQL())
         }
         return chunks.joined(separator: " ")
     }

@@ -40,14 +40,14 @@ func ~= (_ lhs: SQLExpressible, _ rhs: Column) -> SQLExpression {
 // CAST
 
 func cast(_ value: SQLExpressible, as type: Database.ColumnType) -> SQLExpression {
-    // Turn the value into an SQLString
-    let sqlString = value.sqlExpression.sqlString
+    // Turn the value into an SQLLiteral
+    let sqlLiteral = value.sqlExpression.sqlLiteral
     
     // Build our "CAST(value AS type)" sql snippet
-    let sql = "CAST(\(sqlString.sql) AS \(type.rawValue))"
+    let sql = "CAST(\(sqlLiteral.sql) AS \(type.rawValue))"
     
     // And return a new literal expression, preserving input arguments
-    return SQLExpressionLiteral(SQLString(sql: sql, arguments: sqlString.arguments))
+    return SQLExpressionLiteral(SQLLiteral(sql: sql, arguments: sqlLiteral.arguments))
 }
 
 

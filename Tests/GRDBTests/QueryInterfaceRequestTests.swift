@@ -192,7 +192,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         }
     }
     
-    func testSelectSQLString() throws {
+    func testSelectSQLLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
@@ -206,10 +206,10 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 XCTAssertEqual(rows[1][0] as String, "O'Brien")
                 XCTAssertEqual(rows[1][1] as Int64, 1)
             }
-            try test(tableRequest.select(SQLString(sql: ":name, id - :value", arguments: ["name": "O'Brien", "value": 1])))
+            try test(tableRequest.select(SQLLiteral(sql: ":name, id - :value", arguments: ["name": "O'Brien", "value": 1])))
             #if swift(>=5)
             // Interpolation
-            try test(tableRequest.select(SQLString("\("O'Brien"), id - \(1)")))
+            try test(tableRequest.select(SQLLiteral("\("O'Brien"), id - \(1)")))
             #endif
         }
     }
@@ -274,18 +274,18 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                             .fetchOne(db)!
                         XCTAssertEqual(value, "Arthur")
                     }
-                    // SQLString
+                    // SQLLiteral
                     do {
                         let value = try Reader
-                            .select(SQLString(sql: "? AS name", arguments: ["O'Brien"]), as: String.self)
+                            .select(SQLLiteral(sql: "? AS name", arguments: ["O'Brien"]), as: String.self)
                             .fetchOne(db)!
                         XCTAssertEqual(value, "O'Brien")
                     }
                     #if swift(>=5.0)
-                    // SQLString with interpolation
+                    // SQLLiteral with interpolation
                     do {
                         let value = try Reader
-                            .select(SQLString("\("O'Brien") AS name"), as: String.self)
+                            .select(SQLLiteral("\("O'Brien") AS name"), as: String.self)
                             .fetchOne(db)!
                         XCTAssertEqual(value, "O'Brien")
                     }
@@ -316,20 +316,20 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                             .fetchOne(db)!
                         XCTAssertEqual(value, "Arthur")
                     }
-                    // SQLString
+                    // SQLLiteral
                     do {
                         let value = try Reader
                             .all()
-                            .select(SQLString(sql: "? AS name", arguments: ["O'Brien"]), as: String.self)
+                            .select(SQLLiteral(sql: "? AS name", arguments: ["O'Brien"]), as: String.self)
                             .fetchOne(db)!
                         XCTAssertEqual(value, "O'Brien")
                     }
                     #if swift(>=5.0)
-                    // SQLString with interpolation
+                    // SQLLiteral with interpolation
                     do {
                         let value = try Reader
                             .all()
-                            .select(SQLString("\("O'Brien") AS name"), as: String.self)
+                            .select(SQLLiteral("\("O'Brien") AS name"), as: String.self)
                             .fetchOne(db)!
                         XCTAssertEqual(value, "O'Brien")
                     }
@@ -363,18 +363,18 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                             .fetchOne(db)!
                         XCTAssertEqual(value, ["name": "Arthur", "age": 42])
                     }
-                    // SQLString with named argument
+                    // SQLLiteral with named argument
                     do {
                         let value = try Reader
-                            .select(SQLString(sql: "name, :age AS age", arguments: ["age": 22]), as: Row.self)
+                            .select(SQLLiteral(sql: "name, :age AS age", arguments: ["age": 22]), as: Row.self)
                             .fetchOne(db)!
                         XCTAssertEqual(value, ["name": "Arthur", "age": 22])
                     }
                     #if swift(>=5.0)
-                    // SQLString with interpolation
+                    // SQLLiteral with interpolation
                     do {
                         let value = try Reader
-                            .select(SQLString("\("O'Brien") AS name, \(22) AS age"), as: Row.self)
+                            .select(SQLLiteral("\("O'Brien") AS name, \(22) AS age"), as: Row.self)
                             .fetchOne(db)!
                         XCTAssertEqual(value, ["name": "O'Brien", "age": 22])
                     }
@@ -405,20 +405,20 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                             .fetchOne(db)!
                         XCTAssertEqual(value, ["name": "Arthur", "age": 42])
                     }
-                    // SQLString with positional argument
+                    // SQLLiteral with positional argument
                     do {
                         let value = try Reader
                             .all()
-                            .select(SQLString(sql: "name, ? AS age", arguments: [22]), as: Row.self)
+                            .select(SQLLiteral(sql: "name, ? AS age", arguments: [22]), as: Row.self)
                             .fetchOne(db)!
                         XCTAssertEqual(value, ["name": "Arthur", "age": 22])
                     }
                     #if swift(>=5.0)
-                    // SQLString with interpolation
+                    // SQLLiteral with interpolation
                     do {
                         let value = try Reader
                             .all()
-                            .select(SQLString("\("O'Brien") AS name, \(22) AS age"), as: Row.self)
+                            .select(SQLLiteral("\("O'Brien") AS name, \(22) AS age"), as: Row.self)
                             .fetchOne(db)!
                         XCTAssertEqual(value, ["name": "O'Brien", "age": 22])
                     }

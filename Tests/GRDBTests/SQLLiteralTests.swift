@@ -7,9 +7,9 @@ import XCTest
     @testable import GRDB
 #endif
 
-class SQLStringTests: GRDBTestCase {
+class SQLLiteralTests: GRDBTestCase {
     func testSQLInitializer() {
-        let sql = SQLString(sql: """
+        let sql = SQLLiteral(sql: """
             SELECT * FROM player
             WHERE id = \("?")
             """, arguments: [1])
@@ -20,8 +20,8 @@ class SQLStringTests: GRDBTestCase {
         XCTAssertEqual(sql.arguments, [1])
     }
     
-    func testSQLStringInitializer() {
-        let sql = SQLString(SQLString(sql: """
+    func testSQLLiteralInitializer() {
+        let sql = SQLLiteral(SQLLiteral(sql: """
             SELECT * FROM player
             WHERE id = ?
             """, arguments: [1]))
@@ -33,10 +33,10 @@ class SQLStringTests: GRDBTestCase {
     }
     
     func testPlusOperator() {
-        var sql = SQLString(sql: "SELECT * ")
-        sql = sql + SQLString(sql: "FROM player ")
-        sql = sql + SQLString(sql: "WHERE id = ? ", arguments: [1])
-        sql = sql + SQLString(sql: "AND name = ?", arguments: ["Arthur"])
+        var sql = SQLLiteral(sql: "SELECT * ")
+        sql = sql + SQLLiteral(sql: "FROM player ")
+        sql = sql + SQLLiteral(sql: "WHERE id = ? ", arguments: [1])
+        sql = sql + SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"])
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player WHERE id = ? AND name = ?
             """)
@@ -44,10 +44,10 @@ class SQLStringTests: GRDBTestCase {
     }
     
     func testPlusEqualOperator() {
-        var sql = SQLString(sql: "SELECT * ")
-        sql += SQLString(sql: "FROM player ")
-        sql += SQLString(sql: "WHERE id = ? ", arguments: [1])
-        sql += SQLString(sql: "AND name = ?", arguments: ["Arthur"])
+        var sql = SQLLiteral(sql: "SELECT * ")
+        sql += SQLLiteral(sql: "FROM player ")
+        sql += SQLLiteral(sql: "WHERE id = ? ", arguments: [1])
+        sql += SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"])
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player WHERE id = ? AND name = ?
             """)
@@ -55,10 +55,10 @@ class SQLStringTests: GRDBTestCase {
     }
     
     func testAppend() {
-        var sql = SQLString(sql: "SELECT * ")
-        sql.append(SQLString(sql: "FROM player "))
-        sql.append(SQLString(sql: "WHERE id = ? ", arguments: [1]))
-        sql.append(SQLString(sql: "AND name = ?", arguments: ["Arthur"]))
+        var sql = SQLLiteral(sql: "SELECT * ")
+        sql.append(SQLLiteral(sql: "FROM player "))
+        sql.append(SQLLiteral(sql: "WHERE id = ? ", arguments: [1]))
+        sql.append(SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"]))
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player WHERE id = ? AND name = ?
             """)
@@ -66,7 +66,7 @@ class SQLStringTests: GRDBTestCase {
     }
     
     func testAppendSQL() {
-        var sql = SQLString(sql: "SELECT * ")
+        var sql = SQLLiteral(sql: "SELECT * ")
         sql.append(sql: "FROM player ")
         sql.append(sql: "WHERE score > \(1000) ")
         sql.append(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])
@@ -78,9 +78,9 @@ class SQLStringTests: GRDBTestCase {
 }
 
 #if swift(>=5.0)
-extension SQLStringTests {
+extension SQLLiteralTests {
     func testSQLInterpolation() {
-        let sql: SQLString = """
+        let sql: SQLLiteral = """
             SELECT *
             \(sql: "FROM player")
             \(sql: "WHERE score > \(1000)")
@@ -98,7 +98,7 @@ extension SQLStringTests {
     func testSelectableInterpolation() {
         do {
             // Non-existential
-            let sql: SQLString = """
+            let sql: SQLLiteral = """
                 SELECT \(AllColumns())
                 FROM player
                 """
@@ -110,7 +110,7 @@ extension SQLStringTests {
         }
         do {
             // Existential
-            let sql: SQLString = """
+            let sql: SQLLiteral = """
                 SELECT \(AllColumns() as SQLSelectable)
                 FROM player
                 """
@@ -124,7 +124,7 @@ extension SQLStringTests {
     
     func testTableInterpolation() {
         struct Player: TableRecord { }
-        let sql: SQLString = """
+        let sql: SQLLiteral = """
             SELECT *
             FROM \(Player.self)
             """
@@ -141,7 +141,7 @@ extension SQLStringTests {
         let integer: Int = 1
         let optionalInteger: Int? = 2
         let nilInteger: Int? = nil
-        let sql: SQLString = """
+        let sql: SQLLiteral = """
             SELECT
               \(a),
               \(a + 1),
@@ -165,7 +165,7 @@ extension SQLStringTests {
     }
     
     func testQualifiedExpressionInterpolation() {
-        let sql: SQLString = """
+        let sql: SQLLiteral = """
             SELECT \(Column("name").aliased("foo"))
             FROM player
             """
@@ -180,7 +180,7 @@ extension SQLStringTests {
         enum CodingKeys: String, CodingKey {
             case name
         }
-        let sql: SQLString = """
+        let sql: SQLLiteral = """
             SELECT \(CodingKeys.name)
             FROM player
             """
@@ -195,7 +195,7 @@ extension SQLStringTests {
         enum CodingKeys: String, CodingKey, ColumnExpression {
             case name
         }
-        let sql: SQLString = """
+        let sql: SQLLiteral = """
             SELECT \(CodingKeys.name)
             FROM player
             """
@@ -210,7 +210,7 @@ extension SQLStringTests {
         let set: Set = [1]
         let array = ["foo", "bar", "baz"]
         let expressions = [Column("a"), Column("b") + 2]
-        let sql: SQLString = """
+        let sql: SQLLiteral = """
             SELECT * FROM player
             WHERE teamId IN \(set)
               AND name IN \(array)
@@ -226,7 +226,7 @@ extension SQLStringTests {
     }
     
     func testOrderingTermInterpolation() {
-        let sql: SQLString = """
+        let sql: SQLLiteral = """
             SELECT * FROM player
             ORDER BY \(Column("name").desc)
             """
@@ -237,9 +237,9 @@ extension SQLStringTests {
         XCTAssert(sql.arguments.isEmpty)
     }
     
-    func testSQLStringInterpolation() {
-        let condition: SQLString = "name = \("Arthur")"
-        let sql: SQLString = """
+    func testSQLLiteralInterpolation() {
+        let condition: SQLLiteral = "name = \("Arthur")"
+        let sql: SQLLiteral = """
             SELECT *, \(true) FROM player
             WHERE \(condition) AND score > \(1000)
             """
@@ -250,8 +250,8 @@ extension SQLStringTests {
         XCTAssertEqual(sql.arguments, [true, "Arthur", 1000])
     }
 
-    func testSQLStringInitializerWithInterpolation() {
-        let sql = SQLString("""
+    func testSQLLiteralInitializerWithInterpolation() {
+        let sql = SQLLiteral("""
             SELECT * FROM player
             WHERE id = \(1)
             """)
@@ -263,7 +263,7 @@ extension SQLStringTests {
     }
 
     func testPlusOperatorWithInterpolation() {
-        var sql: SQLString = "SELECT \(AllColumns()) "
+        var sql: SQLLiteral = "SELECT \(AllColumns()) "
         sql = sql + "FROM player "
         sql = sql + "WHERE id = \(1)"
         XCTAssertEqual(sql.sql, """
@@ -273,7 +273,7 @@ extension SQLStringTests {
     }
 
     func testPlusEqualOperatorWithInterpolation() {
-        var sql: SQLString = "SELECT \(AllColumns()) "
+        var sql: SQLLiteral = "SELECT \(AllColumns()) "
         sql += "FROM player "
         sql += "WHERE id = \(1)"
         XCTAssertEqual(sql.sql, """
@@ -283,7 +283,7 @@ extension SQLStringTests {
     }
 
     func testAppendWithInterpolation() {
-        var sql: SQLString = "SELECT \(AllColumns()) "
+        var sql: SQLLiteral = "SELECT \(AllColumns()) "
         sql.append("FROM player ")
         sql.append("WHERE id = \(1)")
         XCTAssertEqual(sql.sql, """
@@ -293,7 +293,7 @@ extension SQLStringTests {
     }
 
     func testAppendSQLWithInterpolation() {
-        var sql: SQLString = "SELECT \(AllColumns()) "
+        var sql: SQLLiteral = "SELECT \(AllColumns()) "
         sql.append(sql: "FROM player ")
         sql.append(sql: "WHERE score > \(1000) ")
         sql.append(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])

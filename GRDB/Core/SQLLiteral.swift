@@ -1,5 +1,5 @@
 // TODO: documentation
-public struct SQLString {
+public struct SQLLiteral {
     private(set) public var sql: String
     private(set) public var arguments: StatementArguments
     
@@ -8,24 +8,24 @@ public struct SQLString {
         self.arguments = arguments
     }
     
-    public init(_ sqlString: SQLString) {
-        self = sqlString
+    public init(_ sqlLiteral: SQLLiteral) {
+        self = sqlLiteral
     }
 }
 
-extension SQLString {
-    public static func + (lhs: SQLString, rhs: SQLString) -> SQLString {
+extension SQLLiteral {
+    public static func + (lhs: SQLLiteral, rhs: SQLLiteral) -> SQLLiteral {
         var result = lhs
         result += rhs
         return result
     }
     
-    public static func += (lhs: inout SQLString, rhs: SQLString) {
+    public static func += (lhs: inout SQLLiteral, rhs: SQLLiteral) {
         lhs.sql += rhs.sql
         lhs.arguments += rhs.arguments
     }
     
-    public mutating func append(_ other: SQLString) {
+    public mutating func append(_ other: SQLLiteral) {
         self += other
     }
 
@@ -40,7 +40,7 @@ extension SQLString {
 // MARK: - ExpressibleByStringInterpolation
 
 #if swift(>=5.0)
-extension SQLString: ExpressibleByStringInterpolation {
+extension SQLLiteral: ExpressibleByStringInterpolation {
     /// :nodoc
     public init(unicodeScalarLiteral: String) {
         self.init(sql: unicodeScalarLiteral, arguments: [])

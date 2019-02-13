@@ -135,7 +135,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
         }
     }
     
-    func testSelectSQLString() throws {
+    func testSelectSQLLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
@@ -149,10 +149,10 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
                 XCTAssertEqual(rows[1][0] as String, "O'Brien")
                 XCTAssertEqual(rows[1][1] as Int64, 1)
             }
-            try test(Reader.select(SQLString(sql: ":name, id - :value", arguments: ["name": "O'Brien", "value": 1])))
+            try test(Reader.select(SQLLiteral(sql: ":name, id - :value", arguments: ["name": "O'Brien", "value": 1])))
             #if swift(>=5)
             // Interpolation
-            try test(Reader.select(SQLString("\("O'Brien"), id - \(1)")))
+            try test(Reader.select(SQLLiteral("\("O'Brien"), id - \(1)")))
             #endif
         }
     }

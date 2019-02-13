@@ -219,7 +219,7 @@ extension FetchableRecord {
     public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
         // TODO: make arguments non optional
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchCursor(db, SQLString(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
+        return try fetchCursor(db, SQLLiteral(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
     }
     
     /// Returns an array of records fetched from an SQL query.
@@ -236,7 +236,7 @@ extension FetchableRecord {
     public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self] {
         // TODO: make arguments non optional
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchAll(db, SQLString(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
+        return try fetchAll(db, SQLLiteral(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
     }
     
     /// Returns a single record fetched from an SQL query.
@@ -253,17 +253,17 @@ extension FetchableRecord {
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
         // TODO: make arguments non optional
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchOne(db, SQLString(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
+        return try fetchOne(db, SQLLiteral(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
     }
 }
 
 extension FetchableRecord {
     
-    // MARK: Fetching From SQLString
+    // MARK: Fetching From SQLLiteral
     
     /// Returns a cursor over records fetched from an SQL query.
     ///
-    ///     let players = try Player.fetchCursor(db, SQLString(sql: """
+    ///     let players = try Player.fetchCursor(db, SQLLiteral(sql: """
     ///         SELECT * FROM player WHERE lastName = ?
     ///         """, arguments: ["O'Brien"])) // Cursor of Player
     ///     while let player = try players.next() { // Player
@@ -273,7 +273,7 @@ extension FetchableRecord {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let players = try Player.fetchCursor(db, SQLString("""
+    ///     let players = try Player.fetchCursor(db, SQLLiteral("""
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
     ///         """) // Cursor of Player
     ///
@@ -284,17 +284,17 @@ extension FetchableRecord {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sqlString: An SQLString.
+    ///     - sqlLiteral: An SQLLiteral.
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, _ sqlString: SQLString, adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
-        return try fetchCursor(db, SQLRequest<Void>(sqlString, adapter: adapter))
+    public static func fetchCursor(_ db: Database, _ sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
+        return try fetchCursor(db, SQLRequest<Void>(sqlLiteral, adapter: adapter))
     }
     
     /// Returns an array of records fetched from an SQL query.
     ///
-    ///     let players = try Player.fetchAll(db, SQLString(sql: """
+    ///     let players = try Player.fetchAll(db, SQLLiteral(sql: """
     ///         SELECT * FROM player WHERE lastName = ?
     ///         """, arguments: ["O'Brien"])) // [Player]
     ///     for player in players {
@@ -304,23 +304,23 @@ extension FetchableRecord {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let players = try Player.fetchAll(db, SQLString("""
+    ///     let players = try Player.fetchAll(db, SQLLiteral("""
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
     ///         """) // [Player]
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sqlString: An SQLString.
+    ///     - sqlLiteral: An SQLLiteral.
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, _ sqlString: SQLString, adapter: RowAdapter? = nil) throws -> [Self] {
-        return try fetchAll(db, SQLRequest<Void>(sqlString, adapter: adapter))
+    public static func fetchAll(_ db: Database, _ sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> [Self] {
+        return try fetchAll(db, SQLRequest<Void>(sqlLiteral, adapter: adapter))
     }
     
     /// Returns a single record fetched from an SQL query.
     ///
-    ///     let player = try Player.fetchOne(db, SQLString(sql: """
+    ///     let player = try Player.fetchOne(db, SQLLiteral(sql: """
     ///         SELECT * FROM player WHERE lastName = ?
     ///         """, arguments: ["O'Brien"])) // Player?
     ///     if let player = player {
@@ -330,18 +330,18 @@ extension FetchableRecord {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let player = try Player.fetchOne(db, SQLString("""
+    ///     let player = try Player.fetchOne(db, SQLLiteral("""
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
     ///         """) // Player?
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sqlString: An SQLString.
+    ///     - sqlLiteral: An SQLLiteral.
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, _ sqlString: SQLString, adapter: RowAdapter? = nil) throws -> Self? {
-        return try fetchOne(db, SQLRequest<Void>(sqlString, adapter: adapter))
+    public static func fetchOne(_ db: Database, _ sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> Self? {
+        return try fetchOne(db, SQLRequest<Void>(sqlLiteral, adapter: adapter))
     }
 }
 

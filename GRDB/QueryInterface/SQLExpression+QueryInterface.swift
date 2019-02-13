@@ -3,19 +3,19 @@
 extension SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
-    /// Converts an expression to an SQLString
+    /// Converts an expression to an SQLLiteral
     ///
     /// :nodoc:
-    public var sqlString: SQLString {
+    public var sqlLiteral: SQLLiteral {
         var context = SQLGenerationContext.literalGenerationContext(withArguments: true)
         let sql = expressionSQL(&context)
-        return SQLString(sql: sql, arguments: context.arguments!)
+        return SQLLiteral(sql: sql, arguments: context.arguments!)
     }
     
     /// The expression as a quoted SQL literal (not public in order to avoid abuses)
     ///
-    ///     "foo'bar".databaseValue.sql  // "'foo''bar'""
-    var sql: String {
+    ///     "foo'bar".databaseValue.quotedSQL() // "'foo''bar'""
+    func quotedSQL() -> String {
         var context = SQLGenerationContext.literalGenerationContext(withArguments: false)
         return expressionSQL(&context)
     }
@@ -34,7 +34,7 @@ extension SQLExpression {
 ///     SQLExpressionLiteral("? + ?", arguments: [1, 2])
 ///     SQLExpressionLiteral(":one + :two", arguments: ["one": 1, "two": 2])
 public struct SQLExpressionLiteral : SQLExpression {
-    private let sqlString: SQLString
+    private let sqlLiteral: SQLLiteral
     
     /// If safe, an SQLExpressionLiteral("foo") wraps itself in parenthesis,
     /// and outputs "(foo)" in SQL queries. This avoids any bug due to operator
@@ -52,39 +52,39 @@ public struct SQLExpressionLiteral : SQLExpression {
     public init(_ sql: String, arguments: StatementArguments? = nil) {
         // TODO: make arguments non optional
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        self.init(SQLString(sql: sql, arguments: arguments ?? .init()))
+        self.init(SQLLiteral(sql: sql, arguments: arguments ?? .init()))
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Creates an SQL literal expression.
     ///
-    ///     SQLExpressionLiteral(SQLString(sql: "1 + 2")
-    ///     SQLExpressionLiteral(SQLString(sql: "? + ?", arguments: [1, 2]))
-    ///     SQLExpressionLiteral(SQLString(sql: ":one + :two", arguments: ["one": 1, "two": 2]))
+    ///     SQLExpressionLiteral(SQLLiteral(sql: "1 + 2")
+    ///     SQLExpressionLiteral(SQLLiteral(sql: "? + ?", arguments: [1, 2]))
+    ///     SQLExpressionLiteral(SQLLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2]))
     ///
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     SQLExpressionLiteral(SQLString("\(1) + \(2)"))
-    public init(_ sqlString: SQLString) {
-        self.sqlString = sqlString
+    ///     SQLExpressionLiteral(SQLLiteral("\(1) + \(2)"))
+    public init(_ sqlLiteral: SQLLiteral) {
+        self.sqlLiteral = sqlLiteral
     }
 
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func expressionSQL(_ context: inout SQLGenerationContext) -> String {
-        if !sqlString.arguments.isEmpty {
-            if context.appendArguments(sqlString.arguments) == false {
+        if !sqlLiteral.arguments.isEmpty {
+            if context.appendArguments(sqlLiteral.arguments) == false {
                 // GRDB limitation: we don't know how to look for `?` in sql and
                 // replace them with with literals.
                 fatalError("Not implemented")
             }
         }
         if unsafeRaw {
-            return sqlString.sql
+            return sqlLiteral.sql
         } else {
-            return "(" + sqlString.sql + ")"
+            return "(" + sqlLiteral.sql + ")"
         }
     }
     

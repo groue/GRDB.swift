@@ -2,11 +2,13 @@
 public struct SQLRequest<T> : FetchRequest {
     public typealias RowDecoder = T
     
-    public var sql: String
-    public var arguments: StatementArguments
     public var adapter: RowAdapter?
-    private let cache: Cache?
+    public var sql: String { return sqlLiteral.sql }
+    public var arguments: StatementArguments { return sqlLiteral.arguments }
     
+    private var sqlLiteral: SQLLiteral
+    private let cache: Cache?
+
     /// Creates a request from an SQL string, optional arguments, and
     /// optional row adapter.
     ///
@@ -27,34 +29,34 @@ public struct SQLRequest<T> : FetchRequest {
     public init(_ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, cached: Bool = false) {
         // TODO: make arguments non optional
         // TODO: force sql parameter name: init(sql:...)
-        self.init(sql, arguments: arguments, adapter: adapter, fromCache: cached ? .public : nil)
+        self.init(SQLLiteral(sql: sql, arguments: arguments ?? .init()), adapter: adapter, fromCache: cached ? .public : nil)
     }
     
-    /// Creates a request from an SQLString, and optional row adapter.
+    /// Creates a request from an SQLLiteral, and optional row adapter.
     ///
-    ///     let request = SQLRequest<String>(SQLString(sql: """
+    ///     let request = SQLRequest<String>(SQLLiteral(sql: """
     ///         SELECT name FROM player
     ///         """))
-    ///     let request = SQLRequest<Player>(SQLString(sql: """
+    ///     let request = SQLRequest<Player>(SQLLiteral(sql: """
     ///         SELECT * FROM player WHERE name = ?
     ///         """, arguments: ["O'Brien"]))
     ///
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let request = SQLRequest<Player>(SQLString("""
+    ///     let request = SQLRequest<Player>(SQLLiteral("""
     ///         SELECT * FROM player WHERE name = \("O'brien")
     ///         """))
     ///
     /// - parameters:
-    ///     - sqlString: An SQLString.
+    ///     - sqlLiteral: An SQLLiteral.
     ///     - adapter: Optional RowAdapter.
     ///     - cached: Defaults to false. If true, the request reuses a cached
     ///       prepared statement.
     /// - returns: A SQLRequest
-    public init(_ sqlString: SQLString, adapter: RowAdapter? = nil, cached: Bool = false) {
+    public init(_ sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, cached: Bool = false) {
         // TODO: make this optional arguments non optional
-        self.init(sqlString.sql, arguments: sqlString.arguments, adapter: adapter, fromCache: cached ? .public : nil)
+        self.init(sqlLiteral, adapter: adapter, fromCache: cached ? .public : nil)
     }
 
     /// Creates an SQL request from any other fetch request.
@@ -67,7 +69,7 @@ public struct SQLRequest<T> : FetchRequest {
     /// - returns: An SQLRequest
     public init<Request: FetchRequest>(_ db: Database, request: Request, cached: Bool = false) throws where Request.RowDecoder == RowDecoder {
         let (statement, adapter) = try request.prepare(db)
-        self.init(statement.sql, arguments: statement.arguments, adapter: adapter, cached: cached)
+        self.init(SQLLiteral(sql: statement.sql, arguments: statement.arguments), adapter: adapter, cached: cached)
     }
     
     /// Creates an SQL request from an SQL string, optional arguments, and
@@ -77,16 +79,13 @@ public struct SQLRequest<T> : FetchRequest {
     ///     let request = SQLRequest("SELECT * FROM player WHERE id = ?", arguments: [1])
     ///
     /// - parameters:
-    ///     - sql: An SQL query.
+    ///     - sqlLiteral: An SQLLiteral.
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter.
     ///     - statementCacheName: Optional statement cache name.
     /// - returns: A SQLRequest
-    init(_ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, fromCache cache: Cache?) {
-        // TODO: make this optional arguments non optional
-        // TODO: force sql parameter name: init(sql:...)
-        self.sql = sql
-        self.arguments = arguments ?? StatementArguments()
+    init(_ sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, fromCache cache: Cache?) {
+        self.sqlLiteral = sqlLiteral
         self.adapter = adapter
         self.cache = cache
     }
@@ -101,13 +100,13 @@ public struct SQLRequest<T> : FetchRequest {
         let statement: SelectStatement
         switch cache {
         case .none:
-            statement = try db.makeSelectStatement(sql)
+            statement = try db.makeSelectStatement(sqlLiteral.sql)
         case .public?:
-            statement = try db.cachedSelectStatement(sql)
+            statement = try db.cachedSelectStatement(sqlLiteral.sql)
         case .internal?:
-            statement = try db.internalCachedSelectStatement(sql)
+            statement = try db.internalCachedSelectStatement(sqlLiteral.sql)
         }
-        try statement.setArgumentsWithValidation(arguments)
+        try statement.setArgumentsWithValidation(sqlLiteral.arguments)
         return (statement, adapter)
     }
     

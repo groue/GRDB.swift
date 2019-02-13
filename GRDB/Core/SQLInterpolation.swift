@@ -27,9 +27,9 @@ public struct SQLInterpolation: StringInterpolationProtocol {
     }
 
     /// "SELECT * FROM player WHERE \(condition)"
-    public mutating func appendInterpolation(_ sqlString: SQLString) {
-        sql += sqlString.sql
-        arguments += sqlString.arguments
+    public mutating func appendInterpolation(_ sqlLiteral: SQLLiteral) {
+        sql += sqlLiteral.sql
+        arguments += sqlLiteral.arguments
     }
 }
 #endif

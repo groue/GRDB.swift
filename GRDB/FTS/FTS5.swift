@@ -49,27 +49,27 @@
             }
             
             if let tokenizer = definition.tokenizer {
-                arguments.append("tokenize=\(tokenizer.components.joined(separator: " ").sqlExpression.sql)")
+                arguments.append("tokenize=\(tokenizer.components.joined(separator: " ").sqlExpression.quotedSQL())")
             }
             
             switch definition.contentMode {
             case .raw(let content, let contentRowID):
                 if let content = content {
-                    arguments.append("content=\(content.sqlExpression.sql)")
+                    arguments.append("content=\(content.sqlExpression.quotedSQL())")
                 }
                 if let contentRowID = contentRowID {
-                    arguments.append("content_rowid=\(contentRowID.sqlExpression.sql)")
+                    arguments.append("content_rowid=\(contentRowID.sqlExpression.quotedSQL())")
                 }
             case .synchronized(let contentTable):
-                arguments.append("content=\(contentTable.sqlExpression.sql)")
+                arguments.append("content=\(contentTable.sqlExpression.quotedSQL())")
                 if let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn {
-                    arguments.append("content_rowid=\(rowIDColumn.sqlExpression.sql)")
+                    arguments.append("content_rowid=\(rowIDColumn.sqlExpression.quotedSQL())")
                 }
             }
             
             
             if let prefixes = definition.prefixes {
-                arguments.append("prefix=\(prefixes.sorted().map { "\($0)" }.joined(separator: " ").sqlExpression.sql)")
+                arguments.append("prefix=\(prefixes.sorted().map { "\($0)" }.joined(separator: " ").sqlExpression.quotedSQL())")
             }
             
             if let columnSize = definition.columnSize {

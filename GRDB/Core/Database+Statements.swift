@@ -128,16 +128,16 @@ extension Database {
     public func execute(_ sql: String, arguments: StatementArguments? = nil) throws {
         // TODO: force sql parameter name: execute(sql:...)
         // TODO: make arguments non optional
-        try execute(SQLString(sql: sql, arguments: arguments ?? .init()))
+        try execute(SQLLiteral(sql: sql, arguments: arguments ?? .init()))
     }
     
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
-    ///     try db.execute(SQLString(
+    ///     try db.execute(SQLLiteral(
     ///         sql: "INSERT INTO player (name) VALUES (:name)",
     ///         arguments: ["name": "Arthur"]))
     ///
-    ///     try db.execute(SQLString(sql: """
+    ///     try db.execute(SQLLiteral(sql: """
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
@@ -146,7 +146,7 @@ extension Database {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     try db.execute(SQLString("""
+    ///     try db.execute(SQLLiteral("""
     ///         INSERT INTO player (name) VALUES (\("Arthur"));
     ///         INSERT INTO player (name) VALUES (\("Barbara"));
     ///         INSERT INTO player (name) VALUES (\("O'Brien"));
@@ -154,9 +154,9 @@ extension Database {
     ///
     /// This method may throw a DatabaseError.
     ///
-    /// - parameter sqlString: An SQLString.
+    /// - parameter sqlLiteral: An SQLLiteral.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(_ sqlString: SQLString) throws {
+    public func execute(_ sqlLiteral: SQLLiteral) throws {
         // This method is like sqlite3_exec (https://www.sqlite.org/c3ref/exec.html)
         // It adds support for arguments, and the tricky part is to consume
         // arguments as statements are executed.
@@ -167,8 +167,8 @@ extension Database {
         //   all statements have been executed, in the same way
         //   as Statement.validate(arguments:)
         
-        let sql = sqlString.sql
-        var arguments = sqlString.arguments
+        let sql = sqlLiteral.sql
+        var arguments = sqlLiteral.arguments
         
         let initialValuesCount = arguments.values.count
         let consumeArguments = { (statement: UpdateStatement) throws -> StatementArguments in
