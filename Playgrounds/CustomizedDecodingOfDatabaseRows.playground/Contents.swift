@@ -386,20 +386,17 @@ extension MyDatabaseDecoder {
     
     // MARK: - Fetch from SQL
     
-    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
-        // TODO: make arguments non optional
+    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
         return try fetchCursor(db, SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }
     
-    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [DecodedType] {
-        // TODO: make arguments non optional
+    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [DecodedType] {
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
         return try fetchAll(db, SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }
     
-    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DecodedType? {
-        // TODO: make arguments non optional
+    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> DecodedType? {
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
         return try fetchOne(db, SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }

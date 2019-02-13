@@ -21,15 +21,14 @@ public struct SQLRequest<T> : FetchRequest {
     ///
     /// - parameters:
     ///     - sql: An SQL query.
-    ///     - arguments: Optional statement arguments.
+    ///     - arguments: Statement arguments.
     ///     - adapter: Optional RowAdapter.
     ///     - cached: Defaults to false. If true, the request reuses a cached
     ///       prepared statement.
     /// - returns: A SQLRequest
-    public init(_ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, cached: Bool = false) {
-        // TODO: make arguments non optional
+    public init(_ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil, cached: Bool = false) {
         // TODO: force sql parameter name: init(sql:...)
-        self.init(SQLLiteral(sql: sql, arguments: arguments ?? .init()), adapter: adapter, fromCache: cached ? .public : nil)
+        self.init(SQLLiteral(sql: sql, arguments: arguments), adapter: adapter, fromCache: cached ? .public : nil)
     }
     
     /// Creates a request from an SQLLiteral, and optional row adapter.

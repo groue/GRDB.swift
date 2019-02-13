@@ -49,10 +49,9 @@ public struct SQLExpressionLiteral : SQLExpression {
     ///     SQLExpressionLiteral("1 + 2")
     ///     SQLExpressionLiteral("? + ?", arguments: [1, 2])
     ///     SQLExpressionLiteral(":one + :two", arguments: ["one": 1, "two": 2])
-    public init(_ sql: String, arguments: StatementArguments? = nil) {
-        // TODO: make arguments non optional
+    public init(_ sql: String, arguments: StatementArguments = StatementArguments()) {
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        self.init(SQLLiteral(sql: sql, arguments: arguments ?? .init()))
+        self.init(SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)

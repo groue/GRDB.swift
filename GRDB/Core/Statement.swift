@@ -465,7 +465,7 @@ public final class UpdateStatement : Statement {
     
     /// Executes the SQL query.
     ///
-    /// - parameter arguments: Statement arguments.
+    /// - parameter arguments: Optional statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(arguments: StatementArguments? = nil) throws {
         SchedulingWatchdog.preconditionValidQueue(database)

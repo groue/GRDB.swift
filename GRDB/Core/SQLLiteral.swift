@@ -29,11 +29,9 @@ extension SQLLiteral {
         self += other
     }
 
-    public mutating func append(sql: String, arguments: StatementArguments? = nil) {
+    public mutating func append(sql: String, arguments: StatementArguments = StatementArguments()) {
         self.sql += sql
-        if let arguments = arguments {
-            self.arguments += arguments
-        }
+        self.arguments += arguments
     }
 }
 

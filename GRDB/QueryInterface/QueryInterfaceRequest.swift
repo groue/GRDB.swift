@@ -106,9 +106,8 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///         let request = Player.all().select(sql: "max(score)", as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(sql: String, arguments: StatementArguments? = nil, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
-        // TODO: make arguments non optional
-        return select(SQLLiteral(sql: sql, arguments: arguments ?? .init()), as: type)
+    public func select<RowDecoder>(sql: String, arguments: StatementArguments = StatementArguments(), as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+        return select(SQLLiteral(sql: sql, arguments: arguments), as: type)
     }
     
     /// Creates a request which selects *sql*, and fetches values of
@@ -372,9 +371,8 @@ extension TableRecord {
     ///
     ///     // SELECT id, email FROM player
     ///     let request = Player.select(sql: "id, email")
-    public static func select(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self> {
-        // TODO: make arguments non optional
-        return select(SQLLiteral(sql: sql, arguments: arguments ?? .init()))
+    public static func select(sql: String, arguments: StatementArguments = StatementArguments()) -> QueryInterfaceRequest<Self> {
+        return select(SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request which selects *sql*.
@@ -417,9 +415,8 @@ extension TableRecord {
     ///         let request = Player.select(sql: "max(score)", as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public static func select<RowDecoder>(sql: String, arguments: StatementArguments? = nil, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
-        // TODO: make arguments non optional
-        return all().select(SQLLiteral(sql: sql, arguments: arguments ?? .init()), as: type)
+    public static func select<RowDecoder>(sql: String, arguments: StatementArguments = StatementArguments(), as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+        return all().select(SQLLiteral(sql: sql, arguments: arguments), as: type)
     }
 
     /// Creates a request which selects *sql*, and fetches values of
@@ -508,9 +505,8 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func filter(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self> {
-        // TODO: make arguments non optional
-        return filter(SQLLiteral(sql: sql, arguments: arguments ?? .init()))
+    public static func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> QueryInterfaceRequest<Self> {
+        return filter(SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *predicate*.
@@ -580,7 +576,7 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func order(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self> {
+    public static func order(sql: String, arguments: StatementArguments = StatementArguments()) -> QueryInterfaceRequest<Self> {
         return all().order(sql: sql, arguments: arguments)
     }
     

@@ -123,12 +123,11 @@ extension Database {
     ///
     /// - parameters:
     ///     - sql: An SQL query.
-    ///     - arguments: Optional statement arguments.
+    ///     - arguments: Statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(_ sql: String, arguments: StatementArguments? = nil) throws {
+    public func execute(_ sql: String, arguments: StatementArguments = StatementArguments()) throws {
         // TODO: force sql parameter name: execute(sql:...)
-        // TODO: make arguments non optional
-        try execute(SQLLiteral(sql: sql, arguments: arguments ?? .init()))
+        try execute(SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Executes one or several SQL statements, separated by semi-colons.

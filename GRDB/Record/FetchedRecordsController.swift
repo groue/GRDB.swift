@@ -40,7 +40,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     public convenience init(
         _ databaseWriter: DatabaseWriter,
         sql: String,
-        arguments: StatementArguments? = nil,
+        arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil,
         queue: DispatchQueue = .main,
         isSameRecord: ((Record, Record) -> Bool)? = nil) throws
@@ -196,7 +196,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     ///
     /// This method must be used from the controller's dispatch queue (the
     /// main queue unless stated otherwise in the controller's initializer).
-    public func setRequest(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
+    public func setRequest(sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws {
         try setRequest(SQLRequest(sql, arguments: arguments, adapter: adapter))
     }
     
@@ -429,7 +429,7 @@ extension FetchedRecordsController where Record: TableRecord {
     public convenience init(
         _ databaseWriter: DatabaseWriter,
         sql: String,
-        arguments: StatementArguments? = nil,
+        arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil,
         queue: DispatchQueue = .main) throws
     {

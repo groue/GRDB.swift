@@ -744,14 +744,13 @@ extension Row {
     /// - parameters:
     ///     - db: A database connection.
     ///     - sql: An SQL query.
-    ///     - arguments: Optional statement arguments.
+    ///     - arguments: Statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RowCursor {
-        // TODO: make arguments non optional
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RowCursor {
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchCursor(db, SQLLiteral(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
+        return try fetchCursor(db, SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }
     
     /// Returns an array of rows fetched from an SQL query.
@@ -765,14 +764,13 @@ extension Row {
     /// - parameters:
     ///     - db: A database connection.
     ///     - sql: An SQL query.
-    ///     - arguments: Optional statement arguments.
+    ///     - arguments: Statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
-        // TODO: make arguments non optional
+    public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Row] {
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchAll(db, SQLLiteral(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
+        return try fetchAll(db, SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -786,14 +784,13 @@ extension Row {
     /// - parameters:
     ///     - db: A database connection.
     ///     - sql: An SQL query.
-    ///     - arguments: Optional statement arguments.
+    ///     - arguments: Statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row? {
-        // TODO: make arguments non optional
+    public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Row? {
         // TODO: force sql parameter name: fetchCursor(db, sql:...)
-        return try fetchOne(db, SQLLiteral(sql: sql, arguments: arguments ?? .init()), adapter: adapter)
+        return try fetchOne(db, SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }
 }
 

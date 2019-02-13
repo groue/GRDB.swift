@@ -51,9 +51,8 @@ extension SelectionRequest {
     ///     request
     ///         .select(sql: "id")
     ///         .select(sql: "email")
-    public func select(sql: String, arguments: StatementArguments? = nil) -> Self {
-        // TODO: make arguments non optional
-        return select(SQLLiteral(sql: sql, arguments: arguments ?? .init()))
+    public func select(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return select(SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request which selects *sql*.
@@ -122,9 +121,8 @@ extension FilteredRequest {
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     var request = Player.all()
     ///     request = request.filter(sql: "email = ?", arguments: ["arthur@example.com"])
-    public func filter(sql: String, arguments: StatementArguments? = nil) -> Self {
-        // TODO: make arguments non optional
-        return filter(SQLLiteral(sql: sql, arguments: arguments ?? .init()))
+    public func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return filter(SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *predicate* added to the
@@ -322,9 +320,8 @@ extension AggregatingRequest {
     }
     
     /// Creates a request with a new grouping.
-    public func group(sql: String, arguments: StatementArguments? = nil) -> Self {
-        // TODO: make arguments non optional
-        return group(SQLLiteral(sql: sql, arguments: arguments ?? .init()))
+    public func group(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return group(SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with a new grouping.
@@ -345,9 +342,8 @@ extension AggregatingRequest {
 
     /// Creates a request with the provided *sql* added to the
     /// eventual set of already applied predicates.
-    public func having(sql: String, arguments: StatementArguments? = nil) -> Self {
-        // TODO: make arguments non optional
-        return having(SQLLiteral(sql: sql, arguments: arguments ?? .init()))
+    public func having(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return having(SQLLiteral(sql: sql, arguments: arguments))
     }
 
     /// Creates a request with the provided *sql* added to the
@@ -443,9 +439,8 @@ extension OrderedRequest {
     ///     request
     ///         .order(sql: "email")
     ///         .order(sql: "name")
-    public func order(sql: String, arguments: StatementArguments? = nil) -> Self {
-        // TODO: make arguments non optional
-        return order(SQLLiteral(sql: sql, arguments: arguments ?? .init()))
+    public func order(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return order(SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *sql* used for sorting.

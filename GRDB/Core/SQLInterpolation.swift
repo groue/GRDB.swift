@@ -14,16 +14,14 @@ public struct SQLInterpolation: StringInterpolationProtocol {
     }
 
     /// "SELECT * FROM player"
-    public mutating func appendLiteral(_ literal: String) {
-        sql += literal
+    public mutating func appendLiteral(_ sql: String) {
+        self.sql += sql
     }
 
     /// "SELECT * FROM \(raw: "player")"
-    public mutating func appendInterpolation(sql literal: String, arguments: StatementArguments? = nil) {
-        sql += literal
-        if let arguments = arguments {
-            self.arguments += arguments
-        }
+    public mutating func appendInterpolation(sql: String, arguments: StatementArguments = StatementArguments()) {
+        self.sql += sql
+        self.arguments += arguments
     }
 
     /// "SELECT * FROM player WHERE \(condition)"
