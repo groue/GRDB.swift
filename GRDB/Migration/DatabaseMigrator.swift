@@ -241,7 +241,7 @@ public struct DatabaseMigrator {
     }
     
     private func appliedIdentifiers(_ db: Database) throws -> Set<String> {
-        return try Set(String.fetchAll(db, "SELECT identifier FROM grdb_migrations"))
+        return try Set(String.fetchAll(db, rawSQL: "SELECT identifier FROM grdb_migrations"))
     }
     
     private func runMigrations(_ db: Database, upTo targetIdentifier: String) throws {

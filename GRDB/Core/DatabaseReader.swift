@@ -32,13 +32,13 @@ public protocol DatabaseReader : class {
     ///     try reader.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
     ///         // `wine` table is modified between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count1 = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     ///     try reader.read { db in
     ///         // Now this value may be different:
-    ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Guarantee 2: Starting iOS 8.2, OSX 10.10, and with custom SQLite builds
@@ -61,15 +61,15 @@ public protocol DatabaseReader : class {
     ///     try reader.unsafeRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count1 = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Cursor iterations are isolated, though:
     ///
     ///     try reader.unsafeRead { db in
     ///         // No concurrent update can mess with this iteration:
-    ///         let rows = try Row.fetchCursor(db, "SELECT ...")
+    ///         let rows = try Row.fetchCursor(db, rawSQL: "SELECT ...")
     ///         while let row = try rows.next() { ... }
     ///     }
     ///
@@ -92,15 +92,15 @@ public protocol DatabaseReader : class {
     ///     try reader.unsafeReentrantRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count1 = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Cursor iterations are isolated, though:
     ///
     ///     try reader.unsafeReentrantRead { db in
     ///         // No concurrent update can mess with this iteration:
-    ///         let rows = try Row.fetchCursor(db, "SELECT ...")
+    ///         let rows = try Row.fetchCursor(db, rawSQL: "SELECT ...")
     ///         while let row = try rows.next() { ... }
     ///     }
     ///
@@ -128,7 +128,7 @@ public protocol DatabaseReader : class {
     ///     }
     ///     reader.add(function: fn)
     ///     try reader.read { db in
-    ///         try Int.fetchOne(db, "SELECT succ(1)")! // 2
+    ///         try Int.fetchOne(db, rawSQL: "SELECT succ(1)")! // 2
     ///     }
     func add(function: DatabaseFunction)
     

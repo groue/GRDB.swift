@@ -616,7 +616,7 @@ extension DatabaseCollation {
     /// You can use it when creating database tables:
     ///
     ///     let collationName = DatabaseCollation.caseInsensitiveCompare.name
-    ///     dbQueue.execute("""
+    ///     dbQueue.execute(rawSQL: """
     ///         CREATE TABLE players (
     ///           name TEXT COLLATE \(collationName)
     ///         )
@@ -634,7 +634,7 @@ extension DatabaseCollation {
     /// You can use it when creating database tables:
     ///
     ///     let collationName = DatabaseCollation.caseInsensitiveCompare.name
-    ///     dbQueue.execute("""
+    ///     dbQueue.execute(rawSQL: """
     ///         CREATE TABLE players (
     ///           name TEXT COLLATE \(collationName)
     ///         )
@@ -652,7 +652,7 @@ extension DatabaseCollation {
     /// You can use it when creating database tables:
     ///
     ///     let collationName = DatabaseCollation.localizedCaseInsensitiveCompare.name
-    ///     dbQueue.execute("""
+    ///     dbQueue.execute(rawSQL: """
     ///         CREATE TABLE players (
     ///           name TEXT COLLATE \(collationName)
     ///         )
@@ -670,7 +670,7 @@ extension DatabaseCollation {
     /// You can use it when creating database tables:
     ///
     ///     let collationName = DatabaseCollation.localizedCompare.name
-    ///     dbQueue.execute("""
+    ///     dbQueue.execute(rawSQL: """
     ///         CREATE TABLE players (
     ///           name TEXT COLLATE \(collationName)
     ///         )
@@ -688,7 +688,7 @@ extension DatabaseCollation {
     /// You can use it when creating database tables:
     ///
     ///     let collationName = DatabaseCollation.localizedStandardCompare.name
-    ///     dbQueue.execute("""
+    ///     dbQueue.execute(rawSQL: """
     ///         CREATE TABLE players (
     ///           name TEXT COLLATE \(collationName)
     ///         )

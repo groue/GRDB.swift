@@ -60,7 +60,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try record.insert(db)
             XCTAssertTrue(record.id != nil)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -72,7 +72,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             record.id = 123456
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -99,7 +99,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try record.delete(db)
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -128,7 +128,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try record.insert(db)
             try record.update(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -159,7 +159,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try record.save(db)
             XCTAssertTrue(record.id != nil)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -171,7 +171,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             record.id = 123456
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -183,7 +183,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try record.insert(db)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -196,7 +196,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try record.delete(db)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -222,7 +222,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             let deleted = try record.delete(db)
             XCTAssertTrue(deleted)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])
             XCTAssertTrue(row == nil)
         }
     }

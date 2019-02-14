@@ -14,7 +14,7 @@ class FTS3TokenizerTests: GRDBTestCase {
         defer {
             try! db.execute(rawSQL: "DELETE FROM documents")
         }
-        return try! Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: [query])! > 0
+        return try! Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: [query])! > 0
     }
     
     func testSimpleTokenizer() throws {

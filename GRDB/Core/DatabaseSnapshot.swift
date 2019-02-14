@@ -28,7 +28,7 @@ public class DatabaseSnapshot : DatabaseReader {
         
         try serializedDatabase.sync { db in
             // Assert WAL mode
-            let journalMode = try String.fetchOne(db, "PRAGMA journal_mode")
+            let journalMode = try String.fetchOne(db, rawSQL: "PRAGMA journal_mode")
             guard journalMode == "wal" else {
                 throw DatabaseError(message: "WAL mode is not activated at path: \(path)")
             }

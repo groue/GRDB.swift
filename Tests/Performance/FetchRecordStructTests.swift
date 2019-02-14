@@ -72,7 +72,7 @@ class FetchRecordStructTests: XCTestCase {
         
         measure {
             let items = try! dbQueue.inDatabase { db in
-                try ItemStruct.fetchAll(db, "SELECT * FROM items")
+                try ItemStruct.fetchAll(db, rawSQL: "SELECT * FROM items")
             }
             XCTAssertEqual(items.count, expectedRowCount)
             XCTAssertEqual(items[0].i0, 0)

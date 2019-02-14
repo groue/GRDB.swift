@@ -27,7 +27,7 @@ public final class DatabaseFunction: Hashable {
     ///         return int + 1
     ///     }
     ///     db.add(function: fn)
-    ///     try Int.fetchOne(db, "SELECT succ(1)")! // 2
+    ///     try Int.fetchOne(db, rawSQL: "SELECT succ(1)")! // 2
     ///
     /// - parameters:
     ///     - name: The function name.
@@ -76,7 +76,7 @@ public final class DatabaseFunction: Hashable {
     ///         try db.execute(rawSQL: "CREATE TABLE test(i)")
     ///         try db.execute(rawSQL: "INSERT INTO test(i) VALUES (1)")
     ///         try db.execute(rawSQL: "INSERT INTO test(i) VALUES (2)")
-    ///         try Int.fetchOne(db, "SELECT mysum(i) FROM test")! // 3
+    ///         try Int.fetchOne(db, rawSQL: "SELECT mysum(i) FROM test")! // 3
     ///     }
     ///
     /// - parameters:
@@ -356,7 +356,7 @@ extension DatabaseFunction {
 ///         try db.execute(rawSQL: "CREATE TABLE test(i)")
 ///         try db.execute(rawSQL: "INSERT INTO test(i) VALUES (1)")
 ///         try db.execute(rawSQL: "INSERT INTO test(i) VALUES (2)")
-///         try Int.fetchOne(db, "SELECT mysum(i) FROM test")! // 3
+///         try Int.fetchOne(db, rawSQL: "SELECT mysum(i) FROM test")! // 3
 ///     }
 public protocol DatabaseAggregate {
     /// Creates an aggregate.

@@ -291,7 +291,7 @@ extension DatabaseValue {
         } else {
             // Correctness above all: use SQLite to quote the value.
             // Assume that the Quote function always succeeds
-            return DatabaseQueue().inDatabase { try! String.fetchOne($0, "SELECT QUOTE(?)", arguments: [self])! }
+            return DatabaseQueue().inDatabase { try! String.fetchOne($0, rawSQL: "SELECT QUOTE(?)", arguments: [self])! }
         }
     }
     

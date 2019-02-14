@@ -50,7 +50,7 @@ class FTS5PatternTests: GRDBTestCase {
             ]
             for (rawPattern, expectedCount) in validRawPatterns {
                 let pattern = try db.makeFTS5Pattern(rawPattern: rawPattern, forTable: "books")
-                let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                let count = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                 XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
             }
         }
@@ -95,7 +95,7 @@ class FTS5PatternTests: GRDBTestCase {
                 if let pattern = FTS5Pattern(matchingAnyTokenIn: string) {
                     let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                     XCTAssertEqual(rawPattern, expectedRawPattern)
-                    let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                    let count = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                     XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                 }
             }
@@ -125,7 +125,7 @@ class FTS5PatternTests: GRDBTestCase {
                 if let pattern = FTS5Pattern(matchingAllTokensIn: string) {
                     let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                     XCTAssertEqual(rawPattern, expectedRawPattern)
-                    let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                    let count = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                     XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                 }
             }
@@ -155,7 +155,7 @@ class FTS5PatternTests: GRDBTestCase {
                 if let pattern = FTS5Pattern(matchingPhrase: string) {
                     let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                     XCTAssertEqual(rawPattern, expectedRawPattern)
-                    let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                    let count = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                     XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                 }
             }
@@ -187,7 +187,7 @@ class FTS5PatternTests: GRDBTestCase {
                 if let pattern = FTS5Pattern(matchingPrefixPhrase: string) {
                     let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                     XCTAssertEqual(rawPattern, expectedRawPattern)
-                    let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                    let count = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
                     XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
                 }
             }

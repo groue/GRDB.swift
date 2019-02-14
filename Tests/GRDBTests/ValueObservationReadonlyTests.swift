@@ -24,7 +24,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         notificationExpectation.expectedFulfillmentCount = 2
         
         var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-            try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+            try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")!
         })
         observation.extent = .databaseLifetime
         _ = try observation.start(in: dbQueue) { count in
@@ -75,7 +75,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db -> Int in
             XCTAssert(db.isInsideTransaction, "expected a wrapping transaction")
             try db.execute(rawSQL: "CREATE TEMPORARY TABLE temp AS SELECT * FROM t")
-            let result = try Int.fetchOne(db, "SELECT COUNT(*) FROM temp")!
+            let result = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM temp")!
             try db.execute(rawSQL: "DROP TABLE temp")
             return result
         })
@@ -116,7 +116,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         } catch is TestError {
         }
         
-        let count = try dbQueue.read { try Int.fetchOne($0, "SELECT COUNT(*) FROM t")! }
+        let count = try dbQueue.read { try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")! }
         XCTAssertEqual(count, 0)
     }
 }

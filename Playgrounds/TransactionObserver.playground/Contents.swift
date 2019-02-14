@@ -14,19 +14,19 @@ import GRDB
 let dbQueue = DatabaseQueue()   // Memory database
 var migrator = DatabaseMigrator()
 migrator.registerMigration("createPersons") { db in
-    try db.execute(
-        "CREATE TABLE persons (" +
-            "id INTEGER PRIMARY KEY, " +
-            "name TEXT NOT NULL " +
-        ")")
+    try db.execute(rawSQL: """
+        CREATE TABLE persons (
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL)
+        """)
 }
 migrator.registerMigration("createPets") { db in
-    try db.execute(
-        "CREATE TABLE pets (" +
-            "id INTEGER PRIMARY KEY, " +
-            "name TEXT, " +
-            "ownerId INTEGER NOT NULL REFERENCES persons(id) ON DELETE CASCADE" +
-        ")")
+    try db.execute(rawSQL: """
+        CREATE TABLE pets (
+            id INTEGER PRIMARY KEY,
+            name TEXT,
+            ownerId INTEGER NOT NULL REFERENCES persons(id) ON DELETE CASCADE)
+        """)
 }
 try! migrator.migrate(dbQueue)
 
@@ -69,22 +69,22 @@ dbQueue.add(transactionObserver: observer)
 
 print("-- Changes 1")
 try! dbQueue.inDatabase { db in
-    try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
+    try db.execute(rawSQL: "INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
     let arthurId = db.lastInsertedRowID
-    try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Barbara"])
-    try db.execute("INSERT INTO pets (ownerId, name) VALUES (?, ?)", arguments: [arthurId, "Barbara"])
+    try db.execute(rawSQL: "INSERT INTO persons (name) VALUES (?)", arguments: ["Barbara"])
+    try db.execute(rawSQL: "INSERT INTO pets (ownerId, name) VALUES (?, ?)", arguments: [arthurId, "Barbara"])
 }
 
 print("-- Changes 2")
 try dbQueue.inTransaction { db in
-    try db.execute("INSERT INTO persons (name) VALUES ('Arthur')")
-    try db.execute("INSERT INTO persons (name) VALUES ('Barbara')")
+    try db.execute(rawSQL: "INSERT INTO persons (name) VALUES ('Arthur')")
+    try db.execute(rawSQL: "INSERT INTO persons (name) VALUES ('Barbara')")
     return .rollback
 }
 
 
 print("-- Changes 3")
 try dbQueue.write { db in
-    try db.execute("DELETE FROM persons")
-    try db.execute("DELETE FROM pets")
+    try db.execute(rawSQL: "DELETE FROM persons")
+    try db.execute(rawSQL: "DELETE FROM pets")
 }

@@ -60,7 +60,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         
         do {
             // test T.fetchOne
-            let sqliteConversion = try T.fetchOne(db, sql)
+            let sqliteConversion = try T.fetchOne(db, rawSQL: sql)
             XCTAssert(
                 sqliteConversion == expectedSQLiteConversion,
                 "unexpected SQLite conversion: \(stringRepresentation(sqliteConversion)) instead of \(stringRepresentation(expectedSQLiteConversion))",
@@ -69,7 +69,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         
         do {
             // test row[0] as T?
-            let sqliteConversion = try Row.fetchCursor(db, sql).map { $0[0] as T? }.next()!
+            let sqliteConversion = try Row.fetchCursor(db, rawSQL: sql).map { $0[0] as T? }.next()!
             XCTAssert(
                 sqliteConversion == expectedSQLiteConversion,
                 "unexpected SQLite conversion: \(stringRepresentation(sqliteConversion)) instead of \(stringRepresentation(expectedSQLiteConversion))",
@@ -78,7 +78,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         
         do {
             // test row[0] as T
-            let sqliteConversion = try Row.fetchCursor(db, sql).map { $0.hasNull(atIndex: 0) ? nil : ($0[0] as T) }.next()!
+            let sqliteConversion = try Row.fetchCursor(db, rawSQL: sql).map { $0.hasNull(atIndex: 0) ? nil : ($0[0] as T) }.next()!
             XCTAssert(
                 sqliteConversion == expectedSQLiteConversion,
                 "unexpected SQLite conversion: \(stringRepresentation(sqliteConversion)) instead of \(stringRepresentation(expectedSQLiteConversion))",
@@ -87,7 +87,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         
         do {
             // test T.fromDatabaseValue
-            let dbValue = try DatabaseValue.fetchOne(db, sql)!
+            let dbValue = try DatabaseValue.fetchOne(db, rawSQL: sql)!
             let dbValueConversion = T.fromDatabaseValue(dbValue)
             XCTAssert(
                 dbValueConversion == expectedDatabaseValueConversion,
@@ -106,7 +106,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         // We can only test failed decoding from database value, since
         // StatementColumnConvertible only supports optimistic decoding which
         // never fails.
-        let dbValue = try DatabaseValue.fetchOne(db, sql)!
+        let dbValue = try DatabaseValue.fetchOne(db, rawSQL: sql)!
         XCTAssertNil(T.fromDatabaseValue(dbValue), file: file, line: line)
     }
     
@@ -142,7 +142,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (textAffinity) VALUES (NULL)")
             let sql = "SELECT textAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .null)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .null)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
@@ -158,7 +158,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [0 as Int])
             let sql = "SELECT textAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .text)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .text)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -174,7 +174,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [0 as Int64])
             let sql = "SELECT textAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .text)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .text)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -190,7 +190,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [0 as Int32])
             let sql = "SELECT textAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .text)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .text)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -206,7 +206,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [0.0])
             let sql = "SELECT textAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .text)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .text)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -223,7 +223,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [""])
             let sql = "SELECT textAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .text)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .text)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -239,7 +239,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (textAffinity) VALUES (?)", arguments: ["3.0e+5"])
             let sql = "SELECT textAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .text)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .text)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: true, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:3, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 3, expectedDatabaseValueConversion: nil)
@@ -255,7 +255,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [emojiString])
             let sql = "SELECT textAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .text)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .text)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -271,7 +271,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [emojiData])
             let sql = "SELECT textAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .blob)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .blob)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -287,7 +287,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [nonUTF8Data])
             let sql = "SELECT textAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .blob)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .blob)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -304,7 +304,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (textAffinity) VALUES (?)", arguments: [jpegData])
             let sql = "SELECT textAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .blob)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .blob)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -372,7 +372,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (realAffinity) VALUES (NULL)")
             let sql = "SELECT realAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .null)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .null)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
@@ -388,7 +388,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [0 as Int])
             let sql = "SELECT realAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .real)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .real)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: false)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
@@ -404,7 +404,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [0 as Int64])
             let sql = "SELECT realAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .real)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .real)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: false)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
@@ -420,7 +420,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [0 as Int32])
             let sql = "SELECT realAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .real)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .real)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: false)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
@@ -436,7 +436,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [3.0e5])
             let sql = "SELECT realAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .real)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .real)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: true, expectedDatabaseValueConversion: true)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 300000, expectedDatabaseValueConversion: 300000)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 300000, expectedDatabaseValueConversion: 300000)
@@ -452,7 +452,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [1.0e20])
             let sql = "SELECT realAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .real)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .real)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: true, expectedDatabaseValueConversion: true)
             try assertFailedDecoding(db, sql, Int.self)
             try assertFailedDecoding(db, sql, Int32.self)
@@ -468,7 +468,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [""])
             let sql = "SELECT realAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .text)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .text)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -484,7 +484,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["3.0e+5"])
             let sql = "SELECT realAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .real)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .real)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: true, expectedDatabaseValueConversion: true)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 300000, expectedDatabaseValueConversion: 300000)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 300000, expectedDatabaseValueConversion: 300000)
@@ -500,7 +500,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (realAffinity) VALUES (?)", arguments: ["1.0e+20"])
             let sql = "SELECT realAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .real)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .real)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: true, expectedDatabaseValueConversion: true)
             try assertFailedDecoding(db, sql, Int.self)
             try assertFailedDecoding(db, sql, Int32.self)
@@ -516,7 +516,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [emojiString])
             let sql = "SELECT realAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .text)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .text)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -532,7 +532,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [emojiData])
             let sql = "SELECT realAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .blob)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .blob)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -548,7 +548,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [nonUTF8Data])
             let sql = "SELECT realAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .blob)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .blob)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -565,7 +565,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (realAffinity) VALUES (?)", arguments: [jpegData])
             let sql = "SELECT realAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .blob)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .blob)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -593,7 +593,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (noneAffinity) VALUES (NULL)")
             let sql = "SELECT noneAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .null)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .null)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
@@ -609,7 +609,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [0 as Int])
             let sql = "SELECT noneAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .integer)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .integer)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: false)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
@@ -625,7 +625,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [0 as Int64])
             let sql = "SELECT noneAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .integer)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .integer)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: false)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
@@ -641,7 +641,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [0 as Int32])
             let sql = "SELECT noneAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .integer)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .integer)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: false)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
@@ -657,7 +657,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [0.0])
             let sql = "SELECT noneAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .real)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .real)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: false)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
@@ -673,7 +673,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [""])
             let sql = "SELECT noneAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .text)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .text)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -689,7 +689,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: ["3.0e+5"])
             let sql = "SELECT noneAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .text)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .text)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: true, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:3, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 3, expectedDatabaseValueConversion: nil)
@@ -705,7 +705,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [emojiString])
             let sql = "SELECT noneAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .text)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .text)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -721,7 +721,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [emojiData])
             let sql = "SELECT noneAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .blob)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .blob)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -737,7 +737,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [nonUTF8Data])
             let sql = "SELECT noneAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .blob)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .blob)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -754,7 +754,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (noneAffinity) VALUES (?)", arguments: [jpegData])
             let sql = "SELECT noneAffinity FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .blob)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .blob)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -796,7 +796,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (\(columnName)) VALUES (NULL)")
             let sql = "SELECT \(columnName) FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .null)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .null)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: nil, expectedDatabaseValueConversion: nil)
@@ -812,7 +812,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [0 as Int])
             let sql = "SELECT \(columnName) FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .integer)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .integer)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: false)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
@@ -828,7 +828,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [0 as Int64])
             let sql = "SELECT \(columnName) FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .integer)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .integer)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: false)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
@@ -844,7 +844,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [0 as Int32])
             let sql = "SELECT \(columnName) FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .integer)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .integer)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: false)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: 0)
@@ -860,7 +860,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [3.0e5])
             let sql = "SELECT \(columnName) FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .integer)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .integer)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: true, expectedDatabaseValueConversion: true)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 300000, expectedDatabaseValueConversion: 300000)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 300000, expectedDatabaseValueConversion: 300000)
@@ -876,7 +876,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [1.0e20])
             let sql = "SELECT \(columnName) FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .real)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .real)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: true, expectedDatabaseValueConversion: true)
             try assertFailedDecoding(db, sql, Int.self)
             try assertFailedDecoding(db, sql, Int32.self)
@@ -892,7 +892,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [""])
             let sql = "SELECT \(columnName) FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .text)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .text)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -908,7 +908,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["3.0e+5"])
             let sql = "SELECT \(columnName) FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .integer)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .integer)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: true, expectedDatabaseValueConversion: true)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion: 300000, expectedDatabaseValueConversion: 300000)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 300000, expectedDatabaseValueConversion: 300000)
@@ -924,7 +924,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: ["1.0e+20"])
             let sql = "SELECT \(columnName) FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .real)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .real)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: true, expectedDatabaseValueConversion: true)
             try assertFailedDecoding(db, sql, Int.self)
             try assertFailedDecoding(db, sql, Int32.self)
@@ -940,7 +940,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [emojiString])
             let sql = "SELECT \(columnName) FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .text)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .text)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -956,7 +956,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [emojiData])
             let sql = "SELECT \(columnName) FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .blob)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .blob)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -972,7 +972,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [nonUTF8Data])
             let sql = "SELECT \(columnName) FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .blob)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .blob)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)
@@ -989,7 +989,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         try dbQueue.inTransaction { db in
             try db.execute(rawSQL: "INSERT INTO `values` (\(columnName)) VALUES (?)", arguments: [jpegData])
             let sql = "SELECT \(columnName) FROM `values`"
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql)!.storageClass, .blob)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, rawSQL: sql)!.storageClass, .blob)
             try assertDecoding(db, sql, Bool.self, expectedSQLiteConversion: false, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int.self, expectedSQLiteConversion:0, expectedDatabaseValueConversion: nil)
             try assertDecoding(db, sql, Int32.self, expectedSQLiteConversion: 0, expectedDatabaseValueConversion: nil)

@@ -113,7 +113,7 @@ class RecordInitializersTests : GRDBTestCase {
             try db.execute(rawSQL: "CREATE TABLE pedigrees (foo INTEGER)")
             try db.execute(rawSQL: "INSERT INTO pedigrees (foo) VALUES (NULL)")
             
-            let pedigree = try RecordWithPedigree.fetchOne(db, "SELECT * FROM pedigrees")!
+            let pedigree = try RecordWithPedigree.fetchOne(db, rawSQL: "SELECT * FROM pedigrees")!
             XCTAssertTrue(pedigree.initializedFromRow)  // very important
         }
     }

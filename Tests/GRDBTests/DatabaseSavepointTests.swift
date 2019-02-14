@@ -13,7 +13,7 @@ func insertItem(_ db: Database, name: String) throws {
 
 func fetchAllItemNames(_ dbReader: DatabaseReader) throws -> [String] {
     return try dbReader.read { db in
-        try String.fetchAll(db, "SELECT * FROM items ORDER BY name")
+        try String.fetchAll(db, rawSQL: "SELECT * FROM items ORDER BY name")
     }
 }
 

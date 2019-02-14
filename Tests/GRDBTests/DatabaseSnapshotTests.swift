@@ -30,12 +30,12 @@ class DatabaseSnapshotTests: GRDBTestCase {
             try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
             let snapshot = try dbPool.makeSnapshot()
             try snapshot.read { db in
-                try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
+                try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 1)
             }
             try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
-            try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 2)
+            try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 2)
             try snapshot.read { db in
-                try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
+                try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 1)
             }
         }
     }
@@ -49,14 +49,14 @@ class DatabaseSnapshotTests: GRDBTestCase {
         
         let snapshot = try dbPool.makeSnapshot()
         try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
+            try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 1)
         }
         try dbPool.write { db in
             try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
-            try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 2)
+            try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 2)
         }
         try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
+            try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 1)
         }
     }
     
@@ -67,7 +67,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         
         let snapshot = try dbPool.makeSnapshot()
         try snapshot.read { db in
-            try XCTAssertEqual(String.fetchOne(db, "SELECT foo()")!, "foo")
+            try XCTAssertEqual(String.fetchOne(db, rawSQL: "SELECT foo()")!, "foo")
         }
     }
     
@@ -77,7 +77,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let function = DatabaseFunction("foo", argumentCount: 0, pure: true) { _ in return "foo" }
         snapshot.add(function: function)
         try snapshot.read { db in
-            try XCTAssertEqual(String.fetchOne(db, "SELECT foo()")!, "foo")
+            try XCTAssertEqual(String.fetchOne(db, rawSQL: "SELECT foo()")!, "foo")
         }
     }
 
@@ -97,7 +97,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         
         let snapshot = try dbPool.makeSnapshot()
         try snapshot.read { db in
-            XCTAssertEqual(try String.fetchAll(db, "SELECT text FROM items ORDER BY text COLLATE reverse"), ["c", "b", "a"])
+            XCTAssertEqual(try String.fetchAll(db, rawSQL: "SELECT text FROM items ORDER BY text COLLATE reverse"), ["c", "b", "a"])
         }
     }
 
@@ -116,7 +116,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         }
         snapshot.add(collation: collation)
         try snapshot.read { db in
-            XCTAssertEqual(try String.fetchAll(db, "SELECT text FROM items ORDER BY text COLLATE reverse"), ["c", "b", "a"])
+            XCTAssertEqual(try String.fetchAll(db, rawSQL: "SELECT text FROM items ORDER BY text COLLATE reverse"), ["c", "b", "a"])
         }
     }
     

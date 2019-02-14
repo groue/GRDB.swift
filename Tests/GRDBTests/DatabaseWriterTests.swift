@@ -19,7 +19,7 @@ class DatabaseWriterTests : GRDBTestCase {
                 try db2.execute(rawSQL: "INSERT INTO table1 (id) VALUES (NULL)")
                 
                 try dbQueue.unsafeReentrantWrite { db3 in
-                    try XCTAssertEqual(Int.fetchOne(db3, "SELECT * FROM table1"), 1)
+                    try XCTAssertEqual(Int.fetchOne(db3, rawSQL: "SELECT * FROM table1"), 1)
                     XCTAssertTrue(db1 === db2)
                     XCTAssertTrue(db2 === db3)
                 }
@@ -37,7 +37,7 @@ class DatabaseWriterTests : GRDBTestCase {
                 try db2.execute(rawSQL: "INSERT INTO table1 (id) VALUES (NULL)")
                 
                 try dbPool.unsafeReentrantWrite { db3 in
-                    try XCTAssertEqual(Int.fetchOne(db3, "SELECT * FROM table1"), 1)
+                    try XCTAssertEqual(Int.fetchOne(db3, rawSQL: "SELECT * FROM table1"), 1)
                     XCTAssertTrue(db1 === db2)
                     XCTAssertTrue(db2 === db3)
                 }
@@ -87,7 +87,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try writer.vacuum()
         
         try writer.read { db in
-            try XCTAssertNil(Row.fetchOne(db, "SELECT * FROM sqlite_master"))
+            try XCTAssertNil(Row.fetchOne(db, rawSQL: "SELECT * FROM sqlite_master"))
         }
     }
     

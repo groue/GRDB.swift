@@ -92,8 +92,8 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             try db.execute(rawSQL: "RELEASE SAVEPOINT sp1")
             XCTAssertFalse(db.isInsideTransaction)
             
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items1"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items2"), 1)
         }
         
         XCTAssertEqual(observer.lastCommittedEvents.count, 2)
@@ -123,8 +123,8 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             XCTAssertEqual(observer.events.count, 1)
             try db.execute(rawSQL: "COMMIT")
             
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items1"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items2"), 1)
         }
         
         XCTAssertEqual(observer.lastCommittedEvents.count, 2)
@@ -165,10 +165,10 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             XCTAssertEqual(observer.events.count, 4)
             try db.execute(rawSQL: "COMMIT")
             
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items3"), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items4"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items1"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items2"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items3"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items4"), 1)
         }
         
         XCTAssertEqual(observer.lastCommittedEvents.count, 4)
@@ -212,10 +212,10 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             XCTAssertEqual(observer.events.count, 1)
             try db.execute(rawSQL: "COMMIT")
             
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items3"), 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items4"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items1"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items2"), 0)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items3"), 0)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items4"), 1)
         }
         
         XCTAssertEqual(observer.lastCommittedEvents.count, 2)
@@ -252,10 +252,10 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             XCTAssertEqual(observer.events.count, 4)
             try db.execute(rawSQL: "COMMIT")
             
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items3"), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items4"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items1"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items2"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items3"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items4"), 1)
         }
         
         XCTAssertEqual(observer.lastCommittedEvents.count, 4)
@@ -300,10 +300,10 @@ class TransactionObserverSavepointsTests: GRDBTestCase {
             XCTAssertEqual(observer.events.count, 1)
             try db.execute(rawSQL: "COMMIT")
             
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items1"), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items2"), 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items3"), 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items4"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items1"), 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items2"), 0)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items3"), 0)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items4"), 1)
         }
         
         XCTAssertEqual(observer.lastCommittedEvents.count, 2)

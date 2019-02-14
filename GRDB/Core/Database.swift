@@ -151,7 +151,7 @@ public final class Database {
     
     /// The list of compile options used when building SQLite
     static let sqliteCompileOptions: Set<String> = DatabaseQueue().inDatabase {
-        try! Set(String.fetchCursor($0, "PRAGMA COMPILE_OPTIONS"))
+        try! Set(String.fetchCursor($0, rawSQL: "PRAGMA COMPILE_OPTIONS"))
     }
     
     // MARK: - Private properties
@@ -489,7 +489,7 @@ extension Database {
     ///         return int + 1
     ///     }
     ///     db.add(function: fn)
-    ///     try Int.fetchOne(db, "SELECT succ(1)")! // 2
+    ///     try Int.fetchOne(db, rawSQL: "SELECT succ(1)")! // 2
     public func add(function: DatabaseFunction) {
         functions.update(with: function)
         function.install(in: self)

@@ -517,7 +517,7 @@ class DatabaseObservationBroker {
         //
         // But we have to deal with a particular case:
         //
-        //      let journalMode = String.fetchOne(db, "PRAGMA journal_mode = wal")
+        //      let journalMode = String.fetchOne(db, rawSQL: "PRAGMA journal_mode = wal")
         //
         // It runs a SelectStatement, not an UpdateStatement. But this not why
         // this case is particular. What is unexpected is that it triggers

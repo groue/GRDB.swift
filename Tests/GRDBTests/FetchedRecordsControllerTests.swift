@@ -915,7 +915,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
 private func synchronizePersons(_ db: Database, _ newPersons: [Person]) throws {
     // Sort new persons and database persons by id:
     let newPersons = newPersons.sorted { $0.id! < $1.id! }
-    let databasePersons = try Person.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+    let databasePersons = try Person.fetchAll(db, rawSQL: "SELECT * FROM persons ORDER BY id")
     
     // Now that both lists are sorted by id, we can compare them with
     // the sortedMerge() function.

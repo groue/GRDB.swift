@@ -24,8 +24,8 @@ class DatabasePoolCollationTests: GRDBTestCase {
             try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('c')")
         }
         try dbPool.read { db in
-            XCTAssertEqual(try String.fetchAll(db, "SELECT text FROM items ORDER BY text"), ["a", "b", "c"])
-            XCTAssertEqual(try String.fetchAll(db, "SELECT text FROM items ORDER BY text COLLATE collation1"), ["a", "b", "c"])
+            XCTAssertEqual(try String.fetchAll(db, rawSQL: "SELECT text FROM items ORDER BY text"), ["a", "b", "c"])
+            XCTAssertEqual(try String.fetchAll(db, rawSQL: "SELECT text FROM items ORDER BY text COLLATE collation1"), ["a", "b", "c"])
         }
         
         let collation2 = DatabaseCollation("collation2") { (string1, string2) in
@@ -34,7 +34,7 @@ class DatabasePoolCollationTests: GRDBTestCase {
         dbPool.add(collation: collation2)
         
         try dbPool.read { db in
-            XCTAssertEqual(try String.fetchAll(db, "SELECT text FROM items ORDER BY text COLLATE collation2"), ["c", "b", "a"])
+            XCTAssertEqual(try String.fetchAll(db, rawSQL: "SELECT text FROM items ORDER BY text COLLATE collation2"), ["c", "b", "a"])
         }
     }
 }

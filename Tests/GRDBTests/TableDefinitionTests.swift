@@ -227,8 +227,8 @@ class TableDefinitionTests: GRDBTestCase {
             
             // Sanity check
             try db.execute(rawSQL: "INSERT INTO test DEFAULT VALUES")
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT a FROM test")!, 1)
-            XCTAssertEqual(try String.fetchOne(db, "SELECT c FROM test")!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT a FROM test")!, 1)
+            XCTAssertEqual(try String.fetchOne(db, rawSQL: "SELECT c FROM test")!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
         }
     }
 

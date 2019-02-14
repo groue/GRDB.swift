@@ -32,7 +32,7 @@ class ValueObservationFetchTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 4
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")!
             })
             observation.extent = .databaseLifetime
             _ = try observation.start(in: dbWriter) { count in
@@ -64,7 +64,7 @@ class ValueObservationFetchTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 3
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")!
             }).distinctUntilChanged()
             observation.extent = .databaseLifetime
             _ = try observation.start(in: dbWriter) { count in

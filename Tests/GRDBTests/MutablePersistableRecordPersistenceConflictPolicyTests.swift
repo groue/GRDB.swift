@@ -232,7 +232,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
             record.email = "arthur@example.com"
             try record.update(db)
             XCTAssertTrue(try ReplacePolicy.fetchCount(db) == 1)
-            XCTAssertEqual(try Int64.fetchOne(db, "SELECT id FROM records")!, 3)
+            XCTAssertEqual(try Int64.fetchOne(db, rawSQL: "SELECT id FROM records")!, 3)
             XCTAssertEqual(observer.events.count, 1)
             XCTAssertEqual(observer.events[0].kind, .update)
             XCTAssertEqual(observer.events[0].rowID, 3)

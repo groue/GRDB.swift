@@ -117,7 +117,7 @@ public struct FTS3TokenizerDescriptor {
             let tokenizerSQL = tokenizerChunks.joined(separator: ", ")
             // Assume fts3tokenize virtual table in an in-memory database always succeeds
             try! db.execute(rawSQL: "CREATE VIRTUAL TABLE tokens USING fts3tokenize(\(tokenizerSQL))")
-            return try! String.fetchAll(db, "SELECT token FROM tokens WHERE input = ? ORDER BY position", arguments: [string])
+            return try! String.fetchAll(db, rawSQL: "SELECT token FROM tokens WHERE input = ? ORDER BY position", arguments: [string])
         }
     }
 }

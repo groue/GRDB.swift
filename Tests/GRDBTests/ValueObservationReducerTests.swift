@@ -44,7 +44,7 @@ class ValueObservationReducerTests: GRDBTestCase {
                 fetch: { db -> Int in
                     fetchCount += 1
                     // test for database access
-                    return try Int.fetchOne(db, "SELECT COUNT(*) FROM t")!
+                    return try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!
             },
                 value: { count -> String? in
                     reduceCount += 1

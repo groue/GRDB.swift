@@ -132,7 +132,7 @@ extension DatabaseWriter {
         // So we'll drop all database objects one after the other.
         try writeWithoutTransaction { db in
             // Prevent foreign keys from messing with drop table statements
-            let foreignKeysEnabled = try Bool.fetchOne(db, "PRAGMA foreign_keys")!
+            let foreignKeysEnabled = try Bool.fetchOne(db, rawSQL: "PRAGMA foreign_keys")!
             if foreignKeysEnabled {
                 try db.execute(rawSQL: "PRAGMA foreign_keys = OFF")
             }
@@ -140,7 +140,7 @@ extension DatabaseWriter {
             // Remove all database objects, one after the other
             do {
                 try db.inTransaction {
-                    while let row = try Row.fetchOne(db, "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'") {
+                    while let row = try Row.fetchOne(db, rawSQL: "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'") {
                         let type: String = row["type"]
                         let name: String = row["name"]
                         try db.execute(rawSQL: "DROP \(type) \(name.quotedDatabaseIdentifier)")

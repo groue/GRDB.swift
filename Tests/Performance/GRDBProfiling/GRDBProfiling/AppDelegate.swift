@@ -23,7 +23,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         var count = 0
         
         dbQueue.inDatabase { db in
-            let rows = try! Row.fetchCursor(db, "SELECT * FROM items")
+            let rows = try! Row.fetchCursor(db, rawSQL: "SELECT * FROM items")
             while let row = try! rows.next() {
                 let _: Int = row[0]
                 let _: Int = row[1]
@@ -50,7 +50,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         var count = 0
         
         dbQueue.inDatabase { db in
-            let rows = try! Row.fetchCursor(db, "SELECT * FROM items")
+            let rows = try! Row.fetchCursor(db, rawSQL: "SELECT * FROM items")
             while let row = try! rows.next() {
                 let _: Int = row["i0"]
                 let _: Int = row["i1"]
@@ -100,9 +100,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
-                assert(try! Int.fetchOne(db, "SELECT COUNT(*) FROM items")! == insertedRowCount)
-                assert(try! Int.fetchOne(db, "SELECT MIN(i0) FROM items")! == 0)
-                assert(try! Int.fetchOne(db, "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
+                assert(try! Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")! == insertedRowCount)
+                assert(try! Int.fetchOne(db, rawSQL: "SELECT MIN(i0) FROM items")! == 0)
+                assert(try! Int.fetchOne(db, rawSQL: "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
             }
             try! FileManager.default.removeItem(atPath: databasePath)
         }
@@ -111,7 +111,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         let dbQueue = try! DatabaseQueue(path: databasePath)
         try! dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
+            try db.execute(rawSQL: "CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
         }
         
         try! dbQueue.inTransaction { db in
@@ -129,9 +129,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
-                assert(try! Int.fetchOne(db, "SELECT COUNT(*) FROM items")! == insertedRowCount)
-                assert(try! Int.fetchOne(db, "SELECT MIN(i0) FROM items")! == 0)
-                assert(try! Int.fetchOne(db, "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
+                assert(try! Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")! == insertedRowCount)
+                assert(try! Int.fetchOne(db, rawSQL: "SELECT MIN(i0) FROM items")! == 0)
+                assert(try! Int.fetchOne(db, rawSQL: "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
             }
             try! FileManager.default.removeItem(atPath: databasePath)
         }
@@ -140,7 +140,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         let dbQueue = try! DatabaseQueue(path: databasePath)
         try! dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
+            try db.execute(rawSQL: "CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
         }
         
         try! dbQueue.inTransaction { db in
@@ -159,9 +159,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             dbQueue.inDatabase { db in
-                assert(try! Int.fetchOne(db, "SELECT COUNT(*) FROM items")! == insertedRowCount)
-                assert(try! Int.fetchOne(db, "SELECT MIN(i0) FROM items")! == 0)
-                assert(try! Int.fetchOne(db, "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
+                assert(try! Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")! == insertedRowCount)
+                assert(try! Int.fetchOne(db, rawSQL: "SELECT MIN(i0) FROM items")! == 0)
+                assert(try! Int.fetchOne(db, rawSQL: "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
             }
             try! FileManager.default.removeItem(atPath: databasePath)
         }
@@ -170,7 +170,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         let dbQueue = try! DatabaseQueue(path: databasePath)
         try! dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
+            try db.execute(rawSQL: "CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
         }
         
         try! dbQueue.inTransaction { db in

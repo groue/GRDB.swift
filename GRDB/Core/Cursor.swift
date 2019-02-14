@@ -14,7 +14,7 @@
 extension Array {
     /// Creates an array containing the elements of a cursor.
     ///
-    ///     let cursor = try String.fetchCursor(db, "SELECT 'foo' UNION ALL SELECT 'bar'")
+    ///     let cursor = try String.fetchCursor(db, rawSQL: "SELECT 'foo' UNION ALL SELECT 'bar'")
     ///     let strings = try Array(cursor) // ["foo", "bar"]
     public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
         self.init()
@@ -36,7 +36,7 @@ extension Sequence {
 extension Set {
     /// Creates a set containing the elements of a cursor.
     ///
-    ///     let cursor = try String.fetchCursor(db, "SELECT 'foo' UNION ALL SELECT 'foo'")
+    ///     let cursor = try String.fetchCursor(db, rawSQL: "SELECT 'foo' UNION ALL SELECT 'foo'")
     ///     let strings = try Set(cursor) // ["foo"]
     public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
         self.init()
@@ -111,7 +111,7 @@ extension Cursor {
     /// Returns a cursor of pairs (n, x), where n represents a consecutive
     /// integer starting at zero, and x represents an element of the cursor.
     ///
-    ///     let cursor = try String.fetchCursor(db, "SELECT 'foo' UNION ALL SELECT 'bar'")
+    ///     let cursor = try String.fetchCursor(db, rawSQL: "SELECT 'foo' UNION ALL SELECT 'bar'")
     ///     let c = cursor.enumerated()
     ///     while let (n, x) = c.next() {
     ///         print("\(n): \(x)")
@@ -595,7 +595,7 @@ public final class DropWhileCursor<Base: Cursor> : Cursor {
 /// To create an instance of `EnumeratedCursor`, call the `enumerated()` method
 /// on a cursor:
 ///
-///     let cursor = try String.fetchCursor(db, "SELECT 'foo' UNION ALL SELECT 'bar'")
+///     let cursor = try String.fetchCursor(db, rawSQL: "SELECT 'foo' UNION ALL SELECT 'bar'")
 ///     let c = cursor.enumerated()
 ///     while let (n, x) = c.next() {
 ///         print("\(n): \(x)")

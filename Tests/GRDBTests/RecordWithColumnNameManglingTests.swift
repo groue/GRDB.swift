@@ -69,7 +69,7 @@ class RecordWithColumnNameManglingTests: GRDBTestCase {
                 XCTAssertFalse(record.hasDatabaseChanges)
             }
             do {
-                let record = try BadlyMangledStuff.fetchOne(db, "SELECT id AS mangled_id, name AS mangled_name FROM stuffs")!
+                let record = try BadlyMangledStuff.fetchOne(db, rawSQL: "SELECT id AS mangled_id, name AS mangled_name FROM stuffs")!
                 // OK we could extract values.
                 XCTAssertEqual(record.id, 1)
                 XCTAssertEqual(record.name, "foo")

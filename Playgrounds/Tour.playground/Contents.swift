@@ -46,7 +46,7 @@ try dbQueue.inDatabase { db in
 //: Fetch database rows and values
 
 try dbQueue.inDatabase { db in
-    let rows = try Row.fetchCursor(db, "SELECT * FROM pointOfInterests")
+    let rows = try Row.fetchCursor(db, rawSQL: "SELECT * FROM pointOfInterests")
     while let row = try rows.next() {
         let title: String = row["title"]
         let favorite: Bool = row["favorite"]
@@ -56,8 +56,8 @@ try dbQueue.inDatabase { db in
         print("Fetched", title, favorite, coordinate)
     }
     
-    let poiCount = try Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")! // Int
-    let poiTitles = try String.fetchAll(db, "SELECT title FROM pointOfInterests") // [String]
+    let poiCount = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM pointOfInterests")! // Int
+    let poiTitles = try String.fetchAll(db, rawSQL: "SELECT title FROM pointOfInterests") // [String]
 }
 
 
@@ -116,7 +116,7 @@ try dbQueue.inDatabase { db in
     try berlin.update(db)
     
     // Fetch from SQL
-    let pois = try PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests") // [PointOfInterest]
+    let pois = try PointOfInterest.fetchAll(db, rawSQL: "SELECT * FROM pointOfInterests") // [PointOfInterest]
     
     
     //: Avoid SQL with the query interface:

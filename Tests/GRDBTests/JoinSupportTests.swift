@@ -259,7 +259,7 @@ class JoinSupportTests: GRDBTestCase {
     func testSampleData() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let rows = try Row.fetchAll(db, expectedSQL)
+            let rows = try Row.fetchAll(db, rawSQL: expectedSQL)
             XCTAssertEqual(rows.count, 3)
             XCTAssertEqual(rows[0], [
                 // t1.*

@@ -29,7 +29,7 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
         
         // Make sure the database is not in WAL mode
         let mode = try dbPool.read { db in
-            try String.fetchOne(db, "PRAGMA journal_mode")!
+            try String.fetchOne(db, rawSQL: "PRAGMA journal_mode")!
         }
         XCTAssertNotEqual(mode.lowercased(), "wal")
         
@@ -47,7 +47,7 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
         
         let block1 = { () in
             try! dbPool.read { db in
-                let cursor = try Row.fetchCursor(db, "SELECT * FROM items")
+                let cursor = try Row.fetchCursor(db, rawSQL: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
@@ -58,7 +58,7 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
         }
         let block2 = { () in
             try! dbPool.read { db in
-                let cursor = try Row.fetchCursor(db, "SELECT * FROM items")
+                let cursor = try Row.fetchCursor(db, rawSQL: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
                 _ = s1.wait(timeout: .distantFuture)
                 XCTAssertTrue(try cursor.next() != nil)

@@ -33,7 +33,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         do {
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.writeWithoutTransaction { db in
-                let journalMode = try String.fetchOne(db, "PRAGMA journal_mode = wal")
+                let journalMode = try String.fetchOne(db, rawSQL: "PRAGMA journal_mode = wal")
                 XCTAssertEqual(journalMode, "wal")
                 try db.create(table: "moves") { $0.column("value", .integer) }
                 try db.execute(rawSQL: "INSERT INTO moves VALUES (0)")
@@ -47,10 +47,10 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 try db.execute(rawSQL: "BEGIN DEFERRED TRANSACTION")
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT SUM(value) AS balance FROM moves"), 1)  // Non-zero balance
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT SUM(value) AS balance FROM moves"), 1)  // Non-zero balance
                 s3.signal()
                 _ = s4.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT SUM(value) AS balance FROM moves"), 1)  // Non-zero balance
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT SUM(value) AS balance FROM moves"), 1)  // Non-zero balance
                 try db.execute(rawSQL: "END")
             }
         }
@@ -95,7 +95,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         do {
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.writeWithoutTransaction { db in
-                let journalMode = try String.fetchOne(db, "PRAGMA journal_mode = wal")
+                let journalMode = try String.fetchOne(db, rawSQL: "PRAGMA journal_mode = wal")
                 XCTAssertEqual(journalMode, "wal")
                 try db.create(table: "moves") { $0.column("value", .integer) }
                 try db.execute(rawSQL: "INSERT INTO moves VALUES (0)")
@@ -110,10 +110,10 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 try db.execute(rawSQL: "BEGIN DEFERRED TRANSACTION")
                 s2.signal()
                 _ = s3.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT SUM(value) AS balance FROM moves"), 0)  // Zero balance
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT SUM(value) AS balance FROM moves"), 0)  // Zero balance
                 s4.signal()
                 _ = s5.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT SUM(value) AS balance FROM moves"), 0)  // Zero balance
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT SUM(value) AS balance FROM moves"), 0)  // Zero balance
                 try db.execute(rawSQL: "END")
             }
         }
@@ -160,7 +160,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         do {
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.writeWithoutTransaction { db in
-                let journalMode = try String.fetchOne(db, "PRAGMA journal_mode = wal")
+                let journalMode = try String.fetchOne(db, rawSQL: "PRAGMA journal_mode = wal")
                 XCTAssertEqual(journalMode, "wal")
                 try db.create(table: "moves") { $0.column("value", .integer) }
                 try db.execute(rawSQL: "INSERT INTO moves VALUES (0)")
@@ -174,10 +174,10 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 try db.execute(rawSQL: "BEGIN DEFERRED TRANSACTION")
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT SUM(value) AS balance FROM moves"), 0)  // Zero balance
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT SUM(value) AS balance FROM moves"), 0)  // Zero balance
                 s3.signal()
                 _ = s4.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT SUM(value) AS balance FROM moves"), 0)  // Zero balance
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT SUM(value) AS balance FROM moves"), 0)  // Zero balance
                 try db.execute(rawSQL: "END")
             }
         }
@@ -208,7 +208,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             try db.execute(rawSQL: "INSERT INTO items (id) VALUES (NULL)")
         }
         let id = try dbPool.read { db in
-            try Int.fetchOne(db, "SELECT id FROM items")!
+            try Int.fetchOne(db, rawSQL: "SELECT id FROM items")!
         }
         XCTAssertEqual(id, 1)
     }
@@ -224,7 +224,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         do {
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             let id = try dbPool.read { db in
-                try Int.fetchOne(db, "SELECT id FROM items")!
+                try Int.fetchOne(db, rawSQL: "SELECT id FROM items")!
             }
             XCTAssertEqual(id, 1)
         }
@@ -333,7 +333,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         
         let block1 = { () in
             try! dbPool.read { db in
-                let cursor = try Row.fetchCursor(db, "SELECT * FROM items")
+                let cursor = try Row.fetchCursor(db, rawSQL: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
@@ -344,7 +344,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
         let block2 = { () in
             try! dbPool.read { db in
-                let cursor = try Row.fetchCursor(db, "SELECT * FROM items")
+                let cursor = try Row.fetchCursor(db, rawSQL: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
                 _ = s1.wait(timeout: .distantFuture)
                 XCTAssertTrue(try cursor.next() != nil)
@@ -383,7 +383,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         
         let block1 = { () in
             try! dbPool.read { db in
-                let cursor = try Row.fetchCursor(db, "SELECT * FROM items")
+                let cursor = try Row.fetchCursor(db, rawSQL: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
@@ -433,7 +433,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         
         let block1 = { () in
             try! dbPool.read { db in
-                let cursor = try Row.fetchCursor(db, "SELECT * FROM items")
+                let cursor = try Row.fetchCursor(db, rawSQL: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
@@ -485,10 +485,10 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             try! dbPool.read { db in
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)  // Not a bug. The writer did not start a transaction.
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 1)  // Not a bug. The writer did not start a transaction.
                 s3.signal()
                 _ = s4.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 1)
             }
         }
         let block2 = { () in
@@ -531,10 +531,10 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         
         let block1 = { () in
             try! dbPool.read { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 0)
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 0)
             }
         }
         let block2 = { () in
@@ -598,13 +598,13 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let block2 = { () in
             try! dbPool.read { db in
                 _ = s1.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 1)
                 s2.signal()
                 _ = s3.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 1)
                 s4.signal()
                 _ = s5.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 1)
             }
         }
         let blocks = [block1, block2]
@@ -659,13 +659,13 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let block2 = { () in
             try! dbPool.read { db in
                 _ = s1.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 0)
                 s2.signal()
                 _ = s3.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 0)
                 s4.signal()
                 _ = s5.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 0)
             }
         }
         let blocks = [block1, block2]
@@ -699,13 +699,13 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         
         let block1 = { () in
             try! dbPool.unsafeRead { db in
-                let cursor = try Row.fetchCursor(db, "SELECT * FROM items")
+                let cursor = try Row.fetchCursor(db, rawSQL: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
                 XCTAssertTrue(try cursor.next() != nil)
                 XCTAssertTrue(try cursor.next() == nil)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 0)
             }
         }
         let block2 = { () in
@@ -750,7 +750,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         
         let block1 = { () in
             try! dbPool.unsafeRead { db in
-                let cursor = try Row.fetchCursor(db, "SELECT * FROM items")
+                let cursor = try Row.fetchCursor(db, rawSQL: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
@@ -796,10 +796,10 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         
         let block1 = { () in
             try! dbPool.unsafeRead { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 0)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 0)
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 1)
             }
         }
         let block2 = { () in
@@ -858,7 +858,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let future: Future<Int> = try dbPool.writeWithoutTransaction { db in
             let future: Future<Int> = dbPool.concurrentRead { db in
                 _ = s1.wait(timeout: .distantFuture)
-                return try! Int.fetchOne(db, "SELECT COUNT(*) FROM persons")!
+                return try! Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM persons")!
             }
             try db.execute(rawSQL: "INSERT INTO persons DEFAULT VALUES")
             s1.signal()
@@ -904,7 +904,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
         
         try dbQueue.writeWithoutTransaction { db in
-            try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
+            try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 1)
         }
         
         try dbPool.write { db in
@@ -912,9 +912,9 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
         
         try dbQueue.writeWithoutTransaction { db in
-            try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
+            try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 1)
             try db.rollback()
-            try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 2)
+            try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 2)
         }
     }
 
@@ -935,7 +935,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             try db.execute(rawSQL: "CREATE VIRTUAL TABLE search USING fts3(title)")
         }
         try dbPool.read { db in
-            _ = try Row.fetchAll(db, "SELECT * FROM search")
+            _ = try Row.fetchAll(db, rawSQL: "SELECT * FROM search")
         }
     }
     

@@ -33,7 +33,7 @@ class UpdateStatementTests : GRDBTestCase {
             return .commit
         }
         try dbQueue.inDatabase { db in
-            let names = try String.fetchAll(db, "SELECT name FROM persons ORDER BY name")
+            let names = try String.fetchAll(db, rawSQL: "SELECT name FROM persons ORDER BY name")
             XCTAssertEqual(names, ["Arthur", "Barbara", "Craig", "Daniel"])
         }
     }
@@ -64,7 +64,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+            let rows = try Row.fetchAll(db, rawSQL: "SELECT * FROM persons ORDER BY name")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
             XCTAssertEqual(rows[0]["age"] as Int, 41)
@@ -92,7 +92,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+            let rows = try Row.fetchAll(db, rawSQL: "SELECT * FROM persons ORDER BY name")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
             XCTAssertEqual(rows[0]["age"] as Int, 41)
@@ -119,7 +119,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+            let rows = try Row.fetchAll(db, rawSQL: "SELECT * FROM persons ORDER BY name")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
             XCTAssertEqual(rows[0]["age"] as Int, 41)
@@ -147,7 +147,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+            let rows = try Row.fetchAll(db, rawSQL: "SELECT * FROM persons ORDER BY name")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
             XCTAssertEqual(rows[0]["age"] as Int, 41)
@@ -247,7 +247,7 @@ class UpdateStatementTests : GRDBTestCase {
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age1);
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age2);
                 """, arguments: ["age1": 41, "age2": 32])
-            XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+            XCTAssertEqual(try Int.fetchAll(db, rawSQL: "SELECT age FROM persons ORDER BY age"), [32, 41])
             return .rollback
         }
         
@@ -256,7 +256,7 @@ class UpdateStatementTests : GRDBTestCase {
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age1);
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age2);
                 """, arguments: [41, 32])
-            XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+            XCTAssertEqual(try Int.fetchAll(db, rawSQL: "SELECT age FROM persons ORDER BY age"), [32, 41])
             return .rollback
         }
     }
@@ -268,7 +268,7 @@ class UpdateStatementTests : GRDBTestCase {
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age);
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age);
                 """, arguments: ["age": 41])
-            XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons"), [41, 41])
+            XCTAssertEqual(try Int.fetchAll(db, rawSQL: "SELECT age FROM persons"), [41, 41])
             return .rollback
         }
         
@@ -277,7 +277,7 @@ class UpdateStatementTests : GRDBTestCase {
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age);
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age);
                 """, arguments: ["age": 41])
-            XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons"), [41, 41])
+            XCTAssertEqual(try Int.fetchAll(db, rawSQL: "SELECT age FROM persons"), [41, 41])
             return .rollback
         }
     }
@@ -289,7 +289,7 @@ class UpdateStatementTests : GRDBTestCase {
                 INSERT INTO persons (name, age) VALUES ('Arthur', ?);
                 INSERT INTO persons (name, age) VALUES ('Arthur', ?);
                 """, arguments: [41, 32])
-            XCTAssertEqual(try Int.fetchAll(db, "SELECT age FROM persons ORDER BY age"), [32, 41])
+            XCTAssertEqual(try Int.fetchAll(db, rawSQL: "SELECT age FROM persons ORDER BY age"), [32, 41])
             return .rollback
         }
     }
@@ -347,7 +347,7 @@ class UpdateStatementTests : GRDBTestCase {
                 INSERT INTO t(a) VALUES (?);
                 INSERT INTO t(a) VALUES (?);
                 """, arguments: [1, 2]))
-            let value = try Int.fetchOne(db, "SELECT SUM(a) FROM t")
+            let value = try Int.fetchOne(db, rawSQL: "SELECT SUM(a) FROM t")
             XCTAssertEqual(value, 3)
         }
     }
@@ -361,7 +361,7 @@ class UpdateStatementTests : GRDBTestCase {
                 INSERT INTO t(a) VALUES (\(1));
                 INSERT INTO t(a) VALUES (\(2));
                 """)
-            let value = try Int.fetchOne(db, "SELECT SUM(a) FROM t")
+            let value = try Int.fetchOne(db, rawSQL: "SELECT SUM(a) FROM t")
             XCTAssertEqual(value, 3)
         }
     }

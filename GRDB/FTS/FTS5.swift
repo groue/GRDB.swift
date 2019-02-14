@@ -156,7 +156,7 @@
         }
         
         private static func api_v1(_ db: Database) -> UnsafePointer<fts5_api> {
-            guard let data = try! Data.fetchOne(db, "SELECT fts5()") else {
+            guard let data = try! Data.fetchOne(db, rawSQL: "SELECT fts5()") else {
                 fatalError("FTS5 is not available")
             }
             #if swift(>=5.0)

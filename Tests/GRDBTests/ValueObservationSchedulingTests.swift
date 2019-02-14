@@ -27,7 +27,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             DispatchQueue.main.setSpecific(key: key, value: ())
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")!
             })
             observation.extent = .databaseLifetime
             
@@ -67,7 +67,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             DispatchQueue.main.setSpecific(key: key, value: ())
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")!
             })
             observation.extent = .databaseLifetime
             
@@ -157,7 +157,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             queue.setSpecific(key: key, value: ())
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")!
             })
             observation.extent = .databaseLifetime
             observation.scheduling = .onQueue(queue, startImmediately: true)
@@ -195,7 +195,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             queue.setSpecific(key: key, value: ())
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")!
             })
             observation.extent = .databaseLifetime
             observation.scheduling = .onQueue(queue, startImmediately: false)
@@ -275,7 +275,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             DispatchQueue.main.setSpecific(key: key, value: ())
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")!
             })
             observation.extent = .databaseLifetime
             observation.scheduling = .unsafe(startImmediately: true)
@@ -316,7 +316,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             queue.setSpecific(key: key, value: ())
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")!
             })
             observation.extent = .databaseLifetime
             observation.scheduling = .unsafe(startImmediately: true)
@@ -355,7 +355,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 1
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")!
             })
             observation.extent = .databaseLifetime
             observation.scheduling = .unsafe(startImmediately: false)

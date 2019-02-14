@@ -58,7 +58,7 @@ public final class DatabasePool: DatabaseWriter {
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
             try writer.sync { db in
-                let journalMode = try String.fetchOne(db, "PRAGMA journal_mode = WAL")
+                let journalMode = try String.fetchOne(db, rawSQL: "PRAGMA journal_mode = WAL")
                 guard journalMode == "wal" else {
                     throw DatabaseError(message: "could not activate WAL Mode at path: \(path)")
                 }
@@ -247,13 +247,13 @@ extension DatabasePool : DatabaseReader {
     ///     try dbPool.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
     ///         // `wine` table is modified between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count1 = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     ///     try dbPool.read { db in
     ///         // Now this value may be different:
-    ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// This method is *not* reentrant.
@@ -288,15 +288,15 @@ extension DatabasePool : DatabaseReader {
     ///     try dbPool.unsafeRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count1 = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Cursor iteration is safe, though:
     ///
     ///     try dbPool.unsafeRead { db in
     ///         // No concurrent update can mess with this iteration:
-    ///         let rows = try Row.fetchCursor(db, "SELECT ...")
+    ///         let rows = try Row.fetchCursor(db, rawSQL: "SELECT ...")
     ///         while let row = try rows.next() { ... }
     ///     }
     ///
@@ -325,15 +325,15 @@ extension DatabasePool : DatabaseReader {
     ///     try dbPool.unsafeReentrantRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count1 = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Cursor iteration is safe, though:
     ///
     ///     try dbPool.unsafeReentrantRead { db in
     ///         // No concurrent update can mess with this iteration:
-    ///         let rows = try Row.fetchCursor(db, "SELECT ...")
+    ///         let rows = try Row.fetchCursor(db, rawSQL: "SELECT ...")
     ///         while let row = try rows.next() { ... }
     ///     }
     ///
@@ -557,7 +557,7 @@ extension DatabasePool : DatabaseReader {
     ///     }
     ///     dbPool.add(function: fn)
     ///     try dbPool.read { db in
-    ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
+    ///         try Int.fetchOne(db, rawSQL: "SELECT succ(1)") // 2
     ///     }
     public func add(function: DatabaseFunction) {
         functions.update(with: function)

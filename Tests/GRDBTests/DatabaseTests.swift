@@ -60,7 +60,7 @@ class DatabaseTests : GRDBTestCase {
             let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', 41)")
             try statement.execute()
             
-            let row = try Row.fetchOne(db, "SELECT * FROM persons")!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM persons")!
             XCTAssertEqual(row[0] as String, "Arthur")
             XCTAssertEqual(row[1] as Int, 41)
         }
@@ -74,7 +74,7 @@ class DatabaseTests : GRDBTestCase {
             let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
             try statement.execute(arguments: ["Arthur", 41])
             
-            let row = try Row.fetchOne(db, "SELECT * FROM persons")!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM persons")!
             XCTAssertEqual(row[0] as String, "Arthur")
             XCTAssertEqual(row[1] as Int, 41)
         }
@@ -88,7 +88,7 @@ class DatabaseTests : GRDBTestCase {
             let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
             try statement.execute(arguments: ["name": "Arthur", "age": 41])
             
-            let row = try Row.fetchOne(db, "SELECT * FROM persons")!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM persons")!
             XCTAssertEqual(row[0] as String, "Arthur")
             XCTAssertEqual(row[1] as Int, 41)
         }
@@ -102,7 +102,7 @@ class DatabaseTests : GRDBTestCase {
             // The tested function:
             try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES ('Arthur', 41)")
             
-            let row = try Row.fetchOne(db, "SELECT * FROM persons")!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM persons")!
             XCTAssertEqual(row[0] as String, "Arthur")
             XCTAssertEqual(row[1] as Int, 41)
         }
@@ -142,7 +142,7 @@ class DatabaseTests : GRDBTestCase {
             // The tested function:
             try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (?, ?)", arguments: ["Arthur", 41])
             
-            let row = try Row.fetchOne(db, "SELECT * FROM persons")!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM persons")!
             XCTAssertEqual(row[0] as String, "Arthur")
             XCTAssertEqual(row[1] as Int, 41)
         }
@@ -156,7 +156,7 @@ class DatabaseTests : GRDBTestCase {
             // The tested function:
             try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
             
-            let row = try Row.fetchOne(db, "SELECT * FROM persons")!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM persons")!
             XCTAssertEqual(row[0] as String, "Arthur")
             XCTAssertEqual(row[1] as Int, 41)
         }
@@ -210,7 +210,7 @@ class DatabaseTests : GRDBTestCase {
             
             var names: [String?] = []
             var ages: [Int?] = []
-            let rows = try Row.fetchCursor(db, "SELECT * FROM persons ORDER BY name")
+            let rows = try Row.fetchCursor(db, rawSQL: "SELECT * FROM persons ORDER BY name")
             while let row = try rows.next() {
                 // The tested function:
                 let name: String? = row[0]
@@ -235,7 +235,7 @@ class DatabaseTests : GRDBTestCase {
             
             var names: [String?] = []
             var ages: [Int?] = []
-            let rows = try Row.fetchCursor(db, "SELECT * FROM persons ORDER BY name")
+            let rows = try Row.fetchCursor(db, rawSQL: "SELECT * FROM persons ORDER BY name")
             while let row = try rows.next() {
                 // The tested function:
                 let name: String? = row["name"]

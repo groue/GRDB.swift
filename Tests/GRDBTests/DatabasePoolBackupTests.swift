@@ -16,13 +16,13 @@ class DatabasePoolBackupTests: GRDBTestCase {
         try source.write { db in
             try db.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
             try db.execute(rawSQL: "INSERT INTO items (id) VALUES (NULL)")
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 1)
         }
         
         try source.backup(to: destination)
         
         try destination.read { db in
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 1)
         }
         
         try source.write { db in
@@ -45,7 +45,7 @@ class DatabasePoolBackupTests: GRDBTestCase {
 //        try source.write { db in
 //            try db.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
 //            try db.execute(rawSQL: "INSERT INTO items (id) VALUES (NULL)")
-//            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+//            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 1)
 //        }
 //        
 //        let s1 = DispatchSemaphore(value: 0)
@@ -72,13 +72,13 @@ class DatabasePoolBackupTests: GRDBTestCase {
 //        })
 //        
 //        try source.read { db in
-//            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 3)
+//            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 3)
 //        }
 //        try destination.read { db in
 //            // TODO: understand why the fix for https://github.com/groue/GRDB.swift/issues/102
 //            // had this value change from 2 to 1.
 //            // TODO: Worse, this test is fragile. I've seen not 1 but 2 once.
-//            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+//            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items")!, 1)
 //        }
 //    }
 }

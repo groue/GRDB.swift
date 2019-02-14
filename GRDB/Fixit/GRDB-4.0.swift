@@ -28,3 +28,54 @@ extension Database {
     @available(*, unavailable, renamed: "execute(rawSQL:arguments:)")
     public func execute(_ sql: String, arguments: StatementArguments? = nil) throws { }
 }
+
+extension DatabaseValueConvertible {
+    @available(*, unavailable, renamed: "fetchCursor(_:rawSQL:arguments:adapter:)")
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> DatabaseValueCursor<Self> { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "fetchAll(_:rawSQL:arguments:adapter:)")
+    public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Self] { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "fetchOne(_:rawSQL:arguments:adapter:)")
+    public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Self? { preconditionFailure() }
+}
+
+extension Optional where Wrapped: DatabaseValueConvertible {
+    @available(*, unavailable, renamed: "fetchCursor(_:rawSQL:arguments:adapter:)")
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> NullableDatabaseValueCursor<Wrapped> { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "fetchAll(_:rawSQL:arguments:adapter:)")
+    public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Wrapped?] { preconditionFailure() }
+}
+
+extension Row {
+    @available(*, unavailable, renamed: "fetchCursor(_:rawSQL:arguments:adapter:)")
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RowCursor { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "fetchAll(_:rawSQL:arguments:adapter:)")
+    public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Row] { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "fetchOne(_:rawSQL:arguments:adapter:)")
+    public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Row? { preconditionFailure() }
+}
+
+extension DatabaseValueConvertible where Self: StatementColumnConvertible {
+    @available(*, unavailable, renamed: "fetchCursor(_:rawSQL:arguments:adapter:)")
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> FastDatabaseValueCursor<Self> { preconditionFailure() }
+}
+
+extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConvertible {
+    @available(*, unavailable, renamed: "fetchCursor(_:rawSQL:arguments:adapter:)")
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> FastNullableDatabaseValueCursor<Wrapped> { preconditionFailure() }
+}
+
+extension FetchableRecord {
+    @available(*, unavailable, renamed: "fetchCursor(_:rawSQL:arguments:adapter:)")
+    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RecordCursor<Self> { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "fetchAll(_:rawSQL:arguments:adapter:)")
+    public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Self] { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "fetchOne(_:rawSQL:arguments:adapter:)")
+    public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Self? { preconditionFailure() }
+}

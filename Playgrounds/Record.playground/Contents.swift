@@ -117,7 +117,7 @@ try dbQueue.inDatabase { db in
     person.fullName
 
     //: Fetch persons with an SQL query:
-    let millers = try Person.fetchAll(db, "SELECT * FROM persons WHERE lastName = ?", arguments: ["Miller"])
+    let millers = try Person.fetchAll(db, rawSQL: "SELECT * FROM persons WHERE lastName = ?", arguments: ["Miller"])
     millers.first!.fullName
 
 

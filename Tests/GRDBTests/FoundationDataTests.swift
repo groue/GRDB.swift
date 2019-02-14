@@ -12,7 +12,7 @@ class FoundationDataTests: GRDBTestCase {
     func testDataDatabaseRoundTrip() throws {
         let dbQueue = try makeDatabaseQueue()
         func roundTrip(_ value: Data) throws -> Bool {
-            guard let back = try dbQueue.inDatabase({ try Data.fetchOne($0, "SELECT ?", arguments: [value]) }) else {
+            guard let back = try dbQueue.inDatabase({ try Data.fetchOne($0, rawSQL: "SELECT ?", arguments: [value]) }) else {
                 XCTFail()
                 return false
             }

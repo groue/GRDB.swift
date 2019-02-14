@@ -56,7 +56,7 @@ class StatementColumnConvertibleCrashTests: GRDBCrashTestCase {
                 try db.execute(rawSQL: "INSERT INTO ints (int) VALUES (1)")
                 try db.execute(rawSQL: "INSERT INTO ints (int) VALUES (NULL)")
                 
-                _ = try Int.fetchAll(db, "SELECT int FROM ints ORDER BY int")
+                _ = try Int.fetchAll(db, rawSQL: "SELECT int FROM ints ORDER BY int")
             }
         }
     }

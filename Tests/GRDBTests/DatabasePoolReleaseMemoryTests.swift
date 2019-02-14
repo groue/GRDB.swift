@@ -89,7 +89,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         
         let block1 = { () in
             try! dbPool.read { db in
-                let cursor = try Row.fetchCursor(db, "SELECT * FROM items")
+                let cursor = try Row.fetchCursor(db, rawSQL: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
@@ -101,7 +101,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         let block2 = { () in
             _ = s1.wait(timeout: .distantFuture)
             try! dbPool.read { db in
-                let cursor = try Row.fetchCursor(db, "SELECT * FROM items")
+                let cursor = try Row.fetchCursor(db, rawSQL: "SELECT * FROM items")
                 XCTAssertTrue(try cursor.next() != nil)
                 s2.signal()
                 XCTAssertTrue(try cursor.next() != nil)
@@ -168,7 +168,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                     try! dbPool.read { db in
                         s1.signal()
                         _ = s2.wait(timeout: .distantFuture)
-                        XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items"), 0)
+                        XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items"), 0)
                     }
                 } else {
                     XCTFail("expect non nil dbPool")

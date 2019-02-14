@@ -73,7 +73,7 @@ class DatabaseValueConvertibleCrashTests: GRDBCrashTestCase {
                 try db.execute(rawSQL: "INSERT INTO ints (int) VALUES (1)")
                 try db.execute(rawSQL: "INSERT INTO ints (int) VALUES (NULL)")
                 
-                _ = IntConvertible.fetchAll(db, "SELECT int FROM ints ORDER BY int")
+                _ = IntConvertible.fetchAll(db, rawSQL: "SELECT int FROM ints ORDER BY int")
             }
         }
     }

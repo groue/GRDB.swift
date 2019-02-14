@@ -69,7 +69,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             XCTAssertTrue(record.insertedRowIDColumn == nil)
             try record.insert(db)
             
-            let names = try String.fetchAll(db, "SELECT name FROM items")
+            let names = try String.fetchAll(db, rawSQL: "SELECT name FROM items")
             XCTAssertEqual(names, ["Table", "Table"])
         }
     }
@@ -84,7 +84,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             try record.save(db)
             try record.save(db)
             
-            let names = try String.fetchAll(db, "SELECT name FROM items")
+            let names = try String.fetchAll(db, rawSQL: "SELECT name FROM items")
             XCTAssertEqual(names, ["Table", "Table"])
         }
     }

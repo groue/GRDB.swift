@@ -169,7 +169,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [123, \"bobby\"]: foreign key constraint failed")
             
             let names = try dbQueue.inDatabase { db in
-                try String.fetchAll(db, "SELECT name FROM persons")
+                try String.fetchAll(db, rawSQL: "SELECT name FROM persons")
             }
             XCTAssertEqual(names, ["Arthur"])
         }
@@ -222,7 +222,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             
             try dbQueue.inDatabase { db in
                 // Arthur inserted (migration 1), Barbara (migration 3) not inserted.
-                var rows = try Row.fetchAll(db, "SELECT * FROM persons")
+                var rows = try Row.fetchAll(db, rawSQL: "SELECT * FROM persons")
                 XCTAssertEqual(rows.count, 1)
                 var row = rows.first!
                 XCTAssertEqual(row["name"] as String, "Arthur")
@@ -231,7 +231,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 XCTAssertEqual(Array(row.columnNames), ["id", "name"])
                 
                 // Bobby inserted (migration 1), not deleted by migration 2.
-                rows = try Row.fetchAll(db, "SELECT * FROM pets")
+                rows = try Row.fetchAll(db, rawSQL: "SELECT * FROM pets")
                 XCTAssertEqual(rows.count, 1)
                 row = rows.first!
                 XCTAssertEqual(row["name"] as String, "Bobby")
@@ -299,7 +299,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         // 1st migration
         try migrator.migrate(dbQueue)
-        try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, "SELECT id FROM t1") }, 1)
+        try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, rawSQL: "SELECT id FROM t1") }, 1)
         
         // 2nd migration does not erase database
         migrator.registerMigration("2") { db in
@@ -308,7 +308,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 """)
         }
         try migrator.migrate(dbQueue)
-        try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, "SELECT id FROM t1") }, 1)
+        try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, rawSQL: "SELECT id FROM t1") }, 1)
         try XCTAssertTrue(dbQueue.read { try $0.tableExists("t2") })
     }
 }

@@ -83,7 +83,7 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
                     try! dbQueue.write { db in
                         s1.signal()
                         _ = s2.wait(timeout: .distantFuture)
-                        XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items"), 0)
+                        XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items"), 0)
                     }
                 } else {
                     XCTFail("expect non nil dbQueue")

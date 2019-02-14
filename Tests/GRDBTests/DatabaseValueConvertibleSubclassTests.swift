@@ -38,11 +38,11 @@ class DatabaseValueConvertibleSubclassTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.execute(rawSQL: "CREATE TABLE parents (name TEXT)")
             try db.execute(rawSQL: "INSERT INTO parents (name) VALUES (?)", arguments: [FetchableParent()])
-            let string = try String.fetchOne(db, "SELECT * FROM parents")!
+            let string = try String.fetchOne(db, rawSQL: "SELECT * FROM parents")!
             XCTAssertEqual(string, "Parent")
-            let parent = try FetchableParent.fetchOne(db, "SELECT * FROM parents")!
+            let parent = try FetchableParent.fetchOne(db, rawSQL: "SELECT * FROM parents")!
             XCTAssertEqual(parent.description, "Parent")
-            let parents = try FetchableParent.fetchAll(db, "SELECT * FROM parents")
+            let parents = try FetchableParent.fetchAll(db, rawSQL: "SELECT * FROM parents")
             XCTAssertEqual(parents.first!.description, "Parent")
         }
     }
@@ -52,11 +52,11 @@ class DatabaseValueConvertibleSubclassTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.execute(rawSQL: "CREATE TABLE children (name TEXT)")
             try db.execute(rawSQL: "INSERT INTO children (name) VALUES (?)", arguments: [FetchableChild()])
-            let string = try String.fetchOne(db, "SELECT * FROM children")!
+            let string = try String.fetchOne(db, rawSQL: "SELECT * FROM children")!
             XCTAssertEqual(string, "Child")
-            let child = try FetchableChild.fetchOne(db, "SELECT * FROM children")!
+            let child = try FetchableChild.fetchOne(db, rawSQL: "SELECT * FROM children")!
             XCTAssertEqual(child.description, "Child")
-            let children = try FetchableChild.fetchAll(db, "SELECT * FROM children")
+            let children = try FetchableChild.fetchAll(db, rawSQL: "SELECT * FROM children")
             XCTAssertEqual(children.first!.description, "Child")
         }
     }

@@ -18,7 +18,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM data")!, 1)
             }
         }
     }
@@ -87,7 +87,7 @@ class EncryptionTests: GRDBTestCase {
                 try db.execute(rawSQL: "INSERT INTO data (value) VALUES (2)")
             }
             try dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM data")!, 2)
             }
         }
         
@@ -95,7 +95,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "newSecret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM data")!, 2)
             }
         }
     }
@@ -114,7 +114,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.read { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM data")!, 1)
             }
         }
     }
@@ -181,7 +181,7 @@ class EncryptionTests: GRDBTestCase {
             try dbPool.change(passphrase: "newSecret")
             try dbPool.write { db in
                 try db.execute(rawSQL: "INSERT INTO data (value) VALUES (2)")
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM data")!, 2)
             }
         }
         
@@ -189,7 +189,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "newSecret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.read { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM data")!, 2)
             }
         }
     }
@@ -208,7 +208,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.read { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM data")!, 1)
             }
         }
     }
@@ -276,7 +276,7 @@ class EncryptionTests: GRDBTestCase {
             try dbPool.change(passphrase: "newSecret")
             try dbPool.write { db in
                 try db.execute(rawSQL: "INSERT INTO data (value) VALUES (2)")
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM data")!, 2)
             }
         }
         
@@ -284,7 +284,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "newSecret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.read { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM data")!, 2)
             }
         }
     }
@@ -304,7 +304,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM data")!, 1)
             }
         }
     }
@@ -372,7 +372,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "encrypted.sqlite")
             try dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM data")!, 1)
             }
         }
     }

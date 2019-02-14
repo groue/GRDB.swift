@@ -17,7 +17,7 @@ class FetchNamedValuesTests: XCTestCase {
             var count = 0
             
             try! dbQueue.inDatabase { db in
-                let rows = try Row.fetchCursor(db, "SELECT * FROM items")
+                let rows = try Row.fetchCursor(db, rawSQL: "SELECT * FROM items")
                 while let row = try rows.next() {
                     _ = row["i0"] as Int
                     _ = row["i1"] as Int

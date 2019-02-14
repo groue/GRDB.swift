@@ -577,7 +577,7 @@ public final class UpdateStatement : Statement {
 ///
 ///     let sql = "SELECT ?2 AS two, :foo AS foo, ?1 AS one, :foo AS foo2, :bar AS bar"
 ///     var arguments: StatementArguments = [1, 2, "bar"] + ["foo": "foo"]
-///     let row = try Row.fetchOne(db, sql, arguments: arguments)!
+///     let row = try Row.fetchOne(db, rawSQL: sql, arguments: arguments)!
 ///     print(row)
 ///     // Prints [two:2 foo:"foo" one:1 foo2:"foo" bar:"bar"]
 ///

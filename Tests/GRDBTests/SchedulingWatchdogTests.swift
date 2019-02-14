@@ -54,14 +54,14 @@ class SchedulingWatchdogTests: GRDBTestCase {
             try db1.execute(rawSQL: "INSERT INTO items (id) VALUES (NULL)")
             try dbQueue2.inDatabase { db2 in
                 try db2.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                let rows = try Row.fetchCursor(db1, "SELECT * FROM items")
+                let rows = try Row.fetchCursor(db1, rawSQL: "SELECT * FROM items")
                 while let row = try rows.next() {
                     try db2.execute(rawSQL: "INSERT INTO items (id) VALUES (?)", arguments: [row["id"]])
                 }
             }
         }
         let count = try dbQueue2.inDatabase { db2 in
-            try Int.fetchOne(db2, "SELECT COUNT(*) FROM items")!
+            try Int.fetchOne(db2, rawSQL: "SELECT COUNT(*) FROM items")!
         }
         XCTAssertEqual(count, 1)
     }
@@ -74,14 +74,14 @@ class SchedulingWatchdogTests: GRDBTestCase {
             try db1.execute(rawSQL: "INSERT INTO items (id) VALUES (NULL)")
             try dbQueue2.inDatabase { db2 in
                 try db2.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                let rows = try Row.fetchCursor(db1, "SELECT * FROM items")
+                let rows = try Row.fetchCursor(db1, rawSQL: "SELECT * FROM items")
                 while let row = try rows.next() {
                     try db2.execute(rawSQL: "INSERT INTO items (id) VALUES (?)", arguments: [row["id"]])
                 }
             }
         }
         let count = try dbQueue2.inDatabase { db2 in
-            try Int.fetchOne(db2, "SELECT COUNT(*) FROM items")!
+            try Int.fetchOne(db2, rawSQL: "SELECT COUNT(*) FROM items")!
         }
         XCTAssertEqual(count, 1)
     }
@@ -94,14 +94,14 @@ class SchedulingWatchdogTests: GRDBTestCase {
             try db1.execute(rawSQL: "INSERT INTO items (id) VALUES (NULL)")
             try dbPool2.write { db2 in
                 try db2.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                let rows = try Row.fetchCursor(db1, "SELECT * FROM items")
+                let rows = try Row.fetchCursor(db1, rawSQL: "SELECT * FROM items")
                 while let row = try rows.next() {
                     try db2.execute(rawSQL: "INSERT INTO items (id) VALUES (?)", arguments: [row["id"]])
                 }
             }
         }
         let count = try dbPool2.read { db2 in
-            try Int.fetchOne(db2, "SELECT COUNT(*) FROM items")!
+            try Int.fetchOne(db2, rawSQL: "SELECT COUNT(*) FROM items")!
         }
         XCTAssertEqual(count, 1)
     }
@@ -114,14 +114,14 @@ class SchedulingWatchdogTests: GRDBTestCase {
             try db1.execute(rawSQL: "INSERT INTO items (id) VALUES (NULL)")
             try dbPool2.write { db2 in
                 try db2.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                let rows = try Row.fetchCursor(db1, "SELECT * FROM items")
+                let rows = try Row.fetchCursor(db1, rawSQL: "SELECT * FROM items")
                 while let row = try rows.next() {
                     try db2.execute(rawSQL: "INSERT INTO items (id) VALUES (?)", arguments: [row["id"]])
                 }
             }
         }
         let count = try dbPool2.write { db2 in
-            try Int.fetchOne(db2, "SELECT COUNT(*) FROM items")!
+            try Int.fetchOne(db2, rawSQL: "SELECT COUNT(*) FROM items")!
         }
         XCTAssertEqual(count, 1)
     }

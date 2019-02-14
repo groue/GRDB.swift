@@ -75,7 +75,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             let record = Pet(UUID: "BobbyUUID", name: "Bobby")
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -102,7 +102,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             try record.delete(db)
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -144,7 +144,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             record.name = "Carl"
             try record.update(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -187,7 +187,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             let record = Pet(UUID: "BobbyUUID", name: "Bobby")
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -201,7 +201,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             record.name = "Carl"
             try record.save(db)   // Actual update
             
-            let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -214,7 +214,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             try record.delete(db)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -248,7 +248,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             let deleted = try record.delete(db)
             XCTAssertTrue(deleted)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])
+            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])
             XCTAssertTrue(row == nil)
         }
     }

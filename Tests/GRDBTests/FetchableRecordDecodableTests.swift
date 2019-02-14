@@ -620,7 +620,7 @@ extension FetchableRecordDecodableTests {
         try dbQueue.read { db in
             
             // ... with an array of detached rows:
-            let array = try Row.fetchAll(db, "SELECT * FROM t1")
+            let array = try Row.fetchAll(db, rawSQL: "SELECT * FROM t1")
             for row in array {
                 let data1: Data? = row["name"]
                 XCTAssertEqual(jsonAsData, data1)
@@ -651,7 +651,7 @@ extension FetchableRecordDecodableTests {
         try dbQueue.read { db in
             
             // ... with an array of detached rows:
-            let array = try Row.fetchAll(db, "SELECT * FROM t1")
+            let array = try Row.fetchAll(db, rawSQL: "SELECT * FROM t1")
             for row in array {
                 let string: String? = row["name"]
                 XCTAssertEqual(jsonAsString, string)
@@ -680,7 +680,7 @@ extension FetchableRecordDecodableTests {
         
         try dbQueue.read { db in
             // Compare cursor of low-level rows:
-            let cursor = try Row.fetchCursor(db, "SELECT * FROM t1")
+            let cursor = try Row.fetchCursor(db, rawSQL: "SELECT * FROM t1")
             while let row = try cursor.next() {
                 let data1: Data? = row["name"]
                 XCTAssertEqual(jsonAsData, data1)
@@ -710,7 +710,7 @@ extension FetchableRecordDecodableTests {
         
         try dbQueue.read { db in
             // Compare cursor of low-level rows:
-            let cursor = try Row.fetchCursor(db, "SELECT * FROM t1")
+            let cursor = try Row.fetchCursor(db, rawSQL: "SELECT * FROM t1")
             while let row = try cursor.next() {
                 let string: String? = row["name"]
                 XCTAssertEqual(jsonAsString, string)
@@ -729,7 +729,7 @@ extension FetchableRecordDecodableTests {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let data = "foo".data(using: .utf8)!
-            let record = try Record.fetchOne(db, "SELECT ? AS data, ? AS optionalData, ? AS datas, ? AS optionalDatas", arguments: [
+            let record = try Record.fetchOne(db, rawSQL: "SELECT ? AS data, ? AS optionalData, ? AS datas, ? AS optionalDatas", arguments: [
                 data,
                 data,
                 "[\"Zm9v\"]",
@@ -755,7 +755,7 @@ extension FetchableRecordDecodableTests {
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let record = try Record.fetchOne(db, "SELECT ? AS date, ? AS optionalDate, ? AS dates, ? AS optionalDates", arguments: [
+            let record = try Record.fetchOne(db, rawSQL: "SELECT ? AS date, ? AS optionalDate, ? AS dates, ? AS optionalDates", arguments: [
                 "1970-01-01 00:02:08.000",
                 "1970-01-01 00:02:08.000",
                 "[128000]",

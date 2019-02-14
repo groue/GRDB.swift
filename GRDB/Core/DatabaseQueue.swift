@@ -332,7 +332,7 @@ extension DatabaseQueue {
     ///     }
     ///     dbQueue.add(function: fn)
     ///     try dbQueue.read { db in
-    ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
+    ///         try Int.fetchOne(db, rawSQL: "SELECT succ(1)") // 2
     ///     }
     public func add(function: DatabaseFunction) {
         writer.sync { $0.add(function: function) }
