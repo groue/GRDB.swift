@@ -18,10 +18,10 @@ class DatabasePoolCollationTests: GRDBTestCase {
         dbPool.add(collation: collation1)
         
         try dbPool.write { db in
-            try db.execute("CREATE TABLE items (text TEXT COLLATE collation1)")
-            try db.execute("INSERT INTO items (text) VALUES ('a')")
-            try db.execute("INSERT INTO items (text) VALUES ('b')")
-            try db.execute("INSERT INTO items (text) VALUES ('c')")
+            try db.execute(rawSQL: "CREATE TABLE items (text TEXT COLLATE collation1)")
+            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('a')")
+            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('b')")
+            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('c')")
         }
         try dbPool.read { db in
             XCTAssertEqual(try String.fetchAll(db, "SELECT text FROM items ORDER BY text"), ["a", "b", "c"])

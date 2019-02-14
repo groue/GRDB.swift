@@ -29,7 +29,7 @@ private struct Player: FetchableRecord {
 class ValueObservationRecordTests: GRDBTestCase {
     func testAll() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
+        try dbQueue.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
         
         var results: [[Player]] = []
         let notificationExpectation = expectation(description: "notification")
@@ -44,15 +44,15 @@ class ValueObservationRecordTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
-            try db.execute("UPDATE t SET name = 'foo' WHERE id = 1")     // =
+            try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
+            try db.execute(rawSQL: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
             try db.inTransaction {                                       // +1
-                try db.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
-                try db.execute("INSERT INTO t (id, name) VALUES (3, 'baz')")
-                try db.execute("DELETE FROM t WHERE id = 3")
+                try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                try db.execute(rawSQL: "DELETE FROM t WHERE id = 3")
                 return .commit
             }
-            try db.execute("DELETE FROM t WHERE id = 1")                 // -1
+            try db.execute(rawSQL: "DELETE FROM t WHERE id = 1")                 // -1
         }
         
         waitForExpectations(timeout: 1, handler: nil)
@@ -65,7 +65,7 @@ class ValueObservationRecordTests: GRDBTestCase {
     
     func testOne() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
+        try dbQueue.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
         
         var results: [Player?] = []
         let notificationExpectation = expectation(description: "notification")
@@ -80,15 +80,15 @@ class ValueObservationRecordTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
-            try db.execute("UPDATE t SET name = 'foo' WHERE id = 1")     // =
+            try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
+            try db.execute(rawSQL: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
             try db.inTransaction {                                       // +1
-                try db.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
-                try db.execute("INSERT INTO t (id, name) VALUES (3, 'baz')")
-                try db.execute("DELETE FROM t WHERE id = 3")
+                try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                try db.execute(rawSQL: "DELETE FROM t WHERE id = 3")
                 return .commit
             }
-            try db.execute("DELETE FROM t")                              // -1
+            try db.execute(rawSQL: "DELETE FROM t")                              // -1
         }
 
         waitForExpectations(timeout: 1, handler: nil)

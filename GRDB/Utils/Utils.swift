@@ -6,7 +6,7 @@ extension String {
     /// Returns the receiver, quoted for safe insertion as an identifier in an
     /// SQL query.
     ///
-    ///     db.execute("SELECT * FROM \(tableName.quotedDatabaseIdentifier)")
+    ///     db.execute(rawSQL: "SELECT * FROM \(tableName.quotedDatabaseIdentifier)")
     public var quotedDatabaseIdentifier: String {
         // See https://www.sqlite.org/lang_keywords.html
         return "\"" + self + "\""

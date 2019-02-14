@@ -18,8 +18,8 @@ class RowCopiedFromStatementTests: RowTestCase {
     func testRowAsSequence() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             let row = try Row.fetchOne(db, "SELECT * FROM ints")!
             
             var columnNames = [String]()
@@ -40,8 +40,8 @@ class RowCopiedFromStatementTests: RowTestCase {
     func testRowValueAtIndex() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             let row = try Row.fetchOne(db, "SELECT * FROM ints")!
             
             // Raw extraction
@@ -69,8 +69,8 @@ class RowCopiedFromStatementTests: RowTestCase {
     func testRowValueNamed() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             let row = try Row.fetchOne(db, "SELECT * FROM ints")!
             
             // Raw extraction
@@ -93,8 +93,8 @@ class RowCopiedFromStatementTests: RowTestCase {
     func testRowValueFromColumn() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             let row = try Row.fetchOne(db, "SELECT * FROM ints")!
             
             // Raw extraction
@@ -164,8 +164,8 @@ class RowCopiedFromStatementTests: RowTestCase {
     func testRowCount() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             let row = try Row.fetchOne(db, "SELECT * FROM ints")!
             
             XCTAssertEqual(row.count, 3)
@@ -175,8 +175,8 @@ class RowCopiedFromStatementTests: RowTestCase {
     func testRowColumnNames() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             let row = try Row.fetchOne(db, "SELECT a, b, c FROM ints")!
             
             XCTAssertEqual(Array(row.columnNames), ["a", "b", "c"])
@@ -186,8 +186,8 @@ class RowCopiedFromStatementTests: RowTestCase {
     func testRowDatabaseValues() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             let row = try Row.fetchOne(db, "SELECT a, b, c FROM ints")!
             
             XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue, 2.databaseValue])
@@ -258,8 +258,8 @@ class RowCopiedFromStatementTests: RowTestCase {
     func testCopy() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             let row = try Row.fetchOne(db, "SELECT * FROM ints")!
             
             let copiedRow = row.copy()
@@ -273,8 +273,8 @@ class RowCopiedFromStatementTests: RowTestCase {
     func testEqualityWithCopy() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             let row = try Row.fetchOne(db, "SELECT * FROM ints")!
             
             let copiedRow = row.copy()

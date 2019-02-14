@@ -41,7 +41,7 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute("CREATE TABLE wines (grape TEXT, color INTEGER)")
+            try db.execute(rawSQL: "CREATE TABLE wines (grape TEXT, color INTEGER)")
         }
         try migrator.migrate(dbWriter)
     }
@@ -52,9 +52,9 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
             
             do {
                 for color in [Color32.red, Color32.white, Color32.rose] {
-                    try db.execute("INSERT INTO wines (color) VALUES (?)", arguments: [color])
+                    try db.execute(rawSQL: "INSERT INTO wines (color) VALUES (?)", arguments: [color])
                 }
-                try db.execute("INSERT INTO wines (color) VALUES (NULL)")
+                try db.execute(rawSQL: "INSERT INTO wines (color) VALUES (NULL)")
             }
             
             do {
@@ -84,9 +84,9 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
             
             do {
                 for color in [Color64.red, Color64.white, Color64.rose] {
-                    try db.execute("INSERT INTO wines (color) VALUES (?)", arguments: [color])
+                    try db.execute(rawSQL: "INSERT INTO wines (color) VALUES (?)", arguments: [color])
                 }
-                try db.execute("INSERT INTO wines (color) VALUES (NULL)")
+                try db.execute(rawSQL: "INSERT INTO wines (color) VALUES (NULL)")
             }
             
             do {
@@ -116,9 +116,9 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
             
             do {
                 for color in [Color.red, Color.white, Color.rose] {
-                    try db.execute("INSERT INTO wines (color) VALUES (?)", arguments: [color])
+                    try db.execute(rawSQL: "INSERT INTO wines (color) VALUES (?)", arguments: [color])
                 }
-                try db.execute("INSERT INTO wines (color) VALUES (NULL)")
+                try db.execute(rawSQL: "INSERT INTO wines (color) VALUES (NULL)")
             }
             
             do {
@@ -148,9 +148,9 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
             
             do {
                 for grape in [Grape.chardonnay, Grape.merlot, Grape.riesling] {
-                    try db.execute("INSERT INTO wines (grape) VALUES (?)", arguments: [grape])
+                    try db.execute(rawSQL: "INSERT INTO wines (grape) VALUES (?)", arguments: [grape])
                 }
-                try db.execute("INSERT INTO wines (grape) VALUES (NULL)")
+                try db.execute(rawSQL: "INSERT INTO wines (grape) VALUES (NULL)")
             }
             
             do {

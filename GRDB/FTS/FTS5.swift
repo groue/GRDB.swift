@@ -110,7 +110,7 @@
                     .map { "old.\($0.quotedDatabaseIdentifier)" }
                     .joined(separator: ", ")
                 
-                try db.execute("""
+                try db.execute(rawSQL: """
                     CREATE TRIGGER \("__\(tableName)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
                         INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
                     END;
@@ -125,7 +125,7 @@
                 
                 // https://sqlite.org/fts5.html#the_rebuild_command
                 
-                try db.execute("INSERT INTO \(ftsTable)(\(ftsTable)) VALUES('rebuild')")
+                try db.execute(rawSQL: "INSERT INTO \(ftsTable)(\(ftsTable)) VALUES('rebuild')")
             }
         }
         
@@ -371,7 +371,7 @@
     extension Database {
         /// Deletes the synchronization triggers for a synchronized FTS5 table
         public func dropFTS5SynchronizationTriggers(forTable tableName: String) throws {
-            try execute("""
+            try execute(rawSQL: """
                 DROP TRIGGER IF EXISTS \("__\(tableName)_ai".quotedDatabaseIdentifier);
                 DROP TRIGGER IF EXISTS \("__\(tableName)_ad".quotedDatabaseIdentifier);
                 DROP TRIGGER IF EXISTS \("__\(tableName)_au".quotedDatabaseIdentifier);

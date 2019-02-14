@@ -24,7 +24,7 @@ class ValueObservationFetchTests: GRDBTestCase {
     
     func testFetch() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -41,9 +41,9 @@ class ValueObservationFetchTests: GRDBTestCase {
             }
             
             try dbWriter.writeWithoutTransaction { db in
-                try db.execute("INSERT INTO t DEFAULT VALUES")
-                try db.execute("UPDATE t SET id = id")
-                try db.execute("INSERT INTO t DEFAULT VALUES")
+                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(rawSQL: "UPDATE t SET id = id")
+                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -56,7 +56,7 @@ class ValueObservationFetchTests: GRDBTestCase {
     
     func testDistinctUntilChanged() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -73,9 +73,9 @@ class ValueObservationFetchTests: GRDBTestCase {
             }
             
             try dbWriter.writeWithoutTransaction { db in
-                try db.execute("INSERT INTO t DEFAULT VALUES")
-                try db.execute("UPDATE t SET id = id")
-                try db.execute("INSERT INTO t DEFAULT VALUES")
+                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(rawSQL: "UPDATE t SET id = id")
+                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)

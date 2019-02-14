@@ -18,8 +18,7 @@ class MinimalSingle: Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute(
-            "CREATE TABLE minimalSingles (UUID TEXT NOT NULL PRIMARY KEY)")
+        try db.execute(rawSQL: "CREATE TABLE minimalSingles (UUID TEXT NOT NULL PRIMARY KEY)")
     }
     
     // Record

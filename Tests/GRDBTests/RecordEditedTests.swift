@@ -22,7 +22,7 @@ private class Person : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute("""
+        try db.execute(rawSQL: """
             CREATE TABLE persons (
                 id INTEGER PRIMARY KEY,
                 creationDate TEXT NOT NULL,
@@ -179,8 +179,8 @@ class RecordEditedTests: GRDBTestCase {
     func testRecordIsNotEditedAfterFullFetchWithIntegerPropertyOnRealAffinityColumn() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE t (value REAL)")
-            try db.execute("INSERT INTO t (value) VALUES (1)")
+            try db.execute(rawSQL: "CREATE TABLE t (value REAL)")
+            try db.execute(rawSQL: "INSERT INTO t (value) VALUES (1)")
             let record = try IntegerPropertyOnRealAffinityColumn.fetchOne(db, "SELECT * FROM t")!
             XCTAssertFalse(record.hasDatabaseChanges)
         }

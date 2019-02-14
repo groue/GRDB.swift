@@ -12,7 +12,7 @@ class UpdateStatementTests : GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute("""
+            try db.execute(rawSQL: """
                 CREATE TABLE persons (
                     id INTEGER PRIMARY KEY,
                     creationDate TEXT,
@@ -161,7 +161,7 @@ class UpdateStatementTests : GRDBTestCase {
         // https://github.com/groue/GRDB.swift/issues/15
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("SELECT 1")
+            try db.execute(rawSQL: "SELECT 1")
             let statement = try db.makeUpdateStatement("SELECT 1")
             try statement.execute()
         }
@@ -175,7 +175,7 @@ class UpdateStatementTests : GRDBTestCase {
             return index
         })
         try dbQueue.inDatabase { db in
-            try db.execute("SELECT seq() UNION ALL SELECT seq() UNION ALL SELECT seq()")
+            try db.execute(rawSQL: "SELECT seq() UNION ALL SELECT seq() UNION ALL SELECT seq()")
             let statement = try db.makeUpdateStatement("SELECT seq() UNION ALL SELECT seq() UNION ALL SELECT seq()")
             try statement.execute()
         }
@@ -185,20 +185,20 @@ class UpdateStatementTests : GRDBTestCase {
     func testExecuteNothing() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("")
-            try db.execute(" ")
-            try db.execute(";")
-            try db.execute(";;")
-            try db.execute(" \n;\t; ")
-            try db.execute("-- comment")
-            try db.execute("-- comment\\n; -----ignored")
+            try db.execute(rawSQL: "")
+            try db.execute(rawSQL: " ")
+            try db.execute(rawSQL: ";")
+            try db.execute(rawSQL: ";;")
+            try db.execute(rawSQL: " \n;\t; ")
+            try db.execute(rawSQL: "-- comment")
+            try db.execute(rawSQL: "-- comment\\n; -----ignored")
         }
     }
     
     func testExecuteMultipleStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT)")
+            try db.execute(rawSQL: "CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT)")
             XCTAssertTrue(try db.tableExists("wines"))
             XCTAssertTrue(try db.tableExists("books"))
         }
@@ -207,7 +207,7 @@ class UpdateStatementTests : GRDBTestCase {
     func testExecuteMultipleStatementWithTrailingWhiteSpace() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT)\n \t")
+            try db.execute(rawSQL: "CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT)\n \t")
             XCTAssertTrue(try db.tableExists("wines"))
             XCTAssertTrue(try db.tableExists("books"))
         }
@@ -216,7 +216,7 @@ class UpdateStatementTests : GRDBTestCase {
     func testExecuteMultipleStatementWithTrailingSemicolonAndWhiteSpace() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT);\n \t")
+            try db.execute(rawSQL: "CREATE TABLE wines (name TEXT, color INT); CREATE TABLE books (name TEXT, age INT);\n \t")
             XCTAssertTrue(try db.tableExists("wines"))
             XCTAssertTrue(try db.tableExists("books"))
         }
@@ -225,7 +225,7 @@ class UpdateStatementTests : GRDBTestCase {
     func testExecuteMultipleStatementWithPlentyOfSemicolonsAndWhiteSpaceAndComments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("""
+            try db.execute(rawSQL: """
                 ;;
                 CREATE TABLE wines ( -- create a table
                 name TEXT, -- the name
@@ -243,7 +243,7 @@ class UpdateStatementTests : GRDBTestCase {
     func testExecuteMultipleStatementWithNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
-            try db.execute("""
+            try db.execute(rawSQL: """
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age1);
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age2);
                 """, arguments: ["age1": 41, "age2": 32])
@@ -252,7 +252,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
         
         try dbQueue.inTransaction { db in
-            try db.execute("""
+            try db.execute(rawSQL: """
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age1);
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age2);
                 """, arguments: [41, 32])
@@ -264,7 +264,7 @@ class UpdateStatementTests : GRDBTestCase {
     func testExecuteMultipleStatementWithReusedNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
-            try db.execute("""
+            try db.execute(rawSQL: """
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age);
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age);
                 """, arguments: ["age": 41])
@@ -273,7 +273,7 @@ class UpdateStatementTests : GRDBTestCase {
         }
         
         try dbQueue.inTransaction { db in
-            try db.execute("""
+            try db.execute(rawSQL: """
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age);
                 INSERT INTO persons (name, age) VALUES ('Arthur', :age);
                 """, arguments: ["age": 41])
@@ -285,7 +285,7 @@ class UpdateStatementTests : GRDBTestCase {
     func testExecuteMultipleStatementWithPositionalArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
-            try db.execute("""
+            try db.execute(rawSQL: """
                 INSERT INTO persons (name, age) VALUES ('Arthur', ?);
                 INSERT INTO persons (name, age) VALUES ('Arthur', ?);
                 """, arguments: [41, 32])

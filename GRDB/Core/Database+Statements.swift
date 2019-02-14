@@ -110,10 +110,10 @@ extension Database {
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
     ///     try db.execute(
-    ///         "INSERT INTO player (name) VALUES (:name)",
+    ///         rawSQL: "INSERT INTO player (name) VALUES (:name)",
     ///         arguments: ["name": "Arthur"])
     ///
-    ///     try db.execute("""
+    ///     try db.execute(rawSQL: """
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
@@ -125,7 +125,7 @@ extension Database {
     ///     - sql: An SQL query.
     ///     - arguments: Statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(_ sql: String, arguments: StatementArguments = StatementArguments()) throws {
+    public func execute(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) throws {
         // TODO: force sql parameter name: execute(sql:...)
         try execute(literal: SQLLiteral(sql: sql, arguments: arguments))
     }

@@ -16,7 +16,7 @@ class DatabaseWriterTests : GRDBTestCase {
                 t.column("id", .integer).primaryKey()
             }
             try dbQueue.unsafeReentrantWrite { db2 in
-                try db2.execute("INSERT INTO table1 (id) VALUES (NULL)")
+                try db2.execute(rawSQL: "INSERT INTO table1 (id) VALUES (NULL)")
                 
                 try dbQueue.unsafeReentrantWrite { db3 in
                     try XCTAssertEqual(Int.fetchOne(db3, "SELECT * FROM table1"), 1)
@@ -34,7 +34,7 @@ class DatabaseWriterTests : GRDBTestCase {
                 t.column("id", .integer).primaryKey()
             }
             try dbPool.unsafeReentrantWrite { db2 in
-                try db2.execute("INSERT INTO table1 (id) VALUES (NULL)")
+                try db2.execute(rawSQL: "INSERT INTO table1 (id) VALUES (NULL)")
                 
                 try dbPool.unsafeReentrantWrite { db3 in
                     try XCTAssertEqual(Int.fetchOne(db3, "SELECT * FROM table1"), 1)
@@ -61,7 +61,7 @@ class DatabaseWriterTests : GRDBTestCase {
         migrator.registerMigration("init") { db in
             // Create a database with recursive constraints, so that we test
             // that those don't prevent database erasure.
-            try db.execute("""
+            try db.execute(rawSQL: """
                 CREATE TABLE t1 (id INTEGER PRIMARY KEY AUTOINCREMENT, b UNIQUE, c REFERENCES t2(id) ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED);
                 CREATE TABLE t2 (id INTEGER PRIMARY KEY AUTOINCREMENT, b UNIQUE, c REFERENCES t1(id) ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED);
                 CREATE VIRTUAL TABLE ft USING fts4(content);
@@ -95,7 +95,7 @@ class DatabaseWriterTests : GRDBTestCase {
     func testIssue424() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
-            try db.execute("""
+            try db.execute(rawSQL: """
                 CREATE TABLE t(a);
                 INSERT INTO t VALUES (1)
                 """)
@@ -110,7 +110,7 @@ class DatabaseWriterTests : GRDBTestCase {
     func testIssue424Minimal() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("""
+            try db.execute(rawSQL: """
                 CREATE TABLE t(a);
                 INSERT INTO t VALUES (1);
                 PRAGMA query_only = 1;

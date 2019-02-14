@@ -23,3 +23,8 @@ public typealias ColumnCursor<Value: DatabaseValueConvertible & StatementColumnC
 
 @available(*, unavailable, renamed: "FastNullableDatabaseValueCursor")
 public typealias NullableColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> = FastNullableDatabaseValueCursor<Value>
+
+extension Database {
+    @available(*, unavailable, renamed: "execute(rawSQL:arguments:)")
+    public func execute(_ sql: String, arguments: StatementArguments? = nil) throws { }
+}

@@ -616,11 +616,11 @@ extension DatabaseCollation {
     /// You can use it when creating database tables:
     ///
     ///     let collationName = DatabaseCollation.caseInsensitiveCompare.name
-    ///     dbQueue.execute(
-    ///         "CREATE TABLE players (" +
-    ///             "name TEXT COLLATE \(collationName)" +
-    ///         ")"
-    ///     )
+    ///     dbQueue.execute("""
+    ///         CREATE TABLE players (
+    ///           name TEXT COLLATE \(collationName)
+    ///         )
+    ///         """)
     public static let unicodeCompare = DatabaseCollation("swiftCompare") { (lhs, rhs) in
         return (lhs < rhs) ? .orderedAscending : ((lhs == rhs) ? .orderedSame : .orderedDescending)
     }
@@ -634,11 +634,11 @@ extension DatabaseCollation {
     /// You can use it when creating database tables:
     ///
     ///     let collationName = DatabaseCollation.caseInsensitiveCompare.name
-    ///     dbQueue.execute(
-    ///         "CREATE TABLE players (" +
-    ///             "name TEXT COLLATE \(collationName)" +
-    ///         ")"
-    ///     )
+    ///     dbQueue.execute("""
+    ///         CREATE TABLE players (
+    ///           name TEXT COLLATE \(collationName)
+    ///         )
+    ///         """)
     public static let caseInsensitiveCompare = DatabaseCollation("swiftCaseInsensitiveCompare") { (lhs, rhs) in
         return lhs.caseInsensitiveCompare(rhs)
     }
@@ -652,11 +652,11 @@ extension DatabaseCollation {
     /// You can use it when creating database tables:
     ///
     ///     let collationName = DatabaseCollation.localizedCaseInsensitiveCompare.name
-    ///     dbQueue.execute(
-    ///         "CREATE TABLE players (" +
-    ///             "name TEXT COLLATE \(collationName)" +
-    ///         ")"
-    ///     )
+    ///     dbQueue.execute("""
+    ///         CREATE TABLE players (
+    ///           name TEXT COLLATE \(collationName)
+    ///         )
+    ///         """)
     public static let localizedCaseInsensitiveCompare = DatabaseCollation("swiftLocalizedCaseInsensitiveCompare") { (lhs, rhs) in
         return lhs.localizedCaseInsensitiveCompare(rhs)
     }
@@ -670,11 +670,11 @@ extension DatabaseCollation {
     /// You can use it when creating database tables:
     ///
     ///     let collationName = DatabaseCollation.localizedCompare.name
-    ///     dbQueue.execute(
-    ///         "CREATE TABLE players (" +
-    ///             "name TEXT COLLATE \(collationName)" +
-    ///         ")"
-    ///     )
+    ///     dbQueue.execute("""
+    ///         CREATE TABLE players (
+    ///           name TEXT COLLATE \(collationName)
+    ///         )
+    ///         """)
     public static let localizedCompare = DatabaseCollation("swiftLocalizedCompare") { (lhs, rhs) in
         return lhs.localizedCompare(rhs)
     }
@@ -688,11 +688,11 @@ extension DatabaseCollation {
     /// You can use it when creating database tables:
     ///
     ///     let collationName = DatabaseCollation.localizedStandardCompare.name
-    ///     dbQueue.execute(
-    ///         "CREATE TABLE players (" +
-    ///             "name TEXT COLLATE \(collationName)" +
-    ///         ")"
-    ///     )
+    ///     dbQueue.execute("""
+    ///         CREATE TABLE players (
+    ///           name TEXT COLLATE \(collationName)
+    ///         )
+    ///         """)
     public static let localizedStandardCompare = DatabaseCollation("swiftLocalizedStandardCompare") { (lhs, rhs) in
         return lhs.localizedStandardCompare(rhs)
     }

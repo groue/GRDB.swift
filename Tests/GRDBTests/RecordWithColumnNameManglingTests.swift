@@ -20,7 +20,7 @@ class BadlyMangledStuff : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY, name TEXT)")
+        try db.execute(rawSQL: "CREATE TABLE stuffs (id INTEGER PRIMARY KEY, name TEXT)")
     }
     
     // Record

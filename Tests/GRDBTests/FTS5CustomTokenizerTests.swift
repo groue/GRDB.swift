@@ -210,8 +210,8 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
                 t.column("content")
             }
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo baz"])
+            try db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
+            try db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: ["foo baz"])
             
             // foo is not ignored
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
@@ -232,8 +232,8 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
                 t.column("content")
             }
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo baz"])
+            try db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
+            try db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: ["foo baz"])
             
             // foo is not ignored
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
@@ -264,7 +264,7 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
                 t.column("content")
             }
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
+            try db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
             
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 0)
@@ -281,7 +281,7 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
                 t.column("content")
             }
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
+            try db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
             
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 1)
@@ -299,7 +299,7 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
                 t.column("content")
             }
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
+            try db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: ["aimé\u{FB01}"]) // U+FB01: LATIN SMALL LIGATURE FI
             
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé\u{FB01}"]), 1)
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimefi"]), 0)
@@ -320,8 +320,8 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
                 t.column("content")
             }
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["first foo"])
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["1st bar"])
+            try db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: ["first foo"])
+            try db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: ["1st bar"])
             
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["first"]), 2)
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["1st"]), 2)

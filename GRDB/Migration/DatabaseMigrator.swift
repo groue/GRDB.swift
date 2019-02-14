@@ -100,7 +100,7 @@ public struct DatabaseMigrator {
         ///             t.autoIncrementedPrimaryKey("id")
         ///             t.column("name", .text).notNull()
         ///         }
-        ///         try db.execute("INSERT INTO new_player SELECT * FROM player")
+        ///         try db.execute(rawSQL: "INSERT INTO new_player SELECT * FROM player")
         ///         try db.drop(table: "player")
         ///         try db.rename(table: "new_player", to: "player")
         ///     }
@@ -128,7 +128,7 @@ public struct DatabaseMigrator {
         ///             t.autoIncrementedPrimaryKey("id")
         ///             t.column("name", .text).notNull()
         ///         }
-        ///         try db.execute("INSERT INTO new_player SELECT * FROM player")
+        ///         try db.execute(rawSQL: "INSERT INTO new_player SELECT * FROM player")
         ///         try db.drop(table: "player")
         ///         try db.rename(table: "new_player", to: "player")
         ///     }
@@ -237,7 +237,7 @@ public struct DatabaseMigrator {
     }
     
     private func setupMigrations(_ db: Database) throws {
-        try db.execute("CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
+        try db.execute(rawSQL: "CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
     }
     
     private func appliedIdentifiers(_ db: Database) throws -> Set<String> {

@@ -55,6 +55,7 @@ extension Database {
     ///     - module: The name of an SQLite virtual table module.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func create(virtualTable name: String, ifNotExists: Bool = false, using module: String) throws {
+        // TODO? refactor with SQLLiteral
         var chunks: [String] = []
         chunks.append("CREATE VIRTUAL TABLE")
         if ifNotExists {
@@ -64,7 +65,7 @@ extension Database {
         chunks.append("USING")
         chunks.append(module)
         let sql = chunks.joined(separator: " ")
-        try execute(sql)
+        try execute(rawSQL: sql)
     }
     
     /// Creates a virtual database table.
@@ -120,7 +121,7 @@ extension Database {
         let sql = chunks.joined(separator: " ")
         
         try inSavepoint {
-            try execute(sql)
+            try execute(rawSQL: sql)
             try module.database(self, didCreate: tableName, using: definition)
             return .commit
         }

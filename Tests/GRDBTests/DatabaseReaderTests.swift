@@ -25,7 +25,7 @@ class DatabaseReaderTests : GRDBTestCase {
             }
         }
         do {
-            try dbQueue.read { try $0.execute("INSERT INTO table1 DEFAULT VALUES") }
+            try dbQueue.read { try $0.execute(rawSQL: "INSERT INTO table1 DEFAULT VALUES") }
             XCTFail()
         } catch let error as DatabaseError where error.resultCode == .SQLITE_READONLY {
         }
@@ -39,7 +39,7 @@ class DatabaseReaderTests : GRDBTestCase {
             }
         }
         do {
-            try dbPool.read { try $0.execute("INSERT INTO table1 DEFAULT VALUES") }
+            try dbPool.read { try $0.execute(rawSQL: "INSERT INTO table1 DEFAULT VALUES") }
             XCTFail()
         } catch let error as DatabaseError where error.resultCode == .SQLITE_READONLY {
         }

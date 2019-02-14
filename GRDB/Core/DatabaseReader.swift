@@ -144,7 +144,7 @@ public protocol DatabaseReader : class {
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
     ///     reader.add(collation: collation)
-    ///     try reader.execute("SELECT * FROM file ORDER BY name COLLATE localized_standard")
+    ///     try reader.execute(rawSQL: "SELECT * FROM file ORDER BY name COLLATE localized_standard")
     func add(collation: DatabaseCollation)
     
     /// Remove a collation.

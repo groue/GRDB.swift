@@ -73,9 +73,9 @@ public final class DatabaseFunction: Hashable {
     ///     let fn = DatabaseFunction("mysum", argumentCount: 1, aggregate: MySum.self)
     ///     dbQueue.add(function: fn)
     ///     try dbQueue.write { db in
-    ///         try db.execute("CREATE TABLE test(i)")
-    ///         try db.execute("INSERT INTO test(i) VALUES (1)")
-    ///         try db.execute("INSERT INTO test(i) VALUES (2)")
+    ///         try db.execute(rawSQL: "CREATE TABLE test(i)")
+    ///         try db.execute(rawSQL: "INSERT INTO test(i) VALUES (1)")
+    ///         try db.execute(rawSQL: "INSERT INTO test(i) VALUES (2)")
     ///         try Int.fetchOne(db, "SELECT mysum(i) FROM test")! // 3
     ///     }
     ///
@@ -353,9 +353,9 @@ extension DatabaseFunction {
 ///     let fn = DatabaseFunction("mysum", argumentCount: 1, aggregate: MySum.self)
 ///     dbQueue.add(function: fn)
 ///     try dbQueue.write { db in
-///         try db.execute("CREATE TABLE test(i)")
-///         try db.execute("INSERT INTO test(i) VALUES (1)")
-///         try db.execute("INSERT INTO test(i) VALUES (2)")
+///         try db.execute(rawSQL: "CREATE TABLE test(i)")
+///         try db.execute(rawSQL: "INSERT INTO test(i) VALUES (1)")
+///         try db.execute(rawSQL: "INSERT INTO test(i) VALUES (2)")
 ///         try Int.fetchOne(db, "SELECT mysum(i) FROM test")! // 3
 ///     }
 public protocol DatabaseAggregate {

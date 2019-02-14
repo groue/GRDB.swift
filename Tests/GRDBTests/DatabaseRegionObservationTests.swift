@@ -16,8 +16,8 @@ class DatabaseRegionObservationTests: GRDBTestCase {
     func testDatabaseRegionObservationVariadic() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
-            try $0.execute("CREATE TABLE t1(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
-            try $0.execute("CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+            try $0.execute(rawSQL: "CREATE TABLE t1(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+            try $0.execute(rawSQL: "CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
         }
 
         let notificationExpectation = expectation(description: "notification")
@@ -37,14 +37,14 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         }
         
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t1 (id, name) VALUES (1, 'foo')")
+            try db.execute(rawSQL: "INSERT INTO t1 (id, name) VALUES (1, 'foo')")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t2 (id, name) VALUES (1, 'foo')")
+            try db.execute(rawSQL: "INSERT INTO t2 (id, name) VALUES (1, 'foo')")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t1 (id, name) VALUES (2, 'foo')")
-            try db.execute("INSERT INTO t2 (id, name) VALUES (2, 'foo')")
+            try db.execute(rawSQL: "INSERT INTO t1 (id, name) VALUES (2, 'foo')")
+            try db.execute(rawSQL: "INSERT INTO t2 (id, name) VALUES (2, 'foo')")
         }
         waitForExpectations(timeout: 1, handler: nil)
         
@@ -54,8 +54,8 @@ class DatabaseRegionObservationTests: GRDBTestCase {
     func testDatabaseRegionObservationArray() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
-            try $0.execute("CREATE TABLE t1(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
-            try $0.execute("CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+            try $0.execute(rawSQL: "CREATE TABLE t1(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+            try $0.execute(rawSQL: "CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
         }
         
         let notificationExpectation = expectation(description: "notification")
@@ -75,14 +75,14 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         }
         
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t1 (id, name) VALUES (1, 'foo')")
+            try db.execute(rawSQL: "INSERT INTO t1 (id, name) VALUES (1, 'foo')")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t2 (id, name) VALUES (1, 'foo')")
+            try db.execute(rawSQL: "INSERT INTO t2 (id, name) VALUES (1, 'foo')")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t1 (id, name) VALUES (2, 'foo')")
-            try db.execute("INSERT INTO t2 (id, name) VALUES (2, 'foo')")
+            try db.execute(rawSQL: "INSERT INTO t1 (id, name) VALUES (2, 'foo')")
+            try db.execute(rawSQL: "INSERT INTO t2 (id, name) VALUES (2, 'foo')")
         }
         waitForExpectations(timeout: 1, handler: nil)
         
@@ -91,7 +91,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
     
     func testDatabaseRegionDefaultExtent() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
+        try dbQueue.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
         
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
@@ -108,16 +108,16 @@ class DatabaseRegionObservationTests: GRDBTestCase {
             
             try withExtendedLifetime(observer) {
                 try dbQueue.write { db in
-                    try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')")
+                    try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (1, 'foo')")
                 }
                 try dbQueue.write { db in
-                    try db.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
+                    try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (2, 'bar')")
                 }
             }
         }
         // not notified
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t (id, name) VALUES (3, 'baz')")
+            try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (3, 'baz')")
         }
         waitForExpectations(timeout: 1, handler: nil)
         
@@ -126,7 +126,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
     
     func testDatabaseRegionExtentNextTransaction() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
+        try dbQueue.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
         
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
@@ -142,11 +142,11 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         }
         
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')")
+            try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (1, 'foo')")
         }
         // not notified
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
+            try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (2, 'bar')")
         }
         waitForExpectations(timeout: 1, handler: nil)
         

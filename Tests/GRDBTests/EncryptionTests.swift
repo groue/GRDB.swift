@@ -9,8 +9,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -28,8 +28,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -51,8 +51,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -74,8 +74,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -84,7 +84,7 @@ class EncryptionTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.change(passphrase: "newSecret")
             try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO data (value) VALUES (2)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (2)")
             }
             try dbQueue.inDatabase { db in
                 XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
@@ -105,8 +105,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -124,8 +124,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -147,8 +147,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -170,8 +170,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -180,7 +180,7 @@ class EncryptionTests: GRDBTestCase {
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.change(passphrase: "newSecret")
             try dbPool.write { db in
-                try db.execute("INSERT INTO data (value) VALUES (2)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (2)")
                 XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
             }
         }
@@ -199,8 +199,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.write { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -218,8 +218,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.write { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -241,8 +241,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.write { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -265,8 +265,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.write { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -275,7 +275,7 @@ class EncryptionTests: GRDBTestCase {
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.change(passphrase: "newSecret")
             try dbPool.write { db in
-                try db.execute("INSERT INTO data (value) VALUES (2)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (2)")
                 XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
             }
         }
@@ -294,9 +294,9 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = nil
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("PRAGMA key = 'secret'")
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "PRAGMA key = 'secret'")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -314,9 +314,9 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = nil
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("PRAGMA key = 'secret'")
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "PRAGMA key = 'secret'")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -345,8 +345,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = nil
             let plainTextDBQueue = try makeDatabaseQueue(filename: "plaintext.sqlite")
             try plainTextDBQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(rawSQL: "CREATE TABLE data (value INTEGER)")
+                try db.execute(rawSQL: "INSERT INTO data (value) VALUES (1)")
             }
             
             dbConfiguration.passphrase = "secret"
@@ -362,9 +362,9 @@ class EncryptionTests: GRDBTestCase {
             let encryptedDBQueue = try makeDatabaseQueue(filename: "encrypted.sqlite")
             
             try plainTextDBQueue.inDatabase { db in
-                try db.execute("ATTACH DATABASE ? AS encrypted KEY ?", arguments: [encryptedDBQueue.path, "secret"])
-                try db.execute("SELECT sqlcipher_export('encrypted')")
-                try db.execute("DETACH DATABASE encrypted")
+                try db.execute(rawSQL: "ATTACH DATABASE ? AS encrypted KEY ?", arguments: [encryptedDBQueue.path, "secret"])
+                try db.execute(rawSQL: "SELECT sqlcipher_export('encrypted')")
+                try db.execute(rawSQL: "DETACH DATABASE encrypted")
             }
         }
         

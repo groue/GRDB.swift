@@ -21,7 +21,7 @@ private class Citizenship : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute("""
+        try db.execute(rawSQL: """
             CREATE TABLE citizenships (
                 personName TEXT NOT NULL,
                 countryName TEXT NOT NULL,

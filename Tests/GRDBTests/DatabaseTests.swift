@@ -13,7 +13,7 @@ class DatabaseTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             XCTAssertFalse(try db.tableExists("persons"))
-            try db.execute("""
+            try db.execute(rawSQL: """
                 CREATE TABLE persons (
                     id INTEGER PRIMARY KEY,
                     name TEXT,
@@ -27,7 +27,7 @@ class DatabaseTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             XCTAssertFalse(try db.tableExists("persons"))
-            try db.execute("""
+            try db.execute(rawSQL: """
                 CREATE TEMPORARY TABLE persons (
                     id INTEGER PRIMARY KEY,
                     name TEXT,
@@ -42,7 +42,7 @@ class DatabaseTests : GRDBTestCase {
         try dbQueue.inDatabase { db in
             XCTAssertFalse(try db.tableExists("persons"))
             XCTAssertFalse(try db.tableExists("pets"))
-            try db.execute("""
+            try db.execute(rawSQL: """
                 CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, age INT);
                 CREATE TABLE pets (id INTEGER PRIMARY KEY, name TEXT, age INT);
                 """)
@@ -54,7 +54,7 @@ class DatabaseTests : GRDBTestCase {
     func testUpdateStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(rawSQL: "CREATE TABLE persons (name TEXT, age INT)")
             
             // The tested function:
             let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', 41)")
@@ -69,7 +69,7 @@ class DatabaseTests : GRDBTestCase {
     func testUpdateStatementWithArrayBinding() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(rawSQL: "CREATE TABLE persons (name TEXT, age INT)")
             
             let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
             try statement.execute(arguments: ["Arthur", 41])
@@ -83,7 +83,7 @@ class DatabaseTests : GRDBTestCase {
     func testUpdateStatementWithDictionaryBinding() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(rawSQL: "CREATE TABLE persons (name TEXT, age INT)")
             
             let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
             try statement.execute(arguments: ["name": "Arthur", "age": 41])
@@ -97,10 +97,10 @@ class DatabaseTests : GRDBTestCase {
     func testDatabaseExecute() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(rawSQL: "CREATE TABLE persons (name TEXT, age INT)")
             
             // The tested function:
-            try db.execute("INSERT INTO persons (name, age) VALUES ('Arthur', 41)")
+            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES ('Arthur', 41)")
             
             let row = try Row.fetchOne(db, "SELECT * FROM persons")!
             XCTAssertEqual(row[0] as String, "Arthur")
@@ -115,19 +115,19 @@ class DatabaseTests : GRDBTestCase {
             XCTAssertEqual(db.totalChangesCount, 0)
             XCTAssertEqual(db.lastInsertedRowID, 0)
             
-            try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT)")
+            try db.execute(rawSQL: "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT)")
             
-            try db.execute("INSERT INTO persons (name) VALUES ('Arthur')")
+            try db.execute(rawSQL: "INSERT INTO persons (name) VALUES ('Arthur')")
             XCTAssertEqual(db.changesCount, 1)
             XCTAssertEqual(db.totalChangesCount, 1)
             XCTAssertEqual(db.lastInsertedRowID, 1)
             
-            try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Barbara"])
+            try db.execute(rawSQL: "INSERT INTO persons (name) VALUES (?)", arguments: ["Barbara"])
             XCTAssertEqual(db.changesCount, 1)
             XCTAssertEqual(db.totalChangesCount, 2)
             XCTAssertEqual(db.lastInsertedRowID, 2)
             
-            try db.execute("DELETE FROM persons")
+            try db.execute(rawSQL: "DELETE FROM persons")
             XCTAssertEqual(db.changesCount, 2)
             XCTAssertEqual(db.totalChangesCount, 4)
             XCTAssertEqual(db.lastInsertedRowID, 2)
@@ -137,10 +137,10 @@ class DatabaseTests : GRDBTestCase {
     func testDatabaseExecuteWithArrayBinding() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(rawSQL: "CREATE TABLE persons (name TEXT, age INT)")
             
             // The tested function:
-            try db.execute("INSERT INTO persons (name, age) VALUES (?, ?)", arguments: ["Arthur", 41])
+            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (?, ?)", arguments: ["Arthur", 41])
             
             let row = try Row.fetchOne(db, "SELECT * FROM persons")!
             XCTAssertEqual(row[0] as String, "Arthur")
@@ -151,10 +151,10 @@ class DatabaseTests : GRDBTestCase {
     func testDatabaseExecuteWithDictionaryBinding() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(rawSQL: "CREATE TABLE persons (name TEXT, age INT)")
             
             // The tested function:
-            try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
+            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
             
             let row = try Row.fetchOne(db, "SELECT * FROM persons")!
             XCTAssertEqual(row[0] as String, "Arthur")
@@ -165,9 +165,9 @@ class DatabaseTests : GRDBTestCase {
     func testSelectStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-            try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
-            try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
+            try db.execute(rawSQL: "CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
+            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
             
             let statement = try db.makeSelectStatement("SELECT * FROM persons")
             let rows = try Row.fetchAll(statement)
@@ -178,9 +178,9 @@ class DatabaseTests : GRDBTestCase {
     func testSelectStatementWithArrayBinding() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-            try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
-            try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
+            try db.execute(rawSQL: "CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
+            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
             
             let statement = try db.makeSelectStatement("SELECT * FROM persons WHERE name = ?")
             let rows = try Row.fetchAll(statement, arguments: ["Arthur"])
@@ -191,9 +191,9 @@ class DatabaseTests : GRDBTestCase {
     func testSelectStatementWithDictionaryBinding() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-            try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
-            try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
+            try db.execute(rawSQL: "CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
+            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
             
             let statement = try db.makeSelectStatement("SELECT * FROM persons WHERE name = :name")
             let rows = try Row.fetchAll(statement, arguments: ["name": "Arthur"])
@@ -204,9 +204,9 @@ class DatabaseTests : GRDBTestCase {
     func testRowValueAtIndex() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-            try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
-            try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
+            try db.execute(rawSQL: "CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
+            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
             
             var names: [String?] = []
             var ages: [Int?] = []
@@ -229,9 +229,9 @@ class DatabaseTests : GRDBTestCase {
     func testRowValueNamed() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE persons (name TEXT, age INT)")
-            try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
-            try db.execute("INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
+            try db.execute(rawSQL: "CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
+            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
             
             var names: [String?] = []
             var ages: [Int?] = []
@@ -258,7 +258,7 @@ class DatabaseTests : GRDBTestCase {
             database = db
         }
         try dbQueue.inDatabase { _ in
-            try database!.execute("CREATE TABLE persons (name TEXT)")
+            try database!.execute(rawSQL: "CREATE TABLE persons (name TEXT)")
         }
     }
 
@@ -273,15 +273,15 @@ class DatabaseTests : GRDBTestCase {
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE parent (id INTEGER PRIMARY KEY)")
-            try db.execute("CREATE TABLE child (parentID INTEGER NOT NULL REFERENCES parent(id))")
+            try db.execute(rawSQL: "CREATE TABLE parent (id INTEGER PRIMARY KEY)")
+            try db.execute(rawSQL: "CREATE TABLE child (parentID INTEGER NOT NULL REFERENCES parent(id))")
         }
         
         do {
             try dbQueue.inTransaction { db in
                 do {
-                    try db.execute("PRAGMA defer_foreign_keys = ON")
-                    try db.execute("INSERT INTO child (parentID) VALUES (1)")
+                    try db.execute(rawSQL: "PRAGMA defer_foreign_keys = ON")
+                    try db.execute(rawSQL: "INSERT INTO child (parentID) VALUES (1)")
                 } catch {
                     XCTFail()
                 }

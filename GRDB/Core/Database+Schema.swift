@@ -386,7 +386,7 @@ public struct ColumnInfo : FetchableRecord {
     ///
     /// For example:
     ///
-    ///     try db.execute("""
+    ///     try db.execute(rawSQL: """
     ///         CREATE TABLE player(
     ///             id INTEGER PRIMARY KEY,
     ///             name TEXT DEFAULT 'Anonymous',
@@ -597,7 +597,7 @@ struct SchemaInfo: Equatable {
     
     /// Returns the canonical name of the object:
     ///
-    ///     try db.execute("CREATE TABLE FooBar (...)")
+    ///     try db.execute(rawSQL: "CREATE TABLE FooBar (...)")
     ///     try db.schema().canonicalName("foobar", ofType: .table) // "FooBar"
     func canonicalName(_ name: String, ofType type: SchemaObjectType) -> String? {
         let name = name.lowercased()

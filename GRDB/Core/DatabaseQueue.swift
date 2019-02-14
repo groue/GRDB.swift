@@ -352,7 +352,7 @@ extension DatabaseQueue {
     ///     }
     ///     dbQueue.add(collation: collation)
     ///     try dbQueue.write { db in
-    ///         try db.execute("CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///         try db.execute(rawSQL: "CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {
         writer.sync { $0.add(collation: collation) }

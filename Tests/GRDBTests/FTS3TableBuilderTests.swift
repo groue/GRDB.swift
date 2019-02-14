@@ -26,7 +26,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
             try db.create(virtualTable: "documents", using: FTS3())
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts3")
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["abc"])
+            try db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: ["abc"])
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
         }
     }
@@ -37,7 +37,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
             try db.create(virtualTable: "documents", ifNotExists: true, using: FTS3())
             assertDidExecute(sql: "CREATE VIRTUAL TABLE IF NOT EXISTS \"documents\" USING fts3")
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["abc"])
+            try db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: ["abc"])
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
         }
     }
@@ -136,7 +136,7 @@ class FTS3TableBuilderTests: GRDBTestCase {
             }
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"books\" USING fts3(author, title, body)")
             
-            try db.execute("INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
+            try db.execute(rawSQL: "INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Melville"])!, 1)
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["title:Melville"])!, 0)
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE title MATCH ?", arguments: ["Melville"])!, 0)

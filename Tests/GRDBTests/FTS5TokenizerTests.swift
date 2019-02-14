@@ -11,9 +11,9 @@ import XCTest
 class FTS5TokenizerTests: GRDBTestCase {
     
     private func match(_ db: Database, _ content: String, _ query: String) -> Bool {
-        try! db.execute("INSERT INTO documents VALUES (?)", arguments: [content])
+        try! db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: [content])
         defer {
-            try! db.execute("DELETE FROM documents")
+            try! db.execute(rawSQL: "DELETE FROM documents")
         }
         return try! Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: [query])! > 0
     }

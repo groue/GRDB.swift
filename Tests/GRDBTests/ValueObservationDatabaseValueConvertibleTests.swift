@@ -30,7 +30,7 @@ private struct Name: DatabaseValueConvertible {
 class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
     func testAll() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
+        try dbQueue.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
         
         var results: [[Name]] = []
         let notificationExpectation = expectation(description: "notification")
@@ -45,15 +45,15 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
-            try db.execute("UPDATE t SET name = 'foo' WHERE id = 1")     // =
+            try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
+            try db.execute(rawSQL: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
             try db.inTransaction {                                       // +1
-                try db.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
-                try db.execute("INSERT INTO t (id, name) VALUES (3, 'baz')")
-                try db.execute("DELETE FROM t WHERE id = 3")
+                try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                try db.execute(rawSQL: "DELETE FROM t WHERE id = 3")
                 return .commit
             }
-            try db.execute("DELETE FROM t WHERE id = 1")                 // -1
+            try db.execute(rawSQL: "DELETE FROM t WHERE id = 1")                 // -1
         }
         
         waitForExpectations(timeout: 1, handler: nil)
@@ -66,7 +66,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
     
     func testOne() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
+        try dbQueue.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
         
         var results: [Name?] = []
         let notificationExpectation = expectation(description: "notification")
@@ -81,20 +81,20 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')")
-            try db.execute("UPDATE t SET name = 'foo' WHERE id = 1")
+            try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+            try db.execute(rawSQL: "UPDATE t SET name = 'foo' WHERE id = 1")
             try db.inTransaction {
-                try db.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
-                try db.execute("INSERT INTO t (id, name) VALUES (3, 'baz')")
-                try db.execute("DELETE FROM t WHERE id = 3")
+                try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                try db.execute(rawSQL: "DELETE FROM t WHERE id = 3")
                 return .commit
             }
-            try db.execute("DELETE FROM t")
-            try db.execute("INSERT INTO t (id, name) VALUES (1, 'baz')")
-            try db.execute("UPDATE t SET name = NULL")
-            try db.execute("DELETE FROM t")
-            try db.execute("INSERT INTO t (id, name) VALUES (1, NULL)")
-            try db.execute("UPDATE t SET name = 'qux'")
+            try db.execute(rawSQL: "DELETE FROM t")
+            try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (1, 'baz')")
+            try db.execute(rawSQL: "UPDATE t SET name = NULL")
+            try db.execute(rawSQL: "DELETE FROM t")
+            try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (1, NULL)")
+            try db.execute(rawSQL: "UPDATE t SET name = 'qux'")
         }
 
         waitForExpectations(timeout: 1, handler: nil)
@@ -110,7 +110,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
     
     func testAllOptional() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
+        try dbQueue.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
         
         var results: [[Name?]] = []
         let notificationExpectation = expectation(description: "notification")
@@ -125,15 +125,15 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
-            try db.execute("UPDATE t SET name = 'foo' WHERE id = 1")     // =
+            try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
+            try db.execute(rawSQL: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
             try db.inTransaction {                                       // +1
-                try db.execute("INSERT INTO t (id, name) VALUES (2, NULL)")
-                try db.execute("INSERT INTO t (id, name) VALUES (3, 'baz')")
-                try db.execute("DELETE FROM t WHERE id = 3")
+                try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (2, NULL)")
+                try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                try db.execute(rawSQL: "DELETE FROM t WHERE id = 3")
                 return .commit
             }
-            try db.execute("DELETE FROM t WHERE id = 1")                 // -1
+            try db.execute(rawSQL: "DELETE FROM t WHERE id = 1")                 // -1
         }
         
         waitForExpectations(timeout: 1, handler: nil)
@@ -147,7 +147,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
     func testViewOptimization() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
-            try $0.execute("""
+            try $0.execute(rawSQL: """
                 CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);
                 CREATE VIEW v AS SELECT * FROM t
                 """)
@@ -179,15 +179,15 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         
         // Test view observation
         try dbQueue.inDatabase { db in
-            try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
-            try db.execute("UPDATE t SET name = 'foo' WHERE id = 1")     // =
+            try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
+            try db.execute(rawSQL: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
             try db.inTransaction {                                       // +1
-                try db.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
-                try db.execute("INSERT INTO t (id, name) VALUES (3, 'baz')")
-                try db.execute("DELETE FROM t WHERE id = 3")
+                try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                try db.execute(rawSQL: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                try db.execute(rawSQL: "DELETE FROM t WHERE id = 3")
                 return .commit
             }
-            try db.execute("DELETE FROM t WHERE id = 1")                 // -1
+            try db.execute(rawSQL: "DELETE FROM t WHERE id = 1")                 // -1
         }
         
         waitForExpectations(timeout: 1, handler: nil)

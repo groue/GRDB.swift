@@ -22,7 +22,7 @@ private class Person : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute("""
+        try db.execute(rawSQL: """
             CREATE TABLE persons (
                 id INTEGER PRIMARY KEY,
                 creationDate TEXT NOT NULL,

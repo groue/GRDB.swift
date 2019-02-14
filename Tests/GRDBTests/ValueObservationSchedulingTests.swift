@@ -16,7 +16,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testMainQueueObservationStartedFromMainQueue() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -41,7 +41,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             XCTAssertEqual(counts, [0])
             
             try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+                try $0.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -56,7 +56,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testMainQueueObservationStartedFromAnotherQueue() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -79,7 +79,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                 }
                 
                 try! dbWriter.write {
-                    try $0.execute("INSERT INTO t DEFAULT VALUES")
+                    try $0.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
                 }
             }
             
@@ -94,7 +94,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testMainQueueError() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var errorCount = 0
             let notificationExpectation = expectation(description: "notification")
@@ -131,7 +131,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             struct TestError: Error { }
             nextError = TestError()
             try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+                try $0.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -145,7 +145,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testCustomQueueStartImmediately() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -169,7 +169,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             }
             
             try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+                try $0.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -183,7 +183,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testCustomQueueDontStartImmediately() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -207,7 +207,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             }
             
             try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+                try $0.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -221,7 +221,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testCustomQueueError() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var errorCount = 0
             let notificationExpectation = expectation(description: "notification")
@@ -250,7 +250,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                 onChange: { _ in fatalError() })
             
             try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+                try $0.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -264,7 +264,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testUnsafeStartImmediatelyFromMainQueue() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -290,7 +290,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             }
             
             try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+                try $0.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -304,7 +304,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testUnsafeStartImmediatelyFromCustomQueue() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -332,7 +332,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                 }
                 
                 try! dbWriter.write {
-                    try $0.execute("INSERT INTO t DEFAULT VALUES")
+                    try $0.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
                 }
             }
             
@@ -347,7 +347,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testUnsafeDontStartImmediately() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -366,7 +366,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             }
             
             try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+                try $0.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -380,7 +380,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testUnsafeError() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var errorCount = 0
             let notificationExpectation = expectation(description: "notification")
@@ -404,7 +404,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                 onChange: { _ in fatalError() })
             
             try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+                try $0.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)

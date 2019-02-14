@@ -23,8 +23,8 @@ class DatabaseValueTests: GRDBTestCase {
     func testDatabaseValueCanBeUsedAsStatementArgument() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE integers (integer INTEGER)")
-            try db.execute("INSERT INTO integers (integer) VALUES (1)")
+            try db.execute(rawSQL: "CREATE TABLE integers (integer INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO integers (integer) VALUES (1)")
             let dbValue: DatabaseValue = 1.databaseValue
             let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM integers WHERE integer = ?", arguments: [dbValue])!
             XCTAssertEqual(count, 1)

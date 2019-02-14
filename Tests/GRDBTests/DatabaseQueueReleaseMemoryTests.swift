@@ -70,7 +70,7 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
         let (block1, block2) = { () -> (() -> (), () -> ()) in
             var dbQueue: DatabaseQueue? = try! self.makeDatabaseQueue()
             try! dbQueue!.write { db in
-                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                try db.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }
             
             let block1 = { () in

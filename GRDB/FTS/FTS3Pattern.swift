@@ -19,8 +19,8 @@ public struct FTS3Pattern {
         // that pattern.
         do {
             try DatabaseQueue().inDatabase { db in
-                try db.execute("CREATE VIRTUAL TABLE documents USING fts3()")
-                try db.execute("SELECT * FROM documents WHERE content MATCH ?", arguments: [rawPattern])
+                try db.execute(rawSQL: "CREATE VIRTUAL TABLE documents USING fts3()")
+                try db.execute(rawSQL: "SELECT * FROM documents WHERE content MATCH ?", arguments: [rawPattern])
             }
         } catch let error as DatabaseError {
             // Remove private SQL & arguments from the thrown error

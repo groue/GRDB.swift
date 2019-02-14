@@ -258,8 +258,8 @@ class DatabaseRegionTests : GRDBTestCase {
     func testSelectStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (id INTEGER, name TEXT)")
-            try db.execute("CREATE TABLE bar (id INTEGER, fooId INTEGER)")
+            try db.execute(rawSQL: "CREATE TABLE foo (id INTEGER, name TEXT)")
+            try db.execute(rawSQL: "CREATE TABLE bar (id INTEGER, fooId INTEGER)")
             
             do {
                 let statement = try db.makeSelectStatement("SELECT foo.name FROM FOO JOIN BAR ON fooId = foo.id")
@@ -286,7 +286,7 @@ class DatabaseRegionTests : GRDBTestCase {
     func testRegionRowIds() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (id INTEGER PRIMARY KEY, a TEXT)")
+            try db.execute(rawSQL: "CREATE TABLE foo (id INTEGER PRIMARY KEY, a TEXT)")
             struct Record: TableRecord {
                 static let databaseTableName = "foo"
             }
@@ -413,9 +413,9 @@ class DatabaseRegionTests : GRDBTestCase {
     func testDatabaseRegionOfJoinedRequests() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE a (id INTEGER PRIMARY KEY, name TEXT)")
-            try db.execute("CREATE TABLE b (id INTEGER PRIMARY KEY, name TEXT, aid INTEGER REFERENCES a(id))")
-            try db.execute("CREATE TABLE c (id INTEGER PRIMARY KEY, name TEXT, aid INTEGER REFERENCES a(id))")
+            try db.execute(rawSQL: "CREATE TABLE a (id INTEGER PRIMARY KEY, name TEXT)")
+            try db.execute(rawSQL: "CREATE TABLE b (id INTEGER PRIMARY KEY, name TEXT, aid INTEGER REFERENCES a(id))")
+            try db.execute(rawSQL: "CREATE TABLE c (id INTEGER PRIMARY KEY, name TEXT, aid INTEGER REFERENCES a(id))")
             struct A: TableRecord {
                 static let databaseTableName = "a"
                 static let b = hasOne(B.self)
@@ -448,7 +448,7 @@ class DatabaseRegionTests : GRDBTestCase {
     func testDatabaseRegionOfDerivedRequests() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (id INTEGER PRIMARY KEY, a TEXT)")
+            try db.execute(rawSQL: "CREATE TABLE foo (id INTEGER PRIMARY KEY, a TEXT)")
             struct Record: TableRecord {
                 static let databaseTableName = "foo"
             }
@@ -475,7 +475,7 @@ class DatabaseRegionTests : GRDBTestCase {
     func testUpdateStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
+            try db.execute(rawSQL: "CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
             let statement = try db.makeUpdateStatement("UPDATE foo SET bar = 'bar', baz = 'baz' WHERE id = 1")
             XCTAssertFalse(statement.invalidatesDatabaseSchemaCache)
             XCTAssertEqual(statement.databaseEventKinds.count, 1)
@@ -502,7 +502,7 @@ class DatabaseRegionTests : GRDBTestCase {
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (name TEXT)")
+            try db.execute(rawSQL: "CREATE TABLE foo (name TEXT)")
             do {
                 let statement = try db.makeSelectStatement("SELECT rowid FROM FOO")
                 let expectedRegion = DatabaseRegion(table: "foo", columns: ["ROWID"])
@@ -537,7 +537,7 @@ class DatabaseRegionTests : GRDBTestCase {
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (name TEXT)")
+            try db.execute(rawSQL: "CREATE TABLE foo (name TEXT)")
             do {
                 let statement = try db.makeUpdateStatement("UPDATE foo SET rowid = 1")
                 XCTAssertEqual(statement.databaseEventKinds.count, 1)
@@ -574,7 +574,7 @@ class DatabaseRegionTests : GRDBTestCase {
     func testInsertStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
+            try db.execute(rawSQL: "CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
             let statement = try db.makeUpdateStatement("INSERT INTO foo (id, bar) VALUES (1, 'bar')")
             XCTAssertFalse(statement.invalidatesDatabaseSchemaCache)
             XCTAssertEqual(statement.databaseEventKinds.count, 1)
@@ -589,7 +589,7 @@ class DatabaseRegionTests : GRDBTestCase {
     func testDeleteStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
+            try db.execute(rawSQL: "CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
             let statement = try db.makeUpdateStatement("DELETE FROM foo")
             XCTAssertFalse(statement.invalidatesDatabaseSchemaCache)
             XCTAssertEqual(statement.databaseEventKinds.count, 1)

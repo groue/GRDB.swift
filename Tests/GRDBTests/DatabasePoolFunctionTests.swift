@@ -19,8 +19,8 @@ class DatabasePoolFunctionTests: GRDBTestCase {
         dbPool.add(function: function1)
         
         try dbPool.write { db in
-            try db.execute("CREATE TABLE items (text TEXT)")
-            try db.execute("INSERT INTO items (text) VALUES (function1('a'))")
+            try db.execute(rawSQL: "CREATE TABLE items (text TEXT)")
+            try db.execute(rawSQL: "INSERT INTO items (text) VALUES (function1('a'))")
         }
         try dbPool.read { db in
             XCTAssertEqual(try String.fetchOne(db, "SELECT function1(text) FROM items")!, "a")

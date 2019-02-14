@@ -18,8 +18,7 @@ class MinimalRowID : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute(
-            "CREATE TABLE minimalRowIDs (id INTEGER PRIMARY KEY)")
+        try db.execute(rawSQL: "CREATE TABLE minimalRowIDs (id INTEGER PRIMARY KEY)")
     }
     
     // Record

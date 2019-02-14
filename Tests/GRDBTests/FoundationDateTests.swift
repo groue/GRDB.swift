@@ -12,7 +12,7 @@ class FoundationDateTests : GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createDates") { db in
-            try db.execute("""
+            try db.execute(rawSQL: """
                 CREATE TABLE dates (
                     ID INTEGER PRIMARY KEY,
                     creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)
@@ -37,7 +37,7 @@ class FoundationDateTests : GRDBTestCase {
             
             do {
                 let date = calendar.date(from: dateComponents)!
-                try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [date])
+                try db.execute(rawSQL: "INSERT INTO dates (creationDate) VALUES (?)", arguments: [date])
             }
             
             do {
@@ -58,15 +58,15 @@ class FoundationDateTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(
-                "INSERT INTO dates (id, creationDate) VALUES (?,?)",
+                rawSQL: "INSERT INTO dates (id, creationDate) VALUES (?,?)",
                 arguments: [1, Date().addingTimeInterval(-1)])
             
             try db.execute(
-                "INSERT INTO dates (id) VALUES (?)",
+                rawSQL: "INSERT INTO dates (id) VALUES (?)",
                 arguments: [2])
             
             try db.execute(
-                "INSERT INTO dates (id, creationDate) VALUES (?,?)",
+                rawSQL: "INSERT INTO dates (id, creationDate) VALUES (?,?)",
                 arguments: [3, Date().addingTimeInterval(1)])
             
             let ids = try Int.fetchAll(db, "SELECT id FROM dates ORDER BY creationDate")
@@ -111,7 +111,7 @@ class FoundationDateTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(
-                "INSERT INTO dates (creationDate) VALUES (?)",
+                rawSQL: "INSERT INTO dates (creationDate) VALUES (?)",
                 arguments: ["2015-07-22"])
             let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
             var calendar = Calendar(identifier: .gregorian)
@@ -130,7 +130,7 @@ class FoundationDateTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(
-                "INSERT INTO dates (creationDate) VALUES (?)",
+                rawSQL: "INSERT INTO dates (creationDate) VALUES (?)",
                 arguments: ["2015-07-22 01:02"])
             let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
             var calendar = Calendar(identifier: .gregorian)
@@ -149,7 +149,7 @@ class FoundationDateTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(
-                "INSERT INTO dates (creationDate) VALUES (?)",
+                rawSQL: "INSERT INTO dates (creationDate) VALUES (?)",
                 arguments: ["2015-07-22 01:02:03"])
             let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
             var calendar = Calendar(identifier: .gregorian)
@@ -168,7 +168,7 @@ class FoundationDateTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(
-                "INSERT INTO dates (creationDate) VALUES (?)",
+                rawSQL: "INSERT INTO dates (creationDate) VALUES (?)",
                 arguments: ["2015-07-22 01:02:03.00456"])
             let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
             var calendar = Calendar(identifier: .gregorian)
@@ -187,7 +187,7 @@ class FoundationDateTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(
-                "INSERT INTO dates (creationDate) VALUES (?)",
+                rawSQL: "INSERT INTO dates (creationDate) VALUES (?)",
                 arguments: [1437526920])
             
             let string = try String.fetchOne(db, "SELECT datetime(creationDate, 'unixepoch') from dates")!
@@ -210,7 +210,7 @@ class FoundationDateTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(
-                "INSERT INTO dates (creationDate) VALUES (?)",
+                rawSQL: "INSERT INTO dates (creationDate) VALUES (?)",
                 arguments: ["2015-07-22T01:02"])
             let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
             var calendar = Calendar(identifier: .gregorian)
@@ -229,7 +229,7 @@ class FoundationDateTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(
-                "INSERT INTO dates (creationDate) VALUES (?)",
+                rawSQL: "INSERT INTO dates (creationDate) VALUES (?)",
                 arguments: ["2015-07-22T01:02:03"])
             let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
             var calendar = Calendar(identifier: .gregorian)
@@ -248,7 +248,7 @@ class FoundationDateTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(
-                "INSERT INTO dates (creationDate) VALUES (?)",
+                rawSQL: "INSERT INTO dates (creationDate) VALUES (?)",
                 arguments: ["2015-07-22T01:02:03.00456"])
             let date = try Date.fetchOne(db, "SELECT creationDate from dates")!
             var calendar = Calendar(identifier: .gregorian)

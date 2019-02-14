@@ -353,7 +353,7 @@ extension Database {
     private func setupForeignKeys() throws {
         // Foreign keys are disabled by default with SQLite3
         if configuration.foreignKeysEnabled {
-            try execute("PRAGMA foreign_keys = ON")
+            try execute(rawSQL: "PRAGMA foreign_keys = ON")
         }
     }
     
@@ -512,7 +512,7 @@ extension Database {
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
     ///     db.add(collation: collation)
-    ///     try db.execute("CREATE TABLE files (name TEXT COLLATE localized_standard")
+    ///     try db.execute(rawSQL: "CREATE TABLE files (name TEXT COLLATE localized_standard")
     public func add(collation: DatabaseCollation) {
         collations.update(with: collation)
         let collationPointer = Unmanaged.passUnretained(collation).toOpaque()
@@ -569,7 +569,7 @@ extension Database {
     ///
     ///     try dbQueue.inDatabase do {
     ///         try db.inTransaction {
-    ///             try db.execute("INSERT ...")
+    ///             try db.execute(rawSQL: "INSERT ...")
     ///             return .commit
     ///         }
     ///     }
@@ -629,7 +629,7 @@ extension Database {
     ///
     ///     try dbQueue.inDatabase do {
     ///         try db.inSavepoint {
-    ///             try db.execute("INSERT ...")
+    ///             try db.execute(rawSQL: "INSERT ...")
     ///             return .commit
     ///         }
     ///     }
@@ -665,7 +665,7 @@ extension Database {
         // using unique savepoint names. User could still mess with them
         // with raw SQL queries, but let's assume that it is unlikely that
         // the user uses "grdb" as a savepoint name.
-        try execute("SAVEPOINT grdb")
+        try execute(rawSQL: "SAVEPOINT grdb")
         
         // Now that savepoint has begun, we'll rollback in case of error.
         // But we'll throw the first caught error, so that user knows
@@ -676,7 +676,7 @@ extension Database {
             let completion = try block()
             switch completion {
             case .commit:
-                try execute("RELEASE SAVEPOINT grdb")
+                try execute(rawSQL: "RELEASE SAVEPOINT grdb")
                 assert(!topLevelSavepoint || !isInsideTransaction)
                 needsRollback = false
             case .rollback:
@@ -695,8 +695,8 @@ extension Database {
                     // Rollback, and release the savepoint.
                     // Rollback alone is not enough to clear the savepoint from
                     // the SQLite savepoint stack.
-                    try execute("ROLLBACK TRANSACTION TO SAVEPOINT grdb")
-                    try execute("RELEASE SAVEPOINT grdb")
+                    try execute(rawSQL: "ROLLBACK TRANSACTION TO SAVEPOINT grdb")
+                    try execute(rawSQL: "RELEASE SAVEPOINT grdb")
                 }
             } catch {
                 if firstError == nil {
@@ -719,7 +719,7 @@ extension Database {
     /// - throws: The error thrown by the block.
     public func beginTransaction(_ kind: TransactionKind? = nil) throws {
         let kind = kind ?? configuration.defaultTransactionKind
-        try execute("BEGIN \(kind.rawValue) TRANSACTION")
+        try execute(rawSQL: "BEGIN \(kind.rawValue) TRANSACTION")
         assert(isInsideTransaction)
     }
     
@@ -815,14 +815,14 @@ extension Database {
         // should be exposed to the library user.
         SchedulingWatchdog.preconditionValidQueue(self) // guard sqlite3_get_autocommit
         if sqlite3_get_autocommit(sqliteConnection) == 0 {
-            try execute("ROLLBACK TRANSACTION")
+            try execute(rawSQL: "ROLLBACK TRANSACTION")
         }
         assert(!isInsideTransaction)
     }
     
     /// Commits a database transaction.
     public func commit() throws {
-        try execute("COMMIT TRANSACTION")
+        try execute(rawSQL: "COMMIT TRANSACTION")
         assert(!isInsideTransaction)
     }
 }

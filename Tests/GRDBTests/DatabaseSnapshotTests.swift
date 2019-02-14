@@ -27,12 +27,12 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let dbPool = try makeDatabasePool()
         try dbPool.writeWithoutTransaction { db in
             try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
-            try db.execute("INSERT INTO t DEFAULT VALUES")
+            try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
             let snapshot = try dbPool.makeSnapshot()
             try snapshot.read { db in
                 try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
             }
-            try db.execute("INSERT INTO t DEFAULT VALUES")
+            try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
             try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 2)
             try snapshot.read { db in
                 try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
@@ -44,7 +44,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
             try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
-            try db.execute("INSERT INTO t DEFAULT VALUES")
+            try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
         }
         
         let snapshot = try dbPool.makeSnapshot()
@@ -52,7 +52,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
             try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
         }
         try dbPool.write { db in
-            try db.execute("INSERT INTO t DEFAULT VALUES")
+            try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
             try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 2)
         }
         try snapshot.read { db in
@@ -89,10 +89,10 @@ class DatabaseSnapshotTests: GRDBTestCase {
         dbPool.add(collation: collation)
         
         try dbPool.write { db in
-            try db.execute("CREATE TABLE items (text TEXT)")
-            try db.execute("INSERT INTO items (text) VALUES ('a')")
-            try db.execute("INSERT INTO items (text) VALUES ('b')")
-            try db.execute("INSERT INTO items (text) VALUES ('c')")
+            try db.execute(rawSQL: "CREATE TABLE items (text TEXT)")
+            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('a')")
+            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('b')")
+            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('c')")
         }
         
         let snapshot = try dbPool.makeSnapshot()
@@ -104,10 +104,10 @@ class DatabaseSnapshotTests: GRDBTestCase {
     func testSnapshotCollations() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
-            try db.execute("CREATE TABLE items (text TEXT)")
-            try db.execute("INSERT INTO items (text) VALUES ('a')")
-            try db.execute("INSERT INTO items (text) VALUES ('b')")
-            try db.execute("INSERT INTO items (text) VALUES ('c')")
+            try db.execute(rawSQL: "CREATE TABLE items (text TEXT)")
+            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('a')")
+            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('b')")
+            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('c')")
         }
         
         let snapshot = try dbPool.makeSnapshot()

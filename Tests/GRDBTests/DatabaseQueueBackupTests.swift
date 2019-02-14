@@ -14,8 +14,8 @@ class DatabaseQueueBackupTests: GRDBTestCase {
         let destination = try makeDatabaseQueue(filename: "destination.sqlite")
         
         try source.inDatabase { db in
-            try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            try db.execute("INSERT INTO items (id) VALUES (NULL)")
+            try db.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            try db.execute(rawSQL: "INSERT INTO items (id) VALUES (NULL)")
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
         }
         
@@ -26,7 +26,7 @@ class DatabaseQueueBackupTests: GRDBTestCase {
         }
         
         try source.inDatabase { db in
-            try db.execute("DROP TABLE items")
+            try db.execute(rawSQL: "DROP TABLE items")
         }
         
         try source.backup(to: destination)

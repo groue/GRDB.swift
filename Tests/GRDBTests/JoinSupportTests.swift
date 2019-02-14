@@ -235,7 +235,7 @@ class JoinSupportTests: GRDBTestCase {
             
             // Sample data
             
-            try db.execute("""
+            try db.execute(rawSQL: """
                 INSERT INTO t1 (id, name) VALUES (1, 'A1');
                 INSERT INTO t1 (id, name) VALUES (2, 'A2');
                 INSERT INTO t1 (id, name) VALUES (3, 'A3');

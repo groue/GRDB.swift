@@ -65,7 +65,7 @@ public final class DatabasePool: DatabaseWriter {
                 
                 // https://www.sqlite.org/pragma.html#pragma_synchronous
                 // > Many applications choose NORMAL when in WAL mode
-                try db.execute("PRAGMA synchronous = NORMAL")
+                try db.execute(rawSQL: "PRAGMA synchronous = NORMAL")
                 
                 if !FileManager.default.fileExists(atPath: path + "-wal") {
                     // Create the -wal file if it does not exist yet. This
@@ -73,7 +73,7 @@ public final class DatabasePool: DatabaseWriter {
                     // opens a pool to an existing non-WAL database, and
                     // attempts to read from it.
                     // See https://github.com/groue/GRDB.swift/issues/102
-                    try db.execute("CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY); DROP TABLE grdb_issue_102;")
+                    try db.execute(rawSQL: "CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY); DROP TABLE grdb_issue_102;")
                 }
             }
         }
@@ -579,7 +579,7 @@ extension DatabasePool : DatabaseReader {
     ///     }
     ///     dbPool.add(collation: collation)
     ///     try dbPool.write { db in
-    ///         try db.execute("CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///         try db.execute(rawSQL: "CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {
         collations.update(with: collation)

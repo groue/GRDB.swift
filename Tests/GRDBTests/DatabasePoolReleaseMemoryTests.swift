@@ -34,7 +34,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             let dbPool = try makeDatabasePool()
             // Writer connection
             try dbPool.write { db in
-                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                try db.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }
             // Reader connection
             try dbPool.read { _ in }
@@ -67,9 +67,9 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
-            try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            try db.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
             for _ in 0..<2 {
-                try db.execute("INSERT INTO items (id) VALUES (NULL)")
+                try db.execute(rawSQL: "INSERT INTO items (id) VALUES (NULL)")
             }
         }
         
@@ -155,7 +155,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         let (block1, block2) = { () -> (() -> (), () -> ()) in
             var dbPool: DatabasePool? = try! self.makeDatabasePool()
             try! dbPool!.write { db in
-                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                try db.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }
             
             let block1 = { () in

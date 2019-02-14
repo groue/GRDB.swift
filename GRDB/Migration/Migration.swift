@@ -50,7 +50,7 @@ struct Migration {
         //
         // > 1. If foreign key constraints are enabled, disable them using
         // > PRAGMA foreign_keys=OFF.
-        try db.execute("PRAGMA foreign_keys = OFF")
+        try db.execute(rawSQL: "PRAGMA foreign_keys = OFF")
         
         // > 2. Start a transaction.
         try db.inTransaction(.immediate) {
@@ -76,10 +76,10 @@ struct Migration {
         }
         
         // > 12. If foreign keys constraints were originally enabled, reenable them now.
-        try db.execute("PRAGMA foreign_keys = ON")
+        try db.execute(rawSQL: "PRAGMA foreign_keys = ON")
     }
     
     private func insertAppliedIdentifier(_ db: Database) throws {
-        try db.execute("INSERT INTO grdb_migrations (identifier) VALUES (?)", arguments: [identifier])
+        try db.execute(rawSQL: "INSERT INTO grdb_migrations (identifier) VALUES (?)", arguments: [identifier])
     }
 }

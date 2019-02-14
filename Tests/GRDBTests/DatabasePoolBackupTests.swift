@@ -14,8 +14,8 @@ class DatabasePoolBackupTests: GRDBTestCase {
         let destination = try makeDatabasePool(filename: "destination.sqlite")
         
         try source.write { db in
-            try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            try db.execute("INSERT INTO items (id) VALUES (NULL)")
+            try db.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            try db.execute(rawSQL: "INSERT INTO items (id) VALUES (NULL)")
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
         }
         
@@ -26,7 +26,7 @@ class DatabasePoolBackupTests: GRDBTestCase {
         }
         
         try source.write { db in
-            try db.execute("DROP TABLE items")
+            try db.execute(rawSQL: "DROP TABLE items")
         }
         
         try source.backup(to: destination)
@@ -43,8 +43,8 @@ class DatabasePoolBackupTests: GRDBTestCase {
 //        let destination = try makeDatabasePool(filename: "destination.sqlite")
 //        
 //        try source.write { db in
-//            try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-//            try db.execute("INSERT INTO items (id) VALUES (NULL)")
+//            try db.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+//            try db.execute(rawSQL: "INSERT INTO items (id) VALUES (NULL)")
 //            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
 //        }
 //        
@@ -53,7 +53,7 @@ class DatabasePoolBackupTests: GRDBTestCase {
 //        DispatchQueue.global().async {
 //            _ = s1.wait(timeout: .distantFuture)
 //            try! source.writeInTransaction(.immediate) { db in
-//                try db.execute("INSERT INTO items (id) VALUES (NULL)")
+//                try db.execute(rawSQL: "INSERT INTO items (id) VALUES (NULL)")
 //                s2.signal()
 //                return .commit
 //            }
@@ -67,7 +67,7 @@ class DatabasePoolBackupTests: GRDBTestCase {
 //        },
 //            afterBackupStep: {
 //                try! source.write { db in
-//                    try db.execute("INSERT INTO items (id) VALUES (NULL)")
+//                    try db.execute(rawSQL: "INSERT INTO items (id) VALUES (NULL)")
 //                }
 //        })
 //        

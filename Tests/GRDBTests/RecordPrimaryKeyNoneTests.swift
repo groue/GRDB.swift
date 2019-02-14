@@ -21,7 +21,7 @@ private class Item : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute("""
+        try db.execute(rawSQL: """
             CREATE TABLE items (
                 name TEXT,
                 email TEXT UNIQUE)

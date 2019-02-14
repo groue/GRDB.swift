@@ -16,9 +16,9 @@ class DatabasePoolReadOnlyTests: GRDBTestCase {
         do {
             let dbQueue = try makeDatabaseQueue(filename: databaseFileName)
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                try db.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 for _ in 0..<3 {
-                    try db.execute("INSERT INTO items (id) VALUES (NULL)")
+                    try db.execute(rawSQL: "INSERT INTO items (id) VALUES (NULL)")
                 }
             }
         }

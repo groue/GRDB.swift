@@ -12,15 +12,15 @@ class DatabaseCollationTests: GRDBTestCase {
     func testDefaultCollations() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE strings (id INTEGER PRIMARY KEY, name TEXT)")
-            try db.execute("INSERT INTO strings VALUES (1, '1')")
-            try db.execute("INSERT INTO strings VALUES (2, '2')")
-            try db.execute("INSERT INTO strings VALUES (3, '10')")
-            try db.execute("INSERT INTO strings VALUES (4, 'a')")
-            try db.execute("INSERT INTO strings VALUES (5, 'à')")
-            try db.execute("INSERT INTO strings VALUES (6, 'A')")
-            try db.execute("INSERT INTO strings VALUES (7, 'Z')")
-            try db.execute("INSERT INTO strings VALUES (8, 'z')")
+            try db.execute(rawSQL: "CREATE TABLE strings (id INTEGER PRIMARY KEY, name TEXT)")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (1, '1')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (2, '2')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (3, '10')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (4, 'a')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (5, 'à')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (6, 'A')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (7, 'Z')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (8, 'z')")
             
             // Swift 4.2 and Swift 4.1 don't sort strings in the same way
             if "z" < "à" {
@@ -63,16 +63,16 @@ class DatabaseCollationTests: GRDBTestCase {
         dbQueue.add(collation: collation)
         
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE strings (id INTEGER PRIMARY KEY, name TEXT COLLATE LOCALIZED_STANDARD)")
-            try db.execute("INSERT INTO strings VALUES (1, 'a')")
-            try db.execute("INSERT INTO strings VALUES (2, 'aa')")
-            try db.execute("INSERT INTO strings VALUES (3, 'aaa')")
-            try db.execute("INSERT INTO strings VALUES (4, 'b')")
-            try db.execute("INSERT INTO strings VALUES (5, 'bb')")
-            try db.execute("INSERT INTO strings VALUES (6, 'bbb')")
-            try db.execute("INSERT INTO strings VALUES (7, 'c')")
-            try db.execute("INSERT INTO strings VALUES (8, 'cc')")
-            try db.execute("INSERT INTO strings VALUES (9, 'ccc')")
+            try db.execute(rawSQL: "CREATE TABLE strings (id INTEGER PRIMARY KEY, name TEXT COLLATE LOCALIZED_STANDARD)")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (1, 'a')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (2, 'aa')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (3, 'aaa')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (4, 'b')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (5, 'bb')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (6, 'bbb')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (7, 'c')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (8, 'cc')")
+            try db.execute(rawSQL: "INSERT INTO strings VALUES (9, 'ccc')")
             
             let ids = try Int.fetchAll(db, "SELECT id FROM strings ORDER BY NAME")
             XCTAssertEqual(ids, [1,4,7,2,5,8,3,6,9])

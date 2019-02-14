@@ -18,8 +18,8 @@ class RowFromStatementTests : RowTestCase {
     func testRowAsSequence() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
             let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
             while let row = try rows.next() {
@@ -44,8 +44,8 @@ class RowFromStatementTests : RowTestCase {
     func testRowValueAtIndex() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
             let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
             while let row = try rows.next() {
@@ -78,8 +78,8 @@ class RowFromStatementTests : RowTestCase {
     func testRowValueNamed() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
             let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
             while let row = try rows.next() {
@@ -107,8 +107,8 @@ class RowFromStatementTests : RowTestCase {
     func testRowValueFromColumn() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
             let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
             while let row = try rows.next() {
@@ -196,8 +196,8 @@ class RowFromStatementTests : RowTestCase {
     func testRowCount() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
             let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
             while let row = try rows.next() {
@@ -211,8 +211,8 @@ class RowFromStatementTests : RowTestCase {
     func testRowColumnNames() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
             let rows = try Row.fetchCursor(db, "SELECT a, b, c FROM ints")
             while let row = try rows.next() {
@@ -226,8 +226,8 @@ class RowFromStatementTests : RowTestCase {
     func testRowDatabaseValues() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
             let rows = try Row.fetchCursor(db, "SELECT a, b, c FROM ints")
             while let row = try rows.next() {
@@ -326,8 +326,8 @@ class RowFromStatementTests : RowTestCase {
     func testCopy() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
             let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
             while let row = try rows.next() {
@@ -345,8 +345,8 @@ class RowFromStatementTests : RowTestCase {
     func testEqualityWithCopy() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(rawSQL: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
             let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
             while let row = try rows.next() {

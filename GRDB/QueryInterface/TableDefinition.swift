@@ -29,7 +29,7 @@ extension Database {
         let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
         body(definition)
         let sql = try definition.sql(self)
-        try execute(sql)
+        try execute(rawSQL: sql)
     }
     #else
     /// Creates a database table.
@@ -61,7 +61,7 @@ extension Database {
         let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
         body(definition)
         let sql = try definition.sql(self)
-        try execute(sql)
+        try execute(rawSQL: sql)
     }
     
     /// Creates a database table.
@@ -88,7 +88,7 @@ extension Database {
         let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: false)
         body(definition)
         let sql = try definition.sql(self)
-        try execute(sql)
+        try execute(rawSQL: sql)
     }
     #endif
 
@@ -98,7 +98,7 @@ extension Database {
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func rename(table name: String, to newName: String) throws {
-        try execute("ALTER TABLE \(name.quotedDatabaseIdentifier) RENAME TO \(newName.quotedDatabaseIdentifier)")
+        try execute(rawSQL: "ALTER TABLE \(name.quotedDatabaseIdentifier) RENAME TO \(newName.quotedDatabaseIdentifier)")
     }
     
     /// Modifies a database table.
@@ -117,7 +117,7 @@ extension Database {
         let alteration = TableAlteration(name: name)
         body(alteration)
         let sql = try alteration.sql(self)
-        try execute(sql)
+        try execute(rawSQL: sql)
     }
     
     /// Deletes a database table.
@@ -126,7 +126,7 @@ extension Database {
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func drop(table name: String) throws {
-        try execute("DROP TABLE \(name.quotedDatabaseIdentifier)")
+        try execute(rawSQL: "DROP TABLE \(name.quotedDatabaseIdentifier)")
     }
     
     #if GRDBCUSTOMSQLITE || GRDBCIPHER
@@ -138,7 +138,7 @@ extension Database {
     /// and use specific collations. To create such an index, use a raw SQL
     /// query.
     ///
-    ///     try db.execute("CREATE INDEX ...")
+    ///     try db.execute(rawSQL: "CREATE INDEX ...")
     ///
     /// See https://www.sqlite.org/lang_createindex.html
     ///
@@ -155,7 +155,7 @@ extension Database {
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: condition?.sqlExpression)
         let sql = definition.sql()
-        try execute(sql)
+        try execute(rawSQL: sql)
     }
     #else
     /// Creates an index.
@@ -166,7 +166,7 @@ extension Database {
     /// and use specific collations. To create such an index, use a raw SQL
     /// query.
     ///
-    ///     try db.execute("CREATE INDEX ...")
+    ///     try db.execute(rawSQL: "CREATE INDEX ...")
     ///
     /// See https://www.sqlite.org/lang_createindex.html
     ///
@@ -181,7 +181,7 @@ extension Database {
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: nil)
         let sql = definition.sql()
-        try execute(sql)
+        try execute(rawSQL: sql)
     }
     
     /// Creates a partial index.
@@ -204,7 +204,7 @@ extension Database {
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: condition.sqlExpression)
         let sql = definition.sql()
-        try execute(sql)
+        try execute(rawSQL: sql)
     }
     #endif
     
@@ -214,7 +214,7 @@ extension Database {
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func drop(index name: String) throws {
-        try execute("DROP INDEX \(name.quotedDatabaseIdentifier)")
+        try execute(rawSQL: "DROP INDEX \(name.quotedDatabaseIdentifier)")
     }
     
     /// Delete and recreate from scratch all indices that use this collation.
@@ -226,7 +226,7 @@ extension Database {
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func reindex(collation: Database.CollationName) throws {
-        try execute("REINDEX \(collation.rawValue)")
+        try execute(rawSQL: "REINDEX \(collation.rawValue)")
     }
     
     /// Delete and recreate from scratch all indices that use this collation.

@@ -29,7 +29,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
             }
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content)")
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["abc"])
+            try db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: ["abc"])
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
         }
     }
@@ -42,7 +42,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
             }
             assertDidExecute(sql: "CREATE VIRTUAL TABLE IF NOT EXISTS \"documents\" USING fts5(content)")
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["abc"])
+            try db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: ["abc"])
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
         }
     }
@@ -145,7 +145,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
             }
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"books\" USING fts5(author, title, body)")
             
-            try db.execute("INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
+            try db.execute(rawSQL: "INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Melville"])!, 1)
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["title:Melville"])!, 0)
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["author:Melville"])!, 1)
@@ -162,7 +162,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
             }
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"books\" USING fts5(author UNINDEXED, title, body UNINDEXED)")
             
-            try db.execute("INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
+            try db.execute(rawSQL: "INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Dick"])!, 1)
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["title:Dick"])!, 1)
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["author:Dick"])!, 0)
@@ -193,7 +193,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                 t.column("id", .integer).primaryKey()
                 t.column("content", .text)
             }
-            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.execute(rawSQL: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
             try db.create(virtualTable: "ft_documents", using: FTS5()) { t in
                 t.synchronize(withTable: "documents")
                 t.column("content")
@@ -204,17 +204,17 @@ class FTS5TableBuilderTests: GRDBTestCase {
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 0)
             
             // Synchronized on update
-            try db.execute("UPDATE documents SET content = ?", arguments: ["bar"])
+            try db.execute(rawSQL: "UPDATE documents SET content = ?", arguments: ["bar"])
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 0)
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
             
             // Synchronized on insert
-            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.execute(rawSQL: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 1)
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
             
             // Synchronized on delete
-            try db.execute("DELETE FROM documents WHERE content = ?", arguments: ["foo"])
+            try db.execute(rawSQL: "DELETE FROM documents WHERE content = ?", arguments: ["foo"])
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 0)
             XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
         }
@@ -227,7 +227,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                 t.column("id", .integer).primaryKey()
                 t.column("content", .text)
             }
-            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.execute(rawSQL: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
             try db.create(virtualTable: "ft_documents", using: FTS5()) { t in
                 t.synchronize(withTable: "documents")
                 t.column("content")
@@ -237,9 +237,9 @@ class FTS5TableBuilderTests: GRDBTestCase {
             try db.dropFTS5SynchronizationTriggers(forTable: "ft_documents")
             
             // It is possible to modify the content table
-            try db.execute("UPDATE documents SET content = ?", arguments: ["bar"])
-            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
-            try db.execute("DELETE FROM documents WHERE content = ?", arguments: ["foo"])
+            try db.execute(rawSQL: "UPDATE documents SET content = ?", arguments: ["bar"])
+            try db.execute(rawSQL: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.execute(rawSQL: "DELETE FROM documents WHERE content = ?", arguments: ["foo"])
             
             // It is possible to recreate the FT table
             try db.create(virtualTable: "ft_documents", using: FTS5()) { t in
@@ -256,7 +256,7 @@ class FTS5TableBuilderTests: GRDBTestCase {
                 t.column("id", .integer).primaryKey()
                 t.column("content", .text)
             }
-            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.execute(rawSQL: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
             try db.create(virtualTable: "ft_documents", using: FTS5()) { t in
                 t.synchronize(withTable: "documents")
                 t.column("content")
@@ -267,9 +267,9 @@ class FTS5TableBuilderTests: GRDBTestCase {
             try db.dropFTS5SynchronizationTriggers(forTable: "ft_documents")
             
             // It is possible to modify the content table
-            try db.execute("UPDATE documents SET content = ?", arguments: ["bar"])
-            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
-            try db.execute("DELETE FROM documents WHERE content = ?", arguments: ["foo"])
+            try db.execute(rawSQL: "UPDATE documents SET content = ?", arguments: ["bar"])
+            try db.execute(rawSQL: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.execute(rawSQL: "DELETE FROM documents WHERE content = ?", arguments: ["foo"])
             
             // It is possible to recreate the FT table
             try db.create(virtualTable: "ft_documents", using: FTS5()) { t in

@@ -110,8 +110,8 @@ class RecordInitializersTests : GRDBTestCase {
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE pedigrees (foo INTEGER)")
-            try db.execute("INSERT INTO pedigrees (foo) VALUES (NULL)")
+            try db.execute(rawSQL: "CREATE TABLE pedigrees (foo INTEGER)")
+            try db.execute(rawSQL: "INSERT INTO pedigrees (foo) VALUES (NULL)")
             
             let pedigree = try RecordWithPedigree.fetchOne(db, "SELECT * FROM pedigrees")!
             XCTAssertTrue(pedigree.initializedFromRow)  // very important
