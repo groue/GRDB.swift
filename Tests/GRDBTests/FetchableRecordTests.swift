@@ -46,8 +46,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchCursor(db, rawSQL: sql))
                 try test(Fetched.fetchCursor(statement))
                 try test(Fetched.fetchCursor(db, literal: SQLLiteral(sql: sql)))
-                try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql)))
-                try test(SQLRequest<Fetched>(sql).fetchCursor(db))
+                try test(Fetched.fetchCursor(db, SQLRequest<Void>(rawSQL: sql)))
+                try test(SQLRequest<Fetched>(rawSQL: sql).fetchCursor(db))
             }
             do {
                 let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, 'Barbara', 'Gourde'"
@@ -56,8 +56,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchCursor(db, rawSQL: sql, adapter: adapter))
                 try test(Fetched.fetchCursor(statement, adapter: adapter))
                 try test(Fetched.fetchCursor(db, literal: SQLLiteral(sql: sql), adapter: adapter))
-                try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql, adapter: adapter)))
-                try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchCursor(db))
+                try test(Fetched.fetchCursor(db, SQLRequest<Void>(rawSQL: sql, adapter: adapter)))
+                try test(SQLRequest<Fetched>(rawSQL: sql, adapter: adapter).fetchCursor(db))
             }
         }
     }
@@ -106,8 +106,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchCursor(db, rawSQL: sql), sql: sql)
                 try test(Fetched.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
                 try test(Fetched.fetchCursor(db, literal: SQLLiteral(sql: sql)), sql: sql)
-                try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql)), sql: sql)
-                try test(SQLRequest<Fetched>(sql).fetchCursor(db), sql: sql)
+                try test(Fetched.fetchCursor(db, SQLRequest<Void>(rawSQL: sql)), sql: sql)
+                try test(SQLRequest<Fetched>(rawSQL: sql).fetchCursor(db), sql: sql)
             }
             do {
                 let sql = "SELECT 0, throw(), NULL"
@@ -115,8 +115,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchCursor(db, rawSQL: sql, adapter: adapter), sql: sql)
                 try test(Fetched.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchCursor(db, literal: SQLLiteral(sql: sql), adapter: adapter), sql: sql)
-                try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchCursor(db), sql: sql)
+                try test(Fetched.fetchCursor(db, SQLRequest<Void>(rawSQL: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Fetched>(rawSQL: sql, adapter: adapter).fetchCursor(db), sql: sql)
             }
         }
     }
@@ -140,8 +140,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchCursor(db, rawSQL: sql), sql: sql)
                 try test(Fetched.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
                 try test(Fetched.fetchCursor(db, literal: SQLLiteral(sql: sql)), sql: sql)
-                try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql)), sql: sql)
-                try test(SQLRequest<Fetched>(sql).fetchCursor(db), sql: sql)
+                try test(Fetched.fetchCursor(db, SQLRequest<Void>(rawSQL: sql)), sql: sql)
+                try test(SQLRequest<Fetched>(rawSQL: sql).fetchCursor(db), sql: sql)
             }
             do {
                 let sql = "SELECT * FROM nonExistingTable"
@@ -149,8 +149,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchCursor(db, rawSQL: sql, adapter: adapter), sql: sql)
                 try test(Fetched.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchCursor(db, literal: SQLLiteral(sql: sql), adapter: adapter), sql: sql)
-                try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchCursor(db), sql: sql)
+                try test(Fetched.fetchCursor(db, SQLRequest<Void>(rawSQL: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Fetched>(rawSQL: sql, adapter: adapter).fetchCursor(db), sql: sql)
             }
         }
     }
@@ -168,8 +168,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchAll(db, rawSQL: sql))
                 try test(Fetched.fetchAll(statement))
                 try test(Fetched.fetchAll(db, literal: SQLLiteral(sql: sql)))
-                try test(Fetched.fetchAll(db, SQLRequest<Void>(sql)))
-                try test(SQLRequest<Fetched>(sql).fetchAll(db))
+                try test(Fetched.fetchAll(db, SQLRequest<Void>(rawSQL: sql)))
+                try test(SQLRequest<Fetched>(rawSQL: sql).fetchAll(db))
             }
             do {
                 let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, 'Barbara', 'Gourde'"
@@ -178,8 +178,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchAll(db, rawSQL: sql, adapter: adapter))
                 try test(Fetched.fetchAll(statement, adapter: adapter))
                 try test(Fetched.fetchAll(db, literal: SQLLiteral(sql: sql), adapter: adapter))
-                try test(Fetched.fetchAll(db, SQLRequest<Void>(sql, adapter: adapter)))
-                try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchAll(db))
+                try test(Fetched.fetchAll(db, SQLRequest<Void>(rawSQL: sql, adapter: adapter)))
+                try test(SQLRequest<Fetched>(rawSQL: sql, adapter: adapter).fetchAll(db))
             }
         }
     }
@@ -218,8 +218,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchAll(db, rawSQL: sql), sql: sql)
                 try test(Fetched.fetchAll(db.makeSelectStatement(sql)), sql: sql)
                 try test(Fetched.fetchAll(db, literal: SQLLiteral(sql: sql)), sql: sql)
-                try test(Fetched.fetchAll(db, SQLRequest<Void>(sql)), sql: sql)
-                try test(SQLRequest<Fetched>(sql).fetchAll(db), sql: sql)
+                try test(Fetched.fetchAll(db, SQLRequest<Void>(rawSQL: sql)), sql: sql)
+                try test(SQLRequest<Fetched>(rawSQL: sql).fetchAll(db), sql: sql)
             }
             do {
                 let sql = "SELECT 0, throw()"
@@ -227,8 +227,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchAll(db, rawSQL: sql, adapter: adapter), sql: sql)
                 try test(Fetched.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchAll(db, literal: SQLLiteral(sql: sql), adapter: adapter), sql: sql)
-                try test(Fetched.fetchAll(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchAll(db), sql: sql)
+                try test(Fetched.fetchAll(db, SQLRequest<Void>(rawSQL: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Fetched>(rawSQL: sql, adapter: adapter).fetchAll(db), sql: sql)
             }
         }
     }
@@ -252,8 +252,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchAll(db, rawSQL: sql), sql: sql)
                 try test(Fetched.fetchAll(db.makeSelectStatement(sql)), sql: sql)
                 try test(Fetched.fetchAll(db, literal: SQLLiteral(sql: sql)), sql: sql)
-                try test(Fetched.fetchAll(db, SQLRequest<Void>(sql)), sql: sql)
-                try test(SQLRequest<Fetched>(sql).fetchAll(db), sql: sql)
+                try test(Fetched.fetchAll(db, SQLRequest<Void>(rawSQL: sql)), sql: sql)
+                try test(SQLRequest<Fetched>(rawSQL: sql).fetchAll(db), sql: sql)
             }
             do {
                 let sql = "SELECT * FROM nonExistingTable"
@@ -261,8 +261,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchAll(db, rawSQL: sql, adapter: adapter), sql: sql)
                 try test(Fetched.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchAll(db, literal: SQLLiteral(sql: sql), adapter: adapter), sql: sql)
-                try test(Fetched.fetchAll(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchAll(db), sql: sql)
+                try test(Fetched.fetchAll(db, SQLRequest<Void>(rawSQL: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Fetched>(rawSQL: sql, adapter: adapter).fetchAll(db), sql: sql)
             }
         }
     }
@@ -280,8 +280,8 @@ class FetchableRecordTests: GRDBTestCase {
                     try test(Fetched.fetchOne(db, rawSQL: sql))
                     try test(Fetched.fetchOne(statement))
                     try test(Fetched.fetchOne(db, literal: SQLLiteral(sql: sql)))
-                    try test(Fetched.fetchOne(db, SQLRequest<Void>(sql)))
-                    try test(SQLRequest<Fetched>(sql).fetchOne(db))
+                    try test(Fetched.fetchOne(db, SQLRequest<Void>(rawSQL: sql)))
+                    try test(SQLRequest<Fetched>(rawSQL: sql).fetchOne(db))
                 }
                 do {
                     let sql = "SELECT 0, 1 WHERE 0"
@@ -290,8 +290,8 @@ class FetchableRecordTests: GRDBTestCase {
                     try test(Fetched.fetchOne(db, rawSQL: sql, adapter: adapter))
                     try test(Fetched.fetchOne(statement, adapter: adapter))
                     try test(Fetched.fetchOne(db, literal: SQLLiteral(sql: sql), adapter: adapter))
-                    try test(Fetched.fetchOne(db, SQLRequest<Void>(sql, adapter: adapter)))
-                    try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchOne(db))
+                    try test(Fetched.fetchOne(db, SQLRequest<Void>(rawSQL: sql, adapter: adapter)))
+                    try test(SQLRequest<Fetched>(rawSQL: sql, adapter: adapter).fetchOne(db))
                 }
             }
             do {
@@ -305,8 +305,8 @@ class FetchableRecordTests: GRDBTestCase {
                     try test(Fetched.fetchOne(db, rawSQL: sql))
                     try test(Fetched.fetchOne(statement))
                     try test(Fetched.fetchOne(db, literal: SQLLiteral(sql: sql)))
-                    try test(Fetched.fetchOne(db, SQLRequest<Void>(sql)))
-                    try test(SQLRequest<Fetched>(sql).fetchOne(db))
+                    try test(Fetched.fetchOne(db, SQLRequest<Void>(rawSQL: sql)))
+                    try test(SQLRequest<Fetched>(rawSQL: sql).fetchOne(db))
                 }
                 do {
                     let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName"
@@ -315,8 +315,8 @@ class FetchableRecordTests: GRDBTestCase {
                     try test(Fetched.fetchOne(db, rawSQL: sql, adapter: adapter))
                     try test(Fetched.fetchOne(statement, adapter: adapter))
                     try test(Fetched.fetchOne(db, literal: SQLLiteral(sql: sql), adapter: adapter))
-                    try test(Fetched.fetchOne(db, SQLRequest<Void>(sql, adapter: adapter)))
-                    try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchOne(db))
+                    try test(Fetched.fetchOne(db, SQLRequest<Void>(rawSQL: sql, adapter: adapter)))
+                    try test(SQLRequest<Fetched>(rawSQL: sql, adapter: adapter).fetchOne(db))
                 }
             }
         }
@@ -356,8 +356,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchOne(db, rawSQL: sql), sql: sql)
                 try test(Fetched.fetchOne(db.makeSelectStatement(sql)), sql: sql)
                 try test(Fetched.fetchOne(db, literal: SQLLiteral(sql: sql)), sql: sql)
-                try test(Fetched.fetchOne(db, SQLRequest<Void>(sql)), sql: sql)
-                try test(SQLRequest<Fetched>(sql).fetchOne(db), sql: sql)
+                try test(Fetched.fetchOne(db, SQLRequest<Void>(rawSQL: sql)), sql: sql)
+                try test(SQLRequest<Fetched>(rawSQL: sql).fetchOne(db), sql: sql)
             }
             do {
                 let sql = "SELECT 0, throw()"
@@ -365,8 +365,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchOne(db, rawSQL: sql, adapter: adapter), sql: sql)
                 try test(Fetched.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchOne(db, literal: SQLLiteral(sql: sql), adapter: adapter), sql: sql)
-                try test(Fetched.fetchOne(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchOne(db), sql: sql)
+                try test(Fetched.fetchOne(db, SQLRequest<Void>(rawSQL: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Fetched>(rawSQL: sql, adapter: adapter).fetchOne(db), sql: sql)
             }
         }
     }
@@ -390,8 +390,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchOne(db, rawSQL: sql), sql: sql)
                 try test(Fetched.fetchOne(db.makeSelectStatement(sql)), sql: sql)
                 try test(Fetched.fetchOne(db, literal: SQLLiteral(sql: sql)), sql: sql)
-                try test(Fetched.fetchOne(db, SQLRequest<Void>(sql)), sql: sql)
-                try test(SQLRequest<Fetched>(sql).fetchOne(db), sql: sql)
+                try test(Fetched.fetchOne(db, SQLRequest<Void>(rawSQL: sql)), sql: sql)
+                try test(SQLRequest<Fetched>(rawSQL: sql).fetchOne(db), sql: sql)
             }
             do {
                 let sql = "SELECT * FROM nonExistingTable"
@@ -399,8 +399,8 @@ class FetchableRecordTests: GRDBTestCase {
                 try test(Fetched.fetchOne(db, rawSQL: sql, adapter: adapter), sql: sql)
                 try test(Fetched.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchOne(db, literal: SQLLiteral(sql: sql), adapter: adapter), sql: sql)
-                try test(Fetched.fetchOne(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest<Fetched>(sql, adapter: adapter).fetchOne(db), sql: sql)
+                try test(Fetched.fetchOne(db, SQLRequest<Void>(rawSQL: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Fetched>(rawSQL: sql, adapter: adapter).fetchOne(db), sql: sql)
             }
         }
     }

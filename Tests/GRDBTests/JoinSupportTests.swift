@@ -99,7 +99,7 @@ private struct FlatModel: FetchableRecord {
     }
     
     static func all() -> AdaptedFetchRequest<SQLRequest<FlatModel>> {
-        return SQLRequest<FlatModel>(testedSQL).adapted { db in
+        return SQLRequest<FlatModel>(rawSQL: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -115,7 +115,7 @@ private struct FlatModel: FetchableRecord {
     }
     
     static func hierarchicalAll() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
-        return SQLRequest<CodableFlatModel>(testedSQL).adapted { db in
+        return SQLRequest<CodableFlatModel>(rawSQL: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -140,7 +140,7 @@ private struct CodableFlatModel: FetchableRecord, Codable {
     var t5count: Int
     
     static func all() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
-        return SQLRequest<CodableFlatModel>(testedSQL).adapted { db in
+        return SQLRequest<CodableFlatModel>(rawSQL: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -155,7 +155,7 @@ private struct CodableFlatModel: FetchableRecord, Codable {
     }
     
     static func hierarchicalAll() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
-        return SQLRequest<CodableFlatModel>(testedSQL).adapted { db in
+        return SQLRequest<CodableFlatModel>(rawSQL: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -183,7 +183,7 @@ private struct CodableNestedModel: FetchableRecord, Codable {
     var t5count: Int
     
     static func all() -> AdaptedFetchRequest<SQLRequest<CodableNestedModel>> {
-        return SQLRequest<CodableNestedModel>(testedSQL).adapted { db in
+        return SQLRequest<CodableNestedModel>(rawSQL: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -304,7 +304,7 @@ class JoinSupportTests: GRDBTestCase {
     func testSplittingRowAdapters() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<Row>(testedSQL).adapted { db in
+            let request = SQLRequest<Row>(rawSQL: testedSQL).adapted { db in
                 let adapters = try splittingRowAdapters(columnCounts: [
                     T1.numberOfSelectedColumns(db),
                     T2.numberOfSelectedColumns(db),

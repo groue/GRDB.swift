@@ -942,7 +942,7 @@ extension FetchableRecordDecodableTests {
             
             let adapter = SuffixRowAdapter(fromIndex: 1).addingScopes(["nestedKeyed": RangeRowAdapter(0..<1)])
             let request = SQLRequest<Void>(
-                "SELECT ? AS name, ? AS nestedSingle, ? AS nestedUnkeyed",
+                rawSQL: "SELECT ? AS name, ? AS nestedSingle, ? AS nestedUnkeyed",
                 arguments: ["foo", "bar", "[\"baz\"]"],
                 adapter: adapter)
             
@@ -978,7 +978,7 @@ extension FetchableRecordDecodableTests {
             }
             
             let request = SQLRequest<Void>(
-                "SELECT ? AS nestedKeyed, ? AS nestedSingle, ? AS nestedUnkeyed",
+                rawSQL: "SELECT ? AS nestedKeyed, ? AS nestedSingle, ? AS nestedUnkeyed",
                 arguments: ["{\"name\":\"foo\"}", "bar", "[\"baz\"]"])
             
             let record = try Record.fetchOne(db, request)!
@@ -1014,7 +1014,7 @@ extension FetchableRecordDecodableTests {
             
             let adapter = SuffixRowAdapter(fromIndex: 1).addingScopes(["nestedKeyed": RangeRowAdapter(0..<1)])
             let request = SQLRequest<Void>(
-                "SELECT ? AS name, ? AS nestedSingle, ? AS nestedUnkeyed",
+                rawSQL: "SELECT ? AS name, ? AS nestedSingle, ? AS nestedUnkeyed",
                 arguments: ["foo", "bar", "[\"baz\"]"],
                 adapter: adapter)
             
@@ -1050,7 +1050,7 @@ extension FetchableRecordDecodableTests {
             }
             
             let request = SQLRequest<Void>(
-                "SELECT ? AS nestedKeyed, ? AS nestedSingle, ? AS nestedUnkeyed",
+                rawSQL: "SELECT ? AS nestedKeyed, ? AS nestedSingle, ? AS nestedUnkeyed",
                 arguments: ["{\"name\":\"foo\"}", "bar", "[\"baz\"]"])
             
             let record = try CustomizedRecord.fetchOne(db, request)!

@@ -45,9 +45,10 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
         queue: DispatchQueue = .main,
         isSameRecord: ((Record, Record) -> Bool)? = nil) throws
     {
+        // TODO: rename sql parameter to rawSQL
         try self.init(
             databaseWriter,
-            request: SQLRequest<Record>(sql, arguments: arguments, adapter: adapter),
+            request: SQLRequest<Record>(rawSQL: sql, arguments: arguments, adapter: adapter),
             queue: queue,
             isSameRecord: isSameRecord)
     }
@@ -197,7 +198,8 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     /// This method must be used from the controller's dispatch queue (the
     /// main queue unless stated otherwise in the controller's initializer).
     public func setRequest(sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws {
-        try setRequest(SQLRequest(sql, arguments: arguments, adapter: adapter))
+        // TODO: rename sql parameter to rawSQL
+        try setRequest(SQLRequest(rawSQL: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Registers changes notification callbacks.
@@ -433,9 +435,10 @@ extension FetchedRecordsController where Record: TableRecord {
         adapter: RowAdapter? = nil,
         queue: DispatchQueue = .main) throws
     {
+        // TODO: rename sql parameter to rawSQL
         try self.init(
             databaseWriter,
-            request: SQLRequest(sql, arguments: arguments, adapter: adapter),
+            request: SQLRequest(rawSQL: sql, arguments: arguments, adapter: adapter),
             queue: queue)
     }
     

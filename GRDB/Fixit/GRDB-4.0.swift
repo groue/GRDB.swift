@@ -79,3 +79,9 @@ extension FetchableRecord {
     @available(*, unavailable, renamed: "fetchOne(_:rawSQL:arguments:adapter:)")
     public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Self? { preconditionFailure() }
 }
+
+extension SQLRequest {
+    @available(*, unavailable, renamed: "init(rawSQL:arguments:adapter:cached:)")
+    public init(_ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil, cached: Bool = false) { preconditionFailure() }
+}
+

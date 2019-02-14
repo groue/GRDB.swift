@@ -57,7 +57,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             })
             
             // Create an observation
-            let request = SQLRequest<Void>("SELECT * FROM t")
+            let request = SQLRequest<Void>(rawSQL: "SELECT * FROM t")
             var observation = ValueObservation.tracking(request, reducer: { _ in reducer })
             observation.extent = .databaseLifetime
             

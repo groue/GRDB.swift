@@ -12,10 +12,10 @@ public struct SQLRequest<T> : FetchRequest {
     /// Creates a request from an SQL string, optional arguments, and
     /// optional row adapter.
     ///
-    ///     let request = SQLRequest<String>("""
+    ///     let request = SQLRequest<String>(rawSQL: """
     ///         SELECT name FROM player
     ///         """)
-    ///     let request = SQLRequest<Player>("""
+    ///     let request = SQLRequest<Player>(rawSQL: """
     ///         SELECT * FROM player WHERE id = ?
     ///         """, arguments: [1])
     ///
@@ -26,7 +26,7 @@ public struct SQLRequest<T> : FetchRequest {
     ///     - cached: Defaults to false. If true, the request reuses a cached
     ///       prepared statement.
     /// - returns: A SQLRequest
-    public init(_ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil, cached: Bool = false) {
+    public init(rawSQL sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil, cached: Bool = false) {
         // TODO: force sql parameter name: init(sql:...)
         self.init(literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter, fromCache: cached ? .public : nil)
     }
@@ -126,22 +126,22 @@ public struct SQLRequest<T> : FetchRequest {
 extension SQLRequest: ExpressibleByStringInterpolation {
     /// :nodoc
     public init(unicodeScalarLiteral: String) {
-        self.init(unicodeScalarLiteral)
+        self.init(rawSQL: unicodeScalarLiteral)
     }
     
     /// :nodoc:
     public init(extendedGraphemeClusterLiteral: String) {
-        self.init(extendedGraphemeClusterLiteral)
+        self.init(rawSQL: extendedGraphemeClusterLiteral)
     }
     
     /// :nodoc:
     public init(stringLiteral: String) {
-        self.init(stringLiteral)
+        self.init(rawSQL: stringLiteral)
     }
     
     /// :nodoc:
     public init(stringInterpolation sqlInterpolation: SQLInterpolation) {
-        self.init(sqlInterpolation.sql, arguments: sqlInterpolation.arguments)
+        self.init(literal: SQLLiteral(stringInterpolation: sqlInterpolation))
     }
 }
 #endif

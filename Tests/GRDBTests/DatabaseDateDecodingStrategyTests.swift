@@ -69,7 +69,7 @@ class DatabaseDateDecodingStrategyTests: GRDBTestCase {
         databaseValue: DatabaseValueConvertible?,
         with test: (Date?) -> Void) throws
     {
-        let request = SQLRequest<Void>("SELECT ? AS date", arguments: [databaseValue])
+        let request = SQLRequest<Void>(rawSQL: "SELECT ? AS date", arguments: [databaseValue])
         do {
             // test decoding straight from SQLite
             let record = try T.fetchOne(db, request)!
