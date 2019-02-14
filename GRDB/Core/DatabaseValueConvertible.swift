@@ -315,10 +315,10 @@ extension DatabaseValueConvertible {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let firstNames = try String.fetchCursor(db, literal: SQLLiteral("""
+    ///     let firstNames = try String.fetchCursor(db, literal: """
     ///         SELECT firstName FROM player
     ///         WHERE lastName = \("O'Brien")
-    ///         """)) // Cursor of String
+    ///         """) // Cursor of String
     ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
@@ -348,10 +348,10 @@ extension DatabaseValueConvertible {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let firstNames = try String.fetchAll(db, literal: SQLLiteral("""
+    ///     let firstNames = try String.fetchAll(db, literal: """
     ///         SELECT firstName FROM player
     ///         WHERE lastName = \("O'Brien")
-    ///         """)) // [String]
+    ///         """) // [String]
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -376,10 +376,10 @@ extension DatabaseValueConvertible {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let firstName = try String.fetchOne(db, literal: SQLLiteral("""
+    ///     let firstName = try String.fetchOne(db, literal: """
     ///         SELECT firstName FROM player
     ///         WHERE lastName = \("O'Brien")
-    ///         """)) // String?
+    ///         """) // String?
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -621,10 +621,10 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let firstNames = try Optional<String>.fetchCursor(db, literal: SQLLiteral("""
+    ///     let firstNames = try Optional<String>.fetchCursor(db, literal: """
     ///         SELECT firstName FROM player
     ///         WHERE lastName = \("O'Brien")
-    ///         """)) // Cursor of String?
+    ///         """) // Cursor of String?
     ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
@@ -654,10 +654,10 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let firstNames = try Optional<String>.fetchAll(db, literal: SQLLiteral("""
+    ///     let firstNames = try Optional<String>.fetchAll(db, literal: """
     ///         SELECT firstName FROM player
     ///         WHERE lastName = \("O'Brien")
-    ///         """)) // [String?]
+    ///         """) // [String?]
     ///
     /// - parameters:
     ///     - db: A database connection.

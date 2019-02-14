@@ -270,7 +270,7 @@ extension FetchableRecord {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let players = try Player.fetchCursor(db, literal: SQLLiteral("""
+    ///     let players = try Player.fetchCursor(db, literal: """
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
     ///         """) // Cursor of Player
     ///
@@ -301,7 +301,7 @@ extension FetchableRecord {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let players = try Player.fetchAll(db, literal: SQLLiteral("""
+    ///     let players = try Player.fetchAll(db, literal: """
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
     ///         """) // [Player]
     ///
@@ -327,7 +327,7 @@ extension FetchableRecord {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let player = try Player.fetchOne(db, literal: SQLLiteral("""
+    ///     let player = try Player.fetchOne(db, literal: """
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
     ///         """) // Player?
     ///

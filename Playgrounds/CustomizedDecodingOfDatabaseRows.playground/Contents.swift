@@ -365,9 +365,9 @@ try dbQueue.read { db in
 //: without any risk of syntax errors or SQL injection:
 //:
 //:     try dbQueue.read { db in
-//:         try Base.fetchAll(db, literal: SQLLiteral("""
+//:         try Base.fetchAll(db, literal: """
 //:             SELECT ... WHERE name = \("O'Brien")
-//:             """)) // [Base]
+//:             """) // [Base]
 //:     }
 extension MyDatabaseDecoder {
     // MARK: - Fetch from SQLLiteral

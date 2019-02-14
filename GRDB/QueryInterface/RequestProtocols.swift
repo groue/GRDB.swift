@@ -70,7 +70,7 @@ extension SelectionRequest {
     ///     // SELECT id, email, score + 1000 FROM player
     ///     let bonus = 1000
     ///     var request = Player.all()
-    ///     request = request.select(literal: SQLLiteral("""
+    ///     request = request.select(literal: """
     ///         id, email, score + \(bonus)
     ///         """)
     ///
@@ -139,7 +139,7 @@ extension FilteredRequest {
     ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     var request = Player.all()
-    ///     request = request.filter(literal: SQLLiteral("""
+    ///     request = request.filter(literal: """
     ///         email = \("arthur@example.com")
     ///         """)
     public func filter(literal sqlLiteral: SQLLiteral) -> Self {

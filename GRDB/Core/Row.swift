@@ -812,7 +812,7 @@ extension Row {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let rows = try Row.fetchCursor(db, literal: SQLLiteral("""
+    ///     let rows = try Row.fetchCursor(db, literal: """
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
     ///         """) // RowCursor
     ///
@@ -853,7 +853,7 @@ extension Row {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let rows = try Row.fetchAll(db, literal: SQLLiteral("""
+    ///     let rows = try Row.fetchAll(db, literal: """
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
     ///         """) // [Row]
     ///
@@ -881,7 +881,7 @@ extension Row {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let row = try Row.fetchOne(db, literal: SQLLiteral("""
+    ///     let row = try Row.fetchOne(db, literal: """
     ///         SELECT * FROM player WHERE lastName = \("O'Brien")
     ///         """) // Row?
     ///

@@ -145,11 +145,11 @@ extension Database {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     try db.execute(literal: SQLLiteral("""
+    ///     try db.execute(literal: """
     ///         INSERT INTO player (name) VALUES (\("Arthur"));
     ///         INSERT INTO player (name) VALUES (\("Barbara"));
     ///         INSERT INTO player (name) VALUES (\("O'Brien"));
-    ///         """))
+    ///         """)
     ///
     /// This method may throw a DatabaseError.
     ///

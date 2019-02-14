@@ -65,7 +65,7 @@ public struct SQLExpressionLiteral : SQLExpression {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     SQLExpressionLiteral(literal: SQLLiteral("\(1) + \(2)"))
+    ///     SQLExpressionLiteral(literal: "\(1) + \(2)")
     public init(literal sqlLiteral: SQLLiteral) {
         self.sqlLiteral = sqlLiteral
     }

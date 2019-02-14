@@ -133,7 +133,7 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///         let request = Player.
     ///             .filter(primaryKey: 42)
     ///             .select(
-    ///                 SQLLiteral("IFNULL(name, \("Anonymous"))"),
+    ///                 literal: "IFNULL(name, \("Anonymous"))",
     ///                 as: String.self)
     ///         let name: String? = try request.fetchOne(db)
     ///     }
@@ -378,7 +378,7 @@ extension TableRecord {
     /// Creates a request which selects *sql*.
     ///
     ///     // SELECT id, email FROM player
-    ///     let request = Player.select(literal: SQLLiteral("id, email"))
+    ///     let request = Player.select(literal: SQLLiteral(sql: "id, email"))
     public static func select(literal sqlLiteral: SQLLiteral) -> QueryInterfaceRequest<Self> {
         return all().select(literal: sqlLiteral)
     }
@@ -424,7 +424,7 @@ extension TableRecord {
     ///
     ///     try dbQueue.read { db in
     ///         // SELECT max(score) FROM player
-    ///         let request = Player.select(literal: SQLLiteral("max(score)"), as: Int.self)
+    ///         let request = Player.select(literal: SQLLiteral(sql: "max(score)"), as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
     public static func select<RowDecoder>(literal sqlLiteral: SQLLiteral, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
@@ -517,7 +517,7 @@ extension TableRecord {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let request = Player.filter(literal: SQLLiteral("email = \("arthur@example.com")))
+    ///     let request = Player.filter(literal: "email = \("arthur@example.com"))
     ///
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or

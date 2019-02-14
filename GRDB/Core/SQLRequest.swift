@@ -43,9 +43,9 @@ public struct SQLRequest<T> : FetchRequest {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let request = SQLRequest<Player>(literal: SQLLiteral("""
+    ///     let request = SQLRequest<Player>(literal: """
     ///         SELECT * FROM player WHERE name = \("O'brien")
-    ///         """))
+    ///         """)
     ///
     /// - parameters:
     ///     - sqlLiteral: An SQLLiteral.
