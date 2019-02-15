@@ -24,8 +24,8 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 3
         
-        let request1 = SQLRequest<Row>("SELECT * FROM t1 ORDER BY id")
-        let request2 = SQLRequest<Row>("SELECT * FROM t2 ORDER BY id")
+        let request1 = SQLRequest<Row>(rawSQL: "SELECT * FROM t1 ORDER BY id")
+        let request2 = SQLRequest<Row>(rawSQL: "SELECT * FROM t2 ORDER BY id")
         
         var observation = DatabaseRegionObservation(tracking: request1, request2)
         observation.extent = .databaseLifetime
@@ -62,8 +62,8 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 3
         
-        let request1 = SQLRequest<Row>("SELECT * FROM t1 ORDER BY id")
-        let request2 = SQLRequest<Row>("SELECT * FROM t2 ORDER BY id")
+        let request1 = SQLRequest<Row>(rawSQL: "SELECT * FROM t1 ORDER BY id")
+        let request2 = SQLRequest<Row>(rawSQL: "SELECT * FROM t2 ORDER BY id")
         
         var observation = DatabaseRegionObservation(tracking: [request1, request2])
         observation.extent = .databaseLifetime
@@ -97,7 +97,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 2
         
-        let observation = DatabaseRegionObservation(tracking: SQLRequest<Row>("SELECT * FROM t ORDER BY id"))
+        let observation = DatabaseRegionObservation(tracking: SQLRequest<Row>(rawSQL: "SELECT * FROM t ORDER BY id"))
         
         var count = 0
         do {
@@ -132,7 +132,7 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 1
         
-        var observation = DatabaseRegionObservation(tracking: SQLRequest<Row>("SELECT * FROM t ORDER BY id"))
+        var observation = DatabaseRegionObservation(tracking: SQLRequest<Row>(rawSQL: "SELECT * FROM t ORDER BY id"))
         observation.extent = .nextTransaction
         
         var count = 0

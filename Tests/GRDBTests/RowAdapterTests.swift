@@ -764,7 +764,7 @@ class AdapterRowTests : RowTestCase {
                 XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, 2.databaseValue])
             }
             do {
-                let row = try SQLRequest<Row>("SELECT 0 AS a0, 1 AS a1, 2 AS a2")
+                let row = try SQLRequest<Row>(rawSQL: "SELECT 0 AS a0, 1 AS a1, 2 AS a2")
                     .adapted { _ in SuffixRowAdapter(fromIndex: 1) }
                     .fetchOne(db)!
                 XCTAssertEqual(Array(row.columnNames), ["a1", "a2"])

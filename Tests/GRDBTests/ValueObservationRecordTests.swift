@@ -36,7 +36,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.trackingAll(SQLRequest<Player>("SELECT * FROM t ORDER BY id"))
+        var observation = ValueObservation.trackingAll(SQLRequest<Player>(rawSQL: "SELECT * FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
         _ = try observation.start(in: dbQueue) { players in
             results.append(players)
@@ -72,7 +72,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.trackingOne(SQLRequest<Player>("SELECT * FROM t ORDER BY id DESC"))
+        var observation = ValueObservation.trackingOne(SQLRequest<Player>(rawSQL: "SELECT * FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
         _ = try observation.start(in: dbQueue) { player in
             results.append(player)

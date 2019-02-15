@@ -37,7 +37,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.trackingAll(SQLRequest<Name>("SELECT name FROM t ORDER BY id"))
+        var observation = ValueObservation.trackingAll(SQLRequest<Name>(rawSQL: "SELECT name FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
         _ = try observation.start(in: dbQueue) { names in
             results.append(names)
@@ -73,7 +73,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 7
         
-        var observation = ValueObservation.trackingOne(SQLRequest<Name>("SELECT name FROM t ORDER BY id DESC"))
+        var observation = ValueObservation.trackingOne(SQLRequest<Name>(rawSQL: "SELECT name FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
         _ = try observation.start(in: dbQueue) { name in
             results.append(name)
@@ -117,7 +117,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.trackingAll(SQLRequest<Name?>("SELECT name FROM t ORDER BY id"))
+        var observation = ValueObservation.trackingAll(SQLRequest<Name?>(rawSQL: "SELECT name FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
         _ = try observation.start(in: dbQueue) { names in
             results.append(names)
@@ -159,7 +159,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         notificationExpectation.expectedFulfillmentCount = 4
         
         // Test that view v is included in the request region
-        let request = SQLRequest<Name>("SELECT name FROM v ORDER BY id")
+        let request = SQLRequest<Name>(rawSQL: "SELECT name FROM v ORDER BY id")
         try dbQueue.inDatabase { db in
             let region = try request.databaseRegion(db)
             XCTAssertEqual(region.description, "t(id,name),v(id,name)")
