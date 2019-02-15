@@ -52,7 +52,7 @@ extension Database {
     public func cachedSelectStatement(_ sql: String) throws -> SelectStatement {
         return try publicStatementCache.selectStatement(sql)
     }
-
+    
     /// Returns a cached statement that does not conflict with user's cached statements.
     func internalCachedSelectStatement(_ sql: String) throws -> SelectStatement {
         return try internalStatementCache.selectStatement(sql)
