@@ -1,3 +1,5 @@
+import Dispatch
+
 // Fixits for changes introduced by GRDB 4.0.0
 
 extension Cursor {
@@ -168,4 +170,3 @@ extension FetchedRecordsController where Record: TableRecord {
         adapter: RowAdapter? = nil,
         queue: DispatchQueue = .main) throws { preconditionFailure() }
 }
-
