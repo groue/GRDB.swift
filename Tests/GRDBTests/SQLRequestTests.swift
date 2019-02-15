@@ -75,7 +75,7 @@ class SQLRequestTests: GRDBTestCase {
     func testSQLLiteralInitializer() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<String>(literal: SQLLiteral(sql: """
+            let request = SQLRequest<String>(literal: SQLLiteral(rawSQL: """
                 SELECT ?
                 """, arguments: ["O'Brien"]))
             XCTAssertEqual(request.sql, """

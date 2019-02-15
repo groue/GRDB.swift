@@ -749,7 +749,7 @@ extension Row {
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, rawSQL sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RowCursor {
-        return try fetchCursor(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchCursor(db, literal: SQLLiteral(rawSQL: sql, arguments: arguments), adapter: adapter)
     }
     
     /// Returns an array of rows fetched from an SQL query.
@@ -768,7 +768,7 @@ extension Row {
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, rawSQL sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Row] {
-        return try fetchAll(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchAll(db, literal: SQLLiteral(rawSQL: sql, arguments: arguments), adapter: adapter)
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -787,7 +787,7 @@ extension Row {
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, rawSQL sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Row? {
-        return try fetchOne(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchOne(db, literal: SQLLiteral(rawSQL: sql, arguments: arguments), adapter: adapter)
     }
 }
 
@@ -797,7 +797,7 @@ extension Row {
     
     /// Returns a cursor over rows fetched from an SQL query.
     ///
-    ///     let rows = try Row.fetchCursor(db, literal: SQLLiteral(sql: """
+    ///     let rows = try Row.fetchCursor(db, literal: SQLLiteral(rawSQL: """
     ///         SELECT * FROM player WHERE lastName = ?
     ///         """, arguments: ["O'Brien"])) // RowCursor
     ///     while let row = try rows.next() { // Row
@@ -838,7 +838,7 @@ extension Row {
     
     /// Returns an array of rows fetched from an SQL query.
     ///
-    ///     let rows = try Row.fetchAll(db, literal: SQLLiteral(sql: """
+    ///     let rows = try Row.fetchAll(db, literal: SQLLiteral(rawSQL: """
     ///         SELECT * FROM player WHERE lastName = ?
     ///         """, arguments: ["O'Brien"])) // [Row]
     ///     for row in rows {
@@ -866,7 +866,7 @@ extension Row {
     
     /// Returns a single row fetched from an SQL query.
     ///
-    ///     let row = try Row.fetchOne(db, literal: SQLLiteral(sql: """
+    ///     let row = try Row.fetchOne(db, literal: SQLLiteral(rawSQL: """
     ///         SELECT * FROM player WHERE lastName = ?
     ///         """, arguments: ["O'Brien"])) // Row?
     ///     if let row = row {

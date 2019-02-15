@@ -418,7 +418,7 @@ public final class TableDefinition {
     public func check(sql: String) {
         // We do not want to wrap the SQL snippet inside parentheses around the
         // checked SQL. This is why we use the "unsafeLiteral" initializer.
-        checkConstraints.append(SQLExpressionLiteral(unsafeLiteral: SQLLiteral(sql: sql)))
+        checkConstraints.append(SQLExpressionLiteral(unsafeLiteral: SQLLiteral(rawSQL: sql)))
     }
     
     fileprivate func sql(_ db: Database) throws -> String {
@@ -723,7 +723,7 @@ public final class ColumnDefinition {
     public func check(sql: String) -> Self {
         // We do not want to wrap the SQL snippet inside parentheses around the
         // checked SQL. This is why we use the "unsafeLiteral" initializer.
-        checkConstraints.append(SQLExpressionLiteral(unsafeLiteral: SQLLiteral(sql: sql)))
+        checkConstraints.append(SQLExpressionLiteral(unsafeLiteral: SQLLiteral(rawSQL: sql)))
         return self
     }
     
@@ -757,7 +757,7 @@ public final class ColumnDefinition {
     public func defaults(sql: String) -> Self {
         // We do not want to wrap the SQL snippet inside parentheses around the
         // checked SQL. This is why we use the "unsafeLiteral" initializer.
-        defaultExpression = SQLExpressionLiteral(unsafeLiteral: SQLLiteral(sql: sql))
+        defaultExpression = SQLExpressionLiteral(unsafeLiteral: SQLLiteral(rawSQL: sql))
         return self
     }
     

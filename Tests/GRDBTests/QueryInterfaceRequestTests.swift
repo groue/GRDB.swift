@@ -206,7 +206,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 XCTAssertEqual(rows[1][0] as String, "O'Brien")
                 XCTAssertEqual(rows[1][1] as Int64, 1)
             }
-            try test(tableRequest.select(literal: SQLLiteral(sql: ":name, id - :value", arguments: ["name": "O'Brien", "value": 1])))
+            try test(tableRequest.select(literal: SQLLiteral(rawSQL: ":name, id - :value", arguments: ["name": "O'Brien", "value": 1])))
             #if swift(>=5)
             // Interpolation
             try test(tableRequest.select(literal: "\("O'Brien"), id - \(1)"))
@@ -277,7 +277,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                     // SQLLiteral
                     do {
                         let value = try Reader
-                            .select(literal: SQLLiteral(sql: "? AS name", arguments: ["O'Brien"]), as: String.self)
+                            .select(literal: SQLLiteral(rawSQL: "? AS name", arguments: ["O'Brien"]), as: String.self)
                             .fetchOne(db)!
                         XCTAssertEqual(value, "O'Brien")
                     }
@@ -320,7 +320,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                     do {
                         let value = try Reader
                             .all()
-                            .select(literal: SQLLiteral(sql: "? AS name", arguments: ["O'Brien"]), as: String.self)
+                            .select(literal: SQLLiteral(rawSQL: "? AS name", arguments: ["O'Brien"]), as: String.self)
                             .fetchOne(db)!
                         XCTAssertEqual(value, "O'Brien")
                     }
@@ -366,7 +366,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                     // SQLLiteral with named argument
                     do {
                         let value = try Reader
-                            .select(literal: SQLLiteral(sql: "name, :age AS age", arguments: ["age": 22]), as: Row.self)
+                            .select(literal: SQLLiteral(rawSQL: "name, :age AS age", arguments: ["age": 22]), as: Row.self)
                             .fetchOne(db)!
                         XCTAssertEqual(value, ["name": "Arthur", "age": 22])
                     }
@@ -409,7 +409,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                     do {
                         let value = try Reader
                             .all()
-                            .select(literal: SQLLiteral(sql: "name, ? AS age", arguments: [22]), as: Row.self)
+                            .select(literal: SQLLiteral(rawSQL: "name, ? AS age", arguments: [22]), as: Row.self)
                             .fetchOne(db)!
                         XCTAssertEqual(value, ["name": "Arthur", "age": 22])
                     }

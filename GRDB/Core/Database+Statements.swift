@@ -126,16 +126,16 @@ extension Database {
     ///     - arguments: Statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) throws {
-        try execute(literal: SQLLiteral(sql: sql, arguments: arguments))
+        try execute(literal: SQLLiteral(rawSQL: sql, arguments: arguments))
     }
     
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
     ///     try db.execute(literal: SQLLiteral(
-    ///         sql: "INSERT INTO player (name) VALUES (:name)",
+    ///         rawSQL: "INSERT INTO player (name) VALUES (:name)",
     ///         arguments: ["name": "Arthur"]))
     ///
-    ///     try db.execute(literal: SQLLiteral(sql: """
+    ///     try db.execute(literal: SQLLiteral(rawSQL: """
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
