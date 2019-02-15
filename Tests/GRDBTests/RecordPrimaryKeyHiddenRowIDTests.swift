@@ -681,9 +681,9 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             XCTAssertTrue(try Person.fetchAll(db, keys: [["rowid": 1]]).first!.id != nil)
             XCTAssertTrue(try Person.all().fetchOne(db)!.id != nil)
             XCTAssertTrue(try Person.filter(Column.rowID == 1).fetchOne(db)!.id != nil)
-            XCTAssertTrue(try Person.filter(sql: "rowid = 1").fetchOne(db)!.id != nil)
+            XCTAssertTrue(try Person.filter(rawSQL: "rowid = 1").fetchOne(db)!.id != nil)
             XCTAssertTrue(try Person.order(Column.rowID).fetchOne(db)!.id != nil)
-            XCTAssertTrue(try Person.order(sql: "rowid").fetchOne(db)!.id != nil)
+            XCTAssertTrue(try Person.order(rawSQL: "rowid").fetchOne(db)!.id != nil)
             XCTAssertTrue(try Person.limit(1).fetchOne(db)!.id != nil)
         }
     }

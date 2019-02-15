@@ -19,7 +19,7 @@ public struct SQLInterpolation: StringInterpolationProtocol {
     }
 
     /// "SELECT * FROM \(sql: "player")"
-    public mutating func appendInterpolation(sql: String, arguments: StatementArguments = StatementArguments()) {
+    public mutating func appendInterpolation(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) {
         self.sql += sql
         self.arguments += arguments
     }

@@ -184,7 +184,7 @@ class TableDefinitionTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.create(table: "test") { t in
                 t.column("a", .integer).check { $0 > 0 }
-                t.column("b", .integer).check(sql: "b <> 2")
+                t.column("b", .integer).check(rawSQL: "b <> 2")
                 t.column("c", .integer).check { $0 > 0 }.check { $0 < 10 }
             }
             assertEqualSQL(
@@ -213,7 +213,7 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("b", .integer).defaults(to: 1.0)
                 t.column("c", .integer).defaults(to: "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 t.column("d", .integer).defaults(to: "foo".data(using: .utf8)!)
-                t.column("e", .integer).defaults(sql: "NULL")
+                t.column("e", .integer).defaults(rawSQL: "NULL")
             }
             assertEqualSQL(
                 lastSQLQuery,
@@ -376,7 +376,7 @@ class TableDefinitionTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.create(table: "test") { t in
                 t.check(Column("a") + Column("b") < 10)
-                t.check(sql: "a + b < 10")
+                t.check(rawSQL: "a + b < 10")
                 t.column("a", .integer)
                 t.column("b", .integer)
             }

@@ -53,11 +53,11 @@ class SQLLiteralTests: GRDBTestCase {
         XCTAssertEqual(sql.arguments, [1, "Arthur"])
     }
     
-    func testAppendSQL() {
+    func testAppendRawSQL() {
         var sql = SQLLiteral(rawSQL: "SELECT * ")
-        sql.append(sql: "FROM player ")
-        sql.append(sql: "WHERE score > \(1000) ")
-        sql.append(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])
+        sql.append(rawSQL: "FROM player ")
+        sql.append(rawSQL: "WHERE score > \(1000) ")
+        sql.append(rawSQL: "AND \("name") = :name", arguments: ["name": "Arthur"])
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player WHERE score > 1000 AND name = :name
             """)
@@ -67,12 +67,12 @@ class SQLLiteralTests: GRDBTestCase {
 
 #if swift(>=5.0)
 extension SQLLiteralTests {
-    func testSQLInterpolation() {
+    func testRawSQLInterpolation() {
         let sql: SQLLiteral = """
             SELECT *
-            \(sql: "FROM player")
-            \(sql: "WHERE score > \(1000)")
-            \(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])
+            \(rawSQL: "FROM player")
+            \(rawSQL: "WHERE score > \(1000)")
+            \(rawSQL: "AND \("name") = :name", arguments: ["name": "Arthur"])
             """
         XCTAssertEqual(sql.sql, """
             SELECT *
@@ -268,11 +268,11 @@ extension SQLLiteralTests {
         XCTAssertEqual(sql.arguments, [1])
     }
 
-    func testAppendSQLWithInterpolation() {
+    func testAppendRawSQLWithInterpolation() {
         var sql: SQLLiteral = "SELECT \(AllColumns()) "
-        sql.append(sql: "FROM player ")
-        sql.append(sql: "WHERE score > \(1000) ")
-        sql.append(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])
+        sql.append(rawSQL: "FROM player ")
+        sql.append(rawSQL: "WHERE score > \(1000) ")
+        sql.append(rawSQL: "AND \("name") = :name", arguments: ["name": "Arthur"])
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player WHERE score > 1000 AND name = :name
             """)

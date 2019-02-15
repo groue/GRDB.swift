@@ -90,7 +90,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
             try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
-            let request = Reader.select(sql: "name, id - 1")
+            let request = Reader.select(rawSQL: "name, id - 1")
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
@@ -107,7 +107,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
             try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
-            let request = Reader.select(sql: "name, id - ?", arguments: [1])
+            let request = Reader.select(rawSQL: "name, id - ?", arguments: [1])
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
@@ -124,7 +124,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
             try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
-            let request = Reader.select(sql: "name, id - :n", arguments: ["n": 1])
+            let request = Reader.select(rawSQL: "name, id - :n", arguments: ["n": 1])
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
@@ -187,21 +187,21 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testFilterLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.filter(sql: "id <> 1")),
+            sql(dbQueue, Reader.filter(rawSQL: "id <> 1")),
             "SELECT * FROM \"readers\" WHERE (id <> 1)")
     }
     
     func testFilterLiteralWithPositionalArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.filter(sql: "id <> ?", arguments: [1])),
+            sql(dbQueue, Reader.filter(rawSQL: "id <> ?", arguments: [1])),
             "SELECT * FROM \"readers\" WHERE (id <> 1)")
     }
     
     func testFilterLiteralWithNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.filter(sql: "id <> :id", arguments: ["id": 1])),
+            sql(dbQueue, Reader.filter(rawSQL: "id <> :id", arguments: ["id": 1])),
             "SELECT * FROM \"readers\" WHERE (id <> 1)")
     }
     
@@ -225,21 +225,21 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testSortLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.order(sql: "lower(name) desc")),
+            sql(dbQueue, Reader.order(rawSQL: "lower(name) desc")),
             "SELECT * FROM \"readers\" ORDER BY lower(name) desc")
     }
     
     func testSortLiteralWithPositionalArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.order(sql: "age + ?", arguments: [1])),
+            sql(dbQueue, Reader.order(rawSQL: "age + ?", arguments: [1])),
             "SELECT * FROM \"readers\" ORDER BY age + 1")
     }
     
     func testSortLiteralWithNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.order(sql: "age + :age", arguments: ["age": 1])),
+            sql(dbQueue, Reader.order(rawSQL: "age + :age", arguments: ["age": 1])),
             "SELECT * FROM \"readers\" ORDER BY age + 1")
     }
     

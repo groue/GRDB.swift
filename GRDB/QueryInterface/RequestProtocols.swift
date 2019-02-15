@@ -43,15 +43,15 @@ extension SelectionRequest {
     ///
     ///     // SELECT id, email FROM player
     ///     var request = Player.all()
-    ///     request = request.select(sql: "id, email")
+    ///     request = request.select(rawSQL: "id, email")
     ///
     /// Any previous selection is replaced:
     ///
     ///     // SELECT email FROM player
     ///     request
-    ///         .select(sql: "id")
-    ///         .select(sql: "email")
-    public func select(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+    ///         .select(rawSQL: "id")
+    ///         .select(rawSQL: "email")
+    public func select(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
         return select(literal: SQLLiteral(rawSQL: sql, arguments: arguments))
     }
     
@@ -120,8 +120,8 @@ extension FilteredRequest {
     ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     var request = Player.all()
-    ///     request = request.filter(sql: "email = ?", arguments: ["arthur@example.com"])
-    public func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+    ///     request = request.filter(rawSQL: "email = ?", arguments: ["arthur@example.com"])
+    public func filter(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
         return filter(literal: SQLLiteral(rawSQL: sql, arguments: arguments))
     }
     
@@ -320,7 +320,7 @@ extension AggregatingRequest {
     }
     
     /// Creates a request with a new grouping.
-    public func group(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+    public func group(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
         return group(literal: SQLLiteral(rawSQL: sql, arguments: arguments))
     }
     
@@ -340,7 +340,7 @@ extension AggregatingRequest {
 
     /// Creates a request with the provided *sql* added to the
     /// eventual set of already applied predicates.
-    public func having(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+    public func having(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
         return having(literal: SQLLiteral(rawSQL: sql, arguments: arguments))
     }
 
@@ -429,15 +429,15 @@ extension OrderedRequest {
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     var request = Player.all()
-    ///     request = request.order(sql: "name")
+    ///     request = request.order(rawSQL: "name")
     ///
     /// Any previous ordering is replaced:
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     request
-    ///         .order(sql: "email")
-    ///         .order(sql: "name")
-    public func order(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+    ///         .order(rawSQL: "email")
+    ///         .order(rawSQL: "name")
+    public func order(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
         return order(literal: SQLLiteral(rawSQL: sql, arguments: arguments))
     }
     

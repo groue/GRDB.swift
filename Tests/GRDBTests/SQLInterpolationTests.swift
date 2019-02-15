@@ -12,8 +12,8 @@ class SQLInterpolationTests: GRDBTestCase {
     func testSQLInterpolation() {
         var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 2)
         
-        sql.appendInterpolation(sql: "\(1)"); sql.appendLiteral("\n")
-        sql.appendInterpolation(sql: ":name", arguments: ["name": "Arthur"])
+        sql.appendInterpolation(rawSQL: "\(1)"); sql.appendLiteral("\n")
+        sql.appendInterpolation(rawSQL: ":name", arguments: ["name": "Arthur"])
 
         XCTAssertEqual(sql.sql, """
             1

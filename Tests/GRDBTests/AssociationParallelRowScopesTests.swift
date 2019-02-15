@@ -88,7 +88,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testDefaultScopeParallelTwoIncludingIncluding() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.including(required: A.defaultB).including(required: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(required: A.defaultB).including(required: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -104,7 +104,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["d"]!, ["id":1, "name":"d1"])
         }
         do {
-            let request = A.including(required: A.defaultB).including(optional: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(required: A.defaultB).including(optional: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -130,7 +130,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["d"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = A.including(optional: A.defaultB).including(required: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(optional: A.defaultB).including(required: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 3)
@@ -151,7 +151,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[2].scopes["d"]!, ["id":1, "name":"d1"])
         }
         do {
-            let request = A.including(optional: A.defaultB).including(optional: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(optional: A.defaultB).including(optional: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -187,7 +187,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[5].scopes["d"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = B.including(required: B.defaultA).including(required: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(required: B.defaultA).including(required: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -203,7 +203,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["c"]!, ["id":1, "bid":1, "name":"c1"])
         }
         do {
-            let request = B.including(required: B.defaultA).including(optional: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(required: B.defaultA).including(optional: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -229,7 +229,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["c"]!, ["id":nil, "bid":nil, "name":nil])
         }
         do {
-            let request = B.including(optional: B.defaultA).including(required: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(optional: B.defaultA).including(required: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -245,7 +245,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["c"]!, ["id":1, "bid":1, "name":"c1"])
         }
         do {
-            let request = B.including(optional: B.defaultA).including(optional: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(optional: B.defaultA).including(optional: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -280,7 +280,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testDefaultScopeParallelTwoIncludingIncludingSameAssociation() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.including(required: A.defaultB).including(required: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.including(required: A.defaultB).including(required: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -302,7 +302,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["b"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(required: A.defaultB).including(optional: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.including(required: A.defaultB).including(optional: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -324,7 +324,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["b"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(optional: A.defaultB).including(required: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.including(optional: A.defaultB).including(required: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -346,7 +346,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["b"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(optional: A.defaultB).including(optional: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.including(optional: A.defaultB).including(optional: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -376,7 +376,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[5].scopes["b"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = B.including(required: B.defaultA).including(required: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.including(required: B.defaultA).including(required: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -398,7 +398,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["a"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.including(required: B.defaultA).including(optional: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.including(required: B.defaultA).including(optional: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -420,7 +420,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["a"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.including(optional: B.defaultA).including(required: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.including(optional: B.defaultA).including(required: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -442,7 +442,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["a"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.including(optional: B.defaultA).including(optional: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.including(optional: B.defaultA).including(optional: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -472,7 +472,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testDefaultScopeParallelTwoIncludingJoining() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.including(required: A.defaultB).joining(required: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(required: A.defaultB).joining(required: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -486,7 +486,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["b"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(required: A.defaultB).joining(optional: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(required: A.defaultB).joining(optional: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -508,7 +508,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["b"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(optional: A.defaultB).joining(required: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(optional: A.defaultB).joining(required: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 3)
@@ -526,7 +526,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[2].scopes["b"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = A.including(optional: A.defaultB).joining(optional: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(optional: A.defaultB).joining(optional: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -556,7 +556,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[5].scopes["b"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = B.including(required: B.defaultA).joining(required: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(required: B.defaultA).joining(required: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -570,7 +570,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["a"]!, ["id":2, "bid":1, "did":nil, "name":"a2"])
         }
         do {
-            let request = B.including(required: B.defaultA).joining(optional: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(required: B.defaultA).joining(optional: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -592,7 +592,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["a"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.including(optional: B.defaultA).joining(required: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(optional: B.defaultA).joining(required: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -606,7 +606,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["a"]!, ["id":2, "bid":1, "did":nil, "name":"a2"])
         }
         do {
-            let request = B.including(optional: B.defaultA).joining(optional: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(optional: B.defaultA).joining(optional: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -636,7 +636,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testDefaultScopeParallelTwoIncludingJoiningSameAssociation() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.including(required: A.defaultB).joining(required: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.including(required: A.defaultB).joining(required: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -658,7 +658,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["b"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(required: A.defaultB).joining(optional: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.including(required: A.defaultB).joining(optional: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -680,7 +680,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["b"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(optional: A.defaultB).joining(required: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.including(optional: A.defaultB).joining(required: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -702,7 +702,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["b"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(optional: A.defaultB).joining(optional: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.including(optional: A.defaultB).joining(optional: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -732,7 +732,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[5].scopes["b"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = B.including(required: B.defaultA).joining(required: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.including(required: B.defaultA).joining(required: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -754,7 +754,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["a"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.including(required: B.defaultA).joining(optional: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.including(required: B.defaultA).joining(optional: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -776,7 +776,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["a"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.including(optional: B.defaultA).joining(required: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.including(optional: B.defaultA).joining(required: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -798,7 +798,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["a"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.including(optional: B.defaultA).joining(optional: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.including(optional: B.defaultA).joining(optional: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -828,7 +828,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testDefaultScopeParallelTwoJoiningIncluding() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.joining(required: A.defaultB).including(required: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(required: A.defaultB).including(required: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -842,7 +842,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["d"]!, ["id":1, "name":"d1"])
         }
         do {
-            let request = A.joining(required: A.defaultB).including(optional: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(required: A.defaultB).including(optional: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -864,7 +864,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["d"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = A.joining(optional: A.defaultB).including(required: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(optional: A.defaultB).including(required: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 3)
@@ -882,7 +882,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[2].scopes["d"]!, ["id":1, "name":"d1"])
         }
         do {
-            let request = A.joining(optional: A.defaultB).including(optional: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(optional: A.defaultB).including(optional: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -912,7 +912,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[5].scopes["d"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = B.joining(required: B.defaultA).including(required: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(required: B.defaultA).including(required: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -926,7 +926,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["c"]!, ["id":1, "bid":1, "name":"c1"])
         }
         do {
-            let request = B.joining(required: B.defaultA).including(optional: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(required: B.defaultA).including(optional: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -948,7 +948,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["c"]!, ["id":nil, "bid":nil, "name":nil])
         }
         do {
-            let request = B.joining(optional: B.defaultA).including(required: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(optional: B.defaultA).including(required: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -962,7 +962,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["c"]!, ["id":1, "bid":1, "name":"c1"])
         }
         do {
-            let request = B.joining(optional: B.defaultA).including(optional: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(optional: B.defaultA).including(optional: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -992,7 +992,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testDefaultScopeParallelTwoJoiningIncludingSameAssociation() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.joining(required: A.defaultB).including(required: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.joining(required: A.defaultB).including(required: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1014,7 +1014,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["b"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.joining(required: A.defaultB).including(optional: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.joining(required: A.defaultB).including(optional: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1036,7 +1036,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["b"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.joining(optional: A.defaultB).including(required: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.joining(optional: A.defaultB).including(required: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1058,7 +1058,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["b"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.joining(optional: A.defaultB).including(optional: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.joining(optional: A.defaultB).including(optional: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -1088,7 +1088,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[5].scopes["b"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = B.joining(required: B.defaultA).including(required: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.joining(required: B.defaultA).including(required: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1110,7 +1110,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["a"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.joining(required: B.defaultA).including(optional: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.joining(required: B.defaultA).including(optional: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1132,7 +1132,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["a"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.joining(optional: B.defaultA).including(required: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.joining(optional: B.defaultA).including(required: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1154,7 +1154,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["a"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.joining(optional: B.defaultA).including(optional: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.joining(optional: B.defaultA).including(optional: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -1184,7 +1184,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testDefaultScopeParallelTwoJoiningJoining() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.joining(required: A.defaultB).joining(required: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(required: A.defaultB).joining(required: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -1196,7 +1196,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[1].scopes.names.isEmpty)
         }
         do {
-            let request = A.joining(required: A.defaultB).joining(optional: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(required: A.defaultB).joining(optional: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1214,7 +1214,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = A.joining(optional: A.defaultB).joining(required: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(optional: A.defaultB).joining(required: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 3)
@@ -1229,7 +1229,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[2].scopes.names.isEmpty)
         }
         do {
-            let request = A.joining(optional: A.defaultB).joining(optional: A.defaultD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(optional: A.defaultB).joining(optional: A.defaultD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -1253,7 +1253,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[5].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(required: B.defaultA).joining(required: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(required: B.defaultA).joining(required: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -1265,7 +1265,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[1].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(required: B.defaultA).joining(optional: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(required: B.defaultA).joining(optional: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1283,7 +1283,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(optional: B.defaultA).joining(required: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(optional: B.defaultA).joining(required: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -1295,7 +1295,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[1].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(optional: B.defaultA).joining(optional: B.defaultC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(optional: B.defaultA).joining(optional: B.defaultC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -1320,7 +1320,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testDefaultScopeParallelTwoJoiningJoiningSameAssociation() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.joining(required: A.defaultB).joining(required: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.joining(required: A.defaultB).joining(required: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1338,7 +1338,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = A.joining(required: A.defaultB).joining(optional: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.joining(required: A.defaultB).joining(optional: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1356,7 +1356,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = A.joining(optional: A.defaultB).joining(required: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.joining(optional: A.defaultB).joining(required: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1374,7 +1374,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = A.joining(optional: A.defaultB).joining(optional: A.defaultB).order(sql: "a.id, b.id")
+            let request = A.joining(optional: A.defaultB).joining(optional: A.defaultB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -1398,7 +1398,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[5].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(required: B.defaultA).joining(required: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.joining(required: B.defaultA).joining(required: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1416,7 +1416,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(required: B.defaultA).joining(optional: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.joining(required: B.defaultA).joining(optional: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1434,7 +1434,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(optional: B.defaultA).joining(required: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.joining(optional: B.defaultA).joining(required: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1452,7 +1452,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(optional: B.defaultA).joining(optional: B.defaultA).order(sql: "b.id, a.id")
+            let request = B.joining(optional: B.defaultA).joining(optional: B.defaultA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -1477,7 +1477,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testCustomScopeParallelTwoIncludingIncluding() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.including(required: A.customB).including(required: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(required: A.customB).including(required: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -1493,7 +1493,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["customD"]!, ["id":1, "name":"d1"])
         }
         do {
-            let request = A.including(required: A.customB).including(optional: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(required: A.customB).including(optional: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1519,7 +1519,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customD"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = A.including(optional: A.customB).including(required: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(optional: A.customB).including(required: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 3)
@@ -1540,7 +1540,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[2].scopes["customD"]!, ["id":1, "name":"d1"])
         }
         do {
-            let request = A.including(optional: A.customB).including(optional: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(optional: A.customB).including(optional: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -1576,7 +1576,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[5].scopes["customD"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = B.including(required: B.customA).including(required: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(required: B.customA).including(required: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -1592,7 +1592,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["customC"]!, ["id":1, "bid":1, "name":"c1"])
         }
         do {
-            let request = B.including(required: B.customA).including(optional: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(required: B.customA).including(optional: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1618,7 +1618,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customC"]!, ["id":nil, "bid":nil, "name":nil])
         }
         do {
-            let request = B.including(optional: B.customA).including(required: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(optional: B.customA).including(required: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -1634,7 +1634,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["customC"]!, ["id":1, "bid":1, "name":"c1"])
         }
         do {
-            let request = B.including(optional: B.customA).including(optional: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(optional: B.customA).including(optional: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -1669,7 +1669,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testCustomScopeParallelTwoIncludingIncludingSameAssociation() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.including(required: A.customB).including(required: A.customB).order(sql: "a.id, b.id")
+            let request = A.including(required: A.customB).including(required: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1691,7 +1691,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customB"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(required: A.customB).including(optional: A.customB).order(sql: "a.id, b.id")
+            let request = A.including(required: A.customB).including(optional: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1713,7 +1713,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customB"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(optional: A.customB).including(required: A.customB).order(sql: "a.id, b.id")
+            let request = A.including(optional: A.customB).including(required: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1735,7 +1735,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customB"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(optional: A.customB).including(optional: A.customB).order(sql: "a.id, b.id")
+            let request = A.including(optional: A.customB).including(optional: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -1765,7 +1765,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[5].scopes["customB"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = B.including(required: B.customA).including(required: B.customA).order(sql: "b.id, a.id")
+            let request = B.including(required: B.customA).including(required: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1787,7 +1787,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customA"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.including(required: B.customA).including(optional: B.customA).order(sql: "b.id, a.id")
+            let request = B.including(required: B.customA).including(optional: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1809,7 +1809,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customA"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.including(optional: B.customA).including(required: B.customA).order(sql: "b.id, a.id")
+            let request = B.including(optional: B.customA).including(required: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1831,7 +1831,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customA"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.including(optional: B.customA).including(optional: B.customA).order(sql: "b.id, a.id")
+            let request = B.including(optional: B.customA).including(optional: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -1861,7 +1861,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testCustomScopeParallelTwoIncludingJoining() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.including(required: A.customB).joining(required: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(required: A.customB).joining(required: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -1875,7 +1875,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["customB"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(required: A.customB).joining(optional: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(required: A.customB).joining(optional: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1897,7 +1897,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customB"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(optional: A.customB).joining(required: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(optional: A.customB).joining(required: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 3)
@@ -1915,7 +1915,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[2].scopes["customB"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = A.including(optional: A.customB).joining(optional: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.including(optional: A.customB).joining(optional: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -1945,7 +1945,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[5].scopes["customB"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = B.including(required: B.customA).joining(required: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(required: B.customA).joining(required: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -1959,7 +1959,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["customA"]!, ["id":2, "bid":1, "did":nil, "name":"a2"])
         }
         do {
-            let request = B.including(required: B.customA).joining(optional: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(required: B.customA).joining(optional: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -1981,7 +1981,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customA"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.including(optional: B.customA).joining(required: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(optional: B.customA).joining(required: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -1995,7 +1995,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["customA"]!, ["id":2, "bid":1, "did":nil, "name":"a2"])
         }
         do {
-            let request = B.including(optional: B.customA).joining(optional: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.including(optional: B.customA).joining(optional: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -2025,7 +2025,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testCustomScopeParallelTwoIncludingJoiningSameAssociation() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.including(required: A.customB).joining(required: A.customB).order(sql: "a.id, b.id")
+            let request = A.including(required: A.customB).joining(required: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2047,7 +2047,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customB"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(required: A.customB).joining(optional: A.customB).order(sql: "a.id, b.id")
+            let request = A.including(required: A.customB).joining(optional: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2069,7 +2069,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customB"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(optional: A.customB).joining(required: A.customB).order(sql: "a.id, b.id")
+            let request = A.including(optional: A.customB).joining(required: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2091,7 +2091,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customB"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.including(optional: A.customB).joining(optional: A.customB).order(sql: "a.id, b.id")
+            let request = A.including(optional: A.customB).joining(optional: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -2121,7 +2121,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[5].scopes["customB"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = B.including(required: B.customA).joining(required: B.customA).order(sql: "b.id, a.id")
+            let request = B.including(required: B.customA).joining(required: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2143,7 +2143,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customA"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.including(required: B.customA).joining(optional: B.customA).order(sql: "b.id, a.id")
+            let request = B.including(required: B.customA).joining(optional: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2165,7 +2165,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customA"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.including(optional: B.customA).joining(required: B.customA).order(sql: "b.id, a.id")
+            let request = B.including(optional: B.customA).joining(required: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2187,7 +2187,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customA"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.including(optional: B.customA).joining(optional: B.customA).order(sql: "b.id, a.id")
+            let request = B.including(optional: B.customA).joining(optional: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -2217,7 +2217,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testCustomScopeParallelTwoJoiningIncluding() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.joining(required: A.customB).including(required: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(required: A.customB).including(required: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -2231,7 +2231,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["customD"]!, ["id":1, "name":"d1"])
         }
         do {
-            let request = A.joining(required: A.customB).including(optional: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(required: A.customB).including(optional: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2253,7 +2253,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customD"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = A.joining(optional: A.customB).including(required: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(optional: A.customB).including(required: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 3)
@@ -2271,7 +2271,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[2].scopes["customD"]!, ["id":1, "name":"d1"])
         }
         do {
-            let request = A.joining(optional: A.customB).including(optional: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(optional: A.customB).including(optional: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -2301,7 +2301,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[5].scopes["customD"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = B.joining(required: B.customA).including(required: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(required: B.customA).including(required: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -2315,7 +2315,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["customC"]!, ["id":1, "bid":1, "name":"c1"])
         }
         do {
-            let request = B.joining(required: B.customA).including(optional: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(required: B.customA).including(optional: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2337,7 +2337,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customC"]!, ["id":nil, "bid":nil, "name":nil])
         }
         do {
-            let request = B.joining(optional: B.customA).including(required: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(optional: B.customA).including(required: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -2351,7 +2351,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["customC"]!, ["id":1, "bid":1, "name":"c1"])
         }
         do {
-            let request = B.joining(optional: B.customA).including(optional: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(optional: B.customA).including(optional: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -2381,7 +2381,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testCustomScopeParallelTwoJoiningIncludingSameAssociation() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.joining(required: A.customB).including(required: A.customB).order(sql: "a.id, b.id")
+            let request = A.joining(required: A.customB).including(required: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2403,7 +2403,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customB"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.joining(required: A.customB).including(optional: A.customB).order(sql: "a.id, b.id")
+            let request = A.joining(required: A.customB).including(optional: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2425,7 +2425,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customB"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.joining(optional: A.customB).including(required: A.customB).order(sql: "a.id, b.id")
+            let request = A.joining(optional: A.customB).including(required: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2447,7 +2447,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customB"]!, ["id":2, "name":"b2"])
         }
         do {
-            let request = A.joining(optional: A.customB).including(optional: A.customB).order(sql: "a.id, b.id")
+            let request = A.joining(optional: A.customB).including(optional: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -2477,7 +2477,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[5].scopes["customB"]!, ["id":nil, "name":nil])
         }
         do {
-            let request = B.joining(required: B.customA).including(required: B.customA).order(sql: "b.id, a.id")
+            let request = B.joining(required: B.customA).including(required: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2499,7 +2499,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customA"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.joining(required: B.customA).including(optional: B.customA).order(sql: "b.id, a.id")
+            let request = B.joining(required: B.customA).including(optional: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2521,7 +2521,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customA"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.joining(optional: B.customA).including(required: B.customA).order(sql: "b.id, a.id")
+            let request = B.joining(optional: B.customA).including(required: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2543,7 +2543,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["customA"]!, ["id":4, "bid":2, "did":nil, "name":"a4"])
         }
         do {
-            let request = B.joining(optional: B.customA).including(optional: B.customA).order(sql: "b.id, a.id")
+            let request = B.joining(optional: B.customA).including(optional: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -2573,7 +2573,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testCustomScopeParallelTwoJoiningJoining() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.joining(required: A.customB).joining(required: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(required: A.customB).joining(required: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -2585,7 +2585,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[1].scopes.names.isEmpty)
         }
         do {
-            let request = A.joining(required: A.customB).joining(optional: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(required: A.customB).joining(optional: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2603,7 +2603,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = A.joining(optional: A.customB).joining(required: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(optional: A.customB).joining(required: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 3)
@@ -2618,7 +2618,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[2].scopes.names.isEmpty)
         }
         do {
-            let request = A.joining(optional: A.customB).joining(optional: A.customD).order(sql: "a.id, b.id, d.id")
+            let request = A.joining(optional: A.customB).joining(optional: A.customD).order(rawSQL: "a.id, b.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -2642,7 +2642,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[5].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(required: B.customA).joining(required: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(required: B.customA).joining(required: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -2654,7 +2654,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[1].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(required: B.customA).joining(optional: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(required: B.customA).joining(optional: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2672,7 +2672,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(optional: B.customA).joining(required: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(optional: B.customA).joining(required: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -2684,7 +2684,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[1].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(optional: B.customA).joining(optional: B.customC).order(sql: "b.id, a.id, c.id")
+            let request = B.joining(optional: B.customA).joining(optional: B.customC).order(rawSQL: "b.id, a.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)
@@ -2709,7 +2709,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
     func testCustomScopeParallelTwoJoiningJoiningSameAssociation() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.joining(required: A.customB).joining(required: A.customB).order(sql: "a.id, b.id")
+            let request = A.joining(required: A.customB).joining(required: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2727,7 +2727,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = A.joining(required: A.customB).joining(optional: A.customB).order(sql: "a.id, b.id")
+            let request = A.joining(required: A.customB).joining(optional: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2745,7 +2745,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = A.joining(optional: A.customB).joining(required: A.customB).order(sql: "a.id, b.id")
+            let request = A.joining(optional: A.customB).joining(required: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2763,7 +2763,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = A.joining(optional: A.customB).joining(optional: A.customB).order(sql: "a.id, b.id")
+            let request = A.joining(optional: A.customB).joining(optional: A.customB).order(rawSQL: "a.id, b.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 6)
@@ -2787,7 +2787,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[5].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(required: B.customA).joining(required: B.customA).order(sql: "b.id, a.id")
+            let request = B.joining(required: B.customA).joining(required: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2805,7 +2805,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(required: B.customA).joining(optional: B.customA).order(sql: "b.id, a.id")
+            let request = B.joining(required: B.customA).joining(optional: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2823,7 +2823,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(optional: B.customA).joining(required: B.customA).order(sql: "b.id, a.id")
+            let request = B.joining(optional: B.customA).joining(required: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -2841,7 +2841,7 @@ class AssociationParallelRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(optional: B.customA).joining(optional: B.customA).order(sql: "b.id, a.id")
+            let request = B.joining(optional: B.customA).joining(optional: B.customA).order(rawSQL: "b.id, a.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 5)

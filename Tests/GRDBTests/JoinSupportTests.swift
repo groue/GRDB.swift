@@ -230,7 +230,7 @@ class JoinSupportTests: GRDBTestCase {
                 t.column("t3id", .integer).references("t3", onDelete: .cascade)
                 t.column("t4id", .integer).references("t4", onDelete: .cascade)
                 t.column("name", .text).notNull()
-                t.check(sql: "(t3id IS NOT NULL) + (t4id IS NOT NULL) = 1")
+                t.check(rawSQL: "(t3id IS NOT NULL) + (t4id IS NOT NULL) = 1")
             }
             
             // Sample data

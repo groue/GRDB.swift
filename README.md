@@ -847,11 +847,11 @@ Arguments are optional arrays or dictionaries that fill the positional `?` and c
 
 ```swift
 let rows = try Row.fetchAll(db,
-    "SELECT * FROM player WHERE name = ?",
+    rawSQL: "SELECT * FROM player WHERE name = ?",
     arguments: ["Arthur"])
 
 let rows = try Row.fetchAll(db,
-    "SELECT * FROM player WHERE name = :name",
+    rawSQL: "SELECT * FROM player WHERE name = :name",
     arguments: ["name": "Arthur"])
 ```
 
@@ -2149,7 +2149,7 @@ To fetch records from the database, call a [fetching method](#fetching-methods):
 
 ```swift
 let arthur = try Player.fetchOne(db,            // Player?
-    "SELECT * FROM players WHERE name = ?",
+    rawSQL: "SELECT * FROM players WHERE name = ?",
     arguments: ["Arthur"])
 
 let bestPlayers = try Player                    // [Player]
@@ -3558,7 +3558,7 @@ let count = try request.fetchCount(db)  // Int
 <a name="list-of-record-methods-3">³</a> See [SQL queries](#fetch-queries):
 
 ```swift
-let player = try Player.fetchOne("SELECT * FROM player WHERE id = ?", arguments: [1]) // Player?
+let player = try Player.fetchOne(db, rawSQL: "SELECT * FROM player WHERE id = ?", arguments: [1]) // Player?
 ```
 
 <a name="list-of-record-methods-4">⁴</a> See [Prepared Statements](#prepared-statements):
@@ -3601,12 +3601,12 @@ try dbQueue.write { db in
     
     // Fetch records (with SQL)
     let wines = try Wine.fetchAll(db,
-        "SELECT * FROM wine WHERE origin = ? ORDER BY price",
+        rawSQL: "SELECT * FROM wine WHERE origin = ? ORDER BY price",
         arguments: ["Burgundy"])
     
     // Count (with an SQL snippet)
     let count = try Wine
-        .filter(sql: "color = ?", arguments: [Color.red])
+        .filter(rawSQL: "color = ?", arguments: [Color.red])
         .fetchCount(db)
     
     // Delete (with SQL)
@@ -3740,7 +3740,7 @@ For extra index options, see [Create Indexes](#create-indexes) below.
     // name TEXT CHECK (LENGTH(name) > 0)
     // score INTEGER CHECK (score > 0)
     t.column("name", .text).check { length($0) > 0 }
-    t.column("score", .integer).check(sql: "score > 0")
+    t.column("score", .integer).check(rawSQL: "score > 0")
 ```
 
 Other **table constraints** can involve several columns:
@@ -3759,7 +3759,7 @@ Other **table constraints** can involve several columns:
     t.check(Column("a") + Column("b") < 10)
     
     // CHECK (a + b < 10)
-    t.check(sql: "a + b < 10")
+    t.check(rawSQL: "a + b < 10")
 }
 ```
 
@@ -4028,9 +4028,9 @@ Raw SQL snippets are also accepted, with eventual [arguments](http://groue.githu
 ```swift
 // SELECT DATE(creationDate), COUNT(*) FROM player WHERE name = 'Arthur' GROUP BY date(creationDate)
 Player
-    .select(sql: "DATE(creationDate), COUNT(*)")
-    .filter(sql: "name = ?", arguments: ["Arthur"])
-    .group(sql: "DATE(creationDate)")
+    .select(rawSQL: "DATE(creationDate), COUNT(*)")
+    .filter(rawSQL: "name = ?", arguments: ["Arthur"])
+    .group(rawSQL: "DATE(creationDate)")
 ```
 
 
@@ -4597,7 +4597,7 @@ let request = Player.all()
     extension Player {
         static func filter(color: Color) -> SQLRequest<Player> {
             return SQLRequest<Player>(
-                "SELECT * FROM player WHERE color = ?"
+                rawSQL: "SELECT * FROM player WHERE color = ?"
                 arguments: [color])
         }
     }
@@ -4646,7 +4646,7 @@ For example:
 
 ```swift
 let playerRequest = SQLRequest<Player>(
-    "SELECT * FROM player WHERE color = ?"
+    rawSQL: "SELECT * FROM player WHERE color = ?"
     arguments: [color])
 try request.fetchAll(db)    // [Player]
 ```
@@ -4796,7 +4796,7 @@ let pattern = FTS3Pattern(matchingPhrase: "Moby-Dick")
 // Search with the query interface or SQL
 let books = try Book.matching(pattern).fetchAll(db)
 let books = try Book.fetchAll(db,
-    "SELECT * FROM book WHERE book MATCH ?",
+    rawSQL: "SELECT * FROM book WHERE book MATCH ?",
     arguments: [pattern])
 ```
 
@@ -5058,7 +5058,7 @@ FTS3Pattern are regular [values](#values). You can use them as query [arguments]
 
 ```swift
 let documents = try Document.fetchAll(db,
-    "SELECT * FROM document WHERE content MATCH ?",
+    rawSQL: "SELECT * FROM document WHERE content MATCH ?",
     arguments: [pattern])
 ```
 
@@ -5294,7 +5294,7 @@ FTS5Pattern are regular [values](#values). You can use them as query [arguments]
 
 ```swift
 let documents = try Document.fetchAll(db,
-    "SELECT * FROM document WHERE document MATCH ?",
+    rawSQL: "SELECT * FROM document WHERE document MATCH ?",
     arguments: [pattern])
 ```
 
@@ -5312,7 +5312,7 @@ let documents = try Document.matching(pattern).fetchAll(db)
 ```swift
 // SQL
 let documents = try Document.fetchAll(db,
-    "SELECT * FROM document WHERE document MATCH ? ORDER BY rank",
+    rawSQL: "SELECT * FROM document WHERE document MATCH ? ORDER BY rank",
     arguments: [pattern])
 
 // Query Interface
@@ -5742,7 +5742,7 @@ extension PlayerInfo {
             LEFT JOIN round ON ...
             GROUP BY ...
             """
-        return SQLRequest<PlayerInfo>(sql).adapted { db in
+        return SQLRequest<PlayerInfo>(rawSQL: sql).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 Player.numberOfSelectedColumns(db),
                 Team.numberOfSelectedColumns(db)])
@@ -5813,7 +5813,7 @@ extension PlayerInfo {
             LEFT JOIN round ON ...
             GROUP BY ...
             """
-        return SQLRequest<PlayerInfo>(sql).adapted { db in
+        return SQLRequest<PlayerInfo>(rawSQL: sql).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 Player.numberOfSelectedColumns(db),
                 Team.numberOfSelectedColumns(db)])
@@ -6074,7 +6074,7 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
         }
     
     // Observe all player names
-    let request = SQLRequest<String>("SELECT name FROM player")
+    let request = SQLRequest<String>(rawSQL: "SELECT name FROM player")
     let observer = ValueObservation
         .trackingAll(request)
         .start(in: dbQueue) { names: [String] in
@@ -6629,7 +6629,7 @@ let controller = FetchedRecordsController(
 // Using SQL, and eventual arguments:
 let controller = FetchedRecordsController<Player>(
     dbQueue,
-    sql: "SELECT * FROM player ORDER BY name WHERE countryCode = ?",
+    rawSQL: "SELECT * FROM player ORDER BY name WHERE countryCode = ?",
     arguments: ["FR"])
 ```
 
@@ -6638,7 +6638,7 @@ The fetch request can involve several database tables. The fetched records contr
 ```swift
 let controller = FetchedRecordsController<Author>(
     dbQueue,
-    sql: """
+    rawSQL: """
         SELECT author.name, COUNT(book.id) AS bookCount
         FROM author
         LEFT JOIN book ON book.authorId = author.id
@@ -6766,7 +6766,7 @@ You can change a fetched records controller's fetch request or SQL query.
 
 ```swift
 controller.setRequest(Player.order(Column("name")))
-controller.setRequest(sql: "SELECT ...", arguments: ...)
+controller.setRequest(rawSQL: "SELECT ...", arguments: ...)
 ```
 
 The [notification callbacks](#the-changes-notifications) are notified of eventual changes if the new request fetches a different set of records.
@@ -7664,7 +7664,7 @@ If you can't or don't want to define the comparison behavior of a column (see wa
 ```swift
 let collation = DatabaseCollation.localizedCaseInsensitiveCompare
 let players = try Player.fetchAll(db,
-    "SELECT * FROM player ORDER BY name COLLATE \(collation.name))")
+    rawSQL: "SELECT * FROM player ORDER BY name COLLATE \(collation.name))")
 let players = try Player.order(nameColumn.collating(collation)).fetchAll(db)
 ```
 

@@ -409,13 +409,13 @@ public final class TableDefinition {
     ///     try db.create(table: "player") { t in
     ///         t.column("personalPhone", .text)
     ///         t.column("workPhone", .text)
-    ///         t.check(sql: "personalPhone IS NOT NULL OR workPhone IS NOT NULL")
+    ///         t.check(rawSQL: "personalPhone IS NOT NULL OR workPhone IS NOT NULL")
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html#ckconst
     ///
     /// - parameter sql: An SQL snippet
-    public func check(sql: String) {
+    public func check(rawSQL sql: String) {
         // We do not want to wrap the SQL snippet inside parentheses around the
         // checked SQL. This is why we use the "unsafeLiteral" initializer.
         checkConstraints.append(SQLExpressionLiteral(unsafeLiteral: SQLLiteral(rawSQL: sql)))
@@ -712,7 +712,7 @@ public final class ColumnDefinition {
     /// Adds a CHECK constraint on the column.
     ///
     ///     try db.create(table: "player") { t in
-    ///         t.column("name", .text).check(sql: "LENGTH(name) > 0")
+    ///         t.column("name", .text).check(rawSQL: "LENGTH(name) > 0")
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html#ckconst
@@ -720,7 +720,7 @@ public final class ColumnDefinition {
     /// - parameter sql: An SQL snippet.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
-    public func check(sql: String) -> Self {
+    public func check(rawSQL sql: String) -> Self {
         // We do not want to wrap the SQL snippet inside parentheses around the
         // checked SQL. This is why we use the "unsafeLiteral" initializer.
         checkConstraints.append(SQLExpressionLiteral(unsafeLiteral: SQLLiteral(rawSQL: sql)))
@@ -746,7 +746,7 @@ public final class ColumnDefinition {
     /// Defines the default column value.
     ///
     ///     try db.create(table: "player") { t in
-    ///         t.column("creationDate", .DateTime).defaults(sql: "CURRENT_TIMESTAMP")
+    ///         t.column("creationDate", .DateTime).defaults(rawSQL: "CURRENT_TIMESTAMP")
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html#dfltval
@@ -754,7 +754,7 @@ public final class ColumnDefinition {
     /// - parameter sql: An SQL snippet.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
-    public func defaults(sql: String) -> Self {
+    public func defaults(rawSQL sql: String) -> Self {
         // We do not want to wrap the SQL snippet inside parentheses around the
         // checked SQL. This is why we use the "unsafeLiteral" initializer.
         defaultExpression = SQLExpressionLiteral(unsafeLiteral: SQLLiteral(rawSQL: sql))

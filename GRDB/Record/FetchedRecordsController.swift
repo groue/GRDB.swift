@@ -18,7 +18,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     ///
     ///     let controller = FetchedRecordsController<Wine>(
     ///         dbQueue,
-    ///         sql: "SELECT * FROM wine WHERE color = ? ORDER BY name",
+    ///         rawSQL: "SELECT * FROM wine WHERE color = ? ORDER BY name",
     ///         arguments: [Color.red],
     ///         isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
     ///
@@ -39,7 +39,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     ///         same identity. For example, they have the same id.
     public convenience init(
         _ databaseWriter: DatabaseWriter,
-        sql: String,
+        rawSQL sql: String,
         arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil,
         queue: DispatchQueue = .main,
@@ -197,7 +197,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     ///
     /// This method must be used from the controller's dispatch queue (the
     /// main queue unless stated otherwise in the controller's initializer).
-    public func setRequest(sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws {
+    public func setRequest(rawSQL sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws {
         // TODO: rename sql parameter to rawSQL
         try setRequest(SQLRequest(rawSQL: sql, arguments: arguments, adapter: adapter))
     }
@@ -404,7 +404,7 @@ extension FetchedRecordsController where Record: TableRecord {
     ///
     ///     let controller = FetchedRecordsController<Wine>(
     ///         dbQueue,
-    ///         sql: "SELECT * FROM wine WHERE color = ? ORDER BY name",
+    ///         rawSQL: "SELECT * FROM wine WHERE color = ? ORDER BY name",
     ///         arguments: [Color.red])
     ///
     /// The records are compared by primary key (single-column primary key,
@@ -414,7 +414,7 @@ extension FetchedRecordsController where Record: TableRecord {
     ///     // Assuming the wine table has an `id` primary key:
     ///     let controller = FetchedRecordsController<Wine>(
     ///         dbQueue,
-    ///         sql: "SELECT * FROM wine WHERE color = ? ORDER BY name",
+    ///         rawSQL: "SELECT * FROM wine WHERE color = ? ORDER BY name",
     ///         arguments: [Color.red],
     ///         isSameRecord: { (wine1, wine2) in wine1.id == wine2.id })
     ///
@@ -430,7 +430,7 @@ extension FetchedRecordsController where Record: TableRecord {
     ///         used from this queue.
     public convenience init(
         _ databaseWriter: DatabaseWriter,
-        sql: String,
+        rawSQL sql: String,
         arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil,
         queue: DispatchQueue = .main) throws

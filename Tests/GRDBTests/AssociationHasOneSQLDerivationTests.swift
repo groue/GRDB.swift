@@ -154,7 +154,7 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
                 let bAlias = TableAlias(name: "customB")
                 let request = A.including(required: A.b
                     .aliased(bAlias)
-                    .filter(sql: "customB.name = ?", arguments: ["foo"]))
+                    .filter(rawSQL: "customB.name = ?", arguments: ["foo"]))
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "customB".* \
                     FROM "a" \

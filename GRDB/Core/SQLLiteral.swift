@@ -32,7 +32,7 @@ extension SQLLiteral {
         self += sqlLiteral
     }
 
-    public mutating func append(sql: String, arguments: StatementArguments = StatementArguments()) {
+    public mutating func append(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) {
         self += SQLLiteral(rawSQL: sql, arguments: arguments)
     }
 }

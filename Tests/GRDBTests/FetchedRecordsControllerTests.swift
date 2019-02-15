@@ -130,7 +130,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             return cervantes.id!
         }
         
-        let controller = try FetchedRecordsController<Book>(dbQueue, sql: "SELECT * FROM books WHERE authorID = ?", arguments: [authorId])
+        let controller = try FetchedRecordsController<Book>(dbQueue, rawSQL: "SELECT * FROM books WHERE authorID = ?", arguments: [authorId])
         try controller.performFetch()
         XCTAssertEqual(controller.fetchedRecords.count, 1)
         XCTAssertEqual(controller.fetchedRecords[0].title, "Don Quixote")
@@ -149,7 +149,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         }
         
         let adapter = ColumnMapping(["id": "_id", "authorId": "_authorId", "title": "_title"])
-        let controller = try FetchedRecordsController<Book>(dbQueue, sql: "SELECT id AS _id, authorId AS _authorId, title AS _title FROM books WHERE authorID = ?", arguments: [authorId], adapter: adapter)
+        let controller = try FetchedRecordsController<Book>(dbQueue, rawSQL: "SELECT id AS _id, authorId AS _authorId, title AS _title FROM books WHERE authorID = ?", arguments: [authorId], adapter: adapter)
         try controller.performFetch()
         XCTAssertEqual(controller.fetchedRecords.count, 1)
         XCTAssertEqual(controller.fetchedRecords[0].title, "Don Quixote")
@@ -457,7 +457,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         let controller = try FetchedRecordsController<Person>(
             dbQueue,
-            sql: """
+            rawSQL: """
                 SELECT persons.*, COUNT(books.id) AS bookCount
                 FROM persons
                 LEFT JOIN books ON books.authorId = persons.id
@@ -681,7 +681,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         
         // Change request with SQL and arguments
         recorder.transactionExpectation = expectation(description: "expectation")
-        try controller.setRequest(sql: "SELECT ? AS id, ? AS name", arguments: [1, "Craig"])
+        try controller.setRequest(rawSQL: "SELECT ? AS id, ? AS name", arguments: [1, "Craig"])
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
