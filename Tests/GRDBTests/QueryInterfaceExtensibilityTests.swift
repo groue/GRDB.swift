@@ -47,7 +47,7 @@ func cast(_ value: SQLExpressible, as type: Database.ColumnType) -> SQLExpressio
     let sql = "CAST(\(sqlLiteral.sql) AS \(type.rawValue))"
     
     // And return a new literal expression, preserving input arguments
-    return SQLExpressionLiteral(sql, arguments: sqlLiteral.arguments)
+    return SQLExpressionLiteral(rawSQL: sql, arguments: sqlLiteral.arguments)
 }
 
 

@@ -46,10 +46,10 @@ public struct SQLExpressionLiteral : SQLExpression {
     ///
     /// Creates an SQL literal expression.
     ///
-    ///     SQLExpressionLiteral("1 + 2")
-    ///     SQLExpressionLiteral("? + ?", arguments: [1, 2])
-    ///     SQLExpressionLiteral(":one + :two", arguments: ["one": 1, "two": 2])
-    public init(_ sql: String, arguments: StatementArguments = StatementArguments()) {
+    ///     SQLExpressionLiteral(rawSQL: "1 + 2")
+    ///     SQLExpressionLiteral(rawSQL: "? + ?", arguments: [1, 2])
+    ///     SQLExpressionLiteral(rawSQL: ":one + :two", arguments: ["one": 1, "two": 2])
+    public init(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) {
         // TODO: force sql parameter name: fetchCursor(db, rawSQL: sql:...)
         self.init(literal: SQLLiteral(sql: sql, arguments: arguments))
     }

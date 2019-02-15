@@ -85,3 +85,7 @@ extension SQLRequest {
     public init(_ sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil, cached: Bool = false) { preconditionFailure() }
 }
 
+extension SQLExpressionLiteral {
+    @available(*, unavailable, renamed: "init(rawSQL:arguments:)")
+    public init(_ sql: String, arguments: StatementArguments = StatementArguments()) { preconditionFailure() }
+}
