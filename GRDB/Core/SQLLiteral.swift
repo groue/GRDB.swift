@@ -7,6 +7,13 @@ public struct SQLLiteral {
         self.sql = sql
         self.arguments = arguments
     }
+    
+    /// Returns a literal whose SQL is transformed by the given closure.
+    public func mapSQL(_ transform: (String) throws -> String) rethrows -> SQLLiteral {
+        var result = self
+        result.sql = try transform(sql)
+        return result
+    }
 }
 
 extension SQLLiteral {

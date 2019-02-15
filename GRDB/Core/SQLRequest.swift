@@ -27,7 +27,6 @@ public struct SQLRequest<T> : FetchRequest {
     ///       prepared statement.
     /// - returns: A SQLRequest
     public init(rawSQL sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil, cached: Bool = false) {
-        // TODO: force sql parameter name: init(sql:...)
         self.init(literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter, fromCache: cached ? .public : nil)
     }
     

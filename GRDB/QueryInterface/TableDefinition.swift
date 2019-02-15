@@ -416,9 +416,9 @@ public final class TableDefinition {
     ///
     /// - parameter sql: An SQL snippet
     public func check(sql: String) {
-        var expression = SQLExpressionLiteral(rawSQL: sql)
-        expression.unsafeRaw = true // It's safe because this expression can't be composed with others
-        checkConstraints.append(expression)
+        // We do not want to wrap the SQL snippet inside parentheses around the
+        // checked SQL. This is why we use the "unsafeLiteral" initializer.
+        checkConstraints.append(SQLExpressionLiteral(unsafeLiteral: SQLLiteral(sql: sql)))
     }
     
     fileprivate func sql(_ db: Database) throws -> String {
@@ -721,9 +721,9 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func check(sql: String) -> Self {
-        var expression = SQLExpressionLiteral(rawSQL: sql)
-        expression.unsafeRaw = true // It's safe because this expression can't be composed with others
-        checkConstraints.append(expression)
+        // We do not want to wrap the SQL snippet inside parentheses around the
+        // checked SQL. This is why we use the "unsafeLiteral" initializer.
+        checkConstraints.append(SQLExpressionLiteral(unsafeLiteral: SQLLiteral(sql: sql)))
         return self
     }
     
@@ -755,9 +755,9 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func defaults(sql: String) -> Self {
-        var expression = SQLExpressionLiteral(rawSQL: sql)
-        expression.unsafeRaw = true // It's safe because this expression can't be composed with others
-        defaultExpression = expression
+        // We do not want to wrap the SQL snippet inside parentheses around the
+        // checked SQL. This is why we use the "unsafeLiteral" initializer.
+        defaultExpression = SQLExpressionLiteral(unsafeLiteral: SQLLiteral(sql: sql))
         return self
     }
     

@@ -126,7 +126,6 @@ extension Database {
     ///     - arguments: Statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) throws {
-        // TODO: force sql parameter name: execute(sql:...)
         try execute(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     

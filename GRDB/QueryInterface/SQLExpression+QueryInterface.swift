@@ -27,20 +27,14 @@ extension SQLExpression {
 ///
 /// SQLExpressionLiteral is an expression built from a raw SQL snippet.
 ///
-///     SQLExpressionLiteral("1 + 2")
+///     SQLExpressionLiteral(rawSQL: "1 + 2")
 ///
 /// The SQL literal may contain `?` and colon-prefixed arguments:
 ///
-///     SQLExpressionLiteral("? + ?", arguments: [1, 2])
-///     SQLExpressionLiteral(":one + :two", arguments: ["one": 1, "two": 2])
+///     SQLExpressionLiteral(rawSQL: "? + ?", arguments: [1, 2])
+///     SQLExpressionLiteral(rawSQL: ":one + :two", arguments: ["one": 1, "two": 2])
 public struct SQLExpressionLiteral : SQLExpression {
     private let sqlLiteral: SQLLiteral
-    
-    /// If safe, an SQLExpressionLiteral("foo") wraps itself in parenthesis,
-    /// and outputs "(foo)" in SQL queries. This avoids any bug due to operator
-    /// precedence. When unsafe, the expression literal does not wrap itself
-    /// in parenthesis and outputs its raw sql.
-    var unsafeRaw: Bool = false
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -50,7 +44,6 @@ public struct SQLExpressionLiteral : SQLExpression {
     ///     SQLExpressionLiteral(rawSQL: "? + ?", arguments: [1, 2])
     ///     SQLExpressionLiteral(rawSQL: ":one + :two", arguments: ["one": 1, "two": 2])
     public init(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) {
-        // TODO: force sql parameter name: fetchCursor(db, rawSQL: sql:...)
         self.init(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
@@ -67,6 +60,13 @@ public struct SQLExpressionLiteral : SQLExpression {
     ///
     ///     SQLExpressionLiteral(literal: "\(1) + \(2)")
     public init(literal sqlLiteral: SQLLiteral) {
+        self.init(unsafeLiteral: sqlLiteral.mapSQL { "(\($0))" })
+    }
+    
+    /// Creates an SQL literal expression without wrapping the SQL literal
+    /// inside parentheses. It is unsafe because the result expression can not
+    /// be safely composed with other expressions.
+    init(unsafeLiteral sqlLiteral: SQLLiteral) {
         self.sqlLiteral = sqlLiteral
     }
 
@@ -80,11 +80,7 @@ public struct SQLExpressionLiteral : SQLExpression {
                 fatalError("Not implemented")
             }
         }
-        if unsafeRaw {
-            return sqlLiteral.sql
-        } else {
-            return "(" + sqlLiteral.sql + ")"
-        }
+        return sqlLiteral.sql
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)

@@ -332,12 +332,10 @@ extension AggregatingRequest {
         //
         //   request = Player.group(sql: "teamId, level")
         //
-        // This is why we use the "unsafe" flag, so that the SQLExpressionLiteral
-        // does not output its safe wrapping parenthesis, and generates
-        // invalid SQL.
-        var expression = SQLExpressionLiteral(literal: sqlLiteral)
-        expression.unsafeRaw = true
-        return group(expression)
+        // This is why we use the "unsafeLiteral" initializer, so that the
+        // SQLExpressionLiteral does not wrap input in parentheses, and
+        // generates invalid SQL `GROUP BY (teamId, level)`.
+        return group(SQLExpressionLiteral(unsafeLiteral: sqlLiteral))
     }
 
     /// Creates a request with the provided *sql* added to the
@@ -462,12 +460,10 @@ extension OrderedRequest {
         //
         //   request = Player.order(sql: "teamId, level")
         //
-        // This is why we use the "unsafe" flag, so that the SQLExpressionLiteral
-        // does not output its safe wrapping parenthesis, and generates
-        // invalid SQL.
-        var expression = SQLExpressionLiteral(literal: sqlLiteral)
-        expression.unsafeRaw = true
-        return order([expression])
+        // This is why we use the "unsafeLiteral" initializer, so that the
+        // SQLExpressionLiteral does not wrap input in parentheses, and
+        // generates invalid SQL `ORDER BY (teamId, level)`.
+        return order(SQLExpressionLiteral(unsafeLiteral: sqlLiteral))
     }
 }
 
