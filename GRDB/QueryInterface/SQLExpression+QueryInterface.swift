@@ -36,6 +36,9 @@ extension SQLExpression {
 public struct SQLExpressionLiteral : SQLExpression {
     private let sqlLiteral: SQLLiteral
     
+    public var sql: String { return sqlLiteral.sql }
+    public var arguments: StatementArguments { return sqlLiteral.arguments }
+    
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Creates an SQL literal expression.
