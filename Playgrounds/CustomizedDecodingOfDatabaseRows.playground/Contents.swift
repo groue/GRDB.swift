@@ -84,7 +84,7 @@ try dbQueue.write { db in
     
     // Demo values: two Foo and one Bar
     try db.execute(
-        rawSQL: """
+        sql: """
             INSERT INTO base (type, fooName, barScore) VALUES (?, ?, ?);
             INSERT INTO base (type, fooName, barScore) VALUES (?, ?, ?);
             INSERT INTO base (type, fooName, barScore) VALUES (?, ?, ?);
@@ -142,7 +142,7 @@ extension Base {
 
 try dbQueue.read { db in
     print("> KISS: Fetch from SQL")
-    let rows = try Row.fetchAll(db, rawSQL: "SELECT * FROM base")   // Fetch database rows
+    let rows = try Row.fetchAll(db, sql: "SELECT * FROM base")   // Fetch database rows
     let bases = rows.map { row in                           // Decode database rows
         Base.decode(row: row)
     }
@@ -358,52 +358,29 @@ try dbQueue.read { db in
 //: Finally, you can support raw SQL as well:
 //:
 //:     try dbQueue.read { db in
-//:         try Base.fetchAll(db, rawSQL: """
-//:             SELECT ... WHERE name = ?
-//:             """, arguments: ["O'Brien"]) // [Base]
-//:     }
-//:
-//: With Swift 5, you can safely embed raw values in your SQL queries,
-//: without any risk of syntax errors or SQL injection:
-//:
-//:     try dbQueue.read { db in
-//:         try Base.fetchAll(db, literal: """
-//:             SELECT ... WHERE name = \("O'Brien")
-//:             """) // [Base]
+//:         try Base.fetchAll(db,
+//:             sql: "SELECT ... WHERE name = ?",
+//:             arguments: ["O'Brien"]) // [Base]
 //:     }
 extension MyDatabaseDecoder {
-    // MARK: - Fetch from SQLLiteral
-    
-    static func fetchCursor(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
-        return try fetchCursor(db, SQLRequest<Self>(literal: sqlLiteral, adapter: adapter))
-    }
-    
-    static func fetchAll(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> [DecodedType] {
-        return try fetchAll(db, SQLRequest<Self>(literal: sqlLiteral, adapter: adapter))
-    }
-    
-    static func fetchOne(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> DecodedType? {
-        return try fetchOne(db, SQLRequest<Self>(literal: sqlLiteral, adapter: adapter))
-    }
-    
     // MARK: - Fetch from SQL
     
     static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
-        return try fetchCursor(db, literal: SQLLiteral(rawSQL: sql, arguments: arguments), adapter: adapter)
+        return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [DecodedType] {
-        return try fetchAll(db, literal: SQLLiteral(rawSQL: sql, arguments: arguments), adapter: adapter)
+        return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> DecodedType? {
-        return try fetchOne(db, literal: SQLLiteral(rawSQL: sql, arguments: arguments), adapter: adapter)
+        return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
 try dbQueue.read { db in
     print("> Fetch from SQL")
-    let bases = try Base.fetchAll(db, rawSQL: "SELECT * FROM base")
+    let bases = try Base.fetchAll(db, sql: "SELECT * FROM base")
     for base in bases {
         print(base.description)
     }

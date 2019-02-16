@@ -749,7 +749,7 @@ extension Row {
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RowCursor {
-        return try fetchCursor(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of rows fetched from an SQL query.
@@ -768,7 +768,7 @@ extension Row {
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Row] {
-        return try fetchAll(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -787,109 +787,7 @@ extension Row {
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Row? {
-        return try fetchOne(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
-    }
-}
-
-extension Row {
-    
-    // MARK: - Fetching From SQLLiteral
-    
-    /// Returns a cursor over rows fetched from an SQL query.
-    ///
-    ///     let rows = try Row.fetchCursor(db, literal: SQLLiteral(sql: """
-    ///         SELECT * FROM player WHERE lastName = ?
-    ///         """, arguments: ["O'Brien"])) // RowCursor
-    ///     while let row = try rows.next() { // Row
-    ///         let id: Int64 = row["id"]
-    ///         let firstName: String = row["firstName"]
-    ///         let lastName: String = row["lastName"]
-    ///     }
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     let rows = try Row.fetchCursor(db, literal: """
-    ///         SELECT * FROM player WHERE lastName = \("O'Brien")
-    ///         """) // RowCursor
-    ///
-    /// Fetched rows are reused during the cursor iteration: don't turn a row
-    /// cursor into an array with `Array(rows)` or `rows.filter { ... }` since
-    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
-    /// instead.
-    ///
-    /// For the same reason, make sure you make a copy whenever you extract a
-    /// row for later use: `row.copy()`.
-    ///
-    /// If the database is modified during the cursor iteration, the remaining
-    /// elements are undefined.
-    ///
-    /// The cursor must be iterated in a protected dispath queue.
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - sqlLiteral: An SQLLiteral.
-    ///     - adapter: Optional RowAdapter
-    /// - returns: A cursor over fetched rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> RowCursor {
-        return try fetchCursor(db, SQLRequest<Void>(literal: sqlLiteral, adapter: adapter))
-    }
-    
-    /// Returns an array of rows fetched from an SQL query.
-    ///
-    ///     let rows = try Row.fetchAll(db, literal: SQLLiteral(sql: """
-    ///         SELECT * FROM player WHERE lastName = ?
-    ///         """, arguments: ["O'Brien"])) // [Row]
-    ///     for row in rows {
-    ///         let id: Int64 = row["id"]
-    ///         let firstName: String = row["firstName"]
-    ///         let lastName: String = row["lastName"]
-    ///     }
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     let rows = try Row.fetchAll(db, literal: """
-    ///         SELECT * FROM player WHERE lastName = \("O'Brien")
-    ///         """) // [Row]
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - sqlLiteral: An SQLLiteral.
-    ///     - adapter: Optional RowAdapter
-    /// - returns: An array of rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> [Row] {
-        return try fetchAll(db, SQLRequest<Void>(literal: sqlLiteral, adapter: adapter))
-    }
-    
-    /// Returns a single row fetched from an SQL query.
-    ///
-    ///     let row = try Row.fetchOne(db, literal: SQLLiteral(sql: """
-    ///         SELECT * FROM player WHERE lastName = ?
-    ///         """, arguments: ["O'Brien"])) // Row?
-    ///     if let row = row {
-    ///         let id: Int64 = row["id"]
-    ///         let firstName: String = row["firstName"]
-    ///         let lastName: String = row["lastName"]
-    ///     }
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     let row = try Row.fetchOne(db, literal: """
-    ///         SELECT * FROM player WHERE lastName = \("O'Brien")
-    ///         """) // Row?
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - sqlLiteral: An SQLLiteral.
-    ///     - adapter: Optional RowAdapter
-    /// - returns: An optional row.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> Row? {
-        return try fetchOne(db, SQLRequest<Void>(literal: sqlLiteral, adapter: adapter))
+        return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 

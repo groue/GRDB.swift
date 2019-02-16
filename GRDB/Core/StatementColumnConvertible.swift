@@ -246,7 +246,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     /// - returns: A cursor over fetched values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> FastDatabaseValueCursor<Self> {
-        return try fetchCursor(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of values fetched from an SQL query.
@@ -261,7 +261,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     /// - returns: An array of values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Self] {
-        return try fetchAll(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -276,103 +276,10 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     /// - returns: An optional value.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Self? {
-        return try fetchOne(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
-extension DatabaseValueConvertible where Self: StatementColumnConvertible {
-
-    // MARK: Fetching From SQLLiteral
-    
-    /// Returns a cursor over values fetched from an SQL query.
-    ///
-    ///     let firstNames = try String.fetchCursor(db, literal: SQLLiteral(sql: """
-    ///         SELECT firstName FROM player
-    ///         WHERE lastName = ?
-    ///         """, arguments: ["O'Brien"])) // Cursor of String
-    ///     while let firstName = try firstNames.next() { // String
-    ///         ...
-    ///     }
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     let firstNames = try String.fetchCursor(db, literal: """
-    ///         SELECT firstName FROM player
-    ///         WHERE lastName = \("O'Brien")
-    ///         """) // Cursor of String
-    ///
-    /// If the database is modified during the cursor iteration, the remaining
-    /// elements are undefined.
-    ///
-    /// The cursor must be iterated in a protected dispath queue.
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - sqlLiteral: An SQLLiteral.
-    ///     - adapter: Optional RowAdapter
-    /// - returns: A cursor over fetched values.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> FastDatabaseValueCursor<Self> {
-        return try fetchCursor(db, SQLRequest<Void>(literal: sqlLiteral, adapter: adapter))
-    }
-    
-    /// Returns an array of values fetched from an SQL query.
-    ///
-    ///     let firstNames = try String.fetchAll(db, literal: SQLLiteral(sql: """
-    ///         SELECT firstName FROM player
-    ///         WHERE lastName = ?
-    ///         """, arguments: ["O'Brien"])) // [String]
-    ///     for firstName in firstNames {
-    ///         ...
-    ///     }
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     let firstNames = try String.fetchAll(db, literal: """
-    ///         SELECT firstName FROM player
-    ///         WHERE lastName = \("O'Brien")
-    ///         """) // [String]
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - sqlLiteral: An SQLLiteral.
-    ///     - adapter: Optional RowAdapter
-    /// - returns: An array.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> [Self] {
-        return try fetchAll(db, SQLRequest<Void>(literal: sqlLiteral, adapter: adapter))
-    }
-    
-    /// Returns a single value fetched from an SQL query.
-    ///
-    /// The result is nil if the query returns no row, or if no value can be
-    /// extracted from the first row.
-    ///
-    ///     let firstName = try String.fetchOne(db, literal: SQLLiteral(sql: """
-    ///         SELECT firstName FROM player
-    ///         WHERE lastName = ?
-    ///         """, arguments: ["O'Brien"])) // String?
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     let firstName = try String.fetchOne(db, literal: """
-    ///         SELECT firstName FROM player
-    ///         WHERE lastName = \("O'Brien")
-    ///         """) // String?
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - sqlLiteral: An SQLLiteral.
-    ///     - adapter: Optional RowAdapter
-    /// - returns: An optional value.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> Self? {
-        return try fetchOne(db, SQLRequest<Void>(literal: sqlLiteral, adapter: adapter))
-    }
-}
 extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     // MARK: Fetching From FetchRequest
@@ -561,7 +468,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
     /// - returns: A cursor over fetched optional values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> FastNullableDatabaseValueCursor<Wrapped> {
-        return try fetchCursor(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
+        return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of optional values fetched from an SQL query.
@@ -576,73 +483,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
     /// - returns: An array of optional values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Wrapped?] {
-        return try fetchAll(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
-    }
-}
-
-extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConvertible {
-    
-    // MARK: Fetching From SQLLiteral
-    
-    /// Returns a cursor over optional values fetched from an SQL query.
-    ///
-    ///     let firstNames = try Optional<String>.fetchCursor(db, literal: SQLLiteral(sql: """
-    ///         SELECT firstName FROM player
-    ///         WHERE lastName = ?
-    ///         """, arguments: ["O'Brien"])) // Cursor of String?
-    ///     while let firstName = try firstNames.next() { // String?
-    ///         ...
-    ///     }
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     let firstNames = try Optional<String>.fetchCursor(db, literal: """
-    ///         SELECT firstName FROM player
-    ///         WHERE lastName = \("O'Brien")
-    ///         """) // Cursor of String?
-    ///
-    /// If the database is modified during the cursor iteration, the remaining
-    /// elements are undefined.
-    ///
-    /// The cursor must be iterated in a protected dispath queue.
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - sqlLiteral: An SQLLiteral.
-    ///     - adapter: Optional RowAdapter
-    /// - returns: A cursor over fetched optional values.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> FastNullableDatabaseValueCursor<Wrapped> {
-        return try fetchCursor(db, SQLRequest<Void>(literal: sqlLiteral, adapter: adapter))
-    }
-    
-    /// Returns an array of optional values fetched from an SQL query.
-    ///
-    ///     let firstNames = try Optional<String>.fetchAll(db, literal: SQLLiteral(sql: """
-    ///         SELECT firstName FROM player
-    ///         WHERE lastName = ?
-    ///         """, arguments: ["O'Brien"])) // [String?]
-    ///     for firstName in firstNames {
-    ///         ...
-    ///     }
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     let firstNames = try Optional<String>.fetchAll(db, literal: """
-    ///         SELECT firstName FROM player
-    ///         WHERE lastName = \("O'Brien")
-    ///         """) // [String?]
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - sqlLiteral: An SQLLiteral.
-    ///     - adapter: Optional RowAdapter
-    /// - returns: An array of optional values.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil) throws -> [Wrapped?] {
-        return try fetchAll(db, SQLRequest<Void>(literal: sqlLiteral, adapter: adapter))
+        return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
