@@ -1,12 +1,12 @@
 #if swift(>=5.0)
 /// :nodoc:
 public struct SQLInterpolation: StringInterpolationProtocol {
+    var context = SQLGenerationContext.literalGenerationContext(withArguments: true)
     var sql: String
     var arguments: StatementArguments {
         get { return context.arguments! }
         set { context.arguments = newValue }
     }
-    var context = SQLGenerationContext.literalGenerationContext(withArguments: true)
 
     public init(literalCapacity: Int, interpolationCount: Int) {
         sql = ""
