@@ -37,6 +37,32 @@ extension SQLLiteral {
     }
 }
 
+extension Sequence where Element == SQLLiteral {
+    public func joined(separator: String = "") -> SQLLiteral {
+        var sql = ""
+        var arguments = StatementArguments()
+        var first = true
+        for literal in self {
+            if first {
+                first = false
+            } else {
+                sql += separator
+            }
+            sql += literal.sql
+            arguments += literal.arguments
+        }
+        return SQLLiteral(sql: sql, arguments: arguments)
+    }
+}
+
+extension Collection where Element == SQLLiteral {
+    public func joined(separator: String = "") -> SQLLiteral {
+        let sql = map { $0.sql }.joined(separator: separator)
+        let arguments = reduce(into: StatementArguments()) { $0 += $1.arguments }
+        return SQLLiteral(sql: sql, arguments: arguments)
+    }
+}
+
 // MARK: - ExpressibleByStringInterpolation
 
 #if swift(>=5.0)

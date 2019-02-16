@@ -63,6 +63,53 @@ class SQLLiteralTests: GRDBTestCase {
             """)
         XCTAssertEqual(sql.arguments, ["name": "Arthur"])
     }
+    
+    func testSequenceJoined() {
+        // A sequence that can't be consumed twice
+        var i = 0
+        let sequence = AnySequence<SQLLiteral> {
+            return AnyIterator {
+                guard i < 3 else { return nil }
+                i += 1
+                return SQLLiteral(sql: "(\(i) = ?)", arguments: [i])
+            }
+        }
+        do {
+            i = 0
+            let joined = sequence.joined()
+            XCTAssertEqual(joined.sql, "(1 = ?)(2 = ?)(3 = ?)")
+            XCTAssertEqual(joined.arguments, [1, 2, 3])
+        }
+        do {
+            i = 0
+            let joined = sequence.joined(separator: " AND ")
+            XCTAssertEqual(joined.sql, "(1 = ?) AND (2 = ?) AND (3 = ?)")
+            XCTAssertEqual(joined.arguments, [1, 2, 3])
+        }
+    }
+    
+    func testCollectionJoined() {
+        let collection = AnyCollection([
+            SQLLiteral(sql: "SELECT * "),
+            SQLLiteral(sql: "FROM player "),
+            SQLLiteral(sql: "WHERE score > ? ", arguments: [1000]),
+            SQLLiteral(sql: "AND name = :name", arguments: ["name": "Arthur"]),
+            ])
+        do {
+            let joined = collection.joined()
+            XCTAssertEqual(joined.sql, """
+            SELECT * FROM player WHERE score > ? AND name = :name
+            """)
+            XCTAssertEqual(joined.arguments, [1000] + ["name": "Arthur"])
+        }
+        do {
+            let joined = collection.joined(separator: " ")
+            XCTAssertEqual(joined.sql, """
+            SELECT *  FROM player  WHERE score > ?  AND name = :name
+            """)
+            XCTAssertEqual(joined.arguments, [1000] + ["name": "Arthur"])
+        }
+    }
 }
 
 #if swift(>=5.0)
