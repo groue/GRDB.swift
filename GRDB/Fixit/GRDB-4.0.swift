@@ -103,3 +103,9 @@ extension SQLExpressionLiteral {
     @available(*, unavailable, renamed: "init(sql:arguments:)")
     public init(_ sql: String, arguments: StatementArguments? = nil) { preconditionFailure() }
 }
+
+extension SQLExpression {
+    @available(*, unavailable, message: "Use sqlLiteral property instead")
+    public var literal: SQLExpressionLiteral { preconditionFailure() }
+}
+
