@@ -203,12 +203,14 @@ extension SQLLiteralTests {
             WHERE teamId IN \(set)
               AND name IN \(array)
               AND c IN \(expressions)
+              AND d IN \([])
             """
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player
             WHERE teamId IN (?)
               AND name IN (?,?,?)
               AND c IN ("a",("b" + ?))
+              AND d IN ()
             """)
         XCTAssertEqual(sql.arguments, [1, "foo", "bar", "baz", 2])
     }

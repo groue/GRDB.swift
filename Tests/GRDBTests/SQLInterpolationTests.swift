@@ -118,7 +118,7 @@ class SQLInterpolationTests: GRDBTestCase {
         XCTAssert(sql.arguments.isEmpty)
     }
     
-    func testExpressibleSequenceInterpolation() {
+    func testExpressibleSequenceInterpolation() throws {
         var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 3)
         
         let set: Set = [1]
@@ -126,12 +126,14 @@ class SQLInterpolationTests: GRDBTestCase {
         let expressions = [Column("a"), Column("b") + 2]
         sql.appendInterpolation(set); sql.appendLiteral("\n")
         sql.appendInterpolation(array); sql.appendLiteral("\n")
-        sql.appendInterpolation(expressions)
+        sql.appendInterpolation(expressions); sql.appendLiteral("\n")
+        sql.appendInterpolation([])
 
         XCTAssertEqual(sql.sql, """
             (?)
             (?,?,?)
             ("a",("b" + ?))
+            ()
             """)
         XCTAssertEqual(sql.arguments, [1, "foo", "bar", "baz", 2])
     }
