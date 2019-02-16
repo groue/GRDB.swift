@@ -33,12 +33,10 @@ struct SQLSelectionLiteral : SQLSelectable {
     }
     
     func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
-        if !sqlLiteral.arguments.isEmpty {
-            if context.appendArguments(sqlLiteral.arguments) == false {
-                // GRDB limitation: we don't know how to look for `?` in sql and
-                // replace them with with literals.
-                fatalError("Not implemented")
-            }
+        if context.append(arguments: sqlLiteral.arguments) == false {
+            // GRDB limitation: we don't know how to look for `?` in sql and
+            // replace them with with literals.
+            fatalError("Not implemented")
         }
         return sqlLiteral.sql
     }

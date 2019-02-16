@@ -35,7 +35,10 @@ public struct SQLGenerationContext {
     }
     
     /// Returns whether arguments could be appended
-    mutating func appendArguments(_ newArguments: StatementArguments) -> Bool {
+    mutating func append(arguments newArguments: StatementArguments) -> Bool {
+        if newArguments.isEmpty {
+            return true
+        }
         guard let arguments = arguments else {
             return false
         }

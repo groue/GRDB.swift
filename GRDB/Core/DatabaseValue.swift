@@ -286,7 +286,7 @@ extension DatabaseValue {
             return "NULL"
         }
         
-        if context.appendArguments([self]) {
+        if context.append(arguments: [self]) {
             return "?"
         } else {
             // Correctness above all: use SQLite to quote the value.
