@@ -110,7 +110,7 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
         return select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
     }
     
-    /// Creates a request which selects *sql*, and fetches values of
+    /// Creates a request which selects an SQL *literal*, and fetches values of
     /// type *type*.
     ///
     ///     try dbQueue.read { db in
@@ -375,7 +375,7 @@ extension TableRecord {
         return select(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
-    /// Creates a request which selects *sql*.
+    /// Creates a request which selects an SQL *literal*.
     ///
     ///     // SELECT id, email FROM player
     ///     let request = Player.select(literal: SQLLiteral(sql: "id, email"))
@@ -419,7 +419,7 @@ extension TableRecord {
         return all().select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
     }
 
-    /// Creates a request which selects *sql*, and fetches values of
+    /// Creates a request which selects an SQL *literal*, and fetches values of
     /// type *type*.
     ///
     ///     try dbQueue.read { db in
@@ -517,7 +517,7 @@ extension TableRecord {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     let request = Player.filter(literal: "email = \("arthur@example.com"))
+    ///     let request = Player.filter(literal: "name = \("O'Brien"))
     ///
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
@@ -580,7 +580,7 @@ extension TableRecord {
         return all().order(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
-    /// Creates a request sorted according to *sql*.
+    /// Creates a request sorted according to an SQL *literal*.
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     let request = Player.order(literal: SQLLiteral(sql: "name"))

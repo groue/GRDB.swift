@@ -55,7 +55,7 @@ extension SelectionRequest {
         return select(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
-    /// Creates a request which selects *sql*.
+    /// Creates a request which selects an SQL *literal*.
     ///
     ///     // SELECT id, email, score + 1000 FROM player
     ///     let bonus = 1000
@@ -137,11 +137,8 @@ extension FilteredRequest {
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
-    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     var request = Player.all()
-    ///     request = request.filter(literal: """
-    ///         email = \("arthur@example.com")
-    ///         """)
+    ///     request = request.filter(literal: "name = \("O'Brien")")
     public func filter(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
         return filter(SQLExpressionLiteral(literal: sqlLiteral))
@@ -425,7 +422,7 @@ extension OrderedRequest {
         return order { _ in orderings }
     }
     
-    /// Creates a request with the provided *sql* used for sorting.
+    /// Creates a request sorted according to *sql*.
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     var request = Player.all()
@@ -441,7 +438,7 @@ extension OrderedRequest {
         return order(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
-    /// Creates a request with the provided *sql* used for sorting.
+    /// Creates a request sorted according to an SQL *literal*.
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     var request = Player.all()

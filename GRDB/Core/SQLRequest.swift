@@ -70,17 +70,26 @@ public struct SQLRequest<T> : FetchRequest {
         self.init(literal: SQLLiteral(sql: statement.sql, arguments: statement.arguments), adapter: adapter, cached: cached)
     }
     
-    /// Creates an SQL request from an SQL string, optional arguments, and
-    /// optional row adapter.
+    /// Creates a request from an SQLLiteral, and optional row adapter.
     ///
-    ///     let request = SQLRequest("SELECT * FROM player")
-    ///     let request = SQLRequest("SELECT * FROM player WHERE id = ?", arguments: [1])
+    ///     let request = SQLRequest<String>(literal: SQLLiteral(sql: """
+    ///         SELECT name FROM player
+    ///         """))
+    ///     let request = SQLRequest<Player>(literal: SQLLiteral(sql: """
+    ///         SELECT * FROM player WHERE name = ?
+    ///         """, arguments: ["O'Brien"]))
+    ///
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
+    ///
+    ///     let request = SQLRequest<Player>(literal: """
+    ///         SELECT * FROM player WHERE name = \("O'brien")
+    ///         """)
     ///
     /// - parameters:
     ///     - sqlLiteral: An SQLLiteral.
-    ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter.
-    ///     - statementCacheName: Optional statement cache name.
+    ///     - cache: The eventual cache
     /// - returns: A SQLRequest
     init(literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, fromCache cache: Cache?) {
         self.sqlLiteral = sqlLiteral
