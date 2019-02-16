@@ -18,7 +18,7 @@
 ///
 /// - `SelectStatement.databaseRegion`:
 ///
-///         let statement = db.makeSelectStatement("SELECT name, score FROM player")
+///         let statement = db.makeSelectStatement(sql: "SELECT name, score FROM player")
 ///         print(statement.databaseRegion)
 ///         // prints "player(name,score)"
 ///
@@ -33,7 +33,7 @@
 /// don't know about rowids:
 ///
 ///     // A plain statement
-///     let statement = db.makeSelectStatement("SELECT * FROM player WHERE id = 1")
+///     let statement = db.makeSelectStatement(sql: "SELECT * FROM player WHERE id = 1")
 ///     statement.databaseRegion       // "player(*)"
 ///
 ///     // A query interface request that executes the same statement:

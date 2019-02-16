@@ -168,7 +168,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     /// Returns a cursor over values fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
     ///     let names = try String.fetchCursor(statement) // Cursor of String
     ///     while let name = try names.next() { // String
     ///         ...
@@ -191,7 +191,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     /// Returns an array of values fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
     ///     let names = try String.fetchAll(statement)  // [String]
     ///
     /// - parameters:
@@ -206,7 +206,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     
     /// Returns a single value fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
     ///     let name = try String.fetchOne(statement)   // String?
     ///
     /// - parameters:
@@ -396,7 +396,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible & StatementCol
 ///     try Optional<String>.fetchCursor(db, sql: "SELECT name FROM ...", arguments:...) // Cursor of String?
 ///     try Optional<String>.fetchAll(db, sql: "SELECT name FROM ...", arguments:...)    // [String?]
 ///
-///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
 ///     try Optional<String>.fetchCursor(statement, arguments:...) // Cursor of String?
 ///     try Optional<String>.fetchAll(statement, arguments:...)    // [String?]
 ///
@@ -407,7 +407,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
     
     /// Returns a cursor over optional values fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
     ///     let names = try Optional<String>.fetchCursor(statement) // Cursor of String?
     ///     while let name = try names.next() { // String?
     ///         ...
@@ -430,7 +430,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
     
     /// Returns an array of optional values fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
     ///     let names = try Optional<String>.fetchAll(statement)  // [String?]
     ///
     /// - parameters:

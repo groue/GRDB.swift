@@ -13,7 +13,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
             func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                return try (db.makeSelectStatement("SELECT * FROM table1"), nil)
+                return try (db.makeSelectStatement(sql: "SELECT * FROM table1"), nil)
             }
         }
         
@@ -38,7 +38,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Int
             func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                return try (db.makeSelectStatement("SELECT id FROM table1"), nil)
+                return try (db.makeSelectStatement(sql: "SELECT id FROM table1"), nil)
             }
         }
         
@@ -66,7 +66,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = CustomRecord
             func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                return try (db.makeSelectStatement("SELECT id FROM table1"), nil)
+                return try (db.makeSelectStatement(sql: "SELECT id FROM table1"), nil)
             }
         }
         
@@ -91,7 +91,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
             func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                return try (db.makeSelectStatement("SELECT * FROM table1"), nil)
+                return try (db.makeSelectStatement(sql: "SELECT * FROM table1"), nil)
             }
         }
         
@@ -114,7 +114,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
             func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                return try (db.makeSelectStatement("INVALID"), nil)
+                return try (db.makeSelectStatement(sql: "INVALID"), nil)
             }
             
             func fetchCount(_ db: Database) throws -> Int {

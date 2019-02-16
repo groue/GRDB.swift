@@ -28,7 +28,19 @@ public typealias NullableColumnCursor<Value: DatabaseValueConvertible & Statemen
 
 extension Database {
     @available(*, unavailable, renamed: "execute(sql:arguments:)")
-    public func execute(_ sql: String, arguments: StatementArguments? = nil) throws { }
+    public func execute(_ sql: String, arguments: StatementArguments? = nil) throws { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "makeSelectStatement(sql:)")
+    public func makeSelectStatement(_ sql: String) throws -> SelectStatement { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "cachedSelectStatement(sql:)")
+    public func cachedSelectStatement(_ sql: String) throws -> SelectStatement { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "makeUpdateStatement(sql:)")
+    public func makeUpdateStatement(_ sql: String) throws -> UpdateStatement { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "cachedUpdateStatement(sql:)")
+    public func cachedUpdateStatement(_ sql: String) throws -> UpdateStatement { preconditionFailure() }
 }
 
 extension DatabaseValueConvertible {

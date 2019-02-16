@@ -1652,10 +1652,10 @@ There are two kinds of prepared statements: **select statements**, and **update 
 ```swift
 try dbQueue.write { db in
     let updateSQL = "INSERT INTO player (name, score) VALUES (:name, :score)"
-    let updateStatement = try db.makeUpdateStatement(updateSQL)
+    let updateStatement = try db.makeUpdateStatement(sql: updateSQL)
     
     let selectSQL = "SELECT * FROM player WHERE name = ?"
-    let selectStatement = try db.makeSelectStatement(selectSQL)
+    let selectStatement = try db.makeSelectStatement(sql: selectSQL)
 }
 ```
 
@@ -1703,8 +1703,8 @@ When the same query will be used several times in the lifetime of your applicati
 Instead, use the `cachedUpdateStatement` and `cachedSelectStatement` methods. GRDB does all the hard caching and [memory management](#memory-management) stuff for you:
 
 ```swift
-let updateStatement = try db.cachedUpdateStatement(sql)
-let selectStatement = try db.cachedSelectStatement(sql)
+let updateStatement = try db.cachedUpdateStatement(sql: sql)
+let selectStatement = try db.cachedSelectStatement(sql: sql)
 ```
 
 Should a cached prepared statement throw an error, don't reuse it (it is a programmer error). Instead, reload it from the cache.
@@ -2045,7 +2045,7 @@ try dbQueue.read { db in
     let sqliteConnection = db.sqliteConnection
 
     // The raw pointer to a statement:
-    let statement = try db.makeSelectStatement("SELECT ...")
+    let statement = try db.makeSelectStatement(sql: "SELECT ...")
     let sqliteStatement = statement.sqliteStatement
 }
 ```
@@ -3564,7 +3564,7 @@ let player = try Player.fetchOne(db, sql: "SELECT * FROM player WHERE id = ?", a
 <a name="list-of-record-methods-4">⁴</a> See [Prepared Statements](#prepared-statements):
 
 ```swift
-let statement = try db.makeSelectStatement("SELECT * FROM player WHERE id = ?")
+let statement = try db.makeSelectStatement(sql: "SELECT * FROM player WHERE id = ?")
 let player = try Player.fetchOne(statement, arguments: [1])  // Player?
 ```
 
@@ -7558,7 +7558,7 @@ In such a situation, you can still avoid fatal errors by exposing and handling e
 ```swift
 // Untrusted arguments
 if let arguments = StatementArguments(arguments) {
-    let statement = try db.makeSelectStatement(sql)
+    let statement = try db.makeSelectStatement(sql: sql)
     try statement.validate(arguments: arguments)
     statement.unsafeSetArguments(arguments)
     

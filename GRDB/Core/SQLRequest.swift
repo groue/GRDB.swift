@@ -107,11 +107,11 @@ public struct SQLRequest<T> : FetchRequest {
         let statement: SelectStatement
         switch cache {
         case .none:
-            statement = try db.makeSelectStatement(sqlLiteral.sql)
+            statement = try db.makeSelectStatement(sql: sqlLiteral.sql)
         case .public?:
-            statement = try db.cachedSelectStatement(sqlLiteral.sql)
+            statement = try db.cachedSelectStatement(sql: sqlLiteral.sql)
         case .internal?:
-            statement = try db.internalCachedSelectStatement(sqlLiteral.sql)
+            statement = try db.internalCachedSelectStatement(sql: sqlLiteral.sql)
         }
         try statement.setArgumentsWithValidation(sqlLiteral.arguments)
         return (statement, adapter)

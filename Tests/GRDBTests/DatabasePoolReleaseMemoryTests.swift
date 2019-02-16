@@ -211,7 +211,7 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                     if let dbPool = dbPool {
                         do {
                             try dbPool.write { db in
-                                statement = try db.makeUpdateStatement("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                                statement = try db.makeUpdateStatement(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
                                 s1.signal()
                             }
                         } catch {

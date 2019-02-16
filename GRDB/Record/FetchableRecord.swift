@@ -17,7 +17,7 @@ import Foundation
 ///     try Player.fetchAll(db, sql: "SELECT ...", arguments:...)    // [Player]
 ///     try Player.fetchOne(db, sql: "SELECT ...", arguments:...)    // Player?
 ///
-///     let statement = try db.makeSelectStatement("SELECT ...")
+///     let statement = try db.makeSelectStatement(sql: "SELECT ...")
 ///     try Player.fetchCursor(statement, arguments:...) // Cursor of Player
 ///     try Player.fetchAll(statement, arguments:...)    // [Player]
 ///     try Player.fetchOne(statement, arguments:...)    // Player?
@@ -141,7 +141,7 @@ extension FetchableRecord {
     
     /// A cursor over records fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT * FROM player")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT * FROM player")
     ///     let players = try Player.fetchCursor(statement) // Cursor of Player
     ///     while let player = try players.next() { // Player
     ///         ...
@@ -164,7 +164,7 @@ extension FetchableRecord {
     
     /// Returns an array of records fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT * FROM player")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT * FROM player")
     ///     let players = try Player.fetchAll(statement) // [Player]
     ///
     /// - parameters:
@@ -179,7 +179,7 @@ extension FetchableRecord {
     
     /// Returns a single record fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT * FROM player")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT * FROM player")
     ///     let player = try Player.fetchOne(statement) // Player?
     ///
     /// - parameters:

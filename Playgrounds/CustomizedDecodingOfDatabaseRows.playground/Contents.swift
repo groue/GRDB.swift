@@ -212,7 +212,7 @@ extension Base: MyDatabaseDecoder {
 //: **prepared statement**:
 //:
 //:     try dbQueue.read { db in
-//:         let statement = try db.makeSelectStatement("SELECT ...")
+//:         let statement = try db.makeSelectStatement(sql: "SELECT ...")
 //:         try Base.fetchCursor(statement) // Cursor of Base
 //:         try Base.fetchAll(statement)    // [Base]
 //:         try Base.fetchOne(statement)    // Base?
@@ -243,7 +243,7 @@ extension MyDatabaseDecoder {
 
 try dbQueue.read { db in
     print("> Fetch from prepared statement")
-    let statement = try db.makeSelectStatement("SELECT * FROM base")
+    let statement = try db.makeSelectStatement(sql: "SELECT * FROM base")
     let bases = try Base.fetchAll(statement)
     for base in bases {
         print(base.description)

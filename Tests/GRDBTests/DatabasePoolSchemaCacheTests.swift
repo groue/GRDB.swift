@@ -106,7 +106,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         
         let block1 = { () in
             try! dbPool.read { db in
-                let stmt = try! db.cachedSelectStatement("SELECT * FROM items")
+                let stmt = try! db.cachedSelectStatement(sql: "SELECT * FROM items")
                 XCTAssertEqual(try Int.fetchOne(stmt)!, 1)
                 s1.signal()
             }
@@ -114,7 +114,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         let block2 = { () in
             try! dbPool.read { db in
                 _ = s1.wait(timeout: .distantFuture)
-                let stmt = try! db.cachedSelectStatement("SELECT * FROM items")
+                let stmt = try! db.cachedSelectStatement(sql: "SELECT * FROM items")
                 XCTAssertEqual(try Int.fetchOne(stmt)!, 1)
             }
         }
@@ -168,7 +168,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             _ = s1.wait(timeout: .distantFuture)
             try! dbPool.read { db in
                 // activate snapshot isolation so that foo table is visible during the whole read. Any read is enough.
-                try db.makeSelectStatement("SELECT * FROM sqlite_master").makeCursor().next()
+                try db.makeSelectStatement(sql: "SELECT * FROM sqlite_master").makeCursor().next()
                 // warm cache
                 _ = try db.primaryKey("foo")
                 // cache contains the primary key

@@ -101,7 +101,7 @@ class DatabaseWriterTests : GRDBTestCase {
                 """)
         }
         try dbQueue.read { db in
-            _ = try Row.fetchCursor(db.cachedSelectStatement("SELECT * FROM t")).next()
+            _ = try Row.fetchCursor(db.cachedSelectStatement(sql: "SELECT * FROM t")).next()
         }
         try dbQueue.erase()
     }
@@ -115,7 +115,7 @@ class DatabaseWriterTests : GRDBTestCase {
                 INSERT INTO t VALUES (1);
                 PRAGMA query_only = 1;
                 """)
-            _ = try Row.fetchCursor(db.cachedSelectStatement("SELECT * FROM t")).next()
+            _ = try Row.fetchCursor(db.cachedSelectStatement(sql: "SELECT * FROM t")).next()
         }
         try DatabaseQueue().backup(to: dbQueue)
     }

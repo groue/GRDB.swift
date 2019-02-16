@@ -555,8 +555,8 @@ extension Database {
         // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         // Assume those pragmas never fail
-        try! internalCachedUpdateStatement("PRAGMA query_only = 1").execute()
-        defer { try! internalCachedUpdateStatement("PRAGMA query_only = 0").execute() }
+        try! internalCachedUpdateStatement(sql: "PRAGMA query_only = 1").execute()
+        defer { try! internalCachedUpdateStatement(sql: "PRAGMA query_only = 0").execute() }
         return try block()
     }
 }
@@ -769,7 +769,7 @@ extension Database {
         //                                  UPDATE ...
         //     Here the change is not visible by GRDB user
         try beginTransaction(.deferred)
-        try internalCachedSelectStatement("SELECT rootpage FROM sqlite_master LIMIT 1").makeCursor().next()
+        try internalCachedSelectStatement(sql: "SELECT rootpage FROM sqlite_master LIMIT 1").makeCursor().next()
     }
     
     /// Rollbacks a database transaction.

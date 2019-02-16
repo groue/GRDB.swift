@@ -11,20 +11,20 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM player WHERE score > ?")
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
     /// - parameter sql: An SQL query.
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    public func makeSelectStatement(_ sql: String) throws -> SelectStatement {
-        return try makeSelectStatement(sql, prepFlags: 0)
+    public func makeSelectStatement(sql: String) throws -> SelectStatement {
+        return try makeSelectStatement(sql: sql, prepFlags: 0)
     }
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?", prepFlags: 0)
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM player WHERE score > ?", prepFlags: 0)
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
@@ -33,13 +33,13 @@ extension Database {
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    func makeSelectStatement(_ sql: String, prepFlags: Int32) throws -> SelectStatement {
+    func makeSelectStatement(sql: String, prepFlags: Int32) throws -> SelectStatement {
         return try SelectStatement.prepare(sql: sql, prepFlags: prepFlags, in: self)
     }
     
     /// Returns a prepared statement that can be reused.
     ///
-    ///     let statement = try db.cachedSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?")
+    ///     let statement = try db.cachedSelectStatement(sql: "SELECT COUNT(*) FROM player WHERE score > ?")
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
@@ -49,31 +49,31 @@ extension Database {
     /// - parameter sql: An SQL query.
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    public func cachedSelectStatement(_ sql: String) throws -> SelectStatement {
+    public func cachedSelectStatement(sql: String) throws -> SelectStatement {
         return try publicStatementCache.selectStatement(sql)
     }
     
     /// Returns a cached statement that does not conflict with user's cached statements.
-    func internalCachedSelectStatement(_ sql: String) throws -> SelectStatement {
+    func internalCachedSelectStatement(sql: String) throws -> SelectStatement {
         return try internalStatementCache.selectStatement(sql)
     }
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeUpdateStatement("INSERT INTO player (name) VALUES (?)")
+    ///     let statement = try db.makeUpdateStatement(sql: "INSERT INTO player (name) VALUES (?)")
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
     /// - parameter sql: An SQL query.
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    public func makeUpdateStatement(_ sql: String) throws -> UpdateStatement {
-        return try makeUpdateStatement(sql, prepFlags: 0)
+    public func makeUpdateStatement(sql: String) throws -> UpdateStatement {
+        return try makeUpdateStatement(sql: sql, prepFlags: 0)
     }
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeUpdateStatement("INSERT INTO player (name) VALUES (?)", prepFlags: 0)
+    ///     let statement = try db.makeUpdateStatement(sql: "INSERT INTO player (name) VALUES (?)", prepFlags: 0)
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
@@ -82,13 +82,13 @@ extension Database {
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    func makeUpdateStatement(_ sql: String, prepFlags: Int32) throws -> UpdateStatement {
+    func makeUpdateStatement(sql: String, prepFlags: Int32) throws -> UpdateStatement {
         return try UpdateStatement.prepare(sql: sql, prepFlags: prepFlags, in: self)
     }
     
     /// Returns a prepared statement that can be reused.
     ///
-    ///     let statement = try db.cachedUpdateStatement("INSERT INTO player (name) VALUES (?)")
+    ///     let statement = try db.cachedUpdateStatement(sql: "INSERT INTO player (name) VALUES (?)")
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
@@ -98,12 +98,12 @@ extension Database {
     /// - parameter sql: An SQL query.
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    public func cachedUpdateStatement(_ sql: String) throws -> UpdateStatement {
+    public func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
         return try publicStatementCache.updateStatement(sql)
     }
     
     /// Returns a cached statement that does not conflict with user's cached statements.
-    func internalCachedUpdateStatement(_ sql: String) throws -> UpdateStatement {
+    func internalCachedUpdateStatement(sql: String) throws -> UpdateStatement {
         return try internalStatementCache.updateStatement(sql)
     }
     
@@ -285,7 +285,7 @@ struct StatementCache {
         // However SQLITE_PREPARE_PERSISTENT was only introduced in
         // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        let statement = try db.makeSelectStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        let statement = try db.makeSelectStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         #else
         let statement: SelectStatement
         if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
@@ -293,7 +293,7 @@ struct StatementCache {
             statement = try db.makeSelectStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         } else {
             // SQLite 3.19.3 or less
-            statement = try db.makeSelectStatement(sql)
+            statement = try db.makeSelectStatement(sql: sql)
         }
         #endif
         selectStatements[sql] = statement
@@ -315,15 +315,15 @@ struct StatementCache {
         // However SQLITE_PREPARE_PERSISTENT was only introduced in
         // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
-            let statement = try db.makeUpdateStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        let statement = try db.makeUpdateStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         #else
         let statement: UpdateStatement
         if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
             // SQLite 3.24.0 or more
-            statement = try db.makeUpdateStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+            statement = try db.makeUpdateStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         } else {
             // SQLite 3.19.3 or less
-            statement = try db.makeUpdateStatement(sql)
+            statement = try db.makeUpdateStatement(sql: sql)
         }
         #endif
         updateStatements[sql] = statement

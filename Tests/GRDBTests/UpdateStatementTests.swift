@@ -26,10 +26,10 @@ class UpdateStatementTests : GRDBTestCase {
     func testTrailingSemicolonAndWhiteSpaceIsAcceptedAndOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
-            try db.makeUpdateStatement("INSERT INTO persons (name) VALUES ('Arthur');").execute()
-            try db.makeUpdateStatement("INSERT INTO persons (name) VALUES ('Barbara')\n \t").execute()
-            try db.makeUpdateStatement("INSERT INTO persons (name) VALUES ('Craig'); ; ;").execute()
-            try db.makeUpdateStatement("INSERT INTO persons (name) VALUES ('Daniel');\n \t").execute()
+            try db.makeUpdateStatement(sql: "INSERT INTO persons (name) VALUES ('Arthur');").execute()
+            try db.makeUpdateStatement(sql: "INSERT INTO persons (name) VALUES ('Barbara')\n \t").execute()
+            try db.makeUpdateStatement(sql: "INSERT INTO persons (name) VALUES ('Craig'); ; ;").execute()
+            try db.makeUpdateStatement(sql: "INSERT INTO persons (name) VALUES ('Daniel');\n \t").execute()
             return .commit
         }
         try dbQueue.inDatabase { db in
@@ -41,8 +41,8 @@ class UpdateStatementTests : GRDBTestCase {
     func testStatementSQL() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try XCTAssertEqual(db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES ('Arthur', ?)").sql, "INSERT INTO persons (name, age) VALUES ('Arthur', ?)")
-            try XCTAssertEqual(db.makeUpdateStatement(" INSERT INTO persons (name, age) VALUES ('Arthur', ?) ; ").sql, "INSERT INTO persons (name, age) VALUES ('Arthur', ?)")
+            try XCTAssertEqual(db.makeUpdateStatement(sql: "INSERT INTO persons (name, age) VALUES ('Arthur', ?)").sql, "INSERT INTO persons (name, age) VALUES ('Arthur', ?)")
+            try XCTAssertEqual(db.makeUpdateStatement(sql: " INSERT INTO persons (name, age) VALUES ('Arthur', ?) ; ").sql, "INSERT INTO persons (name, age) VALUES ('Arthur', ?)")
         }
     }
 
@@ -51,7 +51,7 @@ class UpdateStatementTests : GRDBTestCase {
         
         try dbQueue.inTransaction { db in
             
-            let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+            let statement = try db.makeUpdateStatement(sql: "INSERT INTO persons (name, age) VALUES (?, ?)")
             let persons: [[DatabaseValueConvertible?]] = [
                 ["Arthur", 41],
                 ["Barbara", nil],
@@ -78,7 +78,7 @@ class UpdateStatementTests : GRDBTestCase {
         
         try dbQueue.inTransaction { db in
             
-            let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+            let statement = try db.makeUpdateStatement(sql: "INSERT INTO persons (name, age) VALUES (?, ?)")
             let persons: [[DatabaseValueConvertible?]] = [
                 ["Arthur", 41],
                 ["Barbara", nil],
@@ -106,7 +106,7 @@ class UpdateStatementTests : GRDBTestCase {
         
         try dbQueue.inTransaction { db in
             
-            let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+            let statement = try db.makeUpdateStatement(sql: "INSERT INTO persons (name, age) VALUES (:name, :age)")
             let persons: [[String: DatabaseValueConvertible?]] = [
                 ["name": "Arthur", "age": 41],
                 ["name": "Barbara", "age": nil],
@@ -133,7 +133,7 @@ class UpdateStatementTests : GRDBTestCase {
         
         try dbQueue.inTransaction { db in
             
-            let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+            let statement = try db.makeUpdateStatement(sql: "INSERT INTO persons (name, age) VALUES (:name, :age)")
             let persons: [[String: DatabaseValueConvertible?]] = [
                 ["name": "Arthur", "age": 41],
                 ["name": "Barbara", "age": nil],
@@ -162,7 +162,7 @@ class UpdateStatementTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(sql: "SELECT 1")
-            let statement = try db.makeUpdateStatement("SELECT 1")
+            let statement = try db.makeUpdateStatement(sql: "SELECT 1")
             try statement.execute()
         }
     }
@@ -176,7 +176,7 @@ class UpdateStatementTests : GRDBTestCase {
         })
         try dbQueue.inDatabase { db in
             try db.execute(sql: "SELECT seq() UNION ALL SELECT seq() UNION ALL SELECT seq()")
-            let statement = try db.makeUpdateStatement("SELECT seq() UNION ALL SELECT seq() UNION ALL SELECT seq()")
+            let statement = try db.makeUpdateStatement(sql: "SELECT seq() UNION ALL SELECT seq() UNION ALL SELECT seq()")
             try statement.execute()
         }
         XCTAssertEqual(index, 3 + 3)
@@ -298,7 +298,7 @@ class UpdateStatementTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                _ = try db.makeUpdateStatement("UPDATE blah SET id = 12")
+                _ = try db.makeUpdateStatement(sql: "UPDATE blah SET id = 12")
                 XCTFail()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
@@ -313,7 +313,7 @@ class UpdateStatementTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                _ = try db.makeUpdateStatement("UPDATE persons SET age = 1; UPDATE persons SET age = 2;")
+                _ = try db.makeUpdateStatement(sql: "UPDATE persons SET age = 1; UPDATE persons SET age = 2;")
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
@@ -328,7 +328,7 @@ class UpdateStatementTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                _ = try db.makeUpdateStatement("UPDATE persons SET age = 1;x")
+                _ = try db.makeUpdateStatement(sql: "UPDATE persons SET age = 1;x")
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)

@@ -16,7 +16,7 @@
 ///     try String.fetchAll(db, sql: "SELECT name FROM ...", arguments:...)    // [String]
 ///     try String.fetchOne(db, sql: "SELECT name FROM ...", arguments:...)    // String?
 ///
-///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
 ///     try String.fetchCursor(statement, arguments:...) // Cursor of String
 ///     try String.fetchAll(statement, arguments:...)    // [String]
 ///     try String.fetchOne(statement, arguments:...)    // String?
@@ -165,7 +165,7 @@ public final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible> 
 ///     try String.fetchAll(db, sql: "SELECT name FROM ...", arguments:...)    // [String]
 ///     try String.fetchOne(db, sql: "SELECT name FROM ...", arguments:...)    // String?
 ///
-///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
 ///     try String.fetchCursor(statement, arguments:...) // Cursor of String
 ///     try String.fetchAll(statement, arguments:...)    // [String]
 ///     try String.fetchOne(statement, arguments:...)    // String
@@ -177,7 +177,7 @@ extension DatabaseValueConvertible {
     
     /// Returns a cursor over values fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
     ///     let names = try String.fetchCursor(statement) // Cursor of String
     ///     while let name = try names.next() { // String
     ///         ...
@@ -200,7 +200,7 @@ extension DatabaseValueConvertible {
     
     /// Returns an array of values fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
     ///     let names = try String.fetchAll(statement)  // [String]
     ///
     /// - parameters:
@@ -218,7 +218,7 @@ extension DatabaseValueConvertible {
     /// The result is nil if the query returns no row, or if no value can be
     /// extracted from the first row.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
     ///     let name = try String.fetchOne(statement)   // String?
     ///
     /// - parameters:
@@ -414,7 +414,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
 ///     try Optional<String>.fetchCursor(db, sql: "SELECT name FROM ...", arguments:...) // Cursor of String?
 ///     try Optional<String>.fetchAll(db, sql: "SELECT name FROM ...", arguments:...)    // [String?]
 ///
-///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
 ///     try Optional<String>.fetchCursor(statement, arguments:...) // Cursor of String?
 ///     try Optional<String>.fetchAll(statement, arguments:...)    // [String?]
 ///
@@ -425,7 +425,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     
     /// Returns a cursor over optional values fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
     ///     let names = try Optional<String>.fetchCursor(statement) // Cursor of String?
     ///     while let name = try names.next() { // String?
     ///         ...
@@ -448,7 +448,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     
     /// Returns an array of optional values fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT name FROM ...")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
     ///     let names = try Optional<String>.fetchAll(statement)  // [String?]
     ///
     /// - parameters:
