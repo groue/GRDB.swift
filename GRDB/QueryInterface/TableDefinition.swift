@@ -29,7 +29,7 @@ extension Database {
         let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
         body(definition)
         let sql = try definition.sql(self)
-        try execute(rawSQL: sql)
+        try execute(sql: sql)
     }
     #else
     /// Creates a database table.
@@ -61,7 +61,7 @@ extension Database {
         let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
         body(definition)
         let sql = try definition.sql(self)
-        try execute(rawSQL: sql)
+        try execute(sql: sql)
     }
     
     /// Creates a database table.
@@ -88,7 +88,7 @@ extension Database {
         let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: false)
         body(definition)
         let sql = try definition.sql(self)
-        try execute(rawSQL: sql)
+        try execute(sql: sql)
     }
     #endif
 
@@ -98,7 +98,7 @@ extension Database {
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func rename(table name: String, to newName: String) throws {
-        try execute(rawSQL: "ALTER TABLE \(name.quotedDatabaseIdentifier) RENAME TO \(newName.quotedDatabaseIdentifier)")
+        try execute(sql: "ALTER TABLE \(name.quotedDatabaseIdentifier) RENAME TO \(newName.quotedDatabaseIdentifier)")
     }
     
     /// Modifies a database table.
@@ -117,7 +117,7 @@ extension Database {
         let alteration = TableAlteration(name: name)
         body(alteration)
         let sql = try alteration.sql(self)
-        try execute(rawSQL: sql)
+        try execute(sql: sql)
     }
     
     /// Deletes a database table.
@@ -126,7 +126,7 @@ extension Database {
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func drop(table name: String) throws {
-        try execute(rawSQL: "DROP TABLE \(name.quotedDatabaseIdentifier)")
+        try execute(sql: "DROP TABLE \(name.quotedDatabaseIdentifier)")
     }
     
     #if GRDBCUSTOMSQLITE || GRDBCIPHER
@@ -138,7 +138,7 @@ extension Database {
     /// and use specific collations. To create such an index, use a raw SQL
     /// query.
     ///
-    ///     try db.execute(rawSQL: "CREATE INDEX ...")
+    ///     try db.execute(sql: "CREATE INDEX ...")
     ///
     /// See https://www.sqlite.org/lang_createindex.html
     ///
@@ -155,7 +155,7 @@ extension Database {
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: condition?.sqlExpression)
         let sql = definition.sql()
-        try execute(rawSQL: sql)
+        try execute(sql: sql)
     }
     #else
     /// Creates an index.
@@ -166,7 +166,7 @@ extension Database {
     /// and use specific collations. To create such an index, use a raw SQL
     /// query.
     ///
-    ///     try db.execute(rawSQL: "CREATE INDEX ...")
+    ///     try db.execute(sql: "CREATE INDEX ...")
     ///
     /// See https://www.sqlite.org/lang_createindex.html
     ///
@@ -181,7 +181,7 @@ extension Database {
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: nil)
         let sql = definition.sql()
-        try execute(rawSQL: sql)
+        try execute(sql: sql)
     }
     
     /// Creates a partial index.
@@ -204,7 +204,7 @@ extension Database {
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: condition.sqlExpression)
         let sql = definition.sql()
-        try execute(rawSQL: sql)
+        try execute(sql: sql)
     }
     #endif
     
@@ -214,7 +214,7 @@ extension Database {
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func drop(index name: String) throws {
-        try execute(rawSQL: "DROP INDEX \(name.quotedDatabaseIdentifier)")
+        try execute(sql: "DROP INDEX \(name.quotedDatabaseIdentifier)")
     }
     
     /// Delete and recreate from scratch all indices that use this collation.
@@ -226,7 +226,7 @@ extension Database {
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func reindex(collation: Database.CollationName) throws {
-        try execute(rawSQL: "REINDEX \(collation.rawValue)")
+        try execute(sql: "REINDEX \(collation.rawValue)")
     }
     
     /// Delete and recreate from scratch all indices that use this collation.
@@ -409,16 +409,16 @@ public final class TableDefinition {
     ///     try db.create(table: "player") { t in
     ///         t.column("personalPhone", .text)
     ///         t.column("workPhone", .text)
-    ///         t.check(rawSQL: "personalPhone IS NOT NULL OR workPhone IS NOT NULL")
+    ///         t.check(sql: "personalPhone IS NOT NULL OR workPhone IS NOT NULL")
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html#ckconst
     ///
     /// - parameter sql: An SQL snippet
-    public func check(rawSQL sql: String) {
+    public func check(sql: String) {
         // We do not want to wrap the SQL snippet inside parentheses around the
         // checked SQL. This is why we use the "unsafeLiteral" initializer.
-        checkConstraints.append(SQLExpressionLiteral(unsafeLiteral: SQLLiteral(rawSQL: sql)))
+        checkConstraints.append(SQLExpressionLiteral(unsafeLiteral: SQLLiteral(sql: sql)))
     }
     
     fileprivate func sql(_ db: Database) throws -> String {
@@ -712,7 +712,7 @@ public final class ColumnDefinition {
     /// Adds a CHECK constraint on the column.
     ///
     ///     try db.create(table: "player") { t in
-    ///         t.column("name", .text).check(rawSQL: "LENGTH(name) > 0")
+    ///         t.column("name", .text).check(sql: "LENGTH(name) > 0")
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html#ckconst
@@ -720,10 +720,10 @@ public final class ColumnDefinition {
     /// - parameter sql: An SQL snippet.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
-    public func check(rawSQL sql: String) -> Self {
+    public func check(sql: String) -> Self {
         // We do not want to wrap the SQL snippet inside parentheses around the
         // checked SQL. This is why we use the "unsafeLiteral" initializer.
-        checkConstraints.append(SQLExpressionLiteral(unsafeLiteral: SQLLiteral(rawSQL: sql)))
+        checkConstraints.append(SQLExpressionLiteral(unsafeLiteral: SQLLiteral(sql: sql)))
         return self
     }
     
@@ -746,7 +746,7 @@ public final class ColumnDefinition {
     /// Defines the default column value.
     ///
     ///     try db.create(table: "player") { t in
-    ///         t.column("creationDate", .DateTime).defaults(rawSQL: "CURRENT_TIMESTAMP")
+    ///         t.column("creationDate", .DateTime).defaults(sql: "CURRENT_TIMESTAMP")
     ///     }
     ///
     /// See https://www.sqlite.org/lang_createtable.html#dfltval
@@ -754,10 +754,10 @@ public final class ColumnDefinition {
     /// - parameter sql: An SQL snippet.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
-    public func defaults(rawSQL sql: String) -> Self {
+    public func defaults(sql: String) -> Self {
         // We do not want to wrap the SQL snippet inside parentheses around the
         // checked SQL. This is why we use the "unsafeLiteral" initializer.
-        defaultExpression = SQLExpressionLiteral(unsafeLiteral: SQLLiteral(rawSQL: sql))
+        defaultExpression = SQLExpressionLiteral(unsafeLiteral: SQLLiteral(sql: sql))
         return self
     }
     

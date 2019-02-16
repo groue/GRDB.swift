@@ -110,10 +110,10 @@ extension Database {
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
     ///     try db.execute(
-    ///         rawSQL: "INSERT INTO player (name) VALUES (:name)",
+    ///         sql: "INSERT INTO player (name) VALUES (:name)",
     ///         arguments: ["name": "Arthur"])
     ///
-    ///     try db.execute(rawSQL: """
+    ///     try db.execute(sql: """
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
@@ -125,17 +125,17 @@ extension Database {
     ///     - sql: An SQL query.
     ///     - arguments: Statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) throws {
-        try execute(literal: SQLLiteral(rawSQL: sql, arguments: arguments))
+    public func execute(sql: String, arguments: StatementArguments = StatementArguments()) throws {
+        try execute(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
     ///     try db.execute(literal: SQLLiteral(
-    ///         rawSQL: "INSERT INTO player (name) VALUES (:name)",
+    ///         sql: "INSERT INTO player (name) VALUES (:name)",
     ///         arguments: ["name": "Arthur"]))
     ///
-    ///     try db.execute(literal: SQLLiteral(rawSQL: """
+    ///     try db.execute(literal: SQLLiteral(sql: """
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);

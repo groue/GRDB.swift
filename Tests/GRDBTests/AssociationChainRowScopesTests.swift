@@ -77,7 +77,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
     func testChainOfTwoIncludingIncluding() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.including(required: A.defaultB.including(required: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+            let request = A.including(required: A.defaultB.including(required: B.defaultC)).order(sql: "a.id, b.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -95,7 +95,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["b"]!.scopes["c"]!, ["id":2, "bid":1, "did":nil, "name":"c2"])
         }
         do {
-            let request = A.including(required: A.defaultB.including(optional: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+            let request = A.including(required: A.defaultB.including(optional: B.defaultC)).order(sql: "a.id, b.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
 
             XCTAssertEqual(rows.count, 3)
@@ -120,11 +120,11 @@ class AssociationChainRowScopesTests: GRDBTestCase {
         }
         do {
             // TODO: chainOptionalRequired
-//            let request = A.including(optional: A.defaultB.including(required: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+//            let request = A.including(optional: A.defaultB.including(required: B.defaultC)).order(sql: "a.id, b.id, c.id")
 //            let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         }
         do {
-            let request = A.including(optional: A.defaultB.including(optional: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+            let request = A.including(optional: A.defaultB.including(optional: B.defaultC)).order(sql: "a.id, b.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
 
             XCTAssertEqual(rows.count, 4)
@@ -154,7 +154,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["b"]!.scopes["c"]!, ["id":nil, "bid":nil, "did":nil, "name":nil])
         }
         do {
-            let request = B.including(required: B.defaultC.including(required: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+            let request = B.including(required: B.defaultC.including(required: C.defaultD)).order(sql: "b.id, c.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
 
             XCTAssertEqual(rows.count, 1)
@@ -166,7 +166,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[0].scopes["c"]!.scopes["d"]!, ["id":1, "name":"d1"])
         }
         do {
-            let request = B.including(required: B.defaultC.including(optional: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+            let request = B.including(required: B.defaultC.including(optional: C.defaultD)).order(sql: "b.id, c.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
 
             XCTAssertEqual(rows.count, 2)
@@ -185,11 +185,11 @@ class AssociationChainRowScopesTests: GRDBTestCase {
         }
         do {
             // TODO: chainOptionalRequired
-//            let request = B.including(optional: B.defaultC.including(required: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+//            let request = B.including(optional: B.defaultC.including(required: C.defaultD)).order(sql: "b.id, c.id, d.id")
 //            let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         }
         do {
-            let request = B.including(optional: B.defaultC.including(optional: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+            let request = B.including(optional: B.defaultC.including(optional: C.defaultD)).order(sql: "b.id, c.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
 
             XCTAssertEqual(rows.count, 3)
@@ -217,7 +217,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
     func testChainOfTwoIncludingJoining() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.including(required: A.defaultB.joining(required: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+            let request = A.including(required: A.defaultB.joining(required: B.defaultC)).order(sql: "a.id, b.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -233,7 +233,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[1].scopes["b"]!.scopes.names.isEmpty)
         }
         do {
-            let request = A.including(required: A.defaultB.joining(optional: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+            let request = A.including(required: A.defaultB.joining(optional: B.defaultC)).order(sql: "a.id, b.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 3)
@@ -255,11 +255,11 @@ class AssociationChainRowScopesTests: GRDBTestCase {
         }
         do {
             // TODO: chainOptionalRequired
-//            let request = A.including(optional: A.defaultB.joining(required: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+//            let request = A.including(optional: A.defaultB.joining(required: B.defaultC)).order(sql: "a.id, b.id, c.id")
 //            let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         }
         do {
-            let request = A.including(optional: A.defaultB.joining(optional: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+            let request = A.including(optional: A.defaultB.joining(optional: B.defaultC)).order(sql: "a.id, b.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -285,7 +285,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes["b"]!.scopes.names.isEmpty)
         }
         do {
-            let request = B.including(required: B.defaultC.joining(required: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+            let request = B.including(required: B.defaultC.joining(required: C.defaultD)).order(sql: "b.id, c.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 1)
@@ -296,7 +296,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[0].scopes["c"]!.scopes.names.isEmpty)
         }
         do {
-            let request = B.including(required: B.defaultC.joining(optional: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+            let request = B.including(required: B.defaultC.joining(optional: C.defaultD)).order(sql: "b.id, c.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -313,11 +313,11 @@ class AssociationChainRowScopesTests: GRDBTestCase {
         }
         do {
             // TODO: chainOptionalRequired
-//            let request = B.including(optional: B.defaultC.joining(required: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+//            let request = B.including(optional: B.defaultC.joining(required: C.defaultD)).order(sql: "b.id, c.id, d.id")
 //            let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         }
         do {
-            let request = B.including(optional: B.defaultC.joining(optional: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+            let request = B.including(optional: B.defaultC.joining(optional: C.defaultD)).order(sql: "b.id, c.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 3)
@@ -342,7 +342,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
     func testChainOfTwoJoiningIncluding() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.joining(required: A.defaultB.including(required: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+            let request = A.joining(required: A.defaultB.including(required: B.defaultC)).order(sql: "a.id, b.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -360,7 +360,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[1].scopes["b"]!.scopes["c"]!, ["id":2, "bid":1, "did":nil, "name":"c2"])
         }
         do {
-            let request = A.joining(required: A.defaultB.including(optional: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+            let request = A.joining(required: A.defaultB.including(optional: B.defaultC)).order(sql: "a.id, b.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 3)
@@ -385,11 +385,11 @@ class AssociationChainRowScopesTests: GRDBTestCase {
         }
         do {
             // TODO: chainOptionalRequired
-//            let request = A.joining(optional: A.defaultB.including(required: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+//            let request = A.joining(optional: A.defaultB.including(required: B.defaultC)).order(sql: "a.id, b.id, c.id")
 //            let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         }
         do {
-            let request = A.joining(optional: A.defaultB.including(optional: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+            let request = A.joining(optional: A.defaultB.including(optional: B.defaultC)).order(sql: "a.id, b.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -419,7 +419,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[3].scopes["b"]!.scopes["c"]!, ["id":nil, "bid":nil, "did":nil, "name":nil])
         }
         do {
-            let request = B.joining(required: B.defaultC.including(required: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+            let request = B.joining(required: B.defaultC.including(required: C.defaultD)).order(sql: "b.id, c.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 1)
@@ -431,7 +431,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
             XCTAssertEqual(rows[0].scopes["c"]!.scopes["d"]!, ["id":1, "name":"d1"])
         }
         do {
-            let request = B.joining(required: B.defaultC.including(optional: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+            let request = B.joining(required: B.defaultC.including(optional: C.defaultD)).order(sql: "b.id, c.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -450,11 +450,11 @@ class AssociationChainRowScopesTests: GRDBTestCase {
         }
         do {
             // TODO: chainOptionalRequired
-//            let request = B.joining(optional: B.defaultC.including(required: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+//            let request = B.joining(optional: B.defaultC.including(required: C.defaultD)).order(sql: "b.id, c.id, d.id")
 //            let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         }
         do {
-            let request = B.joining(optional: B.defaultC.including(optional: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+            let request = B.joining(optional: B.defaultC.including(optional: C.defaultD)).order(sql: "b.id, c.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 3)
@@ -482,7 +482,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
     func testChainOfTwoJoiningJoining() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            let request = A.joining(required: A.defaultB.joining(required: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+            let request = A.joining(required: A.defaultB.joining(required: B.defaultC)).order(sql: "a.id, b.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -494,7 +494,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[1].scopes.names.isEmpty)
         }
         do {
-            let request = A.joining(required: A.defaultB.joining(optional: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+            let request = A.joining(required: A.defaultB.joining(optional: B.defaultC)).order(sql: "a.id, b.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 3)
@@ -510,11 +510,11 @@ class AssociationChainRowScopesTests: GRDBTestCase {
         }
         do {
             // TODO: chainOptionalRequired
-//            let request = A.joining(optional: A.defaultB.joining(required: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+//            let request = A.joining(optional: A.defaultB.joining(required: B.defaultC)).order(sql: "a.id, b.id, c.id")
 //            let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         }
         do {
-            let request = A.joining(optional: A.defaultB.joining(optional: B.defaultC)).order(rawSQL: "a.id, b.id, c.id")
+            let request = A.joining(optional: A.defaultB.joining(optional: B.defaultC)).order(sql: "a.id, b.id, c.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 4)
@@ -532,7 +532,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[3].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(required: B.defaultC.joining(required: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+            let request = B.joining(required: B.defaultC.joining(required: C.defaultD)).order(sql: "b.id, c.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 1)
@@ -541,7 +541,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
             XCTAssertTrue(rows[0].scopes.names.isEmpty)
         }
         do {
-            let request = B.joining(required: B.defaultC.joining(optional: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+            let request = B.joining(required: B.defaultC.joining(optional: C.defaultD)).order(sql: "b.id, c.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 2)
@@ -554,11 +554,11 @@ class AssociationChainRowScopesTests: GRDBTestCase {
         }
         do {
             // TODO: chainOptionalRequired
-//            let request = B.joining(optional: B.defaultC.joining(required: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+//            let request = B.joining(optional: B.defaultC.joining(required: C.defaultD)).order(sql: "b.id, c.id, d.id")
 //            let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         }
         do {
-            let request = B.joining(optional: B.defaultC.joining(optional: C.defaultD)).order(rawSQL: "b.id, c.id, d.id")
+            let request = B.joining(optional: B.defaultC.joining(optional: C.defaultD)).order(sql: "b.id, c.id, d.id")
             let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
             
             XCTAssertEqual(rows.count, 3)
@@ -576,7 +576,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
 
     func testChainOfThreeIncludingIncludingIncluding() throws {
         let dbQueue = try makeDatabaseQueue()
-        let request = A.including(required: A.defaultB.including(required: B.defaultC.including(required: C.defaultD))).order(rawSQL: "a.id, b.id, c.id, d.id")
+        let request = A.including(required: A.defaultB.including(required: B.defaultC.including(required: C.defaultD))).order(sql: "a.id, b.id, c.id, d.id")
         let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         
         XCTAssertEqual(rows.count, 1)
@@ -592,7 +592,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
     
     func testChainOfThreeIncludingIncludingJoining() throws {
         let dbQueue = try makeDatabaseQueue()
-        let request = A.including(required: A.defaultB.including(required: B.defaultC.joining(required: C.defaultD))).order(rawSQL: "a.id, b.id, c.id, d.id")
+        let request = A.including(required: A.defaultB.including(required: B.defaultC.joining(required: C.defaultD))).order(sql: "a.id, b.id, c.id, d.id")
         let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         
         XCTAssertEqual(rows.count, 1)
@@ -607,7 +607,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
 
     func testChainOfThreeIncludingJoiningIncluding() throws {
         let dbQueue = try makeDatabaseQueue()
-        let request = A.including(required: A.defaultB.joining(required: B.defaultC.including(required: C.defaultD))).order(rawSQL: "a.id, b.id, c.id, d.id")
+        let request = A.including(required: A.defaultB.joining(required: B.defaultC.including(required: C.defaultD))).order(sql: "a.id, b.id, c.id, d.id")
         let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         
         XCTAssertEqual(rows.count, 1)
@@ -623,7 +623,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
     
     func testChainOfThreeIncludingJoiningJoining() throws {
         let dbQueue = try makeDatabaseQueue()
-        let request = A.including(required: A.defaultB.joining(required: B.defaultC.joining(required: C.defaultD))).order(rawSQL: "a.id, b.id, c.id, d.id")
+        let request = A.including(required: A.defaultB.joining(required: B.defaultC.joining(required: C.defaultD))).order(sql: "a.id, b.id, c.id, d.id")
         let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         
         XCTAssertEqual(rows.count, 1)
@@ -636,7 +636,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
     
     func testChainOfThreeJoiningIncludingIncluding() throws {
         let dbQueue = try makeDatabaseQueue()
-        let request = A.joining(required: A.defaultB.including(required: B.defaultC.including(required: C.defaultD))).order(rawSQL: "a.id, b.id, c.id, d.id")
+        let request = A.joining(required: A.defaultB.including(required: B.defaultC.including(required: C.defaultD))).order(sql: "a.id, b.id, c.id, d.id")
         let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         
         XCTAssertEqual(rows.count, 1)
@@ -652,7 +652,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
     
     func testChainOfThreeJoiningIncludingJoining() throws {
         let dbQueue = try makeDatabaseQueue()
-        let request = A.joining(required: A.defaultB.including(required: B.defaultC.joining(required: C.defaultD))).order(rawSQL: "a.id, b.id, c.id, d.id")
+        let request = A.joining(required: A.defaultB.including(required: B.defaultC.joining(required: C.defaultD))).order(sql: "a.id, b.id, c.id, d.id")
         let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         
         XCTAssertEqual(rows.count, 1)
@@ -667,7 +667,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
     
     func testChainOfThreeJoiningJoiningIncluding() throws {
         let dbQueue = try makeDatabaseQueue()
-        let request = A.joining(required: A.defaultB.joining(required: B.defaultC.including(required: C.defaultD))).order(rawSQL: "a.id, b.id, c.id, d.id")
+        let request = A.joining(required: A.defaultB.joining(required: B.defaultC.including(required: C.defaultD))).order(sql: "a.id, b.id, c.id, d.id")
         let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         
         XCTAssertEqual(rows.count, 1)
@@ -683,7 +683,7 @@ class AssociationChainRowScopesTests: GRDBTestCase {
     
     func testChainOfThreeJoiningJoiningJoining() throws {
         let dbQueue = try makeDatabaseQueue()
-        let request = A.joining(required: A.defaultB.joining(required: B.defaultC.joining(required: C.defaultD))).order(rawSQL: "a.id, b.id, c.id, d.id")
+        let request = A.joining(required: A.defaultB.joining(required: B.defaultC.joining(required: C.defaultD))).order(sql: "a.id, b.id, c.id, d.id")
         let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
         
         XCTAssertEqual(rows.count, 1)

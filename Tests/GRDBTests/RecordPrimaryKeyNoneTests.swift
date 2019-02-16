@@ -21,7 +21,7 @@ private class Item : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute(rawSQL: """
+        try db.execute(sql: """
             CREATE TABLE items (
                 name TEXT,
                 email TEXT UNIQUE)
@@ -69,7 +69,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             XCTAssertTrue(record.insertedRowIDColumn == nil)
             try record.insert(db)
             
-            let names = try String.fetchAll(db, rawSQL: "SELECT name FROM items")
+            let names = try String.fetchAll(db, sql: "SELECT name FROM items")
             XCTAssertEqual(names, ["Table", "Table"])
         }
     }
@@ -84,7 +84,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             try record.save(db)
             try record.save(db)
             
-            let names = try String.fetchAll(db, rawSQL: "SELECT name FROM items")
+            let names = try String.fetchAll(db, sql: "SELECT name FROM items")
             XCTAssertEqual(names, ["Table", "Table"])
         }
     }

@@ -9,7 +9,7 @@ import XCTest
 
 class SQLLiteralTests: GRDBTestCase {
     func testSQLInitializer() {
-        let sql = SQLLiteral(rawSQL: """
+        let sql = SQLLiteral(sql: """
             SELECT * FROM player
             WHERE id = \("?")
             """, arguments: [1])
@@ -21,10 +21,10 @@ class SQLLiteralTests: GRDBTestCase {
     }
     
     func testPlusOperator() {
-        var sql = SQLLiteral(rawSQL: "SELECT * ")
-        sql = sql + SQLLiteral(rawSQL: "FROM player ")
-        sql = sql + SQLLiteral(rawSQL: "WHERE id = ? ", arguments: [1])
-        sql = sql + SQLLiteral(rawSQL: "AND name = ?", arguments: ["Arthur"])
+        var sql = SQLLiteral(sql: "SELECT * ")
+        sql = sql + SQLLiteral(sql: "FROM player ")
+        sql = sql + SQLLiteral(sql: "WHERE id = ? ", arguments: [1])
+        sql = sql + SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"])
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player WHERE id = ? AND name = ?
             """)
@@ -32,10 +32,10 @@ class SQLLiteralTests: GRDBTestCase {
     }
     
     func testPlusEqualOperator() {
-        var sql = SQLLiteral(rawSQL: "SELECT * ")
-        sql += SQLLiteral(rawSQL: "FROM player ")
-        sql += SQLLiteral(rawSQL: "WHERE id = ? ", arguments: [1])
-        sql += SQLLiteral(rawSQL: "AND name = ?", arguments: ["Arthur"])
+        var sql = SQLLiteral(sql: "SELECT * ")
+        sql += SQLLiteral(sql: "FROM player ")
+        sql += SQLLiteral(sql: "WHERE id = ? ", arguments: [1])
+        sql += SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"])
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player WHERE id = ? AND name = ?
             """)
@@ -43,10 +43,10 @@ class SQLLiteralTests: GRDBTestCase {
     }
     
     func testAppendLiteral() {
-        var sql = SQLLiteral(rawSQL: "SELECT * ")
-        sql.append(literal: SQLLiteral(rawSQL: "FROM player "))
-        sql.append(literal: SQLLiteral(rawSQL: "WHERE id = ? ", arguments: [1]))
-        sql.append(literal: SQLLiteral(rawSQL: "AND name = ?", arguments: ["Arthur"]))
+        var sql = SQLLiteral(sql: "SELECT * ")
+        sql.append(literal: SQLLiteral(sql: "FROM player "))
+        sql.append(literal: SQLLiteral(sql: "WHERE id = ? ", arguments: [1]))
+        sql.append(literal: SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"]))
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player WHERE id = ? AND name = ?
             """)
@@ -54,10 +54,10 @@ class SQLLiteralTests: GRDBTestCase {
     }
     
     func testAppendRawSQL() {
-        var sql = SQLLiteral(rawSQL: "SELECT * ")
-        sql.append(rawSQL: "FROM player ")
-        sql.append(rawSQL: "WHERE score > \(1000) ")
-        sql.append(rawSQL: "AND \("name") = :name", arguments: ["name": "Arthur"])
+        var sql = SQLLiteral(sql: "SELECT * ")
+        sql.append(sql: "FROM player ")
+        sql.append(sql: "WHERE score > \(1000) ")
+        sql.append(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player WHERE score > 1000 AND name = :name
             """)
@@ -70,9 +70,9 @@ extension SQLLiteralTests {
     func testRawSQLInterpolation() {
         let sql: SQLLiteral = """
             SELECT *
-            \(rawSQL: "FROM player")
-            \(rawSQL: "WHERE score > \(1000)")
-            \(rawSQL: "AND \("name") = :name", arguments: ["name": "Arthur"])
+            \(sql: "FROM player")
+            \(sql: "WHERE score > \(1000)")
+            \(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])
             """
         XCTAssertEqual(sql.sql, """
             SELECT *
@@ -270,9 +270,9 @@ extension SQLLiteralTests {
 
     func testAppendRawSQLWithInterpolation() {
         var sql: SQLLiteral = "SELECT \(AllColumns()) "
-        sql.append(rawSQL: "FROM player ")
-        sql.append(rawSQL: "WHERE score > \(1000) ")
-        sql.append(rawSQL: "AND \("name") = :name", arguments: ["name": "Arthur"])
+        sql.append(sql: "FROM player ")
+        sql.append(sql: "WHERE score > \(1000) ")
+        sql.append(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player WHERE score > 1000 AND name = :name
             """)

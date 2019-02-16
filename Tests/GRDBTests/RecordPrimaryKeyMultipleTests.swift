@@ -21,7 +21,7 @@ private class Citizenship : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute(rawSQL: """
+        try db.execute(sql: """
             CREATE TABLE citizenships (
                 personName TEXT NOT NULL,
                 countryName TEXT NOT NULL,
@@ -82,7 +82,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -109,7 +109,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             try record.delete(db)
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -151,7 +151,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             record.native = false
             try record.update(db)
             
-            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -194,7 +194,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             let record = Citizenship(personName: "Arthur", countryName: "France", native: true)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -208,7 +208,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             record.native = false
             try record.save(db)   // Actual update
             
-            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -221,7 +221,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             try record.delete(db)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -255,7 +255,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             let deleted = try record.delete(db)
             XCTAssertTrue(deleted)
             
-            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM citizenships WHERE personName = ? AND countryName = ?", arguments: [record.personName, record.countryName])
             XCTAssertTrue(row == nil)
         }
     }

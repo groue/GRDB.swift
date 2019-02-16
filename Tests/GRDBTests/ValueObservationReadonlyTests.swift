@@ -16,7 +16,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
     
     func testReadOnlyObservation() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
         var counts: [Int] = []
         let notificationExpectation = expectation(description: "notification")
@@ -24,7 +24,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         notificationExpectation.expectedFulfillmentCount = 2
         
         var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-            try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")!
+            try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
         })
         observation.extent = .databaseLifetime
         _ = try observation.start(in: dbQueue) { count in
@@ -33,7 +33,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         }
         
         try dbQueue.write {
-            try $0.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+            try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
         
         waitForExpectations(timeout: 1, handler: nil)
@@ -42,10 +42,10 @@ class ValueObservationReadonlyTests: GRDBTestCase {
     
     func testWriteObservationFailsByDefault() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
         let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db -> Int in
-            try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             return 0
         })
 
@@ -65,7 +65,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
 
     func testWriteObservation() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
         var counts: [Int] = []
         let notificationExpectation = expectation(description: "notification")
@@ -74,9 +74,9 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         
         var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db -> Int in
             XCTAssert(db.isInsideTransaction, "expected a wrapping transaction")
-            try db.execute(rawSQL: "CREATE TEMPORARY TABLE temp AS SELECT * FROM t")
-            let result = try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM temp")!
-            try db.execute(rawSQL: "DROP TABLE temp")
+            try db.execute(sql: "CREATE TEMPORARY TABLE temp AS SELECT * FROM t")
+            let result = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM temp")!
+            try db.execute(sql: "DROP TABLE temp")
             return result
         })
         observation.extent = .databaseLifetime
@@ -87,7 +87,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         }
         
         try dbQueue.write {
-            try $0.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+            try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
         
         waitForExpectations(timeout: 1, handler: nil)
@@ -97,12 +97,12 @@ class ValueObservationReadonlyTests: GRDBTestCase {
     func testWriteObservationIsWrappedInSavepoint() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
-            try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
+            try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
         }
         
         struct TestError: Error { }
         var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db in
-            try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             throw TestError()
         })
         observation.requiresWriteAccess = true
@@ -116,7 +116,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         } catch is TestError {
         }
         
-        let count = try dbQueue.read { try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")! }
+        let count = try dbQueue.read { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
         XCTAssertEqual(count, 0)
     }
 }

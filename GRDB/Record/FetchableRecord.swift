@@ -7,15 +7,15 @@ import Foundation
 
 /// Types that adopt FetchableRecord can be initialized from a database Row.
 ///
-///     let row = try Row.fetchOne(db, rawSQL: "SELECT ...")!
+///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
 ///     let player = Player(row)
 ///
 /// The protocol comes with built-in methods that allow to fetch cursors,
 /// arrays, or single records:
 ///
-///     try Player.fetchCursor(db, rawSQL: "SELECT ...", arguments:...) // Cursor of Player
-///     try Player.fetchAll(db, rawSQL: "SELECT ...", arguments:...)    // [Player]
-///     try Player.fetchOne(db, rawSQL: "SELECT ...", arguments:...)    // Player?
+///     try Player.fetchCursor(db, sql: "SELECT ...", arguments:...) // Cursor of Player
+///     try Player.fetchAll(db, sql: "SELECT ...", arguments:...)    // [Player]
+///     try Player.fetchOne(db, sql: "SELECT ...", arguments:...)    // Player?
 ///
 ///     let statement = try db.makeSelectStatement("SELECT ...")
 ///     try Player.fetchCursor(statement, arguments:...) // Cursor of Player
@@ -199,7 +199,7 @@ extension FetchableRecord {
     
     /// Returns a cursor over records fetched from an SQL query.
     ///
-    ///     let players = try Player.fetchCursor(db, rawSQL: "SELECT * FROM player") // Cursor of Player
+    ///     let players = try Player.fetchCursor(db, sql: "SELECT * FROM player") // Cursor of Player
     ///     while let player = try players.next() { // Player
     ///         ...
     ///     }
@@ -216,13 +216,13 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, rawSQL sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
-        return try fetchCursor(db, literal: SQLLiteral(rawSQL: sql, arguments: arguments), adapter: adapter)
+    public static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
+        return try fetchCursor(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }
     
     /// Returns an array of records fetched from an SQL query.
     ///
-    ///     let players = try Player.fetchAll(db, rawSQL: "SELECT * FROM player") // [Player]
+    ///     let players = try Player.fetchAll(db, sql: "SELECT * FROM player") // [Player]
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -231,13 +231,13 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, rawSQL sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Self] {
-        return try fetchAll(db, literal: SQLLiteral(rawSQL: sql, arguments: arguments), adapter: adapter)
+    public static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Self] {
+        return try fetchAll(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }
     
     /// Returns a single record fetched from an SQL query.
     ///
-    ///     let player = try Player.fetchOne(db, rawSQL: "SELECT * FROM player") // Player?
+    ///     let player = try Player.fetchOne(db, sql: "SELECT * FROM player") // Player?
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -246,8 +246,8 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, rawSQL sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Self? {
-        return try fetchOne(db, literal: SQLLiteral(rawSQL: sql, arguments: arguments), adapter: adapter)
+    public static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Self? {
+        return try fetchOne(db, literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter)
     }
 }
 
@@ -257,7 +257,7 @@ extension FetchableRecord {
     
     /// Returns a cursor over records fetched from an SQL query.
     ///
-    ///     let players = try Player.fetchCursor(db, literal: SQLLiteral(rawSQL: """
+    ///     let players = try Player.fetchCursor(db, literal: SQLLiteral(sql: """
     ///         SELECT * FROM player WHERE lastName = ?
     ///         """, arguments: ["O'Brien"])) // Cursor of Player
     ///     while let player = try players.next() { // Player
@@ -288,7 +288,7 @@ extension FetchableRecord {
     
     /// Returns an array of records fetched from an SQL query.
     ///
-    ///     let players = try Player.fetchAll(db, literal: SQLLiteral(rawSQL: """
+    ///     let players = try Player.fetchAll(db, literal: SQLLiteral(sql: """
     ///         SELECT * FROM player WHERE lastName = ?
     ///         """, arguments: ["O'Brien"])) // [Player]
     ///     for player in players {
@@ -314,7 +314,7 @@ extension FetchableRecord {
     
     /// Returns a single record fetched from an SQL query.
     ///
-    ///     let player = try Player.fetchOne(db, literal: SQLLiteral(rawSQL: """
+    ///     let player = try Player.fetchOne(db, literal: SQLLiteral(sql: """
     ///         SELECT * FROM player WHERE lastName = ?
     ///         """, arguments: ["O'Brien"])) // Player?
     ///     if let player = player {
@@ -454,7 +454,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
 ///
 ///     struct Player : FetchableRecord { ... }
 ///     try dbQueue.read { db in
-///         let players: RecordCursor<Player> = try Player.fetchCursor(db, rawSQL: "SELECT * FROM player")
+///         let players: RecordCursor<Player> = try Player.fetchCursor(db, sql: "SELECT * FROM player")
 ///     }
 public final class RecordCursor<Record: FetchableRecord> : Cursor {
     private let statement: SelectStatement

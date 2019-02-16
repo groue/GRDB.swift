@@ -47,7 +47,7 @@ extension FetchRequest {
     public func fetchCount(_ db: Database) throws -> Int {
         let (statement, _) = try prepare(db)
         let sql = "SELECT COUNT(*) FROM (\(statement.sql))"
-        return try Int.fetchOne(db, rawSQL: sql, arguments: statement.arguments)!
+        return try Int.fetchOne(db, sql: sql, arguments: statement.arguments)!
     }
     
     /// Returns the database region that the request looks into.
@@ -129,7 +129,7 @@ public struct AnyFetchRequest<T> : FetchRequest {
         _fetchCount = { db in
             let (statement, _) = try prepare(db)
             let sql = "SELECT COUNT(*) FROM (\(statement.sql))"
-            return try Int.fetchOne(db, rawSQL: sql, arguments: statement.arguments)!
+            return try Int.fetchOne(db, sql: sql, arguments: statement.arguments)!
         }
         
         _databaseRegion = { db in

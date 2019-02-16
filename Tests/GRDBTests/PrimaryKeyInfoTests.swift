@@ -12,7 +12,7 @@ class PrimaryKeyInfoTests: GRDBTestCase {
     func testHiddenRowID() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(rawSQL: "CREATE TABLE items (name TEXT)")
+            try db.execute(sql: "CREATE TABLE items (name TEXT)")
             let primaryKey = try db.primaryKey("items")
             XCTAssertEqual(primaryKey.columns, [Column.rowID.name])
             XCTAssertNil(primaryKey.rowIDColumn)
@@ -23,7 +23,7 @@ class PrimaryKeyInfoTests: GRDBTestCase {
     func testIntegerPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT)")
+            try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT)")
             let primaryKey = try db.primaryKey("items")
             XCTAssertEqual(primaryKey.columns, ["id"])
             XCTAssertEqual(primaryKey.rowIDColumn, "id")
@@ -34,7 +34,7 @@ class PrimaryKeyInfoTests: GRDBTestCase {
     func testNonRowIDPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(rawSQL: "CREATE TABLE items (name TEXT PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE items (name TEXT PRIMARY KEY)")
             let primaryKey = try db.primaryKey("items")
             XCTAssertEqual(primaryKey.columns, ["name"])
             XCTAssertNil(primaryKey.rowIDColumn)
@@ -45,7 +45,7 @@ class PrimaryKeyInfoTests: GRDBTestCase {
     func testCompoundPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(rawSQL: "CREATE TABLE items (a TEXT, b INTEGER, PRIMARY KEY (a,b))")
+            try db.execute(sql: "CREATE TABLE items (a TEXT, b INTEGER, PRIMARY KEY (a,b))")
             let primaryKey = try db.primaryKey("items")
             XCTAssertEqual(primaryKey.columns, ["a", "b"])
             XCTAssertNil(primaryKey.rowIDColumn)

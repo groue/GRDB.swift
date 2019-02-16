@@ -18,7 +18,7 @@ class MinimalSingle: Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute(rawSQL: "CREATE TABLE minimalSingles (UUID TEXT NOT NULL PRIMARY KEY)")
+        try db.execute(sql: "CREATE TABLE minimalSingles (UUID TEXT NOT NULL PRIMARY KEY)")
     }
     
     // Record
@@ -69,7 +69,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             record.UUID = "theUUID"
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -98,7 +98,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.delete(db)
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -128,7 +128,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.insert(db)
             try record.update(db)
             
-            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -173,7 +173,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             record.UUID = "theUUID"
             try record.save(db)
             
-            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -186,7 +186,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.insert(db)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -200,7 +200,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.delete(db)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -227,7 +227,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             let deleted = try record.delete(db)
             XCTAssertTrue(deleted)
             
-            let row = try Row.fetchOne(db, rawSQL: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])
             XCTAssertTrue(row == nil)
         }
     }

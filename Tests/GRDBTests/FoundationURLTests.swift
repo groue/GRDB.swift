@@ -12,7 +12,7 @@ class FoundationURLTests: GRDBTestCase {
     func testURLDatabaseRoundTrip() throws {
         let dbQueue = try makeDatabaseQueue()
         func roundTrip(_ value: URL) throws -> Bool {
-            guard let back = try dbQueue.inDatabase({ try URL.fetchOne($0, rawSQL: "SELECT ?", arguments: [value]) }) else {
+            guard let back = try dbQueue.inDatabase({ try URL.fetchOne($0, sql: "SELECT ?", arguments: [value]) }) else {
                 XCTFail()
                 return false
             }

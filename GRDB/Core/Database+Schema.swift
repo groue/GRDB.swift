@@ -171,13 +171,13 @@ extension Database {
         }
         
         let indexes = try Row
-            .fetchAll(self, rawSQL: "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))")
+            .fetchAll(self, sql: "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))")
             .map { row -> IndexInfo in
                 // [seq:0 name:"index" unique:0 origin:"c" partial:0]
                 let indexName: String = row[1]
                 let unique: Bool = row[2]
                 let columns = try Row
-                    .fetchAll(self, rawSQL: "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
+                    .fetchAll(self, sql: "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
                     .map { row -> (Int, String) in
                         // [seqno:0 cid:2 name:"column"]
                         (row[0] as Int, row[2] as String)
@@ -213,7 +213,7 @@ extension Database {
         
         var rawForeignKeys: [(destinationTable: String, mapping: [(origin: String, destination: String?, seq: Int)])] = []
         var previousId: Int? = nil
-        for row in try Row.fetchAll(self, rawSQL: "PRAGMA foreign_key_list(\(tableName.quotedDatabaseIdentifier))") {
+        for row in try Row.fetchAll(self, sql: "PRAGMA foreign_key_list(\(tableName.quotedDatabaseIdentifier))") {
             // row = [id:0 seq:0 table:"parents" from:"parentId" to:"id" on_update:"..." on_delete:"..." match:"..."]
             let id: Int = row[0]
             let seq: Int = row[1]
@@ -320,7 +320,7 @@ extension Database {
             }
         }
         let columns = try ColumnInfo
-            .fetchAll(self, rawSQL: "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
+            .fetchAll(self, sql: "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
             .sorted(by: { $0.cid < $1.cid })
         guard columns.count > 0 else {
             throw DatabaseError(message: "no such table: \(tableName)")
@@ -386,7 +386,7 @@ public struct ColumnInfo : FetchableRecord {
     ///
     /// For example:
     ///
-    ///     try db.execute(rawSQL: """
+    ///     try db.execute(sql: """
     ///         CREATE TABLE player(
     ///             id INTEGER PRIMARY KEY,
     ///             name TEXT DEFAULT 'Anonymous',
@@ -579,7 +579,7 @@ struct SchemaInfo: Equatable {
     private var objects: Set<SchemaObject>
     
     init(_ db: Database) throws {
-        objects = try Set(SchemaObject.fetchCursor(db, rawSQL: """
+        objects = try Set(SchemaObject.fetchCursor(db, sql: """
             SELECT type, name, tbl_name, sql, 0 AS isTemporary FROM sqlite_master \
             UNION \
             SELECT type, name, tbl_name, sql, 1 FROM sqlite_temp_master
@@ -597,7 +597,7 @@ struct SchemaInfo: Equatable {
     
     /// Returns the canonical name of the object:
     ///
-    ///     try db.execute(rawSQL: "CREATE TABLE FooBar (...)")
+    ///     try db.execute(sql: "CREATE TABLE FooBar (...)")
     ///     try db.schema().canonicalName("foobar", ofType: .table) // "FooBar"
     func canonicalName(_ name: String, ofType type: SchemaObjectType) -> String? {
         let name = name.lowercased()

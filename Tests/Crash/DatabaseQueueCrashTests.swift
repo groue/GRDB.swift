@@ -51,7 +51,7 @@ class DatabaseQueueCrashTests: GRDBCrashTestCase {
         assertCrash("Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.") {
             var rows: DatabaseSequence<Row>?
             try dbQueue.inDatabase { db in
-                try db.execute(rawSQL: "CREATE TABLE persons (name TEXT)")
+                try db.execute(sql: "CREATE TABLE persons (name TEXT)")
                 rows = try Row.fetch(db, "SELECT * FROM persons")
             }
             _ = rows!.makeIterator()
@@ -62,7 +62,7 @@ class DatabaseQueueCrashTests: GRDBCrashTestCase {
         assertCrash("Database was not used on the correct thread: execute your statements inside DatabaseQueue.inDatabase() or DatabaseQueue.inTransaction(). If you get this error while iterating the result of a fetch() method, consider using the array returned by fetchAll() instead.") {
             var iterator: DatabaseIterator<Row>?
             try dbQueue.inDatabase { db in
-                try db.execute(rawSQL: "CREATE TABLE persons (name TEXT)")
+                try db.execute(sql: "CREATE TABLE persons (name TEXT)")
                 iterator = try Row.fetch(db, "SELECT * FROM persons").makeIterator()
             }
             _ = iterator!.next()
@@ -79,7 +79,7 @@ class DatabaseQueueCrashTests: GRDBCrashTestCase {
             let dbQueue2 = try! makeDatabaseQueue(path: dbQueuepath, configuration: dbConfiguration)
             
             try! dbQueue1.inDatabase { db in
-                try db.execute(rawSQL: "CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
+                try db.execute(sql: "CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
             }
             
             let queue = NSOperationQueue()

@@ -41,7 +41,7 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute(rawSQL: "CREATE TABLE wines (grape TEXT, color INTEGER)")
+            try db.execute(sql: "CREATE TABLE wines (grape TEXT, color INTEGER)")
         }
         try migrator.migrate(dbWriter)
     }
@@ -52,13 +52,13 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
             
             do {
                 for color in [Color32.red, Color32.white, Color32.rose] {
-                    try db.execute(rawSQL: "INSERT INTO wines (color) VALUES (?)", arguments: [color])
+                    try db.execute(sql: "INSERT INTO wines (color) VALUES (?)", arguments: [color])
                 }
-                try db.execute(rawSQL: "INSERT INTO wines (color) VALUES (NULL)")
+                try db.execute(sql: "INSERT INTO wines (color) VALUES (NULL)")
             }
             
             do {
-                let rows = try Row.fetchAll(db, rawSQL: "SELECT color FROM wines ORDER BY color")
+                let rows = try Row.fetchAll(db, sql: "SELECT color FROM wines ORDER BY color")
                 let colors = rows.map { $0[0] as Color32? }
                 XCTAssertTrue(colors[0] == nil)
                 XCTAssertEqual(colors[1]!, Color32.red)
@@ -67,7 +67,7 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
             }
             
             do {
-                let colors = try Optional<Color32>.fetchAll(db, rawSQL: "SELECT color FROM wines ORDER BY color")
+                let colors = try Optional<Color32>.fetchAll(db, sql: "SELECT color FROM wines ORDER BY color")
                 XCTAssertTrue(colors[0] == nil)
                 XCTAssertEqual(colors[1]!, Color32.red)
                 XCTAssertEqual(colors[2]!, Color32.white)
@@ -84,13 +84,13 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
             
             do {
                 for color in [Color64.red, Color64.white, Color64.rose] {
-                    try db.execute(rawSQL: "INSERT INTO wines (color) VALUES (?)", arguments: [color])
+                    try db.execute(sql: "INSERT INTO wines (color) VALUES (?)", arguments: [color])
                 }
-                try db.execute(rawSQL: "INSERT INTO wines (color) VALUES (NULL)")
+                try db.execute(sql: "INSERT INTO wines (color) VALUES (NULL)")
             }
             
             do {
-                let rows = try Row.fetchAll(db, rawSQL: "SELECT color FROM wines ORDER BY color")
+                let rows = try Row.fetchAll(db, sql: "SELECT color FROM wines ORDER BY color")
                 let colors = rows.map { $0[0] as Color64? }
                 XCTAssertTrue(colors[0] == nil)
                 XCTAssertEqual(colors[1]!, Color64.red)
@@ -99,7 +99,7 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
             }
             
             do {
-                let colors = try Optional<Color64>.fetchAll(db, rawSQL: "SELECT color FROM wines ORDER BY color")
+                let colors = try Optional<Color64>.fetchAll(db, sql: "SELECT color FROM wines ORDER BY color")
                 XCTAssertTrue(colors[0] == nil)
                 XCTAssertEqual(colors[1]!, Color64.red)
                 XCTAssertEqual(colors[2]!, Color64.white)
@@ -116,13 +116,13 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
             
             do {
                 for color in [Color.red, Color.white, Color.rose] {
-                    try db.execute(rawSQL: "INSERT INTO wines (color) VALUES (?)", arguments: [color])
+                    try db.execute(sql: "INSERT INTO wines (color) VALUES (?)", arguments: [color])
                 }
-                try db.execute(rawSQL: "INSERT INTO wines (color) VALUES (NULL)")
+                try db.execute(sql: "INSERT INTO wines (color) VALUES (NULL)")
             }
             
             do {
-                let rows = try Row.fetchAll(db, rawSQL: "SELECT color FROM wines ORDER BY color")
+                let rows = try Row.fetchAll(db, sql: "SELECT color FROM wines ORDER BY color")
                 let colors = rows.map { $0[0] as Color? }
                 XCTAssertTrue(colors[0] == nil)
                 XCTAssertEqual(colors[1]!, Color.red)
@@ -131,7 +131,7 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
             }
             
             do {
-                let colors = try Optional<Color>.fetchAll(db, rawSQL: "SELECT color FROM wines ORDER BY color")
+                let colors = try Optional<Color>.fetchAll(db, sql: "SELECT color FROM wines ORDER BY color")
                 XCTAssertTrue(colors[0] == nil)
                 XCTAssertEqual(colors[1]!, Color.red)
                 XCTAssertEqual(colors[2]!, Color.white)
@@ -148,13 +148,13 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
             
             do {
                 for grape in [Grape.chardonnay, Grape.merlot, Grape.riesling] {
-                    try db.execute(rawSQL: "INSERT INTO wines (grape) VALUES (?)", arguments: [grape])
+                    try db.execute(sql: "INSERT INTO wines (grape) VALUES (?)", arguments: [grape])
                 }
-                try db.execute(rawSQL: "INSERT INTO wines (grape) VALUES (NULL)")
+                try db.execute(sql: "INSERT INTO wines (grape) VALUES (NULL)")
             }
             
             do {
-                let rows = try Row.fetchAll(db, rawSQL: "SELECT grape FROM wines ORDER BY grape")
+                let rows = try Row.fetchAll(db, sql: "SELECT grape FROM wines ORDER BY grape")
                 let grapes = rows.map { $0[0] as Grape? }
                 XCTAssertTrue(grapes[0] == nil)
                 XCTAssertEqual(grapes[1]!, Grape.chardonnay)
@@ -163,7 +163,7 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
             }
             
             do {
-                let grapes = try Optional<Grape>.fetchAll(db, rawSQL: "SELECT grape FROM wines ORDER BY grape")
+                let grapes = try Optional<Grape>.fetchAll(db, sql: "SELECT grape FROM wines ORDER BY grape")
                 XCTAssertTrue(grapes[0] == nil)
                 XCTAssertEqual(grapes[1]!, Grape.chardonnay)
                 XCTAssertEqual(grapes[2]!, Grape.merlot)

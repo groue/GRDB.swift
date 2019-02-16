@@ -88,7 +88,7 @@ class AssociationAggregateTests: GRDBTestCase {
             let tableAlias = TableAlias(name: "custom")
             let request = Team
                 .annotated(with: Team.players.count)
-                .joining(required: Team.players.aliased(tableAlias).filter(rawSQL: "custom.score < ?", arguments: [500]))
+                .joining(required: Team.players.aliased(tableAlias).filter(sql: "custom.score < ?", arguments: [500]))
             
             try assertEqualSQL(db, request, """
                 SELECT "team".*, COUNT(DISTINCT "custom"."rowid") AS "playerCount" \

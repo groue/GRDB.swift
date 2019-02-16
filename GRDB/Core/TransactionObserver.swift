@@ -95,11 +95,11 @@ extension Database {
 ///     let observer = MyObserver()
 ///     dbQueue.add(transactionObserver: observer)
 ///     dbQueue.inDatabase { db in
-///         try db.execute(rawSQL: "BEGIN TRANSACTION")
+///         try db.execute(sql: "BEGIN TRANSACTION")
 ///
 /// Then a statement is executed:
 ///
-///         try db.execute(rawSQL: "INSERT INTO document ...")
+///         try db.execute(sql: "INSERT INTO document ...")
 ///
 /// The observation process starts when the statement is *compiled*:
 /// sqlite3_set_authorizer tells that the statement performs insertion into the
@@ -117,7 +117,7 @@ extension Database {
 ///
 /// Now a savepoint is started:
 ///
-///         try db.execute(rawSQL: "SAVEPOINT foo")
+///         try db.execute(sql: "SAVEPOINT foo")
 ///
 /// Statement compilation has sqlite3_set_authorizer tell that this statement
 /// begins a "foo" savepoint.
@@ -128,7 +128,7 @@ extension Database {
 ///
 /// Then another statement is executed:
 ///
-///         try db.execute(rawSQL: "INSERT INTO document ...")
+///         try db.execute(sql: "INSERT INTO document ...")
 ///
 /// This time, when the statement is *executed* and SQLite tells that a row has
 /// been inserted, the broker buffers the change event instead of immediately
@@ -138,7 +138,7 @@ extension Database {
 ///
 /// The savepoint is released:
 ///
-///         try db.execute(rawSQL: "RELEASE SAVEPOINT foo")
+///         try db.execute(sql: "RELEASE SAVEPOINT foo")
 ///
 /// Statement compilation has sqlite3_set_authorizer tell that this statement
 /// releases the "foo" savepoint.
@@ -149,7 +149,7 @@ extension Database {
 ///
 /// Finally the transaction is committed:
 ///
-///         try db.execute(rawSQL: "COMMIT")
+///         try db.execute(sql: "COMMIT")
 ///
 /// During the statement *execution*, SQlite tells the broker that the
 /// transaction is about to be committed through sqlite3_commit_hook. The broker
@@ -440,8 +440,8 @@ class DatabaseObservationBroker {
         // SQLite, no transaction at all has started, and sqlite3_commit_hook
         // was not triggered:
         //
-        //   try db.execute(rawSQL: "BEGIN DEFERRED TRANSACTION")
-        //   try db.execute(rawSQL: "COMMIT") // <- no sqlite3_commit_hook callback invocation
+        //   try db.execute(sql: "BEGIN DEFERRED TRANSACTION")
+        //   try db.execute(sql: "COMMIT") // <- no sqlite3_commit_hook callback invocation
         //
         // Should we tell transaction observers of this transaction, or not?
         // The code says that a transaction was open, but SQLite says the
@@ -517,7 +517,7 @@ class DatabaseObservationBroker {
         //
         // But we have to deal with a particular case:
         //
-        //      let journalMode = String.fetchOne(db, rawSQL: "PRAGMA journal_mode = wal")
+        //      let journalMode = String.fetchOne(db, sql: "PRAGMA journal_mode = wal")
         //
         // It runs a SelectStatement, not an UpdateStatement. But this not why
         // this case is particular. What is unexpected is that it triggers

@@ -10,11 +10,11 @@ import XCTest
 class FTS3TokenizerTests: GRDBTestCase {
     
     private func match(_ db: Database, _ content: String, _ query: String) -> Bool {
-        try! db.execute(rawSQL: "INSERT INTO documents VALUES (?)", arguments: [content])
+        try! db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: [content])
         defer {
-            try! db.execute(rawSQL: "DELETE FROM documents")
+            try! db.execute(sql: "DELETE FROM documents")
         }
-        return try! Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: [query])! > 0
+        return try! Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: [query])! > 0
     }
     
     func testSimpleTokenizer() throws {

@@ -86,7 +86,7 @@ class AssociationParallelDecodableRecordTests: GRDBTestCase {
         let request = A
             .including(required: AWithRequiredBD.b)
             .including(required: AWithRequiredBD.d)
-            .order(rawSQL: "a.id, b.id, d.id")
+            .order(sql: "a.id, b.id, d.id")
             .asRequest(of: AWithRequiredBD.self)
         let records = try dbQueue.inDatabase { try request.fetchAll($0) }
         
@@ -116,7 +116,7 @@ class AssociationParallelDecodableRecordTests: GRDBTestCase {
         let request = A
             .including(optional: AWithOptionalBD.b)
             .including(optional: AWithOptionalBD.d)
-            .order(rawSQL: "a.id, b.id, d.id")
+            .order(sql: "a.id, b.id, d.id")
             .asRequest(of: AWithOptionalBD.self)
         let records = try dbQueue.inDatabase { try request.fetchAll($0) }
 
@@ -177,7 +177,7 @@ class AssociationParallelDecodableRecordTests: GRDBTestCase {
         let request = A
             .joining(required: A.b)
             .joining(required: A.d)
-            .order(rawSQL: "a.id, b.id, d.id")
+            .order(sql: "a.id, b.id, d.id")
         let records = try dbQueue.inDatabase { try request.fetchAll($0) }
         
         XCTAssertEqual(records.count, 2)
@@ -198,7 +198,7 @@ class AssociationParallelDecodableRecordTests: GRDBTestCase {
         let request = A
             .joining(optional: A.b)
             .joining(optional: A.d)
-            .order(rawSQL: "a.id, b.id, d.id")
+            .order(sql: "a.id, b.id, d.id")
         let records = try dbQueue.inDatabase { try request.fetchAll($0) }
         
         XCTAssertEqual(records.count, 6)

@@ -12,10 +12,10 @@ public struct SQLRequest<T> : FetchRequest {
     /// Creates a request from an SQL string, optional arguments, and
     /// optional row adapter.
     ///
-    ///     let request = SQLRequest<String>(rawSQL: """
+    ///     let request = SQLRequest<String>(sql: """
     ///         SELECT name FROM player
     ///         """)
-    ///     let request = SQLRequest<Player>(rawSQL: """
+    ///     let request = SQLRequest<Player>(sql: """
     ///         SELECT * FROM player WHERE id = ?
     ///         """, arguments: [1])
     ///
@@ -26,16 +26,16 @@ public struct SQLRequest<T> : FetchRequest {
     ///     - cached: Defaults to false. If true, the request reuses a cached
     ///       prepared statement.
     /// - returns: A SQLRequest
-    public init(rawSQL sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil, cached: Bool = false) {
-        self.init(literal: SQLLiteral(rawSQL: sql, arguments: arguments), adapter: adapter, fromCache: cached ? .public : nil)
+    public init(sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil, cached: Bool = false) {
+        self.init(literal: SQLLiteral(sql: sql, arguments: arguments), adapter: adapter, fromCache: cached ? .public : nil)
     }
     
     /// Creates a request from an SQLLiteral, and optional row adapter.
     ///
-    ///     let request = SQLRequest<String>(literal: SQLLiteral(rawSQL: """
+    ///     let request = SQLRequest<String>(literal: SQLLiteral(sql: """
     ///         SELECT name FROM player
     ///         """))
-    ///     let request = SQLRequest<Player>(literal: SQLLiteral(rawSQL: """
+    ///     let request = SQLRequest<Player>(literal: SQLLiteral(sql: """
     ///         SELECT * FROM player WHERE name = ?
     ///         """, arguments: ["O'Brien"]))
     ///
@@ -67,7 +67,7 @@ public struct SQLRequest<T> : FetchRequest {
     /// - returns: An SQLRequest
     public init<Request: FetchRequest>(_ db: Database, request: Request, cached: Bool = false) throws where Request.RowDecoder == RowDecoder {
         let (statement, adapter) = try request.prepare(db)
-        self.init(literal: SQLLiteral(rawSQL: statement.sql, arguments: statement.arguments), adapter: adapter, cached: cached)
+        self.init(literal: SQLLiteral(sql: statement.sql, arguments: statement.arguments), adapter: adapter, cached: cached)
     }
     
     /// Creates an SQL request from an SQL string, optional arguments, and
@@ -125,17 +125,17 @@ public struct SQLRequest<T> : FetchRequest {
 extension SQLRequest: ExpressibleByStringInterpolation {
     /// :nodoc
     public init(unicodeScalarLiteral: String) {
-        self.init(rawSQL: unicodeScalarLiteral)
+        self.init(sql: unicodeScalarLiteral)
     }
     
     /// :nodoc:
     public init(extendedGraphemeClusterLiteral: String) {
-        self.init(rawSQL: extendedGraphemeClusterLiteral)
+        self.init(sql: extendedGraphemeClusterLiteral)
     }
     
     /// :nodoc:
     public init(stringLiteral: String) {
-        self.init(rawSQL: stringLiteral)
+        self.init(sql: stringLiteral)
     }
     
     /// :nodoc:

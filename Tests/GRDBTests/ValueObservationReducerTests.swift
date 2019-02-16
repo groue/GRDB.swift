@@ -28,7 +28,7 @@ class ValueObservationReducerTests: GRDBTestCase {
     func testReducer() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             // Track reducer process
             var fetchCount = 0
@@ -44,7 +44,7 @@ class ValueObservationReducerTests: GRDBTestCase {
                 fetch: { db -> Int in
                     fetchCount += 1
                     // test for database access
-                    return try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!
+                    return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!
             },
                 value: { count -> String? in
                     reduceCount += 1
@@ -57,7 +57,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             })
             
             // Create an observation
-            let request = SQLRequest<Void>(rawSQL: "SELECT * FROM t")
+            let request = SQLRequest<Void>(sql: "SELECT * FROM t")
             var observation = ValueObservation.tracking(request, reducer: { _ in reducer })
             observation.extent = .databaseLifetime
             
@@ -83,33 +83,33 @@ class ValueObservationReducerTests: GRDBTestCase {
             try dbWriter.writeWithoutTransaction { db in
                 // Test a 1st notified transaction
                 try db.inTransaction {
-                    try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
                     return .commit
                 }
                 
                 // Test an untracked transaction
                 try db.inTransaction {
-                    try db.execute(rawSQL: "CREATE TABLE ignored(a)")
+                    try db.execute(sql: "CREATE TABLE ignored(a)")
                     return .commit
                 }
                 
                 // Test a dropped transaction
                 try db.inTransaction {
-                    try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
-                    try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
                     return .commit
                 }
                 
                 // Test a rollbacked transaction
                 try db.inTransaction {
-                    try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
                     return .rollback
                 }
                 
                 // Test a 2nd notified transaction
                 try db.inTransaction {
-                    try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
-                    try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
                     return .commit
                 }
             }
@@ -153,7 +153,7 @@ class ValueObservationReducerTests: GRDBTestCase {
     func testSuccessThenErrorThenSuccess() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             // Track reducer process
             var errors: [Error] = []
@@ -192,8 +192,8 @@ class ValueObservationReducerTests: GRDBTestCase {
             struct TestError: Error { }
             nextError = TestError()
             try dbWriter.writeWithoutTransaction { db in
-                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
-                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -210,7 +210,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             // Test for the reducer documented in the main README
             
             // We need something to change
-            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             // Track reducer process
             var counts: [Int] = []
@@ -235,7 +235,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             }
             
             try dbWriter.write { db in
-                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -249,7 +249,7 @@ class ValueObservationReducerTests: GRDBTestCase {
     func testMapValueReducer() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             // Track reducer process
             var counts: [String] = []
@@ -282,8 +282,8 @@ class ValueObservationReducerTests: GRDBTestCase {
             }
             
             try dbWriter.writeWithoutTransaction { db in
-                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
-                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -297,7 +297,7 @@ class ValueObservationReducerTests: GRDBTestCase {
     func testCompactMapValueReducer() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             // Track reducer process
             var counts: [String] = []
@@ -331,8 +331,8 @@ class ValueObservationReducerTests: GRDBTestCase {
             }
             
             try dbWriter.writeWithoutTransaction { db in
-                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
-                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -345,7 +345,7 @@ class ValueObservationReducerTests: GRDBTestCase {
 
     func testValueObservationMap() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
-            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [String] = []
             let notificationExpectation = expectation(description: "notification")
@@ -363,8 +363,8 @@ class ValueObservationReducerTests: GRDBTestCase {
             }
             
             try dbWriter.writeWithoutTransaction { db in
-                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
-                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -377,7 +377,7 @@ class ValueObservationReducerTests: GRDBTestCase {
     
     func testReducerQueueLabel() throws {
         func test(_ dbWriter: DatabaseWriter, expectedLabels: [String]) throws {
-            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             let reduceExpectation = expectation(description: "notification")
             reduceExpectation.assertForOverFulfill = true
@@ -397,7 +397,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             _ = try observation.start(in: dbWriter, onChange: { _ in })
             
             try dbWriter.write { db in
-                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -432,7 +432,7 @@ class ValueObservationReducerTests: GRDBTestCase {
     // TODO: make this test pass reliably
 //    func testObserverInvalidation1() throws {
 //        func test(_ dbWriter: DatabaseWriter) throws {
-//            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+//            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
 //
 //            let notificationExpectation = expectation(description: "notification")
 //            notificationExpectation.isInverted = true
@@ -453,7 +453,7 @@ class ValueObservationReducerTests: GRDBTestCase {
 //            }
 //
 //            try dbWriter.write { db in
-//                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+//                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
 //            }
 //            waitForExpectations(timeout: 0.1, handler: nil)
 //        }
@@ -465,7 +465,7 @@ class ValueObservationReducerTests: GRDBTestCase {
     // TODO: make this test pass reliably
 //    func testObserverInvalidation2() throws {
 //        func test(_ dbWriter: DatabaseWriter) throws {
-//            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+//            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
 //            
 //            let notificationExpectation = expectation(description: "notification")
 //            notificationExpectation.isInverted = true
@@ -486,7 +486,7 @@ class ValueObservationReducerTests: GRDBTestCase {
 //            }
 //            
 //            try dbWriter.write { db in
-//                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+//                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
 //            }
 //            waitForExpectations(timeout: 0.1, handler: nil)
 //        }

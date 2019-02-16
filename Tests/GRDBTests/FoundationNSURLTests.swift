@@ -12,7 +12,7 @@ class FoundationNSURLTests: GRDBTestCase {
     func testNSURLDatabaseRoundTrip() throws {
         let dbQueue = try makeDatabaseQueue()
         func roundTrip(_ value: NSURL) throws -> Bool {
-            guard let back = try dbQueue.inDatabase({ try NSURL.fetchOne($0, rawSQL: "SELECT ?", arguments: [value]) }) else {
+            guard let back = try dbQueue.inDatabase({ try NSURL.fetchOne($0, sql: "SELECT ?", arguments: [value]) }) else {
                 XCTFail()
                 return false
             }

@@ -17,7 +17,7 @@ class SelectStatementTests : GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute(rawSQL: """
+            try db.execute(sql: """
                 CREATE TABLE persons (
                     id INTEGER PRIMARY KEY,
                     creationDate TEXT,
@@ -25,9 +25,9 @@ class SelectStatementTests : GRDBTestCase {
                     age INT)
                 """)
             
-            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Arthur", 41])
-            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Barbara", 26])
-            try db.execute(rawSQL: "INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Craig", 13])
+            try db.execute(sql: "INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Arthur", 41])
+            try db.execute(sql: "INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Barbara", 26])
+            try db.execute(sql: "INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Craig", 13])
         }
         try migrator.migrate(dbWriter)
     }
@@ -227,7 +227,7 @@ class SelectStatementTests : GRDBTestCase {
             try db.create(table: "table5") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try db.execute(rawSQL: "CREATE TRIGGER table5trigger AFTER INSERT ON table5 BEGIN INSERT INTO table1 (id3, id4, a, b) VALUES (NULL, NULL, 0, 0); END")
+            try db.execute(sql: "CREATE TRIGGER table5trigger AFTER INSERT ON table5 BEGIN INSERT INTO table1 (id3, id4, a, b) VALUES (NULL, NULL, 0, 0); END")
             
             let statements = try [
                 db.makeSelectStatement("SELECT * FROM table1"),
@@ -255,43 +255,43 @@ class SelectStatementTests : GRDBTestCase {
                 db.add(transactionObserver: observer)
             }
             
-            try db.execute(rawSQL: "INSERT INTO table3 (id) VALUES (1)")
-            try db.execute(rawSQL: "INSERT INTO table4 (id) VALUES (1)")
-            try db.execute(rawSQL: "INSERT INTO table1 (id, a, b, id3, id4) VALUES (NULL, 0, 0, 1, 1)")
+            try db.execute(sql: "INSERT INTO table3 (id) VALUES (1)")
+            try db.execute(sql: "INSERT INTO table4 (id) VALUES (1)")
+            try db.execute(sql: "INSERT INTO table1 (id, a, b, id3, id4) VALUES (NULL, 0, 0, 1, 1)")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
             
-            try db.execute(rawSQL: "INSERT INTO table2 (id, a, b) VALUES (NULL, 0, 0)")
+            try db.execute(sql: "INSERT INTO table2 (id, a, b) VALUES (NULL, 0, 0)")
             XCTAssertEqual(observers.map { $0.triggered }, [false, false, true, doubtfulCountFunction])
             
-            try db.execute(rawSQL: "UPDATE table1 SET a = 1")
+            try db.execute(sql: "UPDATE table1 SET a = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
             
-            try db.execute(rawSQL: "UPDATE table1 SET b = 1")
+            try db.execute(sql: "UPDATE table1 SET b = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
             
-            try db.execute(rawSQL: "UPDATE table2 SET a = 1")
+            try db.execute(sql: "UPDATE table2 SET a = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [false, false, true, doubtfulCountFunction])
             
-            try db.execute(rawSQL: "UPDATE table2 SET b = 1")
+            try db.execute(sql: "UPDATE table2 SET b = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [false, false, false, doubtfulCountFunction])
             
-            try db.execute(rawSQL: "UPDATE table3 SET id = 2 WHERE id = 1")
+            try db.execute(sql: "UPDATE table3 SET id = 2 WHERE id = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, false, true])
             
-            try db.execute(rawSQL: "UPDATE table4 SET id = 2 WHERE id = 1")
+            try db.execute(sql: "UPDATE table4 SET id = 2 WHERE id = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
             
-            try db.execute(rawSQL: "DELETE FROM table4")
+            try db.execute(sql: "DELETE FROM table4")
             XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
             
-            try db.execute(rawSQL: "INSERT INTO table4 (id) VALUES (1)")
-            try db.execute(rawSQL: "DELETE FROM table4")
+            try db.execute(sql: "INSERT INTO table4 (id) VALUES (1)")
+            try db.execute(sql: "DELETE FROM table4")
             XCTAssertEqual(observers.map { $0.triggered }, [false, false, false, doubtfulCountFunction])
             
-            try db.execute(rawSQL: "DELETE FROM table3")
+            try db.execute(sql: "DELETE FROM table3")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
             
-            try db.execute(rawSQL: "INSERT INTO table5 (id) VALUES (NULL)")
+            try db.execute(sql: "INSERT INTO table5 (id) VALUES (NULL)")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
         }
     }

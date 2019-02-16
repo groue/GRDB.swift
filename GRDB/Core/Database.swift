@@ -151,7 +151,7 @@ public final class Database {
     
     /// The list of compile options used when building SQLite
     static let sqliteCompileOptions: Set<String> = DatabaseQueue().inDatabase {
-        try! Set(String.fetchCursor($0, rawSQL: "PRAGMA COMPILE_OPTIONS"))
+        try! Set(String.fetchCursor($0, sql: "PRAGMA COMPILE_OPTIONS"))
     }
     
     // MARK: - Private properties
@@ -353,7 +353,7 @@ extension Database {
     private func setupForeignKeys() throws {
         // Foreign keys are disabled by default with SQLite3
         if configuration.foreignKeysEnabled {
-            try execute(rawSQL: "PRAGMA foreign_keys = ON")
+            try execute(sql: "PRAGMA foreign_keys = ON")
         }
     }
     
@@ -489,7 +489,7 @@ extension Database {
     ///         return int + 1
     ///     }
     ///     db.add(function: fn)
-    ///     try Int.fetchOne(db, rawSQL: "SELECT succ(1)")! // 2
+    ///     try Int.fetchOne(db, sql: "SELECT succ(1)")! // 2
     public func add(function: DatabaseFunction) {
         functions.update(with: function)
         function.install(in: self)
@@ -512,7 +512,7 @@ extension Database {
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
     ///     db.add(collation: collation)
-    ///     try db.execute(rawSQL: "CREATE TABLE files (name TEXT COLLATE localized_standard")
+    ///     try db.execute(sql: "CREATE TABLE files (name TEXT COLLATE localized_standard")
     public func add(collation: DatabaseCollation) {
         collations.update(with: collation)
         let collationPointer = Unmanaged.passUnretained(collation).toOpaque()
@@ -569,7 +569,7 @@ extension Database {
     ///
     ///     try dbQueue.inDatabase do {
     ///         try db.inTransaction {
-    ///             try db.execute(rawSQL: "INSERT ...")
+    ///             try db.execute(sql: "INSERT ...")
     ///             return .commit
     ///         }
     ///     }
@@ -629,7 +629,7 @@ extension Database {
     ///
     ///     try dbQueue.inDatabase do {
     ///         try db.inSavepoint {
-    ///             try db.execute(rawSQL: "INSERT ...")
+    ///             try db.execute(sql: "INSERT ...")
     ///             return .commit
     ///         }
     ///     }
@@ -665,7 +665,7 @@ extension Database {
         // using unique savepoint names. User could still mess with them
         // with raw SQL queries, but let's assume that it is unlikely that
         // the user uses "grdb" as a savepoint name.
-        try execute(rawSQL: "SAVEPOINT grdb")
+        try execute(sql: "SAVEPOINT grdb")
         
         // Now that savepoint has begun, we'll rollback in case of error.
         // But we'll throw the first caught error, so that user knows
@@ -676,7 +676,7 @@ extension Database {
             let completion = try block()
             switch completion {
             case .commit:
-                try execute(rawSQL: "RELEASE SAVEPOINT grdb")
+                try execute(sql: "RELEASE SAVEPOINT grdb")
                 assert(!topLevelSavepoint || !isInsideTransaction)
                 needsRollback = false
             case .rollback:
@@ -695,8 +695,8 @@ extension Database {
                     // Rollback, and release the savepoint.
                     // Rollback alone is not enough to clear the savepoint from
                     // the SQLite savepoint stack.
-                    try execute(rawSQL: "ROLLBACK TRANSACTION TO SAVEPOINT grdb")
-                    try execute(rawSQL: "RELEASE SAVEPOINT grdb")
+                    try execute(sql: "ROLLBACK TRANSACTION TO SAVEPOINT grdb")
+                    try execute(sql: "RELEASE SAVEPOINT grdb")
                 }
             } catch {
                 if firstError == nil {
@@ -719,7 +719,7 @@ extension Database {
     /// - throws: The error thrown by the block.
     public func beginTransaction(_ kind: TransactionKind? = nil) throws {
         let kind = kind ?? configuration.defaultTransactionKind
-        try execute(rawSQL: "BEGIN \(kind.rawValue) TRANSACTION")
+        try execute(sql: "BEGIN \(kind.rawValue) TRANSACTION")
         assert(isInsideTransaction)
     }
     
@@ -815,14 +815,14 @@ extension Database {
         // should be exposed to the library user.
         SchedulingWatchdog.preconditionValidQueue(self) // guard sqlite3_get_autocommit
         if sqlite3_get_autocommit(sqliteConnection) == 0 {
-            try execute(rawSQL: "ROLLBACK TRANSACTION")
+            try execute(sql: "ROLLBACK TRANSACTION")
         }
         assert(!isInsideTransaction)
     }
     
     /// Commits a database transaction.
     public func commit() throws {
-        try execute(rawSQL: "COMMIT TRANSACTION")
+        try execute(sql: "COMMIT TRANSACTION")
         assert(!isInsideTransaction)
     }
 }

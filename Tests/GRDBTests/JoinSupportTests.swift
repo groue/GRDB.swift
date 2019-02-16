@@ -99,7 +99,7 @@ private struct FlatModel: FetchableRecord {
     }
     
     static func all() -> AdaptedFetchRequest<SQLRequest<FlatModel>> {
-        return SQLRequest<FlatModel>(rawSQL: testedSQL).adapted { db in
+        return SQLRequest<FlatModel>(sql: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -115,7 +115,7 @@ private struct FlatModel: FetchableRecord {
     }
     
     static func hierarchicalAll() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
-        return SQLRequest<CodableFlatModel>(rawSQL: testedSQL).adapted { db in
+        return SQLRequest<CodableFlatModel>(sql: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -140,7 +140,7 @@ private struct CodableFlatModel: FetchableRecord, Codable {
     var t5count: Int
     
     static func all() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
-        return SQLRequest<CodableFlatModel>(rawSQL: testedSQL).adapted { db in
+        return SQLRequest<CodableFlatModel>(sql: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -155,7 +155,7 @@ private struct CodableFlatModel: FetchableRecord, Codable {
     }
     
     static func hierarchicalAll() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
-        return SQLRequest<CodableFlatModel>(rawSQL: testedSQL).adapted { db in
+        return SQLRequest<CodableFlatModel>(sql: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -183,7 +183,7 @@ private struct CodableNestedModel: FetchableRecord, Codable {
     var t5count: Int
     
     static func all() -> AdaptedFetchRequest<SQLRequest<CodableNestedModel>> {
-        return SQLRequest<CodableNestedModel>(rawSQL: testedSQL).adapted { db in
+        return SQLRequest<CodableNestedModel>(sql: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -230,12 +230,12 @@ class JoinSupportTests: GRDBTestCase {
                 t.column("t3id", .integer).references("t3", onDelete: .cascade)
                 t.column("t4id", .integer).references("t4", onDelete: .cascade)
                 t.column("name", .text).notNull()
-                t.check(rawSQL: "(t3id IS NOT NULL) + (t4id IS NOT NULL) = 1")
+                t.check(sql: "(t3id IS NOT NULL) + (t4id IS NOT NULL) = 1")
             }
             
             // Sample data
             
-            try db.execute(rawSQL: """
+            try db.execute(sql: """
                 INSERT INTO t1 (id, name) VALUES (1, 'A1');
                 INSERT INTO t1 (id, name) VALUES (2, 'A2');
                 INSERT INTO t1 (id, name) VALUES (3, 'A3');
@@ -259,7 +259,7 @@ class JoinSupportTests: GRDBTestCase {
     func testSampleData() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let rows = try Row.fetchAll(db, rawSQL: expectedSQL)
+            let rows = try Row.fetchAll(db, sql: expectedSQL)
             XCTAssertEqual(rows.count, 3)
             XCTAssertEqual(rows[0], [
                 // t1.*
@@ -304,7 +304,7 @@ class JoinSupportTests: GRDBTestCase {
     func testSplittingRowAdapters() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<Row>(rawSQL: testedSQL).adapted { db in
+            let request = SQLRequest<Row>(sql: testedSQL).adapted { db in
                 let adapters = try splittingRowAdapters(columnCounts: [
                     T1.numberOfSelectedColumns(db),
                     T2.numberOfSelectedColumns(db),

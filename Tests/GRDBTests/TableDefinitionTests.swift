@@ -184,7 +184,7 @@ class TableDefinitionTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.create(table: "test") { t in
                 t.column("a", .integer).check { $0 > 0 }
-                t.column("b", .integer).check(rawSQL: "b <> 2")
+                t.column("b", .integer).check(sql: "b <> 2")
                 t.column("c", .integer).check { $0 > 0 }.check { $0 < 10 }
             }
             assertEqualSQL(
@@ -196,9 +196,9 @@ class TableDefinitionTests: GRDBTestCase {
                     ")") as String)
             
             // Sanity check
-            try db.execute(rawSQL: "INSERT INTO test (a, b, c) VALUES (1, 0, 1)")
+            try db.execute(sql: "INSERT INTO test (a, b, c) VALUES (1, 0, 1)")
             do {
-                try db.execute(rawSQL: "INSERT INTO test (a, b, c) VALUES (0, 0, 1)")
+                try db.execute(sql: "INSERT INTO test (a, b, c) VALUES (0, 0, 1)")
                 XCTFail()
             } catch {
             }
@@ -213,7 +213,7 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("b", .integer).defaults(to: 1.0)
                 t.column("c", .integer).defaults(to: "'fooéı👨👨🏿🇫🇷🇨🇮'")
                 t.column("d", .integer).defaults(to: "foo".data(using: .utf8)!)
-                t.column("e", .integer).defaults(rawSQL: "NULL")
+                t.column("e", .integer).defaults(sql: "NULL")
             }
             assertEqualSQL(
                 lastSQLQuery,
@@ -226,9 +226,9 @@ class TableDefinitionTests: GRDBTestCase {
                     ")") as String)
             
             // Sanity check
-            try db.execute(rawSQL: "INSERT INTO test DEFAULT VALUES")
-            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT a FROM test")!, 1)
-            XCTAssertEqual(try String.fetchOne(db, rawSQL: "SELECT c FROM test")!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
+            try db.execute(sql: "INSERT INTO test DEFAULT VALUES")
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT a FROM test")!, 1)
+            XCTAssertEqual(try String.fetchOne(db, sql: "SELECT c FROM test")!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
         }
     }
 
@@ -376,7 +376,7 @@ class TableDefinitionTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.create(table: "test") { t in
                 t.check(Column("a") + Column("b") < 10)
-                t.check(rawSQL: "a + b < 10")
+                t.check(sql: "a + b < 10")
                 t.column("a", .integer)
                 t.column("b", .integer)
             }
@@ -390,9 +390,9 @@ class TableDefinitionTests: GRDBTestCase {
                     ")") as String)
             
             // Sanity check
-            try db.execute(rawSQL: "INSERT INTO test (a, b) VALUES (1, 0)")
+            try db.execute(sql: "INSERT INTO test (a, b) VALUES (1, 0)")
             do {
-                try db.execute(rawSQL: "INSERT INTO test (a, b) VALUES (5, 5)")
+                try db.execute(sql: "INSERT INTO test (a, b) VALUES (5, 5)")
                 XCTFail()
             } catch {
             }

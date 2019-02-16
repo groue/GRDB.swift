@@ -62,7 +62,7 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
             }
             
             let date = Date(timeIntervalSince1970: 0)
-            try db.execute(rawSQL: "INSERT INTO records (date) VALUES (?)", arguments: [date])
+            try db.execute(sql: "INSERT INTO records (date) VALUES (?)", arguments: [date])
             
             let request = Record.select(strftime("%Y", Column("date")))
             let year = try Int.fetchOne(db, request)
@@ -74,14 +74,14 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
     func testMatch() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(rawSQL: "CREATE VIRTUAL TABLE records USING fts3(content TEXT)")
+            try db.execute(sql: "CREATE VIRTUAL TABLE records USING fts3(content TEXT)")
             struct Record : TableRecord {
                 static let databaseTableName = "records"
             }
             
-            try db.execute(rawSQL: "INSERT INTO records (content) VALUES (?)", arguments: ["foo"])
-            try db.execute(rawSQL: "INSERT INTO records (content) VALUES (?)", arguments: ["foo bar"])
-            try db.execute(rawSQL: "INSERT INTO records (content) VALUES (?)", arguments: ["bar"])
+            try db.execute(sql: "INSERT INTO records (content) VALUES (?)", arguments: ["foo"])
+            try db.execute(sql: "INSERT INTO records (content) VALUES (?)", arguments: ["foo bar"])
+            try db.execute(sql: "INSERT INTO records (content) VALUES (?)", arguments: ["bar"])
             
             let request = Record.filter("foo" ~= Column("content"))
             let count = try request.fetchCount(db)
@@ -99,7 +99,7 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
                 static let databaseTableName = "records"
             }
             
-            try db.execute(rawSQL: "INSERT INTO records (text) VALUES (?)", arguments: ["foo"])
+            try db.execute(sql: "INSERT INTO records (text) VALUES (?)", arguments: ["foo"])
             
             let request = Record.select(cast(Column("text"), as: .blob))
             let dbValue = try DatabaseValue.fetchOne(db, request)!

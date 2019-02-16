@@ -28,7 +28,7 @@ struct Migration {
     #endif
     
     func run(_ db: Database) throws {
-        if try disabledForeignKeyChecks && (Bool.fetchOne(db, rawSQL: "PRAGMA foreign_keys") ?? false) {
+        if try disabledForeignKeyChecks && (Bool.fetchOne(db, sql: "PRAGMA foreign_keys") ?? false) {
             try runWithDisabledForeignKeys(db)
         } else {
             try runWithoutDisabledForeignKeys(db)
@@ -50,7 +50,7 @@ struct Migration {
         //
         // > 1. If foreign key constraints are enabled, disable them using
         // > PRAGMA foreign_keys=OFF.
-        try db.execute(rawSQL: "PRAGMA foreign_keys = OFF")
+        try db.execute(sql: "PRAGMA foreign_keys = OFF")
         
         // > 2. Start a transaction.
         try db.inTransaction(.immediate) {
@@ -60,7 +60,7 @@ struct Migration {
             // > 10. If foreign key constraints were originally enabled then run PRAGMA
             // > foreign_key_check to verify that the schema change did not break any foreign key
             // > constraints.
-            if try Row.fetchOne(db, rawSQL: "PRAGMA foreign_key_check") != nil {
+            if try Row.fetchOne(db, sql: "PRAGMA foreign_key_check") != nil {
                 // https://www.sqlite.org/pragma.html#pragma_foreign_key_check
                 //
                 // PRAGMA foreign_key_check does not return an error,
@@ -76,10 +76,10 @@ struct Migration {
         }
         
         // > 12. If foreign keys constraints were originally enabled, reenable them now.
-        try db.execute(rawSQL: "PRAGMA foreign_keys = ON")
+        try db.execute(sql: "PRAGMA foreign_keys = ON")
     }
     
     private func insertAppliedIdentifier(_ db: Database) throws {
-        try db.execute(rawSQL: "INSERT INTO grdb_migrations (identifier) VALUES (?)", arguments: [identifier])
+        try db.execute(sql: "INSERT INTO grdb_migrations (identifier) VALUES (?)", arguments: [identifier])
     }
 }

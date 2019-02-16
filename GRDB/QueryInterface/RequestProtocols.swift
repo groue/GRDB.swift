@@ -43,16 +43,16 @@ extension SelectionRequest {
     ///
     ///     // SELECT id, email FROM player
     ///     var request = Player.all()
-    ///     request = request.select(rawSQL: "id, email")
+    ///     request = request.select(sql: "id, email")
     ///
     /// Any previous selection is replaced:
     ///
     ///     // SELECT email FROM player
     ///     request
-    ///         .select(rawSQL: "id")
-    ///         .select(rawSQL: "email")
-    public func select(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return select(literal: SQLLiteral(rawSQL: sql, arguments: arguments))
+    ///         .select(sql: "id")
+    ///         .select(sql: "email")
+    public func select(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return select(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request which selects *sql*.
@@ -60,7 +60,7 @@ extension SelectionRequest {
     ///     // SELECT id, email, score + 1000 FROM player
     ///     let bonus = 1000
     ///     var request = Player.all()
-    ///     request = request.select(literal: SQLLiteral(rawSQL: """
+    ///     request = request.select(literal: SQLLiteral(sql: """
     ///         id, email, score + ?
     ///         """, arguments: [bonus]))
     ///
@@ -79,7 +79,7 @@ extension SelectionRequest {
     ///     // SELECT email FROM player
     ///     request
     ///         .select(...)
-    ///         .select(literal: SQLLiteral(rawSQL: "email"))
+    ///         .select(literal: SQLLiteral(sql: "email"))
     public func select(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
         return select(SQLSelectionLiteral(literal: sqlLiteral))
@@ -120,9 +120,9 @@ extension FilteredRequest {
     ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     var request = Player.all()
-    ///     request = request.filter(rawSQL: "email = ?", arguments: ["arthur@example.com"])
-    public func filter(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return filter(literal: SQLLiteral(rawSQL: sql, arguments: arguments))
+    ///     request = request.filter(sql: "email = ?", arguments: ["arthur@example.com"])
+    public func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return filter(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *predicate* added to the
@@ -130,7 +130,7 @@ extension FilteredRequest {
     ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     var request = Player.all()
-    ///     request = request.filter(literal: SQLLiteral(rawSQL: """
+    ///     request = request.filter(literal: SQLLiteral(sql: """
     ///         email = ?
     ///         """, arguments: ["arthur@example.com"])
     ///
@@ -320,8 +320,8 @@ extension AggregatingRequest {
     }
     
     /// Creates a request with a new grouping.
-    public func group(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return group(literal: SQLLiteral(rawSQL: sql, arguments: arguments))
+    public func group(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return group(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with a new grouping.
@@ -340,8 +340,8 @@ extension AggregatingRequest {
 
     /// Creates a request with the provided *sql* added to the
     /// eventual set of already applied predicates.
-    public func having(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return having(literal: SQLLiteral(rawSQL: sql, arguments: arguments))
+    public func having(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return having(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
 
     /// Creates a request with the provided *sql* added to the
@@ -429,16 +429,16 @@ extension OrderedRequest {
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     var request = Player.all()
-    ///     request = request.order(rawSQL: "name")
+    ///     request = request.order(sql: "name")
     ///
     /// Any previous ordering is replaced:
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     request
-    ///         .order(rawSQL: "email")
-    ///         .order(rawSQL: "name")
-    public func order(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return order(literal: SQLLiteral(rawSQL: sql, arguments: arguments))
+    ///         .order(sql: "email")
+    ///         .order(sql: "name")
+    public func order(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return order(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *sql* used for sorting.

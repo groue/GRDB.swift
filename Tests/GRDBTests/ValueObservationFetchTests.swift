@@ -24,7 +24,7 @@ class ValueObservationFetchTests: GRDBTestCase {
     
     func testFetch() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
-            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -32,7 +32,7 @@ class ValueObservationFetchTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 4
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
             observation.extent = .databaseLifetime
             _ = try observation.start(in: dbWriter) { count in
@@ -41,9 +41,9 @@ class ValueObservationFetchTests: GRDBTestCase {
             }
             
             try dbWriter.writeWithoutTransaction { db in
-                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
-                try db.execute(rawSQL: "UPDATE t SET id = id")
-                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "UPDATE t SET id = id")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)
@@ -56,7 +56,7 @@ class ValueObservationFetchTests: GRDBTestCase {
     
     func testDistinctUntilChanged() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
-            try dbWriter.write { try $0.execute(rawSQL: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -64,7 +64,7 @@ class ValueObservationFetchTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 3
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, rawSQL: "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             }).distinctUntilChanged()
             observation.extent = .databaseLifetime
             _ = try observation.start(in: dbWriter) { count in
@@ -73,9 +73,9 @@ class ValueObservationFetchTests: GRDBTestCase {
             }
             
             try dbWriter.writeWithoutTransaction { db in
-                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
-                try db.execute(rawSQL: "UPDATE t SET id = id")
-                try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "UPDATE t SET id = id")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)

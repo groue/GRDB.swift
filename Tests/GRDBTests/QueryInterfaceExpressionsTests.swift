@@ -38,7 +38,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
-            try db.execute(rawSQL: """
+            try db.execute(sql: """
                 CREATE TABLE readers (
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,

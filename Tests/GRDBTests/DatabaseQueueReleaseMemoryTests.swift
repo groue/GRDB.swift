@@ -70,7 +70,7 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
         let (block1, block2) = { () -> (() -> (), () -> ()) in
             var dbQueue: DatabaseQueue? = try! self.makeDatabaseQueue()
             try! dbQueue!.write { db in
-                try db.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }
             
             let block1 = { () in
@@ -83,7 +83,7 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
                     try! dbQueue.write { db in
                         s1.signal()
                         _ = s2.wait(timeout: .distantFuture)
-                        XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM items"), 0)
+                        XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items"), 0)
                     }
                 } else {
                     XCTFail("expect non nil dbQueue")

@@ -12,7 +12,7 @@ class SQLRequestTests: GRDBTestCase {
     func testSQLRequest() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<Row>(rawSQL: "SELECT 1")
+            let request = SQLRequest<Row>(sql: "SELECT 1")
             let (statement, adapter) = try request.prepare(db)
             XCTAssertEqual(statement.sql, "SELECT 1")
             XCTAssertNil(adapter)
@@ -24,7 +24,7 @@ class SQLRequestTests: GRDBTestCase {
     func testSQLRequestWithArgumentsAndAdapter() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<Int>(rawSQL: "SELECT ?, ?", arguments: [1, 2], adapter: SuffixRowAdapter(fromIndex: 1))
+            let request = SQLRequest<Int>(sql: "SELECT ?, ?", arguments: [1, 2], adapter: SuffixRowAdapter(fromIndex: 1))
             let (statement, adapter) = try request.prepare(db)
             XCTAssertEqual(statement.sql, "SELECT ?, ?")
             XCTAssertNotNil(adapter)
@@ -36,7 +36,7 @@ class SQLRequestTests: GRDBTestCase {
     func testNotCachedSQLRequest() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<Row>(rawSQL: "SELECT 1")
+            let request = SQLRequest<Row>(sql: "SELECT 1")
             let (statement1, _) = try request.prepare(db)
             let (statement2, _) = try request.prepare(db)
             XCTAssertTrue(statement1 !== statement2)
@@ -46,7 +46,7 @@ class SQLRequestTests: GRDBTestCase {
     func testCachedSQLRequest() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<Row>(rawSQL: "SELECT 1", cached: true)
+            let request = SQLRequest<Row>(sql: "SELECT 1", cached: true)
             let (statement1, _) = try request.prepare(db)
             let (statement2, _) = try request.prepare(db)
             XCTAssertTrue(statement1 === statement2)
@@ -75,7 +75,7 @@ class SQLRequestTests: GRDBTestCase {
     func testSQLLiteralInitializer() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<String>(literal: SQLLiteral(rawSQL: """
+            let request = SQLRequest<String>(literal: SQLLiteral(sql: """
                 SELECT ?
                 """, arguments: ["O'Brien"]))
             XCTAssertEqual(request.sql, """

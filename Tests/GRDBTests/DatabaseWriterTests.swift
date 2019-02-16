@@ -16,10 +16,10 @@ class DatabaseWriterTests : GRDBTestCase {
                 t.column("id", .integer).primaryKey()
             }
             try dbQueue.unsafeReentrantWrite { db2 in
-                try db2.execute(rawSQL: "INSERT INTO table1 (id) VALUES (NULL)")
+                try db2.execute(sql: "INSERT INTO table1 (id) VALUES (NULL)")
                 
                 try dbQueue.unsafeReentrantWrite { db3 in
-                    try XCTAssertEqual(Int.fetchOne(db3, rawSQL: "SELECT * FROM table1"), 1)
+                    try XCTAssertEqual(Int.fetchOne(db3, sql: "SELECT * FROM table1"), 1)
                     XCTAssertTrue(db1 === db2)
                     XCTAssertTrue(db2 === db3)
                 }
@@ -34,10 +34,10 @@ class DatabaseWriterTests : GRDBTestCase {
                 t.column("id", .integer).primaryKey()
             }
             try dbPool.unsafeReentrantWrite { db2 in
-                try db2.execute(rawSQL: "INSERT INTO table1 (id) VALUES (NULL)")
+                try db2.execute(sql: "INSERT INTO table1 (id) VALUES (NULL)")
                 
                 try dbPool.unsafeReentrantWrite { db3 in
-                    try XCTAssertEqual(Int.fetchOne(db3, rawSQL: "SELECT * FROM table1"), 1)
+                    try XCTAssertEqual(Int.fetchOne(db3, sql: "SELECT * FROM table1"), 1)
                     XCTAssertTrue(db1 === db2)
                     XCTAssertTrue(db2 === db3)
                 }
@@ -61,7 +61,7 @@ class DatabaseWriterTests : GRDBTestCase {
         migrator.registerMigration("init") { db in
             // Create a database with recursive constraints, so that we test
             // that those don't prevent database erasure.
-            try db.execute(rawSQL: """
+            try db.execute(sql: """
                 CREATE TABLE t1 (id INTEGER PRIMARY KEY AUTOINCREMENT, b UNIQUE, c REFERENCES t2(id) ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED);
                 CREATE TABLE t2 (id INTEGER PRIMARY KEY AUTOINCREMENT, b UNIQUE, c REFERENCES t1(id) ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED);
                 CREATE VIRTUAL TABLE ft USING fts4(content);
@@ -87,7 +87,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try writer.vacuum()
         
         try writer.read { db in
-            try XCTAssertNil(Row.fetchOne(db, rawSQL: "SELECT * FROM sqlite_master"))
+            try XCTAssertNil(Row.fetchOne(db, sql: "SELECT * FROM sqlite_master"))
         }
     }
     
@@ -95,7 +95,7 @@ class DatabaseWriterTests : GRDBTestCase {
     func testIssue424() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
-            try db.execute(rawSQL: """
+            try db.execute(sql: """
                 CREATE TABLE t(a);
                 INSERT INTO t VALUES (1)
                 """)
@@ -110,7 +110,7 @@ class DatabaseWriterTests : GRDBTestCase {
     func testIssue424Minimal() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(rawSQL: """
+            try db.execute(sql: """
                 CREATE TABLE t(a);
                 INSERT INTO t VALUES (1);
                 PRAGMA query_only = 1;

@@ -9,7 +9,7 @@ extension SQLExpression {
     public var sqlLiteral: SQLLiteral {
         var context = SQLGenerationContext.literalGenerationContext(withArguments: true)
         let sql = expressionSQL(&context)
-        return SQLLiteral(rawSQL: sql, arguments: context.arguments!)
+        return SQLLiteral(sql: sql, arguments: context.arguments!)
     }
     
     /// The expression as a quoted SQL literal (not public in order to avoid abuses)
@@ -27,12 +27,12 @@ extension SQLExpression {
 ///
 /// SQLExpressionLiteral is an expression built from a raw SQL snippet.
 ///
-///     SQLExpressionLiteral(rawSQL: "1 + 2")
+///     SQLExpressionLiteral(sql: "1 + 2")
 ///
 /// The SQL literal may contain `?` and colon-prefixed arguments:
 ///
-///     SQLExpressionLiteral(rawSQL: "? + ?", arguments: [1, 2])
-///     SQLExpressionLiteral(rawSQL: ":one + :two", arguments: ["one": 1, "two": 2])
+///     SQLExpressionLiteral(sql: "? + ?", arguments: [1, 2])
+///     SQLExpressionLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2])
 public struct SQLExpressionLiteral : SQLExpression {
     private let sqlLiteral: SQLLiteral
     
@@ -40,20 +40,20 @@ public struct SQLExpressionLiteral : SQLExpression {
     ///
     /// Creates an SQL literal expression.
     ///
-    ///     SQLExpressionLiteral(rawSQL: "1 + 2")
-    ///     SQLExpressionLiteral(rawSQL: "? + ?", arguments: [1, 2])
-    ///     SQLExpressionLiteral(rawSQL: ":one + :two", arguments: ["one": 1, "two": 2])
-    public init(rawSQL sql: String, arguments: StatementArguments = StatementArguments()) {
-        self.init(literal: SQLLiteral(rawSQL: sql, arguments: arguments))
+    ///     SQLExpressionLiteral(sql: "1 + 2")
+    ///     SQLExpressionLiteral(sql: "? + ?", arguments: [1, 2])
+    ///     SQLExpressionLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2])
+    public init(sql: String, arguments: StatementArguments = StatementArguments()) {
+        self.init(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Creates an SQL literal expression.
     ///
-    ///     SQLExpressionLiteral(literal: SQLLiteral(rawSQL: "1 + 2")
-    ///     SQLExpressionLiteral(literal: SQLLiteral(rawSQL: "? + ?", arguments: [1, 2]))
-    ///     SQLExpressionLiteral(literal: SQLLiteral(rawSQL: ":one + :two", arguments: ["one": 1, "two": 2]))
+    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: "1 + 2")
+    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: "? + ?", arguments: [1, 2]))
+    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2]))
     ///
     /// With Swift 5, you can safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:

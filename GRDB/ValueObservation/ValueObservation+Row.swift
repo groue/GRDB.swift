@@ -7,7 +7,7 @@ extension ValueObservation where Reducer == Void {
     ///
     /// For example:
     ///
-    ///     let request = SQLRequest<Row>(rawSQL: "SELECT * FROM player")
+    ///     let request = SQLRequest<Row>(sql: "SELECT * FROM player")
     ///     let observation = ValueObservation.trackingAll(request)
     ///
     ///     let observer = try observation.start(in: dbQueue) { rows: [Row] in
@@ -39,7 +39,7 @@ extension ValueObservation where Reducer == Void {
     ///
     /// For example:
     ///
-    ///     let request = SQLRequest<Row>(rawSQL: "SELECT * FROM player WHERE id = ?", arguments: [1])
+    ///     let request = SQLRequest<Row>(sql: "SELECT * FROM player WHERE id = ?", arguments: [1])
     ///     let observation = ValueObservation.trackingOne(request)
     ///
     ///     let observer = try observation.start(in: dbQueue) { row: Row? in

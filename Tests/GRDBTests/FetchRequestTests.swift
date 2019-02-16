@@ -22,8 +22,8 @@ class FetchRequestTests: GRDBTestCase {
             try db.create(table: "table1") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try db.execute(rawSQL: "INSERT INTO table1 DEFAULT VALUES")
-            try db.execute(rawSQL: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
             
             let request = CustomRequest()
             let rows = try request.fetchAll(db)
@@ -47,8 +47,8 @@ class FetchRequestTests: GRDBTestCase {
             try db.create(table: "table1") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try db.execute(rawSQL: "INSERT INTO table1 DEFAULT VALUES")
-            try db.execute(rawSQL: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
             
             let request = CustomRequest()
             let ints = try request.fetchAll(db)
@@ -75,8 +75,8 @@ class FetchRequestTests: GRDBTestCase {
             try db.create(table: "table1") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try db.execute(rawSQL: "INSERT INTO table1 DEFAULT VALUES")
-            try db.execute(rawSQL: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
             
             let request = CustomRequest()
             let records = try request.fetchAll(db)
@@ -100,8 +100,8 @@ class FetchRequestTests: GRDBTestCase {
             try db.create(table: "table1") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try db.execute(rawSQL: "INSERT INTO table1 DEFAULT VALUES")
-            try db.execute(rawSQL: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
             
             let request = CustomRequest()
             let count = try request.fetchCount(db)
@@ -127,8 +127,8 @@ class FetchRequestTests: GRDBTestCase {
             try db.create(table: "table1") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try db.execute(rawSQL: "INSERT INTO table1 DEFAULT VALUES")
-            try db.execute(rawSQL: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
             
             let request = CustomRequest()
             let count = try request.fetchCount(db)

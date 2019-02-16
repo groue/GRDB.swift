@@ -110,7 +110,7 @@
                     .map { "old.\($0.quotedDatabaseIdentifier)" }
                     .joined(separator: ", ")
                 
-                try db.execute(rawSQL: """
+                try db.execute(sql: """
                     CREATE TRIGGER \("__\(tableName)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
                         INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
                     END;
@@ -125,7 +125,7 @@
                 
                 // https://sqlite.org/fts5.html#the_rebuild_command
                 
-                try db.execute(rawSQL: "INSERT INTO \(ftsTable)(\(ftsTable)) VALUES('rebuild')")
+                try db.execute(sql: "INSERT INTO \(ftsTable)(\(ftsTable)) VALUES('rebuild')")
             }
         }
         
@@ -156,7 +156,7 @@
         }
         
         private static func api_v1(_ db: Database) -> UnsafePointer<fts5_api> {
-            guard let data = try! Data.fetchOne(db, rawSQL: "SELECT fts5()") else {
+            guard let data = try! Data.fetchOne(db, sql: "SELECT fts5()") else {
                 fatalError("FTS5 is not available")
             }
             #if swift(>=5.0)
@@ -371,7 +371,7 @@
     extension Database {
         /// Deletes the synchronization triggers for a synchronized FTS5 table
         public func dropFTS5SynchronizationTriggers(forTable tableName: String) throws {
-            try execute(rawSQL: """
+            try execute(sql: """
                 DROP TRIGGER IF EXISTS \("__\(tableName)_ai".quotedDatabaseIdentifier);
                 DROP TRIGGER IF EXISTS \("__\(tableName)_ad".quotedDatabaseIdentifier);
                 DROP TRIGGER IF EXISTS \("__\(tableName)_au".quotedDatabaseIdentifier);

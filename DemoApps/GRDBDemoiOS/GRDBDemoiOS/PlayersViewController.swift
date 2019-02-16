@@ -246,7 +246,7 @@ extension PlayersViewController {
                 }
                 // Delete a random player
                 if Bool.random() {
-                    try Player.order(rawSQL: "RANDOM()").limit(1).deleteAll(db)
+                    try Player.order(sql: "RANDOM()").limit(1).deleteAll(db)
                 }
                 // Update some players
                 for var player in try Player.fetchAll(db) where Bool.random() {

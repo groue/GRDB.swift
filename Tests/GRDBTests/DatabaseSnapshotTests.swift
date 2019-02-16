@@ -27,15 +27,15 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let dbPool = try makeDatabasePool()
         try dbPool.writeWithoutTransaction { db in
             try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
-            try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             let snapshot = try dbPool.makeSnapshot()
             try snapshot.read { db in
-                try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 1)
+                try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
             }
-            try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
-            try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 2)
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
             try snapshot.read { db in
-                try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 1)
+                try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
             }
         }
     }
@@ -44,19 +44,19 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
             try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
-            try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
         
         let snapshot = try dbPool.makeSnapshot()
         try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 1)
+            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
         }
         try dbPool.write { db in
-            try db.execute(rawSQL: "INSERT INTO t DEFAULT VALUES")
-            try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 2)
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
         }
         try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, rawSQL: "SELECT COUNT(*) FROM t")!, 1)
+            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
         }
     }
     
@@ -67,7 +67,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         
         let snapshot = try dbPool.makeSnapshot()
         try snapshot.read { db in
-            try XCTAssertEqual(String.fetchOne(db, rawSQL: "SELECT foo()")!, "foo")
+            try XCTAssertEqual(String.fetchOne(db, sql: "SELECT foo()")!, "foo")
         }
     }
     
@@ -77,7 +77,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let function = DatabaseFunction("foo", argumentCount: 0, pure: true) { _ in return "foo" }
         snapshot.add(function: function)
         try snapshot.read { db in
-            try XCTAssertEqual(String.fetchOne(db, rawSQL: "SELECT foo()")!, "foo")
+            try XCTAssertEqual(String.fetchOne(db, sql: "SELECT foo()")!, "foo")
         }
     }
 
@@ -89,25 +89,25 @@ class DatabaseSnapshotTests: GRDBTestCase {
         dbPool.add(collation: collation)
         
         try dbPool.write { db in
-            try db.execute(rawSQL: "CREATE TABLE items (text TEXT)")
-            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('a')")
-            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('b')")
-            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('c')")
+            try db.execute(sql: "CREATE TABLE items (text TEXT)")
+            try db.execute(sql: "INSERT INTO items (text) VALUES ('a')")
+            try db.execute(sql: "INSERT INTO items (text) VALUES ('b')")
+            try db.execute(sql: "INSERT INTO items (text) VALUES ('c')")
         }
         
         let snapshot = try dbPool.makeSnapshot()
         try snapshot.read { db in
-            XCTAssertEqual(try String.fetchAll(db, rawSQL: "SELECT text FROM items ORDER BY text COLLATE reverse"), ["c", "b", "a"])
+            XCTAssertEqual(try String.fetchAll(db, sql: "SELECT text FROM items ORDER BY text COLLATE reverse"), ["c", "b", "a"])
         }
     }
 
     func testSnapshotCollations() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
-            try db.execute(rawSQL: "CREATE TABLE items (text TEXT)")
-            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('a')")
-            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('b')")
-            try db.execute(rawSQL: "INSERT INTO items (text) VALUES ('c')")
+            try db.execute(sql: "CREATE TABLE items (text TEXT)")
+            try db.execute(sql: "INSERT INTO items (text) VALUES ('a')")
+            try db.execute(sql: "INSERT INTO items (text) VALUES ('b')")
+            try db.execute(sql: "INSERT INTO items (text) VALUES ('c')")
         }
         
         let snapshot = try dbPool.makeSnapshot()
@@ -116,7 +116,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         }
         snapshot.add(collation: collation)
         try snapshot.read { db in
-            XCTAssertEqual(try String.fetchAll(db, rawSQL: "SELECT text FROM items ORDER BY text COLLATE reverse"), ["c", "b", "a"])
+            XCTAssertEqual(try String.fetchAll(db, sql: "SELECT text FROM items ORDER BY text COLLATE reverse"), ["c", "b", "a"])
         }
     }
     

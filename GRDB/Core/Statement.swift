@@ -479,17 +479,17 @@ public final class UpdateStatement : Statement {
                 // The statement did return a row, and the user ignores the
                 // content of this row:
                 //
-                //     try db.execute(rawSQL: "SELECT ...")
+                //     try db.execute(sql: "SELECT ...")
                 //
                 // That's OK: maybe the selected rows perform side effects.
                 // For example:
                 //
-                //      try db.execute(rawSQL: "SELECT sqlcipher_export(...)")
+                //      try db.execute(sql: "SELECT sqlcipher_export(...)")
                 //
                 // Or maybe the user doesn't know that the executed statement
                 // return rows (https://github.com/groue/GRDB.swift/issues/15);
                 //
-                //      try db.execute(rawSQL: "PRAGMA journal_mode=WAL")
+                //      try db.execute(sql: "PRAGMA journal_mode=WAL")
                 //
                 // It is thus important that we consume *all* rows.
                 continue
@@ -526,12 +526,12 @@ public final class UpdateStatement : Statement {
 /// To fill question marks placeholders, feed StatementArguments with an array:
 ///
 ///     db.execute(
-///         rawSQL: "INSERT ... (?, ?)",
+///         sql: "INSERT ... (?, ?)",
 ///         arguments: StatementArguments(["Arthur", 41]))
 ///
 ///     // Array literals are automatically converted:
 ///     db.execute(
-///         rawSQL: "INSERT ... (?, ?)",
+///         sql: "INSERT ... (?, ?)",
 ///         arguments: ["Arthur", 41])
 ///
 /// ## Named Arguments
@@ -539,12 +539,12 @@ public final class UpdateStatement : Statement {
 /// To fill named arguments, feed StatementArguments with a dictionary:
 ///
 ///     db.execute(
-///         rawSQL: "INSERT ... (:name, :score)",
+///         sql: "INSERT ... (:name, :score)",
 ///         arguments: StatementArguments(["name": "Arthur", "score": 41]))
 ///
 ///     // Dictionary literals are automatically converted:
 ///     db.execute(
-///         rawSQL: "INSERT ... (:name, :score)",
+///         sql: "INSERT ... (:name, :score)",
 ///         arguments: ["name": "Arthur", "score": 41])
 ///
 /// ## Concatenating Arguments
@@ -554,7 +554,7 @@ public final class UpdateStatement : Statement {
 ///
 ///     var arguments: StatementArguments = ["Arthur"]
 ///     arguments += [41]
-///     db.execute(rawSQL: "INSERT ... (?, ?)", arguments: arguments)
+///     db.execute(sql: "INSERT ... (?, ?)", arguments: arguments)
 ///
 /// `+` and `+=` operators consider that overriding named arguments is a
 /// programmer error:
@@ -577,7 +577,7 @@ public final class UpdateStatement : Statement {
 ///
 ///     let sql = "SELECT ?2 AS two, :foo AS foo, ?1 AS one, :foo AS foo2, :bar AS bar"
 ///     var arguments: StatementArguments = [1, 2, "bar"] + ["foo": "foo"]
-///     let row = try Row.fetchOne(db, rawSQL: sql, arguments: arguments)!
+///     let row = try Row.fetchOne(db, sql: sql, arguments: arguments)!
 ///     print(row)
 ///     // Prints [two:2 foo:"foo" one:1 foo2:"foo" bar:"bar"]
 ///
@@ -607,7 +607,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable, Expressibl
     /// Creates statement arguments from a sequence of optional values.
     ///
     ///     let values: [DatabaseValueConvertible?] = ["foo", 1, nil]
-    ///     db.execute(rawSQL: "INSERT ... (?,?,?)", arguments: StatementArguments(values))
+    ///     db.execute(sql: "INSERT ... (?,?,?)", arguments: StatementArguments(values))
     ///
     /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
@@ -618,7 +618,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable, Expressibl
     /// Creates statement arguments from a sequence of optional values.
     ///
     ///     let values: [String] = ["foo", "bar"]
-    ///     db.execute(rawSQL: "INSERT ... (?,?)", arguments: StatementArguments(values))
+    ///     db.execute(sql: "INSERT ... (?,?)", arguments: StatementArguments(values))
     ///
     /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
@@ -649,7 +649,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable, Expressibl
     /// such as a dictionary.
     ///
     ///     let values: [String: DatabaseValueConvertible?] = ["firstName": nil, "lastName": "Miller"]
-    ///     db.execute(rawSQL: "INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
+    ///     db.execute(sql: "INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
     ///
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
@@ -661,7 +661,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable, Expressibl
     /// as a dictionary.
     ///
     ///     let values: [String: DatabaseValueConvertible?] = ["firstName": nil, "lastName": "Miller"]
-    ///     db.execute(rawSQL: "INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
+    ///     db.execute(sql: "INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
     ///
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.

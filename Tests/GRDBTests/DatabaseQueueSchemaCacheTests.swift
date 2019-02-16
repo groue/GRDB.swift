@@ -13,7 +13,7 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         
         try dbQueue.inDatabase { db in
-            try db.execute(rawSQL: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
         }
         
         dbQueue.inDatabase { db in
@@ -32,7 +32,7 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
         
         try dbQueue.inDatabase { db in
             // Empty cache after schema change
-            try db.execute(rawSQL: "DROP TABLE items")
+            try db.execute(sql: "DROP TABLE items")
             
             // Assert that cache is empty
             XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)

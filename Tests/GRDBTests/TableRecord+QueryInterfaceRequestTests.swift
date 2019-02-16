@@ -24,7 +24,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
-            try db.execute(rawSQL: """
+            try db.execute(sql: """
                 CREATE TABLE readers (
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -87,10 +87,10 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testSelectLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-            try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
-            let request = Reader.select(rawSQL: "name, id - 1")
+            let request = Reader.select(sql: "name, id - 1")
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
@@ -104,10 +104,10 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testSelectLiteralWithPositionalArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-            try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
-            let request = Reader.select(rawSQL: "name, id - ?", arguments: [1])
+            let request = Reader.select(sql: "name, id - ?", arguments: [1])
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
@@ -121,10 +121,10 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testSelectLiteralWithNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-            try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
-            let request = Reader.select(rawSQL: "name, id - :n", arguments: ["n": 1])
+            let request = Reader.select(sql: "name, id - :n", arguments: ["n": 1])
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
@@ -138,8 +138,8 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testSelectSQLLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-            try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
             func test(_ request: QueryInterfaceRequest<Reader>) throws {
                 let rows = try Row.fetchAll(db, request)
@@ -149,7 +149,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
                 XCTAssertEqual(rows[1][0] as String, "O'Brien")
                 XCTAssertEqual(rows[1][1] as Int64, 1)
             }
-            try test(Reader.select(literal: SQLLiteral(rawSQL: ":name, id - :value", arguments: ["name": "O'Brien", "value": 1])))
+            try test(Reader.select(literal: SQLLiteral(sql: ":name, id - :value", arguments: ["name": "O'Brien", "value": 1])))
             #if swift(>=5)
             // Interpolation
             try test(Reader.select(literal: "\("O'Brien"), id - \(1)"))
@@ -160,8 +160,8 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testSelect() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-            try db.execute(rawSQL: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
             let request = Reader.select(Col.name, Col.id - 1)
             let rows = try Row.fetchAll(db, request)
@@ -187,21 +187,21 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testFilterLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.filter(rawSQL: "id <> 1")),
+            sql(dbQueue, Reader.filter(sql: "id <> 1")),
             "SELECT * FROM \"readers\" WHERE (id <> 1)")
     }
     
     func testFilterLiteralWithPositionalArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.filter(rawSQL: "id <> ?", arguments: [1])),
+            sql(dbQueue, Reader.filter(sql: "id <> ?", arguments: [1])),
             "SELECT * FROM \"readers\" WHERE (id <> 1)")
     }
     
     func testFilterLiteralWithNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.filter(rawSQL: "id <> :id", arguments: ["id": 1])),
+            sql(dbQueue, Reader.filter(sql: "id <> :id", arguments: ["id": 1])),
             "SELECT * FROM \"readers\" WHERE (id <> 1)")
     }
     
@@ -225,21 +225,21 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testSortLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.order(rawSQL: "lower(name) desc")),
+            sql(dbQueue, Reader.order(sql: "lower(name) desc")),
             "SELECT * FROM \"readers\" ORDER BY lower(name) desc")
     }
     
     func testSortLiteralWithPositionalArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.order(rawSQL: "age + ?", arguments: [1])),
+            sql(dbQueue, Reader.order(sql: "age + ?", arguments: [1])),
             "SELECT * FROM \"readers\" ORDER BY age + 1")
     }
     
     func testSortLiteralWithNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.order(rawSQL: "age + :age", arguments: ["age": 1])),
+            sql(dbQueue, Reader.order(sql: "age + :age", arguments: ["age": 1])),
             "SELECT * FROM \"readers\" ORDER BY age + 1")
     }
     

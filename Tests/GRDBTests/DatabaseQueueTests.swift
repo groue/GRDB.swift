@@ -46,12 +46,12 @@ class DatabaseQueueTests: GRDBTestCase {
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertEqual(try Int.fetchOne(db, rawSQL: "SELECT succ(1)"), 2) // 2
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT succ(1)"), 2) // 2
         }
         dbQueue.remove(function: fn)
         do {
             try dbQueue.inDatabase { db in
-                try db.execute(rawSQL: "SELECT succ(1)")
+                try db.execute(sql: "SELECT succ(1)")
                 XCTFail("Expected Error")
             }
             XCTFail("Expected Error")
@@ -73,12 +73,12 @@ class DatabaseQueueTests: GRDBTestCase {
         }
         dbQueue.add(collation: collation)
         try dbQueue.inDatabase { db in
-            try db.execute(rawSQL: "CREATE TABLE files (name TEXT COLLATE TEST_COLLATION_FOO)")
+            try db.execute(sql: "CREATE TABLE files (name TEXT COLLATE TEST_COLLATION_FOO)")
         }
         dbQueue.remove(collation: collation)
         do {
             try dbQueue.inDatabase { db in
-                try db.execute(rawSQL: "CREATE TABLE files_fail (name TEXT COLLATE TEST_COLLATION_FOO)")
+                try db.execute(sql: "CREATE TABLE files_fail (name TEXT COLLATE TEST_COLLATION_FOO)")
                 XCTFail("Expected Error")
             }
             XCTFail("Expected Error")
