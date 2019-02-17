@@ -290,7 +290,7 @@ struct StatementCache {
         let statement: SelectStatement
         if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
             // SQLite 3.24.0 or more
-            statement = try db.makeSelectStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+            statement = try db.makeSelectStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         } else {
             // SQLite 3.19.3 or less
             statement = try db.makeSelectStatement(sql: sql)

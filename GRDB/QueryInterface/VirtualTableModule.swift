@@ -55,7 +55,6 @@ extension Database {
     ///     - module: The name of an SQLite virtual table module.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func create(virtualTable name: String, ifNotExists: Bool = false, using module: String) throws {
-        // TODO? refactor with SQLLiteral
         var chunks: [String] = []
         chunks.append("CREATE VIRTUAL TABLE")
         if ifNotExists {
