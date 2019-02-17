@@ -197,7 +197,7 @@ See [Records](#records)
     <summary>Fetch records and values with the Swift query interface</summary>
 
 ```swift
-try dbQueue.write { db in
+try dbQueue.read { db in
     // Place?
     let paris = try Place.fetchOne(db, key: 1)
     
@@ -229,7 +229,7 @@ See the [Query Interface](#the-query-interface)
 let request = Place.order(Column("title"))
 try ValueObservation
     .trackingAll(request)
-    .start(in: dbQueue) { places: [Place] in
+    .start(in: dbQueue) { (places: [Place]) in
         print("Places have changed.")
     }
 ```
@@ -2875,7 +2875,7 @@ try dbQueue.read { db in
 // Observe changes
 try ValueObservation
     .trackingOne(Player.maximumScore)
-    .start(in: dbQueue) { maxScore: Int? in
+    .start(in: dbQueue) { (maxScore: Int?) in
         print("The maximum score has changed")
     }
 ```
@@ -4324,7 +4324,7 @@ When you also want to use database observation tools such as [ValueObservation],
     // Observe with ValueObservation
     try ValueObservation
         .trackingOne(request)
-        .start(in: dbQueue) { maxScore: Int? in
+        .start(in: dbQueue) { (maxScore: Int?) in
             print("The maximum score has changed")
         }
     ```
@@ -4350,7 +4350,7 @@ When you also want to use database observation tools such as [ValueObservation],
     // Observe with ValueObservation
     try ValueObservation
         .trackingAll(request)
-        .start(in: dbQueue) { bookInfos: [BookInfo] in
+        .start(in: dbQueue) { (bookInfos: [BookInfo]) in
             print("Books have changed")
         }
     ```
@@ -4424,7 +4424,7 @@ Those requests can feed [ValueObservation]:
 ```swift
 try ValueObservation.
     .trackingOne(Player.filter(key: 1))
-    .start(in: dbQueue) { player: Player? in
+    .start(in: dbQueue) { (player: Player?) in
         print("Player 1 has changed")
     }
 ```
@@ -4544,7 +4544,7 @@ Custom requests can also feed [ValueObservation]:
 ```swift
 try ValueObservation.
     .trackingAll(Player.customRequest(...))
-    .start(in: dbQueue) { players: [Player] in
+    .start(in: dbQueue) { (players: [Player]) in
         print("Players have changed")
     }
 ```
@@ -5770,7 +5770,7 @@ let playerInfos = try dbQueue.read { db in
 // Track player infos with RxRGDB:
 PlayerInfo.all()
     .rx.fetchAll(in: dbQueue)
-    .subscribe(onNext: { playerInfos: [PlayerInfo] in
+    .subscribe(onNext: { (playerInfos: [PlayerInfo]) in
         print("Player infos have changed")
     })
 ```
@@ -5837,7 +5837,7 @@ let playerInfos = try dbQueue.read { db in
 // Track player infos with RxRGDB:
 PlayerInfo.all()
     .rx.fetchAll(in: dbQueue)
-    .subscribe(onNext: { playerInfos: [PlayerInfo] in
+    .subscribe(onNext: { (playerInfos: [PlayerInfo]) in
         print("Player infos have changed")
     })
 ```
@@ -5933,7 +5933,7 @@ let request = Player.all()
 
 ```swift
 let observation = ValueObservation.trackingAll(request)
-let observer = observation.start(in: dbQueue) { players: [Player] in
+let observer = observation.start(in: dbQueue) { (players: [Player]) in
     let names = players.map { $0.name }.joined(separator: ", ")
     print("Fresh players: \(names)")
 }
@@ -5948,7 +5948,7 @@ try dbQueue.write { db in
 
 ```swift
 let observation = DatabaseRegionObservation(tracking: request)
-let observer = observation.start(in: dbQueue) { db: Database in
+let observer = observation.start(in: dbQueue) { (db: Database) in
     print("Players have changed.")
 }
 
@@ -5997,7 +5997,7 @@ class PlayerViewController: UIViewController {
         // Start observing the database
         observer = try! observation.start(
             in: dbQueue,
-            onChange: { [unowned self] player: Player? in
+            onChange: { [unowned self] (player: Player?) in
                 // Player has changed: update view
                 self.nameLabel.text = player?.name
             })
@@ -6039,7 +6039,7 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
     // Observe number of players
     let observer = ValueObservation
         .trackingCount(Player.all())
-        .start(in: dbQueue) { count: Int in
+        .start(in: dbQueue) { (count: Int) in
             print("Number of players have changed: \(count)")
         }
     ```
@@ -6050,7 +6050,7 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
     // Observe a single player
     let observer = ValueObservation
         .trackingOne(Player.filter(key: 1))
-        .start(in: dbQueue) { player: Player? in
+        .start(in: dbQueue) { (player: Player?) in
             print("Player has changed: \(player)")
         }
     
@@ -6058,7 +6058,7 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
     let request = Player.select(max(Column("score")), as: Int.self)
     let observer = ValueObservation
         .trackingOne(request)
-        .start(in: dbQueue) { maximumScore: Int? in
+        .start(in: dbQueue) { (maximumScore: Int?) in
             print("Maximum score has changed: \(maximumScore)")
         }
     ```
@@ -6069,7 +6069,7 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
     // Observe all players
     let observer = ValueObservation
         .trackingAll(Player.all())
-        .start(in: dbQueue) { players: [Player] in
+        .start(in: dbQueue) { (players: [Player]) in
             print("Players have changed: \(players)")
         }
     
@@ -6077,7 +6077,7 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
     let request = SQLRequest<String>(sql: "SELECT name FROM player")
     let observer = ValueObservation
         .trackingAll(request)
-        .start(in: dbQueue) { names: [String] in
+        .start(in: dbQueue) { (names: [String]) in
             print("Player names have changed: \(names)")
         }
     ```
@@ -6128,7 +6128,7 @@ let observation = ValueObservation.tracking(Player.all(), fetch: { db in
     try HallOfFame.fetch(db)
 })
 
-let observer = observation.start(in: dbQueue) { hallOfFame: HallOfFame in
+let observer = observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
     print("""
         Best players out of \(hallOfFame.totalPlayerCount):
         \(hallOfFame.bestPlayers)
@@ -6152,7 +6152,7 @@ let observation = ValueObservation
     .tracking(Player.all(), fetch: HallOfFame.fetch)
     .distinctUntilChanged()
 
-let observer = observation.start(in: dbQueue) { hallOfFame: HallOfFame in
+let observer = observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
     print("""
         Best players out of \(hallOfFame.totalPlayerCount):
         \(hallOfFame.bestPlayers)
@@ -6216,7 +6216,7 @@ let teamInfo: TeamInfo? = try dbQueue.read(request.fetch)
 // Observation
 let observer = ValueObservation
     .tracking(request, fetch: request.fetch)
-    .start(in: dbQueue) { teamInfo: TeamInfo? in
+    .start(in: dbQueue) { (teamInfo: TeamInfo?) in
         print("Team and its players have hanged.")
     }
 ```
@@ -6242,7 +6242,7 @@ let observation = ValueObservation
     .trackingOne(Player.filter(key: 42))
     .map { player in player?.loadBigProfileImage() }
 
-let observer = observation.start(in: dbQueue) { image: UIImage? in
+let observer = observation.start(in: dbQueue) { (image: UIImage?) in
     print("Player picture has changed")
 }
 ```
@@ -6262,7 +6262,7 @@ let observation = ValueObservation
     .trackingOne(Player.filter(key: 42))
     .compactMap { $0 }
     
-let observer = observation.start(in: dbQueue) { player: Player in
+let observer = observation.start(in: dbQueue) { (player: Player) in
     print("Player name: \(player.name)")
 }
 ```
@@ -6282,7 +6282,7 @@ let observation = ValueObservation
     .map { player in player != nil } // existence test
     .distinctUntilChanged()
 
-let observer = observation.start(in: dbQueue) { exists: Bool in
+let observer = observation.start(in: dbQueue) { (exists: Bool) in
     if exists {
         print("Player 42 exists.")
     } else {
@@ -6380,7 +6380,7 @@ The `scheduling` property lets you control how fresh values are notified:
     // On main queue
     let observer = ValueObservation
         .trackingAll(Player.all())
-        .start(in: dbQueue) { players: [Player] in
+        .start(in: dbQueue) { (players: [Player]) in
             // On main queue
             print("fresh players: \(players)")
         }
@@ -6393,7 +6393,7 @@ The `scheduling` property lets you control how fresh values are notified:
     // Not on the main queue
     let observer = ValueObservation
         .trackingAll(Player.all())
-        .start(in: dbQueue) { players: [Player] in
+        .start(in: dbQueue) { (players: [Player]) in
             // On main queue
             print("fresh players: \(players)")
         }
@@ -6416,7 +6416,7 @@ The `scheduling` property lets you control how fresh values are notified:
     let customQueue = DispatchQueue(label: "customQueue")
     var observation = ValueObservation.trackingAll(Player.all())
     observation.scheduling = .onQueue(customQueue, startImmediately: true)
-    let observer = try observation.start(in: dbQueue) { players: [Player] in
+    let observer = try observation.start(in: dbQueue) { (players: [Player]) in
         // On customQueue
         print("fresh players: \(players)")s
     }
@@ -6430,7 +6430,7 @@ The `scheduling` property lets you control how fresh values are notified:
     // On any queue
     var observation = ValueObservation.trackingAll(Player.all())
     observation.scheduling = .unsafe(startImmediately: true)
-    let observer = try observation.start(in: dbQueue) { players: [Player] in
+    let observer = try observation.start(in: dbQueue) { (players: [Player]) in
         print("fresh players: \(players)")
     }
     // <- here "fresh players" is already printed.
@@ -6486,7 +6486,7 @@ let reducer = AnyValueReducer(
         defer { count += 1 }
         return count })
 let observation = ValueObservation.tracking(Player.all(), reducer: { _ in reducer })
-let observer = observation.start(in: dbQueue) { count: Int in
+let observer = observation.start(in: dbQueue) { (count: Int) in
     print("Number of transactions that have modified players: \(count)")
 }
 // Prints "Number of transactions that have modified players: 0"
@@ -6519,7 +6519,7 @@ let observation = DatabaseRegionObservation(tracking: Player.all())
 Then start the observation from a [database queue](#database-queues) or [pool](#database-pools):
 
 ```swift
-let observer = observation.start(in: dbQueue) { db: Database in
+let observer = observation.start(in: dbQueue) { (db: Database) in
     print("Players were changed")
 }
 ```
@@ -6540,7 +6540,7 @@ You can also feed DatabaseRegionObservation with [DatabaseRegion], or any type w
 ```swift
 // Observe the full database
 let observation = DatabaseRegionObservation(tracking: DatabaseRegion.fullDatabase)
-let observer = observation.start(in: dbQueue) { db: Database in
+let observer = observation.start(in: dbQueue) { (db: Database) in
     print("Database was changed")
 }
 ```
