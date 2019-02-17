@@ -100,15 +100,13 @@ class SQLRequestTests: GRDBTestCase {
             XCTAssertEqual(string, "O'Brien")
         }
     }
-    #endif
-
-    #if swift(>=5.0)
+    
     func testSQLInterpolation() throws {
         // This test assumes SQLRequest interpolation is based on
         // SQLInterpolation, just like SQLLiteral. We thus test much less
         // cases.
-        struct Player: Codable, TableRecord {
-            var id: Int64?
+        struct Player: Codable, TableRecord, FetchableRecord, PersistableRecord {
+            var id: Int64
             var name: String
             
             static func filter(id: Int64) -> SQLRequest<Player> {
@@ -127,11 +125,11 @@ class SQLRequestTests: GRDBTestCase {
                     """
             }
 
-            static func genericFilter<S>(ids: S) -> SQLRequest<Player> where S: Sequence, S.Element == Int64 {
+            static func filter<S>(excludedIds: S) -> SQLRequest<Player> where S: Sequence, S.Element == Int64 {
                 return """
                     SELECT *
                     FROM \(self)
-                    WHERE \(CodingKeys.id) IN \(ids)
+                    WHERE \(CodingKeys.id) NOT IN \(excludedIds)
                     """
             }
         }
@@ -143,6 +141,9 @@ class SQLRequestTests: GRDBTestCase {
                 t.column("name", .text)
             }
             
+            try Player(id: 1, name: "Arthur").insert(db)
+            try Player(id: 42, name: "Barbara").insert(db)
+            
             do {
                 let request = Player.filter(id: 42)
                 XCTAssertEqual(request.sql, """
@@ -150,7 +151,8 @@ class SQLRequestTests: GRDBTestCase {
                     FROM "player"
                     WHERE "id" = ?
                     """)
-                _ = try Row.fetchOne(db, request)
+                let player = try request.fetchOne(db)!
+                XCTAssertEqual(player.name, "Barbara")
                 XCTAssertEqual(lastSQLQuery, """
                     SELECT *
                     FROM "player"
@@ -165,7 +167,9 @@ class SQLRequestTests: GRDBTestCase {
                     FROM "player"
                     WHERE "id" IN (?,?,?)
                     """)
-                _ = try Row.fetchOne(db, request)
+                let players = try request.fetchAll(db)
+                XCTAssertEqual(players.count, 1)
+                XCTAssertEqual(players[0].name, "Arthur")
                 XCTAssertEqual(lastSQLQuery, """
                     SELECT *
                     FROM "player"
@@ -174,17 +178,51 @@ class SQLRequestTests: GRDBTestCase {
             }
             
             do {
-                let request = Player.genericFilter(ids: [42, 666])
+                let request = Player.filter(ids: [])
                 XCTAssertEqual(request.sql, """
                     SELECT *
                     FROM "player"
-                    WHERE "id" IN (?,?)
+                    WHERE "id" IN (SELECT NULL WHERE NULL)
                     """)
-                _ = try Row.fetchOne(db, request)
+                let players = try request.fetchAll(db)
+                XCTAssert(players.isEmpty)
                 XCTAssertEqual(lastSQLQuery, """
                     SELECT *
                     FROM "player"
-                    WHERE "id" IN (42,666)
+                    WHERE "id" IN (SELECT NULL WHERE NULL)
+                    """)
+            }
+            
+            do {
+                let request = Player.filter(excludedIds: [42, 666])
+                XCTAssertEqual(request.sql, """
+                    SELECT *
+                    FROM "player"
+                    WHERE "id" NOT IN (?,?)
+                    """)
+                let players = try request.fetchAll(db)
+                XCTAssertEqual(players.count, 1)
+                XCTAssertEqual(players[0].name, "Arthur")
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT *
+                    FROM "player"
+                    WHERE "id" NOT IN (42,666)
+                    """)
+            }
+            
+            do {
+                let request = Player.filter(excludedIds: [])
+                XCTAssertEqual(request.sql, """
+                    SELECT *
+                    FROM "player"
+                    WHERE "id" NOT IN (SELECT NULL WHERE NULL)
+                    """)
+                let players = try request.fetchAll(db)
+                XCTAssertEqual(players.count, 2)
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT *
+                    FROM "player"
+                    WHERE "id" NOT IN (SELECT NULL WHERE NULL)
                     """)
             }
         }

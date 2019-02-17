@@ -257,7 +257,7 @@ extension SQLLiteralTests {
             WHERE teamId IN (?)
               AND name IN (?,?,?)
               AND c IN ("a",("b" + ?))
-              AND d IN ()
+              AND d IN (SELECT NULL WHERE NULL)
             """)
         XCTAssertEqual(sql.arguments, [1, "foo", "bar", "baz", 2])
     }

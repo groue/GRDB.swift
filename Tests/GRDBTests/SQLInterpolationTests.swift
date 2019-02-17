@@ -133,7 +133,7 @@ class SQLInterpolationTests: GRDBTestCase {
             (?)
             (?,?,?)
             ("a",("b" + ?))
-            ()
+            (SELECT NULL WHERE NULL)
             """)
         XCTAssertEqual(sql.arguments, [1, "foo", "bar", "baz", 2])
     }
