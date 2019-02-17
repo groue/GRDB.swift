@@ -9,3 +9,9 @@ extension DatabaseWriter {
     @available(*, unavailable, message: "Use concurrentRead instead")
     public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws { preconditionFailure() }
 }
+
+@available(*, unavailable, renamed: "FastDatabaseValueCursor")
+public typealias ColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> = FastDatabaseValueCursor<Value>
+
+@available(*, unavailable, renamed: "FastNullableDatabaseValueCursor")
+public typealias NullableColumnCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> = FastNullableDatabaseValueCursor<Value>
