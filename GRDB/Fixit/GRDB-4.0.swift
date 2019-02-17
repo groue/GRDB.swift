@@ -108,4 +108,3 @@ extension SQLExpression {
     @available(*, unavailable, message: "Use sqlLiteral property instead")
     public var literal: SQLExpressionLiteral { preconditionFailure() }
 }
-

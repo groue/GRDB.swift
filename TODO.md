@@ -47,6 +47,8 @@ GRDB 4.0
 - [ ] SQLite 3.27.0
 - [ ] SQLCipher 4
 - [ ] Mark unavailable the deprecated methods
+- [ ] FTS: prefix queries
+- [ ] Test NOT TESTED methods
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0193-cross-module-inlining-and-specialization.md
 
 Swift 4.2
