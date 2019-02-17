@@ -183,7 +183,7 @@ jobs:
     - stage: Test Installation Xcode 10.1
       osx_image: xcode10.1
       install:
-        - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
+        - gem install cocoapods # >= 1.6.0 for cocoapods lint
       env:
         - TID=CocoaPods Lint GRDB.swift
       script: make test_CocoaPodsLint_GRDB
@@ -192,7 +192,7 @@ jobs:
     - stage: Test Installation Xcode 10.1
       osx_image: xcode10.1
       install:
-        - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
+        - gem install cocoapods # >= 1.6.0 for cocoapods lint
       env:
         - TID=CocoaPods Lint GRDBPlus
       script: make test_CocoaPodsLint_GRDBPlus
@@ -201,7 +201,7 @@ jobs:
     - stage: Test Installation Xcode 10.1
       osx_image: xcode10.1
       install:
-        - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
+        - gem install cocoapods # >= 1.6.0 for cocoapods lint
       env:
         - TID=CocoaPods Lint GRDBCipher
       script: make test_CocoaPodsLint_GRDBCipher
@@ -210,7 +210,7 @@ jobs:
     - stage: Test Installation Xcode 10.1
       osx_image: xcode10.1
       install:
-        - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
+        - gem install cocoapods # >= 1.6.0 for cocoapods lint
       env:
         - TID=CocoaPods GRDB
       script: make test_install_GRDB_CocoaPods
@@ -219,7 +219,7 @@ jobs:
     - stage: Test Installation Xcode 10.1
       osx_image: xcode10.1
       install:
-        - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
+        - gem install cocoapods # >= 1.6.0 for cocoapods lint
       env:
         - TID=CocoaPods GRDB+FTS5
       script: make test_install_GRDBFTS5_CocoaPods
@@ -228,7 +228,7 @@ jobs:
     - stage: Test Installation Xcode 10.1
       osx_image: xcode10.1
       install:
-        - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
+        - gem install cocoapods # >= 1.6.0 for cocoapods lint
       env:
         - TID=CocoaPods GRDBCipher
       script: make test_install_GRDBCipher_CocoaPods
