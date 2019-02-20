@@ -6990,18 +6990,18 @@ Notified changes are not actually written to disk until the [transaction](#trans
 try dbQueue.write { db in
     try db.execute(sql: "INSERT ...") // 1. didChange
     try db.execute(sql: "UPDATE ...") // 2. didChange
-}                                // 3. willCommit, 4. didCommit
+}                                     // 3. willCommit, 4. didCommit
 
 try dbQueue.inTransaction { db in
     try db.execute(sql: "INSERT ...") // 1. didChange
     try db.execute(sql: "UPDATE ...") // 2. didChange
-    return .rollback             // 3. didRollback
+    return .rollback                  // 3. didRollback
 }
 
 try dbQueue.write { db in
     try db.execute(sql: "INSERT ...") // 1. didChange
     throw SomeError()
-}                                // 2. didRollback
+}                                     // 2. didRollback
 ```
 
 Database statements that are executed outside of any transaction do not drop off the radar:
@@ -7028,7 +7028,7 @@ try dbQueue.inTransaction { db in
     try db.execute(sql: "UPDATE ...")            // not notified
     try db.execute(sql: "ROLLBACK TO SAVEPOINT foo")
     
-    return .commit                          // 4. willCommit, 5. didCommit
+    return .commit                               // 4. willCommit, 5. didCommit
 }
 ```
 

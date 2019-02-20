@@ -81,7 +81,7 @@ try db.create(virtualTable: "documents", using: FTS5()) { t in
 The full-text table can be fed and queried in [a regular way](../../../#full-text-search):
 
 ```swift
-try db.execute("INSERT INTO documents VALUES (?)", arguments: ["..."])
+try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["..."])
 try Document(content: "...").insert(db)
 
 let pattern = FTS5Pattern(matchingAnyTokenIn:"...")
