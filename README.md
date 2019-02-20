@@ -9,6 +9,7 @@ GRDB 3 [![Swift](https://img.shields.io/badge/swift-4.1-orange.svg?style=flat)](
 
 | Swift version | GRDB version                                                |
 | ------------- | ----------------------------------------------------------- |
+| Swift 5       | [v4.0.0](https://github.com/groue/GRDB.swift/tree/GRDB-4.0) :construction: in development |
 | **Swift 4.2** | **v3.6.2**                                                  |
 | **Swift 4.1** | **v3.6.2**                                                  |
 | Swift 4       | [v2.10.0](https://github.com/groue/GRDB.swift/tree/v2.10.0) |
