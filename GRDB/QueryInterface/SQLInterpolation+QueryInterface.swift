@@ -124,5 +124,17 @@ extension SQLInterpolation {
     public mutating func appendInterpolation(_ ordering: SQLOrderingTerm) {
         sql += ordering.orderingTermSQL(&context)
     }
+
+    /// Appends the request SQL, wrapped in parentheses
+    ///
+    ///     // SELECT name FROM player WHERE score = (SELECT MAX(score) FROM player)
+    ///     let subQuery: SQLRequest<Int> = "SELECT MAX(score) FROM player"
+    ///     let request: SQLRequest<Player> = """
+    ///         SELECT * FROM player WHERE score = \(subQuery)
+    ///         """
+    public mutating func appendInterpolation<T>(_ request: SQLRequest<T>) {
+        sql += "(" + request.sql + ")"
+        arguments += request.arguments
+    }
 }
 #endif
