@@ -1447,47 +1447,6 @@ The `databaseValue` property returns [DatabaseValue](#databasevalue), a type tha
 The `fromDatabaseValue()` factory method returns an instance of your custom type if the database value contains a suitable value. If the database value does not contain a suitable value, such as "foo" for Date, `fromDatabaseValue` *must* return nil (GRDB will interpret this nil result as a conversion error, and react accordingly).
 
 
-## SQL Interpolation
-
-**SQL Interpolation**, available in Swift 5, lets you write natural looking SQL queries with embedded values:
-
-```swift
-try dbQueue.write { db in
-    let name: String = ...
-    let score: Int = ...
-    let email: String? = ...
-    
-    // SQL Interpolation
-    try db.execute(literal: """
-        UPDATE player SET
-            name = \(name),
-            score = \(score),
-            email = \(email)
-        WHERE id = \(id)
-        """)
-}
-```
-
-To fetch raw rows, values, or records with SQL interpolation, use SQLRequest:
-
-```swift
-try dbQueue.read { db in
-    let teamId = 42
-    let request: SQLRequest<Int> = """
-        SELECT MAX(score) FROM player
-        WHERE teamId = \(teamId)
-        """
-    let maxScore = try request.fetchOne(db) // Int?
-    
-    let request: SQLRequest<Player> = """
-        SELECT * FROM player
-        WHERE name = \("O'Brien")
-        """
-    let players = try request.fetchAll(db) // [Player]
-}
-```
-
-
 ## Transactions and Savepoints
 
 - [Transactions and Safety](#transactions-and-safety)
@@ -8679,4 +8638,4 @@ This chapter has been renamed [Beyond FetchableRecord].
 [DatabaseRegionConvertible]: #the-databaseregionconvertible-protocol
 [ValueObservation and DatabaseRegionObservation]: #valueobservation-and-databaseregionobservation
 [DatabaseRegion]: #databaseregion
-[SQL Interpolation]: #sql-interpolation
+[SQL Interpolation]: (Documentation/SQLInterpolation.md)
