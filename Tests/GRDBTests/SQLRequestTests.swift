@@ -132,6 +132,12 @@ class SQLRequestTests: GRDBTestCase {
                     WHERE \(CodingKeys.id) NOT IN \(excludedIds)
                     """
             }
+            
+            // The test pass if this method compiles.
+            static func complexRequest() -> SQLRequest<Player> {
+                let query: SQLLiteral = "SELECT * FROM \(self)"
+                return SQLRequest(literal: query)
+            }
         }
         
         let dbQueue = try makeDatabaseQueue()

@@ -602,7 +602,7 @@ try dbQueue.write { db in
 
 The `?` and colon-prefixed keys like `:score` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [StatementArguments](http://groue.github.io/GRDB.swift/docs/3.6/Structs/StatementArguments.html) for a detailed documentation of SQLite arguments.
 
-In Swift 5, you can embed query arguments right into your SQL queries, with the `literal` argument label, as in the example below. See [SQL Interpolation] for more details about this feature.
+In Swift 5, you can embed query arguments right into your SQL queries, with the `literal` argument label, as in the example below. See [SQL Interpolation] for more details.
 
 ```swift
 // Swift 5
@@ -4632,6 +4632,17 @@ let request = Player.all()
     
     // [Player]
     try Player.filter(color: .red).fetchAll(db)
+    ```
+    
+    In Swift 5, you can build SQLRequest with [SQL Interpolation]:
+    
+    ```swift
+    // Swift 5
+    extension Player {
+        static func filter(color: Color) -> SQLRequest<Player> {
+            return "SELECT * FROM player WHERE color = \(color)"
+        }
+    }
     ```
     
 - The `asRequest(of:)` method changes the type fetched by the request. It is useful, for example, when you use [Associations]:

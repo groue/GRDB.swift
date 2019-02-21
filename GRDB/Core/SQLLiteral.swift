@@ -28,7 +28,7 @@ extension SQLLiteral {
         lhs.arguments += rhs.arguments
     }
     
-    public mutating func append(_ sqlLiteral: SQLLiteral) {
+    public mutating func append(literal sqlLiteral: SQLLiteral) {
         self += sqlLiteral
     }
 

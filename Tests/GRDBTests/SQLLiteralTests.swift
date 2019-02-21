@@ -44,9 +44,9 @@ class SQLLiteralTests: GRDBTestCase {
     
     func testAppendLiteral() {
         var sql = SQLLiteral(sql: "SELECT * ")
-        sql.append(SQLLiteral(sql: "FROM player "))
-        sql.append(SQLLiteral(sql: "WHERE id = ? ", arguments: [1]))
-        sql.append(SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"]))
+        sql.append(literal: SQLLiteral(sql: "FROM player "))
+        sql.append(literal: SQLLiteral(sql: "WHERE id = ? ", arguments: [1]))
+        sql.append(literal: SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"]))
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player WHERE id = ? AND name = ?
             """)
@@ -309,8 +309,8 @@ extension SQLLiteralTests {
 
     func testAppendLiteralWithInterpolation() {
         var sql: SQLLiteral = "SELECT \(AllColumns()) "
-        sql.append("FROM player ")
-        sql.append("WHERE id = \(1)")
+        sql.append(literal: "FROM player ")
+        sql.append(literal: "WHERE id = \(1)")
         XCTAssertEqual(sql.sql, """
             SELECT * FROM player WHERE id = ?
             """)

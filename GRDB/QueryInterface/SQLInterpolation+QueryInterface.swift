@@ -133,6 +133,7 @@ extension SQLInterpolation {
     ///         SELECT * FROM player WHERE score = \(subQuery)
     ///         """
     public mutating func appendInterpolation<T>(_ request: SQLRequest<T>) {
+        // TODO: test
         sql += "(" + request.sql + ")"
         arguments += request.arguments
     }

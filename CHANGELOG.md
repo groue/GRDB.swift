@@ -55,6 +55,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - Deprecated APIs are no longer available.
 - `SQLRequest.arguments` is no longer optional
 
+### Documentation Diff
+
+- [SQL Interpolation](Documentation/SQLInterpolation.md): this new document describes the new SQL interpolation feature.
+
 
 ## 3.6.2
 
