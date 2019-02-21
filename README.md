@@ -123,6 +123,12 @@ try dbQueue.write { db in
         """, arguments: ["Paris", true, 48.85341, 2.3488])
     
     let parisId = db.lastInsertedRowID
+    
+    // Swift 5 only
+    try db.execute(literal: """
+        INSERT INTO place (title, favorite, latitude, longitude)
+        VALUES (\("Madrid"), \(true), \(40.41678), \(-3.70379))
+        """)
 }
 ```
 
@@ -264,7 +270,7 @@ Documentation
 
 #### SQLite and SQL
 
-- [SQLite API](#sqlite-api): The low-level SQLite API &bull; [executing updates](#executing-updates) &bull; [fetch queries](#fetch-queries)
+- [SQLite API](#sqlite-api): The low-level SQLite API &bull; [executing updates](#executing-updates) &bull; [fetch queries](#fetch-queries) &bull; [SQL Interpolation]
 
 #### Records and the Query Interface
 
@@ -572,6 +578,7 @@ SQLite API
     - [Swift enums](#swift-enums)
     - [Custom Value Types](#custom-value-types)
 - [Transactions and Savepoints](#transactions-and-savepoints)
+- [SQL Interpolation]
 
 Advanced topics:
 
@@ -8657,4 +8664,4 @@ This chapter has been renamed [Beyond FetchableRecord].
 [DatabaseRegionConvertible]: #the-databaseregionconvertible-protocol
 [ValueObservation and DatabaseRegionObservation]: #valueobservation-and-databaseregionobservation
 [DatabaseRegion]: #databaseregion
-[SQL Interpolation]: (Documentation/SQLInterpolation.md)
+[SQL Interpolation]: Documentation/SQLInterpolation.md
