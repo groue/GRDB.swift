@@ -602,18 +602,40 @@ try dbQueue.write { db in
 
 The `?` and colon-prefixed keys like `:score` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [StatementArguments](http://groue.github.io/GRDB.swift/docs/3.6/Structs/StatementArguments.html) for a detailed documentation of SQLite arguments.
 
-**Never ever embed values directly in your SQL strings**, and always use arguments instead. See [Avoiding SQL Injection](#avoiding-sql-injection) for more information:
+In Swift 5, you can embed query arguments right into your SQL queries, with the `literal` argument label, as in the example below. See [SQL Interpolation] for more details about this feature.
+
+```swift
+// Swift 5
+try dbQueue.write { db in
+    try db.execute(literal: """
+        INSERT INTO player (name, score)
+        VALUES (\("O'Brien"), \(550))
+        """)
+}
+```
+
+**Never ever embed values directly in your raw SQL strings**. See [Avoiding SQL Injection](#avoiding-sql-injection) for more information:
 
 ```swift
 // WRONG
 let id = 123
 let name = textField.text
-try db.execute(sql: "UPDATE player SET name = '\(name)' WHERE id = \(id)")
+try db.execute(
+    sql: "UPDATE player SET name = '\(name)' WHERE id = \(id)")
+
+// CORRECT (Swift 5)
+try db.execute(
+    literal: "UPDATE player SET name = \(name) WHERE id = \(id)")
 
 // CORRECT
 try db.execute(
     sql: "UPDATE player SET name = :name WHERE id = :id",
     arguments: ["name": name, "id": id])
+
+// CORRECT
+try db.execute(
+    sql: "UPDATE player SET name = ? WHERE id = ?",
+    arguments: [name, id])
 ```
 
 **Join multiple statements with a semicolon**:
@@ -621,8 +643,14 @@ try db.execute(
 ```swift
 try db.execute(sql: """
     INSERT INTO player (name, score) VALUES (?, ?);
-    INSERT INTO player (name, score) VALUES (?, ?)
+    INSERT INTO player (name, score) VALUES (?, ?);
     """, arguments: ["Arthur", 750, "Barbara", 1000])
+
+// Swift 5
+try db.execute(literal: """
+    INSERT INTO player (name, score) VALUES (\("Arthur"), \(750));
+    INSERT INTO player (name, score) VALUES (\("Barbara"), \(1000));
+    """)
 ```
 
 When you want to make sure that a single statement is executed, use [Prepared Statements](#prepared-statements).
@@ -1417,6 +1445,47 @@ All types that adopt this protocol can be used like all other [values](#values) 
 The `databaseValue` property returns [DatabaseValue](#databasevalue), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and Data. Since DatabaseValue has no public initializer, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc. Conversion to DatabaseValue *must not* fail.
 
 The `fromDatabaseValue()` factory method returns an instance of your custom type if the database value contains a suitable value. If the database value does not contain a suitable value, such as "foo" for Date, `fromDatabaseValue` *must* return nil (GRDB will interpret this nil result as a conversion error, and react accordingly).
+
+
+## SQL Interpolation
+
+**SQL Interpolation**, available in Swift 5, lets you write natural looking SQL queries with embedded values:
+
+```swift
+try dbQueue.write { db in
+    let name: String = ...
+    let score: Int = ...
+    let email: String? = ...
+    
+    // SQL Interpolation
+    try db.execute(literal: """
+        UPDATE player SET
+            name = \(name),
+            score = \(score),
+            email = \(email)
+        WHERE id = \(id)
+        """)
+}
+```
+
+To fetch raw rows, values, or records with SQL interpolation, use SQLRequest:
+
+```swift
+try dbQueue.read { db in
+    let teamId = 42
+    let request: SQLRequest<Int> = """
+        SELECT MAX(score) FROM player
+        WHERE teamId = \(teamId)
+        """
+    let maxScore = try request.fetchOne(db) // Int?
+    
+    let request: SQLRequest<Player> = """
+        SELECT * FROM player
+        WHERE name = \("O'Brien")
+        """
+    let players = try request.fetchAll(db) // [Player]
+}
+```
 
 
 ## Transactions and Savepoints
@@ -8610,3 +8679,4 @@ This chapter has been renamed [Beyond FetchableRecord].
 [DatabaseRegionConvertible]: #the-databaseregionconvertible-protocol
 [ValueObservation and DatabaseRegionObservation]: #valueobservation-and-databaseregionobservation
 [DatabaseRegion]: #databaseregion
+[SQL Interpolation]: #sql-interpolation
