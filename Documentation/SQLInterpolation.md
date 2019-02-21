@@ -1,14 +1,34 @@
 SQL Interpolation
 =================
 
+Your SQL skills are [welcomed] throughout GRDB. Yet writing raw SQL presents commonplace challenges. For example, you want to make sure your queries don't break whenever the database schema changes as you ship new versions of your application. When you inject user values in the database, you have to use statement arguments, and it is easy to make a mistake in the process.
+
+The query below exemplifies this situation. It even contains a bug that is not quite easy to spot:
+
+```swift
+try db.execute(
+    sql: """
+        UPDATE student
+        SET firstName = ?, lastName = ?, department = ?, birthDate = ?,
+            registrationDate = ?, mainTeacherId = ?
+        WHERE id = ?
+        """,
+    arguments: [firstName, lastName, department, birthDate,
+                registrationDate, mainTeacherId])
+
+```
+
+SQL Interpolation is an answer to these troubles. It is available in Swift 5.
+
 - [Introduction]
 - [SQLLiteral]
 - [SQL Interpolation and Record Protocols]
 - [SQL Interpolation Reference]
 
+
 ## Introduction
 
-**SQL Interpolation**, available in Swift 5, lets you embed values in your SQL queries by wrapping them inside `\(` and `)`:
+**SQL Interpolation** lets you embed values in your SQL queries by wrapping them inside `\(` and `)`:
 
 ```swift
 let name: String = ...
@@ -16,7 +36,7 @@ let id: Int64 = ...
 try db.execute(literal: "UPDATE player SET name = \(name) WHERE id = \(id)")
 ```
 
-SQL interpolation looks and feel just like regular [Swift interpolation]:
+SQL interpolation looks and feel just like regular [String interpolation]:
 
 ```swift
 let name = "World"
@@ -32,7 +52,7 @@ let id = 42
 try db.execute(literal: "UPDATE player SET name = \(name) WHERE id = \(id)")
 ```
 
-Under the hood, SQL interpolation generates a plain SQL string, as well as [statement arguments]. It runs exactly as below:
+Under the hood, SQL interpolation generates a plain SQL string. It runs exactly as below:
 
 ```swift
 try db.execute(sql: "UPDATE player SET name = ? WHERE id = ?", arguments: [name, id])
@@ -40,17 +60,15 @@ try db.execute(sql: "UPDATE player SET name = ? WHERE id = ?", arguments: [name,
 
 Plain SQL strings are indeed still available, and SQL interpolation only kicks in when you ask for it. There is a simple rule to remember:
 
-- For raw SQL strings, you will always use the `sql` argument label:
+- For plain SQL strings, use the `sql` argument label:
 
     ```swift
-    // sql: Plain SQL string
     try db.execute(sql: "UPDATE player SET name = ? WHERE id = ?", arguments: [name, id])
     ```
 
-- For SQL interpolation, you will always use the `literal` argument label:
+- For SQL interpolation, use the `literal` argument label:
 
     ```swift
-    // literal: SQL Interpolation
     try db.execute(literal: "UPDATE player SET name = \(name) WHERE id = \(id)")
     ```
 
@@ -76,7 +94,7 @@ try db.execute(literal: query)
 SQLLiteral can build your queries step by step, with regular operators and methods:
 
 ```swift
-// +, +=, append(literal:)
+// +, +=, append
 var query: SQLLiteral = "UPDATE player "
 query += "SET name = \(name) "
 query.append(literal: "WHERE id = \(id)")
@@ -113,7 +131,9 @@ SQLLiteral can embed any [value], as we have seen above, but not only. Please ke
 
 The [record protocols] extend your application types with database abilities.
 
-For example, when a type adopts both [FetchableRecord] and [Decodable], it can right away decode raw database rows:
+**A record type knows everything about the schema of its underlying database table**. With the [TableRecord] protocol, the `databaseTableName` property contains the table name. With the [Decodable] protocol, the [CodingKeys] enum contain the column names. And with [FetchableRecord], you can decode raw database rows:
+
+SQL Interpolation puts this knowledge to good use, so that you can build robust queries that consistently use correct table and column names:
 
 ```swift
 struct Player {
@@ -122,24 +142,7 @@ struct Player {
     var score: Int?
 }
 
-extension Player: FetchableRecord, Decodable { }
-let players = try Player.fetchAll(db, sql: "SELECT * FROM player") // [Player]
-```
-
-Add [TableRecord], and the type knows its database table:
-    
-```swift
-extension Player: TableRecord {
-    static let databaseTableName = "player"
-}
-```
-
-**Such a record type contains a lot of information about the schema of the underlying database table**. The `databaseTableName` property contains the table name. [Coding keys] contain the column names.
-
-SQL Interpolation puts this knowledge to good use, so that you can build robust queries that consistently use correct table and column names:
-
-```swift
-extension Player {
+extension Player: Decodable, FetchableRecord, TableRecord {
     /// Deletes all player with no score
     static func deleteAllWithoutScore(_ db: Database) throws {
         try db.execute(literal: "DELETE FROM \(self) WHERE \(CodingKeys.score) IS NULL")
@@ -183,7 +186,7 @@ Let's breakdown each one of those methods.
 - `deleteAllWithoutScore(_:)`
     
     ```swift
-    extension Player {
+    extension Player: Decodable, FetchableRecord, TableRecord {
         /// Deletes all player with no score
         static func deleteAllWithoutScore(_ db: Database) throws {
             try db.execute(literal: "DELETE FROM \(self) WHERE \(CodingKeys.score) IS NULL")
@@ -207,7 +210,7 @@ Let's breakdown each one of those methods.
 - `filter(id:)`
 
     ```swift
-    extension Player {
+    extension Player: Decodable, FetchableRecord, TableRecord {
         /// The player with a given id
         static func filter(id: Int64) -> SQLRequest<Player> {
             return "SELECT * FROM \(self) WHERE \(CodingKeys.id) = \(id)"
@@ -224,14 +227,14 @@ Let's breakdown each one of those methods.
     }
     ```
     
-    The return type of this method is `SQLRequest<Player>`. It is one of the GRDB [request types]. And it profits from SQL interpolation: this is why this method can return a string literal.
+    The return type of this method is `SQLRequest<Player>`. It is one of the GRDB [request types]. And it profits from SQL interpolation: this is why this method can simply return an "SQL literal"".
     
     It embeds `\(self)` (the Player type which adopts the TableRecord protocol) and `\(CodingKeys.id)` (the coding key synthesized by the Decodable protocol), and `\(id)` (a [value]).
 
 - `filter(ids:)`
     
     ```swift
-    extension Player {
+    extension Player: Decodable, FetchableRecord, TableRecord {
         /// All players with the given ids
         static func filter(ids: [Int64]) -> SQLRequest<Player> {
             return "SELECT * FROM \(self) WHERE \(CodingKeys.id) IN \(ids)"
@@ -253,7 +256,7 @@ Let's breakdown each one of those methods.
 - `maximumScore()`
     
     ```swift
-    extension Player {
+    extension Player: Decodable, FetchableRecord, TableRecord {
         /// The maximum score
         static func maximumScore() -> SQLRequest<Int> {
             return "SELECT MAX(\(CodingKeys.score)) FROM \(self)"
@@ -275,7 +278,7 @@ Let's breakdown each one of those methods.
 - `leaders()`
     
     ```swift
-    extension Player {
+    extension Player: Decodable, FetchableRecord, TableRecord {
         /// All players whose score is the maximum score
         static func leaders() -> SQLRequest<Player> {
             return """
@@ -301,7 +304,7 @@ Let's breakdown each one of those methods.
 - `complexRequest()`
 
     ```swift
-    extension Player {
+    extension Player: Decodable, FetchableRecord, TableRecord {
         /// A complex request
         static func complexRequest() -> SQLRequest<Player> {
             let query: SQLLiteral = "SELECT * FROM \(self) "
@@ -320,17 +323,7 @@ Let's breakdown each one of those methods.
 
 This chapter lists all kinds of supported interpolations.
 
-- Plain SQL strings and eventual arguments
-
-    ```swift
-    // SELECT * FROM player
-    "SELECT * FROM \(sql: "player")"
-    
-    // SELECT * FROM player WHERE name = 'O''Brien'
-    "SELECT * FROM player WHERE \(sql: "name = ?", arguments: ["O'Brien"])"
-    ```
-
-- Types adopting the [TableRecord] protocol
+- Types adopting the [TableRecord] protocol:
 
     ```swift
     // SELECT * FROM player
@@ -338,7 +331,7 @@ This chapter lists all kinds of supported interpolations.
     "SELECT * FROM \(Player.self)"
     ```
 
-- [Expressions] and [values]
+- [Expressions] and [values]:
 
     ```swift
     // SELECT name FROM player
@@ -352,14 +345,14 @@ This chapter lists all kinds of supported interpolations.
     "SELECT (score + \(bonus)) AS points FROM player"
     ```
 
-- Coding keys
+- Coding keys:
 
     ```swift
     // SELECT name FROM player
     "SELECT \(CodingKeys.name) FROM player"
     ```
 
-- Sequences
+- Sequences:
     
     ```swift
     // SELECT * FROM player WHERE id IN (1, 2, 3)
@@ -367,22 +360,14 @@ This chapter lists all kinds of supported interpolations.
     "SELECT * FROM player WHERE id IN \(ids)"
     ```
 
-- Orderings
+- Orderings:
     
     ```swift
     // SELECT * FROM player ORDER BY name DESC
     "SELECT * FROM player WHERE id IN \(Column("name").desc)"
     ```
 
-- SQLLiteral
-
-    ```swift
-    // SELECT * FROM player WHERE name = 'O''Brien'
-    let condition: SQLLiteral = "name = \("O'Brien")"
-    "SELECT * FROM player WHERE \(literal: condition)"
-    ```
-
-- SQLRequest
+- SQLRequest:
     
     ```swift
     // SELECT * FROM player WHERE score = (SELECT MAX(score) FROM player)
@@ -390,21 +375,40 @@ This chapter lists all kinds of supported interpolations.
     "SELECT * FROM player WHERE score = \(subQuery)"
     ```
 
+- SQLLiteral:
+
+    ```swift
+    // SELECT * FROM player WHERE name = 'O''Brien'
+    let condition: SQLLiteral = "name = \("O'Brien")"
+    "SELECT * FROM player WHERE \(literal: condition)"
+    ```
+
+- Plain SQL strings and eventual arguments:
+
+    ```swift
+    // SELECT * FROM player
+    "SELECT * FROM \(sql: "player")"
+    
+    // SELECT * FROM player WHERE name = 'O''Brien'
+    "SELECT * FROM player WHERE \(sql: "name = ?", arguments: ["O'Brien"])"
+    ```
+
 [Introduction]: #introduction
 [SQLLiteral]: #sqlliteral
 [SQL Interpolation and Record Protocols]: #sql-interpolation-and-record-protocols
 [SQL Interpolation Reference]: #sql-interpolation-reference
-[Swift interpolation]: https://docs.swift.org/swift-book/LanguageGuide/StringsAndCharacters.html#ID292
+[String interpolation]: https://docs.swift.org/swift-book/LanguageGuide/StringsAndCharacters.html#ID292
 [SQL injection]: ../README.md#avoiding-sql-injection
 [record protocols]: ../README.md#record-protocols-overview
 [FetchableRecord]: ../README.md#fetchablerecord-protocol
 [TableRecord]: ../README.md#tablerecord-protocol
 [Decodable]: ../README.md#codable-records
-[Coding keys]: https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
+[CodingKeys]: https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
 [value]: ../README.md#values
 [values]: ../README.md#values
 [request types]: ../README.md#custom-requests
 [row]: ../README.md#row-queries
 [record]: ../README.md#records
 [Expressions]: ../README.md#expressions
-[statement arguments]: http://groue.github.io/GRDB.swift/docs/3.6/Structs/StatementArguments.html
+[welcomed]: ../README.md#sqlite-api
+[SE-0228 Fix ExpressibleByStringInterpolation]: https://github.com/apple/swift-evolution/blob/master/proposals/0228-fix-expressiblebystringinterpolation.md
