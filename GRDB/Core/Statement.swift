@@ -77,6 +77,7 @@ public class Statement {
             // https://bugs.swift.org/browse/SR-6067
             //
             // We thus use sentinel error for empty statements.
+            // TODO: is it fixed in Xcode 10.0
             throw EmptyStatementError()
         }
         
