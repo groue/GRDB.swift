@@ -56,10 +56,14 @@ public class Statement {
         var sqliteStatement: SQLiteStatement? = nil
         // sqlite3_prepare_v3 was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
-            let code = sqlite3_prepare_v3(database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags), &sqliteStatement, statementEnd)
+        let code = sqlite3_prepare_v3(database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags), &sqliteStatement, statementEnd)
         #else
-            // TODO: use sqlite3_prepare_v3 if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *)
-            let code = sqlite3_prepare_v2(database.sqliteConnection, statementStart, -1, &sqliteStatement, statementEnd)
+        let code: Int32
+        if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
+            code = sqlite3_prepare_v3(database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags), &sqliteStatement, statementEnd)
+        } else {
+            code = sqlite3_prepare_v2(database.sqliteConnection, statementStart, -1, &sqliteStatement, statementEnd)
+        }
         #endif
         
         guard code == SQLITE_OK else {
@@ -73,6 +77,7 @@ public class Statement {
             // https://bugs.swift.org/browse/SR-6067
             //
             // We thus use sentinel error for empty statements.
+            // TODO: is it fixed in Xcode 10.0
             throw EmptyStatementError()
         }
         
