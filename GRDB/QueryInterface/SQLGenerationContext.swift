@@ -5,11 +5,12 @@
 ///
 /// :nodoc:
 public struct SQLGenerationContext {
-    private(set) var arguments: StatementArguments?
+    var arguments: StatementArguments?
     private var resolvedNames: [TableAlias: String]
     private var qualifierNeeded: Bool
     
     /// Used for SQLExpression -> SQLExpressionLiteral conversion
+    /// and SQLInterpolation
     static func literalGenerationContext(withArguments: Bool) -> SQLGenerationContext {
         return SQLGenerationContext(
             arguments: withArguments ? [] : nil,
@@ -26,7 +27,7 @@ public struct SQLGenerationContext {
     }
     
     /// Used for TableRecord.selectionSQL
-    static func recordSelectionGenerationContext(alias: TableAlias) -> SQLGenerationContext {
+    static func recordSelectionGenerationContext() -> SQLGenerationContext {
         return SQLGenerationContext(
             arguments: nil,
             resolvedNames: [:],
@@ -34,7 +35,10 @@ public struct SQLGenerationContext {
     }
     
     /// Returns whether arguments could be appended
-    mutating func appendArguments(_ newArguments: StatementArguments) -> Bool {
+    mutating func append(arguments newArguments: StatementArguments) -> Bool {
+        if newArguments.isEmpty {
+            return true
+        }
         guard let arguments = arguments else {
             return false
         }

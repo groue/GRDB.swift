@@ -16,7 +16,7 @@ class FetchRecordCodableTests: XCTestCase {
         
         measure {
             let items = try! dbQueue.inDatabase { db in
-                try ItemCodable.fetchAll(db, "SELECT * FROM items")
+                try ItemCodable.fetchAll(db, sql: "SELECT * FROM items")
             }
             XCTAssertEqual(items.count, expectedRowCount)
             XCTAssertEqual(items[0].i0, 0)

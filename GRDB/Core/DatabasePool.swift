@@ -58,14 +58,14 @@ public final class DatabasePool: DatabaseWriter {
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
             try writer.sync { db in
-                let journalMode = try String.fetchOne(db, "PRAGMA journal_mode = WAL")
+                let journalMode = try String.fetchOne(db, sql: "PRAGMA journal_mode = WAL")
                 guard journalMode == "wal" else {
                     throw DatabaseError(message: "could not activate WAL Mode at path: \(path)")
                 }
                 
                 // https://www.sqlite.org/pragma.html#pragma_synchronous
                 // > Many applications choose NORMAL when in WAL mode
-                try db.execute("PRAGMA synchronous = NORMAL")
+                try db.execute(sql: "PRAGMA synchronous = NORMAL")
                 
                 if !FileManager.default.fileExists(atPath: path + "-wal") {
                     // Create the -wal file if it does not exist yet. This
@@ -73,7 +73,7 @@ public final class DatabasePool: DatabaseWriter {
                     // opens a pool to an existing non-WAL database, and
                     // attempts to read from it.
                     // See https://github.com/groue/GRDB.swift/issues/102
-                    try db.execute("CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY); DROP TABLE grdb_issue_102;")
+                    try db.execute(sql: "CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY); DROP TABLE grdb_issue_102;")
                 }
             }
         }
@@ -247,13 +247,13 @@ extension DatabasePool : DatabaseReader {
     ///     try dbPool.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
     ///         // `wine` table is modified between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count1 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     ///     try dbPool.read { db in
     ///         // Now this value may be different:
-    ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// This method is *not* reentrant.
@@ -288,15 +288,15 @@ extension DatabasePool : DatabaseReader {
     ///     try dbPool.unsafeRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count1 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Cursor iteration is safe, though:
     ///
     ///     try dbPool.unsafeRead { db in
     ///         // No concurrent update can mess with this iteration:
-    ///         let rows = try Row.fetchCursor(db, "SELECT ...")
+    ///         let rows = try Row.fetchCursor(db, sql: "SELECT ...")
     ///         while let row = try rows.next() { ... }
     ///     }
     ///
@@ -325,15 +325,15 @@ extension DatabasePool : DatabaseReader {
     ///     try dbPool.unsafeReentrantRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count1 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Cursor iteration is safe, though:
     ///
     ///     try dbPool.unsafeReentrantRead { db in
     ///         // No concurrent update can mess with this iteration:
-    ///         let rows = try Row.fetchCursor(db, "SELECT ...")
+    ///         let rows = try Row.fetchCursor(db, sql: "SELECT ...")
     ///         while let row = try rows.next() { ... }
     ///     }
     ///
@@ -557,7 +557,7 @@ extension DatabasePool : DatabaseReader {
     ///     }
     ///     dbPool.add(function: fn)
     ///     try dbPool.read { db in
-    ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
+    ///         try Int.fetchOne(db, sql: "SELECT succ(1)") // 2
     ///     }
     public func add(function: DatabaseFunction) {
         functions.update(with: function)
@@ -579,7 +579,7 @@ extension DatabasePool : DatabaseReader {
     ///     }
     ///     dbPool.add(collation: collation)
     ///     try dbPool.write { db in
-    ///         try db.execute("CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///         try db.execute(sql: "CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {
         collations.update(with: collation)

@@ -64,7 +64,7 @@ extension Database {
         chunks.append("USING")
         chunks.append(module)
         let sql = chunks.joined(separator: " ")
-        try execute(sql)
+        try execute(sql: sql)
     }
     
     /// Creates a virtual database table.
@@ -120,7 +120,7 @@ extension Database {
         let sql = chunks.joined(separator: " ")
         
         try inSavepoint {
-            try execute(sql)
+            try execute(sql: sql)
             try module.database(self, didCreate: tableName, using: definition)
             return .commit
         }

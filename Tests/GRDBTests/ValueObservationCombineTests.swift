@@ -16,7 +16,7 @@ class ValueObservationCombineTests: GRDBTestCase {
     func testCombine2() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
-            try $0.execute("""
+            try $0.execute(sql: """
                 CREATE TABLE t1(id INTEGER PRIMARY KEY AUTOINCREMENT);
                 CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT);
                 """)
@@ -39,28 +39,28 @@ class ValueObservationCombineTests: GRDBTestCase {
         }
         
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t1")
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t2")
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t1")
-            try db.execute("DELETE FROM t2")
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
         }
         waitForExpectations(timeout: 1, handler: nil)
         XCTAssertEqual(values.count, 4)
@@ -73,7 +73,7 @@ class ValueObservationCombineTests: GRDBTestCase {
     func testCombine3() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
-            try $0.execute("""
+            try $0.execute(sql: """
                 CREATE TABLE t1(id INTEGER PRIMARY KEY AUTOINCREMENT);
                 CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT);
                 CREATE TABLE t3(id INTEGER PRIMARY KEY AUTOINCREMENT);
@@ -99,38 +99,38 @@ class ValueObservationCombineTests: GRDBTestCase {
         }
         
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t1")
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t2")
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t3")
-            try db.execute("INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t1")
-            try db.execute("DELETE FROM t2")
-            try db.execute("DELETE FROM t3")
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
-            try db.execute("INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
-            try db.execute("INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
         }
         waitForExpectations(timeout: 1, handler: nil)
         XCTAssertEqual(values.count, 5)
@@ -144,7 +144,7 @@ class ValueObservationCombineTests: GRDBTestCase {
     func testCombine4() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
-            try $0.execute("""
+            try $0.execute(sql: """
                 CREATE TABLE t1(id INTEGER PRIMARY KEY AUTOINCREMENT);
                 CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT);
                 CREATE TABLE t3(id INTEGER PRIMARY KEY AUTOINCREMENT);
@@ -173,48 +173,48 @@ class ValueObservationCombineTests: GRDBTestCase {
         }
         
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t1")
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t2")
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t3")
-            try db.execute("INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t4")
-            try db.execute("INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t4")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t1")
-            try db.execute("DELETE FROM t2")
-            try db.execute("DELETE FROM t3")
-            try db.execute("DELETE FROM t4")
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
-            try db.execute("INSERT INTO t3 DEFAULT VALUES")
-            try db.execute("INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "DELETE FROM t4")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
-            try db.execute("INSERT INTO t3 DEFAULT VALUES")
-            try db.execute("INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
         }
         waitForExpectations(timeout: 1, handler: nil)
         XCTAssertEqual(values.count, 6)
@@ -229,7 +229,7 @@ class ValueObservationCombineTests: GRDBTestCase {
     func testCombine5() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
-            try $0.execute("""
+            try $0.execute(sql: """
                 CREATE TABLE t1(id INTEGER PRIMARY KEY AUTOINCREMENT);
                 CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT);
                 CREATE TABLE t3(id INTEGER PRIMARY KEY AUTOINCREMENT);
@@ -261,58 +261,58 @@ class ValueObservationCombineTests: GRDBTestCase {
         }
         
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t5 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t1")
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t2")
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t3")
-            try db.execute("INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t4")
-            try db.execute("INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t4")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t5")
-            try db.execute("INSERT INTO t5 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t5")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("DELETE FROM t1")
-            try db.execute("DELETE FROM t2")
-            try db.execute("DELETE FROM t3")
-            try db.execute("DELETE FROM t4")
-            try db.execute("DELETE FROM t5")
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
-            try db.execute("INSERT INTO t3 DEFAULT VALUES")
-            try db.execute("INSERT INTO t4 DEFAULT VALUES")
-            try db.execute("INSERT INTO t5 DEFAULT VALUES")
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "DELETE FROM t4")
+            try db.execute(sql: "DELETE FROM t5")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
         }
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t1 DEFAULT VALUES")
-            try db.execute("INSERT INTO t2 DEFAULT VALUES")
-            try db.execute("INSERT INTO t3 DEFAULT VALUES")
-            try db.execute("INSERT INTO t4 DEFAULT VALUES")
-            try db.execute("INSERT INTO t5 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
         }
         waitForExpectations(timeout: 1, handler: nil)
         XCTAssertEqual(values.count, 7)

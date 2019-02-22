@@ -26,23 +26,19 @@ public protocol SQLSelectable {
 // MARK: - SQLSelectionLiteral
 
 struct SQLSelectionLiteral : SQLSelectable {
-    let sql: String
-    let arguments: StatementArguments?
+    private let sqlLiteral: SQLLiteral
     
-    init(_ sql: String, arguments: StatementArguments? = nil) {
-        self.sql = sql
-        self.arguments = arguments
+    init(literal sqlLiteral: SQLLiteral) {
+        self.sqlLiteral = sqlLiteral
     }
     
     func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
-        if let arguments = arguments {
-            if context.appendArguments(arguments) == false {
-                // GRDB limitation: we don't know how to look for `?` in sql and
-                // replace them with with literals.
-                fatalError("Not implemented")
-            }
+        if context.append(arguments: sqlLiteral.arguments) == false {
+            // GRDB limitation: we don't know how to look for `?` in sql and
+            // replace them with with literals.
+            fatalError("Not implemented")
         }
-        return sql
+        return sqlLiteral.sql
     }
     
     func countedSQL(_ context: inout SQLGenerationContext) -> String {

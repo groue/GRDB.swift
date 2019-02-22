@@ -13,9 +13,9 @@ try! dbQueue.inDatabase { db in
         t.column("name", .text)
     }
     
-    try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
-    try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Barbara"])
+    try db.execute(sql: "INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
+    try db.execute(sql: "INSERT INTO persons (name) VALUES (?)", arguments: ["Barbara"])
     
-    let names = try String.fetchAll(db, "SELECT name FROM persons")
+    let names = try String.fetchAll(db, sql: "SELECT name FROM persons")
     print(names)
 }

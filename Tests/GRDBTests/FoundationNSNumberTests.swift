@@ -101,7 +101,7 @@ class FoundationNSNumberTests: GRDBTestCase {
     func testNSNumberDatabaseRoundTrip() throws {
         let dbQueue = try makeDatabaseQueue()
         func roundTrip(_ value: NSNumber) throws -> Bool {
-            guard let back = try dbQueue.inDatabase({ try NSNumber.fetchOne($0, "SELECT ?", arguments: [value]) }) else {
+            guard let back = try dbQueue.inDatabase({ try NSNumber.fetchOne($0, sql: "SELECT ?", arguments: [value]) }) else {
                 XCTFail()
                 return false
             }

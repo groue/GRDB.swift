@@ -21,7 +21,7 @@ class ValueObservationExtentTests: GRDBTestCase {
     func testExtentDatabaseLifetime() throws {
         // We need something to change
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
         // Track reducer process
         let notificationExpectation = expectation(description: "notification")
@@ -44,12 +44,12 @@ class ValueObservationExtentTests: GRDBTestCase {
         
         // notified
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
         
         // notified
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
         
         waitForExpectations(timeout: 1, handler: nil)
@@ -58,7 +58,7 @@ class ValueObservationExtentTests: GRDBTestCase {
     func testExtentObserverLifetime() throws {
         // We need something to change
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
         // Track reducer process
         var changesCount = 0
@@ -87,12 +87,12 @@ class ValueObservationExtentTests: GRDBTestCase {
         
         // notified
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
         
         // not notified
         try dbQueue.write { db in
-            try db.execute("INSERT INTO t DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
         
         // Avoid "Variable 'observer' was written to, but never read" warning
@@ -105,7 +105,7 @@ class ValueObservationExtentTests: GRDBTestCase {
     func testExtentNextTransaction() throws {
         // We need something to change
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
         // Track reducer process
         let notificationExpectation = expectation(description: "notification")
@@ -129,12 +129,12 @@ class ValueObservationExtentTests: GRDBTestCase {
         try withExtendedLifetime(observer) {
             // notified
             try dbQueue.write { db in
-                try db.execute("INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             
             // not notified
             try dbQueue.write { db in
-                try db.execute("INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)

@@ -108,7 +108,7 @@ See [Database Connections](#database-connections)
 
 ```swift
 try dbQueue.write { db in
-    try db.execute("""
+    try db.execute(sql: """
         CREATE TABLE place (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           title TEXT NOT NULL,
@@ -117,12 +117,18 @@ try dbQueue.write { db in
           longitude DOUBLE NOT NULL)
         """)
 
-    try db.execute("""
+    try db.execute(sql: """
         INSERT INTO place (title, favorite, latitude, longitude)
         VALUES (?, ?, ?, ?)
         """, arguments: ["Paris", true, 48.85341, 2.3488])
     
     let parisId = db.lastInsertedRowID
+    
+    // Swift 5 only
+    try db.execute(literal: """
+        INSERT INTO place (title, favorite, latitude, longitude)
+        VALUES (\("Madrid"), \(true), \(40.41678), \(-3.70379))
+        """)
 }
 ```
 
@@ -136,7 +142,7 @@ See [Executing Updates](#executing-updates)
 ```swift
 try dbQueue.read { db in
     // Fetch database rows
-    let rows = try Row.fetchCursor(db, "SELECT * FROM place")
+    let rows = try Row.fetchCursor(db, sql: "SELECT * FROM place")
     while let row = try rows.next() {
         let title: String = row["title"]
         let isFavorite: Bool = row["favorite"]
@@ -146,12 +152,12 @@ try dbQueue.read { db in
     }
     
     // Fetch values
-    let placeCount = try Int.fetchOne(db, "SELECT COUNT(*) FROM place")! // Int
-    let placeTitles = try String.fetchAll(db, "SELECT title FROM place") // [String]
+    let placeCount = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM place")! // Int
+    let placeTitles = try String.fetchAll(db, sql: "SELECT title FROM place") // [String]
 }
 
 let placeCount = try dbQueue.read { db in
-    try Int.fetchOne(db, "SELECT COUNT(*) FROM place")!
+    try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM place")!
 }
 ```
 
@@ -205,7 +211,7 @@ See [Records](#records)
     <summary>Fetch records and values with the Swift query interface</summary>
 
 ```swift
-try dbQueue.write { db in
+try dbQueue.read { db in
     // Place?
     let paris = try Place.fetchOne(db, key: 1)
     
@@ -222,7 +228,7 @@ try dbQueue.write { db in
     let favoriteCount = try Place.filter(Column("favorite")).fetchCount(db)
     
     // SQL is always welcome
-    let places = try Place.fetchAll(db, "SELECT * FROM place")
+    let places = try Place.fetchAll(db, sql: "SELECT * FROM place")
 }
 ```
 
@@ -237,7 +243,7 @@ See the [Query Interface](#the-query-interface)
 let request = Place.order(Column("title"))
 try ValueObservation
     .trackingAll(request)
-    .start(in: dbQueue) { places: [Place] in
+    .start(in: dbQueue) { (places: [Place]) in
         print("Places have changed.")
     }
 ```
@@ -264,7 +270,7 @@ Documentation
 
 #### SQLite and SQL
 
-- [SQLite API](#sqlite-api): The low-level SQLite API &bull; [executing updates](#executing-updates) &bull; [fetch queries](#fetch-queries)
+- [SQLite API](#sqlite-api): The low-level SQLite API &bull; [executing updates](#executing-updates) &bull; [fetch queries](#fetch-queries) &bull; [SQL Interpolation]
 
 #### Records and the Query Interface
 
@@ -572,6 +578,7 @@ SQLite API
     - [Swift enums](#swift-enums)
     - [Custom Value Types](#custom-value-types)
 - [Transactions and Savepoints](#transactions-and-savepoints)
+- [SQL Interpolation]
 
 Advanced topics:
 
@@ -590,7 +597,7 @@ For example:
 
 ```swift
 try dbQueue.write { db in
-    try db.execute("""
+    try db.execute(sql: """
         CREATE TABLE player (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -598,11 +605,11 @@ try dbQueue.write { db in
         """)
     
     try db.execute(
-        "INSERT INTO player (name, score) VALUES (?, ?)",
+        sql: "INSERT INTO player (name, score) VALUES (?, ?)",
         arguments: ["Barbara", 1000])
     
     try db.execute(
-        "UPDATE player SET score = :score WHERE id = :id",
+        sql: "UPDATE player SET score = :score WHERE id = :id",
         arguments: ["score": 1000, "id": 1])
     }
 }
@@ -610,27 +617,55 @@ try dbQueue.write { db in
 
 The `?` and colon-prefixed keys like `:score` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [StatementArguments](http://groue.github.io/GRDB.swift/docs/3.6/Structs/StatementArguments.html) for a detailed documentation of SQLite arguments.
 
-**Never ever embed values directly in your SQL strings**, and always use arguments instead. See [Avoiding SQL Injection](#avoiding-sql-injection) for more information:
+In Swift 5, you can embed query arguments right into your SQL queries, with the `literal` argument label, as in the example below. See [SQL Interpolation] for more details.
+
+```swift
+// Swift 5
+try dbQueue.write { db in
+    try db.execute(literal: """
+        INSERT INTO player (name, score)
+        VALUES (\("O'Brien"), \(550))
+        """)
+}
+```
+
+**Never ever embed values directly in your raw SQL strings**. See [Avoiding SQL Injection](#avoiding-sql-injection) for more information:
 
 ```swift
 // WRONG
 let id = 123
 let name = textField.text
-try db.execute("UPDATE player SET name = '\(name)' WHERE id = \(id)")
+try db.execute(
+    sql: "UPDATE player SET name = '\(name)' WHERE id = \(id)")
+
+// CORRECT (Swift 5)
+try db.execute(
+    literal: "UPDATE player SET name = \(name) WHERE id = \(id)")
 
 // CORRECT
 try db.execute(
-    "UPDATE player SET name = :name WHERE id = :id",
+    sql: "UPDATE player SET name = :name WHERE id = :id",
     arguments: ["name": name, "id": id])
+
+// CORRECT
+try db.execute(
+    sql: "UPDATE player SET name = ? WHERE id = ?",
+    arguments: [name, id])
 ```
 
 **Join multiple statements with a semicolon**:
 
 ```swift
-try db.execute("""
+try db.execute(sql: """
     INSERT INTO player (name, score) VALUES (?, ?);
-    INSERT INTO player (name, score) VALUES (?, ?)
+    INSERT INTO player (name, score) VALUES (?, ?);
     """, arguments: ["Arthur", 750, "Barbara", 1000])
+
+// Swift 5
+try db.execute(literal: """
+    INSERT INTO player (name, score) VALUES (\("Arthur"), \(750));
+    INSERT INTO player (name, score) VALUES (\("Barbara"), \(1000));
+    """)
 ```
 
 When you want to make sure that a single statement is executed, use [Prepared Statements](#prepared-statements).
@@ -639,7 +674,7 @@ When you want to make sure that a single statement is executed, use [Prepared St
 
 ```swift
 try db.execute(
-    "INSERT INTO player (name, score) VALUES (?, ?)",
+    sql: "INSERT INTO player (name, score) VALUES (?, ?)",
     arguments: ["Arthur", 1000])
 let playerId = db.lastInsertedRowID
 ```
@@ -661,7 +696,7 @@ let playerId = player.id
 
 ```swift
 try dbQueue.read { db in
-    if let row = try Row.fetchOne(db, "SELECT * FROM wine WHERE id = ?", arguments: [1]) {
+    if let row = try Row.fetchOne(db, sql: "SELECT * FROM wine WHERE id = ?", arguments: [1]) {
         let name: String = row["name"]
         let color: Color = row["color"]
         print(name, color)
@@ -674,7 +709,7 @@ try dbQueue.read { db in
 
 ```swift
 try dbQueue.read { db in
-    let urls = try URL.fetchCursor(db, "SELECT url FROM wine")
+    let urls = try URL.fetchCursor(db, sql: "SELECT url FROM wine")
     while let url = try urls.next() {
         print(url)
     }
@@ -686,7 +721,7 @@ try dbQueue.read { db in
 
 ```swift
 let wines = try dbQueue.read { db in
-    try Wine.fetchAll(db, "SELECT * FROM wine")
+    try Wine.fetchAll(db, sql: "SELECT * FROM wine")
 }
 ```
 
@@ -709,19 +744,19 @@ try Row.fetchOne(...)    // Row?
 - `fetchCursor` returns a **[cursor](#cursors)** over fetched values:
     
     ```swift
-    let rows = try Row.fetchCursor(db, "SELECT ...") // A Cursor of Row
+    let rows = try Row.fetchCursor(db, sql: "SELECT ...") // A Cursor of Row
     ```
     
 - `fetchAll` returns an **array**:
     
     ```swift
-    let players = try Player.fetchAll(db, "SELECT ...") // [Player]
+    let players = try Player.fetchAll(db, sql: "SELECT ...") // [Player]
     ```
 
 - `fetchOne` returns a **single optional value**, and consumes a single database row (if any).
     
     ```swift
-    let count = try Int.fetchOne(db, "SELECT COUNT(*) ...") // Int?
+    let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) ...") // Int?
     ```
 
 
@@ -734,7 +769,7 @@ The `fetchAll()` method returns a regular Swift array, that you iterate like all
 ```swift
 try dbQueue.read { db in
     // [Player]
-    let players = try Player.fetchAll(db, "SELECT ...")
+    let players = try Player.fetchAll(db, sql: "SELECT ...")
     for player in players {
         // use player
     }
@@ -746,7 +781,7 @@ Unlike arrays, cursors returned by `fetchCursor()` load their results step after
 ```swift
 try dbQueue.read { db in
     // Cursor of Player
-    let players = try Player.fetchCursor(db, "SELECT ...")
+    let players = try Player.fetchCursor(db, sql: "SELECT ...")
     while let player = try players.next() {
         // use player
     }
@@ -786,13 +821,13 @@ Both arrays and cursors can iterate over database results. How do you choose one
     ```swift
     // Prints all Github links
     try URL
-        .fetchCursor(db, "SELECT url FROM link")
+        .fetchCursor(db, sql: "SELECT url FROM link")
         .filter { url in url.host == "github.com" }
         .forEach { url in print(url) }
     
     // An efficient cursor of coordinates:
     let locations = try Row.
-        .fetchCursor(db, "SELECT latitude, longitude FROM place")
+        .fetchCursor(db, sql: "SELECT latitude, longitude FROM place")
         .map { row in
             CLLocationCoordinate2D(latitude: row[0], longitude: row[1])
         }
@@ -811,7 +846,7 @@ Both arrays and cursors can iterate over database results. How do you choose one
         ```swift
         // Undefined behavior
         while let player = try players.next() {
-            try db.execute("DELETE ...")
+            try db.execute(sql: "DELETE ...")
         }
         ```
     
@@ -834,11 +869,11 @@ Fetch **cursors** of rows, **arrays**, or **single** rows (see [fetching methods
 
 ```swift
 try dbQueue.read { db in
-    try Row.fetchCursor(db, "SELECT ...", arguments: ...) // A Cursor of Row
-    try Row.fetchAll(db, "SELECT ...", arguments: ...)    // [Row]
-    try Row.fetchOne(db, "SELECT ...", arguments: ...)    // Row?
+    try Row.fetchCursor(db, sql: "SELECT ...", arguments: ...) // A Cursor of Row
+    try Row.fetchAll(db, sql: "SELECT ...", arguments: ...)    // [Row]
+    try Row.fetchOne(db, sql: "SELECT ...", arguments: ...)    // Row?
     
-    let rows = try Row.fetchCursor(db, "SELECT * FROM wine")
+    let rows = try Row.fetchCursor(db, sql: "SELECT * FROM wine")
     while let row = try rows.next() {
         let name: String = row["name"]
         let color: Color = row["color"]
@@ -847,7 +882,7 @@ try dbQueue.read { db in
 }
 
 let rows = try dbQueue.read { db in
-    try Row.fetchAll(db, "SELECT * FROM player")
+    try Row.fetchAll(db, sql: "SELECT * FROM player")
 }
 ```
 
@@ -855,11 +890,11 @@ Arguments are optional arrays or dictionaries that fill the positional `?` and c
 
 ```swift
 let rows = try Row.fetchAll(db,
-    "SELECT * FROM player WHERE name = ?",
+    sql: "SELECT * FROM player WHERE name = ?",
     arguments: ["Arthur"])
 
 let rows = try Row.fetchAll(db,
-    "SELECT * FROM player WHERE name = :name",
+    sql: "SELECT * FROM player WHERE name = :name",
     arguments: ["name": "Arthur"])
 ```
 
@@ -925,7 +960,7 @@ Generally speaking, you can extract the type you need, provided it can be conver
 - **NULL returns nil.**
     
     ```swift
-    let row = try Row.fetchOne(db, "SELECT NULL")!
+    let row = try Row.fetchOne(db, sql: "SELECT NULL")!
     row[0] as Int? // nil
     row[0] as Int  // fatal error: could not convert NULL to Int.
     ```
@@ -939,7 +974,7 @@ Generally speaking, you can extract the type you need, provided it can be conver
 - **Missing columns return nil.**
     
     ```swift
-    let row = try Row.fetchOne(db, "SELECT 'foo' AS foo")!
+    let row = try Row.fetchOne(db, sql: "SELECT 'foo' AS foo")!
     row["missing"] as String? // nil
     row["missing"] as String  // fatal error: no such column: missing
     ```
@@ -949,12 +984,12 @@ Generally speaking, you can extract the type you need, provided it can be conver
 - **Invalid conversions throw a fatal error.**
     
     ```swift
-    let row = try Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
+    let row = try Row.fetchOne(db, sql: "SELECT 'Mom’s birthday'")!
     row[0] as String // "Mom’s birthday"
     row[0] as Date?  // fatal error: could not convert "Mom’s birthday" to Date.
     row[0] as Date   // fatal error: could not convert "Mom’s birthday" to Date.
     
-    let row = try Row.fetchOne(db, "SELECT 256")!
+    let row = try Row.fetchOne(db, sql: "SELECT 256")!
     row[0] as Int    // 256
     row[0] as UInt8? // fatal error: could not convert 256 to UInt8.
     row[0] as UInt8  // fatal error: could not convert 256 to UInt8.
@@ -963,7 +998,7 @@ Generally speaking, you can extract the type you need, provided it can be conver
     Those conversion fatal errors can be avoided with the [DatabaseValue](#databasevalue) type:
     
     ```swift
-    let row = try Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
+    let row = try Row.fetchOne(db, sql: "SELECT 'Mom’s birthday'")!
     let dbValue: DatabaseValue = row[0]
     if dbValue.isNull {
         // Handle NULL
@@ -981,7 +1016,7 @@ Generally speaking, you can extract the type you need, provided it can be conver
     GRDB will sometimes let those conversions go through:
     
     ```swift
-    let rows = try Row.fetchCursor(db, "SELECT '20 small cigars'")
+    let rows = try Row.fetchCursor(db, sql: "SELECT '20 small cigars'")
     while let row = try rows.next() {
         row[0] as Int   // 20
     }
@@ -1032,7 +1067,7 @@ let date   = Date.fromDatabaseValue(dbValue)       // Date?
 `fromDatabaseValue` returns nil for invalid conversions:
 
 ```swift
-let row = try Row.fetchOne(db, "SELECT 'Mom’s birthday'")!
+let row = try Row.fetchOne(db, sql: "SELECT 'Mom’s birthday'")!
 let dbValue: DatabaseValue = row[0]
 let string = String.fromDatabaseValue(dbValue) // "Mom’s birthday"
 let int    = Int.fromDatabaseValue(dbValue)    // nil
@@ -1062,7 +1097,7 @@ let row = Row(/* [AnyHashable: Any] */) // nil if invalid dictionary
 Yet rows are not real dictionaries: they may contain duplicate columns:
 
 ```swift
-let row = try Row.fetchOne(db, "SELECT 1 AS foo, 2 AS foo")!
+let row = try Row.fetchOne(db, sql: "SELECT 1 AS foo, 2 AS foo")!
 row.columnNames    // ["foo", "foo"]
 row.databaseValues // [1, 2]
 row["foo"]         // 1 (leftmost matching column)
@@ -1106,17 +1141,17 @@ Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch 
 
 ```swift
 try dbQueue.read { db in
-    try Int.fetchCursor(db, "SELECT ...", arguments: ...) // A Cursor of Int
-    try Int.fetchAll(db, "SELECT ...", arguments: ...)    // [Int]
-    try Int.fetchOne(db, "SELECT ...", arguments: ...)    // Int?
+    try Int.fetchCursor(db, sql: "SELECT ...", arguments: ...) // A Cursor of Int
+    try Int.fetchAll(db, sql: "SELECT ...", arguments: ...)    // [Int]
+    try Int.fetchOne(db, sql: "SELECT ...", arguments: ...)    // Int?
     
     // When database may contain NULL:
-    try Optional<Int>.fetchCursor(db, "SELECT ...", arguments: ...) // A Cursor of Int?
-    try Optional<Int>.fetchAll(db, "SELECT ...", arguments: ...)    // [Int?]
+    try Optional<Int>.fetchCursor(db, sql: "SELECT ...", arguments: ...) // A Cursor of Int?
+    try Optional<Int>.fetchAll(db, sql: "SELECT ...", arguments: ...)    // [Int?]
 }
 
 let playerCount = try dbQueue.read { db in
-    try Int.fetchOne(db, "SELECT COUNT(*) FROM player")!
+    try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM player")!
 }
 ```
 
@@ -1125,8 +1160,8 @@ let playerCount = try dbQueue.read { db in
 There are many supported value types (Bool, Int, String, Date, Swift enums, etc.). See [Values](#values) for more information:
 
 ```swift
-let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM player")! // Int
-let urls = try URL.fetchAll(db, "SELECT url FROM link")          // [URL]
+let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM player")! // Int
+let urls = try URL.fetchAll(db, sql: "SELECT url FROM link")          // [URL]
 ```
 
 
@@ -1152,14 +1187,14 @@ Values can be used as [statement arguments](http://groue.github.io/GRDB.swift/do
 let url: URL = ...
 let verified: Bool = ...
 try db.execute(
-    "INSERT INTO link (url, verified) VALUES (?, ?)",
+    sql: "INSERT INTO link (url, verified) VALUES (?, ?)",
     arguments: [url, verified])
 ```
 
 Values can be [extracted from rows](#column-values):
 
 ```swift
-let rows = try Row.fetchCursor(db, "SELECT * FROM link")
+let rows = try Row.fetchCursor(db, sql: "SELECT * FROM link")
 while let row = try rows.next() {
     let url: URL = row["url"]
     let verified: Bool = row["verified"]
@@ -1169,7 +1204,7 @@ while let row = try rows.next() {
 Values can be [directly fetched](#value-queries):
 
 ```swift
-let urls = try URL.fetchAll(db, "SELECT url FROM link")  // [URL]
+let urls = try URL.fetchAll(db, sql: "SELECT url FROM link")  // [URL]
 ```
 
 Use values in [Records](#records):
@@ -1199,7 +1234,7 @@ let link = try Link.filter(Column("url") == url).fetchOne(db)
 **Data** suits the BLOB SQLite columns. It can be stored and fetched from the database just like other [values](#values):
 
 ```swift
-let rows = try Row.fetchCursor(db, "SELECT data, ...")
+let rows = try Row.fetchCursor(db, sql: "SELECT data, ...")
 while let row = try rows.next() {
     let data: Data = row["data"]
 }
@@ -1250,7 +1285,7 @@ Here is how GRDB supports the various [date formats](https://www.sqlite.org/lang
 
 ```swift
 try db.execute(
-    "INSERT INTO player (creationDate, ...) VALUES (?, ...)",
+    sql: "INSERT INTO player (creationDate, ...) VALUES (?, ...)",
     arguments: [Date(), ...])
 
 let row = try Row.fetchOne(db, ...)!
@@ -1270,7 +1305,7 @@ When the default format does not fit your needs, customize date conversions. For
 
 ```swift
 try db.execute(
-    "INSERT INTO player (creationDate, ...) VALUES (?, ...)",
+    sql: "INSERT INTO player (creationDate, ...) VALUES (?, ...)",
     arguments: [Date().timeIntervalSinceReferenceDate, ...])
 
 let row = try Row.fetchOne(db, ...)!
@@ -1297,11 +1332,11 @@ components.day = 18
 // Store "1973-09-18"
 let dbComponents = DatabaseDateComponents(components, format: .YMD)
 try db.execute(
-    "INSERT INTO player (birthDate, ...) VALUES (?, ...)",
+    sql: "INSERT INTO player (birthDate, ...) VALUES (?, ...)",
     arguments: [dbComponents, ...])
 
 // Read "1973-09-18"
-let row = try Row.fetchOne(db, "SELECT birthDate ...")!
+let row = try Row.fetchOne(db, sql: "SELECT birthDate ...")!
 let dbComponents: DatabaseDateComponents = row["birthDate"]
 dbComponents.format         // .YMD (the actual format found in the database)
 dbComponents.dateComponents // DateComponents
@@ -1325,9 +1360,9 @@ CREATE TABLE transfer (
 This means that computations will not be exact:
 
 ```swift
-try db.execute("INSERT INTO transfer (amount) VALUES (0.1)")
-try db.execute("INSERT INTO transfer (amount) VALUES (0.2)")
-let sum = try NSDecimalNumber.fetchOne(db, "SELECT SUM(amount) FROM transfer")!
+try db.execute(sql: "INSERT INTO transfer (amount) VALUES (0.1)")
+try db.execute(sql: "INSERT INTO transfer (amount) VALUES (0.2)")
+let sum = try NSDecimalNumber.fetchOne(db, sql: "SELECT SUM(amount) FROM transfer")!
 
 // Yikes! 0.3000000000000000512
 print(sum)
@@ -1341,10 +1376,10 @@ A classic technique is to store *integers* instead, since SQLite performs exact 
 // Write
 let amount = NSDecimalNumber(string: "0.10")
 let integerAmount = amount.multiplying(byPowerOf10: 2).int64Value
-try db.execute("INSERT INTO transfer (amount) VALUES (?)", arguments: [integerAmount])
+try db.execute(sql: "INSERT INTO transfer (amount) VALUES (?)", arguments: [integerAmount])
 
 // Read
-let integerAmount = try Int64.fetchOne(db, "SELECT SUM(amount) FROM transfer")!
+let integerAmount = try Int64.fetchOne(db, sql: "SELECT SUM(amount) FROM transfer")!
 let amount = NSDecimalNumber(value: integerAmount).multiplying(byPowerOf10: -2) // 0.10
 ```
 
@@ -1375,11 +1410,11 @@ extension Grape : DatabaseValueConvertible { }
 
 // Store
 try db.execute(
-    "INSERT INTO wine (grape, color) VALUES (?, ?)",
+    sql: "INSERT INTO wine (grape, color) VALUES (?, ?)",
     arguments: [Grape.merlot, Color.red])
 
 // Read
-let rows = try Row.fetchCursor(db, "SELECT * FROM wine")
+let rows = try Row.fetchCursor(db, sql: "SELECT * FROM wine")
 while let row = try rows.next() {
     let grape: Grape = row["grape"]
     let color: Color = row["color"]
@@ -1389,7 +1424,7 @@ while let row = try rows.next() {
 **When a database value does not match any enum case**, you get a fatal error. This fatal error can be avoided with the [DatabaseValue](#databasevalue) type:
 
 ```swift
-let row = try Row.fetchOne(db, "SELECT 'syrah'")!
+let row = try Row.fetchOne(db, sql: "SELECT 'syrah'")!
 
 row[0] as String  // "syrah"
 row[0] as Grape?  // fatal error: could not convert "syrah" to Grape.
@@ -1547,9 +1582,9 @@ try dbQueue.inDatabase { db in  // or dbPool.writeWithoutTransaction
     ...
     try db.commit()
     
-    try db.execute("BEGIN TRANSACTION")
+    try db.execute(sql: "BEGIN TRANSACTION")
     ...
-    try db.execute("ROLLBACK")
+    try db.execute(sql: "ROLLBACK")
 }
 ```
 
@@ -1558,7 +1593,7 @@ Transactions can't be left opened unless you set the [allowsUnsafeTransactions](
 ```swift
 // fatal error: A transaction has been left opened at the end of a database access
 try dbQueue.inDatabase { db in
-    try db.execute("BEGIN TRANSACTION")
+    try db.execute(sql: "BEGIN TRANSACTION")
     // <- no commit or rollback
 }
 ```
@@ -1660,10 +1695,10 @@ There are two kinds of prepared statements: **select statements**, and **update 
 ```swift
 try dbQueue.write { db in
     let updateSQL = "INSERT INTO player (name, score) VALUES (:name, :score)"
-    let updateStatement = try db.makeUpdateStatement(updateSQL)
+    let updateStatement = try db.makeUpdateStatement(sql: updateSQL)
     
     let selectSQL = "SELECT * FROM player WHERE name = ?"
-    let selectStatement = try db.makeSelectStatement(selectSQL)
+    let selectStatement = try db.makeSelectStatement(sql: selectSQL)
 }
 ```
 
@@ -1711,8 +1746,8 @@ When the same query will be used several times in the lifetime of your applicati
 Instead, use the `cachedUpdateStatement` and `cachedSelectStatement` methods. GRDB does all the hard caching and [memory management](#memory-management) stuff for you:
 
 ```swift
-let updateStatement = try db.cachedUpdateStatement(sql)
-let selectStatement = try db.cachedSelectStatement(sql)
+let updateStatement = try db.cachedUpdateStatement(sql: sql)
+let selectStatement = try db.cachedSelectStatement(sql: sql)
 ```
 
 Should a cached prepared statement throw an error, don't reuse it (it is a programmer error). Instead, reload it from the cache.
@@ -1748,7 +1783,7 @@ dbQueue.add(function: reverse)   // Or dbPool.add(function: ...)
 
 try dbQueue.read { db in
     // "oof"
-    try String.fetchOne(db, "SELECT reverse('foo')")!
+    try String.fetchOne(db, sql: "SELECT reverse('foo')")!
 }
 ```
 
@@ -1770,7 +1805,7 @@ dbQueue.add(function: averageOf)
 
 try dbQueue.read { db in
     // 2.0
-    try Double.fetchOne(db, "SELECT averageOf(1, 2, 3)")!
+    try Double.fetchOne(db, sql: "SELECT averageOf(1, 2, 3)")!
 }
 ```
 
@@ -1791,7 +1826,7 @@ dbQueue.add(function: sqrt)
 
 // SQLite error 1 with statement `SELECT sqrt(-1)`: invalid negative number
 try dbQueue.read { db in
-    try Double.fetchOne(db, "SELECT sqrt(-1)")!
+    try Double.fetchOne(db, sql: "SELECT sqrt(-1)")!
 }
 ```
 
@@ -1857,7 +1892,7 @@ dbQueue.add(function: maxLength)   // Or dbPool.add(function: ...)
 
 try dbQueue.read { db in
     // Some Int
-    try Int.fetchOne(db, "SELECT maxLength(name) FROM player")!
+    try Int.fetchOne(db, sql: "SELECT maxLength(name) FROM player")!
 }
 ```
 
@@ -1921,7 +1956,7 @@ In this case, the `ColumnMapping` row adapter comes in handy:
 ```swift
 // Fetch a 'produced' column, and consume a 'consumed' column:
 let adapter = ColumnMapping(["consumed": "produced"])
-let row = try Row.fetchOne(db, "SELECT 'Hello' AS produced", adapter: adapter)!
+let row = try Row.fetchOne(db, sql: "SELECT 'Hello' AS produced", adapter: adapter)!
 row["consumed"] // "Hello"
 row["produced"] // nil
 ```
@@ -1938,7 +1973,7 @@ ColumnMapping renames columns. Build one with a dictionary whose keys are adapte
 ```swift
 // [newName:"Hello"]
 let adapter = ColumnMapping(["newName": "oldName"])
-let row = try Row.fetchOne(db, "SELECT 'Hello' AS oldName", adapter: adapter)!
+let row = try Row.fetchOne(db, sql: "SELECT 'Hello' AS oldName", adapter: adapter)!
 ```
 
 ### SuffixRowAdapter
@@ -1948,7 +1983,7 @@ let row = try Row.fetchOne(db, "SELECT 'Hello' AS oldName", adapter: adapter)!
 ```swift
 // [b:1 c:2]
 let adapter = SuffixRowAdapter(fromIndex: 1)
-let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
+let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
 ```
 
 ### RangeRowAdapter
@@ -1958,7 +1993,7 @@ let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter
 ```swift
 // [b:1]
 let adapter = RangeRowAdapter(1..<2)
-let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
+let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
 ```
 
 ### EmptyRowAdapter
@@ -1967,7 +2002,7 @@ let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter
 
 ```swift
 let adapter = EmptyRowAdapter()
-let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
+let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
 row.isEmpty // true
 ```
 
@@ -1982,7 +2017,7 @@ This limit adapter may turn out useful in some narrow use cases. You'll be happy
 let adapter = ScopeAdapter([
     "left": RangeRowAdapter(0..<2),
     "right": RangeRowAdapter(2..<4)])
-let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
+let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
 ```
 
 ScopeAdapter does not change the columns and values of the fetched row. Instead, it defines *scopes*, which you access through the `Row.scopes` property:
@@ -2005,7 +2040,7 @@ let adapter = ScopeAdapter([
         "left": RangeRowAdapter(2..<3),
         "right": RangeRowAdapter(3..<4)])
     ])
-let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
+let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
 
 let leftRow = row.scopes["left"]!
 leftRow.scopes["left"]  // [a:0]
@@ -2022,7 +2057,7 @@ Any adapter can be extended with scopes:
 let baseAdapter = RangeRowAdapter(0..<2)
 let adapter = ScopeAdapter(base: baseAdapter, scopes: [
     "remainder": SuffixRowAdapter(fromIndex: 2)])
-let row = try Row.fetchOne(db, "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
+let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
 
 row // [a:0 b:1]
 row.scopes["remainder"] // [c:2 d:3]
@@ -2053,7 +2088,7 @@ try dbQueue.read { db in
     let sqliteConnection = db.sqliteConnection
 
     // The raw pointer to a statement:
-    let statement = try db.makeSelectStatement("SELECT ...")
+    let statement = try db.makeSelectStatement(sql: "SELECT ...")
     let sqliteStatement = statement.sqliteStatement
 }
 ```
@@ -2157,7 +2192,7 @@ To fetch records from the database, call a [fetching method](#fetching-methods):
 
 ```swift
 let arthur = try Player.fetchOne(db,            // Player?
-    "SELECT * FROM players WHERE name = ?",
+    sql: "SELECT * FROM players WHERE name = ?",
     arguments: ["Arthur"])
 
 let bestPlayers = try Player                    // [Player]
@@ -2198,7 +2233,7 @@ if let player = try Player.fetchOne(db, key: 1) {
 For batch updates, execute an [SQL query](#executing-updates):
 
 ```swift
-try db.execute("UPDATE player SET synchronized = 1")
+try db.execute(sql: "UPDATE player SET synchronized = 1")
 ```
 
 :point_right: update methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol.
@@ -2273,7 +2308,7 @@ Details follow:
     ```swift
     struct Place { ... }
     try dbQueue.read { db in
-        let rows = try Row.fetchAll(db, "SELECT * FROM place")
+        let rows = try Row.fetchAll(db, sql: "SELECT * FROM place")
         let places: [Place] = rows.map { row in
             return Place(
                 id: row["id"],
@@ -2291,7 +2326,7 @@ Details follow:
     ```swift
     struct Place: FetchableRecord { ... }
     try dbQueue.read { db in
-        let places = try Place.fetchAll(db, "SELECT * FROM place")
+        let places = try Place.fetchAll(db, sql: "SELECT * FROM place")
     }
     ```
     
@@ -2397,9 +2432,9 @@ struct Player: Decodable, FetchableRecord {
 FetchableRecord allows adopting types to be fetched from SQL queries:
 
 ```swift
-try Place.fetchCursor(db, "SELECT ...", arguments:...) // A Cursor of Place
-try Place.fetchAll(db, "SELECT ...", arguments:...)    // [Place]
-try Place.fetchOne(db, "SELECT ...", arguments:...)    // Place?
+try Place.fetchCursor(db, sql: "SELECT ...", arguments:...) // A Cursor of Place
+try Place.fetchAll(db, sql: "SELECT ...", arguments:...)    // [Place]
+try Place.fetchOne(db, sql: "SELECT ...", arguments:...)    // Place?
 ```
 
 See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods. See [StatementArguments](http://groue.github.io/GRDB.swift/docs/3.6/Structs/StatementArguments.html) for more information about the query arguments.
@@ -2883,7 +2918,7 @@ try dbQueue.read { db in
 // Observe changes
 try ValueObservation
     .trackingOne(Player.maximumScore)
-    .start(in: dbQueue) { maxScore: Int? in
+    .start(in: dbQueue) { (maxScore: Int?) in
         print("The maximum score has changed")
     }
 ```
@@ -3125,8 +3160,8 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
     
     // Despite the unique index on email, both inserts succeed.
     // The second insert replaces the first row:
-    try db.execute("INSERT INTO player (email) VALUES (?)", arguments: ["arthur@example.com"])
-    try db.execute("INSERT INTO player (email) VALUES (?)", arguments: ["arthur@example.com"])
+    try db.execute(sql: "INSERT INTO player (email) VALUES (?)", arguments: ["arthur@example.com"])
+    try db.execute(sql: "INSERT INTO player (email) VALUES (?)", arguments: ["arthur@example.com"])
     ```
     
 - In each modification query:
@@ -3142,8 +3177,8 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
     }
     
     // Again, despite the unique index on email, both inserts succeed.
-    try db.execute("INSERT OR REPLACE INTO player (email) VALUES (?)", arguments: ["arthur@example.com"])
-    try db.execute("INSERT OR REPLACE INTO player (email) VALUES (?)", arguments: ["arthur@example.com"])
+    try db.execute(sql: "INSERT OR REPLACE INTO player (email) VALUES (?)", arguments: ["arthur@example.com"])
+    try db.execute(sql: "INSERT OR REPLACE INTO player (email) VALUES (?)", arguments: ["arthur@example.com"])
     ```
 
 When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the PersistableRecord protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods](#persistence-methods):
@@ -3523,19 +3558,19 @@ This is the list of record methods, along with their required protocols. The [Re
 | **Fetch Record [Cursors](#cursors)** | | |
 | `Type.fetchCursor(db)` | [FetchableRecord] & [TableRecord] | |
 | `Type.fetchCursor(db, keys:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchCursor(db, sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchCursor(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchCursor(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchCursor(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Record Arrays** | | |
 | `Type.fetchAll(db)` | [FetchableRecord] & [TableRecord] | |
 | `Type.fetchAll(db, keys:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchAll(db, sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchAll(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchAll(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchAll(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Individual Records** | | |
 | `Type.fetchOne(db)` | [FetchableRecord] & [TableRecord] | |
 | `Type.fetchOne(db, key:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchOne(db, sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchOne(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchOne(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **[Record Comparison]** | | |
@@ -3566,13 +3601,13 @@ let count = try request.fetchCount(db)  // Int
 <a name="list-of-record-methods-3">³</a> See [SQL queries](#fetch-queries):
 
 ```swift
-let player = try Player.fetchOne("SELECT * FROM player WHERE id = ?", arguments: [1]) // Player?
+let player = try Player.fetchOne(db, sql: "SELECT * FROM player WHERE id = ?", arguments: [1]) // Player?
 ```
 
 <a name="list-of-record-methods-4">⁴</a> See [Prepared Statements](#prepared-statements):
 
 ```swift
-let statement = try db.makeSelectStatement("SELECT * FROM player WHERE id = ?")
+let statement = try db.makeSelectStatement(sql: "SELECT * FROM player WHERE id = ?")
 let player = try Player.fetchOne(statement, arguments: [1])  // Player?
 ```
 
@@ -3605,11 +3640,11 @@ Please bear in mind that the query interface can not generate all possible SQL q
 ```swift
 try dbQueue.write { db in
     // Update database schema (with SQL)
-    try db.execute("CREATE TABLE wine (...)")
+    try db.execute(sql: "CREATE TABLE wine (...)")
     
     // Fetch records (with SQL)
     let wines = try Wine.fetchAll(db,
-        "SELECT * FROM wine WHERE origin = ? ORDER BY price",
+        sql: "SELECT * FROM wine WHERE origin = ? ORDER BY price",
         arguments: ["Burgundy"])
     
     // Count (with an SQL snippet)
@@ -3618,7 +3653,7 @@ try dbQueue.write { db in
         .fetchCount(db)
     
     // Delete (with SQL)
-    try db.execute("DELETE FROM wine WHERE corked")
+    try db.execute(sql: "DELETE FROM wine WHERE corked")
 }
 ```
 
@@ -4332,7 +4367,7 @@ When you also want to use database observation tools such as [ValueObservation],
     // Observe with ValueObservation
     try ValueObservation
         .trackingOne(request)
-        .start(in: dbQueue) { maxScore: Int? in
+        .start(in: dbQueue) { (maxScore: Int?) in
             print("The maximum score has changed")
         }
     ```
@@ -4358,7 +4393,7 @@ When you also want to use database observation tools such as [ValueObservation],
     // Observe with ValueObservation
     try ValueObservation
         .trackingAll(request)
-        .start(in: dbQueue) { bookInfos: [BookInfo] in
+        .start(in: dbQueue) { (bookInfos: [BookInfo]) in
             print("Books have changed")
         }
     ```
@@ -4432,7 +4467,7 @@ Those requests can feed [ValueObservation]:
 ```swift
 try ValueObservation.
     .trackingOne(Player.filter(key: 1))
-    .start(in: dbQueue) { player: Player? in
+    .start(in: dbQueue) { (player: Player?) in
         print("Player 1 has changed")
     }
 ```
@@ -4537,7 +4572,7 @@ try request.fetchCount(db)  // Int
 
 ```swift
 // Custom SQL is always welcome
-try Player.fetchAll(db, "SELECT ...")   // [Player]
+try Player.fetchAll(db, sql: "SELECT ...")   // [Player]
 ```
 
 But you may prefer to bring some elegance back in, and build custom requests:
@@ -4552,7 +4587,7 @@ Custom requests can also feed [ValueObservation]:
 ```swift
 try ValueObservation.
     .trackingAll(Player.customRequest(...))
-    .start(in: dbQueue) { players: [Player] in
+    .start(in: dbQueue) { (players: [Player]) in
         print("Players have changed")
     }
 ```
@@ -4605,13 +4640,24 @@ let request = Player.all()
     extension Player {
         static func filter(color: Color) -> SQLRequest<Player> {
             return SQLRequest<Player>(
-                "SELECT * FROM player WHERE color = ?"
+                sql: "SELECT * FROM player WHERE color = ?"
                 arguments: [color])
         }
     }
     
     // [Player]
     try Player.filter(color: .red).fetchAll(db)
+    ```
+    
+    In Swift 5, you can build SQLRequest with [SQL Interpolation]:
+    
+    ```swift
+    // Swift 5
+    extension Player {
+        static func filter(color: Color) -> SQLRequest<Player> {
+            return "SELECT * FROM player WHERE color = \(color)"
+        }
+    }
     ```
     
 - The `asRequest(of:)` method changes the type fetched by the request. It is useful, for example, when you use [Associations]:
@@ -4654,7 +4700,7 @@ For example:
 
 ```swift
 let playerRequest = SQLRequest<Player>(
-    "SELECT * FROM player WHERE color = ?"
+    sql: "SELECT * FROM player WHERE color = ?"
     arguments: [color])
 try request.fetchAll(db)    // [Player]
 ```
@@ -4771,7 +4817,7 @@ migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") {
         t.autoIncrementedPrimaryKey("id")
         t.column("name", .text).notNull()
     }
-    try db.execute("INSERT INTO new_player SELECT * FROM player")
+    try db.execute(sql: "INSERT INTO new_player SELECT * FROM player")
     try db.drop(table: "player")
     try db.rename(table: "new_player", to: "player")
 }
@@ -4795,7 +4841,7 @@ try db.create(virtualTable: "book", using: FTS4()) { t in // or FTS3(), or FTS5(
 // Populate full-text table with records or SQL
 try Book(...).insert(db)
 try db.execute(
-    "INSERT INTO book (author, title, body) VALUES (?, ?, ?)",
+    sql: "INSERT INTO book (author, title, body) VALUES (?, ?, ?)",
     arguments: [...])
 
 // Build search patterns
@@ -4804,7 +4850,7 @@ let pattern = FTS3Pattern(matchingPhrase: "Moby-Dick")
 // Search with the query interface or SQL
 let books = try Book.matching(pattern).fetchAll(db)
 let books = try Book.fetchAll(db,
-    "SELECT * FROM book WHERE book MATCH ?",
+    sql: "SELECT * FROM book WHERE book MATCH ?",
     arguments: [pattern])
 ```
 
@@ -5066,7 +5112,7 @@ FTS3Pattern are regular [values](#values). You can use them as query [arguments]
 
 ```swift
 let documents = try Document.fetchAll(db,
-    "SELECT * FROM document WHERE content MATCH ?",
+    sql: "SELECT * FROM document WHERE content MATCH ?",
     arguments: [pattern])
 ```
 
@@ -5302,7 +5348,7 @@ FTS5Pattern are regular [values](#values). You can use them as query [arguments]
 
 ```swift
 let documents = try Document.fetchAll(db,
-    "SELECT * FROM document WHERE document MATCH ?",
+    sql: "SELECT * FROM document WHERE document MATCH ?",
     arguments: [pattern])
 ```
 
@@ -5320,7 +5366,7 @@ let documents = try Document.matching(pattern).fetchAll(db)
 ```swift
 // SQL
 let documents = try Document.fetchAll(db,
-    "SELECT * FROM document WHERE document MATCH ? ORDER BY rank",
+    sql: "SELECT * FROM document WHERE document MATCH ? ORDER BY rank",
     arguments: [pattern])
 
 // Query Interface
@@ -5425,7 +5471,7 @@ let sql = """
         ON book_ft.rowid = book.rowid
         AND book_ft MATCH ?
     """
-let books = Book.fetchAll(db, sql, arguments: [pattern])
+let books = Book.fetchAll(db, sql: sql, arguments: [pattern])
 ```
 
 
@@ -5557,7 +5603,7 @@ We merge those two adapters in a single [ScopeAdapter](#scopeadapter) that will 
 And now we can fetch, and start consuming our rows. You already know [row cursors](#fetching-rows):
 
 ```swift
-    let rows = try Row.fetchCursor(db, sql, adapter: adapter)
+    let rows = try Row.fetchCursor(db, sql: sql, adapter: adapter)
     while let row = try rows.next() {
 ```
 
@@ -5683,7 +5729,7 @@ Now is the time to build adapters (taking in account the customized selection of
 And finally, we can fetch player infos:
 
 ```swift
-        return try PlayerInfo.fetchAll(db, sql, adapter: adapter)
+        return try PlayerInfo.fetchAll(db, sql: sql, adapter: adapter)
     }
 }
 ```
@@ -5750,7 +5796,7 @@ extension PlayerInfo {
             LEFT JOIN round ON ...
             GROUP BY ...
             """
-        return SQLRequest<PlayerInfo>(sql).adapted { db in
+        return SQLRequest<PlayerInfo>(sql: sql).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 Player.numberOfSelectedColumns(db),
                 Team.numberOfSelectedColumns(db)])
@@ -5778,7 +5824,7 @@ let playerInfos = try dbQueue.read { db in
 // Track player infos with RxRGDB:
 PlayerInfo.all()
     .rx.fetchAll(in: dbQueue)
-    .subscribe(onNext: { playerInfos: [PlayerInfo] in
+    .subscribe(onNext: { (playerInfos: [PlayerInfo]) in
         print("Player infos have changed")
     })
 ```
@@ -5821,7 +5867,7 @@ extension PlayerInfo {
             LEFT JOIN round ON ...
             GROUP BY ...
             """
-        return SQLRequest<PlayerInfo>(sql).adapted { db in
+        return SQLRequest<PlayerInfo>(sql: sql).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 Player.numberOfSelectedColumns(db),
                 Team.numberOfSelectedColumns(db)])
@@ -5845,7 +5891,7 @@ let playerInfos = try dbQueue.read { db in
 // Track player infos with RxRGDB:
 PlayerInfo.all()
     .rx.fetchAll(in: dbQueue)
-    .subscribe(onNext: { playerInfos: [PlayerInfo] in
+    .subscribe(onNext: { (playerInfos: [PlayerInfo]) in
         print("Player infos have changed")
     })
 ```
@@ -5941,7 +5987,7 @@ let request = Player.all()
 
 ```swift
 let observation = ValueObservation.trackingAll(request)
-let observer = observation.start(in: dbQueue) { players: [Player] in
+let observer = observation.start(in: dbQueue) { (players: [Player]) in
     let names = players.map { $0.name }.joined(separator: ", ")
     print("Fresh players: \(names)")
 }
@@ -5956,7 +6002,7 @@ try dbQueue.write { db in
 
 ```swift
 let observation = DatabaseRegionObservation(tracking: request)
-let observer = observation.start(in: dbQueue) { db: Database in
+let observer = observation.start(in: dbQueue) { (db: Database) in
     print("Players have changed.")
 }
 
@@ -6005,7 +6051,7 @@ class PlayerViewController: UIViewController {
         // Start observing the database
         observer = try! observation.start(
             in: dbQueue,
-            onChange: { [unowned self] player: Player? in
+            onChange: { [unowned self] (player: Player?) in
                 // Player has changed: update view
                 self.nameLabel.text = player?.name
             })
@@ -6047,7 +6093,7 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
     // Observe number of players
     let observer = ValueObservation
         .trackingCount(Player.all())
-        .start(in: dbQueue) { count: Int in
+        .start(in: dbQueue) { (count: Int) in
             print("Number of players have changed: \(count)")
         }
     ```
@@ -6058,7 +6104,7 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
     // Observe a single player
     let observer = ValueObservation
         .trackingOne(Player.filter(key: 1))
-        .start(in: dbQueue) { player: Player? in
+        .start(in: dbQueue) { (player: Player?) in
             print("Player has changed: \(player)")
         }
     
@@ -6066,7 +6112,7 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
     let request = Player.select(max(Column("score")), as: Int.self)
     let observer = ValueObservation
         .trackingOne(request)
-        .start(in: dbQueue) { maximumScore: Int? in
+        .start(in: dbQueue) { (maximumScore: Int?) in
             print("Maximum score has changed: \(maximumScore)")
         }
     ```
@@ -6077,15 +6123,15 @@ Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request me
     // Observe all players
     let observer = ValueObservation
         .trackingAll(Player.all())
-        .start(in: dbQueue) { players: [Player] in
+        .start(in: dbQueue) { (players: [Player]) in
             print("Players have changed: \(players)")
         }
     
     // Observe all player names
-    let request = SQLRequest<String>("SELECT name FROM player")
+    let request = SQLRequest<String>(sql: "SELECT name FROM player")
     let observer = ValueObservation
         .trackingAll(request)
-        .start(in: dbQueue) { names: [String] in
+        .start(in: dbQueue) { (names: [String]) in
             print("Player names have changed: \(names)")
         }
     ```
@@ -6136,7 +6182,7 @@ let observation = ValueObservation.tracking(Player.all(), fetch: { db in
     try HallOfFame.fetch(db)
 })
 
-let observer = observation.start(in: dbQueue) { hallOfFame: HallOfFame in
+let observer = observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
     print("""
         Best players out of \(hallOfFame.totalPlayerCount):
         \(hallOfFame.bestPlayers)
@@ -6160,7 +6206,7 @@ let observation = ValueObservation
     .tracking(Player.all(), fetch: HallOfFame.fetch)
     .distinctUntilChanged()
 
-let observer = observation.start(in: dbQueue) { hallOfFame: HallOfFame in
+let observer = observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
     print("""
         Best players out of \(hallOfFame.totalPlayerCount):
         \(hallOfFame.bestPlayers)
@@ -6224,7 +6270,7 @@ let teamInfo: TeamInfo? = try dbQueue.read(request.fetch)
 // Observation
 let observer = ValueObservation
     .tracking(request, fetch: request.fetch)
-    .start(in: dbQueue) { teamInfo: TeamInfo? in
+    .start(in: dbQueue) { (teamInfo: TeamInfo?) in
         print("Team and its players have hanged.")
     }
 ```
@@ -6250,7 +6296,7 @@ let observation = ValueObservation
     .trackingOne(Player.filter(key: 42))
     .map { player in player?.loadBigProfileImage() }
 
-let observer = observation.start(in: dbQueue) { image: UIImage? in
+let observer = observation.start(in: dbQueue) { (image: UIImage?) in
     print("Player picture has changed")
 }
 ```
@@ -6270,7 +6316,7 @@ let observation = ValueObservation
     .trackingOne(Player.filter(key: 42))
     .compactMap { $0 }
     
-let observer = observation.start(in: dbQueue) { player: Player in
+let observer = observation.start(in: dbQueue) { (player: Player) in
     print("Player name: \(player.name)")
 }
 ```
@@ -6290,7 +6336,7 @@ let observation = ValueObservation
     .map { player in player != nil } // existence test
     .distinctUntilChanged()
 
-let observer = observation.start(in: dbQueue) { exists: Bool in
+let observer = observation.start(in: dbQueue) { (exists: Bool) in
     if exists {
         print("Player 42 exists.")
     } else {
@@ -6388,7 +6434,7 @@ The `scheduling` property lets you control how fresh values are notified:
     // On main queue
     let observer = ValueObservation
         .trackingAll(Player.all())
-        .start(in: dbQueue) { players: [Player] in
+        .start(in: dbQueue) { (players: [Player]) in
             // On main queue
             print("fresh players: \(players)")
         }
@@ -6401,7 +6447,7 @@ The `scheduling` property lets you control how fresh values are notified:
     // Not on the main queue
     let observer = ValueObservation
         .trackingAll(Player.all())
-        .start(in: dbQueue) { players: [Player] in
+        .start(in: dbQueue) { (players: [Player]) in
             // On main queue
             print("fresh players: \(players)")
         }
@@ -6424,7 +6470,7 @@ The `scheduling` property lets you control how fresh values are notified:
     let customQueue = DispatchQueue(label: "customQueue")
     var observation = ValueObservation.trackingAll(Player.all())
     observation.scheduling = .onQueue(customQueue, startImmediately: true)
-    let observer = try observation.start(in: dbQueue) { players: [Player] in
+    let observer = try observation.start(in: dbQueue) { (players: [Player]) in
         // On customQueue
         print("fresh players: \(players)")s
     }
@@ -6438,7 +6484,7 @@ The `scheduling` property lets you control how fresh values are notified:
     // On any queue
     var observation = ValueObservation.trackingAll(Player.all())
     observation.scheduling = .unsafe(startImmediately: true)
-    let observer = try observation.start(in: dbQueue) { players: [Player] in
+    let observer = try observation.start(in: dbQueue) { (players: [Player]) in
         print("fresh players: \(players)")
     }
     // <- here "fresh players" is already printed.
@@ -6494,7 +6540,7 @@ let reducer = AnyValueReducer(
         defer { count += 1 }
         return count })
 let observation = ValueObservation.tracking(Player.all(), reducer: { _ in reducer })
-let observer = observation.start(in: dbQueue) { count: Int in
+let observer = observation.start(in: dbQueue) { (count: Int) in
     print("Number of transactions that have modified players: \(count)")
 }
 // Prints "Number of transactions that have modified players: 0"
@@ -6527,7 +6573,7 @@ let observation = DatabaseRegionObservation(tracking: Player.all())
 Then start the observation from a [database queue](#database-queues) or [pool](#database-pools):
 
 ```swift
-let observer = observation.start(in: dbQueue) { db: Database in
+let observer = observation.start(in: dbQueue) { (db: Database) in
     print("Players were changed")
 }
 ```
@@ -6548,7 +6594,7 @@ You can also feed DatabaseRegionObservation with [DatabaseRegion], or any type w
 ```swift
 // Observe the full database
 let observation = DatabaseRegionObservation(tracking: DatabaseRegion.fullDatabase)
-let observer = observation.start(in: dbQueue) { db: Database in
+let observer = observation.start(in: dbQueue) { (db: Database) in
     print("Database was changed")
 }
 ```
@@ -6996,28 +7042,28 @@ Notified changes are not actually written to disk until the [transaction](#trans
 
 ```swift
 try dbQueue.write { db in
-    try db.execute("INSERT ...") // 1. didChange
-    try db.execute("UPDATE ...") // 2. didChange
-}                                // 3. willCommit, 4. didCommit
+    try db.execute(sql: "INSERT ...") // 1. didChange
+    try db.execute(sql: "UPDATE ...") // 2. didChange
+}                                     // 3. willCommit, 4. didCommit
 
 try dbQueue.inTransaction { db in
-    try db.execute("INSERT ...") // 1. didChange
-    try db.execute("UPDATE ...") // 2. didChange
-    return .rollback             // 3. didRollback
+    try db.execute(sql: "INSERT ...") // 1. didChange
+    try db.execute(sql: "UPDATE ...") // 2. didChange
+    return .rollback                  // 3. didRollback
 }
 
 try dbQueue.write { db in
-    try db.execute("INSERT ...") // 1. didChange
+    try db.execute(sql: "INSERT ...") // 1. didChange
     throw SomeError()
-}                                // 2. didRollback
+}                                     // 2. didRollback
 ```
 
 Database statements that are executed outside of any transaction do not drop off the radar:
 
 ```swift
 try dbQueue.inDatabase { db in
-    try db.execute("INSERT ...") // 1. didChange, 2. willCommit, 3. didCommit
-    try db.execute("UPDATE ...") // 4. didChange, 5. willCommit, 6. didCommit
+    try db.execute(sql: "INSERT ...") // 1. didChange, 2. willCommit, 3. didCommit
+    try db.execute(sql: "UPDATE ...") // 4. didChange, 5. willCommit, 6. didCommit
 }
 ```
 
@@ -7025,18 +7071,18 @@ Changes that are on hold because of a [savepoint](https://www.sqlite.org/lang_sa
 
 ```swift
 try dbQueue.inTransaction { db in
-    try db.execute("INSERT ...")            // 1. didChange
+    try db.execute(sql: "INSERT ...")            // 1. didChange
     
-    try db.execute("SAVEPOINT foo")
-    try db.execute("UPDATE ...")            // delayed
-    try db.execute("UPDATE ...")            // delayed
-    try db.execute("RELEASE SAVEPOINT foo") // 2. didChange, 3. didChange
+    try db.execute(sql: "SAVEPOINT foo")
+    try db.execute(sql: "UPDATE ...")            // delayed
+    try db.execute(sql: "UPDATE ...")            // delayed
+    try db.execute(sql: "RELEASE SAVEPOINT foo") // 2. didChange, 3. didChange
     
-    try db.execute("SAVEPOINT foo")
-    try db.execute("UPDATE ...")            // not notified
-    try db.execute("ROLLBACK TO SAVEPOINT foo")
+    try db.execute(sql: "SAVEPOINT foo")
+    try db.execute(sql: "UPDATE ...")            // not notified
+    try db.execute(sql: "ROLLBACK TO SAVEPOINT foo")
     
-    return .commit                          // 4. willCommit, 5. didCommit
+    return .commit                               // 4. willCommit, 5. didCommit
 }
 ```
 
@@ -7294,9 +7340,9 @@ configuration.passphrase = "secret"
 let encryptedDBQueue = try DatabaseQueue(path: "/path/to/encrypted.db", configuration: config)
 
 try clearDBQueue.inDatabase { db in
-    try db.execute("ATTACH DATABASE ? AS encrypted KEY ?", arguments: [encryptedDBQueue.path, "secret"])
-    try db.execute("SELECT sqlcipher_export('encrypted')")
-    try db.execute("DETACH DATABASE encrypted")
+    try db.execute(sql: "ATTACH DATABASE ? AS encrypted KEY ?", arguments: [encryptedDBQueue.path, "secret"])
+    try db.execute(sql: "SELECT sqlcipher_export('encrypted')")
+    try db.execute(sql: "DETACH DATABASE encrypted")
 }
 
 // Now the copy is done, and the clear-text database can be deleted.
@@ -7335,7 +7381,7 @@ Here is an example of code that is vulnerable to SQL injection:
 let id = 1
 let name = textField.text
 try dbQueue.write { db in
-    try db.execute("UPDATE students SET name = '\(name)' WHERE id = \(id)")
+    try db.execute(sql: "UPDATE students SET name = '\(name)' WHERE id = \(id)")
 }
 ```
 
@@ -7354,12 +7400,12 @@ let name = textField.text
 try dbQueue.write { db in
     // Good
     try db.execute(
-        "UPDATE students SET name = ? WHERE id = ?",
+        sql: "UPDATE students SET name = ? WHERE id = ?",
         arguments: [name, id])
     
     // Just as good
     try db.execute(
-        "UPDATE students SET name = :name WHERE id = :id",
+        sql: "UPDATE students SET name = :name WHERE id = :id",
         arguments: ["name": name, "id": id])
 }
 ```
@@ -7398,7 +7444,7 @@ Considering that a local database is not some JSON loaded from a remote server, 
 ```swift
 do {
     try db.execute(
-        "INSERT INTO pet (masterId, name) VALUES (?, ?)",
+        sql: "INSERT INTO pet (masterId, name) VALUES (?, ?)",
         arguments: [1, "Bobby"])
 } catch let error as DatabaseError {
     // The SQLite error code: 19 (SQLITE_CONSTRAINT)
@@ -7548,7 +7594,7 @@ let sql = "SELECT ..."
 
 // Some untrusted arguments for the query
 let arguments: [String: Any] = ...
-let rows = try Row.fetchCursor(db, sql, arguments: StatementArguments(arguments))
+let rows = try Row.fetchCursor(db, sql: sql, arguments: StatementArguments(arguments))
 
 while let row = try rows.next() {
     // Some untrusted database value:
@@ -7566,7 +7612,7 @@ In such a situation, you can still avoid fatal errors by exposing and handling e
 ```swift
 // Untrusted arguments
 if let arguments = StatementArguments(arguments) {
-    let statement = try db.makeSelectStatement(sql)
+    let statement = try db.makeSelectStatement(sql: sql)
     try statement.validate(arguments: arguments)
     statement.unsafeSetArguments(arguments)
     
@@ -7618,7 +7664,7 @@ The `UPPER` and `LOWER` built-in SQLite functions are not unicode-aware:
 
 ```swift
 // "JéRôME"
-try String.fetchOne(db, "SELECT UPPER('Jérôme')")
+try String.fetchOne(db, sql: "SELECT UPPER('Jérôme')")
 ```
 
 GRDB extends SQLite with [SQL functions](#custom-sql-functions-and-aggregates) that call the Swift built-in string functions `capitalized`, `lowercased`, `uppercased`, `localizedCapitalized`, `localizedLowercased` and `localizedUppercased`:
@@ -7626,7 +7672,7 @@ GRDB extends SQLite with [SQL functions](#custom-sql-functions-and-aggregates) t
 ```swift
 // "JÉRÔME"
 let uppercased = DatabaseFunction.uppercase
-try String.fetchOne(db, "SELECT \(uppercased.name)('Jérôme')")
+try String.fetchOne(db, sql: "SELECT \(uppercased.name)('Jérôme')")
 ```
 
 Those unicode-aware string functions are also readily available in the [query interface](#sql-functions):
@@ -7672,7 +7718,7 @@ If you can't or don't want to define the comparison behavior of a column (see wa
 ```swift
 let collation = DatabaseCollation.localizedCaseInsensitiveCompare
 let players = try Player.fetchAll(db,
-    "SELECT * FROM player ORDER BY name COLLATE \(collation.name))")
+    sql: "SELECT * FROM player ORDER BY name COLLATE \(collation.name))")
 let players = try Player.order(nameColumn.collating(collation)).fetchAll(db)
 ```
 
@@ -8323,7 +8369,7 @@ let sql = """
     LEFT JOIN book ON book.authorId = author.id
     GROUP BY author.id
     """
-let authors = try Author.fetchAll(db, sql)
+let authors = try Author.fetchAll(db, sql: sql)
 ```
 
 In the example above, consider extending your Author with an extra bookCount property, or define and use a different type.
@@ -8618,3 +8664,4 @@ This chapter has been renamed [Beyond FetchableRecord].
 [DatabaseRegionConvertible]: #the-databaseregionconvertible-protocol
 [ValueObservation and DatabaseRegionObservation]: #valueobservation-and-databaseregionobservation
 [DatabaseRegion]: #databaseregion
+[SQL Interpolation]: Documentation/SQLInterpolation.md

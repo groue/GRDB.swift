@@ -44,12 +44,20 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 ## GRDB-4.0 branch
 
+### New
+
+- [#478](https://github.com/groue/GRDB.swift/pull/478): Swift 5: SQL interpolation
+
 ### Breaking Changes
 
 - Swift 4.0 and Swift 4.1 are no longer supported
 - iOS 8 is no longer supported. Minimum deployment target is now iOS 9.0
 - Deprecated APIs are no longer available.
 - `SQLRequest.arguments` is no longer optional
+
+### Documentation Diff
+
+- [SQL Interpolation](Documentation/SQLInterpolation.md): this new document describes the new SQL interpolation feature.
 
 
 ## 3.6.2

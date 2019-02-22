@@ -22,7 +22,7 @@ private class Person : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute("""
+        try db.execute(sql: """
             CREATE TABLE persons (
                 id INTEGER PRIMARY KEY,
                 creationDate TEXT NOT NULL,
@@ -170,7 +170,7 @@ class RecordSubClassTests: GRDBTestCase {
             try record.insert(db)
             
             do {
-                let fetchedRecord = try PersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
+                let fetchedRecord = try PersonWithOverrides.fetchOne(db, sql: "SELECT *, 123 as extra FROM persons")!
                 XCTAssertTrue(fetchedRecord.id == record.id)
                 XCTAssertTrue(fetchedRecord.name == record.name)
                 XCTAssertTrue(fetchedRecord.age == record.age)
@@ -179,7 +179,7 @@ class RecordSubClassTests: GRDBTestCase {
             }
             
             do {
-                let fetchedRecord = try MinimalPersonWithOverrides.fetchOne(db, "SELECT *, 123 as extra FROM persons")!
+                let fetchedRecord = try MinimalPersonWithOverrides.fetchOne(db, sql: "SELECT *, 123 as extra FROM persons")!
                 XCTAssertTrue(fetchedRecord.id == record.id)
                 XCTAssertTrue(fetchedRecord.name == record.name)
                 XCTAssertTrue(fetchedRecord.age == record.age)

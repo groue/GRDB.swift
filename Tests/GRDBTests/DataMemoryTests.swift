@@ -22,7 +22,7 @@ class DataMemoryTests: GRDBTestCase {
             // https://forums.swift.org/t/swift-5-how-to-test-data-bytesnocopydeallocator/20299/2?u=gwendal.roue
             let data = Data(repeating: 0xaa, count: 15)
             
-            let rows = try Row.fetchCursor(db, "SELECT ?", arguments: [data])
+            let rows = try Row.fetchCursor(db, sql: "SELECT ?", arguments: [data])
             while let row = try rows.next() {
                 let blobPointer = sqlite3_column_blob(row.sqliteStatement, 0)
                 
@@ -45,7 +45,7 @@ class DataMemoryTests: GRDBTestCase {
                 }
             }
             
-            let row = try Row.fetchOne(db, "SELECT ?", arguments: [data])!
+            let row = try Row.fetchOne(db, sql: "SELECT ?", arguments: [data])!
             let dbValue = row.first!.1 // TODO: think about exposing a (column:,databaseValue:) tuple
             switch dbValue.storage {
             case .blob(let data):

@@ -33,7 +33,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
             // Success from database
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let value = try Value.fetchOne(db, "SELECT 'foo'")!
+                let value = try Value.fetchOne(db, sql: "SELECT 'foo'")!
                 XCTAssertEqual(value.string, "foo")
             }
         }
@@ -81,7 +81,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
             // Success from database
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let wrapper = try ValueWrapper.fetchOne(db, "SELECT 'foo'")!
+                let wrapper = try ValueWrapper.fetchOne(db, sql: "SELECT 'foo'")!
                 XCTAssertEqual(wrapper.value.string, "foo")
             }
         }
@@ -124,7 +124,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
             // Success from database
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
-                let wrapper = try ValueWrapper.fetchOne(db, "SELECT 'foo'")!
+                let wrapper = try ValueWrapper.fetchOne(db, sql: "SELECT 'foo'")!
                 XCTAssertEqual(wrapper.nested.string, "foo")
             }
         }
@@ -154,7 +154,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let value = try Value.fetchOne(db, "SELECT 'foo'")!
+            let value = try Value.fetchOne(db, sql: "SELECT 'foo'")!
             XCTAssertEqual(value.string, "foo (DatabaseValueConvertible)")
         }
     }
@@ -165,7 +165,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let value = try Value.fetchOne(db, "SELECT 'foo'")!
+            let value = try Value.fetchOne(db, sql: "SELECT 'foo'")!
             XCTAssertEqual(value, .foo)
         }
     }

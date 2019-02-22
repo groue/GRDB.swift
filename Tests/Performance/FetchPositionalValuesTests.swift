@@ -59,7 +59,7 @@ class FetchPositionalValuesTests: XCTestCase {
             var count = 0
             
             try! dbQueue.inDatabase { db in
-                let rows = try Row.fetchCursor(db, "SELECT * FROM items")
+                let rows = try Row.fetchCursor(db, sql: "SELECT * FROM items")
                 while let row = try rows.next() {
                     _ = row[0] as Int
                     _ = row[1] as Int

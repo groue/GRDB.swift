@@ -62,8 +62,8 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
             
             XCTAssertNotNil(deallocationWitness)
             XCTAssertEqual(transactionCount, 0)
-            try db.execute(startSQL)
-            try db.execute(endSQL)
+            try db.execute(sql: startSQL)
+            try db.execute(sql: endSQL)
             switch expectedCompletion {
             case .commit:
                 XCTAssertEqual(transactionCount, 1, "\(startSQL); \(endSQL)")
@@ -73,7 +73,7 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
             XCTAssertNil(deallocationWitness)
             
             try db.inTransaction {
-                try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a); ")
+                try db.execute(sql: "DROP TABLE IF EXISTS t; CREATE TABLE t(a); ")
                 return .commit
             }
             switch expectedCompletion {
@@ -91,7 +91,7 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.writeWithoutTransaction { db in
             var transactionCount = 0
-            try db.execute(startSQL)
+            try db.execute(sql: startSQL)
             
             weak var deallocationWitness: Witness? = nil
             do {
@@ -106,7 +106,7 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
             
             XCTAssertNotNil(deallocationWitness)
             XCTAssertEqual(transactionCount, 0)
-            try db.execute(endSQL)
+            try db.execute(sql: endSQL)
             switch expectedCompletion {
             case .commit:
                 XCTAssertEqual(transactionCount, 1, "\(startSQL); \(endSQL)")
@@ -116,7 +116,7 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
             XCTAssertNil(deallocationWitness)
             
             try db.inTransaction {
-                try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a); ")
+                try db.execute(sql: "DROP TABLE IF EXISTS t; CREATE TABLE t(a); ")
                 return .commit
             }
             switch expectedCompletion {

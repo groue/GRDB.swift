@@ -163,7 +163,7 @@ struct SQLSelectQueryGenerator {
             }
         }
         
-        let statement = try db.makeUpdateStatement(sql)
+        let statement = try db.makeUpdateStatement(sql: sql)
         statement.arguments = context.arguments!
         return statement
     }
@@ -179,7 +179,7 @@ struct SQLSelectQueryGenerator {
         let sql = try self.sql(db, &context)
         
         // Compile & set arguments
-        let statement = try db.makeSelectStatement(sql)
+        let statement = try db.makeSelectStatement(sql: sql)
         statement.arguments = context.arguments! // not nil for this kind of context
         return statement
     }

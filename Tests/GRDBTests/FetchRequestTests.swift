@@ -13,7 +13,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
             func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                return try (db.makeSelectStatement("SELECT * FROM table1"), nil)
+                return try (db.makeSelectStatement(sql: "SELECT * FROM table1"), nil)
             }
         }
         
@@ -22,8 +22,8 @@ class FetchRequestTests: GRDBTestCase {
             try db.create(table: "table1") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try db.execute("INSERT INTO table1 DEFAULT VALUES")
-            try db.execute("INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
             
             let request = CustomRequest()
             let rows = try request.fetchAll(db)
@@ -38,7 +38,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Int
             func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                return try (db.makeSelectStatement("SELECT id FROM table1"), nil)
+                return try (db.makeSelectStatement(sql: "SELECT id FROM table1"), nil)
             }
         }
         
@@ -47,8 +47,8 @@ class FetchRequestTests: GRDBTestCase {
             try db.create(table: "table1") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try db.execute("INSERT INTO table1 DEFAULT VALUES")
-            try db.execute("INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
             
             let request = CustomRequest()
             let ints = try request.fetchAll(db)
@@ -66,7 +66,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = CustomRecord
             func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                return try (db.makeSelectStatement("SELECT id FROM table1"), nil)
+                return try (db.makeSelectStatement(sql: "SELECT id FROM table1"), nil)
             }
         }
         
@@ -75,8 +75,8 @@ class FetchRequestTests: GRDBTestCase {
             try db.create(table: "table1") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try db.execute("INSERT INTO table1 DEFAULT VALUES")
-            try db.execute("INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
             
             let request = CustomRequest()
             let records = try request.fetchAll(db)
@@ -91,7 +91,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
             func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                return try (db.makeSelectStatement("SELECT * FROM table1"), nil)
+                return try (db.makeSelectStatement(sql: "SELECT * FROM table1"), nil)
             }
         }
         
@@ -100,8 +100,8 @@ class FetchRequestTests: GRDBTestCase {
             try db.create(table: "table1") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try db.execute("INSERT INTO table1 DEFAULT VALUES")
-            try db.execute("INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
             
             let request = CustomRequest()
             let count = try request.fetchCount(db)
@@ -114,7 +114,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
             func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-                return try (db.makeSelectStatement("INVALID"), nil)
+                return try (db.makeSelectStatement(sql: "INVALID"), nil)
             }
             
             func fetchCount(_ db: Database) throws -> Int {
@@ -127,8 +127,8 @@ class FetchRequestTests: GRDBTestCase {
             try db.create(table: "table1") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try db.execute("INSERT INTO table1 DEFAULT VALUES")
-            try db.execute("INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
             
             let request = CustomRequest()
             let count = try request.fetchCount(db)

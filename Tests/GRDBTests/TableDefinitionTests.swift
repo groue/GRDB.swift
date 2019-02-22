@@ -196,9 +196,9 @@ class TableDefinitionTests: GRDBTestCase {
                     ")") as String)
             
             // Sanity check
-            try db.execute("INSERT INTO test (a, b, c) VALUES (1, 0, 1)")
+            try db.execute(sql: "INSERT INTO test (a, b, c) VALUES (1, 0, 1)")
             do {
-                try db.execute("INSERT INTO test (a, b, c) VALUES (0, 0, 1)")
+                try db.execute(sql: "INSERT INTO test (a, b, c) VALUES (0, 0, 1)")
                 XCTFail()
             } catch {
             }
@@ -226,9 +226,9 @@ class TableDefinitionTests: GRDBTestCase {
                     ")") as String)
             
             // Sanity check
-            try db.execute("INSERT INTO test DEFAULT VALUES")
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT a FROM test")!, 1)
-            XCTAssertEqual(try String.fetchOne(db, "SELECT c FROM test")!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
+            try db.execute(sql: "INSERT INTO test DEFAULT VALUES")
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT a FROM test")!, 1)
+            XCTAssertEqual(try String.fetchOne(db, sql: "SELECT c FROM test")!, "'fooéı👨👨🏿🇫🇷🇨🇮'")
         }
     }
 
@@ -390,9 +390,9 @@ class TableDefinitionTests: GRDBTestCase {
                     ")") as String)
             
             // Sanity check
-            try db.execute("INSERT INTO test (a, b) VALUES (1, 0)")
+            try db.execute(sql: "INSERT INTO test (a, b) VALUES (1, 0)")
             do {
-                try db.execute("INSERT INTO test (a, b) VALUES (5, 5)")
+                try db.execute(sql: "INSERT INTO test (a, b) VALUES (5, 5)")
                 XCTFail()
             } catch {
             }

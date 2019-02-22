@@ -11,20 +11,20 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM player WHERE score > ?")
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
     /// - parameter sql: An SQL query.
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    public func makeSelectStatement(_ sql: String) throws -> SelectStatement {
-        return try makeSelectStatement(sql, prepFlags: 0)
+    public func makeSelectStatement(sql: String) throws -> SelectStatement {
+        return try makeSelectStatement(sql: sql, prepFlags: 0)
     }
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?", prepFlags: 0)
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM player WHERE score > ?", prepFlags: 0)
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
@@ -33,13 +33,13 @@ extension Database {
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    func makeSelectStatement(_ sql: String, prepFlags: Int32) throws -> SelectStatement {
+    func makeSelectStatement(sql: String, prepFlags: Int32) throws -> SelectStatement {
         return try SelectStatement.prepare(sql: sql, prepFlags: prepFlags, in: self)
     }
     
     /// Returns a prepared statement that can be reused.
     ///
-    ///     let statement = try db.cachedSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?")
+    ///     let statement = try db.cachedSelectStatement(sql: "SELECT COUNT(*) FROM player WHERE score > ?")
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
@@ -49,31 +49,31 @@ extension Database {
     /// - parameter sql: An SQL query.
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    public func cachedSelectStatement(_ sql: String) throws -> SelectStatement {
+    public func cachedSelectStatement(sql: String) throws -> SelectStatement {
         return try publicStatementCache.selectStatement(sql)
     }
     
     /// Returns a cached statement that does not conflict with user's cached statements.
-    func internalCachedSelectStatement(_ sql: String) throws -> SelectStatement {
+    func internalCachedSelectStatement(sql: String) throws -> SelectStatement {
         return try internalStatementCache.selectStatement(sql)
     }
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeUpdateStatement("INSERT INTO player (name) VALUES (?)")
+    ///     let statement = try db.makeUpdateStatement(sql: "INSERT INTO player (name) VALUES (?)")
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
     /// - parameter sql: An SQL query.
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    public func makeUpdateStatement(_ sql: String) throws -> UpdateStatement {
-        return try makeUpdateStatement(sql, prepFlags: 0)
+    public func makeUpdateStatement(sql: String) throws -> UpdateStatement {
+        return try makeUpdateStatement(sql: sql, prepFlags: 0)
     }
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeUpdateStatement("INSERT INTO player (name) VALUES (?)", prepFlags: 0)
+    ///     let statement = try db.makeUpdateStatement(sql: "INSERT INTO player (name) VALUES (?)", prepFlags: 0)
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
@@ -82,13 +82,13 @@ extension Database {
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    func makeUpdateStatement(_ sql: String, prepFlags: Int32) throws -> UpdateStatement {
+    func makeUpdateStatement(sql: String, prepFlags: Int32) throws -> UpdateStatement {
         return try UpdateStatement.prepare(sql: sql, prepFlags: prepFlags, in: self)
     }
     
     /// Returns a prepared statement that can be reused.
     ///
-    ///     let statement = try db.cachedUpdateStatement("INSERT INTO player (name) VALUES (?)")
+    ///     let statement = try db.cachedUpdateStatement(sql: "INSERT INTO player (name) VALUES (?)")
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
@@ -98,34 +98,63 @@ extension Database {
     /// - parameter sql: An SQL query.
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    public func cachedUpdateStatement(_ sql: String) throws -> UpdateStatement {
+    public func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
         return try publicStatementCache.updateStatement(sql)
     }
     
     /// Returns a cached statement that does not conflict with user's cached statements.
-    func internalCachedUpdateStatement(_ sql: String) throws -> UpdateStatement {
+    func internalCachedUpdateStatement(sql: String) throws -> UpdateStatement {
         return try internalStatementCache.updateStatement(sql)
     }
     
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
     ///     try db.execute(
-    ///         "INSERT INTO player (name) VALUES (:name)",
+    ///         sql: "INSERT INTO player (name) VALUES (:name)",
     ///         arguments: ["name": "Arthur"])
     ///
-    ///     try db.execute("""
+    ///     try db.execute(sql: """
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
-    ///         """, arguments; ['Arthur', 'Barbara', 'Craig'])
+    ///         """, arguments: ["Arthur", "Barbara", "O'Brien"])
     ///
     /// This method may throw a DatabaseError.
     ///
     /// - parameters:
     ///     - sql: An SQL query.
-    ///     - arguments: Optional statement arguments.
+    ///     - arguments: Statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(_ sql: String, arguments: StatementArguments? = nil) throws {
+    public func execute(sql: String, arguments: StatementArguments = StatementArguments()) throws {
+        try execute(literal: SQLLiteral(sql: sql, arguments: arguments))
+    }
+    
+    /// Executes one or several SQL statements, separated by semi-colons.
+    ///
+    ///     try db.execute(literal: SQLLiteral(
+    ///         sql: "INSERT INTO player (name) VALUES (:name)",
+    ///         arguments: ["name": "Arthur"]))
+    ///
+    ///     try db.execute(literal: SQLLiteral(sql: """
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         """, arguments: ["Arthur", "Barbara", "O'Brien"]))
+    ///
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
+    ///
+    ///     try db.execute(literal: """
+    ///         INSERT INTO player (name) VALUES (\("Arthur"));
+    ///         INSERT INTO player (name) VALUES (\("Barbara"));
+    ///         INSERT INTO player (name) VALUES (\("O'Brien"));
+    ///         """)
+    ///
+    /// This method may throw a DatabaseError.
+    ///
+    /// - parameter sqlLiteral: An SQLLiteral.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    public func execute(literal sqlLiteral: SQLLiteral) throws {
         // This method is like sqlite3_exec (https://www.sqlite.org/c3ref/exec.html)
         // It adds support for arguments, and the tricky part is to consume
         // arguments as statements are executed.
@@ -136,7 +165,9 @@ extension Database {
         //   all statements have been executed, in the same way
         //   as Statement.validate(arguments:)
         
-        var arguments = arguments ?? StatementArguments()
+        let sql = sqlLiteral.sql
+        var arguments = sqlLiteral.arguments
+        
         let initialValuesCount = arguments.values.count
         let consumeArguments = { (statement: UpdateStatement) throws -> StatementArguments in
             let bindings = try arguments.consume(statement, allowingRemainingValues: true)
@@ -254,15 +285,15 @@ struct StatementCache {
         // However SQLITE_PREPARE_PERSISTENT was only introduced in
         // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        let statement = try db.makeSelectStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        let statement = try db.makeSelectStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         #else
         let statement: SelectStatement
         if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
             // SQLite 3.24.0 or more
-            statement = try db.makeSelectStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+            statement = try db.makeSelectStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         } else {
             // SQLite 3.19.3 or less
-            statement = try db.makeSelectStatement(sql)
+            statement = try db.makeSelectStatement(sql: sql)
         }
         #endif
         selectStatements[sql] = statement
@@ -284,15 +315,15 @@ struct StatementCache {
         // However SQLITE_PREPARE_PERSISTENT was only introduced in
         // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
-            let statement = try db.makeUpdateStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        let statement = try db.makeUpdateStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         #else
         let statement: UpdateStatement
         if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
             // SQLite 3.24.0 or more
-            statement = try db.makeUpdateStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+            statement = try db.makeUpdateStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         } else {
             // SQLite 3.19.3 or less
-            statement = try db.makeUpdateStatement(sql)
+            statement = try db.makeUpdateStatement(sql: sql)
         }
         #endif
         updateStatements[sql] = statement

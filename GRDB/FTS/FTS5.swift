@@ -49,27 +49,27 @@
             }
             
             if let tokenizer = definition.tokenizer {
-                arguments.append("tokenize=\(tokenizer.components.joined(separator: " ").sqlExpression.sql)")
+                arguments.append("tokenize=\(tokenizer.components.joined(separator: " ").sqlExpression.quotedSQL())")
             }
             
             switch definition.contentMode {
             case .raw(let content, let contentRowID):
                 if let content = content {
-                    arguments.append("content=\(content.sqlExpression.sql)")
+                    arguments.append("content=\(content.sqlExpression.quotedSQL())")
                 }
                 if let contentRowID = contentRowID {
-                    arguments.append("content_rowid=\(contentRowID.sqlExpression.sql)")
+                    arguments.append("content_rowid=\(contentRowID.sqlExpression.quotedSQL())")
                 }
             case .synchronized(let contentTable):
-                arguments.append("content=\(contentTable.sqlExpression.sql)")
+                arguments.append("content=\(contentTable.sqlExpression.quotedSQL())")
                 if let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn {
-                    arguments.append("content_rowid=\(rowIDColumn.sqlExpression.sql)")
+                    arguments.append("content_rowid=\(rowIDColumn.sqlExpression.quotedSQL())")
                 }
             }
             
             
             if let prefixes = definition.prefixes {
-                arguments.append("prefix=\(prefixes.sorted().map { "\($0)" }.joined(separator: " ").sqlExpression.sql)")
+                arguments.append("prefix=\(prefixes.sorted().map { "\($0)" }.joined(separator: " ").sqlExpression.quotedSQL())")
             }
             
             if let columnSize = definition.columnSize {
@@ -110,7 +110,7 @@
                     .map { "old.\($0.quotedDatabaseIdentifier)" }
                     .joined(separator: ", ")
                 
-                try db.execute("""
+                try db.execute(sql: """
                     CREATE TRIGGER \("__\(tableName)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
                         INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
                     END;
@@ -125,7 +125,7 @@
                 
                 // https://sqlite.org/fts5.html#the_rebuild_command
                 
-                try db.execute("INSERT INTO \(ftsTable)(\(ftsTable)) VALUES('rebuild')")
+                try db.execute(sql: "INSERT INTO \(ftsTable)(\(ftsTable)) VALUES('rebuild')")
             }
         }
         
@@ -156,7 +156,7 @@
         }
         
         private static func api_v1(_ db: Database) -> UnsafePointer<fts5_api> {
-            guard let data = try! Data.fetchOne(db, "SELECT fts5()") else {
+            guard let data = try! Data.fetchOne(db, sql: "SELECT fts5()") else {
                 fatalError("FTS5 is not available")
             }
             #if swift(>=5.0)
@@ -371,7 +371,7 @@
     extension Database {
         /// Deletes the synchronization triggers for a synchronized FTS5 table
         public func dropFTS5SynchronizationTriggers(forTable tableName: String) throws {
-            try execute("""
+            try execute(sql: """
                 DROP TRIGGER IF EXISTS \("__\(tableName)_ai".quotedDatabaseIdentifier);
                 DROP TRIGGER IF EXISTS \("__\(tableName)_ad".quotedDatabaseIdentifier);
                 DROP TRIGGER IF EXISTS \("__\(tableName)_au".quotedDatabaseIdentifier);

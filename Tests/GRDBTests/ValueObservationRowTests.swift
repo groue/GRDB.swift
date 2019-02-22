@@ -15,14 +15,14 @@ import XCTest
 class ValueObservationRowTests: GRDBTestCase {
     func testAll() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
+        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
         
         var results: [[Row]] = []
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.trackingAll(SQLRequest<Row>("SELECT * FROM t ORDER BY id"))
+        var observation = ValueObservation.trackingAll(SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id"))
         observation.extent = .databaseLifetime
         _ = try observation.start(in: dbQueue) { rows in
             results.append(rows)
@@ -30,15 +30,15 @@ class ValueObservationRowTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
-            try db.execute("UPDATE t SET name = 'foo' WHERE id = 1")     // =
+            try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
+            try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
             try db.inTransaction {                                       // +1
-                try db.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
-                try db.execute("INSERT INTO t (id, name) VALUES (3, 'baz')")
-                try db.execute("DELETE FROM t WHERE id = 3")
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                try db.execute(sql: "DELETE FROM t WHERE id = 3")
                 return .commit
             }
-            try db.execute("DELETE FROM t WHERE id = 1")                 // -1
+            try db.execute(sql: "DELETE FROM t WHERE id = 1")                 // -1
         }
         
         waitForExpectations(timeout: 1, handler: nil)
@@ -51,14 +51,14 @@ class ValueObservationRowTests: GRDBTestCase {
     
     func testOne() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
+        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
         
         var results: [Row?] = []
         let notificationExpectation = expectation(description: "notification")
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.trackingOne(SQLRequest<Row>("SELECT * FROM t ORDER BY id DESC"))
+        var observation = ValueObservation.trackingOne(SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id DESC"))
         observation.extent = .databaseLifetime
         _ = try observation.start(in: dbQueue) { row in
             results.append(row)
@@ -66,15 +66,15 @@ class ValueObservationRowTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            try db.execute("INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
-            try db.execute("UPDATE t SET name = 'foo' WHERE id = 1")     // =
+            try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
+            try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
             try db.inTransaction {                                       // +1
-                try db.execute("INSERT INTO t (id, name) VALUES (2, 'bar')")
-                try db.execute("INSERT INTO t (id, name) VALUES (3, 'baz')")
-                try db.execute("DELETE FROM t WHERE id = 3")
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                try db.execute(sql: "DELETE FROM t WHERE id = 3")
                 return .commit
             }
-            try db.execute("DELETE FROM t")                              // -1
+            try db.execute(sql: "DELETE FROM t")                              // -1
         }
 
         waitForExpectations(timeout: 1, handler: nil)

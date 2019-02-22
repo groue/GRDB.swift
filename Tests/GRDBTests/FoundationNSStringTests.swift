@@ -12,7 +12,7 @@ class FoundationNSStringTests: GRDBTestCase {
     func testNSStringDatabaseRoundTrip() throws {
         let dbQueue = try makeDatabaseQueue()
         func roundTrip(_ value: NSString) throws -> Bool {
-            guard let back = try dbQueue.inDatabase({ try NSString.fetchOne($0, "SELECT ?", arguments: [value]) }) else {
+            guard let back = try dbQueue.inDatabase({ try NSString.fetchOne($0, sql: "SELECT ?", arguments: [value]) }) else {
                 XCTFail()
                 return false
             }

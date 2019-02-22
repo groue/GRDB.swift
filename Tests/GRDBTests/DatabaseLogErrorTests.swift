@@ -12,7 +12,7 @@ class DatabaseLogErrorTests: GRDBTestCase {
     func testErrorLog() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.inDatabase { db in
-            _ = try? db.execute("Abracadabra")
+            _ = try? db.execute(sql: "Abracadabra")
         }
         XCTAssertEqual(lastResultCode!, ResultCode.SQLITE_ERROR)
         // Don't check for exact error message because it depends on SQLite version

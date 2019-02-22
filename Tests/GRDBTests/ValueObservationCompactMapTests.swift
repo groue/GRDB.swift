@@ -16,7 +16,7 @@ class ValueObservationCompactMapTests: GRDBTestCase {
     func testCompactMap() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [String] = []
             let notificationExpectation = expectation(description: "notification")
@@ -48,8 +48,8 @@ class ValueObservationCompactMapTests: GRDBTestCase {
             }
             
             try dbWriter.writeWithoutTransaction { db in
-                try db.execute("INSERT INTO t DEFAULT VALUES")
-                try db.execute("INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             
             waitForExpectations(timeout: 1, handler: nil)

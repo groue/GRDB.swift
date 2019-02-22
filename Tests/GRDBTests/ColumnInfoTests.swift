@@ -17,7 +17,7 @@ class ColumnInfoTests: GRDBTestCase {
     func testColumnInfo() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE t (
                     a INT,
                     b TEXT,

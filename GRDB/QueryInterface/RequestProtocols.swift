@@ -51,8 +51,38 @@ extension SelectionRequest {
     ///     request
     ///         .select(sql: "id")
     ///         .select(sql: "email")
-    public func select(sql: String, arguments: StatementArguments? = nil) -> Self {
-        return select(SQLSelectionLiteral(sql, arguments: arguments))
+    public func select(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return select(literal: SQLLiteral(sql: sql, arguments: arguments))
+    }
+    
+    /// Creates a request which selects an SQL *literal*.
+    ///
+    ///     // SELECT id, email, score + 1000 FROM player
+    ///     let bonus = 1000
+    ///     var request = Player.all()
+    ///     request = request.select(literal: SQLLiteral(sql: """
+    ///         id, email, score + ?
+    ///         """, arguments: [bonus]))
+    ///
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
+    ///
+    ///     // SELECT id, email, score + 1000 FROM player
+    ///     let bonus = 1000
+    ///     var request = Player.all()
+    ///     request = request.select(literal: """
+    ///         id, email, score + \(bonus)
+    ///         """)
+    ///
+    /// Any previous selection is replaced:
+    ///
+    ///     // SELECT email FROM player
+    ///     request
+    ///         .select(...)
+    ///         .select(literal: SQLLiteral(sql: "email"))
+    public func select(literal sqlLiteral: SQLLiteral) -> Self {
+        // NOT TESTED
+        return select(SQLSelectionLiteral(literal: sqlLiteral))
     }
 }
 
@@ -91,10 +121,29 @@ extension FilteredRequest {
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     var request = Player.all()
     ///     request = request.filter(sql: "email = ?", arguments: ["arthur@example.com"])
-    public func filter(sql: String, arguments: StatementArguments? = nil) -> Self {
-        return filter(SQLExpressionLiteral(sql, arguments: arguments))
+    public func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return filter(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
+    /// Creates a request with the provided *predicate* added to the
+    /// eventual set of already applied predicates.
+    ///
+    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
+    ///     var request = Player.all()
+    ///     request = request.filter(literal: SQLLiteral(sql: """
+    ///         email = ?
+    ///         """, arguments: ["arthur@example.com"])
+    ///
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
+    ///
+    ///     var request = Player.all()
+    ///     request = request.filter(literal: "name = \("O'Brien")")
+    public func filter(literal sqlLiteral: SQLLiteral) -> Self {
+        // NOT TESTED
+        return filter(SQLExpressionLiteral(literal: sqlLiteral))
+    }
+
     /// Creates a request that matches nothing.
     ///
     ///     // SELECT * FROM player WHERE 0
@@ -268,24 +317,35 @@ extension AggregatingRequest {
     }
     
     /// Creates a request with a new grouping.
-    public func group(sql: String, arguments: StatementArguments? = nil) -> Self {
+    public func group(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return group(literal: SQLLiteral(sql: sql, arguments: arguments))
+    }
+    
+    /// Creates a request with a new grouping.
+    public func group(literal sqlLiteral: SQLLiteral) -> Self {
+        // NOT TESTED
         // This "expression" is not a real expression. We support raw sql which
         // actually contains several expressions:
         //
         //   request = Player.group(sql: "teamId, level")
         //
-        // This is why we use the "unsafe" flag, so that the SQLExpressionLiteral
-        // does not output its safe wrapping parenthesis, and generates
-        // invalid SQL.
-        var expression = SQLExpressionLiteral(sql, arguments: arguments)
-        expression.unsafeRaw = true
-        return group(expression)
+        // This is why we use the "unsafeLiteral" initializer, so that the
+        // SQLExpressionLiteral does not wrap input in parentheses, and
+        // generates invalid SQL `GROUP BY (teamId, level)`.
+        return group(SQLExpressionLiteral(unsafeLiteral: sqlLiteral))
     }
-    
+
     /// Creates a request with the provided *sql* added to the
     /// eventual set of already applied predicates.
-    public func having(sql: String, arguments: StatementArguments? = nil) -> Self {
-        return having(SQLExpressionLiteral(sql, arguments: arguments))
+    public func having(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return having(literal: SQLLiteral(sql: sql, arguments: arguments))
+    }
+
+    /// Creates a request with the provided *sql* added to the
+    /// eventual set of already applied predicates.
+    public func having(literal sqlLiteral: SQLLiteral) -> Self {
+        // NOT TESTED
+        return having(SQLExpressionLiteral(literal: sqlLiteral))
     }
 }
 
@@ -362,7 +422,7 @@ extension OrderedRequest {
         return order { _ in orderings }
     }
     
-    /// Creates a request with the provided *sql* used for sorting.
+    /// Creates a request sorted according to *sql*.
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     var request = Player.all()
@@ -374,18 +434,33 @@ extension OrderedRequest {
     ///     request
     ///         .order(sql: "email")
     ///         .order(sql: "name")
-    public func order(sql: String, arguments: StatementArguments? = nil) -> Self {
+    public func order(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
+        return order(literal: SQLLiteral(sql: sql, arguments: arguments))
+    }
+    
+    /// Creates a request sorted according to an SQL *literal*.
+    ///
+    ///     // SELECT * FROM player ORDER BY name
+    ///     var request = Player.all()
+    ///     request = request.order(sql: "name")
+    ///
+    /// Any previous ordering is replaced:
+    ///
+    ///     // SELECT * FROM player ORDER BY name
+    ///     request
+    ///         .order(sql: "email")
+    ///         .order(sql: "name")
+    public func order(literal sqlLiteral: SQLLiteral) -> Self {
+        // NOT TESTED
         // This "expression" is not a real expression. We support raw sql which
         // actually contains several expressions:
         //
         //   request = Player.order(sql: "teamId, level")
         //
-        // This is why we use the "unsafe" flag, so that the SQLExpressionLiteral
-        // does not output its safe wrapping parenthesis, and generates
-        // invalid SQL.
-        var expression = SQLExpressionLiteral(sql, arguments: arguments)
-        expression.unsafeRaw = true
-        return order([expression])
+        // This is why we use the "unsafeLiteral" initializer, so that the
+        // SQLExpressionLiteral does not wrap input in parentheses, and
+        // generates invalid SQL `ORDER BY (teamId, level)`.
+        return order(SQLExpressionLiteral(unsafeLiteral: sqlLiteral))
     }
 }
 

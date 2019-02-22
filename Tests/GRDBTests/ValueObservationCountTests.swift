@@ -15,7 +15,7 @@ import XCTest
 class ValueObservationCountTests: GRDBTestCase {
     func testCount() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
         var counts: [Int] = []
         let notificationExpectation = expectation(description: "notification")
@@ -31,16 +31,16 @@ class ValueObservationCountTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            try db.execute("INSERT INTO t DEFAULT VALUES") // +1
-            try db.execute("UPDATE t SET id = id")         // =
-            try db.execute("INSERT INTO t DEFAULT VALUES") // +1
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES") // +1
+            try db.execute(sql: "UPDATE t SET id = id")         // =
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES") // +1
             try db.inTransaction {                         // +1
-                try db.execute("INSERT INTO t DEFAULT VALUES")
-                try db.execute("INSERT INTO t DEFAULT VALUES")
-                try db.execute("DELETE FROM t WHERE id = 1")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "DELETE FROM t WHERE id = 1")
                 return .commit
             }
-            try db.execute("DELETE FROM t WHERE id = 2")   // -1
+            try db.execute(sql: "DELETE FROM t WHERE id = 2")   // -1
         }
         
         waitForExpectations(timeout: 1, handler: nil)

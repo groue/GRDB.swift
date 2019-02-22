@@ -24,10 +24,10 @@ class DatabaseErrorTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         do {
             try dbQueue.inTransaction { db in
-                try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY)")
-                try db.execute("CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
+                try db.execute(sql: "CREATE TABLE persons (id INTEGER PRIMARY KEY)")
+                try db.execute(sql: "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
                 sqlQueries.removeAll()
-                try db.execute("INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [1, "Bobby"])
+                try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [1, "Bobby"])
                 XCTFail()
                 return .commit
             }
@@ -55,10 +55,10 @@ class DatabaseErrorTests: GRDBTestCase {
                 do {
                     try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)
-                        try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY)")
-                        try db.execute("CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
+                        try db.execute(sql: "CREATE TABLE persons (id INTEGER PRIMARY KEY)")
+                        try db.execute(sql: "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
                         sqlQueries.removeAll()
-                        try db.execute("INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [1, "Bobby"])
+                        try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [1, "Bobby"])
                         XCTFail()
                         return .commit
                     }
@@ -82,14 +82,14 @@ class DatabaseErrorTests: GRDBTestCase {
     func testDatabaseErrorThrownByUpdateStatementContainSQLAndArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY)")
-            try db.execute("CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
+            try db.execute(sql: "CREATE TABLE persons (id INTEGER PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
         }
         
         // db.execute(sql, arguments)
         try dbQueue.inDatabase { db in
             do {
-                try db.execute("INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [1, "Bobby"])
+                try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [1, "Bobby"])
                 XCTFail()
             } catch let error as DatabaseError {
                 // SQLITE_CONSTRAINT_FOREIGNKEY was added in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
@@ -105,7 +105,7 @@ class DatabaseErrorTests: GRDBTestCase {
         // statement.execute(arguments)
         try dbQueue.inDatabase { db in
             do {
-                let statement = try db.makeUpdateStatement("INSERT INTO pets (masterId, name) VALUES (?, ?)")
+                let statement = try db.makeUpdateStatement(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)")
                 try statement.execute(arguments: [1, "Bobby"])
                 XCTFail()
             } catch let error as DatabaseError {
@@ -122,7 +122,7 @@ class DatabaseErrorTests: GRDBTestCase {
         // statement.execute()
         try dbQueue.inDatabase { db in
             do {
-                let statement = try db.makeUpdateStatement("INSERT INTO pets (masterId, name) VALUES (?, ?)")
+                let statement = try db.makeUpdateStatement(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)")
                 statement.arguments = [1, "Bobby"]
                 try statement.execute()
                 XCTFail()
@@ -142,7 +142,7 @@ class DatabaseErrorTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                try db.execute("""
+                try db.execute(sql: """
                     CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, age INT);
                     CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT);
                     INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')
@@ -166,7 +166,7 @@ class DatabaseErrorTests: GRDBTestCase {
             try db.create(table: "parents") { $0.column("id", .integer).primaryKey() }
             try db.create(table: "children") { $0.column("parentId", .integer).references("parents") }
             do {
-                try db.execute("INSERT INTO children (parentId) VALUES (1)")
+                try db.execute(sql: "INSERT INTO children (parentId) VALUES (1)")
             } catch let error as DatabaseError {
                 // SQLITE_CONSTRAINT_FOREIGNKEY was added in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
                 // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
@@ -182,7 +182,7 @@ class DatabaseErrorTests: GRDBTestCase {
             try db.create(table: "parents") { $0.column("id", .integer).primaryKey() }
             try db.create(table: "children") { $0.column("parentId", .integer).references("parents") }
             do {
-                try db.execute("INSERT INTO children (parentId) VALUES (1)")
+                try db.execute(sql: "INSERT INTO children (parentId) VALUES (1)")
             } catch let error as NSError {
                 XCTAssertEqual(DatabaseError.errorDomain, "GRDB.DatabaseError")
                 XCTAssertEqual(error.domain, DatabaseError.errorDomain)

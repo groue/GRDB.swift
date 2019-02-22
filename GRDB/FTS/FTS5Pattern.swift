@@ -74,7 +74,7 @@
                             }
                         }
                     }
-                    try db.makeSelectStatement("SELECT * FROM document WHERE document MATCH ?")
+                    try db.makeSelectStatement(sql: "SELECT * FROM document WHERE document MATCH ?")
                         .makeCursor(arguments: [rawPattern])
                         .next() // error on next() for invalid patterns
                 }

@@ -40,14 +40,14 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     public convenience init(
         _ databaseWriter: DatabaseWriter,
         sql: String,
-        arguments: StatementArguments? = nil,
+        arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil,
         queue: DispatchQueue = .main,
         isSameRecord: ((Record, Record) -> Bool)? = nil) throws
     {
         try self.init(
             databaseWriter,
-            request: SQLRequest<Record>(sql, arguments: arguments, adapter: adapter),
+            request: SQLRequest<Record>(sql: sql, arguments: arguments, adapter: adapter),
             queue: queue,
             isSameRecord: isSameRecord)
     }
@@ -196,8 +196,8 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     ///
     /// This method must be used from the controller's dispatch queue (the
     /// main queue unless stated otherwise in the controller's initializer).
-    public func setRequest(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
-        try setRequest(SQLRequest(sql, arguments: arguments, adapter: adapter))
+    public func setRequest(sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws {
+        try setRequest(SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Registers changes notification callbacks.
@@ -429,13 +429,13 @@ extension FetchedRecordsController where Record: TableRecord {
     public convenience init(
         _ databaseWriter: DatabaseWriter,
         sql: String,
-        arguments: StatementArguments? = nil,
+        arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil,
         queue: DispatchQueue = .main) throws
     {
         try self.init(
             databaseWriter,
-            request: SQLRequest(sql, arguments: arguments, adapter: adapter),
+            request: SQLRequest(sql: sql, arguments: arguments, adapter: adapter),
             queue: queue)
     }
     

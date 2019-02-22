@@ -332,7 +332,7 @@ extension DatabaseQueue {
     ///     }
     ///     dbQueue.add(function: fn)
     ///     try dbQueue.read { db in
-    ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
+    ///         try Int.fetchOne(db, sql: "SELECT succ(1)") // 2
     ///     }
     public func add(function: DatabaseFunction) {
         writer.sync { $0.add(function: function) }
@@ -352,7 +352,7 @@ extension DatabaseQueue {
     ///     }
     ///     dbQueue.add(collation: collation)
     ///     try dbQueue.write { db in
-    ///         try db.execute("CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///         try db.execute(sql: "CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {
         writer.sync { $0.add(collation: collation) }

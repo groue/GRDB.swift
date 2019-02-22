@@ -14,8 +14,8 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     /// Unless we are producing a row array, we use a single row when iterating
     /// a statement:
     ///
-    ///     let rows = try Row.fetchCursor(db, "SELECT ...")
-    ///     let players = try Player.fetchAll(db, "SELECT ...")
+    ///     let rows = try Row.fetchCursor(db, sql: "SELECT ...")
+    ///     let players = try Player.fetchAll(db, sql: "SELECT ...")
     ///
     /// This row keeps an unmanaged reference to the statement, and a handle to
     /// the sqlite statement, so that we avoid many retain/release invocations.
@@ -162,10 +162,10 @@ extension Row {
     ///
     /// For example:
     ///
-    ///     let row = try Row.fetchOne(db, "SELECT 'foo', 1")!
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 'foo', 1")!
     ///     row.containsNonNullValue // true
     ///
-    ///     let row = try Row.fetchOne(db, "SELECT NULL, NULL")!
+    ///     let row = try Row.fetchOne(db, sql: "SELECT NULL, NULL")!
     ///     row.containsNonNullValue // false
     public var containsNonNullValue: Bool {
         for i in (0..<count) where !impl.hasNull(atUncheckedIndex: i) {
@@ -541,7 +541,7 @@ extension Row {
     ///
     ///     // Fetch
     ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
-    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+    ///     let row = try Row.fetchOne(db, sql: sql, adapter: adapter)!
     ///
     ///     row.scopes.count  // 2
     ///     row.scopes.names  // ["foo", "bar"]
@@ -565,7 +565,7 @@ extension Row {
     ///
     ///     // Fetch
     ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
-    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+    ///     let row = try Row.fetchOne(db, sql: sql, adapter: adapter)!
     ///
     ///     row.scopesTree.names  // ["foo", "bar", "baz"]
     ///
@@ -602,7 +602,7 @@ extension Row {
 /// A cursor of database rows. For example:
 ///
 ///     try dbQueue.read { db in
-///         let rows: RowCursor = try Row.fetchCursor(db, "SELECT * FROM player")
+///         let rows: RowCursor = try Row.fetchCursor(db, sql: "SELECT * FROM player")
 ///     }
 public final class RowCursor : Cursor {
     public let statement: SelectStatement
@@ -649,7 +649,7 @@ extension Row {
     
     /// Returns a cursor over rows fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT ...")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT ...")
     ///     let rows = try Row.fetchCursor(statement) // RowCursor
     ///     while let row = try rows.next() { // Row
     ///         let id: Int64 = row[0]
@@ -682,7 +682,7 @@ extension Row {
     
     /// Returns an array of rows fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT ...")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT ...")
     ///     let rows = try Row.fetchAll(statement)
     ///
     /// - parameters:
@@ -698,7 +698,7 @@ extension Row {
     
     /// Returns a single row fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT ...")
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT ...")
     ///     let row = try Row.fetchOne(statement)
     ///
     /// - parameters:
@@ -722,7 +722,7 @@ extension Row {
     
     /// Returns a cursor over rows fetched from an SQL query.
     ///
-    ///     let rows = try Row.fetchCursor(db, "SELECT id, name FROM player") // RowCursor
+    ///     let rows = try Row.fetchCursor(db, sql: "SELECT id, name FROM player") // RowCursor
     ///     while let row = try rows.next() { // Row
     ///         let id: Int64 = row[0]
     ///         let name: String = row[1]
@@ -744,42 +744,50 @@ extension Row {
     /// - parameters:
     ///     - db: A database connection.
     ///     - sql: An SQL query.
-    ///     - arguments: Optional statement arguments.
+    ///     - arguments: Statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RowCursor {
-        return try fetchCursor(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
+    public static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RowCursor {
+        return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of rows fetched from an SQL query.
     ///
-    ///     let rows = try Row.fetchAll(db, "SELECT ...")
+    ///     let rows = try Row.fetchAll(db, sql: "SELECT id, name FROM player") // [Row]
+    ///     for row in rows {
+    ///         let id: Int64 = row[0]
+    ///         let name: String = row[1]
+    ///     }
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - sql: An SQL query.
-    ///     - arguments: Optional statement arguments.
+    ///     - arguments: Statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
-        return try fetchAll(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
+    public static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Row] {
+        return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single row fetched from an SQL query.
     ///
-    ///     let row = try Row.fetchOne(db, "SELECT ...")
+    ///     let row = try Row.fetchOne(db, sql: "SELECT id, name FROM player") // Row?
+    ///     if let row = row {
+    ///         let id: Int64 = row[0]
+    ///         let name: String = row[1]
+    ///     }
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - sql: An SQL query.
-    ///     - arguments: Optional statement arguments.
+    ///     - arguments: Statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row? {
-        return try fetchOne(db, SQLRequest<Void>(sql, arguments: arguments, adapter: adapter))
+    public static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Row? {
+        return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -1093,7 +1101,7 @@ extension Row {
     ///
     ///     // Fetch
     ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
-    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+    ///     let row = try Row.fetchOne(db, sql: sql, adapter: adapter)!
     ///
     ///     row.scopes.count  // 2
     ///     row.scopes.names  // ["foo", "bar"]
@@ -1168,7 +1176,7 @@ extension Row {
     ///
     ///     // Fetch
     ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
-    ///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+    ///     let row = try Row.fetchOne(db, sql: sql, adapter: adapter)!
     ///
     ///     row.scopesTree.names  // ["foo", "bar", "baz"]
     ///

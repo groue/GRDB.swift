@@ -132,30 +132,30 @@ extension DatabaseWriter {
         // So we'll drop all database objects one after the other.
         try writeWithoutTransaction { db in
             // Prevent foreign keys from messing with drop table statements
-            let foreignKeysEnabled = try Bool.fetchOne(db, "PRAGMA foreign_keys")!
+            let foreignKeysEnabled = try Bool.fetchOne(db, sql: "PRAGMA foreign_keys")!
             if foreignKeysEnabled {
-                try db.execute("PRAGMA foreign_keys = OFF")
+                try db.execute(sql: "PRAGMA foreign_keys = OFF")
             }
             
             // Remove all database objects, one after the other
             do {
                 try db.inTransaction {
-                    while let row = try Row.fetchOne(db, "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'") {
+                    while let row = try Row.fetchOne(db, sql: "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'") {
                         let type: String = row["type"]
                         let name: String = row["name"]
-                        try db.execute("DROP \(type) \(name.quotedDatabaseIdentifier)")
+                        try db.execute(sql: "DROP \(type) \(name.quotedDatabaseIdentifier)")
                     }
                     return .commit
                 }
                 
                 // Restore foreign keys if needed
                 if foreignKeysEnabled {
-                    try db.execute("PRAGMA foreign_keys = ON")
+                    try db.execute(sql: "PRAGMA foreign_keys = ON")
                 }
             } catch {
                 // Restore foreign keys if needed
                 if foreignKeysEnabled {
-                    try? db.execute("PRAGMA foreign_keys = ON")
+                    try? db.execute(sql: "PRAGMA foreign_keys = ON")
                 }
                 throw error
             }
@@ -172,7 +172,7 @@ extension DatabaseWriter {
     ///
     /// See https://www.sqlite.org/lang_vacuum.html for more information.
     public func vacuum() throws {
-        try writeWithoutTransaction { try $0.execute("VACUUM") }
+        try writeWithoutTransaction { try $0.execute(sql: "VACUUM") }
     }
     
     // MARK: - Value Observation

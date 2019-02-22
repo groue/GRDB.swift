@@ -24,7 +24,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE readers (
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -87,8 +87,8 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testSelectLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
             let request = Reader.select(sql: "name, id - 1")
             let rows = try Row.fetchAll(db, request)
@@ -104,8 +104,8 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testSelectLiteralWithPositionalArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
             let request = Reader.select(sql: "name, id - ?", arguments: [1])
             let rows = try Row.fetchAll(db, request)
@@ -121,8 +121,8 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testSelectLiteralWithNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
             let request = Reader.select(sql: "name, id - :n", arguments: ["n": 1])
             let rows = try Row.fetchAll(db, request)
@@ -134,12 +134,34 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(rows[1][1] as Int64, 1)
         }
     }
-
+    
+    func testSelectSQLLiteral() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            
+            func test(_ request: QueryInterfaceRequest<Reader>) throws {
+                let rows = try Row.fetchAll(db, request)
+                XCTAssertEqual(rows.count, 2)
+                XCTAssertEqual(rows[0][0] as String, "O'Brien")
+                XCTAssertEqual(rows[0][1] as Int64, 0)
+                XCTAssertEqual(rows[1][0] as String, "O'Brien")
+                XCTAssertEqual(rows[1][1] as Int64, 1)
+            }
+            try test(Reader.select(literal: SQLLiteral(sql: ":name, id - :value", arguments: ["name": "O'Brien", "value": 1])))
+            #if swift(>=5)
+            // Interpolation
+            try test(Reader.select(literal: "\("O'Brien"), id - \(1)"))
+            #endif
+        }
+    }
+    
     func testSelect() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
-            try db.execute("INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
             let request = Reader.select(Col.name, Col.id - 1)
             let rows = try Row.fetchAll(db, request)

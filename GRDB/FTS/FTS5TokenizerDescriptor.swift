@@ -60,7 +60,7 @@
             if separators.isEmpty {
                 return FTS5TokenizerDescriptor(components: ["ascii"])
             } else {
-                return FTS5TokenizerDescriptor(components: ["ascii", "separators", separators.map { String($0) }.joined(separator: "").sqlExpression.sql])
+                return FTS5TokenizerDescriptor(components: ["ascii", "separators", separators.map { String($0) }.joined(separator: "").sqlExpression.quotedSQL()])
             }
         }
         
@@ -106,11 +106,25 @@
             }
             if !separators.isEmpty {
                 // TODO: test "=" and "\"", "(" and ")" as separators, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
-                components.append(contentsOf: ["separators", separators.sorted().map { String($0) }.joined(separator: "").sqlExpression.sql])
+                components.append(contentsOf: [
+                    "separators",
+                    separators
+                        .sorted()
+                        .map { String($0) }
+                        .joined(separator: "")
+                        .sqlExpression
+                        .quotedSQL()])
             }
             if !tokenCharacters.isEmpty {
                 // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
-                components.append(contentsOf: ["tokenchars", tokenCharacters.sorted().map { String($0) }.joined(separator: "").sqlExpression.sql])
+                components.append(contentsOf: [
+                    "tokenchars",
+                    tokenCharacters
+                        .sorted()
+                        .map { String($0) }
+                        .joined(separator: "")
+                        .sqlExpression
+                        .quotedSQL()])
             }
             return FTS5TokenizerDescriptor(components: components)
         }

@@ -83,15 +83,17 @@ try dbQueue.write { db in
     }
     
     // Demo values: two Foo and one Bar
-    try db.execute("""
-        INSERT INTO base (type, fooName, barScore) VALUES (?, ?, ?);
-        INSERT INTO base (type, fooName, barScore) VALUES (?, ?, ?);
-        INSERT INTO base (type, fooName, barScore) VALUES (?, ?, ?);
-        """, arguments: [
+    try db.execute(
+        sql: """
+            INSERT INTO base (type, fooName, barScore) VALUES (?, ?, ?);
+            INSERT INTO base (type, fooName, barScore) VALUES (?, ?, ?);
+            INSERT INTO base (type, fooName, barScore) VALUES (?, ?, ?);
+            """,
+        arguments: [
             "Foo", "Arthur", nil,
             "Bar", nil, 100,
             "Foo", "Barbara", nil,
-            ])
+        ])
 }
 
 //: We also need a method that decodes database rows into `Foo` or `Bar`
@@ -140,7 +142,7 @@ extension Base {
 
 try dbQueue.read { db in
     print("> KISS: Fetch from SQL")
-    let rows = try Row.fetchAll(db, "SELECT * FROM base")   // Fetch database rows
+    let rows = try Row.fetchAll(db, sql: "SELECT * FROM base")   // Fetch database rows
     let bases = rows.map { row in                           // Decode database rows
         Base.decode(row: row)
     }
@@ -210,13 +212,15 @@ extension Base: MyDatabaseDecoder {
 //: **prepared statement**:
 //:
 //:     try dbQueue.read { db in
-//:         let statement = try db.makeSelectStatement("SELECT ...")
+//:         let statement = try db.makeSelectStatement(sql: "SELECT ...")
 //:         try Base.fetchCursor(statement) // Cursor of Base
 //:         try Base.fetchAll(statement)    // [Base]
 //:         try Base.fetchOne(statement)    // Base?
 //:     }
 
 extension MyDatabaseDecoder {
+    // MARK: - Fetch from SelectStatement
+    
     // SelectStatement, StatementArguments, and RowAdapter are the fundamental
     // fetching parameters of GRDB. Make sure to accept them all:
     static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
@@ -239,7 +243,7 @@ extension MyDatabaseDecoder {
 
 try dbQueue.read { db in
     print("> Fetch from prepared statement")
-    let statement = try db.makeSelectStatement("SELECT * FROM base")
+    let statement = try db.makeSelectStatement(sql: "SELECT * FROM base")
     let bases = try Base.fetchAll(statement)
     for base in bases {
         print(base.description)
@@ -258,6 +262,8 @@ try dbQueue.read { db in
 //:         try Base.fetchOne(db, request)    // Base?
 //:     }
 extension MyDatabaseDecoder {
+    // MARK: - Fetch from FetchRequest
+    
     static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> MapCursor<RowCursor, DecodedType> {
         let (statement, adapter) = try request.prepare(db)
         return try fetchCursor(statement, adapter: adapter)
@@ -293,6 +299,8 @@ try dbQueue.read { db in
 //:         try request.fetchOne(db)    // Base?
 //:     }
 extension FetchRequest where RowDecoder: MyDatabaseDecoder {
+    // MARK: - FetchRequest fetching methods
+    
     func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder.DecodedType> {
         return try RowDecoder.fetchCursor(db, self)
     }
@@ -324,6 +332,8 @@ try dbQueue.read { db in
 //:         try Base.fetchOne(db)    // Base?
 //:     }
 extension MyDatabaseDecoder where Self: TableRecord {
+    // MARK: - Static fetching methods
+    
     static func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, DecodedType> {
         return try all().fetchCursor(db)
     }
@@ -345,31 +355,32 @@ try dbQueue.read { db in
     }
 }
 
-//: Finally, you don't have a true GRDB record unless it allows fetching from
-//: raw SQL:
+//: Finally, you can support raw SQL as well:
 //:
 //:     try dbQueue.read { db in
-//:         try Base.fetchCursor(db, "SELECT ...") // Cursor of Base
-//:         try Base.fetchAll(db, "SELECT ...")    // [Base]
-//:         try Base.fetchOne(db, "SELECT ...")    // Base?
+//:         try Base.fetchAll(db,
+//:             sql: "SELECT ... WHERE name = ?",
+//:             arguments: ["O'Brien"]) // [Base]
 //:     }
 extension MyDatabaseDecoder {
-    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
-        return try fetchCursor(db, SQLRequest<Self>(sql, arguments: arguments, adapter: adapter))
+    // MARK: - Fetch from SQL
+    
+    static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
+        return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
-    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [DecodedType] {
-        return try fetchAll(db, SQLRequest<Self>(sql, arguments: arguments, adapter: adapter))
+    static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [DecodedType] {
+        return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
-    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DecodedType? {
-        return try fetchOne(db, SQLRequest<Self>(sql, arguments: arguments, adapter: adapter))
+    static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> DecodedType? {
+        return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
 try dbQueue.read { db in
     print("> Fetch from SQL")
-    let bases = try Base.fetchAll(db, "SELECT * FROM base")
+    let bases = try Base.fetchAll(db, sql: "SELECT * FROM base")
     for base in bases {
         print(base.description)
     }

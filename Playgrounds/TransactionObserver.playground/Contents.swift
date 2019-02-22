@@ -13,26 +13,24 @@ import GRDB
 
 let dbQueue = DatabaseQueue()   // Memory database
 var migrator = DatabaseMigrator()
-migrator.registerMigration("createPersons") { db in
-    try db.execute(
-        "CREATE TABLE persons (" +
-            "id INTEGER PRIMARY KEY, " +
-            "name TEXT NOT NULL " +
-        ")")
+migrator.registerMigration("createPerson") { db in
+    try db.create(table: "person") { t in
+        t.autoIncrementedPrimaryKey("id")
+        t.column("name", .text).notNull()
+    }
 }
-migrator.registerMigration("createPets") { db in
-    try db.execute(
-        "CREATE TABLE pets (" +
-            "id INTEGER PRIMARY KEY, " +
-            "name TEXT, " +
-            "ownerId INTEGER NOT NULL REFERENCES persons(id) ON DELETE CASCADE" +
-        ")")
+migrator.registerMigration("createPet") { db in
+    try db.create(table: "pet") { t in
+        t.autoIncrementedPrimaryKey("id")
+        t.column("name", .text).notNull()
+        t.column("ownerId", .integer).references("person", onDelete: .cascade)
+    }
 }
 try! migrator.migrate(dbQueue)
 
 
+//
 
-/// TableChangeObserver prints on the main thread the changes database tables.
 class TableChangeObserver : NSObject, TransactionObserver {
     private var changedTableNames: Set<String> = []
     
@@ -42,9 +40,6 @@ class TableChangeObserver : NSObject, TransactionObserver {
     
     func databaseDidChange(with event: DatabaseEvent) {
         changedTableNames.insert(event.tableName)
-    }
-    
-    func databaseWillCommit() throws {
     }
     
     func databaseDidCommit(_ db: Database) {
@@ -57,34 +52,35 @@ class TableChangeObserver : NSObject, TransactionObserver {
     }
 }
 
-
-
-// Register observer
-
 let observer = TableChangeObserver()
 dbQueue.add(transactionObserver: observer)
 
 
 //
 
-print("-- Changes 1")
-try! dbQueue.inDatabase { db in
-    try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
+print("-- Changes without transaction")
+try dbQueue.inDatabase { db in
+    try db.execute(sql: "INSERT INTO person (name) VALUES (?)", arguments: ["Arthur"])
     let arthurId = db.lastInsertedRowID
-    try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Barbara"])
-    try db.execute("INSERT INTO pets (ownerId, name) VALUES (?, ?)", arguments: [arthurId, "Barbara"])
+    try db.execute(sql: "INSERT INTO person (name) VALUES (?)", arguments: ["Barbara"])
+    try db.execute(sql: "INSERT INTO pet (ownerId, name) VALUES (?, ?)", arguments: [arthurId, "Barbara"])
+    try db.execute(sql: "DELETE FROM person WHERE id = ?", arguments: [arthurId])
 }
 
-print("-- Changes 2")
+print("-- Rollbacked changes")
 try dbQueue.inTransaction { db in
-    try db.execute("INSERT INTO persons (name) VALUES ('Arthur')")
-    try db.execute("INSERT INTO persons (name) VALUES ('Barbara')")
+    try db.execute(sql: "INSERT INTO person (name) VALUES ('Arthur')")
+    try db.execute(sql: "INSERT INTO person (name) VALUES ('Barbara')")
     return .rollback
 }
 
 
-print("-- Changes 3")
+print("-- Changes wrapped in a transaction")
 try dbQueue.write { db in
-    try db.execute("DELETE FROM persons")
-    try db.execute("DELETE FROM pets")
+    try db.execute(sql: "DELETE FROM person")
+    try db.execute(sql: "INSERT INTO person (name) VALUES (?)", arguments: ["Arthur"])
+    let arthurId = db.lastInsertedRowID
+    try db.execute(sql: "INSERT INTO person (name) VALUES (?)", arguments: ["Barbara"])
+    try db.execute(sql: "INSERT INTO pet (ownerId, name) VALUES (?, ?)", arguments: [arthurId, "Barbara"])
+    try db.execute(sql: "DELETE FROM person WHERE id = ?", arguments: [arthurId])
 }

@@ -11,9 +11,6 @@
          location = "group:JSONSynchronization.playground">
       </FileRef>
       <FileRef
-         location = "group:Record.playground">
-      </FileRef>
-      <FileRef
          location = "group:TransactionObserver.playground">
       </FileRef>
       <FileRef
