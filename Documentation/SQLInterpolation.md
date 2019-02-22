@@ -131,7 +131,7 @@ SQLLiteral can embed any [value], as we have seen above, but not only. Please ke
 
 The [record protocols] extend your application types with database abilities.
 
-**A record type knows everything about the schema of its underlying database table**. With the [TableRecord] protocol, the `databaseTableName` property contains the table name. With the [Decodable] protocol, the [CodingKeys] enum contain the column names. And with [FetchableRecord], you can decode raw database rows:
+**A record type knows everything about the schema of its underlying database table**. With the [TableRecord] protocol, the `databaseTableName` property contains the table name. With the [Decodable] protocol, the [CodingKeys] enum contain the column names. And with [FetchableRecord], you can decode raw database rows.
 
 SQL Interpolation puts this knowledge to good use, so that you can build robust queries that consistently use correct table and column names:
 
