@@ -78,7 +78,6 @@ public struct SQLRequest<T> : FetchRequest {
     ///       prepared statement.
     /// - returns: A SQLRequest
     public init(literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, cached: Bool = false) {
-        // TODO: make this optional arguments non optional
         self.init(literal: sqlLiteral, adapter: adapter, fromCache: cached ? .public : nil)
     }
 
