@@ -159,6 +159,15 @@ class SQLInterpolationTests: GRDBTestCase {
         XCTAssertEqual(sql.sql, "? + ? + ?")
         XCTAssertEqual(sql.arguments, [1, 2, 3])
     }
+    
+    func testSQLRequestInterpolation() {
+        var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 3)
+        
+        sql.appendInterpolation(SQLRequest<Void>(sql: "SELECT * FROM player WHERE id = ?", arguments: [42]))
+        sql.appendInterpolation(SQLRequest<Void>(sql: "SELECT * FROM teams WHERE name = ?", arguments: ["Red"]))
+
+        XCTAssertEqual(sql.sql, "(SELECT * FROM player WHERE id = ?)(SELECT * FROM teams WHERE name = ?)")
+        XCTAssertEqual(sql.arguments, [42, "Red"])
+    }
 }
 #endif
-

@@ -286,6 +286,19 @@ extension SQLLiteralTests {
             """)
         XCTAssertEqual(sql.arguments, [true, "Arthur", 1000])
     }
+    
+    func testSQLRequestInterpolation() {
+        let subQuery: SQLRequest<Int> = "SELECT MAX(score) - \(10) FROM player"
+        let sql: SQLLiteral = """
+            SELECT * FROM player
+            WHERE score = \(subQuery)
+            """
+        XCTAssertEqual(sql.sql, """
+            SELECT * FROM player
+            WHERE score = (SELECT MAX(score) - ? FROM player)
+            """)
+        XCTAssertEqual(sql.arguments, [10])
+    }
 
     func testPlusOperatorWithInterpolation() {
         var sql: SQLLiteral = "SELECT \(AllColumns()) "
