@@ -9,59 +9,59 @@ import XCTest
 
 class SQLLiteralTests: GRDBTestCase {
     func testSQLInitializer() {
-        let sql = SQLLiteral(sql: """
+        let query = SQLLiteral(sql: """
             SELECT * FROM player
             WHERE id = \("?")
             """, arguments: [1])
-        XCTAssertEqual(sql.sql, """
+        XCTAssertEqual(query.sql, """
             SELECT * FROM player
             WHERE id = ?
             """)
-        XCTAssertEqual(sql.arguments, [1])
+        XCTAssertEqual(query.arguments, [1])
     }
     
     func testPlusOperator() {
-        var sql = SQLLiteral(sql: "SELECT * ")
-        sql = sql + SQLLiteral(sql: "FROM player ")
-        sql = sql + SQLLiteral(sql: "WHERE id = ? ", arguments: [1])
-        sql = sql + SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"])
-        XCTAssertEqual(sql.sql, """
+        var query = SQLLiteral(sql: "SELECT * ")
+        query = query + SQLLiteral(sql: "FROM player ")
+        query = query + SQLLiteral(sql: "WHERE id = ? ", arguments: [1])
+        query = query + SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"])
+        XCTAssertEqual(query.sql, """
             SELECT * FROM player WHERE id = ? AND name = ?
             """)
-        XCTAssertEqual(sql.arguments, [1, "Arthur"])
+        XCTAssertEqual(query.arguments, [1, "Arthur"])
     }
     
     func testPlusEqualOperator() {
-        var sql = SQLLiteral(sql: "SELECT * ")
-        sql += SQLLiteral(sql: "FROM player ")
-        sql += SQLLiteral(sql: "WHERE id = ? ", arguments: [1])
-        sql += SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"])
-        XCTAssertEqual(sql.sql, """
+        var query = SQLLiteral(sql: "SELECT * ")
+        query += SQLLiteral(sql: "FROM player ")
+        query += SQLLiteral(sql: "WHERE id = ? ", arguments: [1])
+        query += SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"])
+        XCTAssertEqual(query.sql, """
             SELECT * FROM player WHERE id = ? AND name = ?
             """)
-        XCTAssertEqual(sql.arguments, [1, "Arthur"])
+        XCTAssertEqual(query.arguments, [1, "Arthur"])
     }
     
     func testAppendLiteral() {
-        var sql = SQLLiteral(sql: "SELECT * ")
-        sql.append(literal: SQLLiteral(sql: "FROM player "))
-        sql.append(literal: SQLLiteral(sql: "WHERE id = ? ", arguments: [1]))
-        sql.append(literal: SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"]))
-        XCTAssertEqual(sql.sql, """
+        var query = SQLLiteral(sql: "SELECT * ")
+        query.append(literal: SQLLiteral(sql: "FROM player "))
+        query.append(literal: SQLLiteral(sql: "WHERE id = ? ", arguments: [1]))
+        query.append(literal: SQLLiteral(sql: "AND name = ?", arguments: ["Arthur"]))
+        XCTAssertEqual(query.sql, """
             SELECT * FROM player WHERE id = ? AND name = ?
             """)
-        XCTAssertEqual(sql.arguments, [1, "Arthur"])
+        XCTAssertEqual(query.arguments, [1, "Arthur"])
     }
     
     func testAppendRawSQL() {
-        var sql = SQLLiteral(sql: "SELECT * ")
-        sql.append(sql: "FROM player ")
-        sql.append(sql: "WHERE score > \(1000) ")
-        sql.append(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])
-        XCTAssertEqual(sql.sql, """
+        var query = SQLLiteral(sql: "SELECT * ")
+        query.append(sql: "FROM player ")
+        query.append(sql: "WHERE score > \(1000) ")
+        query.append(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])
+        XCTAssertEqual(query.sql, """
             SELECT * FROM player WHERE score > 1000 AND name = :name
             """)
-        XCTAssertEqual(sql.arguments, ["name": "Arthur"])
+        XCTAssertEqual(query.arguments, ["name": "Arthur"])
     }
     
     func testSequenceJoined() {
@@ -115,59 +115,59 @@ class SQLLiteralTests: GRDBTestCase {
 #if swift(>=5.0)
 extension SQLLiteralTests {
     func testRawSQLInterpolation() {
-        let sql: SQLLiteral = """
+        let query: SQLLiteral = """
             SELECT *
             \(sql: "FROM player")
             \(sql: "WHERE score > \(1000)")
             \(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])
             """
-        XCTAssertEqual(sql.sql, """
+        XCTAssertEqual(query.sql, """
             SELECT *
             FROM player
             WHERE score > 1000
             AND name = :name
             """)
-        XCTAssertEqual(sql.arguments, ["name": "Arthur"])
+        XCTAssertEqual(query.arguments, ["name": "Arthur"])
     }
     
     func testSelectableInterpolation() {
         do {
             // Non-existential
-            let sql: SQLLiteral = """
+            let query: SQLLiteral = """
                 SELECT \(AllColumns())
                 FROM player
                 """
-            XCTAssertEqual(sql.sql, """
+            XCTAssertEqual(query.sql, """
                 SELECT *
                 FROM player
                 """)
-            XCTAssert(sql.arguments.isEmpty)
+            XCTAssert(query.arguments.isEmpty)
         }
         do {
             // Existential
-            let sql: SQLLiteral = """
+            let query: SQLLiteral = """
                 SELECT \(AllColumns() as SQLSelectable)
                 FROM player
                 """
-            XCTAssertEqual(sql.sql, """
+            XCTAssertEqual(query.sql, """
                 SELECT *
                 FROM player
                 """)
-            XCTAssert(sql.arguments.isEmpty)
+            XCTAssert(query.arguments.isEmpty)
         }
     }
     
     func testTableInterpolation() {
         struct Player: TableRecord { }
-        let sql: SQLLiteral = """
+        let query: SQLLiteral = """
             SELECT *
             FROM \(Player.self)
             """
-        XCTAssertEqual(sql.sql, #"""
+        XCTAssertEqual(query.sql, #"""
             SELECT *
             FROM "player"
             """#)
-        XCTAssert(sql.arguments.isEmpty)
+        XCTAssert(query.arguments.isEmpty)
     }
     
     func testExpressibleInterpolation() {
@@ -176,7 +176,7 @@ extension SQLLiteralTests {
         let integer: Int = 1
         let optionalInteger: Int? = 2
         let nilInteger: Int? = nil
-        let sql: SQLLiteral = """
+        let query: SQLLiteral = """
             SELECT
               \(a),
               \(a + 1),
@@ -186,7 +186,7 @@ extension SQLLiteralTests {
               \(nilInteger),
               \(a == nilInteger)
             """
-        XCTAssertEqual(sql.sql, """
+        XCTAssertEqual(query.sql, """
             SELECT
               "a",
               ("a" + ?),
@@ -196,149 +196,149 @@ extension SQLLiteralTests {
               NULL,
               ("a" IS NULL)
             """)
-        XCTAssertEqual(sql.arguments, [1, 1, 2])
+        XCTAssertEqual(query.arguments, [1, 1, 2])
     }
     
     func testQualifiedExpressionInterpolation() {
-        let sql: SQLLiteral = """
+        let query: SQLLiteral = """
             SELECT \(Column("name").aliased("foo"))
             FROM player
             """
-        XCTAssertEqual(sql.sql, """
+        XCTAssertEqual(query.sql, """
             SELECT "name" AS "foo"
             FROM player
             """)
-        XCTAssert(sql.arguments.isEmpty)
+        XCTAssert(query.arguments.isEmpty)
     }
     
     func testCodingKeyInterpolation() {
         enum CodingKeys: String, CodingKey {
             case name
         }
-        let sql: SQLLiteral = """
+        let query: SQLLiteral = """
             SELECT \(CodingKeys.name)
             FROM player
             """
-        XCTAssertEqual(sql.sql, """
+        XCTAssertEqual(query.sql, """
             SELECT "name"
             FROM player
             """)
-        XCTAssert(sql.arguments.isEmpty)
+        XCTAssert(query.arguments.isEmpty)
     }
     
     func testCodingKeyColumnInterpolation() {
         enum CodingKeys: String, CodingKey, ColumnExpression {
             case name
         }
-        let sql: SQLLiteral = """
+        let query: SQLLiteral = """
             SELECT \(CodingKeys.name)
             FROM player
             """
-        XCTAssertEqual(sql.sql, """
+        XCTAssertEqual(query.sql, """
             SELECT "name"
             FROM player
             """)
-        XCTAssert(sql.arguments.isEmpty)
+        XCTAssert(query.arguments.isEmpty)
     }
 
     func testExpressibleSequenceInterpolation() {
         let set: Set = [1]
         let array = ["foo", "bar", "baz"]
         let expressions = [Column("a"), Column("b") + 2]
-        let sql: SQLLiteral = """
+        let query: SQLLiteral = """
             SELECT * FROM player
             WHERE teamId IN \(set)
               AND name IN \(array)
               AND c IN \(expressions)
               AND d IN \([])
             """
-        XCTAssertEqual(sql.sql, """
+        XCTAssertEqual(query.sql, """
             SELECT * FROM player
             WHERE teamId IN (?)
               AND name IN (?,?,?)
               AND c IN ("a",("b" + ?))
               AND d IN (SELECT NULL WHERE NULL)
             """)
-        XCTAssertEqual(sql.arguments, [1, "foo", "bar", "baz", 2])
+        XCTAssertEqual(query.arguments, [1, "foo", "bar", "baz", 2])
     }
     
     func testOrderingTermInterpolation() {
-        let sql: SQLLiteral = """
+        let query: SQLLiteral = """
             SELECT * FROM player
             ORDER BY \(Column("name").desc)
             """
-        XCTAssertEqual(sql.sql, """
+        XCTAssertEqual(query.sql, """
             SELECT * FROM player
             ORDER BY "name" DESC
             """)
-        XCTAssert(sql.arguments.isEmpty)
+        XCTAssert(query.arguments.isEmpty)
     }
     
     func testSQLLiteralInterpolation() {
         let condition: SQLLiteral = "name = \("Arthur")"
-        let sql: SQLLiteral = """
+        let query: SQLLiteral = """
             SELECT *, \(true) FROM player
             WHERE \(literal: condition) AND score > \(1000)
             """
-        XCTAssertEqual(sql.sql, """
+        XCTAssertEqual(query.sql, """
             SELECT *, ? FROM player
             WHERE name = ? AND score > ?
             """)
-        XCTAssertEqual(sql.arguments, [true, "Arthur", 1000])
+        XCTAssertEqual(query.arguments, [true, "Arthur", 1000])
     }
     
     func testSQLRequestInterpolation() {
         let subQuery: SQLRequest<Int> = "SELECT MAX(score) - \(10) FROM player"
-        let sql: SQLLiteral = """
+        let query: SQLLiteral = """
             SELECT * FROM player
             WHERE score = \(subQuery)
             """
-        XCTAssertEqual(sql.sql, """
+        XCTAssertEqual(query.sql, """
             SELECT * FROM player
             WHERE score = (SELECT MAX(score) - ? FROM player)
             """)
-        XCTAssertEqual(sql.arguments, [10])
+        XCTAssertEqual(query.arguments, [10])
     }
 
     func testPlusOperatorWithInterpolation() {
-        var sql: SQLLiteral = "SELECT \(AllColumns()) "
-        sql = sql + "FROM player "
-        sql = sql + "WHERE id = \(1)"
-        XCTAssertEqual(sql.sql, """
+        var query: SQLLiteral = "SELECT \(AllColumns()) "
+        query = query + "FROM player "
+        query = query + "WHERE id = \(1)"
+        XCTAssertEqual(query.sql, """
             SELECT * FROM player WHERE id = ?
             """)
-        XCTAssertEqual(sql.arguments, [1])
+        XCTAssertEqual(query.arguments, [1])
     }
 
     func testPlusEqualOperatorWithInterpolation() {
-        var sql: SQLLiteral = "SELECT \(AllColumns()) "
-        sql += "FROM player "
-        sql += "WHERE id = \(1)"
-        XCTAssertEqual(sql.sql, """
+        var query: SQLLiteral = "SELECT \(AllColumns()) "
+        query += "FROM player "
+        query += "WHERE id = \(1)"
+        XCTAssertEqual(query.sql, """
             SELECT * FROM player WHERE id = ?
             """)
-        XCTAssertEqual(sql.arguments, [1])
+        XCTAssertEqual(query.arguments, [1])
     }
 
     func testAppendLiteralWithInterpolation() {
-        var sql: SQLLiteral = "SELECT \(AllColumns()) "
-        sql.append(literal: "FROM player ")
-        sql.append(literal: "WHERE id = \(1)")
-        XCTAssertEqual(sql.sql, """
+        var query: SQLLiteral = "SELECT \(AllColumns()) "
+        query.append(literal: "FROM player ")
+        query.append(literal: "WHERE id = \(1)")
+        XCTAssertEqual(query.sql, """
             SELECT * FROM player WHERE id = ?
             """)
-        XCTAssertEqual(sql.arguments, [1])
+        XCTAssertEqual(query.arguments, [1])
     }
 
     func testAppendRawSQLWithInterpolation() {
-        var sql: SQLLiteral = "SELECT \(AllColumns()) "
-        sql.append(sql: "FROM player ")
-        sql.append(sql: "WHERE score > \(1000) ")
-        sql.append(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])
-        XCTAssertEqual(sql.sql, """
+        var query: SQLLiteral = "SELECT \(AllColumns()) "
+        query.append(sql: "FROM player ")
+        query.append(sql: "WHERE score > \(1000) ")
+        query.append(sql: "AND \("name") = :name", arguments: ["name": "Arthur"])
+        XCTAssertEqual(query.sql, """
             SELECT * FROM player WHERE score > 1000 AND name = :name
             """)
-        XCTAssertEqual(sql.arguments, ["name": "Arthur"])
+        XCTAssertEqual(query.arguments, ["name": "Arthur"])
     }
 }
 #endif
