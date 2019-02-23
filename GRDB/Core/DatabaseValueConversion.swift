@@ -7,6 +7,7 @@
 // MARK: - Conversion Context and Errors
 
 /// A type that helps the user understanding value conversion errors
+@usableFromInline
 struct ValueConversionContext {
     private enum Column {
         case columnIndex(Int)
@@ -138,7 +139,8 @@ func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue?, conversio
     fatalError(conversionErrorMessage(to: T.self, from: dbValue, conversionContext: conversionContext), file: file, line: line)
 }
 
-func fatalConversionError<T>(to: T.Type, sqliteStatement: SQLiteStatement, index: Int32) -> Never {
+@usableFromInline
+func fatalConversionError<T>(to: T.Type, sqliteStatement: SQLiteStatement, index: Int32, file: StaticString = #file, line: UInt = #line) -> Never {
     let row = Row(sqliteStatement: sqliteStatement)
     fatalConversionError(
         to: T.self,
@@ -186,23 +188,22 @@ extension DatabaseValueConvertible {
 
 /// Lossless conversions from database values and rows
 extension DatabaseValueConvertible where Self: StatementColumnConvertible {
-    static func fastDecode(from sqliteStatement: SQLiteStatement, index: Int32) -> Self {
+    @inlinable
+    static func fastDecode(from sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self {
         if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
-            fatalConversionError(
-                to: Self.self,
-                from: .null,
-                conversionContext: ValueConversionContext(Row(sqliteStatement: sqliteStatement)).atColumn(Int(index)))
+            fatalConversionError(to: Self.self, sqliteStatement: sqliteStatement, index: index)
         }
         return self.init(sqliteStatement: sqliteStatement, index: index)
     }
     
     static func fastDecode(from row: Row, atUncheckedIndex index: Int) -> Self {
         if let sqliteStatement = row.sqliteStatement {
-            return fastDecode(from: sqliteStatement, index: Int32(index))
+            return fastDecode(from: sqliteStatement, atUncheckedIndex: Int32(index))
         }
         return row.impl.fastDecode(Self.self, atUncheckedIndex: index)
     }
     
+    @inlinable
     static func fastDecodeIfPresent(from sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self? {
         if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
             return nil

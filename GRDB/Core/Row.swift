@@ -1413,7 +1413,7 @@ private struct StatementRowImpl : RowImpl {
         _ type: Value.Type,
         atUncheckedIndex index: Int) -> Value
     {
-        return Value.fastDecode(from: sqliteStatement, index: Int32(index))
+        return Value.fastDecode(from: sqliteStatement, atUncheckedIndex: Int32(index))
     }
     
     func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(

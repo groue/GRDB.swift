@@ -61,18 +61,18 @@ public protocol StatementColumnConvertible {
 ///     }
 public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor {
     private let statement: SelectStatement
-    private let sqliteStatement: SQLiteStatement
-    private let columnIndex: Int32
-    private var done = false
+    @usableFromInline let _columnIndex: Int32
+    @usableFromInline let _sqliteStatement: SQLiteStatement
+    @usableFromInline var _done = false
     
     init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         self.statement = statement
-        self.sqliteStatement = statement.sqliteStatement
+        self._sqliteStatement = statement.sqliteStatement
         if let adapter = adapter {
             // adapter may redefine the index of the leftmost column
-            self.columnIndex = try Int32(adapter.baseColumnIndex(atIndex: 0, layout: statement))
+            self._columnIndex = try Int32(adapter.baseColumnIndex(atIndex: 0, layout: statement))
         } else {
-            self.columnIndex = 0
+            self._columnIndex = 0
         }
         statement.reset(withArguments: arguments)
     }
@@ -84,22 +84,28 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
     }
     
     /// :nodoc:
+    @inlinable
     public func next() throws -> Value? {
-        if done {
+        if _done {
             // make sure this instance never yields a value again, even if the
             // statement is reset by another cursor.
             return nil
         }
-        switch sqlite3_step(sqliteStatement) {
+        switch sqlite3_step(_sqliteStatement) {
         case SQLITE_DONE:
-            done = true
+            _done = true
             return nil
         case SQLITE_ROW:
-            return Value.fastDecode(from: sqliteStatement, index: columnIndex)
+            return Value.fastDecode(from: _sqliteStatement, atUncheckedIndex: _columnIndex)
         case let code:
-            statement.database.selectStatementDidFail(statement)
-            throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+            try handleErrorCode(code)
         }
+    }
+    
+    @usableFromInline
+    func handleErrorCode(_ code: Int32) throws -> Never {
+        statement.database.selectStatementDidFail(statement)
+        throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
     }
 }
 
@@ -114,18 +120,18 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
 ///     }
 public final class FastNullableDatabaseValueCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor {
     private let statement: SelectStatement
-    private let sqliteStatement: SQLiteStatement
-    private let columnIndex: Int32
-    private var done = false
-    
+    @usableFromInline let _columnIndex: Int32
+    @usableFromInline let _sqliteStatement: SQLiteStatement
+    @usableFromInline var _done = false
+
     init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         self.statement = statement
-        self.sqliteStatement = statement.sqliteStatement
+        self._sqliteStatement = statement.sqliteStatement
         if let adapter = adapter {
             // adapter may redefine the index of the leftmost column
-            self.columnIndex = try Int32(adapter.baseColumnIndex(atIndex: 0, layout: statement))
+            self._columnIndex = try Int32(adapter.baseColumnIndex(atIndex: 0, layout: statement))
         } else {
-            self.columnIndex = 0
+            self._columnIndex = 0
         }
         statement.reset(withArguments: arguments)
     }
@@ -137,22 +143,28 @@ public final class FastNullableDatabaseValueCursor<Value: DatabaseValueConvertib
     }
     
     /// :nodoc:
+    @inlinable
     public func next() throws -> Value?? {
-        if done {
+        if _done {
             // make sure this instance never yields a value again, even if the
             // statement is reset by another cursor.
             return nil
         }
-        switch sqlite3_step(sqliteStatement) {
+        switch sqlite3_step(_sqliteStatement) {
         case SQLITE_DONE:
-            done = true
+            _done = true
             return nil
         case SQLITE_ROW:
-            return Value.fastDecodeIfPresent(from: sqliteStatement, atUncheckedIndex: columnIndex)
+            return Value.fastDecodeIfPresent(from: _sqliteStatement, atUncheckedIndex: _columnIndex)
         case let code:
-            statement.database.selectStatementDidFail(statement)
-            throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+            try handleErrorCode(code)
         }
+    }
+    
+    @usableFromInline
+    func handleErrorCode(_ code: Int32) throws -> Never {
+        statement.database.selectStatementDidFail(statement)
+        throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
     }
 }
 
