@@ -155,10 +155,29 @@ func fatalConversionError<T>(to: T.Type, sqliteStatement: SQLiteStatement, index
         conversionContext: ValueConversionContext(row).atColumn(Int(index)))
 }
 
+@usableFromInline
+func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue?, sqliteStatement: SQLiteStatement, index: Int32, file: StaticString = #file, line: UInt = #line) -> Never {
+    let row = Row(sqliteStatement: sqliteStatement)
+    fatalConversionError(
+        to: T.self,
+        from: dbValue,
+        conversionContext: ValueConversionContext((row)).atColumn(Int(index)))
+}
+
 // MARK: - DatabaseValueConvertible
 
 /// Lossless conversions from database values and rows
 extension DatabaseValueConvertible {
+    @inlinable
+    static func decode(from sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self {
+        let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
+        if let value = fromDatabaseValue(dbValue) {
+            return value
+        } else {
+            fatalConversionError(to: Self.self, from: dbValue, sqliteStatement: sqliteStatement, index: index)
+        }
+    }
+    
     static func decode(from dbValue: DatabaseValue, conversionContext: @autoclosure () -> ValueConversionContext?) -> Self {
         if let value = fromDatabaseValue(dbValue) {
             return value
@@ -173,6 +192,18 @@ extension DatabaseValueConvertible {
             conversionContext: ValueConversionContext(row).atColumn(index))
     }
     
+    @inlinable
+    static func decodeIfPresent(from sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self? {
+        let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
+        if let value = fromDatabaseValue(dbValue) {
+            return value
+        } else if dbValue.isNull {
+            return nil
+        } else {
+            fatalConversionError(to: Self.self, from: dbValue, sqliteStatement: sqliteStatement, index: index)
+        }
+    }
+
     static func decodeIfPresent(from dbValue: DatabaseValue, conversionContext: @autoclosure () -> ValueConversionContext?) -> Self? {
         // Use fromDatabaseValue before checking for null: this allows DatabaseValue to convert NULL to .null.
         if let value = fromDatabaseValue(dbValue) {
