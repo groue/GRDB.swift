@@ -140,6 +140,14 @@ func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue?, conversio
 }
 
 @usableFromInline
+func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue?, in row: Row, atColumn columnName: String, file: StaticString = #file, line: UInt = #line) -> Never {
+    fatalConversionError(
+        to: T.self,
+        from: dbValue,
+        conversionContext: ValueConversionContext(row).atColumn(columnName))
+}
+
+@usableFromInline
 func fatalConversionError<T>(to: T.Type, sqliteStatement: SQLiteStatement, index: Int32, file: StaticString = #file, line: UInt = #line) -> Never {
     let row = Row(sqliteStatement: sqliteStatement)
     fatalConversionError(
@@ -196,11 +204,12 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         return self.init(sqliteStatement: sqliteStatement, index: index)
     }
     
+    @inlinable
     static func fastDecode(from row: Row, atUncheckedIndex index: Int) -> Self {
         if let sqliteStatement = row.sqliteStatement {
             return fastDecode(from: sqliteStatement, atUncheckedIndex: Int32(index))
         }
-        return row.impl.fastDecode(Self.self, atUncheckedIndex: index)
+        return row.fastDecode(Self.self, atUncheckedIndex: index)
     }
     
     @inlinable
@@ -211,10 +220,24 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         return self.init(sqliteStatement: sqliteStatement, index: index)
     }
     
+    @inlinable
     static func fastDecodeIfPresent(from row: Row, atUncheckedIndex index: Int) -> Self? {
         if let sqliteStatement = row.sqliteStatement {
             return fastDecodeIfPresent(from: sqliteStatement, atUncheckedIndex: Int32(index))
         }
-        return row.impl.fastDecodeIfPresent(Self.self, atUncheckedIndex: index)
+        return row.fastDecodeIfPresent(Self.self, atUncheckedIndex: index)
+    }
+}
+
+// Support for @inlinable decoding
+extension Row {
+    @usableFromInline
+    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int) -> Value {
+        return impl.fastDecode(type, atUncheckedIndex: index)
+    }
+    
+    @usableFromInline
+    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int) -> Value? {
+        return impl.fastDecodeIfPresent(type, atUncheckedIndex: index)
     }
 }

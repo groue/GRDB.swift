@@ -22,7 +22,7 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     ///
     /// The statementRef is released in deinit.
     let statementRef: Unmanaged<SelectStatement>?
-    let sqliteStatement: SQLiteStatement?
+    @usableFromInline let sqliteStatement: SQLiteStatement?
     var statement: SelectStatement? {
         return statementRef?.takeUnretainedValue()
     }
@@ -140,6 +140,7 @@ extension Row {
         return index(ofColumn: columnName) != nil
     }
     
+    @usableFromInline
     func index(ofColumn name: String) -> Int? {
         return impl.index(ofColumn: name)
     }
@@ -150,7 +151,8 @@ extension Row {
     // MARK: - Extracting Values
     
     /// Fatal errors if index is out of bounds
-    private func checkIndex(_ index: Int, file: StaticString = #file, line: UInt = #line) {
+    @inlinable
+    func _checkIndex(_ index: Int, file: StaticString = #file, line: UInt = #line) {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range", file: file, line: line)
     }
     
@@ -186,7 +188,7 @@ extension Row {
     /// in performance-critical code because it can avoid decoding database
     /// values.
     public func hasNull(atIndex index: Int) -> Bool {
-        checkIndex(index)
+        _checkIndex(index)
         return impl.hasNull(atUncheckedIndex: index)
     }
     
@@ -196,7 +198,7 @@ extension Row {
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
     public subscript(_ index: Int) -> DatabaseValueConvertible? {
-        checkIndex(index)
+        _checkIndex(index)
         return impl.databaseValue(atUncheckedIndex: index).storage.value
     }
     
@@ -209,7 +211,7 @@ extension Row {
     /// value is converted to the requested type `Value`. Should this conversion
     /// fail, a fatal error is raised.
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value? {
-        checkIndex(index)
+        _checkIndex(index)
         return Value.decodeIfPresent(from: self, atUncheckedIndex: index)
     }
     
@@ -225,8 +227,9 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
+    @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value? {
-        checkIndex(index)
+        _checkIndex(index)
         return Value.fastDecodeIfPresent(from: self, atUncheckedIndex: index)
     }
     
@@ -238,7 +241,7 @@ extension Row {
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value {
-        checkIndex(index)
+        _checkIndex(index)
         return Value.decode(from: self, atUncheckedIndex: index)
     }
     
@@ -253,8 +256,9 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
+    @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value {
-        checkIndex(index)
+        _checkIndex(index)
         return Value.fastDecode(from: self, atUncheckedIndex: index)
     }
     
@@ -306,6 +310,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
+    @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value? {
         guard let index = index(ofColumn: columnName) else {
             return nil
@@ -346,13 +351,11 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
+    @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value {
         guard let index = index(ofColumn: columnName) else {
             // No such column
-            fatalConversionError(
-                to: Value.self,
-                from: nil,
-                conversionContext: ValueConversionContext(self).atColumn(columnName))
+            fatalConversionError(to: Value.self, from: nil, in: self, atColumn: columnName)
         }
         return Value.fastDecode(from: self, atUncheckedIndex: index)
     }
@@ -364,7 +367,7 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// The result is nil if the row does not contain the column.
-    public subscript(_ column: ColumnExpression) -> DatabaseValueConvertible? {
+    public subscript<Column: ColumnExpression>(_ column: Column) -> DatabaseValueConvertible? {
         return self[column.name]
     }
     
@@ -376,7 +379,7 @@ extension Row {
     /// If the column is missing or if the SQLite value is NULL, the result is
     /// nil. Otherwise the SQLite value is converted to the requested type
     /// `Value`. Should this conversion fail, a fatal error is raised.
-    public subscript<Value: DatabaseValueConvertible>(_ column: ColumnExpression) -> Value? {
+    public subscript<Value: DatabaseValueConvertible, Column: ColumnExpression>(_ column: Column) -> Value? {
         return self[column.name]
     }
     
@@ -392,7 +395,8 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ column: ColumnExpression) -> Value? {
+    @inlinable
+    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible, Column: ColumnExpression>(_ column: Column) -> Value? {
         return self[column.name]
     }
     
@@ -405,7 +409,7 @@ extension Row {
     ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
-    public subscript<Value: DatabaseValueConvertible>(_ column: ColumnExpression) -> Value {
+    public subscript<Value: DatabaseValueConvertible, Column: ColumnExpression>(_ column: Column) -> Value {
         return self[column.name]
     }
     
@@ -422,7 +426,8 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
-    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ column: ColumnExpression) -> Value {
+    @inlinable
+    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible, Column: ColumnExpression>(_ column: Column) -> Value {
         return self[column.name]
     }
     
@@ -437,7 +442,7 @@ extension Row {
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
     public func dataNoCopy(atIndex index: Int) -> Data? {
-        checkIndex(index)
+        _checkIndex(index)
         return impl.dataNoCopy(atUncheckedIndex: index)
     }
     
@@ -470,7 +475,7 @@ extension Row {
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
-    public func dataNoCopy(_ column: ColumnExpression) -> Data? {
+    public func dataNoCopy<Column: ColumnExpression>(_ column: Column) -> Data? {
         return dataNoCopy(named: column.name)
     }
 }
@@ -604,14 +609,14 @@ extension Row {
 ///     }
 public final class RowCursor : Cursor {
     public let statement: SelectStatement
-    private let sqliteStatement: SQLiteStatement
-    private let row: Row // Reused for performance
-    private var done = false
+    @usableFromInline let _sqliteStatement: SQLiteStatement
+    @usableFromInline let _row: Row // Reused for performance
+    @usableFromInline var _done = false
     
     init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         self.statement = statement
-        self.row = try Row(statement: statement).adapted(with: adapter, layout: statement)
-        self.sqliteStatement = statement.sqliteStatement
+        self._row = try Row(statement: statement).adapted(with: adapter, layout: statement)
+        self._sqliteStatement = statement.sqliteStatement
         statement.reset(withArguments: arguments)
     }
     
@@ -622,22 +627,28 @@ public final class RowCursor : Cursor {
     }
     
     /// :nodoc:
+    @inlinable
     public func next() throws -> Row? {
-        if done {
+        if _done {
             // make sure this instance never yields a value again, even if the
             // statement is reset by another cursor.
             return nil
         }
-        switch sqlite3_step(sqliteStatement) {
+        switch sqlite3_step(_sqliteStatement) {
         case SQLITE_DONE:
-            done = true
+            _done = true
             return nil
         case SQLITE_ROW:
-            return row
+            return _row
         case let code:
-            statement.database.selectStatementDidFail(statement)
-            throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+            try handleErrorCode(code)
         }
+    }
+    
+    @usableFromInline
+    func handleErrorCode(_ code: Int32) throws -> Never {
+        statement.database.selectStatementDidFail(statement)
+        throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
     }
 }
 
@@ -949,7 +960,7 @@ extension Row {
     /// Accesses the (ColumnName, DatabaseValue) pair at given index.
     public subscript(position: RowIndex) -> (String, DatabaseValue) {
         let index = position.index
-        checkIndex(index)
+        _checkIndex(index)
         return (
             impl.columnName(atUncheckedIndex: index),
             impl.databaseValue(atUncheckedIndex: index))
