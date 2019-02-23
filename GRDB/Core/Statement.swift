@@ -356,9 +356,22 @@ public final class SelectStatement : Statement {
     }
     
     /// Utility function for cursors
+    @usableFromInline
     func reset(withArguments arguments: StatementArguments? = nil) {
         prepare(withArguments: arguments)
         try! reset()
+    }
+    
+    /// Utility function for cursors
+    @usableFromInline
+    func didFail(withResultCode resultCode: Int32) throws -> Never {
+        database.selectStatementDidFail(self)
+        throw DatabaseError(
+            resultCode: resultCode,
+            message: database.lastErrorMessage,
+            sql: sql,
+            arguments: arguments)
+
     }
 }
 
@@ -373,21 +386,22 @@ public final class SelectStatement : Statement {
 ///         try cursor.next()
 ///     }
 final class StatementCursor: Cursor {
-    public let statement: SelectStatement
+    @usableFromInline let _statement: SelectStatement
     @usableFromInline let _sqliteStatement: SQLiteStatement
     @usableFromInline var _done = false
     
-    // Use SelectStatement.cursor() instead
-    fileprivate init(statement: SelectStatement, arguments: StatementArguments? = nil) {
-        self.statement = statement
-        self._sqliteStatement = statement.sqliteStatement
-        statement.reset(withArguments: arguments)
+    // Use SelectStatement.makeCursor() instead
+    @inlinable
+    init(statement: SelectStatement, arguments: StatementArguments? = nil) {
+        _statement = statement
+        _sqliteStatement = statement.sqliteStatement
+        _statement.reset(withArguments: arguments)
     }
     
     deinit {
         // Statement reset fails when sqlite3_step has previously failed.
         // Just ignore reset error.
-        try? statement.reset()
+        try? _statement.reset()
     }
     
     /// :nodoc:
@@ -405,14 +419,8 @@ final class StatementCursor: Cursor {
         case SQLITE_ROW:
             return .some(())
         case let code:
-            try handleErrorCode(code)
+            try _statement.didFail(withResultCode: code)
         }
-    }
-    
-    @usableFromInline
-    func handleErrorCode(_ code: Int32) throws -> Never {
-        statement.database.selectStatementDidFail(statement)
-        throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
     }
 }
 
