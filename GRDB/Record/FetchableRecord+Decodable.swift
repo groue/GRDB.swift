@@ -191,7 +191,6 @@ private struct RowDecoder<Record: FetchableRecord>: Decoder {
         
         // Helper methods
         
-        @inline(__always)
         private func decode<T>(_ type: T.Type, fromRow row: Row, codingPath: [CodingKey]) throws -> T where T: Decodable {
             if let type = T.self as? FetchableRecord.Type {
                 // Prefer FetchableRecord decoding over Decodable.
@@ -210,7 +209,6 @@ private struct RowDecoder<Record: FetchableRecord>: Decoder {
             }
         }
         
-        @inline(__always)
         private func decode<T>(_ type: T.Type, fromRow row: Row, columnAtIndex index: Int, key: Key) throws -> T where T: Decodable {
             do {
                 // This decoding will fail for types that decode from keyed
@@ -310,7 +308,6 @@ fileprivate var iso8601Formatter: ISO8601DateFormatter = {
 }()
 
 private extension DatabaseDateDecodingStrategy {
-    @inline(__always)
     func decodeIfPresent(fromRow row: Row, columnAtIndex index: Int) -> Date? {
         if let sqliteStatement = row.sqliteStatement {
             return decodeIfPresent(
@@ -323,7 +320,6 @@ private extension DatabaseDateDecodingStrategy {
         }
     }
     
-    @inline(__always)
     func decode(fromRow row: Row, columnAtIndex index: Int) -> Date {
         if let sqliteStatement = row.sqliteStatement {
             return decode(
@@ -336,7 +332,6 @@ private extension DatabaseDateDecodingStrategy {
         }
     }
     
-    @inline(__always)
     func decode(sqliteStatement: SQLiteStatement, index: Int32) -> Date {
         switch self {
         case .deferredToDate:
@@ -375,7 +370,6 @@ private extension DatabaseDateDecodingStrategy {
         }
     }
     
-    @inline(__always)
     func decodeIfPresent(sqliteStatement: SQLiteStatement, index: Int32) -> Date? {
         if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
             return nil
@@ -383,7 +377,6 @@ private extension DatabaseDateDecodingStrategy {
         return decode(sqliteStatement: sqliteStatement, index: index)
     }
     
-    @inline(__always)
     func decode(from dbValue: DatabaseValue, conversionContext: @autoclosure () -> ValueConversionContext?) -> Date {
         if let date = dateFromDatabaseValue(dbValue) {
             return date
@@ -392,7 +385,6 @@ private extension DatabaseDateDecodingStrategy {
         }
     }
     
-    @inline(__always)
     func decodeIfPresent(from dbValue: DatabaseValue, conversionContext: @autoclosure () -> ValueConversionContext?) -> Date? {
         if dbValue.isNull {
             return nil
@@ -404,7 +396,6 @@ private extension DatabaseDateDecodingStrategy {
     }
     
     // Returns nil if decoding fails
-    @inline(__always)
     private func dateFromDatabaseValue(_ dbValue: DatabaseValue) -> Date? {
         switch self {
         case .deferredToDate:

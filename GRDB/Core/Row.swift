@@ -140,7 +140,6 @@ extension Row {
         return index(ofColumn: columnName) != nil
     }
     
-    @inline(__always)
     func index(ofColumn name: String) -> Int? {
         return impl.index(ofColumn: name)
     }
@@ -151,7 +150,6 @@ extension Row {
     // MARK: - Extracting Values
     
     /// Fatal errors if index is out of bounds
-    @inline(__always)
     private func checkIndex(_ index: Int, file: StaticString = #file, line: UInt = #line) {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range", file: file, line: line)
     }

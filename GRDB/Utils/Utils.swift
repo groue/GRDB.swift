@@ -46,7 +46,6 @@ extension Optional : _OptionalProtocol {
 // MARK: - Internal
 
 /// Reserved for GRDB: do not use.
-@inline(__always)
 func GRDBPrecondition(_ condition: @autoclosure() -> Bool, _ message: @autoclosure() -> String = "", file: StaticString = #file, line: UInt = #line) {
     /// Custom precondition function which aims at solving
     /// https://bugs.swift.org/browse/SR-905 and
