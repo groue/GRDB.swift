@@ -210,6 +210,7 @@ extension Row {
     /// If the SQLite value is NULL, the result is nil. Otherwise the SQLite
     /// value is converted to the requested type `Value`. Should this conversion
     /// fail, a fatal error is raised.
+    @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value? {
         _checkIndex(index)
         return Value.decodeIfPresent(from: self, atUncheckedIndex: index)
@@ -240,6 +241,7 @@ extension Row {
     ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
+    @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value {
         _checkIndex(index)
         return Value.decode(from: self, atUncheckedIndex: index)
@@ -291,6 +293,7 @@ extension Row {
     /// If the column is missing or if the SQLite value is NULL, the result is
     /// nil. Otherwise the SQLite value is converted to the requested type
     /// `Value`. Should this conversion fail, a fatal error is raised.
+    @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value? {
         guard let index = index(ofColumn: columnName) else {
             return nil
@@ -327,13 +330,11 @@ extension Row {
     ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
+    @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value {
         guard let index = index(ofColumn: columnName) else {
             // No such column
-            fatalConversionError(
-                to: Value.self,
-                from: nil,
-                conversionContext: ValueConversionContext(self).atColumn(columnName))
+            fatalConversionError(to: Value.self, from: nil, in: self, atColumn: columnName)
         }
         return Value.decode(from: self, atUncheckedIndex: index)
     }
@@ -367,6 +368,7 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// The result is nil if the row does not contain the column.
+    @inlinable
     public subscript<Column: ColumnExpression>(_ column: Column) -> DatabaseValueConvertible? {
         return self[column.name]
     }
@@ -379,6 +381,7 @@ extension Row {
     /// If the column is missing or if the SQLite value is NULL, the result is
     /// nil. Otherwise the SQLite value is converted to the requested type
     /// `Value`. Should this conversion fail, a fatal error is raised.
+    @inlinable
     public subscript<Value: DatabaseValueConvertible, Column: ColumnExpression>(_ column: Column) -> Value? {
         return self[column.name]
     }
@@ -409,6 +412,7 @@ extension Row {
     ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
+    @inlinable
     public subscript<Value: DatabaseValueConvertible, Column: ColumnExpression>(_ column: Column) -> Value {
         return self[column.name]
     }

@@ -186,6 +186,7 @@ extension DatabaseValueConvertible {
         }
     }
     
+    @usableFromInline
     static func decode(from row: Row, atUncheckedIndex index: Int) -> Self {
         return decode(
             from: row.impl.databaseValue(atUncheckedIndex: index),
@@ -215,6 +216,7 @@ extension DatabaseValueConvertible {
         }
     }
     
+    @usableFromInline
     static func decodeIfPresent(from row: Row, atUncheckedIndex index: Int) -> Self? {
         return decodeIfPresent(
             from: row.impl.databaseValue(atUncheckedIndex: index),
