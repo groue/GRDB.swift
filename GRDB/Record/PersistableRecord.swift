@@ -1,6 +1,7 @@
 import Foundation
 
 extension Database.ConflictResolution {
+    @usableFromInline
     var invalidatesLastInsertedRowID: Bool {
         switch self {
         case .abort, .fail, .rollback, .replace:
@@ -49,7 +50,9 @@ extension PersistenceError {
 ///     }
 public struct PersistenceContainer {
     // fileprivate for Row(_:PersistenceContainer)
-    fileprivate var storage: [String: DatabaseValueConvertible?]
+    // The ordering of the OrderedDictionary helps generating always the same
+    // SQL queries, and hit the statement cache.
+    fileprivate var storage: OrderedDictionary<String, DatabaseValueConvertible?>
     
     /// Accesses the value associated with the given column.
     ///
@@ -72,22 +75,27 @@ public struct PersistenceContainer {
     }
     
     init() {
-        storage = [:]
+        storage = OrderedDictionary()
+    }
+    
+    init(minimumCapacity: Int) {
+        storage = OrderedDictionary(minimumCapacity: minimumCapacity)
     }
     
     /// Convenience initializer from a record
-    ///
-    ///     // Sweet
-    ///     let container = PersistenceContainer(record)
-    ///
-    ///     // Meh
-    ///     var container = PersistenceContainer()
-    ///     record.encode(to: container)
     init(_ record: MutablePersistableRecord) {
-        storage = [:]
+        self.init()
         record.encode(to: &self)
     }
     
+    /// Convenience initializer from a database connection and a record
+    init(_ db: Database,_ record: MutablePersistableRecord) throws {
+        let databaseTableName = type(of: record).databaseTableName
+        let columnCount = try db.columns(in: databaseTableName).count
+        self.init(minimumCapacity: columnCount)
+        record.encode(to: &self)
+    }
+
     /// Columns stored in the container, ordered like values.
     var columns: [String] {
         return Array(storage.keys)
@@ -142,7 +150,7 @@ public struct PersistenceContainer {
     }
     
     /// An iterator over the (column, value) pairs
-    func makeIterator() -> DictionaryIterator<String, DatabaseValueConvertible?> {
+    func makeIterator() -> IndexingIterator<OrderedDictionary<String, DatabaseValueConvertible?>> {
         return storage.makeIterator()
     }
 }
@@ -153,7 +161,7 @@ extension Row {
     }
 
     convenience init(_ container: PersistenceContainer) {
-        self.init(container.storage)
+        self.init(Dictionary(container.storage))
     }
 }
 
@@ -448,7 +456,7 @@ extension MutablePersistableRecord {
 extension MutablePersistableRecord {
     /// A dictionary whose keys are the columns encoded in the `encode(to:)` method.
     public var databaseDictionary: [String: DatabaseValue] {
-        return PersistenceContainer(self).storage.mapValues { $0?.databaseValue ?? .null }
+        return Dictionary(PersistenceContainer(self).storage).mapValues { $0?.databaseValue ?? .null }
     }
 }
 
@@ -546,7 +554,7 @@ extension MutablePersistableRecord {
     /// - SeeAlso: updateChanges(_:with:)
     @discardableResult
     public func updateChanges(_ db: Database, from record: MutablePersistableRecord) throws -> Bool {
-        return try updateChanges(db, from: PersistenceContainer(record))
+        return try updateChanges(db, from: PersistenceContainer(db, record))
     }
     
     /// Mutates the record according to the provided closure, and then, if the
@@ -574,7 +582,7 @@ extension MutablePersistableRecord {
     ///   match any row in the database and record could not be updated.
     @discardableResult
     public mutating func updateChanges(_ db: Database, with change: (inout Self) throws -> Void) throws -> Bool {
-        let container = PersistenceContainer(self)
+        let container = try PersistenceContainer(db, self)
         try change(&self)
         return try updateChanges(db, from: container)
     }
@@ -653,10 +661,11 @@ extension MutablePersistableRecord {
     // MARK: - CRUD Internals
     
     /// Return true if record has a non-null primary key
-    fileprivate func canUpdate(_ db: Database) throws -> Bool {
+    @usableFromInline
+    func canUpdate(_ db: Database) throws -> Bool {
         let databaseTableName = type(of: self).databaseTableName
         let primaryKey = try db.primaryKey(databaseTableName)
-        let container = PersistenceContainer(self)
+        let container = try PersistenceContainer(db, self)
         for column in primaryKey.columns {
             if let value = container[caseInsensitive: column], !value.databaseValue.isNull {
                 return true
@@ -672,6 +681,7 @@ extension MutablePersistableRecord {
     /// that adopt MutablePersistableRecord can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
+    @inlinable
     public mutating func performInsert(_ db: Database) throws {
         let conflictResolutionForInsert = type(of: self).persistenceConflictPolicy.conflictResolutionForInsert
         let dao = try DAO(db, self)
@@ -695,8 +705,9 @@ extension MutablePersistableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
+    @inlinable
     public func performUpdate(_ db: Database, columns: Set<String>) throws {
-        guard let statement = try DAO(db, self).updateStatement(db, columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
+        guard let statement = try DAO(db, self).updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
             // Nil primary key
             throw PersistenceError.recordNotFound(self)
         }
@@ -715,6 +726,7 @@ extension MutablePersistableRecord {
     /// implementation of performSave().
     ///
     /// This default implementation forwards the job to `update` or `insert`.
+    @inlinable
     public mutating func performSave(_ db: Database) throws {
         // Make sure we call self.insert and self.update so that classes
         // that override insert or save have opportunity to perform their
@@ -742,6 +754,7 @@ extension MutablePersistableRecord {
     /// that adopt MutablePersistableRecord can invoke performDelete() in
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
+    @inlinable
     public func performDelete(_ db: Database) throws -> Bool {
         guard let statement = try DAO(db, self).deleteStatement() else {
             // Nil primary key
@@ -758,6 +771,7 @@ extension MutablePersistableRecord {
     /// that adopt MutablePersistableRecord can invoke performExists() in
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
+    @inlinable
     public func performExists(_ db: Database) throws -> Bool {
         guard let statement = try DAO(db, self).existsStatement() else {
             // Nil primary key
@@ -796,7 +810,7 @@ extension MutablePersistableRecord where Self: AnyObject {
     ///   match any row in the database and record could not be updated.
     @discardableResult
     public func updateChanges(_ db: Database, with change: (Self) throws -> Void) throws -> Bool {
-        let container = PersistenceContainer(self)
+        let container = try PersistenceContainer(db, self)
         try change(self)
         return try updateChanges(db, from: container)
     }
@@ -1017,6 +1031,7 @@ extension PersistableRecord {
     /// that adopt PersistableRecord can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
+    @inlinable
     public func performInsert(_ db: Database) throws {
         let conflictResolutionForInsert = type(of: self).persistenceConflictPolicy.conflictResolutionForInsert
         let dao = try DAO(db, self)
@@ -1036,6 +1051,7 @@ extension PersistableRecord {
     /// implementation of performSave().
     ///
     /// This default implementation forwards the job to `update` or `insert`.
+    @inlinable
     public func performSave(_ db: Database) throws {
         // Make sure we call self.insert and self.update so that classes that
         // override insert or save have opportunity to perform their custom job.
@@ -1130,13 +1146,14 @@ public enum DatabaseUUIDEncodingStrategy {
 // MARK: - DAO
 
 /// DAO takes care of PersistableRecord CRUD
-final class DAO {
+@usableFromInline
+final class DAO<Record: MutablePersistableRecord> {
     
     /// The database
     let db: Database
     
     /// The record
-    let record: MutablePersistableRecord
+    let record: Record
     
     /// DAO keeps a copy the record's persistenceContainer, so that this
     /// dictionary is built once whatever the database operation. It is
@@ -1147,12 +1164,13 @@ final class DAO {
     let databaseTableName: String
     
     /// The table primary key
-    let primaryKey: PrimaryKeyInfo
+    @usableFromInline let primaryKey: PrimaryKeyInfo
     
-    init(_ db: Database, _ record: MutablePersistableRecord) throws {
+    @usableFromInline
+    init(_ db: Database, _ record: Record) throws {
         let databaseTableName = type(of: record).databaseTableName
         let primaryKey = try db.primaryKey(databaseTableName)
-        let persistenceContainer = PersistenceContainer(record)
+        let persistenceContainer = try PersistenceContainer(db, record)
         
         GRDBPrecondition(!persistenceContainer.isEmpty, "\(type(of: record)): invalid empty persistence container")
         
@@ -1163,6 +1181,7 @@ final class DAO {
         self.primaryKey = primaryKey
     }
     
+    @usableFromInline
     func insertStatement(onConflict: Database.ConflictResolution) throws -> UpdateStatement {
         let query = InsertQuery(
             onConflict: onConflict,
@@ -1174,7 +1193,8 @@ final class DAO {
     }
     
     /// Returns nil if and only if primary key is nil
-    func updateStatement(_ db: Database, columns: Set<String>, onConflict: Database.ConflictResolution) throws -> UpdateStatement? {
+    @usableFromInline
+    func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) throws -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
@@ -1223,6 +1243,7 @@ final class DAO {
     }
     
     /// Returns nil if and only if primary key is nil
+    @usableFromInline
     func deleteStatement() throws -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
@@ -1242,6 +1263,7 @@ final class DAO {
     }
     
     /// Returns nil if and only if primary key is nil
+    @usableFromInline
     func existsStatement() throws -> SelectStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns

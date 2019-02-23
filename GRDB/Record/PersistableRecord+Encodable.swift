@@ -2,8 +2,7 @@ import Foundation
 
 extension MutablePersistableRecord where Self: Encodable {
     public func encode(to container: inout PersistenceContainer) {
-        let persistenceContainer = PersistenceContainer()
-        let encoder = RecordEncoder<Self>(persistenceContainer: persistenceContainer)
+        let encoder = RecordEncoder<Self>(persistenceContainer: container)
         try! encode(to: encoder)
         container = encoder.persistenceContainer
     }

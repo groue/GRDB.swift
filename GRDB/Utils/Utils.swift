@@ -7,17 +7,19 @@ extension String {
     /// SQL query.
     ///
     ///     db.execute(sql: "SELECT * FROM \(tableName.quotedDatabaseIdentifier)")
+    @inlinable
     public var quotedDatabaseIdentifier: String {
         // See https://www.sqlite.org/lang_keywords.html
-        return "\"" + self + "\""
+        return "\"\(self)\""
     }
 }
 
 /// Return as many question marks separated with commas as the *count* argument.
 ///
 ///     databaseQuestionMarks(count: 3) // "?,?,?"
+@inlinable
 public func databaseQuestionMarks(count: Int) -> String {
-    return Array(repeating: "?", count: count).joined(separator: ",")
+    return repeatElement("?", count: count).joined(separator: ",")
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
