@@ -370,14 +370,14 @@ extension FetchRequest where RowDecoder: FetchableRecord {
 ///     }
 public final class RecordCursor<Record: FetchableRecord> : Cursor {
     private let statement: SelectStatement
-    private let row: Row // Reused for performance
-    private let sqliteStatement: SQLiteStatement
-    private var done = false
+    @usableFromInline let _row: Row // Reused for performance
+    @usableFromInline let _sqliteStatement: SQLiteStatement
+    @usableFromInline var _done = false
     
     init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         self.statement = statement
-        self.row = try Row(statement: statement).adapted(with: adapter, layout: statement)
-        self.sqliteStatement = statement.sqliteStatement
+        self._row = try Row(statement: statement).adapted(with: adapter, layout: statement)
+        self._sqliteStatement = statement.sqliteStatement
         statement.reset(withArguments: arguments)
     }
     
@@ -388,22 +388,28 @@ public final class RecordCursor<Record: FetchableRecord> : Cursor {
     }
     
     /// :nodoc:
+    @inlinable
     public func next() throws -> Record? {
-        if done {
+        if _done {
             // make sure this instance never yields a value again, even if the
             // statement is reset by another cursor.
             return nil
         }
-        switch sqlite3_step(sqliteStatement) {
+        switch sqlite3_step(_sqliteStatement) {
         case SQLITE_DONE:
-            done = true
+            _done = true
             return nil
         case SQLITE_ROW:
-            return Record(row: row)
+            return Record(row: _row)
         case let code:
-            statement.database.selectStatementDidFail(statement)
-            throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+            try handleErrorCode(code)
         }
+    }
+    
+    @usableFromInline
+    func handleErrorCode(_ code: Int32) throws -> Never {
+        statement.database.selectStatementDidFail(statement)
+        throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
     }
 }
 
