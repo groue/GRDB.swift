@@ -56,7 +56,7 @@ public class Statement {
         var sqliteStatement: SQLiteStatement? = nil
         // sqlite3_prepare_v3 was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        let code = sqlite3_prepare_v3(database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags), &_sqliteStatement, statementEnd)
+        let code = sqlite3_prepare_v3(database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags), &sqliteStatement, statementEnd)
         #else
         let code: Int32
         if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
