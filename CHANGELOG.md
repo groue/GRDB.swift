@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
+#### [GRDB-4.0 Branch](#grdb-40-branch)
+
 #### 3.x Releases
 
 - `3.6.x` Releases - [3.6.0](#360) | [3.6.1](#361) | [3.6.2](#362)
@@ -42,11 +44,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [0.110.0](#01100), ...
 
 
-## GRDB-4.0 branch
+## GRDB-4.0 Branch
 
 ### New
 
 - [#478](https://github.com/groue/GRDB.swift/pull/478): Swift 5: SQL interpolation
+- [#484](https://github.com/groue/GRDB.swift/pull/484): SE-0193 Cross-module inlining and specialization
 
 ### Breaking Changes
 
