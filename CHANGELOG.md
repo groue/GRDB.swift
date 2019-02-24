@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
-#### [GRDB-4.0 Branch](#grdb-40-branch)
+#### 4.x Releases
+
+- `4.0.0` Development - [GRDB-4.0 Branch](#grdb-40-branch)
 
 #### 3.x Releases
 
