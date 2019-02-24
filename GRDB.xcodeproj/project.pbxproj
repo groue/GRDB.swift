@@ -782,13 +782,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		560C97D11C0E22D300BF8471 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = EE247B3B1C3F3ED000AE3E12;
-			remoteInfo = "SQLite Mac";
-		};
 		560C97D31C0E22D300BF8471 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DC3773EA19C8CBB3004FCF85 /* Project object */;
@@ -2110,7 +2103,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				560C97D01C0E22D300BF8471 /* PBXTargetDependency */,
 				560C97D21C0E22D300BF8471 /* PBXTargetDependency */,
 			);
 			name = GRDBOSXPerformanceTests;
@@ -3233,11 +3225,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		560C97D01C0E22D300BF8471 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = "SQLite Mac";
-			targetProxy = 560C97D11C0E22D300BF8471 /* PBXContainerItemProxy */;
-		};
 		560C97D21C0E22D300BF8471 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = DC3773F219C8CBB3004FCF85 /* GRDBOSX */;
