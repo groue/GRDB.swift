@@ -108,3 +108,8 @@ extension SQLExpression {
     @available(*, unavailable, message: "Use sqlLiteral property instead")
     public var literal: SQLExpressionLiteral { preconditionFailure() }
 }
+
+extension FTS3TokenizerDescriptor {
+    @available(*, unavailable, renamed: "unicode61(diacritics:separators:tokenCharacters:)")
+    public static func unicode61(removeDiacritics: Bool, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS3TokenizerDescriptor { preconditionFailure() }
+}
