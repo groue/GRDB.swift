@@ -113,3 +113,10 @@ extension FTS3TokenizerDescriptor {
     @available(*, unavailable, renamed: "unicode61(diacritics:separators:tokenCharacters:)")
     public static func unicode61(removeDiacritics: Bool, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS3TokenizerDescriptor { preconditionFailure() }
 }
+
+#if SQLITE_ENABLE_FTS5
+extension FTS5TokenizerDescriptor {
+    @available(*, unavailable, renamed: "unicode61(diacritics:separators:tokenCharacters:)")
+    public static func unicode61(removeDiacritics: Bool = true, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS5TokenizerDescriptor { preconditionFailure() }
+}
+#endif

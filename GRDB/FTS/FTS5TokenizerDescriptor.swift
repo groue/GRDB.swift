@@ -90,19 +90,25 @@ public struct FTS5TokenizerDescriptor {
     ///     }
     ///
     /// - parameters:
-    ///     - removeDiacritics: If true (the default), then SQLite will
-    ///       strip diacritics from latin characters.
+    ///     - diacritics: By default SQLite will strip diacritics from
+    ///       latin characters.
     ///     - separators: Unless empty (the default), SQLite will consider
     ///       these characters as token separators.
     ///     - tokenCharacters: Unless empty (the default), SQLite will
     ///       consider these characters as token characters.
     ///
     /// See https://www.sqlite.org/fts5.html#unicode61_tokenizer
-    public static func unicode61(removeDiacritics: Bool = true, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS5TokenizerDescriptor {
+    public static func unicode61(diacritics: FTS5.Diacritics = .removeLegacy, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS5TokenizerDescriptor {
         var components: [String] = ["unicode61"]
-        // TODO: Support for remove_diacritics=2 (SQLite 3.27.0)
-        if !removeDiacritics {
+        switch diacritics {
+        case .removeLegacy:
+            break
+        case .keep:
             components.append(contentsOf: ["remove_diacritics", "0"])
+            #if GRDBCUSTOMSQLITE
+        case .remove:
+            components.append(contentsOf: ["remove_diacritics", "2"])
+            #endif
         }
         if !separators.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as separators, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)

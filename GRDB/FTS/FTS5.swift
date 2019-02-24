@@ -8,7 +8,25 @@
 ///
 /// See https://www.sqlite.org/fts5.html
 public struct FTS5 : VirtualTableModule {
-    
+    /// Options for Latin script characters. Matches the raw "remove_diacritics"
+    /// tokenizer argument.
+    ///
+    /// See https://www.sqlite.org/fts5.html
+    public enum Diacritics {
+        /// Do not remove diacritics from Latin script characters. This
+        /// option matches the raw "remove_diacritics=0" tokenizer argument.
+        case keep
+        /// Remove diacritics from Latin script characters. This
+        /// option matches the raw "remove_diacritics=1" tokenizer argument.
+        case removeLegacy
+        #if GRDBCUSTOMSQLITE
+        /// Remove diacritics from Latin script characters. This
+        /// option matches the raw "remove_diacritics=2" tokenizer argument,
+        /// available from SQLite 3.27.0
+        case remove
+        #endif
+    }
+
     /// Creates a FTS5 module suitable for the Database
     /// `create(virtualTable:using:)` method.
     ///
