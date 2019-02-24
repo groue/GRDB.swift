@@ -302,7 +302,6 @@ private struct TableRegion: Equatable {
         return TableRegion(columns: columnsUnion, rowIds: rowIdsUnion)
     }
     
-    @inline(__always)
     func contains(rowID: Int64) -> Bool {
         guard let rowIds = rowIds else {
             return true

@@ -102,7 +102,7 @@ class InsertPositionalValuesTests: XCTestCase {
         measure {
             _ = try? FileManager.default.removeItem(atPath: databasePath)
             
-            let dbQueue = FMDatabaseQueue(path: databasePath)
+            let dbQueue = FMDatabaseQueue(path: databasePath)!
             dbQueue.inDatabase { db in
                 db.executeStatements("CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
             }

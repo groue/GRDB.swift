@@ -246,6 +246,7 @@ extension RowAdapter {
 }
 
 extension RowAdapter {
+    @usableFromInline
     func baseColumnIndex(atIndex index: Int, layout: RowLayout) throws -> Int {
         return try layoutedAdapter(from: layout).mapping.baseColumnIndex(atMappingIndex: index)
     }
@@ -460,6 +461,7 @@ extension Row {
     }
 
     /// Returns self if adapter is nil
+    @usableFromInline
     func adapted(with adapter: RowAdapter?, layout: RowLayout) throws -> Row {
         guard let adapter = adapter else {
             return self

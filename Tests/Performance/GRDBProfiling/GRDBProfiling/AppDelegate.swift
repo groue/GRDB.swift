@@ -7,177 +7,284 @@ let insertedRowCount = 20_000
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        fetchPositionalValues()
-        fetchNamedValues()
-        fetchStructs()
-        fetchRecords()
-        insertPositionalValues()
-        insertNamedValues()
-        insertRecords()
+        try! fetchValues()
+        try! fetchPositionalValues()
+        try! fetchNamedValues()
+        try! fetchStructs()
+        try! fetchCodables()
+        try! fetchRecords()
+        try! insertPositionalValues()
+        try! insertNamedValues()
+        try! insertStructs()
+        try! insertCodables()
+        try! insertRecords()
     }
     
-    func fetchPositionalValues() {
+    // MARK: -
+    
+    func fetchValues() throws {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
-        let dbQueue = try! DatabaseQueue(path: databasePath)
-        
+        let dbQueue = try DatabaseQueue(path: databasePath)
+        try dbQueue.read(_fetchValues)
+    }
+    
+    func _fetchValues(_ db: Database) throws {
         var count = 0
         
-        dbQueue.inDatabase { db in
-            let rows = try! Row.fetchCursor(db, sql: "SELECT * FROM items")
-            while let row = try! rows.next() {
-                let _: Int = row[0]
-                let _: Int = row[1]
-                let _: Int = row[2]
-                let _: Int = row[3]
-                let _: Int = row[4]
-                let _: Int = row[5]
-                let _: Int = row[6]
-                let _: Int = row[7]
-                let _: Int = row[8]
-                let _: Int = row[9]
-                
-                count += 1
-            }
+        let cursor = try Int.fetchCursor(db, sql: "SELECT i0 FROM items")
+        while try cursor.next() != nil {
+            count += 1
         }
         
         assert(count == expectedRowCount)
     }
     
-    func fetchNamedValues() {
+    // MARK: -
+    
+    func fetchPositionalValues() throws {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
-        let dbQueue = try! DatabaseQueue(path: databasePath)
-        
+        let dbQueue = try DatabaseQueue(path: databasePath)
+        try dbQueue.read(_fetchPositionalValues)
+    }
+    
+    func _fetchPositionalValues(_ db: Database) throws {
         var count = 0
         
-        dbQueue.inDatabase { db in
-            let rows = try! Row.fetchCursor(db, sql: "SELECT * FROM items")
-            while let row = try! rows.next() {
-                let _: Int = row["i0"]
-                let _: Int = row["i1"]
-                let _: Int = row["i2"]
-                let _: Int = row["i3"]
-                let _: Int = row["i4"]
-                let _: Int = row["i5"]
-                let _: Int = row["i6"]
-                let _: Int = row["i7"]
-                let _: Int = row["i8"]
-                let _: Int = row["i9"]
-                
-                count += 1
-            }
+        let rows = try Row.fetchCursor(db, sql: "SELECT * FROM items")
+        while let row = try rows.next() {
+            let _: Int = row[0]
+            let _: Int = row[1]
+            let _: Int = row[2]
+            let _: Int = row[3]
+            let _: Int = row[4]
+            let _: Int = row[5]
+            let _: Int = row[6]
+            let _: Int = row[7]
+            let _: Int = row[8]
+            let _: Int = row[9]
+            count += 1
         }
         
         assert(count == expectedRowCount)
     }
     
-    func fetchStructs() {
+    // MARK: -
+    
+    func fetchNamedValues() throws {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
-        let dbQueue = try! DatabaseQueue(path: databasePath)
-        let items = dbQueue.inDatabase { db in
-            try! ItemStruct.fetchAll(db)
+        let dbQueue = try DatabaseQueue(path: databasePath)
+        try dbQueue.read(_fetchNamedValues)
+    }
+    
+    func _fetchNamedValues(_ db: Database) throws {
+        var count = 0
+        
+        let rows = try Row.fetchCursor(db, sql: "SELECT * FROM items")
+        while let row = try rows.next() {
+            let _: Int = row["i0"]
+            let _: Int = row["i1"]
+            let _: Int = row["i2"]
+            let _: Int = row["i3"]
+            let _: Int = row["i4"]
+            let _: Int = row["i5"]
+            let _: Int = row["i6"]
+            let _: Int = row["i7"]
+            let _: Int = row["i8"]
+            let _: Int = row["i9"]
+            
+            count += 1
         }
+        
+        assert(count == expectedRowCount)
+    }
+    
+    // MARK: -
+    
+    func fetchStructs() throws {
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
+        let dbQueue = try DatabaseQueue(path: databasePath)
+        let items = try dbQueue.read(_fetchStructs)
         assert(items.count == expectedRowCount)
         assert(items[0].i0 == 0)
         assert(items[1].i1 == 1)
         assert(items[expectedRowCount-1].i9 == expectedRowCount-1)
     }
     
-    func fetchRecords() {
+    func _fetchStructs(_ db: Database) throws -> [ItemStruct] {
+        return try ItemStruct.fetchAll(db)
+    }
+    
+    // MARK: -
+    
+    func fetchCodables() throws {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
-        let dbQueue = try! DatabaseQueue(path: databasePath)
-        let items = dbQueue.inDatabase { db in
-            try! ItemRecord.fetchAll(db)
-        }
+        let dbQueue = try DatabaseQueue(path: databasePath)
+        let items = try dbQueue.read(_fetchCodables)
         assert(items.count == expectedRowCount)
         assert(items[0].i0 == 0)
         assert(items[1].i1 == 1)
         assert(items[expectedRowCount-1].i9 == expectedRowCount-1)
     }
     
-    func insertPositionalValues() {
+    func _fetchCodables(_ db: Database) throws -> [ItemCodable] {
+        return try ItemCodable.fetchAll(db)
+    }
+
+    // MARK: -
+    
+    func fetchRecords() throws {
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
+        let dbQueue = try DatabaseQueue(path: databasePath)
+        let items = try dbQueue.read(_fetchRecords)
+        assert(items.count == expectedRowCount)
+        assert(items[0].i0 == 0)
+        assert(items[1].i1 == 1)
+        assert(items[expectedRowCount-1].i9 == expectedRowCount-1)
+    }
+    
+    func _fetchRecords(_ db: Database) throws -> [ItemRecord] {
+        return try ItemRecord.fetchAll(db)
+    }
+    
+    // MARK: -
+    
+    func insertPositionalValues() throws {
         let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
-        defer {
-            let dbQueue = try! DatabaseQueue(path: databasePath)
-            dbQueue.inDatabase { db in
-                assert(try! Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")! == insertedRowCount)
-                assert(try! Int.fetchOne(db, sql: "SELECT MIN(i0) FROM items")! == 0)
-                assert(try! Int.fetchOne(db, sql: "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
-            }
-            try! FileManager.default.removeItem(atPath: databasePath)
-        }
-        
         _ = try? FileManager.default.removeItem(atPath: databasePath)
         
-        let dbQueue = try! DatabaseQueue(path: databasePath)
-        try! dbQueue.inDatabase { db in
+        let dbQueue = try DatabaseQueue(path: databasePath)
+        try dbQueue.write { db in
             try db.execute(sql: "CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
         }
         
-        try! dbQueue.inTransaction { db in
-            let statement = try! db.makeUpdateStatement(sql: "INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
-            for i in 0..<insertedRowCount {
-                try statement.execute(arguments: [i, i, i, i, i, i, i, i, i, i])
-            }
-            return .commit
+        try dbQueue.write(_insertPositionalValues)
+        
+        dbQueue.read { db in
+            assert(try! Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")! == insertedRowCount)
+            assert(try! Int.fetchOne(db, sql: "SELECT MIN(i0) FROM items")! == 0)
+            assert(try! Int.fetchOne(db, sql: "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
+        }
+        try FileManager.default.removeItem(atPath: databasePath)
+    }
+    
+    func _insertPositionalValues(_ db: Database) throws {
+        let statement = try db.makeUpdateStatement(sql: "INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
+        for i in 0..<insertedRowCount {
+            try statement.execute(arguments: [i, i, i, i, i, i, i, i, i, i])
         }
     }
     
-    func insertNamedValues() {
+    // MARK: -
+    
+    func insertNamedValues() throws {
         let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
-        defer {
-            let dbQueue = try! DatabaseQueue(path: databasePath)
-            dbQueue.inDatabase { db in
-                assert(try! Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")! == insertedRowCount)
-                assert(try! Int.fetchOne(db, sql: "SELECT MIN(i0) FROM items")! == 0)
-                assert(try! Int.fetchOne(db, sql: "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
-            }
-            try! FileManager.default.removeItem(atPath: databasePath)
-        }
-        
         _ = try? FileManager.default.removeItem(atPath: databasePath)
         
-        let dbQueue = try! DatabaseQueue(path: databasePath)
-        try! dbQueue.inDatabase { db in
+        let dbQueue = try DatabaseQueue(path: databasePath)
+        try dbQueue.write { db in
             try db.execute(sql: "CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
         }
         
-        try! dbQueue.inTransaction { db in
-            let statement = try! db.makeUpdateStatement(sql: "INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (:i0, :i1, :i2, :i3, :i4, :i5, :i6, :i7, :i8, :i9)")
-            for i in 0..<insertedRowCount {
-                try statement.execute(arguments: ["i0": i, "i1": i, "i2": i, "i3": i, "i4": i, "i5": i, "i6": i, "i7": i, "i8": i, "i9": i])
-            }
-            return .commit
+        try dbQueue.write(_insertNamedValues)
+        
+        dbQueue.read { db in
+            assert(try! Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")! == insertedRowCount)
+            assert(try! Int.fetchOne(db, sql: "SELECT MIN(i0) FROM items")! == 0)
+            assert(try! Int.fetchOne(db, sql: "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
+        }
+        try FileManager.default.removeItem(atPath: databasePath)
+    }
+    
+    func _insertNamedValues(_ db: Database) throws {
+        let statement = try db.makeUpdateStatement(sql: "INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (:i0, :i1, :i2, :i3, :i4, :i5, :i6, :i7, :i8, :i9)")
+        for i in 0..<insertedRowCount {
+            try statement.execute(arguments: ["i0": i, "i1": i, "i2": i, "i3": i, "i4": i, "i5": i, "i6": i, "i7": i, "i8": i, "i9": i])
         }
     }
     
-    func insertRecords() {
+    // MARK: -
+    
+    func insertStructs() throws {
         let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         _ = try? FileManager.default.removeItem(atPath: databasePath)
-        defer {
-            let dbQueue = try! DatabaseQueue(path: databasePath)
-            dbQueue.inDatabase { db in
-                assert(try! Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")! == insertedRowCount)
-                assert(try! Int.fetchOne(db, sql: "SELECT MIN(i0) FROM items")! == 0)
-                assert(try! Int.fetchOne(db, sql: "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
-            }
-            try! FileManager.default.removeItem(atPath: databasePath)
-        }
         
-        _ = try? FileManager.default.removeItem(atPath: databasePath)
-        
-        let dbQueue = try! DatabaseQueue(path: databasePath)
-        try! dbQueue.inDatabase { db in
+        let dbQueue = try DatabaseQueue(path: databasePath)
+        try dbQueue.write { db in
             try db.execute(sql: "CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
         }
         
-        try! dbQueue.inTransaction { db in
-            for i in 0..<insertedRowCount {
-                try ItemRecord(i0: i, i1: i, i2: i, i3: i, i4: i, i5: i, i6: i, i7: i, i8: i, i9: i).insert(db)
-            }
-            return .commit
+        try dbQueue.write(_insertStructs)
+        
+        dbQueue.read { db in
+            assert(try! Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")! == insertedRowCount)
+            assert(try! Int.fetchOne(db, sql: "SELECT MIN(i0) FROM items")! == 0)
+            assert(try! Int.fetchOne(db, sql: "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
+        }
+        try FileManager.default.removeItem(atPath: databasePath)
+    }
+    
+    func _insertStructs(_ db: Database) throws {
+        for i in 0..<insertedRowCount {
+            try ItemStruct(i0: i, i1: i, i2: i, i3: i, i4: i, i5: i, i6: i, i7: i, i8: i, i9: i).insert(db)
+        }
+    }
+    
+    // MARK: -
+    
+    func insertCodables() throws {
+        let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).sqlite"
+        let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
+        _ = try? FileManager.default.removeItem(atPath: databasePath)
+        
+        let dbQueue = try DatabaseQueue(path: databasePath)
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
+        }
+        
+        try dbQueue.write(_insertCodables)
+        
+        dbQueue.read { db in
+            assert(try! Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")! == insertedRowCount)
+            assert(try! Int.fetchOne(db, sql: "SELECT MIN(i0) FROM items")! == 0)
+            assert(try! Int.fetchOne(db, sql: "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
+        }
+        try FileManager.default.removeItem(atPath: databasePath)
+    }
+    
+    func _insertCodables(_ db: Database) throws {
+        for i in 0..<insertedRowCount {
+            try ItemCodable(i0: i, i1: i, i2: i, i3: i, i4: i, i5: i, i6: i, i7: i, i8: i, i9: i).insert(db)
+        }
+    }
+
+    // MARK: -
+    
+    func insertRecords() throws {
+        let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).sqlite"
+        let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
+        _ = try? FileManager.default.removeItem(atPath: databasePath)
+        
+        let dbQueue = try DatabaseQueue(path: databasePath)
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
+        }
+        
+        try dbQueue.write(_insertRecords)
+        
+        dbQueue.read { db in
+            assert(try! Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")! == insertedRowCount)
+            assert(try! Int.fetchOne(db, sql: "SELECT MIN(i0) FROM items")! == 0)
+            assert(try! Int.fetchOne(db, sql: "SELECT MAX(i9) FROM items")! == insertedRowCount - 1)
+        }
+        try FileManager.default.removeItem(atPath: databasePath)
+    }
+    
+    func _insertRecords(_ db: Database) throws {
+        for i in 0..<insertedRowCount {
+            try ItemRecord(i0: i, i1: i, i2: i, i3: i, i4: i, i5: i, i6: i, i7: i, i8: i, i9: i).insert(db)
         }
     }
 }
@@ -292,4 +399,19 @@ struct ItemStruct: FetchableRecord, PersistableRecord {
         container["i8"] = i8
         container["i9"] = i9
     }
+}
+
+struct ItemCodable : Codable, FetchableRecord, PersistableRecord {
+    var i0: Int?
+    var i1: Int?
+    var i2: Int?
+    var i3: Int?
+    var i4: Int?
+    var i5: Int?
+    var i6: Int?
+    var i7: Int?
+    var i8: Int?
+    var i9: Int?
+    
+    static let databaseTableName = "items"
 }

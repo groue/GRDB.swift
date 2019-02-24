@@ -48,7 +48,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
     
     func testDegenerateDatabaseEqualsWithSelf() throws {
         struct DegenerateRecord: MutablePersistableRecord {
-            static let databaseTableName = "ignored"
+            static let databaseTableName = "degenerated"
             func encode(to container: inout PersistenceContainer) {
             }
         }
@@ -58,6 +58,10 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
+            // table must exist
+            try db.create(table: DegenerateRecord.databaseTableName) { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
             let totalChangesCount = db.totalChangesCount
             try XCTAssertFalse(record.updateChanges(db, from: record))
             XCTAssertEqual(db.totalChangesCount, totalChangesCount)

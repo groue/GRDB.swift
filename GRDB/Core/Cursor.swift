@@ -16,6 +16,7 @@ extension Array {
     ///
     ///     let cursor = try String.fetchCursor(db, sql: "SELECT 'foo' UNION ALL SELECT 'bar'")
     ///     let strings = try Array(cursor) // ["foo", "bar"]
+    @inlinable
     public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
         self.init()
         while let element = try cursor.next() {

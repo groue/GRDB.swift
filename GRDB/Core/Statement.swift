@@ -348,62 +348,78 @@ public final class SelectStatement : Statement {
         return columnIndexes[name.lowercased()]
     }
     
-    /// Creates a cursor over the statement. This cursor does not produce any
-    /// value, and is only intended to give access to the sqlite3_step()
-    /// low-level function.
+    /// Creates a cursor over the statement which does not produce any
+    /// value. Each call to the next() cursor method calls the sqlite3_step()
+    /// C function.
     func makeCursor(arguments: StatementArguments? = nil) -> StatementCursor {
         return StatementCursor(statement: self, arguments: arguments)
     }
     
     /// Utility function for cursors
+    @usableFromInline
     func reset(withArguments arguments: StatementArguments? = nil) {
         prepare(withArguments: arguments)
         try! reset()
     }
+    
+    /// Utility function for cursors
+    @usableFromInline
+    func didFail(withResultCode resultCode: Int32) throws -> Never {
+        database.selectStatementDidFail(self)
+        throw DatabaseError(
+            resultCode: resultCode,
+            message: database.lastErrorMessage,
+            sql: sql,
+            arguments: arguments)
+
+    }
 }
 
-// TODO: remove public qualifier, or expose SelectStatement.makeCursor()
 /// A cursor that iterates a database statement without producing any value.
+/// Each call to the next() cursor method calls the sqlite3_step() C function.
+///
 /// For example:
 ///
 ///     try dbQueue.read { db in
-///         let statement = db.makeSelectStatement(sql: "SELECT * FROM player")
-///         let cursor: StatementCursor = statement.makeCursor()
+///         let statement = db.makeSelectStatement(sql: "SELECT performSideEffect()")
+///         let cursor = statement.makeCursor()
+///         try cursor.next()
 ///     }
-public final class StatementCursor: Cursor {
-    public let statement: SelectStatement
-    private let sqliteStatement: SQLiteStatement
-    private var done = false
+final class StatementCursor: Cursor {
+    @usableFromInline let _statement: SelectStatement
+    @usableFromInline let _sqliteStatement: SQLiteStatement
+    @usableFromInline var _done = false
     
-    // Use SelectStatement.cursor() instead
-    fileprivate init(statement: SelectStatement, arguments: StatementArguments? = nil) {
-        self.statement = statement
-        self.sqliteStatement = statement.sqliteStatement
-        statement.reset(withArguments: arguments)
+    // Use SelectStatement.makeCursor() instead
+    @inlinable
+    init(statement: SelectStatement, arguments: StatementArguments? = nil) {
+        _statement = statement
+        _sqliteStatement = statement.sqliteStatement
+        _statement.reset(withArguments: arguments)
     }
     
     deinit {
         // Statement reset fails when sqlite3_step has previously failed.
         // Just ignore reset error.
-        try? statement.reset()
+        try? _statement.reset()
     }
     
     /// :nodoc:
+    @inlinable
     public func next() throws -> Void? {
-        if done {
+        if _done {
             // make sure this instance never yields a value again, even if the
             // statement is reset by another cursor.
             return nil
         }
-        switch sqlite3_step(sqliteStatement) {
+        switch sqlite3_step(_sqliteStatement) {
         case SQLITE_DONE:
-            done = true
+            _done = true
             return nil
         case SQLITE_ROW:
             return .some(())
         case let code:
-            statement.database.selectStatementDidFail(statement)
-            throw DatabaseError(resultCode: code, message: statement.database.lastErrorMessage, sql: statement.sql, arguments: statement.arguments)
+            try _statement.didFail(withResultCode: code)
         }
     }
 }
