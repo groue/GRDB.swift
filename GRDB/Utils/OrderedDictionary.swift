@@ -8,9 +8,10 @@
 ///     dict["bar"] // 2
 ///     dict["qux"] // nil
 ///     dict.map { $0.key } // ["foo", "bar"], in this order.
+@usableFromInline
 struct OrderedDictionary<Key: Hashable, Value> {
-    private(set) var keys: [Key]
-    fileprivate private(set) var dictionary: [Key: Value]
+    @usableFromInline var keys: [Key]
+    @usableFromInline var dictionary: [Key: Value]
     
     var values: [Value] {
         return keys.map { dictionary[$0]! }
@@ -30,6 +31,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     }
 
     /// Returns the value associated with key, or nil.
+    @inlinable
     subscript(_ key: Key) -> Value? {
         get { return dictionary[key] }
         set {
@@ -59,6 +61,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     /// original value. If the given key is not present in the dictionary, this
     /// method appends the key-value pair and returns nil.
     @discardableResult
+    @inlinable
     mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
         if let oldValue = dictionary.updateValue(value, forKey: key) {
             return oldValue
@@ -69,6 +72,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     
     /// Removes the value associated with key.
     @discardableResult
+    @usableFromInline
     mutating func removeValue(forKey key: Key) -> Value? {
         guard let value = dictionary.removeValue(forKey: key) else {
             return nil
@@ -88,28 +92,28 @@ struct OrderedDictionary<Key: Hashable, Value> {
 }
 
 extension OrderedDictionary: Collection {
-    typealias Index = Int
+    @usableFromInline typealias Index = Int
     
-    var startIndex: Int {
+    @usableFromInline var startIndex: Int {
         return 0
     }
     
-    var endIndex: Int {
+    @usableFromInline var endIndex: Int {
         return keys.count
     }
     
-    func index(after i: Int) -> Int {
+    @usableFromInline func index(after i: Int) -> Int {
         return i + 1
     }
     
-    subscript(position: Int) -> (key: Key, value: Value) {
+    @usableFromInline  subscript(position: Int) -> (key: Key, value: Value) {
         let key = keys[position]
         return (key: key, value: dictionary[key]!)
     }
 }
 
 extension OrderedDictionary: ExpressibleByDictionaryLiteral {
-    init(dictionaryLiteral elements: (Key, Value)...) {
+    @usableFromInline init(dictionaryLiteral elements: (Key, Value)...) {
         self.keys = elements.map { $0.0 }
         self.dictionary = Dictionary(uniqueKeysWithValues: elements)
     }

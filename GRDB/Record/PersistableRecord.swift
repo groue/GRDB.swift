@@ -52,13 +52,14 @@ public struct PersistenceContainer {
     // fileprivate for Row(_:PersistenceContainer)
     // The ordering of the OrderedDictionary helps generating always the same
     // SQL queries, and hit the statement cache.
-    fileprivate var storage: OrderedDictionary<String, DatabaseValueConvertible?>
+    @usableFromInline var storage: OrderedDictionary<String, DatabaseValueConvertible?>
     
     /// Accesses the value associated with the given column.
     ///
     /// It is undefined behavior to set different values for the same column.
     /// Column names are case insensitive, so defining both "name" and "NAME"
     /// is considered undefined behavior.
+    @inlinable
     public subscript(_ column: String) -> DatabaseValueConvertible? {
         get { return storage[column] ?? nil }
         set { storage.updateValue(newValue, forKey: column) }
@@ -69,7 +70,8 @@ public struct PersistenceContainer {
     /// It is undefined behavior to set different values for the same column.
     /// Column names are case insensitive, so defining both "name" and "NAME"
     /// is considered undefined behavior.
-    public subscript(_ column: ColumnExpression) -> DatabaseValueConvertible? {
+    @inlinable
+    public subscript<Column: ColumnExpression>(_ column: Column) -> DatabaseValueConvertible? {
         get { return self[column.name] }
         set { self[column.name] = newValue }
     }
@@ -83,13 +85,13 @@ public struct PersistenceContainer {
     }
     
     /// Convenience initializer from a record
-    init(_ record: MutablePersistableRecord) {
+    init<Record: MutablePersistableRecord>(_ record: Record) {
         self.init()
         record.encode(to: &self)
     }
     
     /// Convenience initializer from a database connection and a record
-    init(_ db: Database,_ record: MutablePersistableRecord) throws {
+    init<Record: MutablePersistableRecord>(_ db: Database,_ record: Record) throws {
         let databaseTableName = type(of: record).databaseTableName
         let columnCount = try db.columns(in: databaseTableName).count
         self.init(minimumCapacity: columnCount)
@@ -156,7 +158,7 @@ public struct PersistenceContainer {
 }
 
 extension Row {
-    convenience init(_ record: MutablePersistableRecord) {
+    convenience init<Record: MutablePersistableRecord>(_ record: Record) {
         self.init(PersistenceContainer(record))
     }
 
@@ -553,7 +555,7 @@ extension MutablePersistableRecord {
     ///   match any row in the database and record could not be updated.
     /// - SeeAlso: updateChanges(_:with:)
     @discardableResult
-    public func updateChanges(_ db: Database, from record: MutablePersistableRecord) throws -> Bool {
+    public func updateChanges<Record: MutablePersistableRecord>(_ db: Database, from record: Record) throws -> Bool {
         return try updateChanges(db, from: PersistenceContainer(db, record))
     }
     
@@ -627,7 +629,7 @@ extension MutablePersistableRecord {
     /// but also in terms of columns. When the two records don't define the
     /// same set of columns in their `encode(to:)` method, only the columns
     /// defined by the receiver record are considered.
-    public func databaseChanges(from record: MutablePersistableRecord) -> [String: DatabaseValue] {
+    public func databaseChanges<Record: MutablePersistableRecord>(from record: Record) -> [String: DatabaseValue] {
         return Dictionary(uniqueKeysWithValues: databaseChangesIterator(from: PersistenceContainer(record)))
     }
     
