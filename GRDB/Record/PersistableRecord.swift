@@ -33,7 +33,7 @@ extension PersistenceError {
         switch self {
         case let .recordNotFound(databaseTableName: databaseTableName, key: key):
             let row = Row(key) // For nice output
-            return "Record not found in table \(databaseTableName): \(row.description)"
+            return "Key not found in table \(databaseTableName): \(row.description)"
         }
     }
 }

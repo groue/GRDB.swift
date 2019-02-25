@@ -704,7 +704,7 @@ class MutablePersistableRecordTests: GRDBTestCase {
                 key: ["id": .null])
             XCTAssertEqual(
                 error.description,
-                "Record not found in table place: [id:NULL]")
+                "Key not found in table place: [id:NULL]")
         }
         do {
             let error = PersistenceError.recordNotFound(
@@ -712,7 +712,7 @@ class MutablePersistableRecordTests: GRDBTestCase {
                 key: ["uuid": "E621E1F8-C36C-495A-93FC-0C247A3E6E5F".databaseValue])
             XCTAssertEqual(
                 error.description,
-                "Record not found in table user: [uuid:\"E621E1F8-C36C-495A-93FC-0C247A3E6E5F\"]")
+                "Key not found in table user: [uuid:\"E621E1F8-C36C-495A-93FC-0C247A3E6E5F\"]")
         }
     }
 }
