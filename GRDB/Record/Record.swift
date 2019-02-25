@@ -276,11 +276,11 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
         let dao = try DAO(db, self)
         guard let statement = try dao.updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
             // Nil primary key
-            throw PersistenceError.recordNotFound(self)
+            try dao.recordNotFound()
         }
         try statement.execute()
         if db.changesCount == 0 {
-            throw PersistenceError.recordNotFound(self)
+            try dao.recordNotFound()
         }
         
         // Set hasDatabaseChanges to false

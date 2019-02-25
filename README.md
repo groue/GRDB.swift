@@ -682,7 +682,7 @@ let playerId = db.lastInsertedRowID
 Don't miss [Records](#records), that provide classic **persistence methods**:
 
 ```swift
-let player = Player(name: "Arthur", score: 1000)
+var player = Player(name: "Arthur", score: 1000)
 try player.insert(db)
 let playerId = player.id
 ```
