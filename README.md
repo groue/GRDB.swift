@@ -632,22 +632,22 @@ try dbQueue.write { db in
 **Never ever embed values directly in your raw SQL strings**. See [Avoiding SQL Injection](#avoiding-sql-injection) for more information:
 
 ```swift
-// WRONG
+// WRONG: don't embed values in raw SQL strings
 let id = 123
 let name = textField.text
 try db.execute(
     sql: "UPDATE player SET name = '\(name)' WHERE id = \(id)")
 
-// CORRECT (Swift 5)
+// CORRECT: use SQL Interpolation (Swift 5)
 try db.execute(
     literal: "UPDATE player SET name = \(name) WHERE id = \(id)")
 
-// CORRECT
+// CORRECT: use arguments dictionary
 try db.execute(
     sql: "UPDATE player SET name = :name WHERE id = :id",
     arguments: ["name": name, "id": id])
 
-// CORRECT
+// CORRECT: use arguments array
 try db.execute(
     sql: "UPDATE player SET name = ? WHERE id = ?",
     arguments: [name, id])
