@@ -717,11 +717,11 @@ extension MutablePersistableRecord {
         let dao = try DAO(db, self)
         guard let statement = try dao.updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
             // Nil primary key
-            try dao.recordNotFound()
+            throw dao.makeRecordNotFoundError()
         }
         try statement.execute()
         if db.changesCount == 0 {
-            try dao.recordNotFound()
+            throw dao.makeRecordNotFoundError()
         }
     }
     
@@ -736,10 +736,8 @@ extension MutablePersistableRecord {
     /// This default implementation forwards the job to `update` or `insert`.
     @inlinable
     public mutating func performSave(_ db: Database) throws {
-        // Make sure we call self.insert and self.update so that classes
-        // that override insert or save have opportunity to perform their
-        // custom job.
-        
+        // Call self.insert and self.update so that we support classes that
+        // override those methods.
         if let key = try primaryKey(db) {
             do {
                 try update(db)
@@ -1057,9 +1055,8 @@ extension PersistableRecord {
     /// This default implementation forwards the job to `update` or `insert`.
     @inlinable
     public func performSave(_ db: Database) throws {
-        // Make sure we call self.insert and self.update so that classes that
-        // override insert or save have opportunity to perform their custom job.
-        
+        // Call self.insert and self.update so that we support classes that
+        // override those methods.
         if let key = try primaryKey(db) {
             do {
                 try update(db)
@@ -1148,12 +1145,8 @@ public enum DatabaseUUIDEncodingStrategy {
 /// DAO takes care of PersistableRecord CRUD
 @usableFromInline
 final class DAO<Record: MutablePersistableRecord> {
-    
     /// The database
     let db: Database
-    
-    /// The record
-    let record: Record
     
     /// DAO keeps a copy the record's persistenceContainer, so that this
     /// dictionary is built once whatever the database operation. It is
@@ -1161,24 +1154,18 @@ final class DAO<Record: MutablePersistableRecord> {
     let persistenceContainer: PersistenceContainer
     
     /// The table name
-    @usableFromInline let databaseTableName: String
+    let databaseTableName: String
     
     /// The table primary key info
     @usableFromInline let primaryKey: PrimaryKeyInfo
     
     @usableFromInline
     init(_ db: Database, _ record: Record) throws {
-        let databaseTableName = type(of: record).databaseTableName
-        let primaryKey = try db.primaryKey(databaseTableName)
-        let persistenceContainer = try PersistenceContainer(db, record)
-        
-        GRDBPrecondition(!persistenceContainer.isEmpty, "\(type(of: record)): invalid empty persistence container")
-        
         self.db = db
-        self.record = record
-        self.persistenceContainer = persistenceContainer
-        self.databaseTableName = databaseTableName
-        self.primaryKey = primaryKey
+        databaseTableName = type(of: record).databaseTableName
+        primaryKey = try db.primaryKey(databaseTableName)
+        persistenceContainer = try PersistenceContainer(db, record)
+        GRDBPrecondition(!persistenceContainer.isEmpty, "\(type(of: record)): invalid empty persistence container")
     }
     
     @usableFromInline
@@ -1284,11 +1271,11 @@ final class DAO<Record: MutablePersistableRecord> {
     
     /// Throws a PersistenceError.recordNotFound error
     @usableFromInline
-    func recordNotFound() throws -> Never {
+    func makeRecordNotFoundError() -> Error {
         let key = Dictionary(uniqueKeysWithValues: primaryKey.columns.map {
             ($0, persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null)
         })
-        throw PersistenceError.recordNotFound(
+        return PersistenceError.recordNotFound(
             databaseTableName: databaseTableName,
             key: key)
     }
