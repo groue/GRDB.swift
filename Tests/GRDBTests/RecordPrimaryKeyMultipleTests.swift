@@ -124,8 +124,10 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "citizenships")
+                XCTAssertEqual(key, ["countryName": .null, "personName": .null])
             }
         }
     }
@@ -137,8 +139,10 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "citizenships")
+                XCTAssertEqual(key, ["countryName": "France".databaseValue, "personName": "Arthur".databaseValue])
             }
         }
     }
@@ -165,8 +169,10 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "citizenships")
+                XCTAssertEqual(key, ["countryName": "France".databaseValue, "personName": "Arthur".databaseValue])
             }
         }
     }

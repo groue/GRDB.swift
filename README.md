@@ -682,7 +682,7 @@ let playerId = db.lastInsertedRowID
 Don't miss [Records](#records), that provide classic **persistence methods**:
 
 ```swift
-let player = Player(name: "Arthur", score: 1000)
+var player = Player(name: "Arthur", score: 1000)
 try player.insert(db)
 let playerId = player.id
 ```
@@ -7510,8 +7510,8 @@ do {
 ```swift
 do {
     try player.update(db)
-} catch PersistenceError.recordNotFound {
-    // There was nothing to update
+} catch let PersistenceError.recordNotFound(databaseTableName: table, key: key) {
+    print("Key \(key) was not found in table \(table).")
 }
 ```
 

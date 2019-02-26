@@ -115,8 +115,10 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "minimalRowIDs")
+                XCTAssertEqual(key, ["id": record.id.databaseValue])
             }
         }
     }
@@ -142,8 +144,10 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "minimalRowIDs")
+                XCTAssertEqual(key, ["id": record.id.databaseValue])
             }
         }
     }

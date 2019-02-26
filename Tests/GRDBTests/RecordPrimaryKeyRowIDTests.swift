@@ -166,8 +166,10 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "persons")
+                XCTAssertEqual(key, ["id": .null])
             }
         }
     }
@@ -179,8 +181,10 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "persons")
+                XCTAssertEqual(key, ["id": record.id.databaseValue])
             }
         }
     }
@@ -207,8 +211,10 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "persons")
+                XCTAssertEqual(key, ["id": record.id.databaseValue])
             }
         }
     }

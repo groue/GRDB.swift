@@ -696,4 +696,23 @@ class MutablePersistableRecordTests: GRDBTestCase {
             }
         }
     }
+    
+    func testPersistenceErrorRecordNotFoundDescription() {
+        do {
+            let error = PersistenceError.recordNotFound(
+                databaseTableName: "place",
+                key: ["id": .null])
+            XCTAssertEqual(
+                error.description,
+                "Key not found in table place: [id:NULL]")
+        }
+        do {
+            let error = PersistenceError.recordNotFound(
+                databaseTableName: "user",
+                key: ["uuid": "E621E1F8-C36C-495A-93FC-0C247A3E6E5F".databaseValue])
+            XCTAssertEqual(
+                error.description,
+                "Key not found in table user: [uuid:\"E621E1F8-C36C-495A-93FC-0C247A3E6E5F\"]")
+        }
+    }
 }

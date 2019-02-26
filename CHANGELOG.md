@@ -52,6 +52,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 - [#478](https://github.com/groue/GRDB.swift/pull/478): Swift 5: SQL interpolation
 - [#484](https://github.com/groue/GRDB.swift/pull/484): SE-0193 Cross-module inlining and specialization
+- [#486](https://github.com/groue/GRDB.swift/pull/486): Refactor PersistenceError.recordNotFound
 
 ### Breaking Changes
 
