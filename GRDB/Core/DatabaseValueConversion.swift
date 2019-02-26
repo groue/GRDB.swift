@@ -82,14 +82,6 @@ extension ValueConversionContext {
                 column: nil)
         }
     }
-    
-    init(sql: String, arguments: StatementArguments?) {
-        self.init(
-            row: nil,
-            sql: sql,
-            arguments: arguments,
-            column: nil)
-    }
 }
 
 /// The canonical conversion error message

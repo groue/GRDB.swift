@@ -108,3 +108,11 @@ extension SQLExpression {
     @available(*, unavailable, message: "Use sqlLiteral property instead")
     public var literal: SQLExpressionLiteral { preconditionFailure() }
 }
+
+extension DatabaseValue {
+    @available(*, unavailable)
+    public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T: DatabaseValueConvertible { preconditionFailure() }
+    
+    @available(*, unavailable)
+    public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T: DatabaseValueConvertible { preconditionFailure() }
+}
