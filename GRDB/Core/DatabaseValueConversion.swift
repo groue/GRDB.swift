@@ -153,7 +153,7 @@ func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue?, sqliteSta
     fatalConversionError(
         to: T.self,
         from: dbValue,
-        conversionContext: ValueConversionContext((row)).atColumn(Int(index)))
+        conversionContext: ValueConversionContext(row).atColumn(Int(index)))
 }
 
 // MARK: - DatabaseValueConvertible
