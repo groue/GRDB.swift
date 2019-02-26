@@ -3020,7 +3020,7 @@ The `updateChanges` methods perform a database update of the changed columns onl
     
     ```swift
     if var player = try Player.fetchOne(db, key: 42) {
-        let modified = player.updateChanges(db) {
+        let modified = try player.updateChanges(db) {
             $0.score = 100
         }
         if modified {
