@@ -159,43 +159,34 @@ extension Database {
         // It adds support for arguments, and the tricky part is to consume
         // arguments as statements are executed.
         //
-        // Here we build two functions:
-        // - consumeArguments returns arguments for a statement
-        // - validateRemainingArguments validates the remaining arguments, after
-        //   all statements have been executed, in the same way
-        //   as Statement.validate(arguments:)
+        // This job is performed by StatementArguments.extractBindings(forStatement:allowingRemainingValues:)
+        //
+        // And before we return, we'll check that all arguments were consumed.
         
-        let sql = sqlLiteral.sql
         var arguments = sqlLiteral.arguments
-        
         let initialValuesCount = arguments.values.count
-        let consumeArguments = { (statement: UpdateStatement) throws -> StatementArguments in
-            let bindings = try arguments.consume(statement, allowingRemainingValues: true)
-            return StatementArguments(bindings)
-        }
-        let validateRemainingArguments = {
-            if !arguments.values.isEmpty {
-                throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)")
-            }
-        }
         
-        // Iterate SQL statements
-        let sqlCodeUnits = sql.utf8CString
-        try sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
-            let sqlStart = UnsafePointer<Int8>(codeUnits.baseAddress)!
-            let sqlEnd = sqlStart + sqlCodeUnits.count
-            var statementStart = sqlStart
-            while statementStart < sqlEnd - 1 {
-                var statementEnd: UnsafePointer<Int8>? = nil
-                do {
-                    let statement: UpdateStatement
+        // Build a C string (SQLite wants that), and execute SQL statements one
+        // after the other.
+        try sqlLiteral.sql.utf8CString.withUnsafeBufferPointer { (buffer: UnsafeBufferPointer<CChar>) in
+            // CChar will be the same as either CSignedChar (in the common
+            // case) or CUnsignedChar, depending on the platform. SQLite always
+            // wants signed Int8.
+            try buffer.withMemoryRebound(to: Int8.self) { buffer in
+                guard let sqlStart = buffer.baseAddress else { return }
+                let sqlEnd = sqlStart + buffer.count // past \0
+                var statementStart = sqlStart
+                while statementStart < sqlEnd {
+                    var statementEnd: UnsafePointer<Int8>? = nil
+                    let nextStatement: UpdateStatement?
+                    
                     // Compile
                     do {
                         let statementCompilationAuthorizer = StatementCompilationAuthorizer()
                         authorizer = statementCompilationAuthorizer
                         defer { authorizer = nil }
                         
-                        statement = try UpdateStatement(
+                        nextStatement = try UpdateStatement(
                             database: self,
                             statementStart: statementStart,
                             statementEnd: &statementEnd,
@@ -203,23 +194,30 @@ extension Database {
                             authorizer: statementCompilationAuthorizer)
                     }
                     
+                    guard let statement = nextStatement else {
+                        // End of SQL string
+                        break
+                    }
+                    
+                    // Extract statement arguments
+                    let bindings = try arguments.extractBindings(forStatement: statement, allowingRemainingValues: true)
+                    // unsafe is OK because we just extracted the correct number of arguments
+                    statement.unsafeSetArguments(StatementArguments(bindings))
+                    
                     // Execute
-                    let arguments = try consumeArguments(statement)
-                    statement.unsafeSetArguments(arguments)
                     try statement.execute()
                     
                     // Next
                     statementStart = statementEnd!
-                } catch is EmptyStatementError {
-                    // End
-                    break
                 }
             }
         }
         
-        // Force arguments validity: it is a programmer error to provide
-        // arguments that do not match the statement.
-        try! validateRemainingArguments()   // throws if there are remaining arguments.
+        // Check that all arguments were consumed: it is a programmer error to
+        // provide arguments that do not match the statement.
+        if arguments.values.isEmpty == false {
+            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)")
+        }
     }
 }
 
