@@ -293,6 +293,24 @@ class UpdateStatementTests : GRDBTestCase {
             return .rollback
         }
     }
+    
+    func testExecuteMultipleStatementWithTooManyArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inTransaction { db in
+            do {
+                try db.execute(sql: """
+                    INSERT INTO persons (name, age) VALUES ('Arthur', ?);
+                    INSERT INTO persons (name, age) VALUES ('Arthur', ?);
+                    """, arguments: [41, 32, 666])
+                XCTFail()
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
+                XCTAssertEqual(error.message!, "wrong number of statement arguments: 3")
+                XCTAssertEqual(error.description, "SQLite error 21: wrong number of statement arguments: 3")
+            }
+            return .rollback
+        }
+    }
 
     func testDatabaseErrorThrownByUpdateStatementContainSQL() throws {
         let dbQueue = try makeDatabaseQueue()
