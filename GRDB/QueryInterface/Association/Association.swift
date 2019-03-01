@@ -34,17 +34,14 @@ public protocol Association: DerivableRequest {
     // associations. So let's hide all this stuff behind the _impl property:
     
     /// :nodoc:
-    associatedtype Impl: AssociationImpl
+    var _impl: AssociationImpl { get }
     
     /// :nodoc:
-    var _impl: Impl { get }
-    
-    /// :nodoc:
-    init(_impl: Impl)
+    init(_impl: AssociationImpl)
 }
 
 extension Association {
-    private func mapImpl(_ transform: (Impl) throws -> Impl) rethrows -> Self {
+    private func mapImpl(_ transform: (AssociationImpl) throws -> AssociationImpl) rethrows -> Self {
         return try Self.init(_impl: transform(_impl))
     }
     
@@ -334,31 +331,10 @@ extension Association where OriginRowDecoder: MutablePersistableRecord {
 
 // MARK: - AssociationImpl
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// The protocol for implementation details of associations.
-///
 /// :nodoc:
-public /* TODO: internal */ protocol AssociationImpl {
+public /* TODO: internal */ struct AssociationImpl {
     /// The association key
-    var key: String { get }
-    
-    /// Creates an association with the given key.
-    func forKey(_ key: String) -> Self
-    
-    /// Returns an association whose relation is transformed by the
-    /// given closure.
-    ///
-    /// This method provides fundamental support for association derivation:
-    ///
-    ///     // Invokes Book.author.mapRelation { $0.filter(...) }
-    ///     Book.author.filter(...)
-    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self
-    
-    /// Returns a relation joined with self.
-    ///
-    /// This method provides fundamental support for joining methods.
-    func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation
+    private(set) var key: String
     
     // TODO: remove relation & joinCondition properties.
     //
@@ -370,34 +346,33 @@ public /* TODO: internal */ protocol AssociationImpl {
     // Association.request(from:). When this method gets a new implementation
     // that does not need a direct join to an associated table, we'll be able to
     // remove those properties.
-    var relation: SQLRelation { get }
-    var joinCondition: JoinCondition { get }
-}
-
-// MARK: -
-
-/// The AssociationImpl shared by BelongsTo, HasOne, and HasMany, which is
-/// implemented as a simple join.
-///
-/// :nodoc:
-public /* TODO: internal */ struct JoinAssociationImpl: AssociationImpl {
-    public var key: String
-    public /* TODO: internal */ let joinCondition: JoinCondition
-    public /* TODO: internal */ var relation: SQLRelation
+    let joinCondition: JoinCondition
+    private(set) var relation: SQLRelation
     
-    public func forKey(_ key: String) -> JoinAssociationImpl {
+    /// Creates an association with the given key.
+    func forKey(_ key: String) -> AssociationImpl {
         var assoc = self
         assoc.key = key
         return assoc
     }
     
-    public func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> JoinAssociationImpl {
+    /// Returns an association whose relation is transformed by the
+    /// given closure.
+    ///
+    /// This method provides fundamental support for association derivation:
+    ///
+    ///     // Invokes Book.author.mapRelation { $0.filter(...) }
+    ///     Book.author.filter(...)
+    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> AssociationImpl {
         var assoc = self
         assoc.relation = transform(relation)
         return assoc
     }
     
-    public func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
+    /// Returns a relation joined with self.
+    ///
+    /// This method provides fundamental support for joining methods.
+    func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
         let join = SQLJoin(
             joinOperator: joinOperator,
             joinCondition: joinCondition,
