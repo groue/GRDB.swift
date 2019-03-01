@@ -116,7 +116,7 @@ extension DatabaseSnapshot {
                     }
                 }
             }
-        case let .onQueue(queue, startImmediately: startImmediately):
+        case let .async(onQueue: queue, startImmediately: startImmediately):
             if startImmediately {
                 if let value = try unsafeReentrantRead(observation.initialValue) {
                     queue.async {

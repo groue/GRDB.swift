@@ -116,3 +116,10 @@ extension DatabaseValue {
     @available(*, unavailable)
     public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T: DatabaseValueConvertible { preconditionFailure() }
 }
+
+extension ValueScheduling {
+    @available(*, unavailable, renamed: "async(onQueue:startImmediately:)")
+    public static func onQueue(_ queue: DispatchQueue, startImmediately: Bool) -> ValueScheduling {
+        return .async(onQueue: queue, startImmediately: startImmediately)
+    }
+}

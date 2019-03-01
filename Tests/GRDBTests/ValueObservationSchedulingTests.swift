@@ -160,7 +160,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
             observation.extent = .databaseLifetime
-            observation.scheduling = .onQueue(queue, startImmediately: true)
+            observation.scheduling = .async(onQueue: queue, startImmediately: true)
             
             _ = try observation.start(in: dbWriter) { count in
                 XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
@@ -198,7 +198,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
             observation.extent = .databaseLifetime
-            observation.scheduling = .onQueue(queue, startImmediately: false)
+            observation.scheduling = .async(onQueue: queue, startImmediately: false)
             
             _ = try observation.start(in: dbWriter) { count in
                 XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
@@ -238,7 +238,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                 value: { $0 })
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             observation.extent = .databaseLifetime
-            observation.scheduling = .onQueue(queue, startImmediately: false)
+            observation.scheduling = .async(onQueue: queue, startImmediately: false)
             
             _ = try observation.start(
                 in: dbWriter,

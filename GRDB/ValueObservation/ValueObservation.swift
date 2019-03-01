@@ -40,7 +40,7 @@ public enum ValueScheduling {
     ///
     /// An initial value is fetched and notified if `startImmediately`
     /// is true.
-    case onQueue(DispatchQueue, startImmediately: Bool)
+    case async(onQueue: DispatchQueue, startImmediately: Bool)
     
     /// Values are not all notified on the same dispatch queue.
     ///
@@ -158,7 +158,7 @@ public struct ValueObservation<Reducer> {
         switch scheduling {
         case .mainQueue:
             return DispatchQueue.main
-        case .onQueue(let queue, startImmediately: _):
+        case let .async(onQueue: queue, startImmediately: _):
             return queue
         case .unsafe:
             return nil
