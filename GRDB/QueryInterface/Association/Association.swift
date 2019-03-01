@@ -329,6 +329,13 @@ extension Association where OriginRowDecoder: MutablePersistableRecord {
     }
 }
 
+// MARK: - ToOneAssociation
+
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// The base protocol for all associations that define a one-to-one connection.
+public protocol ToOneAssociation: Association { }
+
 // MARK: - AssociationImpl
 
 /// :nodoc:

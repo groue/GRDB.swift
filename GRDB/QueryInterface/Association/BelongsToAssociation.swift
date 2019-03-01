@@ -58,7 +58,7 @@
 ///     }
 ///
 /// See ForeignKey for more information.
-public struct BelongsToAssociation<Origin, Destination>: Association {
+public struct BelongsToAssociation<Origin, Destination>: ToOneAssociation {
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
     
