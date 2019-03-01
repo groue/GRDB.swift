@@ -68,7 +68,7 @@ extension ValueConversionContext {
                 arguments: statement.arguments,
                 column: nil)
         } else if let sqliteStatement = row.sqliteStatement {
-            let sql = String(cString: sqlite3_sql(sqliteStatement)).trimmingCharacters(in: statementSeparatorCharacterSet)
+            let sql = String(cString: sqlite3_sql(sqliteStatement)).trimmingCharacters(in: .sqlStatementSeparators)
             self.init(
                 row: row.copy(),
                 sql: sql,

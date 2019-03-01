@@ -168,48 +168,43 @@ extension Database {
         
         // Build a C string (SQLite wants that), and execute SQL statements one
         // after the other.
-        try sqlLiteral.sql.utf8CString.withUnsafeBufferPointer { (buffer: UnsafeBufferPointer<CChar>) in
-            // CChar will be the same as either CSignedChar (in the common
-            // case) or CUnsignedChar, depending on the platform. SQLite always
-            // wants signed Int8.
-            try buffer.withMemoryRebound(to: Int8.self) { buffer in
-                guard let sqlStart = buffer.baseAddress else { return }
-                let sqlEnd = sqlStart + buffer.count // past \0
-                var statementStart = sqlStart
-                while statementStart < sqlEnd {
-                    var statementEnd: UnsafePointer<Int8>? = nil
-                    let nextStatement: UpdateStatement?
+        try sqlLiteral.sql.utf8CString.withUnsafeBufferPointer { buffer in
+            guard let sqlStart = buffer.baseAddress else { return }
+            let sqlEnd = sqlStart + buffer.count // past \0
+            var statementStart = sqlStart
+            while statementStart < sqlEnd {
+                var statementEnd: UnsafePointer<Int8>? = nil
+                let nextStatement: UpdateStatement?
+                
+                // Compile
+                do {
+                    let statementCompilationAuthorizer = StatementCompilationAuthorizer()
+                    authorizer = statementCompilationAuthorizer
+                    defer { authorizer = nil }
                     
-                    // Compile
-                    do {
-                        let statementCompilationAuthorizer = StatementCompilationAuthorizer()
-                        authorizer = statementCompilationAuthorizer
-                        defer { authorizer = nil }
-                        
-                        nextStatement = try UpdateStatement(
-                            database: self,
-                            statementStart: statementStart,
-                            statementEnd: &statementEnd,
-                            prepFlags: 0,
-                            authorizer: statementCompilationAuthorizer)
-                    }
-                    
-                    guard let statement = nextStatement else {
-                        // End of SQL string
-                        break
-                    }
-                    
-                    // Extract statement arguments
-                    let bindings = try arguments.extractBindings(forStatement: statement, allowingRemainingValues: true)
-                    // unsafe is OK because we just extracted the correct number of arguments
-                    statement.unsafeSetArguments(StatementArguments(bindings))
-                    
-                    // Execute
-                    try statement.execute()
-                    
-                    // Next
-                    statementStart = statementEnd!
+                    nextStatement = try UpdateStatement(
+                        database: self,
+                        statementStart: statementStart,
+                        statementEnd: &statementEnd,
+                        prepFlags: 0,
+                        authorizer: statementCompilationAuthorizer)
                 }
+                
+                guard let statement = nextStatement else {
+                    // End of SQL string
+                    break
+                }
+                
+                // Extract statement arguments
+                let bindings = try arguments.extractBindings(forStatement: statement, allowingRemainingValues: true)
+                // unsafe is OK because we just extracted the correct number of arguments
+                statement.unsafeSetArguments(StatementArguments(bindings))
+                
+                // Execute
+                try statement.execute()
+                
+                // Next
+                statementStart = statementEnd!
             }
         }
         

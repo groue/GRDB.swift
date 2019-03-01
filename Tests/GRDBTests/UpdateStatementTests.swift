@@ -335,9 +335,9 @@ class UpdateStatementTests : GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
-                XCTAssertEqual(error.message!, "Multiple statements found. To execute multiple statements, use Database.execute() instead.")
+                XCTAssertEqual(error.message!, "Multiple statements found. To execute multiple statements, use Database.execute(sql:) instead.")
                 XCTAssertEqual(error.sql!, "UPDATE persons SET age = 1; UPDATE persons SET age = 2;")
-                XCTAssertEqual(error.description, "SQLite error 21 with statement `UPDATE persons SET age = 1; UPDATE persons SET age = 2;`: Multiple statements found. To execute multiple statements, use Database.execute() instead.")
+                XCTAssertEqual(error.description, "SQLite error 21 with statement `UPDATE persons SET age = 1; UPDATE persons SET age = 2;`: Multiple statements found. To execute multiple statements, use Database.execute(sql:) instead.")
             }
         }
     }
@@ -350,9 +350,9 @@ class UpdateStatementTests : GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
-                XCTAssertEqual(error.message!, "Multiple statements found. To execute multiple statements, use Database.execute() instead.")
+                XCTAssertEqual(error.message!, "Multiple statements found. To execute multiple statements, use Database.execute(sql:) instead.")
                 XCTAssertEqual(error.sql!, "UPDATE persons SET age = 1;x")
-                XCTAssertEqual(error.description, "SQLite error 21 with statement `UPDATE persons SET age = 1;x`: Multiple statements found. To execute multiple statements, use Database.execute() instead.")
+                XCTAssertEqual(error.description, "SQLite error 21 with statement `UPDATE persons SET age = 1;x`: Multiple statements found. To execute multiple statements, use Database.execute(sql:) instead.")
             }
         }
     }

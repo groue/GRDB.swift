@@ -8,8 +8,10 @@ import Foundation
 /// A raw SQLite statement, suitable for the SQLite C API.
 public typealias SQLiteStatement = OpaquePointer
 
-/// Statements are separated by semicolons and white spaces
-let statementSeparatorCharacterSet = CharacterSet(charactersIn: ";").union(.whitespacesAndNewlines)
+extension CharacterSet {
+    /// Statements are separated by semicolons and white spaces
+    static let sqlStatementSeparators = CharacterSet(charactersIn: ";").union(.whitespacesAndNewlines)
+}
 
 /// A statement represents an SQL query.
 ///
@@ -24,7 +26,7 @@ public class Statement {
     public var sql: String {
         // trim white space and semicolumn for homogeneous output
         return String(cString: sqlite3_sql(sqliteStatement))
-            .trimmingCharacters(in: statementSeparatorCharacterSet)
+            .trimmingCharacters(in: .sqlStatementSeparators)
     }
     
     unowned let database: Database
@@ -225,9 +227,8 @@ extension StatementProtocol where Self: Statement {
         database.authorizer = authorizer
         defer { database.authorizer = nil }
         
-        let sqlCodeUnits = sql.utf8CString
-        return try sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
-            let statementStart = UnsafePointer<Int8>(codeUnits.baseAddress)!
+        return try sql.utf8CString.withUnsafeBufferPointer { buffer in
+            let statementStart = buffer.baseAddress!
             var statementEnd: UnsafePointer<Int8>? = nil
             guard let statement = try self.init(
                 database: database,
@@ -243,18 +244,11 @@ extension StatementProtocol where Self: Statement {
                     arguments: nil)
             }
             
-            let remainingData = Data(
-                bytesNoCopy: UnsafeMutableRawPointer(mutating: statementEnd!),
-                count: statementStart + sqlCodeUnits.count - statementEnd! - 1,
-                deallocator: .none)
-            
-            let remainingSQL = String(data: remainingData, encoding: .utf8)!
-                .trimmingCharacters(in: statementSeparatorCharacterSet)
-            
+            let remainingSQL = String(cString: statementEnd!).trimmingCharacters(in: .sqlStatementSeparators)
             guard remainingSQL.isEmpty else {
                 throw DatabaseError(
                     resultCode: .SQLITE_MISUSE,
-                    message: "Multiple statements found. To execute multiple statements, use Database.execute() instead.",
+                    message: "Multiple statements found. To execute multiple statements, use Database.execute(sql:) instead.",
                     sql: sql,
                     arguments: nil)
             }
