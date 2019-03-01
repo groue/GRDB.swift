@@ -40,7 +40,7 @@ public enum ValueScheduling {
     ///
     /// An initial value is fetched and notified if `startImmediately`
     /// is true.
-    case onQueue(DispatchQueue, startImmediately: Bool)
+    case async(onQueue: DispatchQueue, startImmediately: Bool)
     
     /// Values are not all notified on the same dispatch queue.
     ///
@@ -88,13 +88,6 @@ public struct ValueObservation<Reducer> {
     /// Don't set this flag to true unless you really need it. A read/write
     /// observation is less efficient than a read-only observation.
     public var requiresWriteAccess: Bool = false
-    
-    // TODO: replace ValueObservation.extent
-    /// The extent of the database observation. The default is
-    /// `.observerLifetime`: the observation lasts until the
-    /// observer returned by the `start(in:onError:onChange:)` method
-    /// is deallocated.
-    public var extent = Database.TransactionObservationExtent.observerLifetime
     
     /// `scheduling` controls how fresh values are notified. Default
     /// is `.mainQueue`.
@@ -158,7 +151,7 @@ public struct ValueObservation<Reducer> {
         switch scheduling {
         case .mainQueue:
             return DispatchQueue.main
-        case .onQueue(let queue, startImmediately: _):
+        case let .async(onQueue: queue, startImmediately: _):
             return queue
         case .unsafe:
             return nil

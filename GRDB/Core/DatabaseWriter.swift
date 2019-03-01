@@ -210,7 +210,7 @@ extension DatabaseWriter {
                         DispatchQueue.main.async { onChange(value) }
                     }
                 }
-            case let .onQueue(queue, startImmediately: startImmediately):
+            case let .async(onQueue: queue, startImmediately: startImmediately):
                 if startImmediately {
                     if let value = try reducer.initialValue(db, requiresWriteAccess: observation.requiresWriteAccess) {
                         queue.async { onChange(value) }
@@ -231,7 +231,7 @@ extension DatabaseWriter {
                 notificationQueue: observation.notificationQueue,
                 onError: onError,
                 onChange: onChange)
-            db.add(transactionObserver: valueObserver, extent: observation.extent)
+            db.add(transactionObserver: valueObserver, extent: .observerLifetime)
             
             return valueObserver
         }

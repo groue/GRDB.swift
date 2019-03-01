@@ -23,27 +23,27 @@ class ValueObservationCountTests: GRDBTestCase {
         notificationExpectation.expectedFulfillmentCount = 5
         
         struct T: TableRecord { }
-        var observation = ValueObservation.trackingCount(T.all())
-        observation.extent = .databaseLifetime
-        _ = try observation.start(in: dbQueue) { count in
+        let observation = ValueObservation.trackingCount(T.all())
+        let observer = try observation.start(in: dbQueue) { count in
             counts.append(count)
             notificationExpectation.fulfill()
         }
-        
-        try dbQueue.inDatabase { db in
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES") // +1
-            try db.execute(sql: "UPDATE t SET id = id")         // =
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES") // +1
-            try db.inTransaction {                         // +1
-                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                try db.execute(sql: "DELETE FROM t WHERE id = 1")
-                return .commit
+        try withExtendedLifetime(observer) {
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES") // +1
+                try db.execute(sql: "UPDATE t SET id = id")         // =
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES") // +1
+                try db.inTransaction {                         // +1
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                    try db.execute(sql: "DELETE FROM t WHERE id = 1")
+                    return .commit
+                }
+                try db.execute(sql: "DELETE FROM t WHERE id = 2")   // -1
             }
-            try db.execute(sql: "DELETE FROM t WHERE id = 2")   // -1
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(counts, [0, 1, 2, 3, 2])
         }
-        
-        waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(counts, [0, 1, 2, 3, 2])
     }
 }

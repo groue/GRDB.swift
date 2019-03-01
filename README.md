@@ -6073,7 +6073,36 @@ An initial fetch is performed as soon as the observation starts: the view is set
 The observer returned by the `start` method is stored in a property of the view controller. This allows the view controller to control the duration of the observation. When the observer is deallocated, the observation stops. Meanwhile, all transactions that modify the observed player are notified, and the `nameLabel` is kept up-to-date.
 
 > :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample app that uses ValueObservation.
-
+>
+> :bulb: **Tip**: When fetching initial values is slow, and should not block the main queue, opt in for async notifications:
+>
+> ```swift
+> override func viewWillAppear(_ animated: Bool) {
+>     super.viewWillAppear(animated)
+>     
+>     // Define a ValueObservation which tracks a player
+>     let request = Player.filter(key: 42)
+>     var observation = ValueObservation.trackingOne(request)
+>
+>     // Observation is asynchronous
+>     observation.scheduling = .async(onQueue: .main, startImmediately: true)
+>
+>     // Start observing the database
+>     observer = try! observation.start(
+>         in: dbQueue,
+>         onChange: { [unowned self] (player: Player?) in
+>             // Player has changed: update view
+>             self.activityIndicator.stopAnimating()
+>             self.nameLabel.text = player?.name
+>         })
+>
+>     // Wait for player
+>     activityIndicator.startAnimating()
+>     nameLabel.text = nil
+> }
+> ```
+>
+> See [ValueObservation.scheduling](#valueobservationscheduling) for more information.
 
 ### ValueObservation.trackingCount, trackingOne, trackingAll
 
@@ -6399,27 +6428,8 @@ let observer = try observation.start(
 
 Some behaviors of value observations can be configured:
 
-- [ValueObservation.extent](#valueobservationextent): Precise control of the observation duration.
 - [ValueObservation.scheduling](#valueobservationscheduling): Control the dispatching of notified values.
 - [ValueObservation.requiresWriteAccess](#valueobservationrequireswriteaccess): Allow observations to write in the database.
-
-
-#### ValueObservation.extent
-
-The `extent` property lets you specify the duration of the observation.
-
-The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deallocated.
-
-You can use the `.databaseLifetime` extent to specify that the observation lasts until the database connection is closed:
-
-```swift
-// No need to retain the observer returned by the start method:
-var observation = ValueObservation...
-observation.extent = .databaseLifetime
-_ = observation.start(in: dbQueue) { newValue in ... }
-```
-
-> :warning: **Warning**: Don't use the `.nextTransaction` lifetime, because it produces unreliable results. A future version of GRDB will deprecate `ValueObservation.extent`, and provide a better API.
 
 
 #### ValueObservation.scheduling
@@ -6462,18 +6472,21 @@ The `scheduling` property lets you control how fresh values are notified:
     }
     ```
 
-- `.onQueue(_:startImmediately:)`: all values are asychronously notified on the specified queue.
+- `.async(onQueue:startImmediately:)`: all values are asychronously notified on the specified queue.
     
     An initial value is fetched and notified if `startImmediately` is true.
     
+    For example:
+    
     ```swift
-    let customQueue = DispatchQueue(label: "customQueue")
+    // On main queue
     var observation = ValueObservation.trackingAll(Player.all())
-    observation.scheduling = .onQueue(customQueue, startImmediately: true)
+    observation.scheduling = .async(onQueue: .main, startImmediately: true)
     let observer = try observation.start(in: dbQueue) { (players: [Player]) in
-        // On customQueue
+        // On main queue
         print("fresh players: \(players)")s
     }
+    // <- here "fresh players" is not printed yet.
     ```
 
 - `unsafe(startImmediately:)`: values are not all notified on the same dispatch queue.
@@ -7182,8 +7195,6 @@ dbQueue.inDatabase { db in
     db.remove(transactionObserver: observer)
 }
 ```
-
-> :point_up: **Note**: removing a transaction observer makes it sure it won't be notified of any future transaction - there is no race condition. However, this does not stop eventual concurrent processing of previous transactions. For example, `remove(transactionObserver:)` is not a correct way to stop observers started by [ValueObservation]. In this case, the correct way is deallocating the observer.
 
 Alternatively, use the `extent` parameter of the `add(transactionObserver:extent:)` method:
 

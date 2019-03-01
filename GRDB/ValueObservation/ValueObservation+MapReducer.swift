@@ -7,7 +7,6 @@ extension ValueObservation {
         var observation = ValueObservation<R>(
             tracking: observedRegion,
             reducer: { db in try transform(db, makeReducer(db)) })
-        observation.extent = extent
         observation.scheduling = scheduling
         observation.requiresWriteAccess = requiresWriteAccess
         return observation
