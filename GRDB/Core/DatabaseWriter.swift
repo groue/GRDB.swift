@@ -231,7 +231,7 @@ extension DatabaseWriter {
                 notificationQueue: observation.notificationQueue,
                 onError: onError,
                 onChange: onChange)
-            db.add(transactionObserver: valueObserver, extent: observation.extent)
+            db.add(transactionObserver: valueObserver, extent: .observerLifetime)
             
             return valueObserver
         }

@@ -89,13 +89,6 @@ public struct ValueObservation<Reducer> {
     /// observation is less efficient than a read-only observation.
     public var requiresWriteAccess: Bool = false
     
-    // TODO: replace ValueObservation.extent
-    /// The extent of the database observation. The default is
-    /// `.observerLifetime`: the observation lasts until the
-    /// observer returned by the `start(in:onError:onChange:)` method
-    /// is deallocated.
-    public var extent = Database.TransactionObservationExtent.observerLifetime
-    
     /// `scheduling` controls how fresh values are notified. Default
     /// is `.mainQueue`.
     ///

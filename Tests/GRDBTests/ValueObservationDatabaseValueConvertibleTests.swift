@@ -37,31 +37,31 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.trackingAll(SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id"))
-        observation.extent = .databaseLifetime
-        _ = try observation.start(in: dbQueue) { names in
+        let observation = ValueObservation.trackingAll(SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id"))
+        let observer = try observation.start(in: dbQueue) { names in
             results.append(names)
             notificationExpectation.fulfill()
         }
-        
-        try dbQueue.inDatabase { db in
-            try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
-            try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
-            try db.inTransaction {                                       // +1
-                try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
-                try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
-                try db.execute(sql: "DELETE FROM t WHERE id = 3")
-                return .commit
+        try withExtendedLifetime(observer) {
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
+                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
+                try db.inTransaction {                                       // +1
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                    try db.execute(sql: "DELETE FROM t WHERE id = 3")
+                    return .commit
+                }
+                try db.execute(sql: "DELETE FROM t WHERE id = 1")                 // -1
             }
-            try db.execute(sql: "DELETE FROM t WHERE id = 1")                 // -1
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
+                [],
+                ["foo"],
+                ["foo", "bar"],
+                ["bar"]])
         }
-        
-        waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
-            [],
-            ["foo"],
-            ["foo", "bar"],
-            ["bar"]])
     }
     
     func testOne() throws {
@@ -73,39 +73,39 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 7
         
-        var observation = ValueObservation.trackingOne(SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id DESC"))
-        observation.extent = .databaseLifetime
-        _ = try observation.start(in: dbQueue) { name in
+        let observation = ValueObservation.trackingOne(SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id DESC"))
+        let observer = try observation.start(in: dbQueue) { name in
             results.append(name)
             notificationExpectation.fulfill()
         }
-        
-        try dbQueue.inDatabase { db in
-            try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
-            try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")
-            try db.inTransaction {
-                try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
-                try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
-                try db.execute(sql: "DELETE FROM t WHERE id = 3")
-                return .commit
+        try withExtendedLifetime(observer) {
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")
+                try db.inTransaction {
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                    try db.execute(sql: "DELETE FROM t WHERE id = 3")
+                    return .commit
+                }
+                try db.execute(sql: "DELETE FROM t")
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'baz')")
+                try db.execute(sql: "UPDATE t SET name = NULL")
+                try db.execute(sql: "DELETE FROM t")
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, NULL)")
+                try db.execute(sql: "UPDATE t SET name = 'qux'")
             }
-            try db.execute(sql: "DELETE FROM t")
-            try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'baz')")
-            try db.execute(sql: "UPDATE t SET name = NULL")
-            try db.execute(sql: "DELETE FROM t")
-            try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, NULL)")
-            try db.execute(sql: "UPDATE t SET name = 'qux'")
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
+                nil,
+                "foo",
+                "bar",
+                nil,
+                "baz",
+                nil,
+                "qux"])
         }
-
-        waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
-            nil,
-            "foo",
-            "bar",
-            nil,
-            "baz",
-            nil,
-            "qux"])
     }
     
     func testAllOptional() throws {
@@ -117,31 +117,31 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.trackingAll(SQLRequest<Name?>(sql: "SELECT name FROM t ORDER BY id"))
-        observation.extent = .databaseLifetime
-        _ = try observation.start(in: dbQueue) { names in
+        let observation = ValueObservation.trackingAll(SQLRequest<Name?>(sql: "SELECT name FROM t ORDER BY id"))
+        let observer = try observation.start(in: dbQueue) { names in
             results.append(names)
             notificationExpectation.fulfill()
         }
-        
-        try dbQueue.inDatabase { db in
-            try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
-            try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
-            try db.inTransaction {                                       // +1
-                try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, NULL)")
-                try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
-                try db.execute(sql: "DELETE FROM t WHERE id = 3")
-                return .commit
+        try withExtendedLifetime(observer) {
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
+                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
+                try db.inTransaction {                                       // +1
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, NULL)")
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                    try db.execute(sql: "DELETE FROM t WHERE id = 3")
+                    return .commit
+                }
+                try db.execute(sql: "DELETE FROM t WHERE id = 1")                 // -1
             }
-            try db.execute(sql: "DELETE FROM t WHERE id = 1")                 // -1
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(results.map { $0.map { $0?.rawValue }}, [
+                [],
+                ["foo"],
+                ["foo", nil],
+                [nil]])
         }
-        
-        waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(results.map { $0.map { $0?.rawValue }}, [
-            [],
-            ["foo"],
-            ["foo", nil],
-            [nil]])
     }
     
     func testViewOptimization() throws {
@@ -168,33 +168,33 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         // Test that view v is not included in the observed region.
         // This optimization helps observation of views that feed from a
         // single table.
-        var observation = ValueObservation.trackingAll(request)
-        observation.extent = .databaseLifetime
-        let transactionObserver = try observation.start(in: dbQueue) { names in
+        let observation = ValueObservation.trackingAll(request)
+        let observer = try observation.start(in: dbQueue) { names in
             results.append(names)
             notificationExpectation.fulfill()
         }
-        let valueObserver = transactionObserver as! ValueObserver<DatabaseValuesReducer<SQLRequest<Name>>>
+        let valueObserver = observer as! ValueObserver<DatabaseValuesReducer<SQLRequest<Name>>>
         XCTAssertEqual(valueObserver.region.description, "t(id,name)") // view is not tracked
-        
-        // Test view observation
-        try dbQueue.inDatabase { db in
-            try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
-            try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
-            try db.inTransaction {                                       // +1
-                try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
-                try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
-                try db.execute(sql: "DELETE FROM t WHERE id = 3")
-                return .commit
+        try withExtendedLifetime(observer) {
+            // Test view observation
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
+                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
+                try db.inTransaction {                                       // +1
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                    try db.execute(sql: "DELETE FROM t WHERE id = 3")
+                    return .commit
+                }
+                try db.execute(sql: "DELETE FROM t WHERE id = 1")                 // -1
             }
-            try db.execute(sql: "DELETE FROM t WHERE id = 1")                 // -1
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
+                [],
+                ["foo"],
+                ["foo", "bar"],
+                ["bar"]])
         }
-        
-        waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
-            [],
-            ["foo"],
-            ["foo", "bar"],
-            ["bar"]])
     }
 }

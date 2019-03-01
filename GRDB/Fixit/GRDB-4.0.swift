@@ -119,7 +119,13 @@ extension DatabaseValue {
 
 extension ValueScheduling {
     @available(*, unavailable, renamed: "async(onQueue:startImmediately:)")
-    public static func onQueue(_ queue: DispatchQueue, startImmediately: Bool) -> ValueScheduling {
-        return .async(onQueue: queue, startImmediately: startImmediately)
+    public static func onQueue(_ queue: DispatchQueue, startImmediately: Bool) -> ValueScheduling { preconditionFailure() }
+}
+
+extension ValueObservation {
+    @available(*, unavailable, message: "Observation extent is controlled by the lifetime of observers returned by the start() method.")
+    public var extent: Database.TransactionObservationExtent {
+        get { preconditionFailure() }
+        set { preconditionFailure() }
     }
 }
