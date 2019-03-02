@@ -83,7 +83,7 @@ class AssociationHasOneThroughRowscopeTests: GRDBTestCase {
     func testDefaultScopeIncludingOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = A.including(optional: A.defaultC).order(sql: "a.id")
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         
         XCTAssertEqual(rows.count, 3)
         
@@ -118,7 +118,7 @@ class AssociationHasOneThroughRowscopeTests: GRDBTestCase {
     func testDefaultScopeJoiningOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = A.joining(optional: A.defaultC).order(sql: "a.id")
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         
         XCTAssertEqual(rows.count, 3)
         
@@ -174,7 +174,7 @@ class AssociationHasOneThroughRowscopeTests: GRDBTestCase {
             .including(optional: A.defaultC)
             .including(required: A.defaultB)
             .order(sql: "a.id")
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         
         XCTAssertEqual(rows.count, 2)
         
