@@ -27,3 +27,14 @@ extension TableRecord {
         return HasOneThroughAssociation(sqlAssociation: target.sqlAssociation.appending(pivot.sqlAssociation))
     }
 }
+
+extension ToOneAssociation {
+    // TODO: look for a replacement for hasOne(_:through:)
+    // hop, chain, jump, hasOne, ... what?
+    public func chaining<Target>(_ target: Target)
+        -> HasOneThroughAssociation<OriginRowDecoder, Target.RowDecoder>
+        where Target: ToOneAssociation, Target.OriginRowDecoder == RowDecoder
+    {
+        return HasOneThroughAssociation(sqlAssociation: target.sqlAssociation.appending(sqlAssociation))
+    }
+}
