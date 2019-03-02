@@ -75,10 +75,7 @@ public struct HasManyAssociation<Origin, Destination>: Association {
 }
 
 // Allow HasManyAssociation(...).filter(key: ...)
-extension HasManyAssociation: TableRequest where Destination: TableRecord {
-    /// :nodoc:
-    public var databaseTableName: String { return Destination.databaseTableName }
-}
+extension HasManyAssociation: TableRequest where Destination: TableRecord { }
 
 extension HasManyAssociation where Origin: TableRecord, Destination: TableRecord {
     private func makeAggregate(_ expression: SQLExpression) -> AssociationAggregate<Origin> {

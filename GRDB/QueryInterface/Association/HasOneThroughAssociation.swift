@@ -14,6 +14,9 @@ public struct HasOneThroughAssociation<Origin, Destination>: ToOneAssociation {
     }
 }
 
+// Allow HasOneThroughAssociation(...).filter(key: ...)
+extension HasOneThroughAssociation: TableRequest where Destination: TableRecord { }
+
 extension TableRecord {
     public static func hasOne<Pivot, Target>(
         _ target: Target,

@@ -77,10 +77,7 @@ public struct HasOneAssociation<Origin, Destination>: ToOneAssociation {
 }
 
 // Allow HasOneAssociation(...).filter(key: ...)
-extension HasOneAssociation: TableRequest where Destination: TableRecord {
-    /// :nodoc:
-    public var databaseTableName: String { return Destination.databaseTableName }
-}
+extension HasOneAssociation: TableRequest where Destination: TableRecord { }
 
 extension TableRecord {
     /// Creates a "Has one" association between Self and the

@@ -75,10 +75,7 @@ public struct BelongsToAssociation<Origin, Destination>: ToOneAssociation {
 }
 
 // Allow BelongsToAssociation(...).filter(key: ...)
-extension BelongsToAssociation: TableRequest where Destination: TableRecord {
-    /// :nodoc:
-    public var databaseTableName: String { return Destination.databaseTableName }
-}
+extension BelongsToAssociation: TableRequest where Destination: TableRecord { }
 
 extension TableRecord {
     /// Creates a "Belongs To" association between Self and the

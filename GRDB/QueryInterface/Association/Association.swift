@@ -277,6 +277,12 @@ extension Association {
     }
 }
 
+// Allow association.filter(key: ...)
+extension Association where Self: TableRequest, RowDecoder: TableRecord {
+    /// :nodoc:
+    public var databaseTableName: String { return RowDecoder.databaseTableName }
+}
+
 // MARK: - ToOneAssociation
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
