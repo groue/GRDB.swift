@@ -31,22 +31,19 @@ public protocol Association: DerivableRequest {
     // Association is a protocol, not a struct.
     // This is because we want associations to be richly typed.
     // Yet, we don't want to pollute user code with implementation details of
-    // associations. So let's hide all this stuff behind the _impl property:
+    // associations. So let's hide all this stuff behind the
+    // sqlAssociation property:
     
     /// :nodoc:
-    var _impl: AssociationImpl { get }
+    var sqlAssociation: SQLAssociation { get }
     
     /// :nodoc:
-    init(_impl: AssociationImpl)
+    init(sqlAssociation: SQLAssociation)
 }
 
 extension Association {
-    private func mapImpl(_ transform: (AssociationImpl) throws -> AssociationImpl) rethrows -> Self {
-        return try Self.init(_impl: transform(_impl))
-    }
-    
     private func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self {
-        return mapImpl { $0.mapRelation(transform) }
+        return Self.init(sqlAssociation: sqlAssociation.mapRelation(transform))
     }
 }
 
@@ -77,7 +74,7 @@ extension Association {
     ///         let team: Team = row["custom"]
     ///     }
     var key: String {
-        return _impl.key
+        return sqlAssociation.key
     }
     
     /// Creates an association which selects *selection*.
@@ -188,7 +185,7 @@ extension Association {
     ///         let team: Team = row["custom"]
     ///     }
     public func forKey(_ key: String) -> Self {
-        return mapImpl { $0.forKey(key) }
+        return Self.init(sqlAssociation: sqlAssociation.forKey(key))
     }
     
     /// Creates an association with the given key.
@@ -255,32 +252,112 @@ extension Association {
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association._impl.joinedRelation($0, joinOperator: .optional) }
+        return mapRelation { association.sqlAssociation.joinedRelation($0, joinOperator: .optional) }
     }
     
     /// Creates an association that includes another one. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association._impl.joinedRelation($0, joinOperator: .required) }
+        return mapRelation { association.sqlAssociation.joinedRelation($0, joinOperator: .required) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.select([])._impl.joinedRelation($0, joinOperator: .optional) }
+        return mapRelation { association.select([]).sqlAssociation.joinedRelation($0, joinOperator: .optional) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.select([])._impl.joinedRelation($0, joinOperator: .required) }
+        return mapRelation { association.select([]).sqlAssociation.joinedRelation($0, joinOperator: .required) }
     }
 }
 
-extension Association where OriginRowDecoder: MutablePersistableRecord {
+// MARK: - ToOneAssociation
+
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// The base protocol for all associations that define a one-to-one connection.
+public protocol ToOneAssociation: Association { }
+
+// MARK: - SQLAssociation
+
+/// :nodoc:
+public /* TODO: internal */ struct SQLAssociation {
+    // SQLAssociation is a non-empty array of association items
+    private struct Item {
+        var key: String
+        var joinCondition: JoinCondition
+        var relation: SQLRelation
+    }
+    private var head: Item
+    private var tail: [Item]
+    
+    var key: String { return head.key }
+    
+    private init(head: Item, tail: [Item]) {
+        self.head = head
+        self.tail = tail
+    }
+    
+    init(key: String, joinCondition: JoinCondition, relation: SQLRelation) {
+        head = Item(key: key, joinCondition: joinCondition, relation: relation)
+        tail = []
+    }
+    
+    func forKey(_ key: String) -> SQLAssociation {
+        var result = self
+        result.head.key = key
+        return result
+    }
+    
+    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLAssociation {
+        var result = self
+        result.head.relation = transform(head.relation)
+        return result
+    }
+    
+    func appending(_ other: SQLAssociation) -> SQLAssociation {
+        var result = self
+        result.tail.append(other.head)
+        result.tail.append(contentsOf: other.tail)
+        return result
+    }
+    
+    /// Returns a relation joined with self.
+    ///
+    /// This method provides fundamental support for joining methods.
+    func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
+        let headJoin = SQLJoin(
+            joinOperator: joinOperator,
+            joinCondition: head.joinCondition,
+            relation: head.relation)
+        
+        guard let next = tail.first else {
+            return relation.appendingJoin(headJoin, forKey: head.key)
+        }
+        
+        // Recursion step: remove one item from tail by shifting the next item
+        // to the head.
+        //
+        // From:
+        //  (... JOIN next) JOIN (head)
+        //  ^~ tail              ^~ head
+        //
+        // We reduce into:
+        //  (...) JOIN (next JOIN head)
+        //  ^~ tail    ^~ head
+        let nextRelation = next.relation.select([]).appendingJoin(headJoin, forKey: head.key)
+        let nextHead = Item(key: next.key, joinCondition: next.joinCondition, relation: nextRelation)
+        let nextTail = Array(tail.dropFirst())
+        let nextImpl = SQLAssociation(head: nextHead, tail: nextTail)
+        return nextImpl.joinedRelation(relation, joinOperator: joinOperator)
+    }
+    
     /// Support for MutablePersistableRecord.request(for:).
     ///
     /// For example:
@@ -294,7 +371,14 @@ extension Association where OriginRowDecoder: MutablePersistableRecord {
     ///
     ///     let team: Team = ...
     ///     let players = try team.players.fetchAll(db) // [Player]
-    func request(from record: OriginRowDecoder) -> QueryInterfaceRequest<RowDecoder> {
+    func request<OriginRowDecoder, RowDecoder>(of: RowDecoder.Type, from record: OriginRowDecoder)
+        -> QueryInterfaceRequest<RowDecoder>
+        where OriginRowDecoder: MutablePersistableRecord
+    {
+        guard tail.isEmpty else {
+            fatalError("Not implemented")
+        }
+        
         // Goal: turn `JOIN association ON association.recordId = record.id`
         // into a regular request `SELECT * FROM association WHERE association.recordId = 123`
         
@@ -304,18 +388,18 @@ extension Association where OriginRowDecoder: MutablePersistableRecord {
         
         // Turn the association query into a query interface request:
         // JOIN association -> SELECT FROM association
-        return QueryInterfaceRequest(query: SQLSelectQuery(relation: _impl.relation))
+        return QueryInterfaceRequest(query: SQLSelectQuery(relation: head.relation))
             
             // Turn the JOIN condition into a regular WHERE condition
             .filter { db in
                 // Build a join condition: `association.recordId = record.id`
                 // We still need to replace `record.id` with the actual record id.
-                let joinExpression = try self._impl.joinCondition.sqlExpression(db, leftAlias: recordAlias, rightAlias: associationAlias)
+                let joinExpression = try self.head.joinCondition.sqlExpression(db, leftAlias: recordAlias, rightAlias: associationAlias)
                 
                 // Serialize record: ["id": 123, ...]
                 // We do it as late as possible, when request is about to be
                 // executed, in order to support long-lived reference types.
-                let container = PersistenceContainer(record)
+                let container = try PersistenceContainer(db, record)
                 
                 // Replace `record.id` with 123
                 return joinExpression.resolvedExpression(inContext: [recordAlias: container])
@@ -328,63 +412,3 @@ extension Association where OriginRowDecoder: MutablePersistableRecord {
             .aliased(associationAlias)
     }
 }
-
-// MARK: - ToOneAssociation
-
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// The base protocol for all associations that define a one-to-one connection.
-public protocol ToOneAssociation: Association { }
-
-// MARK: - AssociationImpl
-
-/// :nodoc:
-public /* TODO: internal */ struct AssociationImpl {
-    /// The association key
-    private(set) var key: String
-    
-    // TODO: remove relation & joinCondition properties.
-    //
-    // They assume that an association is implemented as a direct join to an
-    // associated table. This is limiting: has-one-through and has-many-through
-    // associations can't be implemented in such context.
-    //
-    // Their impact is limited yet. Those propertise are currently only used by
-    // Association.request(from:). When this method gets a new implementation
-    // that does not need a direct join to an associated table, we'll be able to
-    // remove those properties.
-    let joinCondition: JoinCondition
-    private(set) var relation: SQLRelation
-    
-    /// Creates an association with the given key.
-    func forKey(_ key: String) -> AssociationImpl {
-        var assoc = self
-        assoc.key = key
-        return assoc
-    }
-    
-    /// Returns an association whose relation is transformed by the
-    /// given closure.
-    ///
-    /// This method provides fundamental support for association derivation:
-    ///
-    ///     // Invokes Book.author.mapRelation { $0.filter(...) }
-    ///     Book.author.filter(...)
-    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> AssociationImpl {
-        var assoc = self
-        assoc.relation = transform(relation)
-        return assoc
-    }
-    
-    /// Returns a relation joined with self.
-    ///
-    /// This method provides fundamental support for joining methods.
-    func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
-        let join = SQLJoin(
-            joinOperator: joinOperator,
-            joinCondition: joinCondition,
-            relation: self.relation)
-        return relation.appendingJoin(join, forKey: key)
-    }
-}
-

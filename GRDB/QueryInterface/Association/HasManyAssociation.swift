@@ -66,11 +66,11 @@ public struct HasManyAssociation<Origin, Destination>: Association {
     public typealias RowDecoder = Destination
     
     /// :nodoc:
-    public var _impl: AssociationImpl
+    public var sqlAssociation: SQLAssociation
     
     /// :nodoc:
-    public init(_impl: AssociationImpl) {
-        self._impl = _impl
+    public init(sqlAssociation: SQLAssociation) {
+        self.sqlAssociation = sqlAssociation
     }
 }
 
@@ -242,7 +242,7 @@ extension TableRecord {
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: false)
         
-        return HasManyAssociation(_impl: AssociationImpl(
+        return HasManyAssociation(sqlAssociation: SQLAssociation(
             key: key ?? Destination.databaseTableName,
             joinCondition: joinCondition,
             relation: Destination.all().relation))

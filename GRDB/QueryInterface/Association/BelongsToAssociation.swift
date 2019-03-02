@@ -66,11 +66,11 @@ public struct BelongsToAssociation<Origin, Destination>: ToOneAssociation {
     public typealias RowDecoder = Destination
     
     /// :nodoc:
-    public var _impl: AssociationImpl
+    public var sqlAssociation: SQLAssociation
     
     /// :nodoc:
-    public init(_impl: AssociationImpl) {
-        self._impl = _impl
+    public init(sqlAssociation: SQLAssociation) {
+        self.sqlAssociation = sqlAssociation
     }
 }
 
@@ -153,7 +153,7 @@ extension TableRecord {
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: true)
         
-        return BelongsToAssociation(_impl: AssociationImpl(
+        return BelongsToAssociation(sqlAssociation: SQLAssociation(
             key: key ?? Destination.databaseTableName,
             joinCondition: joinCondition,
             relation: Destination.all().relation))

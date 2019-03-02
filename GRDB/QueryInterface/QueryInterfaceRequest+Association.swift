@@ -5,28 +5,44 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
-        return mapQuery { $0.mapRelation { association._impl.joinedRelation($0, joinOperator: .optional) } }
+        return mapQuery {
+            $0.mapRelation {
+                association.sqlAssociation.joinedRelation($0, joinOperator: .optional)
+            }
+        }
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
-        return mapQuery { $0.mapRelation { association._impl.joinedRelation($0, joinOperator: .required) } }
+        return mapQuery {
+            $0.mapRelation {
+                association.sqlAssociation.joinedRelation($0, joinOperator: .required)
+            }
+        }
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
-        return mapQuery { $0.mapRelation { association.select([])._impl.joinedRelation($0, joinOperator: .optional) } }
+        return mapQuery {
+            $0.mapRelation {
+                association.select([]).sqlAssociation.joinedRelation($0, joinOperator: .optional)
+            }
+        }
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
-        return mapQuery { $0.mapRelation { association.select([])._impl.joinedRelation($0, joinOperator: .required) } }
+        return mapQuery {
+            $0.mapRelation {
+                association.select([]).sqlAssociation.joinedRelation($0, joinOperator: .required)
+            }
+        }
     }
     
     // MARK: - Association Aggregates
@@ -91,7 +107,7 @@ extension MutablePersistableRecord {
     ///     let team: Team = ...
     ///     let players = try team.players.fetchAll(db) // [Player]
     public func request<A: Association>(for association: A) -> QueryInterfaceRequest<A.RowDecoder> where A.OriginRowDecoder == Self {
-        return association.request(from: self)
+        return association.sqlAssociation.request(of: A.RowDecoder.self, from: self)
     }
 }
 
