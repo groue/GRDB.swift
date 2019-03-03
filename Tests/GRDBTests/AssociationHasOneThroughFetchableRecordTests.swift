@@ -8,11 +8,8 @@ import XCTest
 #endif
 
 private struct A: Codable, FetchableRecord, PersistableRecord {
-    static let defaultB = belongsTo(B.self)
-    static let defaultC = hasOne(B.c, through: defaultB)
-    static let customC1 = hasOne(B.c, through: defaultB.forKey("customB"))
-    static let customC2 = hasOne(B.c, through: defaultB).forKey("customC2")
-    static let customC3 = hasOne(B.c.forKey("customC3"), through: defaultB)
+    static let b = belongsTo(B.self)
+    static let c = hasOne(B.c, through: b)
     var id: Int64
     var bId: Int64?
     var name: String
@@ -93,7 +90,7 @@ class AssociationHasOneThroughFetchableRecordTests: GRDBTestCase {
     
     func testIncludingRequired() throws {
         let dbQueue = try makeDatabaseQueue()
-        let request = A.including(required: A.defaultC).order(sql: "a.id")
+        let request = A.including(required: A.c).order(sql: "a.id")
         let records = try dbQueue.inDatabase { try AWithRequiredC.fetchAll($0, request) }
         
         XCTAssertEqual(records.count, 1)
@@ -107,7 +104,7 @@ class AssociationHasOneThroughFetchableRecordTests: GRDBTestCase {
     
     func testIncludingOptional() throws {
         let dbQueue = try makeDatabaseQueue()
-        let request = A.including(optional: A.defaultC).order(sql: "a.id")
+        let request = A.including(optional: A.c).order(sql: "a.id")
         let records = try dbQueue.inDatabase { try AWithOptionalC.fetchAll($0, request) }
         
         XCTAssertEqual(records.count, 3)
@@ -131,7 +128,7 @@ class AssociationHasOneThroughFetchableRecordTests: GRDBTestCase {
     
     func testJoiningRequired() throws {
         let dbQueue = try makeDatabaseQueue()
-        let request = A.joining(required: A.defaultC).order(sql: "a.id")
+        let request = A.joining(required: A.c).order(sql: "a.id")
         let records = try dbQueue.inDatabase { try A.fetchAll($0, request) }
         
         XCTAssertEqual(records.count, 1)
@@ -143,7 +140,7 @@ class AssociationHasOneThroughFetchableRecordTests: GRDBTestCase {
     
     func testJoiningOptional() throws {
         let dbQueue = try makeDatabaseQueue()
-        let request = A.joining(optional: A.defaultC).order(sql: "a.id")
+        let request = A.joining(optional: A.c).order(sql: "a.id")
         let records = try dbQueue.inDatabase { try A.fetchAll($0, request) }
         
         XCTAssertEqual(records.count, 3)
@@ -164,8 +161,8 @@ class AssociationHasOneThroughFetchableRecordTests: GRDBTestCase {
     func testIncludingOptionalIncludingRequiredPivot() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = A
-            .including(optional: A.defaultC)
-            .including(required: A.defaultB)
+            .including(optional: A.c)
+            .including(required: A.b)
             .order(sql: "a.id")
         let records = try dbQueue.inDatabase { try AWithRequiredBAndOptionalC.fetchAll($0, request) }
         
