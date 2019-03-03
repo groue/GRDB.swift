@@ -12,9 +12,12 @@ import XCTest
 class AssociationHasOneThroughSQLTests: GRDBTestCase {
     
     func testBelongsToBelongsTo() throws {
-        struct A: TableRecord {
+        struct A: MutablePersistableRecord {
             static let b = belongsTo(B.self)
             static let c = hasOne(B.c, through: b)
+            func encode(to container: inout PersistenceContainer) {
+                container["bId"] = 1
+            }
         }
         struct B: TableRecord {
             static let c = belongsTo(C.self)
@@ -40,13 +43,21 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
                 db, ab: A.b, ac: A.c,
                 bCondition: "(\"b\".\"id\" = \"a\".\"bId\")",
                 cCondition: "(\"c\".\"id\" = \"b\".\"cId\")")
+            
+            try assertEqualSQL(db, A().request(for: A.c), """
+                SELECT "c".* FROM "c" \
+                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."id" = 1))
+                """)
         }
     }
     
     func testBelongsToHasOne() throws {
-        struct A: TableRecord {
+        struct A: MutablePersistableRecord {
             static let b = belongsTo(B.self)
             static let c = hasOne(B.c, through: b)
+            func encode(to container: inout PersistenceContainer) {
+                container["bId"] = 1
+            }
         }
         struct B: TableRecord {
             static let c = hasOne(C.self)
@@ -72,13 +83,21 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
                 db, ab: A.b, ac: A.c,
                 bCondition: "(\"b\".\"id\" = \"a\".\"bId\")",
                 cCondition: "(\"c\".\"bId\" = \"b\".\"id\")")
+            
+            try assertEqualSQL(db, A().request(for: A.c), """
+                SELECT "c".* FROM "c" \
+                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."id" = 1))
+                """)
         }
     }
     
     func testHasOneBelongsTo() throws {
-        struct A: TableRecord {
+        struct A: MutablePersistableRecord {
             static let b = hasOne(B.self)
             static let c = hasOne(B.c, through: b)
+            func encode(to container: inout PersistenceContainer) {
+                container["id"] = 1
+            }
         }
         struct B: TableRecord {
             static let c = belongsTo(C.self)
@@ -104,13 +123,21 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
                 db, ab: A.b, ac: A.c,
                 bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
                 cCondition: "(\"c\".\"id\" = \"b\".\"cId\")")
+            
+            try assertEqualSQL(db, A().request(for: A.c), """
+                SELECT "c".* FROM "c" \
+                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."aId" = 1))
+                """)
         }
     }
     
     func testHasOneHasOne() throws {
-        struct A: TableRecord {
+        struct A: MutablePersistableRecord {
             static let b = hasOne(B.self)
             static let c = hasOne(B.c, through: b)
+            func encode(to container: inout PersistenceContainer) {
+                container["id"] = 1
+            }
         }
         struct B: TableRecord {
             static let c = hasOne(C.self)
@@ -136,6 +163,11 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
                 db, ab: A.b, ac: A.c,
                 bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
                 cCondition: "(\"c\".\"bId\" = \"b\".\"id\")")
+            
+            try assertEqualSQL(db, A().request(for: A.c), """
+                SELECT "c".* FROM "c" \
+                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."aId" = 1))
+                """)
         }
     }
     
@@ -285,11 +317,14 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     }
     
     func testBelongsToBelongsToBelongsTo() throws {
-        struct A: TableRecord {
+        struct A: MutablePersistableRecord {
             static let b = belongsTo(B.self)
             static let c = hasOne(B.c, through: b)
             static let dThroughC = hasOne(C.d, through: c)
             static let dThroughB = hasOne(B.d, through: b)
+            func encode(to container: inout PersistenceContainer) {
+                container["bId"] = 1
+            }
         }
         struct B: TableRecord {
             static let c = belongsTo(C.self)
@@ -324,15 +359,29 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
                 bCondition: "(\"b\".\"id\" = \"a\".\"bId\")",
                 cCondition: "(\"c\".\"id\" = \"b\".\"cId\")",
                 dCondition: "(\"d\".\"id\" = \"c\".\"dId\")")
+            
+            try assertEqualSQL(db, A().request(for: A.dThroughC), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."dId" = "d"."id") \
+                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."id" = 1))
+                """)
+            try assertEqualSQL(db, A().request(for: A.dThroughB), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."dId" = "d"."id") \
+                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."id" = 1))
+                """)
         }
     }
     
     func testBelongsToBelongsToHasOne() throws {
-        struct A: TableRecord {
+        struct A: MutablePersistableRecord {
             static let b = belongsTo(B.self)
             static let c = hasOne(B.c, through: b)
             static let dThroughC = hasOne(C.d, through: c)
             static let dThroughB = hasOne(B.d, through: b)
+            func encode(to container: inout PersistenceContainer) {
+                container["bId"] = 1
+            }
         }
         struct B: TableRecord {
             static let c = belongsTo(C.self)
@@ -367,15 +416,29 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
                 bCondition: "(\"b\".\"id\" = \"a\".\"bId\")",
                 cCondition: "(\"c\".\"id\" = \"b\".\"cId\")",
                 dCondition: "(\"d\".\"cId\" = \"c\".\"id\")")
+            
+            try assertEqualSQL(db, A().request(for: A.dThroughC), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."id" = "d"."cId") \
+                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."id" = 1))
+                """)
+            try assertEqualSQL(db, A().request(for: A.dThroughB), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."id" = "d"."cId") \
+                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."id" = 1))
+                """)
         }
     }
     
     func testBelongsToHasOneBelongsTo() throws {
-        struct A: TableRecord {
+        struct A: MutablePersistableRecord {
             static let b = belongsTo(B.self)
             static let c = hasOne(B.c, through: b)
             static let dThroughC = hasOne(C.d, through: c)
             static let dThroughB = hasOne(B.d, through: b)
+            func encode(to container: inout PersistenceContainer) {
+                container["bId"] = 1
+            }
         }
         struct B: TableRecord {
             static let c = hasOne(C.self)
@@ -410,15 +473,29 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
                 bCondition: "(\"b\".\"id\" = \"a\".\"bId\")",
                 cCondition: "(\"c\".\"bId\" = \"b\".\"id\")",
                 dCondition: "(\"d\".\"id\" = \"c\".\"dId\")")
+            
+            try assertEqualSQL(db, A().request(for: A.dThroughC), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."dId" = "d"."id") \
+                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."id" = 1))
+                """)
+            try assertEqualSQL(db, A().request(for: A.dThroughB), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."dId" = "d"."id") \
+                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."id" = 1))
+                """)
         }
     }
     
     func testBelongsToHasOneHasOne() throws {
-        struct A: TableRecord {
+        struct A: MutablePersistableRecord {
             static let b = belongsTo(B.self)
             static let c = hasOne(B.c, through: b)
             static let dThroughC = hasOne(C.d, through: c)
             static let dThroughB = hasOne(B.d, through: b)
+            func encode(to container: inout PersistenceContainer) {
+                container["bId"] = 1
+            }
         }
         struct B: TableRecord {
             static let c = hasOne(C.self)
@@ -453,15 +530,29 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
                 bCondition: "(\"b\".\"id\" = \"a\".\"bId\")",
                 cCondition: "(\"c\".\"bId\" = \"b\".\"id\")",
                 dCondition: "(\"d\".\"cId\" = \"c\".\"id\")")
+            
+            try assertEqualSQL(db, A().request(for: A.dThroughC), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."id" = "d"."cId") \
+                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."id" = 1))
+                """)
+            try assertEqualSQL(db, A().request(for: A.dThroughB), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."id" = "d"."cId") \
+                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."id" = 1))
+                """)
         }
     }
     
     func testHasOneBelongsToBelongsTo() throws {
-        struct A: TableRecord {
+        struct A: MutablePersistableRecord {
             static let b = hasOne(B.self)
             static let c = hasOne(B.c, through: b)
             static let dThroughC = hasOne(C.d, through: c)
             static let dThroughB = hasOne(B.d, through: b)
+            func encode(to container: inout PersistenceContainer) {
+                container["id"] = 1
+            }
         }
         struct B: TableRecord {
             static let c = belongsTo(C.self)
@@ -496,15 +587,29 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
                 bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
                 cCondition: "(\"c\".\"id\" = \"b\".\"cId\")",
                 dCondition: "(\"d\".\"id\" = \"c\".\"dId\")")
+            
+            try assertEqualSQL(db, A().request(for: A.dThroughC), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."dId" = "d"."id") \
+                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."aId" = 1))
+                """)
+            try assertEqualSQL(db, A().request(for: A.dThroughB), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."dId" = "d"."id") \
+                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."aId" = 1))
+                """)
         }
     }
     
     func testHasOneBelongsToHasOne() throws {
-        struct A: TableRecord {
+        struct A: MutablePersistableRecord {
             static let b = hasOne(B.self)
             static let c = hasOne(B.c, through: b)
             static let dThroughC = hasOne(C.d, through: c)
             static let dThroughB = hasOne(B.d, through: b)
+            func encode(to container: inout PersistenceContainer) {
+                container["id"] = 1
+            }
         }
         struct B: TableRecord {
             static let c = belongsTo(C.self)
@@ -539,15 +644,29 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
                 bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
                 cCondition: "(\"c\".\"id\" = \"b\".\"cId\")",
                 dCondition: "(\"d\".\"cId\" = \"c\".\"id\")")
+            
+            try assertEqualSQL(db, A().request(for: A.dThroughC), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."id" = "d"."cId") \
+                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."aId" = 1))
+                """)
+            try assertEqualSQL(db, A().request(for: A.dThroughB), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."id" = "d"."cId") \
+                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."aId" = 1))
+                """)
         }
     }
     
     func testHasOneHasOneBelongsTo() throws {
-        struct A: TableRecord {
+        struct A: MutablePersistableRecord {
             static let b = hasOne(B.self)
             static let c = hasOne(B.c, through: b)
             static let dThroughC = hasOne(C.d, through: c)
             static let dThroughB = hasOne(B.d, through: b)
+            func encode(to container: inout PersistenceContainer) {
+                container["id"] = 1
+            }
         }
         struct B: TableRecord {
             static let c = hasOne(C.self)
@@ -582,15 +701,29 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
                 bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
                 cCondition: "(\"c\".\"bId\" = \"b\".\"id\")",
                 dCondition: "(\"d\".\"id\" = \"c\".\"dId\")")
+            
+            try assertEqualSQL(db, A().request(for: A.dThroughC), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."dId" = "d"."id") \
+                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."aId" = 1))
+                """)
+            try assertEqualSQL(db, A().request(for: A.dThroughB), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."dId" = "d"."id") \
+                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."aId" = 1))
+                """)
         }
     }
     
     func testHasOneHasOneHasOne() throws {
-        struct A: TableRecord {
+        struct A: MutablePersistableRecord {
             static let b = hasOne(B.self)
             static let c = hasOne(B.c, through: b)
             static let dThroughC = hasOne(C.d, through: c)
             static let dThroughB = hasOne(B.d, through: b)
+            func encode(to container: inout PersistenceContainer) {
+                container["id"] = 1
+            }
         }
         struct B: TableRecord {
             static let c = hasOne(C.self)
@@ -625,6 +758,17 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
                 bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
                 cCondition: "(\"c\".\"bId\" = \"b\".\"id\")",
                 dCondition: "(\"d\".\"cId\" = \"c\".\"id\")")
+            
+            try assertEqualSQL(db, A().request(for: A.dThroughC), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."id" = "d"."cId") \
+                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."aId" = 1))
+                """)
+            try assertEqualSQL(db, A().request(for: A.dThroughB), """
+                SELECT "d".* FROM "d" \
+                JOIN "c" ON ("c"."id" = "d"."cId") \
+                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."aId" = 1))
+                """)
         }
     }
     
