@@ -252,28 +252,28 @@ extension Association {
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.sqlAssociation.joinedRelation($0, joinOperator: .optional) }
+        return mapRelation { association.sqlAssociation.relation(from: $0, joinOperator: .optional) }
     }
     
     /// Creates an association that includes another one. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.sqlAssociation.joinedRelation($0, joinOperator: .required) }
+        return mapRelation { association.sqlAssociation.relation(from: $0, joinOperator: .required) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.select([]).sqlAssociation.joinedRelation($0, joinOperator: .optional) }
+        return mapRelation { association.select([]).sqlAssociation.relation(from: $0, joinOperator: .optional) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.select([]).sqlAssociation.joinedRelation($0, joinOperator: .required) }
+        return mapRelation { association.select([]).sqlAssociation.relation(from: $0, joinOperator: .required) }
     }
 }
 
@@ -292,6 +292,19 @@ public protocol ToOneAssociation: Association { }
 
 // MARK: - SQLAssociation
 
+/// An SQL association is a chain of joins from an `origin` table to the
+/// `head` of the association. All tables between `origin` and `head` are
+/// the `tail`. The table that is immediately joined to `origin` is the `pivot`:
+///
+///     // SELECT origin.* FROM origin JOIN pivot (JOIN ...) JOIN head
+///     //                             ^ tail                ^ head
+///     origin.joining(required: association)
+///
+/// When tail is empty, `pivot` and `head` are the same:
+///
+///     // SELECT origin.* FROM origin JOIN pivot
+///     origin.joining(required: association)
+///
 /// :nodoc:
 public /* TODO: internal */ struct SQLAssociation {
     // SQLAssociation is a non-empty array of association items
@@ -302,7 +315,7 @@ public /* TODO: internal */ struct SQLAssociation {
     }
     private var head: Item
     private var tail: [Item]
-    
+    private var pivot: Item { return tail.last ?? head }
     var key: String { return head.key }
     
     private init(head: Item, tail: [Item]) {
@@ -334,10 +347,8 @@ public /* TODO: internal */ struct SQLAssociation {
         return result
     }
     
-    /// Returns a relation joined with self.
-    ///
-    /// This method provides fundamental support for joining methods.
-    func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
+    /// Support for joining methods joining(optional:), etc.
+    func relation(from relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
         let headJoin = SQLJoin(
             joinOperator: joinOperator,
             joinCondition: head.joinCondition,
@@ -361,133 +372,52 @@ public /* TODO: internal */ struct SQLAssociation {
         let nextHead = Item(key: next.key, joinCondition: next.joinCondition, relation: nextRelation)
         let nextTail = Array(tail.dropFirst())
         let nextImpl = SQLAssociation(head: nextHead, tail: nextTail)
-        return nextImpl.joinedRelation(relation, joinOperator: joinOperator)
+        return nextImpl.relation(from: relation, joinOperator: joinOperator)
     }
     
     /// Support for MutablePersistableRecord.request(for:).
     ///
-    /// For example:
+    /// Returns a "reversed" relation:
     ///
-    ///     struct Team: {
-    ///         static let players = hasMany(Player.self)
-    ///         var players: QueryInterfaceRequest<Player> {
-    ///             return request(for: Team.players)
-    ///         }
-    ///     }
+    ///     // SELECT head.* FROM head (JOIN ...) JOIN pivot ON pivot.originId = 123
+    ///     origin.request(for: association)
     ///
-    ///     let team: Team = ...
-    ///     let players = try team.players.fetchAll(db) // [Player]
-    func request<OriginRowDecoder, RowDecoder>(of: RowDecoder.Type, from record: OriginRowDecoder)
-        -> QueryInterfaceRequest<RowDecoder>
-        where OriginRowDecoder: MutablePersistableRecord
-    {
-//        guard let next = tail.first else {
-//            // Goal: turn `JOIN association ON association.recordId = record.id`
-//            // into a regular request `SELECT * FROM association WHERE association.recordId = 123`
-//
-//            // We need table aliases to build the joining condition
-//            let associationAlias = TableAlias()
-//            let recordAlias = TableAlias()
-//
-//            // Turn the association query into a query interface request:
-//            // JOIN association -> SELECT FROM association
-//            return QueryInterfaceRequest(query: SQLSelectQuery(relation: head.relation))
-//
-//                // Turn the JOIN condition into a regular WHERE condition
-//                .filter { db in
-//                    // Build a join condition: `association.recordId = record.id`
-//                    // We still need to replace `record.id` with the actual record id.
-//                    let joinExpression = try self.head.joinCondition.sqlExpression(db, leftAlias: recordAlias, rightAlias: associationAlias)
-//
-//                    // Serialize record: ["id": 123, ...]
-//                    // We do it as late as possible, when request is about to be
-//                    // executed, in order to support long-lived reference types.
-//                    let container = try PersistenceContainer(db, record)
-//
-//                    // Replace `record.id` with 123
-//                    return joinExpression.resolvedExpression(inContext: [recordAlias: container])
-//                }
-//
-//                // We just added a condition qualified with associationAlias. Don't
-//                // risk introducing conflicting aliases that would prevent the user
-//                // from setting a custom alias name: force the same alias for the
-//                // whole request.
-//                .aliased(associationAlias)
-//        }
-//
-//        let headJoin = SQLJoin(
-//            joinOperator: .required,
-//            joinCondition: head.joinCondition,
-//            relation: head.relation)
-//        let nextRelation = next.relation.select([]).appendingJoin(headJoin, forKey: head.key)
-//        let nextHead = Item(key: next.key, joinCondition: next.joinCondition, relation: nextRelation)
-//        let nextTail = Array(tail.dropFirst())
-//        let nextImpl = SQLAssociation(head: nextHead, tail: nextTail)
-//        return nextImpl.request(of: RowDecoder.self, from: record)
-        
-        
-        // SELECT head < (JOIN next < ...)
-        // SELECT head WHERE record_condition
-        // SELECT head JOIN next ON record_condition
-        // SELECT head JOIN next JOIN next2 ON record_condition
-        // SELECT head JOIN next JOIN next2 JOIN next3 ON record_condition
-        
-//        let items = ([head] + tail).reversed()
-//        let relation = items[items.startIndex].relation
-//        relation.filter { db in
-//
-//        }
-//        items[items.startIndex].relation
-        
-        
-        // [(khead, condhead, relhead), (k2, cond2, r2), (k3, cond3, r3)]
-        // normal: (SELECT * FROM record) (JOIN r3 ON cond3) (JOIN r2 ON cond2) (JOIN relhead ON condhead)
-        // reversed: (SELECT * FROM relhead) (JOIN r2 ON condhead') (JOIN r3 ON cond2') (JOIN record ON cond3' && recordCond)
-        
-        func filter(relation: SQLRelation, condition: JoinCondition, associationAlias: TableAlias) -> SQLRelation {
-            return relation
-                .qualified(with: associationAlias)
+    /// When tail is empty, `pivot` and `head` are the same:
+    ///
+    ///     // SELECT pivot.* FROM pivot WHERE pivot.originId = 123
+    ///     origin.request(for: association)
+    func relation(to originTable: String, container originContainer: @escaping (Database) throws -> PersistenceContainer) -> SQLRelation {
+        // We need a `pivot` relation filtered with origin:
+        let pivotRelation: SQLRelation = {
+            let pivotCondition = pivot.joinCondition
+            let pivotAlias = TableAlias()
+            return pivot.relation
+                .qualified(with: pivotAlias)
                 .filter { db in
-                    let recordAlias = TableAlias(tableName: type(of: record).databaseTableName)
+                    let originAlias = TableAlias(tableName: originTable)
                     
-                    // Build a join condition: `association.recordId = record.id`
-                    // We still need to replace `record.id` with the actual record id.
-                    let joinExpression = try condition.sqlExpression(db, leftAlias: recordAlias, rightAlias: associationAlias)
+                    // Build a join condition: `association.originId = origin.id`
+                    // We still need to replace `origin.id` with the actual origin id.
+                    let joinExpression = try pivotCondition.sqlExpression(db, leftAlias: originAlias, rightAlias: pivotAlias)
                     
-                    // Serialize record: ["id": 123, ...]
-                    // We do it as late as possible, when request is about to be
-                    // executed, in order to support long-lived reference types.
-                    let container = try PersistenceContainer(db, record)
-                    
-                    // Replace `record.id` with 123
-                    return joinExpression.resolvedExpression(inContext: [recordAlias: container])
+                    // Replace `origin.id` with 123
+                    return try joinExpression.resolvedExpression(inContext: [originAlias: originContainer(db)])
             }
+        }()
+        
+        // Reverse items
+        let reversedItems = zip([head] + tail, tail)
+            .map { Item(key: "" /* ignored */, joinCondition: $0.joinCondition.reversed, relation: $1.relation.select([])) }
+            .reversed()
+        
+        // Empty tail
+        guard var reversedHead = reversedItems.first else {
+            return pivotRelation
         }
         
-        let items = [head] + tail
-        let reversedItems = zip(items, items.dropFirst()).map {
-            Item(key: "" /* ignored */, joinCondition: $0.joinCondition.reversed, relation: $1.relation.select([]))
-        }.reversed()
-        if let reversedHead = reversedItems.first {
-            let associationAlias = TableAlias()
-            let filteredRelation = filter(
-                relation: reversedHead.relation,
-                condition: tail.last!.joinCondition,
-                associationAlias: associationAlias)
-            let reversedHead = Item(
-                key: reversedHead.key,
-                joinCondition: reversedHead.joinCondition,
-                relation: filteredRelation)
-            let reversedSQLAssociation = SQLAssociation(head: reversedHead, tail: Array(reversedItems.dropFirst()))
-            let relation = reversedSQLAssociation.joinedRelation(head.relation, joinOperator: .required)
-            return QueryInterfaceRequest<RowDecoder>(query: SQLSelectQuery(relation: relation))
-        } else {
-            let associationAlias = TableAlias()
-            let filteredRelation = filter(
-                relation: head.relation,
-                condition: head.joinCondition,
-                associationAlias: associationAlias)
-            return QueryInterfaceRequest<RowDecoder>(query: SQLSelectQuery(relation: filteredRelation))
-        }
+        reversedHead.relation = pivotRelation.select([])
+        let reversedTail = Array(reversedItems.dropFirst())
+        let reversedAssociation = SQLAssociation(head: reversedHead, tail: reversedTail)
+        return reversedAssociation.relation(from: head.relation, joinOperator: .required)
     }
 }

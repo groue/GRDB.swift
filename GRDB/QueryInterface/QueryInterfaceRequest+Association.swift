@@ -7,7 +7,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func including<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.sqlAssociation.joinedRelation($0, joinOperator: .optional)
+                association.sqlAssociation.relation(from: $0, joinOperator: .optional)
             }
         }
     }
@@ -18,7 +18,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func including<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.sqlAssociation.joinedRelation($0, joinOperator: .required)
+                association.sqlAssociation.relation(from: $0, joinOperator: .required)
             }
         }
     }
@@ -29,7 +29,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func joining<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.select([]).sqlAssociation.joinedRelation($0, joinOperator: .optional)
+                association.select([]).sqlAssociation.relation(from: $0, joinOperator: .optional)
             }
         }
     }
@@ -40,7 +40,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func joining<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.select([]).sqlAssociation.joinedRelation($0, joinOperator: .required)
+                association.select([]).sqlAssociation.relation(from: $0, joinOperator: .required)
             }
         }
     }
@@ -107,7 +107,10 @@ extension MutablePersistableRecord {
     ///     let team: Team = ...
     ///     let players = try team.players.fetchAll(db) // [Player]
     public func request<A: Association>(for association: A) -> QueryInterfaceRequest<A.RowDecoder> where A.OriginRowDecoder == Self {
-        return association.sqlAssociation.request(of: A.RowDecoder.self, from: self)
+        let relation = association.sqlAssociation.relation(
+            to: type(of: self).databaseTableName,
+            container: { try PersistenceContainer($0, self) })
+        return QueryInterfaceRequest<A.RowDecoder>(query: SQLSelectQuery(relation: relation))
     }
 }
 
