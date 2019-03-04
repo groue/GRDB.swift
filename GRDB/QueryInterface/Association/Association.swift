@@ -283,12 +283,12 @@ extension Association where Self: TableRequest, RowDecoder: TableRecord {
     public var databaseTableName: String { return RowDecoder.databaseTableName }
 }
 
-// MARK: - ToOneAssociation
+// MARK: - AssociationToOne
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// The base protocol for all associations that define a one-to-one connection.
-public protocol ToOneAssociation: Association { }
+public protocol AssociationToOne: Association { }
 
 // MARK: - SQLAssociation
 

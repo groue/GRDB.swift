@@ -177,8 +177,8 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
         ac: CAssociation,
         bCondition: String,
         cCondition: String) throws
-        where BAssociation: ToOneAssociation,
-        CAssociation: ToOneAssociation,
+        where BAssociation: AssociationToOne,
+        CAssociation: AssociationToOne,
         BAssociation.OriginRowDecoder == CAssociation.OriginRowDecoder,
         BAssociation.OriginRowDecoder: TableRecord
     {
@@ -782,10 +782,10 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
         bCondition: String,
         cCondition: String,
         dCondition: String) throws
-        where BAssociation: ToOneAssociation,
-        CAssociation: ToOneAssociation,
-        DCAssociation: ToOneAssociation,
-        DBAssociation: ToOneAssociation,
+        where BAssociation: AssociationToOne,
+        CAssociation: AssociationToOne,
+        DCAssociation: AssociationToOne,
+        DBAssociation: AssociationToOne,
         BAssociation.OriginRowDecoder == CAssociation.OriginRowDecoder,
         BAssociation.OriginRowDecoder == DCAssociation.OriginRowDecoder,
         BAssociation.OriginRowDecoder == DBAssociation.OriginRowDecoder,
