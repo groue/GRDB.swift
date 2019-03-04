@@ -19,8 +19,9 @@ extension HasManyThroughAssociation: TableRequest where Destination: TableRecord
 
 extension TableRecord {
     public static func hasMany<Pivot, Target>(
-        _ target: Target,
-        through pivot: Pivot)
+        _ destination: Target.RowDecoder.Type,
+        through pivot: Pivot,
+        using target: Target)
         -> HasManyThroughAssociation<Self, Target.RowDecoder>
         where Pivot: Association,
         Target: Association,

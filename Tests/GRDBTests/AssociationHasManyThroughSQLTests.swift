@@ -14,7 +14,7 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
     func testBelongsToHasMany() throws {
         struct A: MutablePersistableRecord {
             static let b = belongsTo(B.self)
-            static let c = hasMany(B.c, through: b)
+            static let c = hasMany(C.self, through: b, using: B.c)
             func encode(to container: inout PersistenceContainer) {
                 container["bId"] = 1
             }
@@ -54,7 +54,7 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
     func testHasOneHasMany() throws {
         struct A: MutablePersistableRecord {
             static let b = hasOne(B.self)
-            static let c = hasMany(B.c, through: b)
+            static let c = hasMany(C.self, through: b, using: B.c)
             func encode(to container: inout PersistenceContainer) {
                 container["id"] = 1
             }
@@ -94,7 +94,7 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
     func testHasManyBelongsTo() throws {
         struct A: MutablePersistableRecord {
             static let b = hasMany(B.self)
-            static let c = hasMany(B.c, through: b)
+            static let c = hasMany(C.self, through: b, using: B.c)
             func encode(to container: inout PersistenceContainer) {
                 container["id"] = 1
             }
@@ -134,7 +134,7 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
     func testHasManyHasOne() throws {
         struct A: MutablePersistableRecord {
             static let b = hasMany(B.self)
-            static let c = hasMany(B.c, through: b)
+            static let c = hasMany(C.self, through: b, using: B.c)
             func encode(to container: inout PersistenceContainer) {
                 container["id"] = 1
             }
