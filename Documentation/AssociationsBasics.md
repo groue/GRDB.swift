@@ -362,13 +362,9 @@ See [The Structure of a Joined Request] for more information.
 
 ## Convention for the BelongsTo Association
 
-**[BelongsTo] associations should be supported by an SQLite foreign key.**
-
-Foreign keys are the recommended way to declare relationships between database tables. Not only will SQLite guarantee the integrity of your data, but GRDB will be able to use those foreign keys to automatically configure your associations.
-
 ![BelongsToSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/BelongsToSchema.svg)
 
-The matching [migration] could look like:
+Here is the recommended [migration] for the **[BelongsTo]** association:
 
 ```swift
 migrator.registerMigration("Books and Authors") { db in
@@ -419,13 +415,9 @@ See [Foreign Keys] for more information.
 
 ## Convention for the HasOne Association
 
-**[HasOne] associations should be supported by an SQLite foreign key.**
-
-Foreign keys are the recommended way to declare relationships between database tables. Not only will SQLite guarantee the integrity of your data, but GRDB will be able to use those foreign keys to automatically configure your associations.
-
 ![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneSchema.svg)
 
-The matching [migration] could look like:
+Here is the recommended [migration] for the **[HasOne]** association:
 
 ```swift
 migrator.registerMigration("Countries") { db in
@@ -477,13 +469,9 @@ See [Foreign Keys] for more information.
 
 ## Convention for the HasMany Association
 
-**[HasMany] associations should be supported by an SQLite foreign key.**
-
-Foreign keys are the recommended way to declare relationships between database tables. Not only will SQLite guarantee the integrity of your data, but GRDB will be able to use those foreign keys to automatically configure your associations.
-
 ![HasManySchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasManySchema.svg)
 
-The matching [migration] could look like:
+Here is the recommended [migration] for the **[HasMany]** association:
 
 ```swift
 migrator.registerMigration("Books and Authors") { db in
