@@ -9,10 +9,10 @@ import XCTest
 
 private struct A: Codable, FetchableRecord, PersistableRecord {
     static let defaultB = belongsTo(B.self)
-    static let defaultC = hasOne(B.c, through: defaultB)
-    static let customC1 = hasOne(B.c, through: defaultB.forKey("customB"))
-    static let customC2 = hasOne(B.c, through: defaultB).forKey("customC2")
-    static let customC3 = hasOne(B.c.forKey("customC3"), through: defaultB)
+    static let defaultC = hasOne(C.self, through: defaultB, using: B.c)
+    static let customC1 = hasOne(C.self, through: defaultB.forKey("customB"), using: B.c)
+    static let customC2 = hasOne(C.self, through: defaultB, using: B.c).forKey("customC2")
+    static let customC3 = hasOne(C.self, through: defaultB, using: B.c.forKey("customC3"))
     var id: Int64
     var bId: Int64?
     var name: String

@@ -9,7 +9,7 @@ import XCTest
 
 private struct A: Codable, FetchableRecord, PersistableRecord {
     static let b = belongsTo(B.self)
-    static let c = hasOne(B.c, through: b)
+    static let c = hasOne(C.self, through: b, using: B.c)
     var id: Int64
     var bId: Int64?
     var name: String

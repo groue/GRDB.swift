@@ -14,7 +14,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     func testBelongsToBelongsTo() throws {
         struct A: MutablePersistableRecord {
             static let b = belongsTo(B.self)
-            static let c = hasOne(B.c, through: b)
+            static let c = hasOne(C.self, through: b, using: B.c)
             func encode(to container: inout PersistenceContainer) {
                 container["bId"] = 1
             }
@@ -54,7 +54,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     func testBelongsToHasOne() throws {
         struct A: MutablePersistableRecord {
             static let b = belongsTo(B.self)
-            static let c = hasOne(B.c, through: b)
+            static let c = hasOne(C.self, through: b, using: B.c)
             func encode(to container: inout PersistenceContainer) {
                 container["bId"] = 1
             }
@@ -94,7 +94,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     func testHasOneBelongsTo() throws {
         struct A: MutablePersistableRecord {
             static let b = hasOne(B.self)
-            static let c = hasOne(B.c, through: b)
+            static let c = hasOne(C.self, through: b, using: B.c)
             func encode(to container: inout PersistenceContainer) {
                 container["id"] = 1
             }
@@ -134,7 +134,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     func testHasOneHasOne() throws {
         struct A: MutablePersistableRecord {
             static let b = hasOne(B.self)
-            static let c = hasOne(B.c, through: b)
+            static let c = hasOne(C.self, through: b, using: B.c)
             func encode(to container: inout PersistenceContainer) {
                 container["id"] = 1
             }
@@ -319,16 +319,16 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     func testBelongsToBelongsToBelongsTo() throws {
         struct A: MutablePersistableRecord {
             static let b = belongsTo(B.self)
-            static let c = hasOne(B.c, through: b)
-            static let dThroughC = hasOne(C.d, through: c)
-            static let dThroughB = hasOne(B.d, through: b)
+            static let c = hasOne(C.self, through: b, using: B.c)
+            static let dThroughC = hasOne(D.self, through: c, using: C.d)
+            static let dThroughB = hasOne(D.self, through: b, using: B.d)
             func encode(to container: inout PersistenceContainer) {
                 container["bId"] = 1
             }
         }
         struct B: TableRecord {
             static let c = belongsTo(C.self)
-            static let d = hasOne(C.d, through: c)
+            static let d = hasOne(D.self, through: c, using: C.d)
         }
         struct C: TableRecord {
             static let d = belongsTo(D.self)
@@ -376,16 +376,16 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     func testBelongsToBelongsToHasOne() throws {
         struct A: MutablePersistableRecord {
             static let b = belongsTo(B.self)
-            static let c = hasOne(B.c, through: b)
-            static let dThroughC = hasOne(C.d, through: c)
-            static let dThroughB = hasOne(B.d, through: b)
+            static let c = hasOne(C.self, through: b, using: B.c)
+            static let dThroughC = hasOne(D.self, through: c, using: C.d)
+            static let dThroughB = hasOne(D.self, through: b, using: B.d)
             func encode(to container: inout PersistenceContainer) {
                 container["bId"] = 1
             }
         }
         struct B: TableRecord {
             static let c = belongsTo(C.self)
-            static let d = hasOne(C.d, through: c)
+            static let d = hasOne(D.self, through: c, using: C.d)
         }
         struct C: TableRecord {
             static let d = hasOne(D.self)
@@ -433,16 +433,16 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     func testBelongsToHasOneBelongsTo() throws {
         struct A: MutablePersistableRecord {
             static let b = belongsTo(B.self)
-            static let c = hasOne(B.c, through: b)
-            static let dThroughC = hasOne(C.d, through: c)
-            static let dThroughB = hasOne(B.d, through: b)
+            static let c = hasOne(C.self, through: b, using: B.c)
+            static let dThroughC = hasOne(D.self, through: c, using: C.d)
+            static let dThroughB = hasOne(D.self, through: b, using: B.d)
             func encode(to container: inout PersistenceContainer) {
                 container["bId"] = 1
             }
         }
         struct B: TableRecord {
             static let c = hasOne(C.self)
-            static let d = hasOne(C.d, through: c)
+            static let d = hasOne(D.self, through: c, using: C.d)
         }
         struct C: TableRecord {
             static let d = belongsTo(D.self)
@@ -490,16 +490,16 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     func testBelongsToHasOneHasOne() throws {
         struct A: MutablePersistableRecord {
             static let b = belongsTo(B.self)
-            static let c = hasOne(B.c, through: b)
-            static let dThroughC = hasOne(C.d, through: c)
-            static let dThroughB = hasOne(B.d, through: b)
+            static let c = hasOne(C.self, through: b, using: B.c)
+            static let dThroughC = hasOne(D.self, through: c, using: C.d)
+            static let dThroughB = hasOne(D.self, through: b, using: B.d)
             func encode(to container: inout PersistenceContainer) {
                 container["bId"] = 1
             }
         }
         struct B: TableRecord {
             static let c = hasOne(C.self)
-            static let d = hasOne(C.d, through: c)
+            static let d = hasOne(D.self, through: c, using: C.d)
         }
         struct C: TableRecord {
             static let d = hasOne(D.self)
@@ -547,16 +547,16 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     func testHasOneBelongsToBelongsTo() throws {
         struct A: MutablePersistableRecord {
             static let b = hasOne(B.self)
-            static let c = hasOne(B.c, through: b)
-            static let dThroughC = hasOne(C.d, through: c)
-            static let dThroughB = hasOne(B.d, through: b)
+            static let c = hasOne(C.self, through: b, using: B.c)
+            static let dThroughC = hasOne(D.self, through: c, using: C.d)
+            static let dThroughB = hasOne(D.self, through: b, using: B.d)
             func encode(to container: inout PersistenceContainer) {
                 container["id"] = 1
             }
         }
         struct B: TableRecord {
             static let c = belongsTo(C.self)
-            static let d = hasOne(C.d, through: c)
+            static let d = hasOne(D.self, through: c, using: C.d)
         }
         struct C: TableRecord {
             static let d = belongsTo(D.self)
@@ -604,16 +604,16 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     func testHasOneBelongsToHasOne() throws {
         struct A: MutablePersistableRecord {
             static let b = hasOne(B.self)
-            static let c = hasOne(B.c, through: b)
-            static let dThroughC = hasOne(C.d, through: c)
-            static let dThroughB = hasOne(B.d, through: b)
+            static let c = hasOne(C.self, through: b, using: B.c)
+            static let dThroughC = hasOne(D.self, through: c, using: C.d)
+            static let dThroughB = hasOne(D.self, through: b, using: B.d)
             func encode(to container: inout PersistenceContainer) {
                 container["id"] = 1
             }
         }
         struct B: TableRecord {
             static let c = belongsTo(C.self)
-            static let d = hasOne(C.d, through: c)
+            static let d = hasOne(D.self, through: c, using: C.d)
         }
         struct C: TableRecord {
             static let d = hasOne(D.self)
@@ -661,16 +661,16 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     func testHasOneHasOneBelongsTo() throws {
         struct A: MutablePersistableRecord {
             static let b = hasOne(B.self)
-            static let c = hasOne(B.c, through: b)
-            static let dThroughC = hasOne(C.d, through: c)
-            static let dThroughB = hasOne(B.d, through: b)
+            static let c = hasOne(C.self, through: b, using: B.c)
+            static let dThroughC = hasOne(D.self, through: c, using: C.d)
+            static let dThroughB = hasOne(D.self, through: b, using: B.d)
             func encode(to container: inout PersistenceContainer) {
                 container["id"] = 1
             }
         }
         struct B: TableRecord {
             static let c = hasOne(C.self)
-            static let d = hasOne(C.d, through: c)
+            static let d = hasOne(D.self, through: c, using: C.d)
         }
         struct C: TableRecord {
             static let d = belongsTo(D.self)
@@ -718,16 +718,16 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     func testHasOneHasOneHasOne() throws {
         struct A: MutablePersistableRecord {
             static let b = hasOne(B.self)
-            static let c = hasOne(B.c, through: b)
-            static let dThroughC = hasOne(C.d, through: c)
-            static let dThroughB = hasOne(B.d, through: b)
+            static let c = hasOne(C.self, through: b, using: B.c)
+            static let dThroughC = hasOne(D.self, through: c, using: C.d)
+            static let dThroughB = hasOne(D.self, through: b, using: B.d)
             func encode(to container: inout PersistenceContainer) {
                 container["id"] = 1
             }
         }
         struct B: TableRecord {
             static let c = hasOne(C.self)
-            static let d = hasOne(C.d, through: c)
+            static let d = hasOne(D.self, through: c, using: C.d)
         }
         struct C: TableRecord {
             static let d = hasOne(D.self)

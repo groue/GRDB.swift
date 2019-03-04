@@ -19,8 +19,9 @@ extension HasOneThroughAssociation: TableRequest where Destination: TableRecord 
 
 extension TableRecord {
     public static func hasOne<Pivot, Target>(
-        _ target: Target,
-        through pivot: Pivot)
+        _ destination: Target.RowDecoder.Type,
+        through pivot: Pivot,
+        using target: Target)
         -> HasOneThroughAssociation<Self, Target.RowDecoder>
         where Pivot: AssociationToOne,
         Target: AssociationToOne,

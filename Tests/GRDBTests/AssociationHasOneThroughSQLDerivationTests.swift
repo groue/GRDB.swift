@@ -9,9 +9,9 @@ import XCTest
 
 private struct A: TableRecord {
     static let b = belongsTo(B.self)
-    static let c = hasOne(B.c, through: b)
-    static let restrictedC = hasOne(B.restrictedC, through: b)
-    static let extendedC = hasOne(B.extendedC, through: b)
+    static let c = hasOne(C.self, through: b, using: B.c)
+    static let restrictedC = hasOne(RestrictedC.self, through: b, using: B.restrictedC)
+    static let extendedC = hasOne(ExtendedC.self, through: b, using: B.extendedC)
 }
 
 private struct B: TableRecord {
