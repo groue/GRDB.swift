@@ -362,6 +362,15 @@ See [The Structure of a Joined Request] for more information.
 
 ## Convention for the BelongsTo Association
 
+```swift
+extension Book: TableRecord {
+    static let author = belongsTo(Author.self)
+    var author: QueryInterfaceRequest<Author> {
+        return request(for: Book.author)
+    }
+}
+```
+
 ![BelongsToSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/BelongsToSchema.svg)
 
 Here is the recommended [migration] for the **[BelongsTo]** association:
@@ -414,6 +423,15 @@ See [Foreign Keys] for more information.
 
 
 ## Convention for the HasOne Association
+
+```swift
+extension Country: TableRecord {
+    static let demographics = hasOne(Demographics.self)
+    var demographics: QueryInterfaceRequest<Demographics> {
+        return request(for: Country.demographics)
+    }
+}
+```
 
 ![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneSchema.svg)
 
@@ -468,6 +486,15 @@ See [Foreign Keys] for more information.
 
 
 ## Convention for the HasMany Association
+
+```swift
+extension Author: TableRecord {
+    static let books = hasMany(Book.self)
+    var books: QueryInterfaceRequest<Book> {
+        return request(for: Author.books)
+    }
+}
+```
 
 ![HasManySchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasManySchema.svg)
 
