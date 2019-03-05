@@ -339,7 +339,7 @@ let book: Book = ...
 let address = try book.returnAddress.fetchOne(db) // Address?
 ```
 
-As in the example above, **HasOneThrough** association is always built from two other associations: the `through:` and `using:` arguments. Those associations can be any other association to one (BelongsTo, HasOne, HasHasOneThrough). The above `Book.returnAddress` association can also be defined, in a much more explicit way, as below:
+As in the example above, **HasOneThrough** association is always built from two other associations: the `through:` and `using:` arguments. Those associations can be any other association to one (BelongsTo, HasOne, HasOneThrough). The above `Book.returnAddress` association can also be defined, in a much more explicit way, as below:
 
 ```swift
 struct Book: TableRecord {
