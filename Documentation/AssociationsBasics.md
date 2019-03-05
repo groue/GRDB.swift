@@ -311,6 +311,46 @@ struct Document: TableRecord {
 
 ## HasOneThrough
 
+A **HasOneThrough** association sets up a one-to-one connection with another record. This association indicates that the declaring record can be matched with one instance of another record by proceeding through a third record. For example, if each book belongs to a library, and each library has one address, then one knows where the book should be returned to:
+
+```swift
+struct Book: TableRecord {
+    static let library = belongsTo(Library.self)
+    static let returnAddress = hasOne(Address.self, through: library, using: library.address)
+    var returnAddress: QueryInterfaceRequest<Address> {
+        return request(for: Book.returnAddress)
+    }
+}
+
+struct Library: TableRecord {
+    static let address = hasOne(Address.self)
+}
+ 
+struct Address: TableRecord {
+}
+```
+
+![HasOneThroughSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneThroughSchema.svg)
+
+The static `Book.returnAddress` association will help you build [association requests]. The property lets you fetch a book's return address:
+
+```swift
+let book: Book = ...
+let address = try book.returnAddress.fetchOne(db) // Address?
+```
+
+As in the example above, **HasOneThrough** association is always built from two other associations: the `through:` and `using:` arguments. Those associations can be any other association to one (BelongsTo, HasOne, HasHasOneThrough). The above `Book.returnAddress` association can also be defined, in a much more explicit way, as below:
+
+```swift
+struct Book: TableRecord {
+    static let returnAddress = hasOne(
+        Address.self,
+        through: Book.belongsTo(Library.self),
+        using: Library.hasOne(Address.self))
+}
+```
+
+
 ## Choosing Between BelongsTo and HasOne
 
 When you want to set up a one-to-one relationship between two record types, you'll need to add a **BelongsTo** association to one, and a **HasOne** association to the other. How do you know which is which?
