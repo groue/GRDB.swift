@@ -86,7 +86,7 @@ class FTS3TokenizerTests: GRDBTestCase {
         }
     }
 
-    func testUnicode61TokenizerRemoveDiacritics() throws {
+    func testUnicode61TokenizerDiacriticsKeep() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
             guard #available(iOS 8.2, OSX 10.10, *) else {
                 return
@@ -96,7 +96,7 @@ class FTS3TokenizerTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS3()) { t in
-                t.tokenizer = .unicode61(removeDiacritics: false)
+                t.tokenizer = .unicode61(diacritics: .keep)
             }
             
             // simple match
@@ -112,6 +112,29 @@ class FTS3TokenizerTests: GRDBTestCase {
             XCTAssertTrue(match(db, "jérôme", "JÉRÔME"))
         }
     }
+    
+    #if GRDBCUSTOMSQLITE
+    func testUnicode61TokenizerDiacriticsRemove() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS3()) { t in
+                t.tokenizer = .unicode61(diacritics: .remove)
+            }
+            
+            // simple match
+            XCTAssertTrue(match(db, "abcDÉF", "abcDÉF"))
+            
+            // English stemming
+            XCTAssertFalse(match(db, "database", "databases"))
+            
+            // diacritics in latin characters
+            XCTAssertTrue(match(db, "eéÉ", "Èèe"))
+            
+            // unicode case
+            XCTAssertTrue(match(db, "jérôme", "JÉRÔME"))
+        }
+    }
+    #endif
 
     func testUnicode61TokenizerSeparators() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER

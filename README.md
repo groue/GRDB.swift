@@ -5044,7 +5044,7 @@ See below some examples of matches:
     ```swift
     try db.create(virtualTable: "book", using: FTS4()) { t in
         t.tokenizer = .unicode61()
-        t.tokenizer = .unicode61(removeDiacritics: false)
+        t.tokenizer = .unicode61(diacritics: .keep)
     }
     ```
     
@@ -5145,14 +5145,14 @@ The version of SQLite that ships with iOS, macOS and watchOS does not always sup
     pod 'GRDBCipher'
     ```
     
-3. Use a [custom SQLite build](Documentation/CustomSQLiteBuilds.md) and activate the `SQLITE_ENABLE_FTS5` compilation option.
+3. Use a [custom SQLite build] and activate the `SQLITE_ENABLE_FTS5` compilation option.
 
 
 ### Create FTS5 Virtual Tables
 
 **FTS5 full-text tables store and index textual content.**
 
-To use FTS5, you'll need a [custom SQLite build](Documentation/CustomSQLiteBuilds.md) that activates the `SQLITE_ENABLE_FTS5` compilation option.
+To use FTS5, you'll need a [custom SQLite build] that activates the `SQLITE_ENABLE_FTS5` compilation option.
 
 Create FTS5 tables with the `create(virtualTable:using:)` method:
 
@@ -5245,7 +5245,7 @@ See below some examples of matches:
     ```swift
     try db.create(virtualTable: "book", using: FTS5()) { t in
         t.tokenizer = .unicode61()
-        t.tokenizer = .unicode61(removeDiacritics: false)
+        t.tokenizer = .unicode61(diacritics: .keep)
     }
     ```
     
@@ -5275,7 +5275,7 @@ See below some examples of matches:
     try db.create(virtualTable: "book", using: FTS5()) { t in
         t.tokenizer = .porter()       // porter wrapping unicode61 (the default)
         t.tokenizer = .porter(.ascii) // porter wrapping ascii
-        t.tokenizer = .porter(.unicode61(removeDiacritics: false)) // porter wrapping unicode61 without diacritics stripping
+        t.tokenizer = .porter(.unicode61(diacritics: .keep)) // porter wrapping unicode61 without diacritics stripping
     }
     ```
     
@@ -7275,7 +7275,7 @@ Use this protocol when you want to encapsulate your complex requests in a dedica
 
 ### Support for SQLite Pre-Update Hooks
 
-A [custom SQLite build](Documentation/CustomSQLiteBuilds.md) can activate [SQLite "preupdate hooks"](https://sqlite.org/c3ref/preupdate_count.html). In this case, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
+A [custom SQLite build] can activate [SQLite "preupdate hooks"](https://sqlite.org/c3ref/preupdate_count.html). In this case, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
 
 ```swift
 protocol TransactionObserverType : class {
@@ -8676,3 +8676,4 @@ This chapter has been renamed [Beyond FetchableRecord].
 [ValueObservation and DatabaseRegionObservation]: #valueobservation-and-databaseregionobservation
 [DatabaseRegion]: #databaseregion
 [SQL Interpolation]: Documentation/SQLInterpolation.md
+[custom SQLite build]: Documentation/CustomSQLiteBuilds.md

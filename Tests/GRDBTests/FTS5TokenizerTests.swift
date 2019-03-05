@@ -128,11 +128,11 @@ class FTS5TokenizerTests: GRDBTestCase {
         }
     }
 
-    func testUnicode61TokenizerRemoveDiacritics() throws {
+    func testUnicode61TokenizerDiacriticsKeep() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS5()) { t in
-                t.tokenizer = .unicode61(removeDiacritics: false)
+                t.tokenizer = .unicode61(diacritics: .keep)
                 t.column("content")
             }
             
@@ -149,6 +149,30 @@ class FTS5TokenizerTests: GRDBTestCase {
             XCTAssertTrue(match(db, "jérôme", "JÉRÔME"))
         }
     }
+    
+    #if GRDBCUSTOMSQLITE
+    func testUnicode61TokenizerDiacriticsRemove() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = .unicode61(diacritics: .remove)
+                t.column("content")
+            }
+            
+            // simple match
+            XCTAssertTrue(match(db, "abcDÉF", "abcDÉF"))
+            
+            // English stemming
+            XCTAssertFalse(match(db, "database", "databases"))
+            
+            // diacritics in latin characters
+            XCTAssertTrue(match(db, "eéÉ", "Èèe"))
+            
+            // unicode case
+            XCTAssertTrue(match(db, "jérôme", "JÉRÔME"))
+        }
+    }
+    #endif
 
     func testUnicode61TokenizerSeparators() throws {
         let dbQueue = try makeDatabaseQueue()
