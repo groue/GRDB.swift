@@ -40,16 +40,16 @@ public struct FTS3TokenizerDescriptor {
     ///     }
     ///
     /// - parameters:
-    ///     - removeDiacritics: If true (the default), then SQLite will strip
-    ///       diacritics from latin characters.
+    ///     - diacritics: By default SQLite will strip diacritics from
+    ///       latin characters.
     ///     - separators: Unless empty (the default), SQLite will consider these
     ///       characters as token separators.
     ///     - tokenCharacters: Unless empty (the default), SQLite will consider
     ///       these characters as token characters.
     ///
     /// See https://www.sqlite.org/fts3.html#tokenizer
-    public static func unicode61(removeDiacritics: Bool = true, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS3TokenizerDescriptor {
-        return _unicode61(removeDiacritics: removeDiacritics, separators: separators, tokenCharacters: tokenCharacters)
+    public static func unicode61(diacritics: FTS3.Diacritics = .removeLegacy, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS3TokenizerDescriptor {
+        return _unicode61(diacritics: diacritics, separators: separators, tokenCharacters: tokenCharacters)
     }
     #else
     /// The "unicode61" tokenizer.
@@ -59,8 +59,8 @@ public struct FTS3TokenizerDescriptor {
     ///     }
     ///
     /// - parameters:
-    ///     - removeDiacritics: If true (the default), then SQLite will strip
-    ///       diacritics from latin characters.
+    ///     - diacritics: By default SQLite will strip diacritics from
+    ///       latin characters.
     ///     - separators: Unless empty (the default), SQLite will consider these
     ///       characters as token separators.
     ///     - tokenCharacters: Unless empty (the default), SQLite will consider
@@ -68,17 +68,24 @@ public struct FTS3TokenizerDescriptor {
     ///
     /// See https://www.sqlite.org/fts3.html#tokenizer
     @available(OSX 10.10, *)
-    public static func unicode61(removeDiacritics: Bool = true, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS3TokenizerDescriptor {
+    public static func unicode61(diacritics: FTS3.Diacritics = .removeLegacy, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS3TokenizerDescriptor {
         // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        return _unicode61(removeDiacritics: removeDiacritics, separators: separators, tokenCharacters: tokenCharacters)
+        return _unicode61(diacritics: diacritics, separators: separators, tokenCharacters: tokenCharacters)
     }
     #endif
     
-    private static func _unicode61(removeDiacritics: Bool = true, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS3TokenizerDescriptor {
+    private static func _unicode61(diacritics: FTS3.Diacritics, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS3TokenizerDescriptor {
         var arguments: [String] = []
-        if !removeDiacritics {
+        switch diacritics {
+        case .removeLegacy:
+            break
+        case .keep:
             arguments.append("remove_diacritics=0")
+            #if GRDBCUSTOMSQLITE
+        case .remove:
+            arguments.append("remove_diacritics=2")
+            #endif
         }
         if !separators.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as separators, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)

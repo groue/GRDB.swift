@@ -12,4 +12,4 @@
 	url = https://github.com/groue/sqlcipher.git
 [submodule "SQLiteCustom/src"]
 	path = SQLiteCustom/src
-	url = https://github.com/swiftlyfalling/SQLiteLib
+	url = https://github.com/swiftlyfalling/SQLiteLib.git
