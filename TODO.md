@@ -24,7 +24,6 @@
 - [ ] Allow joining methods on DerivableRequest
 - [ ] DatabaseWriter.assertWriteAccess()
 - [ ] Configuration.crashOnError = true
-- [ ] Remove associated record from PersistenceError.recordNotFound. It should be possible, in userland, to write a method that throws this error without having a fully constructed record.
 - [ ] Support for "INSERT INTO ... SELECT ...". For example:
     
     ```swift
@@ -44,12 +43,8 @@
 
 GRDB 4.0
 
-- [ ] SQLite 3.27.0
-- [ ] SQLCipher 4
-- [ ] Mark unavailable the deprecated methods
 - [ ] FTS: prefix queries
 - [ ] Test NOT TESTED methods
-- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0193-cross-module-inlining-and-specialization.md
 
 Swift 4.2
 

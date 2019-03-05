@@ -53,13 +53,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#478](https://github.com/groue/GRDB.swift/pull/478): Swift 5: SQL interpolation
 - [#484](https://github.com/groue/GRDB.swift/pull/484): SE-0193 Cross-module inlining and specialization
 - [#485](https://github.com/groue/GRDB.swift/pull/485): Bump SQLite to [3.27.1](https://www.sqlite.org/releaselog/3_27_1.html)
+- [#486](https://github.com/groue/GRDB.swift/pull/486): Refactor PersistenceError.recordNotFound
+- [#488](https://github.com/groue/GRDB.swift/pull/488): ValueObservation Cleanup
 
 ### Breaking Changes
 
 - Swift 4.0 and Swift 4.1 are no longer supported
 - iOS 8 is no longer supported. Minimum deployment target is now iOS 9.0
 - Deprecated APIs are no longer available.
-- `SQLRequest.arguments` is no longer optional
 
 ### Documentation Diff
 

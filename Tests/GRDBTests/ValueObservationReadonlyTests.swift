@@ -23,21 +23,21 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 2
         
-        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+        let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
             try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
         })
-        observation.extent = .databaseLifetime
-        _ = try observation.start(in: dbQueue) { count in
+        let observer = try observation.start(in: dbQueue) { count in
             counts.append(count)
             notificationExpectation.fulfill()
         }
-        
-        try dbQueue.write {
-            try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        try withExtendedLifetime(observer) {
+            try dbQueue.write {
+                try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            }
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(counts, [0, 1])
         }
-        
-        waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(counts, [0, 1])
     }
     
     func testWriteObservationFailsByDefault() throws {
@@ -79,19 +79,19 @@ class ValueObservationReadonlyTests: GRDBTestCase {
             try db.execute(sql: "DROP TABLE temp")
             return result
         })
-        observation.extent = .databaseLifetime
         observation.requiresWriteAccess = true
-        _ = try observation.start(in: dbQueue) { count in
+        let observer = try observation.start(in: dbQueue) { count in
             counts.append(count)
             notificationExpectation.fulfill()
         }
-        
-        try dbQueue.write {
-            try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        try withExtendedLifetime(observer) {
+            try dbQueue.write {
+                try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            }
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(counts, [0, 1])
         }
-        
-        waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(counts, [0, 1])
     }
 
     func testWriteObservationIsWrappedInSavepoint() throws {

@@ -68,7 +68,7 @@ extension ValueConversionContext {
                 arguments: statement.arguments,
                 column: nil)
         } else if let sqliteStatement = row.sqliteStatement {
-            let sql = String(cString: sqlite3_sql(sqliteStatement)).trimmingCharacters(in: statementSeparatorCharacterSet)
+            let sql = String(cString: sqlite3_sql(sqliteStatement)).trimmingCharacters(in: .sqlStatementSeparators)
             self.init(
                 row: row.copy(),
                 sql: sql,
@@ -81,14 +81,6 @@ extension ValueConversionContext {
                 arguments: nil,
                 column: nil)
         }
-    }
-    
-    init(sql: String, arguments: StatementArguments?) {
-        self.init(
-            row: nil,
-            sql: sql,
-            arguments: arguments,
-            column: nil)
     }
 }
 
@@ -161,7 +153,7 @@ func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue?, sqliteSta
     fatalConversionError(
         to: T.self,
         from: dbValue,
-        conversionContext: ValueConversionContext((row)).atColumn(Int(index)))
+        conversionContext: ValueConversionContext(row).atColumn(Int(index)))
 }
 
 // MARK: - DatabaseValueConvertible

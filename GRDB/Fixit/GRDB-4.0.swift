@@ -120,3 +120,24 @@ extension FTS5TokenizerDescriptor {
     public static func unicode61(removeDiacritics: Bool = true, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS5TokenizerDescriptor { preconditionFailure() }
 }
 #endif
+
+extension DatabaseValue {
+    @available(*, unavailable)
+    public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T: DatabaseValueConvertible { preconditionFailure() }
+    
+    @available(*, unavailable)
+    public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T: DatabaseValueConvertible { preconditionFailure() }
+}
+
+extension ValueScheduling {
+    @available(*, unavailable, renamed: "async(onQueue:startImmediately:)")
+    public static func onQueue(_ queue: DispatchQueue, startImmediately: Bool) -> ValueScheduling { preconditionFailure() }
+}
+
+extension ValueObservation {
+    @available(*, unavailable, message: "Observation extent is controlled by the lifetime of observers returned by the start() method.")
+    public var extent: Database.TransactionObservationExtent {
+        get { preconditionFailure() }
+        set { preconditionFailure() }
+    }
+}

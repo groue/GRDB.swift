@@ -8,11 +8,9 @@ import Foundation
 /// A raw SQLite statement, suitable for the SQLite C API.
 public typealias SQLiteStatement = OpaquePointer
 
-/// Statements are separated by semicolons and white spaces
-let statementSeparatorCharacterSet = CharacterSet(charactersIn: ";").union(.whitespacesAndNewlines)
-
-/// An error emitted when one tries to compile an empty statement.
-struct EmptyStatementError : Error {
+extension CharacterSet {
+    /// Statements are separated by semicolons and white spaces
+    static let sqlStatementSeparators = CharacterSet(charactersIn: ";").union(.whitespacesAndNewlines)
 }
 
 /// A statement represents an SQL query.
@@ -28,12 +26,13 @@ public class Statement {
     public var sql: String {
         // trim white space and semicolumn for homogeneous output
         return String(cString: sqlite3_sql(sqliteStatement))
-            .trimmingCharacters(in: statementSeparatorCharacterSet)
+            .trimmingCharacters(in: .sqlStatementSeparators)
     }
     
     unowned let database: Database
     
-    /// Creates a prepared statement.
+    /// Creates a prepared statement. Returns nil if the compiled string is
+    /// blank or empty.
     ///
     /// - parameter database: A database connection.
     /// - parameter statementStart: A pointer to a UTF-8 encoded C string
@@ -42,9 +41,8 @@ public class Statement {
     ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
-    /// - throws: DatabaseError in case of compilation error, and
-    ///   EmptyStatementError if the compiled string is blank or empty.
-    required init(
+    /// - throws: DatabaseError in case of compilation error.
+    required init?(
         database: Database,
         statementStart: UnsafePointer<Int8>,
         statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
@@ -71,14 +69,7 @@ public class Statement {
         }
         
         guard let statement = sqliteStatement else {
-            // I wish we could simply return nil, and make this initializer failable.
-            //
-            // Unfortunately, there is a Swift bug with failable+throwing initializers:
-            // https://bugs.swift.org/browse/SR-6067
-            //
-            // We thus use sentinel error for empty statements.
-            // TODO: is it fixed in Xcode 10.0
-            throw EmptyStatementError()
+            return nil
         }
         
         self.database = database
@@ -131,7 +122,7 @@ public class Statement {
     /// statement arguments.
     public func validate(arguments: StatementArguments) throws {
         var arguments = arguments
-        _ = try arguments.consume(self, allowingRemainingValues: false)
+        _ = try arguments.extractBindings(forStatement: self, allowingRemainingValues: false)
     }
     
     /// Set arguments without any validation. Trades safety for performance.
@@ -158,7 +149,7 @@ public class Statement {
         // Validate
         _arguments = arguments
         var arguments = arguments
-        let bindings = try arguments.consume(self, allowingRemainingValues: false)
+        let bindings = try arguments.extractBindings(forStatement: self, allowingRemainingValues: false)
         argumentsNeedValidation = false
         
         // Apply
@@ -236,19 +227,16 @@ extension StatementProtocol where Self: Statement {
         database.authorizer = authorizer
         defer { database.authorizer = nil }
         
-        let sqlCodeUnits = sql.utf8CString
-        return try sqlCodeUnits.withUnsafeBufferPointer { codeUnits in
-            let statementStart = UnsafePointer<Int8>(codeUnits.baseAddress)!
+        return try sql.utf8CString.withUnsafeBufferPointer { buffer in
+            let statementStart = buffer.baseAddress!
             var statementEnd: UnsafePointer<Int8>? = nil
-            let statement: Self
-            do {
-                statement = try self.init(
-                    database: database,
-                    statementStart: statementStart,
-                    statementEnd: &statementEnd,
-                    prepFlags: prepFlags,
-                    authorizer: authorizer)
-            } catch is EmptyStatementError {
+            guard let statement = try self.init(
+                database: database,
+                statementStart: statementStart,
+                statementEnd: &statementEnd,
+                prepFlags: prepFlags,
+                authorizer: authorizer) else
+            {
                 throw DatabaseError(
                     resultCode: .SQLITE_ERROR,
                     message: "empty statement",
@@ -256,18 +244,11 @@ extension StatementProtocol where Self: Statement {
                     arguments: nil)
             }
             
-            let remainingData = Data(
-                bytesNoCopy: UnsafeMutableRawPointer(mutating: statementEnd!),
-                count: statementStart + sqlCodeUnits.count - statementEnd! - 1,
-                deallocator: .none)
-            
-            let remainingSQL = String(data: remainingData, encoding: .utf8)!
-                .trimmingCharacters(in: statementSeparatorCharacterSet)
-            
+            let remainingSQL = String(cString: statementEnd!).trimmingCharacters(in: .sqlStatementSeparators)
             guard remainingSQL.isEmpty else {
                 throw DatabaseError(
                     resultCode: .SQLITE_MISUSE,
-                    message: "Multiple statements found. To execute multiple statements, use Database.execute() instead.",
+                    message: "Multiple statements found. To execute multiple statements, use Database.execute(sql:) instead.",
                     sql: sql,
                     arguments: nil)
             }
@@ -292,7 +273,8 @@ public final class SelectStatement : Statement {
     /// The database region that the statement looks into.
     public private(set) var databaseRegion = DatabaseRegion()
     
-    /// Creates a prepared statement.
+    /// Creates a prepared statement. Returns nil if the compiled string is
+    /// blank or empty.
     ///
     /// - parameter database: A database connection.
     /// - parameter statementStart: A pointer to a UTF-8 encoded C string
@@ -302,9 +284,8 @@ public final class SelectStatement : Statement {
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
     /// - authorizer: A StatementCompilationAuthorizer
-    /// - throws: DatabaseError in case of compilation error, and
-    ///   EmptyStatementError if the compiled string is blank or empty.
-    required init(
+    /// - throws: DatabaseError in case of compilation error.
+    required init?(
         database: Database,
         statementStart: UnsafePointer<Int8>,
         statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
@@ -454,7 +435,8 @@ public final class UpdateStatement : Statement {
     private(set) var transactionEffect: TransactionEffect?
     private(set) var databaseEventKinds: [DatabaseEventKind] = []
     
-    /// Creates a prepared statement.
+    /// Creates a prepared statement. Returns nil if the compiled string is
+    /// blank or empty.
     ///
     /// - parameter database: A database connection.
     /// - parameter statementStart: A pointer to a UTF-8 encoded C string
@@ -464,9 +446,8 @@ public final class UpdateStatement : Statement {
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
     /// - authorizer: A StatementCompilationAuthorizer
-    /// - throws: DatabaseError in case of compilation error, and
-    ///   EmptyStatementError if the compiled string is blank or empty.
-    required init(
+    /// - throws: DatabaseError in case of compilation error.
+    required init?(
         database: Database,
         statementStart: UnsafePointer<Int8>,
         statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
@@ -868,7 +849,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable, Expressibl
     
     // MARK: Not Public
     
-    mutating func consume(_ statement: Statement, allowingRemainingValues: Bool) throws -> [DatabaseValue] {
+    mutating func extractBindings(forStatement statement: Statement, allowingRemainingValues: Bool) throws -> [DatabaseValue] {
         let initialValuesCount = values.count
         let bindings = try statement.sqliteArgumentNames.map { argumentName -> DatabaseValue in
             if let argumentName = argumentName {

@@ -13,48 +13,6 @@ import XCTest
 #endif
 
 class ValueObservationExtentTests: GRDBTestCase {
-    func testDefaultExtentIsObserverLifetime() {
-        let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in })
-        XCTAssertEqual(observation.extent, .observerLifetime)
-    }
-    
-    func testExtentDatabaseLifetime() throws {
-        // We need something to change
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-        
-        // Track reducer process
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 3
-        
-        // A reducer
-        let reducer = AnyValueReducer(
-            fetch: { _ in },
-            value: { $0 })
-        
-        // Create an observation
-        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
-        observation.extent = .databaseLifetime
-        
-        // Start observation
-        _ = try observation.start(in: dbQueue) {
-            notificationExpectation.fulfill()
-        }
-        
-        // notified
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-        }
-        
-        // notified
-        try dbQueue.write { db in
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-        }
-        
-        waitForExpectations(timeout: 1, handler: nil)
-    }
-
     func testExtentObserverLifetime() throws {
         // We need something to change
         let dbQueue = try makeDatabaseQueue()
@@ -72,8 +30,7 @@ class ValueObservationExtentTests: GRDBTestCase {
             value: { $0 })
         
         // Create an observation
-        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
-        observation.extent = .observerLifetime
+        let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
         
         // Start observation and deallocate observer after second change
         var observer: TransactionObserver?
@@ -100,44 +57,5 @@ class ValueObservationExtentTests: GRDBTestCase {
         
         waitForExpectations(timeout: 1, handler: nil)
         XCTAssertEqual(changesCount, 2)
-    }
-
-    func testExtentNextTransaction() throws {
-        // We need something to change
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-        
-        // Track reducer process
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 2
-        
-        // A reducer
-        let reducer = AnyValueReducer(
-            fetch: { _ in },
-            value: { $0 })
-        
-        // Create an observation
-        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
-        observation.extent = .nextTransaction
-        
-        // Start observation
-        let observer = try observation.start(in: dbQueue) {
-            notificationExpectation.fulfill()
-        }
-        
-        try withExtendedLifetime(observer) {
-            // notified
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-            }
-            
-            // not notified
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-            }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-        }
     }
 }

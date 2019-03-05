@@ -31,23 +31,23 @@ class ValueObservationFetchTests: GRDBTestCase {
             notificationExpectation.assertForOverFulfill = true
             notificationExpectation.expectedFulfillmentCount = 4
             
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
-            observation.extent = .databaseLifetime
-            _ = try observation.start(in: dbWriter) { count in
+            let observer = try observation.start(in: dbWriter) { count in
                 counts.append(count)
                 notificationExpectation.fulfill()
             }
-            
-            try dbWriter.writeWithoutTransaction { db in
-                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                try db.execute(sql: "UPDATE t SET id = id")
-                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            try withExtendedLifetime(observer) {
+                try dbWriter.writeWithoutTransaction { db in
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                    try db.execute(sql: "UPDATE t SET id = id")
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                }
+                
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(counts, [0, 1, 1, 2])
             }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(counts, [0, 1, 1, 2])
         }
         
         try test(makeDatabaseQueue())
@@ -63,23 +63,23 @@ class ValueObservationFetchTests: GRDBTestCase {
             notificationExpectation.assertForOverFulfill = true
             notificationExpectation.expectedFulfillmentCount = 3
             
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             }).distinctUntilChanged()
-            observation.extent = .databaseLifetime
-            _ = try observation.start(in: dbWriter) { count in
+            let observer = try observation.start(in: dbWriter) { count in
                 counts.append(count)
                 notificationExpectation.fulfill()
             }
-            
-            try dbWriter.writeWithoutTransaction { db in
-                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                try db.execute(sql: "UPDATE t SET id = id")
-                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            try withExtendedLifetime(observer) {
+                try dbWriter.writeWithoutTransaction { db in
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                    try db.execute(sql: "UPDATE t SET id = id")
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                }
+                
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(counts, [0, 1, 2])
             }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(counts, [0, 1, 2])
         }
         
         try test(makeDatabaseQueue())

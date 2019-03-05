@@ -20,7 +20,10 @@ public enum PersistenceError: Error, CustomStringConvertible {
     
     /// Thrown by MutablePersistableRecord.update() when no matching row could be
     /// found in the database.
-    case recordNotFound(MutablePersistableRecord)
+    ///
+    /// - databaseTableName: the table of the unfound record
+    /// - key: the key of the unfound record (column and values)
+    case recordNotFound(databaseTableName: String, key: [String: DatabaseValue])
 }
 
 // CustomStringConvertible
@@ -28,8 +31,9 @@ extension PersistenceError {
     /// :nodoc:
     public var description: String {
         switch self {
-        case .recordNotFound(let record):
-            return "Not found: \(record)"
+        case let .recordNotFound(databaseTableName: databaseTableName, key: key):
+            let row = Row(key) // For nice output
+            return "Key not found in table \(databaseTableName): \(row.description)"
         }
     }
 }
@@ -662,18 +666,19 @@ extension MutablePersistableRecord {
     
     // MARK: - CRUD Internals
     
-    /// Return true if record has a non-null primary key
+    /// Return a non-nil dictionary if record has a non-null primary key
     @usableFromInline
-    func canUpdate(_ db: Database) throws -> Bool {
+    func primaryKey(_ db: Database) throws -> [String: DatabaseValue]? {
         let databaseTableName = type(of: self).databaseTableName
-        let primaryKey = try db.primaryKey(databaseTableName)
+        let primaryKeyInfo = try db.primaryKey(databaseTableName)
         let container = try PersistenceContainer(db, self)
-        for column in primaryKey.columns {
-            if let value = container[caseInsensitive: column], !value.databaseValue.isNull {
-                return true
-            }
+        let primaryKey = Dictionary(uniqueKeysWithValues: primaryKeyInfo.columns.map {
+            ($0, container[caseInsensitive: $0]?.databaseValue ?? .null)
+        })
+        if primaryKey.allSatisfy({ $0.value.isNull }) {
+            return nil
         }
-        return false
+        return primaryKey
     }
     
     /// Don't invoke this method directly: it is an internal method for types
@@ -709,13 +714,14 @@ extension MutablePersistableRecord {
     ///   match any row in the database.
     @inlinable
     public func performUpdate(_ db: Database, columns: Set<String>) throws {
-        guard let statement = try DAO(db, self).updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
+        let dao = try DAO(db, self)
+        guard let statement = try dao.updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
             // Nil primary key
-            throw PersistenceError.recordNotFound(self)
+            throw dao.makeRecordNotFoundError()
         }
         try statement.execute()
         if db.changesCount == 0 {
-            throw PersistenceError.recordNotFound(self)
+            throw dao.makeRecordNotFoundError()
         }
     }
     
@@ -730,18 +736,12 @@ extension MutablePersistableRecord {
     /// This default implementation forwards the job to `update` or `insert`.
     @inlinable
     public mutating func performSave(_ db: Database) throws {
-        // Make sure we call self.insert and self.update so that classes
-        // that override insert or save have opportunity to perform their
-        // custom job.
-        
-        if try canUpdate(db) {
+        // Call self.insert and self.update so that we support classes that
+        // override those methods.
+        if let key = try primaryKey(db) {
             do {
                 try update(db)
-            } catch PersistenceError.recordNotFound {
-                // TODO: check that the not persisted objet is self
-                //
-                // Why? Adopting types could override update() and update
-                // another object which may be the one throwing this error.
+            } catch PersistenceError.recordNotFound(databaseTableName: type(of: self).databaseTableName, key: key) {
                 try insert(db)
             }
         } else {
@@ -1055,17 +1055,12 @@ extension PersistableRecord {
     /// This default implementation forwards the job to `update` or `insert`.
     @inlinable
     public func performSave(_ db: Database) throws {
-        // Make sure we call self.insert and self.update so that classes that
-        // override insert or save have opportunity to perform their custom job.
-        
-        if try canUpdate(db) {
+        // Call self.insert and self.update so that we support classes that
+        // override those methods.
+        if let key = try primaryKey(db) {
             do {
                 try update(db)
-            } catch PersistenceError.recordNotFound {
-                // TODO: check that the not persisted objet is self
-                //
-                // Why? Adopting types could override update() and update another
-                // object which may be the one throwing this error.
+            } catch PersistenceError.recordNotFound(databaseTableName: type(of: self).databaseTableName, key: key) {
                 try insert(db)
             }
         } else {
@@ -1150,12 +1145,8 @@ public enum DatabaseUUIDEncodingStrategy {
 /// DAO takes care of PersistableRecord CRUD
 @usableFromInline
 final class DAO<Record: MutablePersistableRecord> {
-    
     /// The database
     let db: Database
-    
-    /// The record
-    let record: Record
     
     /// DAO keeps a copy the record's persistenceContainer, so that this
     /// dictionary is built once whatever the database operation. It is
@@ -1165,22 +1156,16 @@ final class DAO<Record: MutablePersistableRecord> {
     /// The table name
     let databaseTableName: String
     
-    /// The table primary key
+    /// The table primary key info
     @usableFromInline let primaryKey: PrimaryKeyInfo
     
     @usableFromInline
     init(_ db: Database, _ record: Record) throws {
-        let databaseTableName = type(of: record).databaseTableName
-        let primaryKey = try db.primaryKey(databaseTableName)
-        let persistenceContainer = try PersistenceContainer(db, record)
-        
-        GRDBPrecondition(!persistenceContainer.isEmpty, "\(type(of: record)): invalid empty persistence container")
-        
         self.db = db
-        self.record = record
-        self.persistenceContainer = persistenceContainer
-        self.databaseTableName = databaseTableName
-        self.primaryKey = primaryKey
+        databaseTableName = type(of: record).databaseTableName
+        primaryKey = try db.primaryKey(databaseTableName)
+        persistenceContainer = try PersistenceContainer(db, record)
+        GRDBPrecondition(!persistenceContainer.isEmpty, "\(type(of: record)): invalid empty persistence container")
     }
     
     @usableFromInline
@@ -1282,6 +1267,17 @@ final class DAO<Record: MutablePersistableRecord> {
         let statement = try db.internalCachedSelectStatement(sql: query.sql)
         statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
         return statement
+    }
+    
+    /// Throws a PersistenceError.recordNotFound error
+    @usableFromInline
+    func makeRecordNotFoundError() -> Error {
+        let key = Dictionary(uniqueKeysWithValues: primaryKey.columns.map {
+            ($0, persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null)
+        })
+        return PersistenceError.recordNotFound(
+            databaseTableName: databaseTableName,
+            key: key)
     }
 }
 
