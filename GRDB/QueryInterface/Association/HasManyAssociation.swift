@@ -58,7 +58,7 @@
 ///     }
 ///
 /// See ForeignKey for more information.
-public struct HasManyAssociation<Origin, Destination>: Association {
+public struct HasManyAssociation<Origin, Destination>: AssociationToMany {
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
     
@@ -76,95 +76,6 @@ public struct HasManyAssociation<Origin, Destination>: Association {
 
 // Allow HasManyAssociation(...).filter(key: ...)
 extension HasManyAssociation: TableRequest where Destination: TableRecord { }
-
-extension HasManyAssociation where Origin: TableRecord, Destination: TableRecord {
-    private func makeAggregate(_ expression: SQLExpression) -> AssociationAggregate<Origin> {
-        return AssociationAggregate { request in
-            let tableAlias = TableAlias()
-            let request = request
-                .joining(optional: self.aliased(tableAlias))
-                .groupByPrimaryKey()
-            let expression = tableAlias[expression]
-            return (request: request, expression: expression)
-        }
-    }
-    
-    /// The number of associated records.
-    ///
-    /// For example:
-    ///
-    ///     Team.annotated(with: Team.players.count())
-    public var count: AssociationAggregate<Origin> {
-        return makeAggregate(SQLExpressionCountDistinct(Column.rowID)).aliased("\(key)Count")
-    }
-    
-    /// An aggregate that is true if there exists no associated records.
-    ///
-    /// For example:
-    ///
-    ///     Team.having(Team.players.isEmpty())
-    ///     Team.having(!Team.players.isEmpty())
-    ///     Team.having(Team.players.isEmpty() == false)
-    public var isEmpty: AssociationAggregate<Origin> {
-        return makeAggregate(SQLExpressionIsEmpty(SQLExpressionCountDistinct(Column.rowID)))
-    }
-    
-    /// The average value of the given expression in associated records.
-    ///
-    /// For example:
-    ///
-    ///     Team.annotated(with: Team.players.average(Column("score")))
-    public func average(_ expression: SQLExpressible) -> AssociationAggregate<Origin> {
-        let aggregate = makeAggregate(SQLExpressionFunction(.avg, arguments: expression))
-        if let column = expression as? ColumnExpression {
-            return aggregate.aliased("average\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
-        } else {
-            return aggregate
-        }
-    }
-    
-    /// The maximum value of the given expression in associated records.
-    ///
-    /// For example:
-    ///
-    ///     Team.annotated(with: Team.players.max(Column("score")))
-    public func max(_ expression: SQLExpressible) -> AssociationAggregate<Origin> {
-        let aggregate = makeAggregate(SQLExpressionFunction(.max, arguments: expression))
-        if let column = expression as? ColumnExpression {
-            return aggregate.aliased("max\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
-        } else {
-            return aggregate
-        }
-    }
-    
-    /// The minimum value of the given expression in associated records.
-    ///
-    /// For example:
-    ///
-    ///     Team.annotated(with: Team.players.min(Column("score")))
-    public func min(_ expression: SQLExpressible) -> AssociationAggregate<Origin> {
-        let aggregate = makeAggregate(SQLExpressionFunction(.min, arguments: expression))
-        if let column = expression as? ColumnExpression {
-            return aggregate.aliased("min\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
-        } else {
-            return aggregate
-        }
-    }
-    
-    /// The sum of the given expression in associated records.
-    ///
-    /// For example:
-    ///
-    ///     Team.annotated(with: Team.players.min(Column("score")))
-    public func sum(_ expression: SQLExpressible) -> AssociationAggregate<Origin> {
-        let aggregate = makeAggregate(SQLExpressionFunction(.sum, arguments: expression))
-        if let column = expression as? ColumnExpression {
-            return aggregate.aliased("\(key)\(column.name.uppercasingFirstCharacter)Sum")
-        } else {
-            return aggregate
-        }
-    }
-}
 
 extension TableRecord {
     /// Creates a "Has many" association between Self and the

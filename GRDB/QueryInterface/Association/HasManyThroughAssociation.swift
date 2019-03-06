@@ -1,4 +1,4 @@
-public struct HasManyThroughAssociation<Origin, Destination>: Association {
+public struct HasManyThroughAssociation<Origin, Destination>: AssociationToMany {
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
     
