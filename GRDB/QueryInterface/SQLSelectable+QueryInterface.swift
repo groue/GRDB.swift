@@ -78,10 +78,27 @@ extension QualifiedAllColumns : SQLSelectable {
     }
     
     func countedSQL(_ context: inout SQLGenerationContext) -> String {
-        if context.qualifier(for: alias) != nil {
-            // SELECT COUNT(t.*) is invalid SQL
-            fatalError("Not implemented, or invalid query")
-        }
+        // TODO: restore the check below.
+        //
+        // It is currently disabled because of AssociationAggregateTests.testHasManyIsEmpty:
+        //
+        //      let request = Team.having(Team.players.isEmpty)
+        //      try XCTAssertEqual(request.fetchCount(db), 1)
+        //
+        // This should build the trivial count query `SELECT COUNT(*) FROM (SELECT ...)`
+        //
+        // Unfortunately, we don't support anonymous table aliases that would be
+        // required here. Because we don't support anonymous tables aliases,
+        // everything happens as if we wanted to generate
+        // `SELECT COUNT(team.*) FROM (SELECT ...)`, which is invalid SQL.
+        //
+        // So let's always return `*`, and fix this later.
+        
+//        if context.qualifier(for: alias) != nil {
+//            // SELECT COUNT(t.*) is invalid SQL
+//            fatalError("Not implemented, or invalid query")
+//        }
+        
         return "*"
     }
     
