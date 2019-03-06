@@ -224,9 +224,12 @@ private struct SQLQualifiedRelation {
     
     /// All aliases, including aliases of joined relations
     var allAliases: [TableAlias] {
-        return joins.reduce(into: [alias]) {
-            $0.append(contentsOf: $1.value.relation.allAliases)
+        var aliases = [alias]
+        for join in joins.values {
+            aliases.append(contentsOf: join.relation.allAliases)
         }
+        aliases.append(contentsOf: source.allAliases)
+        return aliases
     }
     
     /// The source
@@ -363,6 +366,15 @@ private enum SQLQualifiedSource {
             return alias
         case .query(let query):
             return query.relation.alias
+        }
+    }
+    
+    var allAliases: [TableAlias] {
+        switch self {
+        case .table(_, let alias):
+            return [alias]
+        case .query(let query):
+            return query.relation.allAliases
         }
     }
     
