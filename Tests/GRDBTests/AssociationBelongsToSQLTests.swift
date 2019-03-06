@@ -873,4 +873,22 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
             static let parent2 = belongsTo(Parent.self, using: ForeignKeys.parent2)
         }
     }
+    
+    // Regression test for https://github.com/groue/GRDB.swift/issues/495
+    func testFetchCount() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "a") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "b") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("aId", .integer).references("a")
+            }
+            struct A: TableRecord { }
+            struct B: TableRecord { }
+            let request = B.joining(required: B.belongsTo(A.self))
+            let _ = try request.fetchCount(db)
+        }
+    }
 }
