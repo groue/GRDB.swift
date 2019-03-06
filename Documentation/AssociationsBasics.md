@@ -773,7 +773,7 @@ let book: Book = ...
 let author = try book.author.fetchOne(db)   // Author?
 ```
 
-**[HasOne]** and **[HasMany]** associations can also build requests for associated records. For example:
+**[HasOne]**, **[HasMany]**, **[HasOneThrough]**, and **[HasManyThrough]** associations can also build requests for associated records. For example:
 
 ```swift
 struct Author: PersistableRecord {
@@ -923,7 +923,7 @@ let request = Book
 
 The request above fetches all books, along with their author, and their author's country.
 
-When you chain associations, you can avoid fetching intermediate values by replacing the `including` method with `joining`:
+When you chain associations, you can avoid fetching intermediate tables by replacing the `including` method with `joining`. The request below fetches all books, along with their author's country, but does not include the intermediate authors in the fetched results:
 
 ```swift
 // SELECT book.*, country.*
@@ -935,7 +935,15 @@ let request = Book
         .including(optional: Person.country))
 ```
 
-The request above fetches all books, along with their author's country.
+**[HasOneThrough]** and **[HasManyThrough]** associations provide a shortcut for those requests that skip intermediate tables:
+
+```swift
+// SELECT book.*, country.*
+// FROM book
+// LEFT JOIN person ON person.id = book.authorId
+// LEFT JOIN country ON country.code = person.countryCode
+let request = Book.including(optional: Book.country)
+```
 
 > :warning: **Warning**: you can not currently chain a required association behind an optional association:
 >
