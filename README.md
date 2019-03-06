@@ -5074,12 +5074,25 @@ let documents = try Document.filter(Column("content").match(pattern)).fetchAll(d
 When the FTS3 and FTS4 full-text engines don't suit your needs, you may want to use FTS5. See [Choosing the Full-Text Engine](#choosing-the-full-text-engine) to help you make a decision.
 
 The version of SQLite that ships with iOS, macOS and watchOS does not always support the FTS5 engine. To enable FTS5 support, you'll need to install GRDB with one of those installation techniques:
-    
-1. Use the GRDBPlus CocoaPod. It uses the system SQLite, and requires iOS 11.4+ / macOS 10.13+ / watchOS 4.3+:
-    
+
+1. Use the GRDB.swift CocoaPod with a custom compilation option, as below. It uses the system SQLite, which is compiled with FTS5 support, but only on iOS 11.4+ / macOS 10.13+ / watchOS 4.3+:
+
     ```ruby
-    pod 'GRDBPlus'
+    pod 'GRDB.swift'
+    platform :ios, '11.4' # or above
+    
+    post_install do |installer|
+      installer.pods_project.targets.select { |target| target.name == "GRDB.swift" }.each do |target|
+        target.build_configurations.each do |config|
+          config.build_settings['OTHER_SWIFT_FLAGS'] = "$(inherited) -D SQLITE_ENABLE_FTS5"
+        end
+      end
+    end
     ```
+    
+    > :warning: **Warning**: make sure you use the right platform version! You will get runtime errors on devices with a lower version.
+    
+    > :point_up: **Note**: there used to be a GRDBPlus CocoaPod with pre-enabled FTS5 support. This CocoaPod is deprecated: please switch to the above technique.
 
 2. Use the GRDBCipher CocoaPod. It uses SQLCipher (see [encryption](#encryption)), and requires iOS 8.0+ / macOS 10.9+ / watchOS 2.0+:
     
