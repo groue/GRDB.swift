@@ -177,7 +177,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
 
     func testFTS4Options() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             try db.create(virtualTable: "documents", using: FTS4()) { t in
                 t.content = ""
                 t.compress = "zip"
@@ -187,7 +187,6 @@ class FTS4TableBuilderTests: GRDBTestCase {
                 t.column("content")
                 t.column("lid").asLanguageId()
             }
-            print(sqlQueries)
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts4(content, languageid=\"lid\", content=\"\", compress=\"zip\", uncompress=\"unzip\", matchinfo=\"fts3\", prefix=\"2,4\")")
             
             try db.execute("INSERT INTO documents (docid, content, lid) VALUES (?, ?, ?)", arguments: [1, "abc", 0])
@@ -286,6 +285,39 @@ class FTS4TableBuilderTests: GRDBTestCase {
                 t.synchronize(withTable: "documents")
                 t.column("content")
             }
+        }
+    }
+    
+    func testFTS4Compression() throws {
+        // Based on https://github.com/groue/GRDB.swift/issues/369
+        var compressCalled = false
+        var uncompressCalled = false
+        
+        let dbPool = try makeDatabasePool()
+        dbPool.add(function: DatabaseFunction("zipit", argumentCount: 1, pure: true, function: { dbValues in
+            compressCalled = true
+            return dbValues[0]
+        }))
+        dbPool.add(function: DatabaseFunction("unzipit", argumentCount: 1, pure: true, function: { dbValues in
+            uncompressCalled = true
+            return dbValues[0]
+        }))
+        
+        try dbPool.write { db in
+            try db.create(virtualTable: "documents", using: FTS4()) { t in
+                t.compress = "zipit"
+                t.uncompress = "unzipit"
+                t.column("content")
+            }
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts4(content, compress=\"zipit\", uncompress=\"unzipit\")")
+            
+            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["abc"])
+            XCTAssertTrue(compressCalled)
+        }
+        
+        try dbPool.read { db in
+            _ = try Row.fetchOne(db, "SELECT * FROM documents")
+            XCTAssertTrue(uncompressCalled)
         }
     }
 }

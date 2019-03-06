@@ -146,6 +146,7 @@ public func sum(_ value: SQLSpecificExpressible) -> SQLExpression {
 
 // MARK: - Swift String functions
 
+/// :nodoc:
 extension SQLSpecificExpressible {
     /// Returns an SQL expression that applies the Swift's built-in
     /// capitalized String property. It is NULL for non-String arguments.
@@ -178,6 +179,7 @@ extension SQLSpecificExpressible {
     }
 }
 
+/// :nodoc:
 extension SQLSpecificExpressible {
     /// Returns an SQL expression that applies the Swift's built-in
     /// localizedCapitalized String property. It is NULL for non-String arguments.

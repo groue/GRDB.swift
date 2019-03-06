@@ -1,8 +1,13 @@
 import Foundation
+#if SWIFT_PACKAGE
+    import CSQLite
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
 
 /// DatabaseDateComponents reads and stores DateComponents in the database.
-public struct DatabaseDateComponents : DatabaseValueConvertible {
-    
+public struct DatabaseDateComponents : DatabaseValueConvertible, StatementColumnConvertible {
+
     /// The available formats for reading and storing date components.
     public enum Format : String {
         
@@ -53,21 +58,36 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
     
     /// Creates a DatabaseDateComponents from a DateComponents and a format.
     ///
-    /// The result is nil if and only if *dateComponents* is nil.
-    ///
     /// - parameters:
     ///     - dateComponents: An optional DateComponents.
     ///     - format: The format used for storing the date components in
     ///       the database.
-    /// - returns: An optional DatabaseDateComponents.
-    public init?(_ dateComponents: DateComponents?, format: Format) {
-        guard let dateComponents = dateComponents else {
-            return nil
-        }
+    public init(_ dateComponents: DateComponents, format: Format) {
         self.format = format
         self.dateComponents = dateComponents
     }
     
+    // MARK: - StatementColumnConvertible adoption
+    
+    /// Returns a value initialized from a raw SQLite statement pointer.
+    ///
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to an SQLite statement.
+    ///     - index: The column index.
+    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+        guard let cString = sqlite3_column_text(sqliteStatement, index) else {
+            fatalConversionError(to: DatabaseDateComponents.self, sqliteStatement: sqliteStatement, index: index)
+        }
+        let length = Int(sqlite3_column_bytes(sqliteStatement, index)) // avoid an strlen
+        let optionalComponents = cString.withMemoryRebound(to: Int8.self, capacity: length + 1 /* trailing \0 */) { cString in
+            SQLiteDateParser().components(cString: cString, length: length)
+        }
+        guard let components = optionalComponents else {
+            fatalConversionError(to: DatabaseDateComponents.self, sqliteStatement: sqliteStatement, index: index)
+        }
+        self.dateComponents = components.dateComponents
+        self.format = components.format
+    }
     
     // MARK: - DatabaseValueConvertible adoption
     
@@ -79,7 +99,7 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
             let year = dateComponents.year ?? 0
             let month = dateComponents.month ?? 1
             let day = dateComponents.day ?? 1
-            dateString = NSString(format: "%04d-%02d-%02d", year, month, day) as String
+            dateString = String(format: "%04d-%02d-%02d", year, month, day)
         default:
             dateString = nil
         }
@@ -89,23 +109,23 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
         case .YMD_HM, .HM:
             let hour = dateComponents.hour ?? 0
             let minute = dateComponents.minute ?? 0
-            timeString = NSString(format: "%02d:%02d", hour, minute) as String
+            timeString = String(format: "%02d:%02d", hour, minute)
         case .YMD_HMS, .HMS:
             let hour = dateComponents.hour ?? 0
             let minute = dateComponents.minute ?? 0
             let second = dateComponents.second ?? 0
-            timeString = NSString(format: "%02d:%02d:%02d", hour, minute, second) as String
+            timeString = String(format: "%02d:%02d:%02d", hour, minute, second)
         case .YMD_HMSS, .HMSS:
             let hour = dateComponents.hour ?? 0
             let minute = dateComponents.minute ?? 0
             let second = dateComponents.second ?? 0
             let nanosecond = dateComponents.nanosecond ?? 0
-            timeString = NSString(format: "%02d:%02d:%02d.%03d", hour, minute, second, Int(round(Double(nanosecond) / 1_000_000.0))) as String
+            timeString = String(format: "%02d:%02d:%02d.%03d", hour, minute, second, Int(round(Double(nanosecond) / 1_000_000.0)))
         default:
             timeString = nil
         }
         
-        return [dateString, timeString].flatMap { $0 }.joined(separator: " ").databaseValue
+        return [dateString, timeString].compactMap { $0 }.joined(separator: " ").databaseValue
     }
     
     /// Returns a DatabaseDateComponents if *dbValue* contains a
@@ -131,158 +151,6 @@ public struct DatabaseDateComponents : DatabaseValueConvertible {
             return nil
         }
         
-        var dateComponents = DateComponents()
-        let scanner = Scanner(string: string)
-        scanner.charactersToBeSkipped = CharacterSet()
-        
-        let hasDate: Bool
-        
-        // YYYY or HH
-        var initialNumber: Int = 0
-        if !scanner.scanInt(&initialNumber) {
-            return nil
-        }
-        switch scanner.scanLocation {
-        case 2:
-            // HH
-            hasDate = false
-            
-            let hour = initialNumber
-            if hour >= 0 && hour <= 23 {
-                dateComponents.hour = hour
-            } else {
-                return nil
-            }
-            
-        case 4:
-            // YYYY
-            hasDate = true
-            
-            let year = initialNumber
-            if year >= 0 && year <= 9999 {
-                dateComponents.year = year
-            } else {
-                return nil
-            }
-            
-            // -
-            if !scanner.scanString("-", into: nil) {
-                return nil
-            }
-            
-            // MM
-            var month: Int = 0
-            if scanner.scanInt(&month) && month >= 1 && month <= 12 {
-                dateComponents.month = month
-            } else {
-                return nil
-            }
-            
-            // -
-            if !scanner.scanString("-", into: nil) {
-                return nil
-            }
-            
-            // DD
-            var day: Int = 0
-            if scanner.scanInt(&day) && day >= 1 && day <= 31 {
-                dateComponents.day = day
-            } else {
-                return nil
-            }
-            
-            // YYYY-MM-DD
-            if scanner.isAtEnd {
-                return DatabaseDateComponents(dateComponents, format: .YMD)
-            }
-            
-            // T/space
-            if !scanner.scanString("T", into: nil) && !scanner.scanString(" ", into: nil) {
-                return nil
-            }
-            
-            // HH
-            var hour: Int = 0
-            if scanner.scanInt(&hour) && hour >= 0 && hour <= 23 {
-                dateComponents.hour = hour
-            } else {
-                return nil
-            }
-            
-        default:
-            return nil
-        }
-        
-        // :
-        if !scanner.scanString(":", into: nil) {
-            return nil
-        }
-        
-        // MM
-        var minute: Int = 0
-        if scanner.scanInt(&minute) && minute >= 0 && minute <= 59 {
-            dateComponents.minute = minute
-        } else {
-            return nil
-        }
-        
-        // [YYYY-MM-DD] HH:MM
-        if scanner.isAtEnd {
-            if hasDate {
-                return DatabaseDateComponents(dateComponents, format: .YMD_HM)
-            } else {
-                return DatabaseDateComponents(dateComponents, format: .HM)
-            }
-        }
-        
-        // :
-        if !scanner.scanString(":", into: nil) {
-            return nil
-        }
-        
-        // SS
-        var second: Int = 0
-        if scanner.scanInt(&second) && second >= 0 && second <= 59 {
-            dateComponents.second = second
-        } else {
-            return nil
-        }
-        
-        // [YYYY-MM-DD] HH:MM:SS
-        if scanner.isAtEnd {
-            if hasDate {
-                return DatabaseDateComponents(dateComponents, format: .YMD_HMS)
-            } else {
-                return DatabaseDateComponents(dateComponents, format: .HMS)
-            }
-        }
-        
-        // .
-        if !scanner.scanString(".", into: nil) {
-            return nil
-        }
-        
-        // SSS
-        var millisecondDigits: NSString? = nil
-        if scanner.scanCharacters(from: .decimalDigits, into: &millisecondDigits), var millisecondDigits = millisecondDigits {
-            if millisecondDigits.length > 3 {
-                millisecondDigits = NSString(string: millisecondDigits.substring(to: 3))
-            }
-            dateComponents.nanosecond = millisecondDigits.integerValue * 1_000_000
-        } else {
-            return nil
-        }
-        
-        // [YYYY-MM-DD] HH:MM:SS.SSS
-        if scanner.isAtEnd {
-            if hasDate {
-                return DatabaseDateComponents(dateComponents, format: .YMD_HMSS)
-            } else {
-                return DatabaseDateComponents(dateComponents, format: .HMSS)
-            }
-        }
-        
-        // Unknown format
-        return nil
+        return SQLiteDateParser().components(from: string)
     }
 }

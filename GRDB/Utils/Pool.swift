@@ -60,31 +60,31 @@ final class Pool<T> {
     /// Client MUST call release() after the element has been used.
     func get() throws -> (T, () -> ()) {
         _ = semaphore.wait(timeout: .distantFuture)
-        var item: Item! = nil
         do {
-            try items.write { items in
-                if let availableItem = items.first(where: { $0.available }) {
-                    item = availableItem
+            let item = try items.write { items -> Item in
+                if let item = items.first(where: { $0.available }) {
                     item.available = false
+                    return item
                 } else {
                     let element = try makeElement()
-                    item = Item(element: element, available: false)
+                    let item = Item(element: element, available: false)
                     items.append(item)
+                    return item
                 }
             }
+            let release = {
+                self.items.write { _ in
+                    // This is why Item is a class, not a struct: so that we can
+                    // release it without having to find in it the items array.
+                    item.available = true
+                }
+                self.semaphore.signal()
+            }
+            return (item.element, release)
         } catch {
             semaphore.signal()
             throw error
         }
-        let release = {
-            self.items.write { _ in
-                // This is why Item is a class, not a struct: so that we can
-                // release it without having to find in it the items array.
-                item.available = true
-            }
-            self.semaphore.signal()
-        }
-        return (item.element, release)
     }
     
     /// Performs a synchronous block with an element. The element turns

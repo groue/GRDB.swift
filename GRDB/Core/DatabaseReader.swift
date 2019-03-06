@@ -31,14 +31,14 @@ public protocol DatabaseReader : class {
     ///
     ///     try reader.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
-    ///         // `wines` table is modified between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         // `wine` table is modified between the two requests:
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     ///     try reader.read { db in
     ///         // Now this value may be different:
-    ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Guarantee 2: Starting iOS 8.2, OSX 10.10, and with custom SQLite builds
@@ -61,8 +61,8 @@ public protocol DatabaseReader : class {
     ///     try reader.unsafeRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Cursor iterations are isolated, though:
@@ -92,8 +92,8 @@ public protocol DatabaseReader : class {
     ///     try reader.unsafeReentrantRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wines")!
+    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Cursor iterations are isolated, though:
@@ -144,11 +144,32 @@ public protocol DatabaseReader : class {
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
     ///     reader.add(collation: collation)
-    ///     try reader.execute("SELECT * FROM files ORDER BY name COLLATE localized_standard")
+    ///     try reader.execute("SELECT * FROM file ORDER BY name COLLATE localized_standard")
     func add(collation: DatabaseCollation)
     
     /// Remove a collation.
     func remove(collation: DatabaseCollation)
+    
+    // MARK: - Value Observation
+    
+    /// Starts a value observation.
+    ///
+    /// You should use the `ValueObservation.start(in:onError:onChange:)`
+    /// method instead.
+    ///
+    /// - parameter observation: the stared observation
+    /// - parameter onError: a closure that is provided by eventual errors that happen
+    /// during observation
+    /// - parameter onChange: a closure that is provided fresh values
+    /// - returns: a TransactionObserver
+    func add<Reducer: ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        onError: ((Error) -> Void)?,
+        onChange: @escaping (Reducer.Value) -> Void)
+        throws -> TransactionObserver
+    
+    /// Remove a transaction observer.
+    func remove(transactionObserver: TransactionObserver)
 }
 
 extension DatabaseReader {
@@ -169,41 +190,8 @@ extension DatabaseReader {
     
     func backup(to writer: DatabaseWriter, afterBackupInit: (() -> ())?, afterBackupStep: (() -> ())?) throws {
         try read { dbFrom in
-            try writer.write { dbDest in
-                guard let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", dbFrom.sqliteConnection, "main") else {
-                    throw DatabaseError(resultCode: dbDest.lastErrorCode, message: dbDest.lastErrorMessage)
-                }
-                guard Int(bitPattern: backup) != Int(SQLITE_ERROR) else {
-                    throw DatabaseError(resultCode: .SQLITE_ERROR)
-                }
-                
-                afterBackupInit?()
-                
-                do {
-                    backupLoop: while true {
-                        switch sqlite3_backup_step(backup, -1) {
-                        case SQLITE_DONE:
-                            afterBackupStep?()
-                            break backupLoop
-                        case SQLITE_OK:
-                            afterBackupStep?()
-                        case let code:
-                            throw DatabaseError(resultCode: code, message: dbDest.lastErrorMessage)
-                        }
-                    }
-                } catch {
-                    sqlite3_backup_finish(backup)
-                    throw error
-                }
-                
-                switch sqlite3_backup_finish(backup) {
-                case SQLITE_OK:
-                    break
-                case let code:
-                    throw DatabaseError(resultCode: code, message: dbDest.lastErrorMessage)
-                }
-                
-                dbDest.clearSchemaCache()
+            try writer.writeWithoutTransaction { dbDest in
+                try Database.backup(from: dbFrom, to: dbDest, afterBackupInit: afterBackupInit, afterBackupStep: afterBackupStep)
             }
         }
     }
@@ -260,5 +248,22 @@ public final class AnyDatabaseReader : DatabaseReader {
     /// :nodoc:
     public func remove(collation: DatabaseCollation) {
         base.remove(collation: collation)
+    }
+    
+    // MARK: - Value Observation
+    
+    /// :nodoc:
+    public func add<Reducer: ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        onError: ((Error) -> Void)?,
+        onChange: @escaping (Reducer.Value) -> Void)
+        throws -> TransactionObserver
+    {
+        return try base.add(observation: observation, onError: onError, onChange: onChange)
+    }
+    
+    /// :nodoc:
+    public func remove(transactionObserver: TransactionObserver) {
+        base.remove(transactionObserver: transactionObserver)
     }
 }

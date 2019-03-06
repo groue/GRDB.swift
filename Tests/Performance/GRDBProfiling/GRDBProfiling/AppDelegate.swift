@@ -1,11 +1,3 @@
-//
-//  AppDelegate.swift
-//  GRDBProfiling
-//
-//  Created by Gwendal Roué on 15/09/2015.
-//  Copyright © 2015 Gwendal Roué. All rights reserved.
-//
-
 import Cocoa
 import GRDB
 
@@ -17,6 +9,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         fetchPositionalValues()
         fetchNamedValues()
+        fetchStructs()
         fetchRecords()
         insertPositionalValues()
         insertNamedValues()
@@ -77,11 +70,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         assert(count == expectedRowCount)
     }
     
+    func fetchStructs() {
+        let databasePath = Bundle(for: type(of: self)).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
+        let dbQueue = try! DatabaseQueue(path: databasePath)
+        let items = dbQueue.inDatabase { db in
+            try! ItemStruct.fetchAll(db)
+        }
+        assert(items.count == expectedRowCount)
+        assert(items[0].i0 == 0)
+        assert(items[1].i1 == 1)
+        assert(items[expectedRowCount-1].i9 == expectedRowCount-1)
+    }
+    
     func fetchRecords() {
         let databasePath = Bundle(for: type(of: self)).path(forResource: "ProfilingDatabase", ofType: "sqlite")!
         let dbQueue = try! DatabaseQueue(path: databasePath)
         let items = dbQueue.inDatabase { db in
-            try! Item.fetchAll(db)
+            try! ItemRecord.fetchAll(db)
         }
         assert(items.count == expectedRowCount)
         assert(items[0].i0 == 0)
@@ -170,15 +175,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         try! dbQueue.inTransaction { db in
             for i in 0..<insertedRowCount {
-                try Item(i0: i, i1: i, i2: i, i3: i, i4: i, i5: i, i6: i, i7: i, i8: i, i9: i).insert(db)
+                try ItemRecord(i0: i, i1: i, i2: i, i3: i, i4: i, i5: i, i6: i, i7: i, i8: i, i9: i).insert(db)
             }
             return .commit
         }
     }
 }
 
-
-class Item : Record {
+class ItemRecord : Record {
     var i0: Int?
     var i1: Int?
     var i2: Int?
@@ -223,6 +227,60 @@ class Item : Record {
     }
     
     override func encode(to container: inout PersistenceContainer) {
+        container["i0"] = i0
+        container["i1"] = i1
+        container["i2"] = i2
+        container["i3"] = i3
+        container["i4"] = i4
+        container["i5"] = i5
+        container["i6"] = i6
+        container["i7"] = i7
+        container["i8"] = i8
+        container["i9"] = i9
+    }
+}
+
+struct ItemStruct: FetchableRecord, PersistableRecord {
+    var i0: Int?
+    var i1: Int?
+    var i2: Int?
+    var i3: Int?
+    var i4: Int?
+    var i5: Int?
+    var i6: Int?
+    var i7: Int?
+    var i8: Int?
+    var i9: Int?
+    
+    init(i0: Int?, i1: Int?, i2: Int?, i3: Int?, i4: Int?, i5: Int?, i6: Int?, i7: Int?, i8: Int?, i9: Int?) {
+        self.i0 = i0
+        self.i1 = i1
+        self.i2 = i2
+        self.i3 = i3
+        self.i4 = i4
+        self.i5 = i5
+        self.i6 = i6
+        self.i7 = i7
+        self.i8 = i8
+        self.i9 = i9
+    }
+    
+    static let databaseTableName = "items"
+    
+    init(row: GRDB.Row) {
+        i0 = row["i0"]
+        i1 = row["i1"]
+        i2 = row["i2"]
+        i3 = row["i3"]
+        i4 = row["i4"]
+        i5 = row["i5"]
+        i6 = row["i6"]
+        i7 = row["i7"]
+        i8 = row["i8"]
+        i9 = row["i9"]
+    }
+    
+    func encode(to container: inout PersistenceContainer) {
         container["i0"] = i0
         container["i1"] = i1
         container["i2"] = i2

@@ -1,12 +1,12 @@
 import Foundation
 
 extension Database {
-
+    
     // MARK: - Statements
-
+    
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?")
+    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?")
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
@@ -19,7 +19,7 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?", prepFlags: 0)
+    ///     let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?", prepFlags: 0)
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
@@ -34,7 +34,7 @@ extension Database {
     
     /// Returns a prepared statement that can be reused.
     ///
-    ///     let statement = try db.cachedSelectStatement("SELECT COUNT(*) FROM players WHERE score > ?")
+    ///     let statement = try db.cachedSelectStatement("SELECT COUNT(*) FROM player WHERE score > ?")
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
@@ -55,7 +55,7 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeUpdateStatement("INSERT INTO players (name) VALUES (?)")
+    ///     let statement = try db.makeUpdateStatement("INSERT INTO player (name) VALUES (?)")
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
@@ -68,7 +68,7 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeUpdateStatement("INSERT INTO players (name) VALUES (?)", prepFlags: 0)
+    ///     let statement = try db.makeUpdateStatement("INSERT INTO player (name) VALUES (?)", prepFlags: 0)
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
@@ -83,7 +83,7 @@ extension Database {
     
     /// Returns a prepared statement that can be reused.
     ///
-    ///     let statement = try db.cachedUpdateStatement("INSERT INTO players (name) VALUES (?)")
+    ///     let statement = try db.cachedUpdateStatement("INSERT INTO player (name) VALUES (?)")
     ///     try statement.execute(arguments: ["Arthur"])
     ///     try statement.execute(arguments: ["Barbara"])
     ///
@@ -105,13 +105,13 @@ extension Database {
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
     ///     try db.execute(
-    ///         "INSERT INTO players (name) VALUES (:name)",
+    ///         "INSERT INTO player (name) VALUES (:name)",
     ///         arguments: ["name": "Arthur"])
     ///
     ///     try db.execute("""
-    ///         INSERT INTO players (name) VALUES (?);
-    ///         INSERT INTO players (name) VALUES (?);
-    ///         INSERT INTO players (name) VALUES (?);
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         INSERT INTO player (name) VALUES (?);
     ///         """, arguments; ['Arthur', 'Barbara', 'Craig'])
     ///
     /// This method may throw a DatabaseError.
@@ -221,5 +221,83 @@ extension Database {
         // So make sure we clear this statement from the cache.
         internalStatementCache.remove(statement)
         publicStatementCache.remove(statement)
+    }
+}
+
+/// A thread-unsafe statement cache
+struct StatementCache {
+    unowned let db: Database
+    private var selectStatements: [String: SelectStatement] = [:]
+    private var updateStatements: [String: UpdateStatement] = [:]
+    
+    init(database: Database) {
+        self.db = database
+    }
+    
+    mutating func selectStatement(_ sql: String) throws -> SelectStatement {
+        if let statement = selectStatements[sql] {
+            return statement
+        }
+        
+        // http://www.sqlite.org/c3ref/c_prepare_persistent.html#sqlitepreparepersistent
+        // > The SQLITE_PREPARE_PERSISTENT flag is a hint to the query
+        // > planner that the prepared statement will be retained for a long
+        // > time and probably reused many times.
+        //
+        // This looks like a perfect match for cached statements.
+        //
+        // However SQLITE_PREPARE_PERSISTENT was only introduced in
+        // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
+        //
+        // TODO: use SQLITE_PREPARE_PERSISTENT if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *)
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+            let statement = try db.makeSelectStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        #else
+            let statement = try db.makeSelectStatement(sql)
+        #endif
+        selectStatements[sql] = statement
+        return statement
+    }
+
+    mutating func updateStatement(_ sql: String) throws -> UpdateStatement {
+        if let statement = updateStatements[sql] {
+            return statement
+        }
+        
+        // http://www.sqlite.org/c3ref/c_prepare_persistent.html#sqlitepreparepersistent
+        // > The SQLITE_PREPARE_PERSISTENT flag is a hint to the query
+        // > planner that the prepared statement will be retained for a long
+        // > time and probably reused many times.
+        //
+        // This looks like a perfect match for cached statements.
+        //
+        // However SQLITE_PREPARE_PERSISTENT was only introduced in
+        // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
+        //
+        // TODO: use SQLITE_PREPARE_PERSISTENT if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *)
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+            let statement = try db.makeUpdateStatement(sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        #else
+            let statement = try db.makeUpdateStatement(sql)
+        #endif
+        updateStatements[sql] = statement
+        return statement
+    }
+    
+    mutating func clear() {
+        updateStatements = [:]
+        selectStatements = [:]
+    }
+    
+    mutating func remove(_ statement: SelectStatement) {
+        if let index = selectStatements.index(where: { $0.1 === statement }) {
+            selectStatements.remove(at: index)
+        }
+    }
+    
+    mutating func remove(_ statement: UpdateStatement) {
+        if let index = updateStatements.index(where: { $0.1 === statement }) {
+            updateStatements.remove(at: index)
+        }
     }
 }

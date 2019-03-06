@@ -25,21 +25,49 @@ extension Database {
     }
     
     /// Returns whether a table exists.
-    public func tableExists(_ tableName: String) throws -> Bool {
-        // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
-        return try Row.fetchOne(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'table' AND LOWER(name) = ?", arguments: [tableName.lowercased()]) != nil
+    public func tableExists(_ name: String) throws -> Bool {
+        return try exists(type: .table, name: name)
+    }
+    
+    /// Returns whether a table is an internal SQLite table.
+    ///
+    /// Those are tables whose name begins with "sqlite_".
+    ///
+    /// For more information, see https://www.sqlite.org/fileformat2.html
+    public func isSQLiteInternalTable(_ tableName: String) -> Bool {
+        // https://www.sqlite.org/fileformat2.html#internal_schema_objects
+        // > The names of internal schema objects always begin with "sqlite_"
+        // > and any table, index, view, or trigger whose name begins with
+        // > "sqlite_" is an internal schema object. SQLite prohibits
+        // > applications from creating objects whose names begin with
+        // > "sqlite_".
+        return tableName.starts(with: "sqlite_")
+    }
+    
+    /// Returns whether a table is an internal GRDB table.
+    ///
+    /// Those are tables whose name begins with "grdb_".
+    public func isGRDBInternalTable(_ tableName: String) -> Bool {
+        return tableName.starts(with: "grdb_")
     }
     
     /// Returns whether a view exists.
-    public func viewExists(_ viewName: String) throws -> Bool {
-        // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
-        return try Row.fetchOne(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'view' AND LOWER(name) = ?", arguments: [viewName.lowercased()]) != nil
+    public func viewExists(_ name: String) throws -> Bool {
+        return try exists(type: .view, name: name)
     }
     
     /// Returns whether a trigger exists.
-    public func triggerExists(_ triggerName: String) throws -> Bool {
-        // SQlite identifiers are case-insensitive, case-preserving (http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html)
-        return try Row.fetchOne(self, "SELECT 1 FROM (SELECT sql, type, name FROM sqlite_master UNION SELECT sql, type, name FROM sqlite_temp_master) WHERE type = 'trigger' AND LOWER(name) = ?", arguments: [triggerName.lowercased()]) != nil
+    public func triggerExists(_ name: String) throws -> Bool {
+        return try exists(type: .trigger, name: name)
+    }
+    
+    private func exists(type: SchemaObjectType, name: String) throws -> Bool {
+        // SQlite identifiers are case-insensitive, case-preserving:
+        // http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html
+        let name = name.lowercased()
+        return try schema()
+            .names(ofType: type)
+            .contains { $0.lowercased() == name }
     }
 
     /// The primary key for table named `tableName`.
@@ -129,14 +157,6 @@ extension Database {
         return primaryKey
     }
     
-    /// The number of columns in the table named `tableName`.
-    ///
-    /// - throws: A DatabaseError if table does not exist.
-    @available(*, deprecated, message: "Use db.columns(in: tableName).count instead")
-    public func columnCount(in tableName: String) throws -> Int {
-        return try columns(in: tableName).count
-    }
-    
     /// The indexes on table named `tableName`; returns the empty array if the
     /// table does not exist.
     ///
@@ -150,14 +170,29 @@ extension Database {
             return indexes
         }
         
-        let indexes = try Row.fetchAll(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))").map { row -> IndexInfo in
-            let indexName: String = row[1]
-            let unique: Bool = row[2]
-            let columns = try Row.fetchAll(self, "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
-                .map { ($0[0] as Int, $0[2] as String) }
-                .sorted { $0.0 < $1.0 }
-                .map { $0.1 }
-            return IndexInfo(name: indexName, columns: columns, unique: unique)
+        let indexes = try Row
+            .fetchAll(self, "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))")
+            .map { row -> IndexInfo in
+                // [seq:0 name:"index" unique:0 origin:"c" partial:0]
+                let indexName: String = row[1]
+                let unique: Bool = row[2]
+                let columns = try Row
+                    .fetchAll(self, "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
+                    .map { row -> (Int, String) in
+                        // [seqno:0 cid:2 name:"column"]
+                        (row[0] as Int, row[2] as String)
+                    }
+                    .sorted { $0.0 < $1.0 }
+                    .map { $0.1 }
+                return IndexInfo(name: indexName, columns: columns, unique: unique)
+        }
+        
+        if indexes.isEmpty {
+            // PRAGMA index_list doesn't throw any error when table does
+            // not exist. So let's check if table exists:
+            if try tableExists(tableName) == false {
+                throw DatabaseError(message: "no such table: \(tableName)")
+            }
         }
         
         schemaCache.set(indexes: indexes, forTable: tableName)
@@ -179,7 +214,7 @@ extension Database {
         var rawForeignKeys: [(destinationTable: String, mapping: [(origin: String, destination: String?, seq: Int)])] = []
         var previousId: Int? = nil
         for row in try Row.fetchAll(self, "PRAGMA foreign_key_list(\(tableName.quotedDatabaseIdentifier))") {
-            // row = <Row id:0 seq:0 table:"parents" from:"parentId" to:"id" on_update:"..." on_delete:"..." match:"...">
+            // row = [id:0 seq:0 table:"parents" from:"parentId" to:"id" on_update:"..." on_delete:"..." match:"..."]
             let id: Int = row[0]
             let seq: Int = row[1]
             let table: String = row[2]
@@ -191,6 +226,14 @@ extension Database {
             } else {
                 rawForeignKeys.append((destinationTable: table, mapping: [(origin: origin, destination: destination, seq: seq)]))
                 previousId = id
+            }
+        }
+        
+        if rawForeignKeys.isEmpty {
+            // PRAGMA foreign_key_list doesn't throw any error when table does
+            // not exist. So let's check if table exists:
+            if try tableExists(tableName) == false {
+                throw DatabaseError(message: "no such table: \(tableName)")
             }
         }
         
@@ -218,24 +261,20 @@ extension Database {
     }
     
     /// Returns the actual name of the database table
-    func canonicalName(table: String) throws -> String {
-        if let canonicalName = schemaCache.canonicalName(table: table) {
-            return canonicalName
+    func canonicalTableName(_ tableName: String) throws -> String {
+        guard let name = try schema().canonicalName(tableName, ofType: .table) else {
+            throw DatabaseError(message: "no such table: \(tableName)")
         }
-        
-        guard let canonicalName = try String.fetchOne(self, """
-            SELECT name FROM (
-                SELECT name, type FROM sqlite_master
-                UNION
-                SELECT name, type FROM sqlite_temp_master)
-            WHERE type = 'table' AND LOWER(name) = ?
-            """, arguments: [table.lowercased()])
-        else {
-            throw DatabaseError(message: "no such table: \(table)")
+        return name
+    }
+    
+    func schema() throws -> SchemaInfo {
+        if let schemaInfo = schemaCache.schemaInfo {
+            return schemaInfo
         }
-        
-        schemaCache.set(canonicalName: canonicalName, forTable: table)
-        return canonicalName
+        let schemaInfo = try SchemaInfo(self)
+        schemaCache.schemaInfo = schemaInfo
+        return schemaInfo
     }
 }
 
@@ -313,11 +352,11 @@ extension Database {
 /// This type closely matches the information returned by the
 /// `table_info` pragma.
 ///
-///     > CREATE TABLE players (
+///     > CREATE TABLE player (
 ///         id INTEGER PRIMARY KEY,
 ///         firstName TEXT,
 ///         lastName TEXT)
-///     > PRAGMA table_info("players")
+///     > PRAGMA table_info("player")
 ///     cid   name   type     notnull   dflt_value  pk
 ///     ----  -----  -------  --------  ----------  ---
 ///     0     id     INTEGER  0         NULL        1
@@ -325,7 +364,7 @@ extension Database {
 ///     2     score  INTEGER  0         NULL        0
 ///
 /// See `Database.columns(in:)` and https://www.sqlite.org/pragma.html#pragma_table_info
-public struct ColumnInfo : RowConvertible {
+public struct ColumnInfo : FetchableRecord {
     let cid: Int
     
     /// The column name
@@ -348,14 +387,14 @@ public struct ColumnInfo : RowConvertible {
     /// For example:
     ///
     ///     try db.execute("""
-    ///         CREATE TABLE players(
+    ///         CREATE TABLE player(
     ///             id INTEGER PRIMARY KEY,
     ///             name TEXT DEFAULT 'Anonymous',
     ///             score INT DEFAULT 0,
     ///             creationDate DATE DEFAULT CURRENT_TIMESTAMP
     ///         )
     ///         """)
-    ///     let columnInfos = try db.columns(in: "players")
+    ///     let columnInfos = try db.columns(in: "player")
     ///     columnInfos[0].defaultValueSQL // nil
     ///     columnInfos[1].defaultValueSQL // "'Anoynymous'"
     ///     columnInfos[2].defaultValueSQL // "0"
@@ -410,38 +449,38 @@ public struct IndexInfo {
 ///
 /// When the table's primary key is the rowid:
 ///
-///     // CREATE TABLE items (name TEXT)
-///     let pk = try db.primaryKey("items")
+///     // CREATE TABLE item (name TEXT)
+///     let pk = try db.primaryKey("item")
 ///     pk.columns     // ["rowid"]
 ///     pk.rowIDColumn // nil
 ///     pk.isRowID     // true
 ///
-///     // CREATE TABLE citizens (
+///     // CREATE TABLE citizen (
 ///     //   id INTEGER PRIMARY KEY,
 ///     //   name TEXT
 ///     // )
-///     let pk = try db.primaryKey("citizens")!
+///     let pk = try db.primaryKey("citizen")!
 ///     pk.columns     // ["id"]
 ///     pk.rowIDColumn // "id"
 ///     pk.isRowID     // true
 ///
 /// When the table's primary key is not the rowid:
 ///
-///     // CREATE TABLE countries (
+///     // CREATE TABLE country (
 ///     //   isoCode TEXT NOT NULL PRIMARY KEY
 ///     //   name TEXT
 ///     // )
-///     let pk = db.primaryKey("countries")!
+///     let pk = db.primaryKey("country")!
 ///     pk.columns     // ["isoCode"]
 ///     pk.rowIDColumn // nil
 ///     pk.isRowID     // false
 ///
-///     // CREATE TABLE citizenships (
-///     //   citizenID INTEGER NOT NULL REFERENCES citizens(id)
-///     //   countryIsoCode TEXT NOT NULL REFERENCES countries(isoCode)
+///     // CREATE TABLE citizenship (
+///     //   citizenID INTEGER NOT NULL REFERENCES citizen(id)
+///     //   countryIsoCode TEXT NOT NULL REFERENCES country(isoCode)
 ///     //   PRIMARY KEY (citizenID, countryIsoCode)
 ///     // )
-///     let pk = db.primaryKey("citizenships")!
+///     let pk = db.primaryKey("citizenship")!
 ///     pk.columns     // ["citizenID", "countryIsoCode"]
 ///     pk.rowIDColumn // nil
 ///     pk.isRowID     // false
@@ -526,5 +565,61 @@ public struct ForeignKeyInfo {
     /// The destination columns
     public var destinationColumns: [String] {
         return mapping.map { $0.destination }
+    }
+}
+
+enum SchemaObjectType: String {
+    case index
+    case table
+    case trigger
+    case view
+}
+
+struct SchemaInfo: Equatable {
+    private var objects: Set<SchemaObject>
+    
+    init(_ db: Database) throws {
+        objects = try Set(SchemaObject.fetchCursor(db, """
+            SELECT type, name, tbl_name, sql, 0 AS isTemporary FROM sqlite_master \
+            UNION \
+            SELECT type, name, tbl_name, sql, 1 FROM sqlite_temp_master
+            """))
+    }
+    
+    /// All names for a given type
+    func names(ofType type: SchemaObjectType) -> Set<String> {
+        return objects.reduce(into: []) { (set, key) in
+            if key.type == type.rawValue {
+                set.insert(key.name)
+            }
+        }
+    }
+    
+    /// Returns the canonical name of the object:
+    ///
+    ///     try db.execute("CREATE TABLE FooBar (...)")
+    ///     try db.schema().canonicalName("foobar", ofType: .table) // "FooBar"
+    func canonicalName(_ name: String, ofType type: SchemaObjectType) -> String? {
+        let name = name.lowercased()
+        return objects.first { $0.name.lowercased() == name }?.name
+    }
+    
+    private struct SchemaObject: Codable, Hashable, FetchableRecord {
+        var type: String
+        var name: String
+        var tbl_name: String?
+        var sql: String?
+        var isTemporary: Bool
+
+        #if !swift(>=4.2)
+        var hashValue: Int {
+            var hash = type.hashValue
+            hash ^= name.hashValue
+            hash ^= (tbl_name?.hashValue ?? 0)
+            hash ^= (sql?.hashValue ?? 0)
+            hash ^= isTemporary.hashValue
+            return hash
+        }
+        #endif
     }
 }

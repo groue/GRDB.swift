@@ -9,22 +9,7 @@ public protocol SQLCollection {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns an SQL string that represents the collection.
-    ///
-    /// When the arguments parameter is nil, any value must be written down as
-    /// a literal in the returned SQL:
-    ///
-    ///     var arguments: StatementArguments? = nil
-    ///     let collection = SQLExpressionsArray([1,2,3])
-    ///     collection.collectionSQL(&arguments)  // "1,2,3"
-    ///
-    /// When the arguments parameter is not nil, then values may be replaced by
-    /// `?` or colon-prefixed tokens, and fed into arguments.
-    ///
-    ///     var arguments = StatementArguments()
-    ///     let collection = SQLExpressionsArray([1,2,3])
-    ///     collection.collectionSQL(&arguments)  // "?,?,?"
-    ///     arguments                             // [1,2,3]
-    func collectionSQL(_ arguments: inout StatementArguments?) -> String
+    func collectionSQL(_ context: inout SQLGenerationContext) -> String
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -36,6 +21,7 @@ public protocol SQLCollection {
 
 // MARK: Default Implementations
 
+/// :nodoc:
 extension SQLCollection {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -58,8 +44,8 @@ struct SQLExpressionsArray : SQLCollection {
         self.expressions = expressions.map { $0.sqlExpression }
     }
     
-    func collectionSQL(_ arguments: inout StatementArguments?) -> String {
-        return (expressions.map { $0.expressionSQL(&arguments) } as [String]).joined(separator: ", ")
+    func collectionSQL(_ context: inout SQLGenerationContext) -> String {
+        return (expressions.map { $0.expressionSQL(&context) } as [String]).joined(separator: ", ")
     }
     
     func contains(_ value: SQLExpressible) -> SQLExpression {

@@ -1,9 +1,9 @@
 Pod::Spec.new do |s|
 	s.name     = 'GRDBCipher'
-	s.version  = '2.9.0'
+	s.version  = '3.6.2'
 	
 	s.license  = { :type => 'MIT', :file => 'LICENSE' }
-	s.summary  = 'A Swift application toolkit for SQLite databases.'
+	s.summary  = 'A toolkit for SQLite databases, with a focus on application development.'
 	s.homepage = 'https://github.com/groue/GRDB.swift'
 	s.author   = { 'Gwendal Roué' => 'gr@pierlis.com' }
 	s.source   = { :git => 'https://github.com/groue/GRDB.swift.git', :tag => "v#{s.version}" }
@@ -16,9 +16,9 @@ Pod::Spec.new do |s|
 	s.source_files = 'GRDB/**/*.swift', 'SQLCipher/*.h', 'Support/grdb_config.h'
 	s.module_map = 'SQLCipher/module.modulemap'
 	s.xcconfig = {
-		'OTHER_SWIFT_FLAGS' => '$(inherited) -D SQLITE_HAS_CODEC -D GRDBCIPHER',
-		'OTHER_CFLAGS' => '$(inherited) -DSQLITE_HAS_CODEC -DGRDBCIPHER',
-		'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) SQLITE_HAS_CODEC=1 GRDBCIPHER=1'
+		'OTHER_SWIFT_FLAGS' => '$(inherited) -D SQLITE_HAS_CODEC -D GRDBCIPHER -D SQLITE_ENABLE_FTS5',
+		'OTHER_CFLAGS' => '$(inherited) -DSQLITE_HAS_CODEC -DGRDBCIPHER -DSQLITE_ENABLE_FTS5',
+		'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) SQLITE_HAS_CODEC=1 GRDBCIPHER=1 SQLITE_ENABLE_FTS5=1'
 	}
 	s.framework = 'Foundation'
 	s.dependency 'SQLCipher', '~> 3.4.1'

@@ -139,29 +139,29 @@ public struct ResultCode : RawRepresentable, Equatable, CustomStringConvertible 
     public static let SQLITE_OK_LOAD_PERMANENTLY     = ResultCode(rawValue: (SQLITE_OK.rawValue | (1<<8)))
 }
 
-// Equatable
-extension ResultCode {
-    /// :nodoc:
-    public static func == (_ lhs: ResultCode, _ rhs: ResultCode) -> Bool {
-        return lhs.rawValue == rhs.rawValue
-    }
-}
-
 // CustomStringConvertible
 extension ResultCode {
-    /// :nodoc:
-    public var description: String {
+    var errorString: String? {
         // sqlite3_errstr was added in SQLite 3.7.15 http://www.sqlite.org/changes.html#version_3_7_15
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
-            return "\(rawValue) (\(String(cString: sqlite3_errstr(rawValue))))"
+            return String(cString: sqlite3_errstr(rawValue))
         #else
             if #available(iOS 8.2, OSX 10.10, OSXApplicationExtension 10.10, iOSApplicationExtension 8.2, *) {
-                return "\(rawValue) (\(String(cString: sqlite3_errstr(rawValue))))"
+                return String(cString: sqlite3_errstr(rawValue))
             } else {
-                return "\(rawValue)"
+                return nil
             }
         #endif
+    }
+    
+    /// :nodoc:
+    public var description: String {
+        if let errorString = errorString {
+            return "\(rawValue) (\(errorString))"
+        } else {
+            return "\(rawValue)"
+        }
     }
 }
 
@@ -207,7 +207,7 @@ public struct DatabaseError : Error, CustomStringConvertible, CustomNSError {
     /// Creates a Database Error
     public init(resultCode: ResultCode = .SQLITE_ERROR, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
         self.extendedResultCode = resultCode
-        self.message = message
+        self.message = message ?? resultCode.errorString
         self.sql = sql
         self.arguments = arguments
     }

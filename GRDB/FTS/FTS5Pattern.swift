@@ -65,7 +65,7 @@
             // that pattern.
             do {
                 try DatabaseQueue().inDatabase { db in
-                    try db.create(virtualTable: "documents", using: FTS5()) { t in
+                    try db.create(virtualTable: "document", using: FTS5()) { t in
                         if allowedColumns.isEmpty {
                             t.column("__grdb__")
                         } else {
@@ -74,8 +74,8 @@
                             }
                         }
                     }
-                    try db.makeSelectStatement("SELECT * FROM documents WHERE documents MATCH ?")
-                        .cursor(arguments: [rawPattern])
+                    try db.makeSelectStatement("SELECT * FROM document WHERE document MATCH ?")
+                        .makeCursor(arguments: [rawPattern])
                         .next() // error on next() for invalid patterns
                 }
             } catch let error as DatabaseError {
@@ -97,8 +97,8 @@
         ///
         /// The pattern syntax is documented at https://www.sqlite.org/fts5.html#full_text_query_syntax
         ///
-        ///     try db.makeFTS5Pattern(rawPattern: "and", forTable: "documents") // OK
-        ///     try db.makeFTS5Pattern(rawPattern: "AND", forTable: "documents") // malformed MATCH expression: [AND]
+        ///     try db.makeFTS5Pattern(rawPattern: "and", forTable: "document") // OK
+        ///     try db.makeFTS5Pattern(rawPattern: "AND", forTable: "document") // malformed MATCH expression: [AND]
         public func makeFTS5Pattern(rawPattern: String, forTable table: String) throws -> FTS5Pattern {
             return try FTS5Pattern(rawPattern: rawPattern, allowedColumns: columns(in: table).map { $0.name })
         }

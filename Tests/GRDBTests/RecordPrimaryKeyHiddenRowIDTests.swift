@@ -42,7 +42,7 @@ private class Person : Record {
     }
     
     required init(row: Row) {
-        id = row[.rowID]
+        id = row[Column.rowID]
         age = row["age"]
         name = row["name"]
         creationDate = row["creationDate"]
@@ -50,7 +50,7 @@ private class Person : Record {
     }
     
     override func encode(to container: inout PersistenceContainer) {
-        container[.rowID] = id
+        container[Column.rowID] = id
         container["name"] = name
         container["age"] = age
         container["creationDate"] = creationDate
@@ -462,8 +462,20 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
         }
     }
-
-
+    
+    
+    // MARK: - Order By Primary Key
+    
+    func testOrderByPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = Person.orderByPrimaryKey()
+            let sqlRequest = try SQLRequest(db, request: request)
+            XCTAssertEqual(sqlRequest.sql, "SELECT *, \"rowid\" FROM \"persons\" ORDER BY \"rowid\"")
+        }
+    }
+    
+    
     // MARK: - Fetch With Primary Key
     
     func testFetchCursorWithPrimaryKeys() throws {

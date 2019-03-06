@@ -17,7 +17,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             try db.execute("CREATE INDEX foobar ON items(foo, bar)")
         }
         
-        dbPool.write { db in
+        try dbPool.write { db in
             // Assert that the writer cache is empty
             XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
             XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)
@@ -127,7 +127,6 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
     func testCacheSnapshotIsolation() throws {
         // This test checks that the schema cache follows snapshot isolation.
         // and that writer and readers do not naively share the same cache.
-        dbConfiguration.trace = { print($0) }
         let dbPool = try makeDatabasePool()
         
         // writer                   reader
@@ -148,7 +147,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         // table exists: false
 
         let block1 = { () in
-            try! dbPool.write { db in
+            try! dbPool.writeWithoutTransaction { db in
                 try db.execute("CREATE TABLE foo(id INTEGER PRIMARY KEY)")
                 // warm cache
                 _ = try db.primaryKey("foo")
@@ -169,7 +168,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             _ = s1.wait(timeout: .distantFuture)
             try! dbPool.read { db in
                 // activate snapshot isolation so that foo table is visible during the whole read. Any read is enough.
-                try db.makeSelectStatement("SELECT * FROM sqlite_master").cursor().next()
+                try db.makeSelectStatement("SELECT * FROM sqlite_master").makeCursor().next()
                 // warm cache
                 _ = try db.primaryKey("foo")
                 // cache contains the primary key

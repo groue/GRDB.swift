@@ -12,7 +12,7 @@ private struct TestError : Error { }
 class EnumeratedCursorTests: GRDBTestCase {
     
     func testEnumeratedCursorFromCursor() throws {
-        let base = IteratorCursor(["foo", "bar"])
+        let base = AnyCursor(["foo", "bar"])
         let cursor = base.enumerated()
         var (n, x) = try cursor.next()!
         XCTAssertEqual(x, "foo")

@@ -102,39 +102,6 @@ class DatabaseQueueReleaseMemoryTests: GRDBTestCase {
         // All connections are closed
         XCTAssertEqual(openConnectionCount, 0)
     }
-
-    // TODO: this test should be duplicated for all cursor types
-    func testDatabaseCursorRetainSQLiteConnection() throws {
-        let countQueue = DispatchQueue(label: "GRDB")
-        var openConnectionCount = 0
-        
-        dbConfiguration.SQLiteConnectionDidOpen = {
-            countQueue.sync {
-                openConnectionCount += 1
-            }
-        }
-        
-        dbConfiguration.SQLiteConnectionDidClose = {
-            countQueue.sync {
-                openConnectionCount -= 1
-            }
-        }
-        
-        var cursor: ColumnCursor<Int>? = nil
-        do {
-            try! makeDatabaseQueue().inDatabase { db in
-                try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-                try db.execute("INSERT INTO items (id) VALUES (NULL)")
-                try db.execute("INSERT INTO items (id) VALUES (NULL)")
-                cursor = try Int.fetchCursor(db, "SELECT id FROM items")
-                XCTAssertTrue(try cursor!.next() != nil)
-                XCTAssertEqual(openConnectionCount, 1)
-            }
-        }
-        XCTAssertEqual(openConnectionCount, 0)
-        XCTAssertTrue(try! cursor!.next() != nil)
-        XCTAssertTrue(try! cursor!.next() == nil)
-    }
     
     func testStatementDoNotRetainDatabaseConnection() throws {
         // Block 1                  Block 2

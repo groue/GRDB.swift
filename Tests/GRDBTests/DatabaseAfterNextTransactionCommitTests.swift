@@ -47,7 +47,7 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
         class Witness { }
         
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             var transactionCount = 0
             weak var deallocationWitness: Witness? = nil
             do {
@@ -89,7 +89,7 @@ class DatabaseAfterNextTransactionCommitTests: GRDBTestCase {
         class Witness { }
         
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             var transactionCount = 0
             try db.execute(startSQL)
             

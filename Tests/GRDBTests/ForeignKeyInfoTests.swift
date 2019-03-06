@@ -29,6 +29,14 @@ class ForeignKeyInfoTests: GRDBTestCase {
             try db.execute("CREATE TABLE children4 (parentA1, parentB1, parentA2, parentB2, FOREIGN KEY (parentA1, parentB1) REFERENCES parents2, FOREIGN KEY (parentA2, parentB2) REFERENCES parents2(b, a))")
             
             do {
+                _ = try db.foreignKeys(on: "missing")
+                XCTFail("Expected DatabaseError")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such table: missing")
+            }
+            
+            do {
                 let foreignKeys = try db.foreignKeys(on: "parents1")
                 XCTAssert(foreignKeys.isEmpty)
             }

@@ -1,5 +1,6 @@
 // MARK: - SQL Ordering Support
 
+/// :nodoc:
 extension SQLSpecificExpressible {
     
     /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
@@ -20,19 +21,28 @@ extension SQLSpecificExpressible {
 
 // MARK: - SQL Selection Support
 
+/// :nodoc:
 extension SQLSpecificExpressible {
     
     /// Returns a value that can be used as an argument to QueryInterfaceRequest.select()
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public func aliased(_ alias: String) -> SQLSelectable {
-        return SQLAliasedExpression(sqlExpression, alias: alias)
+    public func aliased(_ name: String) -> SQLSelectable {
+        return SQLAliasedExpression(sqlExpression, name: name)
+    }
+    
+    /// Returns a value that can be used as an argument to QueryInterfaceRequest.select()
+    ///
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    public func aliased(_ key: CodingKey) -> SQLSelectable {
+        return aliased(key.stringValue)
     }
 }
 
 
 // MARK: - SQL Collations Support
 
+/// :nodoc:
 extension SQLSpecificExpressible {
     
     /// Returns a collated expression.

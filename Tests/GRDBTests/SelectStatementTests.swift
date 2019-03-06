@@ -1,15 +1,15 @@
 import XCTest
 #if GRDBCIPHER
-    import GRDBCipher
+    @testable import GRDBCipher
 #elseif GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
+    @testable import GRDBCustomSQLite
 #else
     #if SWIFT_PACKAGE
         import CSQLite
     #else
         import SQLite3
     #endif
-    import GRDB
+    @testable import GRDB
 #endif
 
 class SelectStatementTests : GRDBTestCase {
@@ -30,6 +30,54 @@ class SelectStatementTests : GRDBTestCase {
             try db.execute("INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Craig", 13])
         }
         try migrator.migrate(dbWriter)
+    }
+    
+    func testStatementCursor() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
+            let statement = try db.makeSelectStatement(sql)
+            let cursor = statement.makeCursor()
+            
+            // Check that StatementCursor gives access to the raw SQLite API
+            XCTAssertEqual(String(cString: sqlite3_column_name(cursor.statement.sqliteStatement, 0)), "firstName")
+            
+            XCTAssertFalse(try cursor.next() == nil)
+            XCTAssertFalse(try cursor.next() == nil)
+            XCTAssertTrue(try cursor.next() == nil) // end
+            XCTAssertTrue(try cursor.next() == nil) // past the end
+        }
+    }
+    
+    func testStatementCursorStepFailure() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let customError = NSError(domain: "Custom", code: 0xDEAD)
+        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        try dbQueue.inDatabase { db in
+            func test(_ cursor: StatementCursor) throws {
+                let sql = cursor.statement.sql
+                do {
+                    _ = try cursor.next()
+                    XCTFail()
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                    XCTAssertEqual(error.message, "\(customError)")
+                    XCTAssertEqual(error.sql!, sql)
+                    XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
+                }
+                do {
+                    _ = try cursor.next()
+                    XCTFail()
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
+                    XCTAssertEqual(error.message, "\(customError)")
+                    XCTAssertEqual(error.sql!, sql)
+                    XCTAssertEqual(error.description, "SQLite error 21 with statement `\(sql)`: \(customError)")
+                }
+            }
+            try test(db.makeSelectStatement("SELECT throw(), NULL").makeCursor())
+            try test(db.makeSelectStatement("SELECT 0, throw(), NULL").makeCursor())
+        }
     }
     
     func testArrayStatementArguments() throws {
@@ -130,7 +178,7 @@ class SelectStatementTests : GRDBTestCase {
     
     func testRegion() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
+        try dbQueue.writeWithoutTransaction { db in
             class Observer: TransactionObserver {
                 private var didChange = false
                 var triggered = false
@@ -196,7 +244,7 @@ class SelectStatementTests : GRDBTestCase {
             
             let doubtfulCountFunction = (sqlite3_libversion_number() < 3019000)
             
-            let observers = statements.map { Observer(region: $0.fetchedRegion) }
+            let observers = statements.map { Observer(region: $0.databaseRegion) }
             if doubtfulCountFunction {
                 XCTAssertEqual(observers.map { $0.region.description }, ["table1(a,b,id,id3,id4)","table1(a,id,id3)", "table1(a,id),table2(a,id)", "full database"])
             } else {

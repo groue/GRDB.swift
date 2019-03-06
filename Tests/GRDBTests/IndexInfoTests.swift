@@ -13,6 +13,14 @@ class IndexInfoTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
+                _ = try db.indexes(on: "missing")
+                XCTFail("Expected DatabaseError")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such table: missing")
+            }
+            
+            do {
                 try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE)")
                 let indexes = try db.indexes(on: "persons")
                 

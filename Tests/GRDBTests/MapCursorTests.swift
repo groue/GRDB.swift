@@ -12,7 +12,7 @@ private struct TestError : Error { }
 class MapCursorTests: GRDBTestCase {
     
     func testMap() {
-        let base = IteratorCursor([1, 2])
+        let base = AnyCursor([1, 2])
         let cursor = base.map { $0 * $0 }
         XCTAssertEqual(try cursor.next()!, 1)
         XCTAssertEqual(try cursor.next()!, 4)

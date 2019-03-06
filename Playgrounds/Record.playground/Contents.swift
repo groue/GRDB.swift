@@ -1,4 +1,10 @@
-//: To run this playground, select and build the GRDBOSX scheme.
+//: To run this playground:
+//:
+//: - Open GRDB.xcworkspace
+//: - Select the GRDBOSX scheme: menu Product > Scheme > GRDBOSX
+//: - Build: menu Product > Build
+//: - Select the playground in the Playgrounds Group
+//: - Run the playground
 //:
 //: Record
 //: ======

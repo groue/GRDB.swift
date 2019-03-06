@@ -22,9 +22,16 @@ class DatabaseCollationTests: GRDBTestCase {
             try db.execute("INSERT INTO strings VALUES (7, 'Z')")
             try db.execute("INSERT INTO strings VALUES (8, 'z')")
             
-            XCTAssertEqual(
-                try Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.unicodeCompare.name), id"),
-                [1,3,2,6,7,4,5,8])
+            // Swift 4.2 and Swift 4.1 don't sort strings in the same way
+            if "z" < "à" {
+                XCTAssertEqual(
+                    try Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.unicodeCompare.name), id"),
+                    [1,3,2,6,7,4,8,5])
+            } else {
+                XCTAssertEqual(
+                    try Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.unicodeCompare.name), id"),
+                    [1,3,2,6,7,4,5,8])
+            }
             XCTAssertEqual(
                 try Int.fetchAll(db, "SELECT id FROM strings ORDER BY name COLLATE \(DatabaseCollation.caseInsensitiveCompare.name), id"),
                 [1,3,2,4,6,5,7,8])

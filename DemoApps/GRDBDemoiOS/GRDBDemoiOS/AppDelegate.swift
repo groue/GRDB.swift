@@ -8,7 +8,7 @@ var dbQueue: DatabaseQueue!
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
     
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey : Any]? = nil) -> Bool {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         try! setupDatabase(application)
         return true
     }
@@ -18,9 +18,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
             .appendingPathComponent("db.sqlite")
         dbQueue = try AppDatabase.openDatabase(atPath: databaseURL.path)
-
+        
         // Be a nice iOS citizen, and don't consume too much memory
-        // See https://github.com/groue/GRDB.swift/#memory-management
+        // See https://github.com/groue/GRDB.swift/blob/master/README.md#memory-management
         dbQueue.setupMemoryManagement(in: application)
     }
 }

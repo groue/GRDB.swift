@@ -1,7 +1,6 @@
 - [ ] Attach databases. Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
 - [ ] Query builder
-    - [ ] SELECT readers.*, books.* FROM ... JOIN ...
     - [ ] date functions
     - [ ] NOW/CURRENT_TIMESTAMP
     - [ ] ROUND() http://marc.info/?l=sqlite-users&m=130419182719263
@@ -12,32 +11,55 @@
 - [ ] Write regression tests for #156 and #157
 - [ ] Allow concurrent reads from a snapshot
 - [ ] Decode NSDecimalNumber from text database values
+- [ ] Check https://sqlite.org/sqlar.html
+- [ ] filter(rowid:), filter(rowids:)
+- [ ] Fix matchingRowIds
+- [ ] Simplify Range extensions for Swift 4.1
+- [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
+- [ ] deprecate ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
+- [ ] Joins and full-text tables
+- [ ] UPSERT https://www.sqlite.org/lang_UPSERT.html
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0075-import-test.md
+- [ ] Avoid code duplication: https://forums.swift.org/t/c-interoperability-combinations-of-library-and-os-versions/14029/4
+- [ ] Allow joining methods on DerivableRequest
+- [ ] DatabaseWriter.assertWriteAccess()
+- [ ] Configuration.crashOnError = true
+- [ ] Remove associated record from PersistenceError.recordNotFound. It should be possible, in userland, to write a method that throws this error without having a fully constructed record.
+- [ ] Support for "INSERT INTO ... SELECT ...". For example:
+    
+    ```swift
+    // INSERT INTO rigth (id, name) SELECT id, name FROM left
+    let lefts = Left.select(Left.Columns.id, Left.Columns.name)
+    try Right.insert(lefts)
+    ```
+- [ ] select values from a JSON column:
+    
+    ```swift
+    let nesteds = try Record
+        .select(Column("nested"), as: Nested.self)
+        .fetchAll(db)
+    ```
+- [ ] Consider renaming dbQueue.inDatabase, dbPool.writeWithoutTransaction -> dbQueue/Pool.exclusive
+- [ ] FetchedRecordsController diff algorithm: check https://github.com/RxSwiftCommunity/RxDataSources/issues/256
 
-GRDB 3.0
+Swift 4.2
 
-- [ ] Rename "changes tracking" (ambiguous with database observation) to "record comparison"
-- [ ] Refactor SQL generation and rowId extraction from expression on the visitor pattern. Provide more documentation for literal expressions which become the only way to extend GRDB.
-- [ ] Hide useless scheduling methods behind protocols : https://forums.swift.org/t/discouraging-protocol-methods-on-concrete-values/8737/4?u=gwendal.roue
-- [ ] Make DatabasePool.write safe. See https://github.com/groue/GRDB.swift/commit/5e3c7d9c430df606a1cccfd4983be6b50e778a5c#commitcomment-26988970
-- [ ] Do one of those two:
-    1. Make save() impossible to customize: remove it from Persistable protocol, and remove performSave() from tne public API.
-    2. Open Record.save(), and have RecordBox.save() forward this method to its underlying type.
-- [ ] Not sure: Make the MutablePersistable.update(_:columns:) method mutating (as support for an updatedDate column)
-- [ ] Not sure: type safety
-    - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
-    - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
-- [ ] Rename Request to FetchRequest, because Request is a bad name: https://github.com/swift-server/http/pull/7#issuecomment-308448528
-- [ ] Rename RowConvertible, TableMapping, MutablePersistable and Persistable so that their names contain Record: FetchableRecord, TableRecord, MutablePersistableRecord, PersistableRecord?
-- [ ] Not sure: Consider introducing RowDecodable and RowEncodable on top of FetchableRecord and MutablePersistableRecord. This would allow keeping fetching and persistence methods private in some files.
-- [ ] Drop IteratorCursor, use AnyCursor instead
-- [ ] Drop TypedRequest, have FetchRequest defaults to Row requests.
-- [ ] Rename columnCount -> numberOfColumns
-- [ ] Try to remove double Persistable/MutablePersistable protocols: Would non-mutating Record methods help?
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0210-key-path-offset.md
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0208-package-manager-system-library-targets.md
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0207-containsOnly.md
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0206-hashable-enhancements.md
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0202-random-unification.md
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0201-package-manager-local-dependencies.md
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0193-cross-module-inlining-and-specialization.md
 
 Not sure
 
-- [ ] encode/decode nested records/arrays/dictionaries as JSON?
-- [ ] Think about supporting Cursor's underestimatedCount, which could speed up Array(cursor) and fetchAll()
+- [ ] HiddenColumnsAdapter
+- [ ] Not sure: type safety for SQL expressions
+    - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
+    - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
+- [ ] Encode/decode nested records/arrays/dictionaries as JSON?
+- [ ] Cursor.underestimatedCount, which could speed up Array(cursor) and fetchAll()
 - [ ] Support for OR ROLLBACK, and mismatch between the Swift depth and the SQLite depth of nested transactions/savepoint:
     
     ```swift
@@ -87,6 +109,7 @@ Requires recompilation of SQLite:
 
 Reading list:
 
+- Documentation generation: https://twitter.com/jckarter/status/987525569196650496: cmark is the implementation the Swift compiler uses for doc comments etc.
 - VACUUM (https://blogs.gnome.org/jnelson/)
 - http://www.sqlite.org/intern-v-extern-blob.html
 - https://sqlite.org/sharedcache.html

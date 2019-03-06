@@ -5,12 +5,17 @@
 #endif
 
 /// An SQL function or aggregate.
-public final class DatabaseFunction {
-    public let name: String
-    let argumentCount: Int32?
+public final class DatabaseFunction: Hashable {
+    // SQLite identifies functions by (name + argument count)
+    private struct Identity: Hashable {
+        let name: String
+        let nArg: Int32 // -1 for variadic functions
+    }
+    
+    public var name: String { return identity.name }
+    private let identity: Identity
     let pure: Bool
     private let kind: Kind
-    private var nArg: Int32 { return argumentCount ?? -1 }
     private var eTextRep: Int32 { return (SQLITE_UTF8 | (pure ? SQLITE_DETERMINISTIC : 0)) }
     
     /// Returns an SQL function.
@@ -38,8 +43,7 @@ public final class DatabaseFunction {
     ///       exactly *argumentCount* elements, provided *argumentCount* is
     ///       not nil.
     public init(_ name: String, argumentCount: Int32? = nil, pure: Bool = false, function: @escaping ([DatabaseValue]) throws -> DatabaseValueConvertible?) {
-        self.name = name
-        self.argumentCount = argumentCount
+        self.identity = Identity(name: name, nArg: argumentCount ?? -1)
         self.pure = pure
         self.kind = .function{ (argc, argv) in
             let arguments = (0..<Int(argc)).map { index in
@@ -68,7 +72,7 @@ public final class DatabaseFunction {
     ///     let dbQueue = DatabaseQueue()
     ///     let fn = DatabaseFunction("mysum", argumentCount: 1, aggregate: MySum.self)
     ///     dbQueue.add(function: fn)
-    ///     try dbQueue.inDatabase { db in
+    ///     try dbQueue.write { db in
     ///         try db.execute("CREATE TABLE test(i)")
     ///         try db.execute("INSERT INTO test(i) VALUES (1)")
     ///         try db.execute("INSERT INTO test(i) VALUES (2)")
@@ -89,8 +93,7 @@ public final class DatabaseFunction {
     ///       have exactly *argumentCount* elements, provided *argumentCount* is
     ///       not nil.
     public init<Aggregate: DatabaseAggregate>(_ name: String, argumentCount: Int32? = nil, pure: Bool = false, aggregate: Aggregate.Type) {
-        self.name = name
-        self.argumentCount = argumentCount
+        self.identity = Identity(name: name, nArg: argumentCount ?? -1)
         self.pure = pure
         self.kind = .aggregate { return Aggregate() }
     }
@@ -104,8 +107,8 @@ public final class DatabaseFunction {
         
         let code = sqlite3_create_function_v2(
             db.sqliteConnection,
-            name,
-            nArg,
+            identity.name,
+            identity.nArg,
             eTextRep,
             definitionP,
             kind.xFunc,
@@ -127,8 +130,8 @@ public final class DatabaseFunction {
     func uninstall(in db: Database) {
         let code = sqlite3_create_function_v2(
             db.sqliteConnection,
-            name,
-            nArg,
+            identity.name,
+            identity.nArg,
             eTextRep,
             nil, nil, nil, nil, nil)
         
@@ -274,7 +277,7 @@ public final class DatabaseFunction {
             let aggregateContextU = Unmanaged.passRetained(aggregateContext)
             var aggregateContextP = aggregateContextU.toOpaque()
             withUnsafeBytes(of: &aggregateContextP) {
-                aggregateContextBufferP.copyBytes(from: $0)
+                aggregateContextBufferP.copyMemory(from: $0)
             }
             return aggregateContextU
         }
@@ -309,17 +312,23 @@ public final class DatabaseFunction {
     }
 }
 
-extension DatabaseFunction : Hashable {
-    /// The hash value
+extension DatabaseFunction {
+    #if swift(>=4.2)
+    /// :nodoc:
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(identity)
+    }
+    #else
     /// :nodoc:
     public var hashValue: Int {
-        return name.hashValue ^ nArg.hashValue
+        return identity.hashValue
     }
+    #endif
     
     /// Two functions are equal if they share the same name and arity.
     /// :nodoc:
     public static func == (lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
-        return lhs.name == rhs.name && lhs.nArg == rhs.nArg
+        return lhs.identity == rhs.identity
     }
 }
 
@@ -344,7 +353,7 @@ extension DatabaseFunction : Hashable {
 ///     let dbQueue = DatabaseQueue()
 ///     let fn = DatabaseFunction("mysum", argumentCount: 1, aggregate: MySum.self)
 ///     dbQueue.add(function: fn)
-///     try dbQueue.inDatabase { db in
+///     try dbQueue.write { db in
 ///         try db.execute("CREATE TABLE test(i)")
 ///         try db.execute("INSERT INTO test(i) VALUES (1)")
 ///         try db.execute("INSERT INTO test(i) VALUES (2)")
@@ -360,10 +369,10 @@ public protocol DatabaseAggregate {
     /// aggregate function.
     ///
     ///    -- One value
-    ///    SELECT maxLength(name) FROM players
+    ///    SELECT maxLength(name) FROM player
     ///
     ///    -- Two values
-    ///    SELECT maxFullNameLength(firstName, lastName) FROM players
+    ///    SELECT maxFullNameLength(firstName, lastName) FROM player
     ///
     /// This method is never called after the finalize() method has been called.
     mutating func step(_ dbValues: [DatabaseValue]) throws

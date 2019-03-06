@@ -25,7 +25,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
     
     func testSnapshotSeesLatestTransaction() throws {
         let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
+        try dbPool.writeWithoutTransaction { db in
             try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
             try db.execute("INSERT INTO t DEFAULT VALUES")
             let snapshot = try dbPool.makeSnapshot()
@@ -36,21 +36,6 @@ class DatabaseSnapshotTests: GRDBTestCase {
             try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 2)
             try snapshot.read { db in
                 try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
-            }
-        }
-    }
-    
-    func testSnapshotDoesNotSeeUncommittedTransaction() throws {
-        let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
-            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
-            try db.beginTransaction()
-            try db.execute("INSERT INTO t DEFAULT VALUES")
-            let snapshot = try dbPool.makeSnapshot()
-            try db.commit()
-            try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 1)
-            try snapshot.read { db in
-                try XCTAssertEqual(Int.fetchOne(db, "SELECT COUNT(*) FROM t")!, 0)
             }
         }
     }
@@ -132,6 +117,55 @@ class DatabaseSnapshotTests: GRDBTestCase {
         snapshot.add(collation: collation)
         try snapshot.read { db in
             XCTAssertEqual(try String.fetchAll(db, "SELECT text FROM items ORDER BY text COLLATE reverse"), ["c", "b", "a"])
+        }
+    }
+    
+    func testDefaultLabel() throws {
+        let dbPool = try makeDatabasePool()
+        
+        let snapshot1 = try dbPool.makeSnapshot()
+        snapshot1.unsafeRead { db in
+            XCTAssertEqual(db.configuration.label, nil)
+            
+            // This test CAN break in future releases: the dispatch queue labels
+            // are documented to be a debug-only tool.
+            let label = String(utf8String: __dispatch_queue_get_label(nil))
+            XCTAssertEqual(label, "GRDB.DatabasePool.snapshot.1")
+        }
+        
+        let snapshot2 = try dbPool.makeSnapshot()
+        snapshot2.unsafeRead { db in
+            XCTAssertEqual(db.configuration.label, nil)
+            
+            // This test CAN break in future releases: the dispatch queue labels
+            // are documented to be a debug-only tool.
+            let label = String(utf8String: __dispatch_queue_get_label(nil))
+            XCTAssertEqual(label, "GRDB.DatabasePool.snapshot.2")
+        }
+    }
+    
+    func testCustomLabel() throws {
+        dbConfiguration.label = "Toreador"
+        let dbPool = try makeDatabasePool()
+        
+        let snapshot1 = try dbPool.makeSnapshot()
+        snapshot1.unsafeRead { db in
+            XCTAssertEqual(db.configuration.label, "Toreador")
+            
+            // This test CAN break in future releases: the dispatch queue labels
+            // are documented to be a debug-only tool.
+            let label = String(utf8String: __dispatch_queue_get_label(nil))
+            XCTAssertEqual(label, "Toreador.snapshot.1")
+        }
+        
+        let snapshot2 = try dbPool.makeSnapshot()
+        snapshot2.unsafeRead { db in
+            XCTAssertEqual(db.configuration.label, "Toreador")
+            
+            // This test CAN break in future releases: the dispatch queue labels
+            // are documented to be a debug-only tool.
+            let label = String(utf8String: __dispatch_queue_get_label(nil))
+            XCTAssertEqual(label, "Toreador.snapshot.2")
         }
     }
 }

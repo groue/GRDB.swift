@@ -47,9 +47,9 @@ class DatabaseReaderTests : GRDBTestCase {
 
     func testDatabaseQueueUnsafeReentrantRead() throws {
         let dbQueue = try makeDatabaseQueue()
-        try dbQueue.unsafeReentrantRead { db1 in
-            try dbQueue.unsafeReentrantRead { db2 in
-                try dbQueue.unsafeReentrantRead { db3 in
+        dbQueue.unsafeReentrantRead { db1 in
+            dbQueue.unsafeReentrantRead { db2 in
+                dbQueue.unsafeReentrantRead { db3 in
                     XCTAssertTrue(db1 === db2)
                     XCTAssertTrue(db2 === db3)
                 }

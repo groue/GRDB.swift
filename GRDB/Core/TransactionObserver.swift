@@ -29,13 +29,12 @@ extension Database {
     /// Registers a closure to be executed after the next or current
     /// transaction completion.
     ///
-    ///     dbQueue.inTransaction { db in
+    ///     try dbQueue.write { db in
     ///         db.afterNextTransactionCommit { _ in
-    ///             print("commit did succeed")
+    ///             print("success")
     ///         }
     ///         ...
-    ///         return .commit // prints "commit did succeed"
-    ///     }
+    ///     } // prints "success"
     ///
     /// If the transaction is rollbacked, the closure is not executed.
     ///
@@ -100,11 +99,11 @@ extension Database {
 ///
 /// Then a statement is executed:
 ///
-///         try db.execute("INSERT INTO documents ...")
+///         try db.execute("INSERT INTO document ...")
 ///
 /// The observation process starts when the statement is *compiled*:
 /// sqlite3_set_authorizer tells that the statement performs insertion into the
-/// `documents` table. Generally speaking, statements may have many effects, by
+/// `document` table. Generally speaking, statements may have many effects, by
 /// the mean of foreign key actions and SQL triggers. SQLite takes care of
 /// exposing all those effects to sqlite3_set_authorizer.
 ///
@@ -129,7 +128,7 @@ extension Database {
 ///
 /// Then another statement is executed:
 ///
-///         try db.execute("INSERT INTO documents ...")
+///         try db.execute("INSERT INTO document ...")
 ///
 /// This time, when the statement is *executed* and SQLite tells that a row has
 /// been inserted, the broker buffers the change event instead of immediately
@@ -238,7 +237,7 @@ class DatabaseObservationBroker {
             // For example, if one observes all deletions in the table T, then
             // all individual deletions of DELETE FROM T are notified:
             let eventKind = eventKinds[0]
-            statementObservations = transactionObservations.flatMap { observation in
+            statementObservations = transactionObservations.compactMap { observation in
                 guard observation.observes(eventsOfKind: eventKind) else {
                     // observation is not interested
                     return nil
@@ -260,7 +259,7 @@ class DatabaseObservationBroker {
             // For example, if DELETE FROM T1 generates deletions in T1 and T2
             // by the mean of a foreign key action, then when one only observes
             // deletions in T1, one must not be notified of deletions in T2:
-            statementObservations = transactionObservations.flatMap { observation in
+            statementObservations = transactionObservations.compactMap { observation in
                 let observedKinds = eventKinds.filter(observation.observes)
                 if observedKinds.isEmpty {
                     // observation is not interested
@@ -738,14 +737,14 @@ extension TransactionObserver {
     /// For example:
     ///
     ///     class PlayerObserver: TransactionObserver {
-    ///         var playersTableWasModified = false
+    ///         var playerTableWasModified = false
     ///
     ///         func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-    ///             return eventKind.tableName == "players"
+    ///             return eventKind.tableName == "player"
     ///         }
     ///
     ///         func databaseDidChange(with event: DatabaseEvent) {
-    ///             playersTableWasModified = true
+    ///             playerTableWasModified = true
     ///
     ///             // It is pointless to keep on tracking further changes:
     ///             stopObservingDatabaseChangesUntilNextTransaction()
@@ -873,12 +872,6 @@ public enum DatabaseEventKind {
         case .update(let tableName, let updatedColumnNames):
             return DatabaseRegion(table: tableName, columns: updatedColumnNames)
         }
-    }
-    
-    /// :nodoc:
-    @available(*, deprecated, message: "Use DatabaseRegion.isModified(byEventsOfKind:) instead")
-    public func impacts(_ region: DatabaseRegion) -> Bool {
-        return region.isModified(byEventsOfKind: self)
     }
 }
 

@@ -1,8 +1,8 @@
 #if SQLITE_ENABLE_FTS5
     /// FTS5 lets you define "fts5" virtual tables.
     ///
-    ///     // CREATE VIRTUAL TABLE documents USING fts5(content)
-    ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+    ///     // CREATE VIRTUAL TABLE document USING fts5(content)
+    ///     try db.create(virtualTable: "document", using: FTS5()) { t in
     ///         t.column("content")
     ///     }
     ///
@@ -12,8 +12,8 @@
         /// Creates a FTS5 module suitable for the Database
         /// `create(virtualTable:using:)` method.
         ///
-        ///     // CREATE VIRTUAL TABLE documents USING fts5(content)
-        ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+        ///     // CREATE VIRTUAL TABLE document USING fts5(content)
+        ///     try db.create(virtualTable: "document", using: FTS5()) { t in
         ///         t.column("content")
         ///     }
         ///
@@ -69,7 +69,7 @@
             
             
             if let prefixes = definition.prefixes {
-                arguments.append("prefix=\(prefixes.map { "\($0)" }.joined(separator: " ").sqlExpression.sql)")
+                arguments.append("prefix=\(prefixes.sorted().map { "\($0)" }.joined(separator: " ").sqlExpression.sql)")
             }
             
             if let columnSize = definition.columnSize {
@@ -130,6 +130,70 @@
         }
         
         static func api(_ db: Database) -> UnsafePointer<fts5_api> {
+            // Access to FTS5 is one of the rare SQLite api which was broken in
+            // SQLite 3.20.0+, for security reasons:
+            //
+            // Starting SQLite 3.20.0+, we need to use the new sqlite3_bind_pointer api.
+            // The previous way to access FTS5 does not work any longer.
+            //
+            // So let's see which SQLite version we are linked against:
+            
+            #if GRDBCUSTOMSQLITE || GRDBCIPHER
+                // GRDB is linked against SQLCipher or a custom SQLite build: SQLite 3.20.0 or more.
+                return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
+            #else
+                // GRDB is linked against the system SQLite.
+                //
+                // Do we use SQLite 3.19.3 (iOS 11.4), or SQLite 3.24.0 (iOS 12.0)?
+                // We need to check for available(iOS 12.0, OSX 10.14, watchOS 5.0, *).
+                //
+                // This test requires the Swift 4.2 compiler.
+                //
+                // It does not need the Swift 4.2 language, though: the Swift 4.2
+                // compiler running in Swift 4.0 compatibility mode is OK.
+                //
+                // On top of that, we want to preserve compatibility with Xcode 9.3+.
+                //
+                // So let's check exactly which compiler version we are using.
+                //
+                // Fortunately, this horribly complex check has been solved
+                // by @hartbit: see https://forums.swift.org/t/compiler-version-directive/11952
+                // and https://github.com/hartbit/swift-evolution/blob/compiler-directive/proposals/XXXX-compiler-version-directive.md
+                #if swift(>=4.1.50) || (swift(>=3.4) && !swift(>=4.0))
+                    if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
+                        // SQLite 3.24.0 or more
+                        // setup: Xcode 10.0, SWIFT_VERSION = 4.0, iOS 12
+                        // setup: Xcode 10.0, SWIFT_VERSION = 4.2, iOS 12
+                        return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
+                    } else {
+                        // SQLite 3.19.3 or less
+                        // setup: Xcode 10.0, SWIFT_VERSION = 4.0, iOS 11
+                        // setup: Xcode 10.0, SWIFT_VERSION = 4.2, iOS 11
+                        return api_v1(db)
+                    }
+                #else
+                    // SQLite 3.19.3 or less
+                    // setup: Xcode 9.4.1, iOS 11
+                    return api_v1(db)
+                #endif
+            #endif
+        }
+        
+        private static func api_v1(_ db: Database) -> UnsafePointer<fts5_api> {
+            guard let data = try! Data.fetchOne(db, "SELECT fts5()") else {
+                fatalError("FTS5 is not available")
+            }
+            return data.withUnsafeBytes { $0.pointee }
+        }
+        
+        // Technique given by Jordan Rose:
+        // https://forums.swift.org/t/c-interoperability-combinations-of-library-and-os-versions/14029/4
+        private static func api_v2(
+            _ db: Database,
+            _ sqlite3_prepare_v3: @convention(c) (OpaquePointer?, UnsafePointer<Int8>?, Int32, UInt32, UnsafeMutablePointer<OpaquePointer?>?, UnsafeMutablePointer<UnsafePointer<Int8>?>?) -> Int32,
+            _ sqlite3_bind_pointer: @convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?, UnsafePointer<Int8>?, (@convention(c) (UnsafeMutableRawPointer?) -> Void)?) -> Int32)
+            -> UnsafePointer<fts5_api>
+        {
             let sqliteConnection = db.sqliteConnection
             var statement: SQLiteStatement? = nil
             var api: UnsafePointer<fts5_api>? = nil
@@ -156,7 +220,7 @@
     /// You don't create instances of this class. Instead, you use the Database
     /// `create(virtualTable:using:)` method:
     ///
-    ///     try db.create(virtualTable: "documents", using: FTS5()) { t in // t is FTS5TableDefinition
+    ///     try db.create(virtualTable: "document", using: FTS5()) { t in // t is FTS5TableDefinition
     ///         t.column("content")
     ///     }
     ///
@@ -172,7 +236,7 @@
         
         /// The virtual table tokenizer
         ///
-        ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+        ///     try db.create(virtualTable: "document", using: FTS5()) { t in
         ///         t.tokenizer = .porter()
         ///     }
         ///
@@ -254,7 +318,7 @@
         
         /// Appends a table column.
         ///
-        ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+        ///     try db.create(virtualTable: "document", using: FTS5()) { t in
         ///         t.column("content")
         ///     }
         ///
@@ -284,7 +348,7 @@
     ///
     /// You get instances of this class when you create an FTS5 table:
     ///
-    ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+    ///     try db.create(virtualTable: "document", using: FTS5()) { t in
     ///         t.column("content")      // FTS5ColumnDefinition
     ///     }
     ///
@@ -300,7 +364,7 @@
         
         /// Excludes the column from the full-text index.
         ///
-        ///     try db.create(virtualTable: "documents", using: FTS5()) { t in
+        ///     try db.create(virtualTable: "document", using: FTS5()) { t in
         ///         t.column("a")
         ///         t.column("b").notIndexed()
         ///     }

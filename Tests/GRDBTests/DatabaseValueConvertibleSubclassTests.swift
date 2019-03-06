@@ -7,7 +7,7 @@ import XCTest
     import GRDB
 #endif
 
-class FetchableParent : DatabaseValueConvertible, CustomStringConvertible {
+private class FetchableParent : DatabaseValueConvertible, CustomStringConvertible {
     var databaseValue: DatabaseValue {
         return "Parent".databaseValue
     }
@@ -22,7 +22,7 @@ class FetchableParent : DatabaseValueConvertible, CustomStringConvertible {
     var description: String { return "Parent" }
 }
 
-class FetchableChild : FetchableParent {
+private class FetchableChild : FetchableParent {
     /// Returns a value that can be stored in the database.
     override var databaseValue: DatabaseValue {
         return "Child".databaseValue

@@ -343,7 +343,7 @@ class ConcurrencyTests: GRDBTestCase {
         var rows1: [Row]?
         var rows2: [Row]?
         queue.async(group: group) {
-            try! dbQueue2.inDatabase { db in
+            try! dbQueue2.writeWithoutTransaction { db in
                 _ = s1.wait(timeout: .distantFuture)
                 rows1 = try Row.fetchAll(db, "SELECT * FROM stuffs")
                 s2.signal()

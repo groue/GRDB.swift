@@ -1,3 +1,4 @@
+#if !os(Linux)
 import Foundation
 
 private let integerRoundingBehavior = NSDecimalNumberHandler(roundingMode: .plain, scale: 0, raiseOnExactness: false, raiseOnOverflow: false, raiseOnUnderflow: false, raiseOnDivideByZero: false)
@@ -65,3 +66,4 @@ extension NSNumber : DatabaseValueConvertible {
         }
     }
 }
+#endif

@@ -245,11 +245,13 @@ class RowCopiedFromStatementTests: RowTestCase {
         }
     }
 
-    func testVariants() throws {
+    func testScopes() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let row = try Row.fetchOne(db, "SELECT 'foo' AS nAmE, 1 AS foo")!
-            XCTAssertTrue(row.scoped(on: "missing") == nil)
+            XCTAssertTrue(row.scopes.isEmpty)
+            XCTAssertTrue(row.scopes["missing"] == nil)
+            XCTAssertTrue(row.scopesTree["missing"] == nil)
         }
     }
 
@@ -277,6 +279,15 @@ class RowCopiedFromStatementTests: RowTestCase {
             
             let copiedRow = row.copy()
             XCTAssertEqual(row, copiedRow)
+        }
+    }
+    
+    func testDescription() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let row = try Row.fetchOne(db, "SELECT NULL AS \"null\", 1 AS \"int\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"data\"")!
+            XCTAssertEqual(row.description, "[null:NULL int:1 double:1.1 string:\"foo\" data:Data(6 bytes)]")
+            XCTAssertEqual(row.debugDescription, "[null:NULL int:1 double:1.1 string:\"foo\" data:Data(6 bytes)]")
         }
     }
 }

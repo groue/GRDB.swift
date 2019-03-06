@@ -65,6 +65,32 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
     
+    func testAutoIncrementedPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inTransaction { db in
+            try db.create(table: "test") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            assertEqualSQL(lastSQLQuery, """
+                CREATE TABLE "test" (\
+                "id" INTEGER PRIMARY KEY AUTOINCREMENT\
+                )
+                """)
+            return .rollback
+        }
+        try dbQueue.inTransaction { db in
+            try db.create(table: "test") { t in
+                t.autoIncrementedPrimaryKey("id", onConflict: .fail)
+            }
+            assertEqualSQL(lastSQLQuery, """
+                CREATE TABLE "test" (\
+                "id" INTEGER PRIMARY KEY ON CONFLICT FAIL AUTOINCREMENT\
+                )
+                """)
+            return .rollback
+        }
+    }
+
     func testColumnPrimaryKeyOptions() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
@@ -545,6 +571,17 @@ class TableDefinitionTests: GRDBTestCase {
             
             // Sanity check
             XCTAssertTrue(try db.indexes(on: "test").isEmpty)
+        }
+    }
+    
+    func testReindex() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.reindex(collation: .binary)
+            assertEqualSQL(lastSQLQuery, "REINDEX BINARY")
+            
+            try db.reindex(collation: .localizedCompare)
+            assertEqualSQL(lastSQLQuery, "REINDEX swiftLocalizedCompare")
         }
     }
 }

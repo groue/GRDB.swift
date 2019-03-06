@@ -238,4 +238,77 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
         }
     }
+    
+    func testEraseDatabaseOnSchemaChange() throws {
+        // 1st version of the migrator
+        var migrator1 = DatabaseMigrator()
+        migrator1.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+            }
+        }
+        
+        // 2nd version of the migrator
+        var migrator2 = DatabaseMigrator()
+        migrator2.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+                t.column("score", .integer) // <- schema change, because reasons (development)
+            }
+        }
+        migrator2.registerMigration("2") { db in
+            try db.execute("INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
+        }
+        
+        // Apply 1st migrator
+        let dbQueue = try makeDatabaseQueue()
+        try migrator1.migrate(dbQueue)
+        
+        // Test than 2nd migrator can't run...
+        do {
+            try migrator2.migrate(dbQueue)
+            XCTFail("Expected DatabaseError")
+        } catch let error as DatabaseError {
+            XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+            XCTAssertEqual(error.message, "table player has no column named score")
+        }
+        try XCTAssertEqual(migrator2.appliedMigrations(in: dbQueue), ["1"])
+
+        // ... unless databaase gets erased
+        migrator2.eraseDatabaseOnSchemaChange = true
+        try migrator2.migrate(dbQueue)
+        try XCTAssertEqual(migrator2.appliedMigrations(in: dbQueue), ["1", "2"])
+    }
+    
+    func testEraseDatabaseOnSchemaChangeDoesNotEraseDatabaseOnAddedMigration() throws {
+        var migrator = DatabaseMigrator()
+        migrator.eraseDatabaseOnSchemaChange = true
+        
+        var witness = 1
+        migrator.registerMigration("1") { db in
+            try db.execute("""
+                CREATE TABLE t1(id INTEGER PRIMARY KEY);
+                INSERT INTO t1(id) VALUES (?)
+                """, arguments: [witness])
+            witness += 1
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        
+        // 1st migration
+        try migrator.migrate(dbQueue)
+        try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, "SELECT id FROM t1") }, 1)
+        
+        // 2nd migration does not erase database
+        migrator.registerMigration("2") { db in
+            try db.execute("""
+                CREATE TABLE t2(id INTEGER PRIMARY KEY);
+                """)
+        }
+        try migrator.migrate(dbQueue)
+        try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, "SELECT id FROM t1") }, 1)
+        try XCTAssertTrue(dbQueue.read { try $0.tableExists("t2") })
+    }
 }

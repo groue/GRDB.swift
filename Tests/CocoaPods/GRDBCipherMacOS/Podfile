@@ -1,0 +1,4 @@
+target 'GRDBCipherMacOS'
+platform :macos, '10.13'
+use_frameworks!
+pod 'GRDBCipher', :path => '../../..'

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="489px" height="362px" viewBox="0 0 489 362" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 51.2 (57519) - http://www.bohemiancoding.com/sketch -->
+    <title>DatabaseQueueScheduling</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="50%" y1="100%" x2="50%" y2="1.41638472e-14%" id="linearGradient-1">
+            <stop stop-color="#FFFFFF" stop-opacity="0.9" offset="0%"></stop>
+            <stop stop-color="#FFFFFF" offset="100%"></stop>
+        </linearGradient>
+        <rect id="path-2" x="0" y="0" width="120" height="44" rx="10"></rect>
+        <filter x="-12.1%" y="-26.1%" width="124.2%" height="165.9%" filterUnits="objectBoundingBox" id="filter-4">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="3" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <rect id="path-5" x="0" y="0" width="120" height="44" rx="10"></rect>
+        <filter x="-12.1%" y="-26.1%" width="124.2%" height="165.9%" filterUnits="objectBoundingBox" id="filter-7">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="3" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <rect id="path-8" x="0" y="0" width="120" height="44" rx="10"></rect>
+        <filter x="-12.1%" y="-26.1%" width="124.2%" height="165.9%" filterUnits="objectBoundingBox" id="filter-10">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="3" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <rect id="path-11" x="0" y="0" width="120" height="44" rx="10"></rect>
+        <filter x="-12.1%" y="-26.1%" width="124.2%" height="165.9%" filterUnits="objectBoundingBox" id="filter-13">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="3" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <rect id="path-14" x="0" y="0" width="120" height="44" rx="10"></rect>
+        <filter x="-12.1%" y="-26.1%" width="124.2%" height="165.9%" filterUnits="objectBoundingBox" id="filter-16">
+            <feMorphology radius="1" operator="dilate" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="3" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="4" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.1 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="Page-3" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="DatabaseQueueScheduling">
+            <g id="Group-2" transform="translate(44.000000, 0.000000)" stroke="#D7D7D7">
+                <rect id="Rectangle-2" x="0.5" y="0.5" width="444" height="361" rx="6"></rect>
+                <rect id="Rectangle-2-Copy" fill-opacity="0.02" fill="#000000" x="148.5" y="0.5" width="148" height="361"></rect>
+            </g>
+            <text id="Thread-1" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal" fill="#000000">
+                <tspan x="89.9428711" y="26">Thread 1</tspan>
+            </text>
+            <text id="Thread-2" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal" fill="#000000">
+                <tspan x="236.979004" y="26">Thread 2</tspan>
+            </text>
+            <text id="Thread-3" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal" fill="#000000">
+                <tspan x="384.818359" y="26">Thread 3</tspan>
+            </text>
+            <g id="Group-4" transform="translate(0.000000, 13.000000)" fill="#000000">
+                <text id="Time" font-family="-apple-system,sans-serif" font-size="14" font-weight="normal">
+                    <tspan x="0.501953125" y="13">Time</tspan>
+                </text>
+                <path id="Line" d="M16.5,340 L21,331 L12,331 L16.5,340 Z M16,22.5 L16,331.5 L16,332 L17,332 L17,331.5 L17,22.5 L17,22 L16,22 L16,22.5 Z" fill-rule="nonzero"></path>
+            </g>
+            <g id="BlueBox" transform="translate(58.000000, 44.000000)">
+                <g id="Group">
+                    <mask id="mask-3" fill="white">
+                        <use xlink:href="#path-2"></use>
+                    </mask>
+                    <g id="Rectangle">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-2"></use>
+                        <use fill="#005CC5" fill-rule="evenodd" xlink:href="#path-2"></use>
+                        <rect stroke-opacity="0.25" stroke="#000000" stroke-width="1" fill="url(#linearGradient-1)" fill-rule="evenodd" x="-0.5" y="-0.5" width="121" height="45" rx="10"></rect>
+                    </g>
+                    <text id="Label" mask="url(#mask-3)" font-family="-apple-system,sans-serif" font-size="14" font-weight="500" fill="#000000">
+                        <tspan x="15.7509766" y="27">Read State A</tspan>
+                    </text>
+                </g>
+            </g>
+            <g id="GreenBox" transform="translate(207.000000, 110.000000)">
+                <g id="Group">
+                    <mask id="mask-6" fill="white">
+                        <use xlink:href="#path-5"></use>
+                    </mask>
+                    <g id="Rectangle">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-7)" xlink:href="#path-5"></use>
+                        <use fill="#366500" fill-rule="evenodd" xlink:href="#path-5"></use>
+                        <rect stroke-opacity="0.25" stroke="#000000" stroke-width="1" fill="url(#linearGradient-1)" fill-rule="evenodd" x="-0.5" y="-0.5" width="121" height="45" rx="10"></rect>
+                    </g>
+                    <text id="Label" mask="url(#mask-6)" font-family="-apple-system,sans-serif" font-size="14" font-weight="500" fill="#000000">
+                        <tspan x="14.7802734" y="27">Write State B</tspan>
+                    </text>
+                </g>
+            </g>
+            <g id="GreenBox" transform="translate(355.000000, 159.000000)">
+                <g id="Group">
+                    <mask id="mask-9" fill="white">
+                        <use xlink:href="#path-8"></use>
+                    </mask>
+                    <g id="Rectangle">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-10)" xlink:href="#path-8"></use>
+                        <use fill="#366500" fill-rule="evenodd" xlink:href="#path-8"></use>
+                        <rect stroke-opacity="0.25" stroke="#000000" stroke-width="1" fill="url(#linearGradient-1)" fill-rule="evenodd" x="-0.5" y="-0.5" width="121" height="45" rx="10"></rect>
+                    </g>
+                    <text id="Label" mask="url(#mask-9)" font-family="-apple-system,sans-serif" font-size="14" font-weight="500" fill="#000000">
+                        <tspan x="15.9663086" y="27">Read State B</tspan>
+                    </text>
+                </g>
+            </g>
+            <g id="OrangeBox" transform="translate(355.000000, 297.000000)">
+                <g id="Group">
+                    <mask id="mask-12" fill="white">
+                        <use xlink:href="#path-11"></use>
+                    </mask>
+                    <g id="Rectangle">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-13)" xlink:href="#path-11"></use>
+                        <use fill="#CD7F00" fill-rule="evenodd" xlink:href="#path-11"></use>
+                        <rect stroke-opacity="0.25" stroke="#000000" stroke-width="1" fill="url(#linearGradient-1)" fill-rule="evenodd" x="-0.5" y="-0.5" width="121" height="45" rx="10"></rect>
+                    </g>
+                    <text id="Label" mask="url(#mask-12)" font-family="-apple-system,sans-serif" font-size="14" font-weight="500" fill="#000000">
+                        <tspan x="15.6040039" y="27">Read State C</tspan>
+                    </text>
+                </g>
+            </g>
+            <g id="OrangeBox" transform="translate(58.000000, 231.000000)">
+                <g id="Group">
+                    <mask id="mask-15" fill="white">
+                        <use xlink:href="#path-14"></use>
+                    </mask>
+                    <g id="Rectangle">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-16)" xlink:href="#path-14"></use>
+                        <use fill="#CD7F00" fill-rule="evenodd" xlink:href="#path-14"></use>
+                        <rect stroke-opacity="0.25" stroke="#000000" stroke-width="1" fill="url(#linearGradient-1)" fill-rule="evenodd" x="-0.5" y="-0.5" width="121" height="45" rx="10"></rect>
+                    </g>
+                    <text id="Label" mask="url(#mask-15)" font-family="-apple-system,sans-serif" font-size="14" font-weight="500" fill="#000000">
+                        <tspan x="14.4179688" y="27">Write State C</tspan>
+                    </text>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

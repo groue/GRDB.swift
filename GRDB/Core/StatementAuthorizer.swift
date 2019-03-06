@@ -1,3 +1,6 @@
+#if os(Linux)
+    import Glibc
+#endif
 #if SWIFT_PACKAGE
     import CSQLite
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
@@ -18,7 +21,7 @@ protocol StatementAuthorizer : class {
 /// A class that gathers information about one statement during its compilation.
 final class StatementCompilationAuthorizer : StatementAuthorizer {
     /// What this statements reads
-    var region = DatabaseRegion()
+    var databaseRegion = DatabaseRegion()
     
     /// What this statements writes
     var databaseEventKinds: [DatabaseEventKind] = []
@@ -46,18 +49,18 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
         
         switch actionCode {
         case SQLITE_DROP_TABLE, SQLITE_DROP_VTABLE, SQLITE_DROP_TEMP_TABLE,
-             SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX:
+             SQLITE_DROP_INDEX, SQLITE_DROP_TEMP_INDEX,
+             SQLITE_DROP_VIEW, SQLITE_DROP_TEMP_VIEW,
+             SQLITE_DROP_TRIGGER, SQLITE_DROP_TEMP_TRIGGER:
             isDropStatement = true
             invalidatesDatabaseSchemaCache = true
             return SQLITE_OK
             
-        case SQLITE_DROP_VIEW, SQLITE_DROP_TEMP_VIEW,
-             SQLITE_DROP_TRIGGER, SQLITE_CREATE_TEMP_TRIGGER:
-            isDropStatement = true
-            return SQLITE_OK
-            
-        case SQLITE_DETACH, SQLITE_ALTER_TABLE,
-             SQLITE_CREATE_INDEX, SQLITE_CREATE_TEMP_INDEX:
+        case SQLITE_ALTER_TABLE, SQLITE_DETACH,
+             SQLITE_CREATE_INDEX, SQLITE_CREATE_TABLE,
+             SQLITE_CREATE_TEMP_INDEX, SQLITE_CREATE_TEMP_TABLE,
+             SQLITE_CREATE_TEMP_TRIGGER, SQLITE_CREATE_TEMP_VIEW,
+             SQLITE_CREATE_TRIGGER, SQLITE_CREATE_VIEW:
             invalidatesDatabaseSchemaCache = true
             return SQLITE_OK
             
@@ -66,10 +69,10 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             guard let columnName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
             if columnName.isEmpty {
                 // SELECT COUNT(*) FROM table
-                region.formUnion(DatabaseRegion(table: tableName))
+                databaseRegion.formUnion(DatabaseRegion(table: tableName))
             } else {
                 // SELECT column FROM table
-                region.formUnion(DatabaseRegion(table: tableName, columns: [columnName]))
+                databaseRegion.formUnion(DatabaseRegion(table: tableName, columns: [columnName]))
             }
             return SQLITE_OK
             
@@ -135,7 +138,7 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             guard sqlite3_libversion_number() < 3019000 else { return SQLITE_OK }
             guard let cString2 = cString2 else { return SQLITE_OK }
             if sqlite3_stricmp(cString2, "COUNT") == 0 {
-                region = .fullDatabase
+                databaseRegion = .fullDatabase
             }
             return SQLITE_OK
             

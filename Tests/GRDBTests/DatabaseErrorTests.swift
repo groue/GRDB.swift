@@ -9,6 +9,17 @@ import XCTest
 
 class DatabaseErrorTests: GRDBTestCase {
     
+    func testDatabaseErrorMessage() {
+        // Error messages are not always available
+        if #available(iOS 8.2, OSX 10.10, OSXApplicationExtension 10.10, iOSApplicationExtension 8.2, *) {
+            // We don't test for actual messages, since they may depend on SQLite version
+            XCTAssertEqual(DatabaseError().resultCode, .SQLITE_ERROR)
+            XCTAssertNotNil(DatabaseError().message)
+            XCTAssertNotNil(DatabaseError(resultCode: .SQLITE_BUSY).message)
+            XCTAssertNotEqual(DatabaseError().message, DatabaseError(resultCode: .SQLITE_BUSY).message)
+        }
+    }
+    
     func testDatabaseErrorInTransaction() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
@@ -40,7 +51,7 @@ class DatabaseErrorTests: GRDBTestCase {
     func testDatabaseErrorInTopLevelSavepoint() throws {
         let dbQueue = try makeDatabaseQueue()
         do {
-            try dbQueue.inDatabase { db in
+            try dbQueue.writeWithoutTransaction { db in
                 do {
                     try db.inSavepoint {
                         XCTAssertTrue(db.isInsideTransaction)

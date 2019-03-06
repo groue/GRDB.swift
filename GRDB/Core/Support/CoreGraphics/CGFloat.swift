@@ -1,3 +1,4 @@
+#if canImport(CoreGraphics)
 import CoreGraphics
 
 /// CGFloat adopts DatabaseValueConvertible
@@ -16,3 +17,4 @@ extension CGFloat : DatabaseValueConvertible {
         return CGFloat(double)
     }
 }
+#endif

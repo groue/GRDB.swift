@@ -7,7 +7,7 @@ import RealmSwift
 
 // MARK:- GRDB
 
-struct ItemStruct : RowConvertible, Persistable {
+struct ItemStruct : FetchableRecord, PersistableRecord {
     var i0: Int
     var i1: Int
     var i2: Int
@@ -72,6 +72,21 @@ struct ItemStruct : RowConvertible, Persistable {
         i8 = dictionary["i8"] as! Int
         i9 = dictionary["i9"] as! Int
     }
+}
+
+struct ItemCodable : Codable, FetchableRecord, PersistableRecord {
+    var i0: Int
+    var i1: Int
+    var i2: Int
+    var i3: Int
+    var i4: Int
+    var i5: Int
+    var i6: Int
+    var i7: Int
+    var i8: Int
+    var i9: Int
+    
+    static let databaseTableName = "items"
 }
 
 class ItemClass : Record {
