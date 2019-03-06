@@ -16,6 +16,7 @@ private struct Team: Codable, FetchableRecord, PersistableRecord {
 }
 
 private struct Player: Codable, FetchableRecord, PersistableRecord {
+    static let awards = hasMany(Award.self, through: belongsTo(Team.self), using: Team.awards)
     var id: Int64
     var teamId: Int64?
     var name: String
@@ -79,6 +80,8 @@ class AssociationAggregateTests: GRDBTestCase {
             try Award(id: 4, teamId: 2, name: "European cup 2036").insert(db)
             try Team(id: 3, name: "Greens").insert(db)
             try Award(id: 5, teamId: 3, name: "World cup 2037").insert(db)
+            try Team(id: 4, name: "Oranges").insert(db)
+            try Player(id: 6, teamId: 4, name: "Fiona", score: 0).insert(db)
         }
     }
     
@@ -116,7 +119,7 @@ class AssociationAggregateTests: GRDBTestCase {
         }
     }
 
-    func testAnnotatedWithDefaultAverage() throws {
+    func testAnnotatedWithHasManyDefaultAverage() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -133,7 +136,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
             
             let teamInfos = try request.fetchAll(db)
-            XCTAssertEqual(teamInfos.count, 3)
+            XCTAssertEqual(teamInfos.count, 4)
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
@@ -146,10 +149,14 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
             XCTAssertNil(teamInfos[2].averagePlayerScore)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].averagePlayerScore, 0)
         }
     }
     
-    func testAnnotatedWithDefaultCount() throws {
+    func testAnnotatedWithHasManyDefaultCount() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -166,7 +173,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
             
             let teamInfos = try request.fetchAll(db)
-            XCTAssertEqual(teamInfos.count, 3)
+            XCTAssertEqual(teamInfos.count, 4)
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
@@ -179,10 +186,58 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
             XCTAssertEqual(teamInfos[2].playerCount, 0)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].playerCount, 1)
         }
     }
     
-    func testAnnotatedWithDefaultMax() throws {
+    func testAnnotatedWithHasManyThroughDefaultCount() throws {
+        struct PlayerInfo: Decodable, FetchableRecord {
+            var player: Player
+            var awardCount: Int
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Player
+                .annotated(with: Player.awards.count)
+                .orderByPrimaryKey()
+                .asRequest(of: PlayerInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "player".*, COUNT(DISTINCT "award"."rowid") AS "awardCount" \
+                FROM "player" \
+                LEFT JOIN "team" ON ("team"."id" = "player"."teamId") \
+                LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                GROUP BY "player"."id" \
+                ORDER BY "player"."id"
+                """)
+            
+            let playerInfos = try request.fetchAll(db)
+            XCTAssertEqual(playerInfos.count, 6)
+            
+            XCTAssertEqual(playerInfos[0].player.id, 1)
+            XCTAssertEqual(playerInfos[0].awardCount, 3)
+            
+            XCTAssertEqual(playerInfos[1].player.id, 2)
+            XCTAssertEqual(playerInfos[1].awardCount, 3)
+            
+            XCTAssertEqual(playerInfos[2].player.id, 3)
+            XCTAssertEqual(playerInfos[2].awardCount, 1)
+            
+            XCTAssertEqual(playerInfos[3].player.id, 4)
+            XCTAssertEqual(playerInfos[3].awardCount, 1)
+            
+            XCTAssertEqual(playerInfos[4].player.id, 5)
+            XCTAssertEqual(playerInfos[4].awardCount, 1)
+            
+            XCTAssertEqual(playerInfos[5].player.id, 6)
+            XCTAssertEqual(playerInfos[5].awardCount, 0)
+        }
+    }
+
+    func testAnnotatedWithHasManyDefaultMax() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -199,7 +254,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
             
             let teamInfos = try request.fetchAll(db)
-            XCTAssertEqual(teamInfos.count, 3)
+            XCTAssertEqual(teamInfos.count, 4)
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
@@ -212,10 +267,14 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
             XCTAssertNil(teamInfos[2].maxPlayerScore)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].maxPlayerScore, 0)
         }
     }
     
-    func testAnnotatedWithDefaultMin() throws {
+    func testAnnotatedWithHasManyDefaultMin() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -232,7 +291,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
             
             let teamInfos = try request.fetchAll(db)
-            XCTAssertEqual(teamInfos.count, 3)
+            XCTAssertEqual(teamInfos.count, 4)
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
@@ -245,10 +304,14 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
             XCTAssertNil(teamInfos[2].minPlayerScore)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].minPlayerScore, 0)
         }
     }
     
-    func testAnnotatedWithDefaultSum() throws {
+    func testAnnotatedWithHasManyDefaultSum() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -265,7 +328,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
             
             let teamInfos = try request.fetchAll(db)
-            XCTAssertEqual(teamInfos.count, 3)
+            XCTAssertEqual(teamInfos.count, 4)
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
@@ -278,10 +341,14 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
             XCTAssertNil(teamInfos[2].playerScoreSum)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].playerScoreSum, 0)
         }
     }
     
-    func testAnnotatedWithMultipleDefaultAggregates() throws {
+    func testAnnotatedWithHasManyMultipleDefaultAggregates() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -306,7 +373,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
             
             let teamInfos = try request.fetchAll(db)
-            XCTAssertEqual(teamInfos.count, 3)
+            XCTAssertEqual(teamInfos.count, 4)
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
@@ -331,10 +398,18 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertNil(teamInfos[2].maxPlayerScore)
             XCTAssertNil(teamInfos[2].minPlayerScore)
             XCTAssertNil(teamInfos[2].playerScoreSum)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].averagePlayerScore, 0)
+            XCTAssertEqual(teamInfos[3].playerCount, 1)
+            XCTAssertEqual(teamInfos[3].maxPlayerScore, 0)
+            XCTAssertEqual(teamInfos[3].minPlayerScore, 0)
+            XCTAssertEqual(teamInfos[3].playerScoreSum, 0)
         }
     }
     
-    func testAnnotatedWithCustomAverage() throws {
+    func testAnnotatedWithHasManyCustomAverage() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -351,7 +426,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
             
             let teamInfos = try request.fetchAll(db)
-            XCTAssertEqual(teamInfos.count, 3)
+            XCTAssertEqual(teamInfos.count, 4)
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
@@ -364,10 +439,14 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
             XCTAssertNil(teamInfos[2].averageCustomScore)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].averageCustomScore, 0)
         }
     }
     
-    func testAnnotatedWithCustomCount() throws {
+    func testAnnotatedWithHasManyCustomCount() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -384,7 +463,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
             
             let teamInfos = try request.fetchAll(db)
-            XCTAssertEqual(teamInfos.count, 3)
+            XCTAssertEqual(teamInfos.count, 4)
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
@@ -397,10 +476,14 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
             XCTAssertEqual(teamInfos[2].customCount, 0)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].customCount, 1)
         }
     }
     
-    func testAnnotatedWithCustomMax() throws {
+    func testAnnotatedWithHasManyCustomMax() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -417,7 +500,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
             
             let teamInfos = try request.fetchAll(db)
-            XCTAssertEqual(teamInfos.count, 3)
+            XCTAssertEqual(teamInfos.count, 4)
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
@@ -430,10 +513,14 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
             XCTAssertNil(teamInfos[2].maxCustomScore)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].maxCustomScore, 0)
         }
     }
     
-    func testAnnotatedWithCustomMin() throws {
+    func testAnnotatedWithHasManyCustomMin() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -450,7 +537,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
             
             let teamInfos = try request.fetchAll(db)
-            XCTAssertEqual(teamInfos.count, 3)
+            XCTAssertEqual(teamInfos.count, 4)
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
@@ -463,10 +550,14 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
             XCTAssertNil(teamInfos[2].minCustomScore)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].minCustomScore, 0)
         }
     }
     
-    func testAnnotatedWithCustomSum() throws {
+    func testAnnotatedWithHasManyCustomSum() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -483,7 +574,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
             
             let teamInfos = try request.fetchAll(db)
-            XCTAssertEqual(teamInfos.count, 3)
+            XCTAssertEqual(teamInfos.count, 4)
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
@@ -496,10 +587,14 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
             XCTAssertNil(teamInfos[2].customScoreSum)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].customScoreSum, 0)
         }
     }
     
-    func testAnnotatedWithMultipleCustomAggregates() throws {
+    func testAnnotatedWithHasManyMultipleCustomAggregates() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -524,7 +619,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
             
             let teamInfos = try request.fetchAll(db)
-            XCTAssertEqual(teamInfos.count, 3)
+            XCTAssertEqual(teamInfos.count, 4)
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
@@ -549,10 +644,18 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertNil(teamInfos[2].maxCustomScore)
             XCTAssertNil(teamInfos[2].minCustomScore)
             XCTAssertNil(teamInfos[2].customScoreSum)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].averageCustomScore, 0)
+            XCTAssertEqual(teamInfos[3].customCount, 1)
+            XCTAssertEqual(teamInfos[3].maxCustomScore, 0)
+            XCTAssertEqual(teamInfos[3].minCustomScore, 0)
+            XCTAssertEqual(teamInfos[3].customScoreSum, 0)
         }
     }
     
-    func testAnnotatedWithAggregateAlias() throws {
+    func testAnnotatedWithHasManyAggregateAlias() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -576,7 +679,7 @@ class AssociationAggregateTests: GRDBTestCase {
         }
     }
     
-    func testAnnotatedWithAggregateExpression() throws {
+    func testAnnotatedWithHasManyAggregateExpression() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
@@ -597,7 +700,7 @@ class AssociationAggregateTests: GRDBTestCase {
         }
     }
     
-    func testAnnotatedWithMultipleCount() throws {
+    func testAnnotatedWithHasManyMultipleCount() throws {
         struct TeamInfo: Decodable, FetchableRecord {
             var team: Team
             var lowPlayerCount: Int
@@ -623,7 +726,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 """)
             
             let teamInfos = try request.fetchAll(db)
-            XCTAssertEqual(teamInfos.count, 3)
+            XCTAssertEqual(teamInfos.count, 4)
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
@@ -639,15 +742,19 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
             XCTAssertEqual(teamInfos[2].lowPlayerCount, 0)
             XCTAssertEqual(teamInfos[2].highPlayerCount, 0)
+
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].lowPlayerCount, 1)
+            XCTAssertEqual(teamInfos[3].highPlayerCount, 0)
         }
     }
     
-    func testIsEmpty() throws {
+    func testHasManyIsEmpty() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
                 let request = Team.having(Team.players.isEmpty)
-                
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
                     FROM "team" \
@@ -655,10 +762,11 @@ class AssociationAggregateTests: GRDBTestCase {
                     GROUP BY "team"."id" \
                     HAVING (COUNT(DISTINCT "player"."rowid") = 0)
                     """)
+                try XCTAssertEqual(request.fetchAll(db).count, 1)
+                try XCTAssertEqual(request.fetchCount(db), 1)
             }
             do {
                 let request = Team.having(!Team.players.isEmpty)
-                
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
                     FROM "team" \
@@ -666,10 +774,11 @@ class AssociationAggregateTests: GRDBTestCase {
                     GROUP BY "team"."id" \
                     HAVING (COUNT(DISTINCT "player"."rowid") > 0)
                     """)
+                try XCTAssertEqual(request.fetchAll(db).count, 3)
+                try XCTAssertEqual(request.fetchCount(db), 3)
             }
             do {
                 let request = Team.having(Team.players.isEmpty == false)
-                
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
                     FROM "team" \
@@ -677,10 +786,11 @@ class AssociationAggregateTests: GRDBTestCase {
                     GROUP BY "team"."id" \
                     HAVING (COUNT(DISTINCT "player"."rowid") > 0)
                     """)
+                try XCTAssertEqual(request.fetchAll(db).count, 3)
+                try XCTAssertEqual(request.fetchCount(db), 3)
             }
             do {
                 let request = Team.having(Team.players.isEmpty == true)
-                
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \
                     FROM "team" \
@@ -688,10 +798,70 @@ class AssociationAggregateTests: GRDBTestCase {
                     GROUP BY "team"."id" \
                     HAVING (COUNT(DISTINCT "player"."rowid") = 0)
                     """)
+                try XCTAssertEqual(request.fetchAll(db).count, 1)
+                try XCTAssertEqual(request.fetchCount(db), 1)
             }
         }
     }
     
+    func testHasManyThroughIsEmpty() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Player.having(Player.awards.isEmpty)
+                try assertEqualSQL(db, request, """
+                    SELECT "player".* \
+                    FROM "player" \
+                    LEFT JOIN "team" ON ("team"."id" = "player"."teamId") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "player"."id" \
+                    HAVING (COUNT(DISTINCT "award"."rowid") = 0)
+                    """)
+                try XCTAssertEqual(request.fetchAll(db).count, 1)
+                try XCTAssertEqual(request.fetchCount(db), 1)
+          }
+            do {
+                let request = Player.having(!Player.awards.isEmpty)
+                try assertEqualSQL(db, request, """
+                    SELECT "player".* \
+                    FROM "player" \
+                    LEFT JOIN "team" ON ("team"."id" = "player"."teamId") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "player"."id" \
+                    HAVING (COUNT(DISTINCT "award"."rowid") > 0)
+                    """)
+                try XCTAssertEqual(request.fetchAll(db).count, 5)
+                try XCTAssertEqual(request.fetchCount(db), 5)
+            }
+            do {
+                let request = Player.having(Player.awards.isEmpty == false)
+                try assertEqualSQL(db, request, """
+                    SELECT "player".* \
+                    FROM "player" \
+                    LEFT JOIN "team" ON ("team"."id" = "player"."teamId") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "player"."id" \
+                    HAVING (COUNT(DISTINCT "award"."rowid") > 0)
+                    """)
+                try XCTAssertEqual(request.fetchAll(db).count, 5)
+                try XCTAssertEqual(request.fetchCount(db), 5)
+            }
+            do {
+                let request = Player.having(Player.awards.isEmpty == true)
+                try assertEqualSQL(db, request, """
+                    SELECT "player".* \
+                    FROM "player" \
+                    LEFT JOIN "team" ON ("team"."id" = "player"."teamId") \
+                    LEFT JOIN "award" ON ("award"."teamId" = "team"."id") \
+                    GROUP BY "player"."id" \
+                    HAVING (COUNT(DISTINCT "award"."rowid") = 0)
+                    """)
+                try XCTAssertEqual(request.fetchAll(db).count, 1)
+                try XCTAssertEqual(request.fetchCount(db), 1)
+            }
+        }
+    }
+
     func testEqualOperator() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
