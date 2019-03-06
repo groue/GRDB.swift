@@ -30,7 +30,6 @@ struct OrderedDictionary<Key: Hashable, Value> {
     }
     
     /// Returns the value associated with key, or nil.
-    @inlinable
     subscript(_ key: Key) -> Value? {
         get { return dictionary[key] }
         set {
@@ -60,7 +59,6 @@ struct OrderedDictionary<Key: Hashable, Value> {
     /// original value. If the given key is not present in the dictionary, this
     /// method appends the key-value pair and returns nil.
     @discardableResult
-    @inlinable
     mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
         if let oldValue = dictionary.updateValue(value, forKey: key) {
             return oldValue
@@ -71,7 +69,6 @@ struct OrderedDictionary<Key: Hashable, Value> {
     
     /// Removes the value associated with key.
     @discardableResult
-    @usableFromInline
     mutating func removeValue(forKey key: Key) -> Value? {
         guard let value = dictionary.removeValue(forKey: key) else {
             return nil
@@ -91,28 +88,28 @@ struct OrderedDictionary<Key: Hashable, Value> {
 }
 
 extension OrderedDictionary: Collection {
-    @usableFromInline typealias Index = Int
+    typealias Index = Int
     
-    @usableFromInline var startIndex: Int {
+    var startIndex: Int {
         return 0
     }
     
-    @usableFromInline var endIndex: Int {
+    var endIndex: Int {
         return keys.count
     }
     
-    @usableFromInline func index(after i: Int) -> Int {
+    func index(after i: Int) -> Int {
         return i + 1
     }
     
-    @usableFromInline  subscript(position: Int) -> (key: Key, value: Value) {
+     subscript(position: Int) -> (key: Key, value: Value) {
         let key = keys[position]
         return (key: key, value: dictionary[key]!)
     }
 }
 
 extension OrderedDictionary: ExpressibleByDictionaryLiteral {
-    @usableFromInline init(dictionaryLiteral elements: (Key, Value)...) {
+    init(dictionaryLiteral elements: (Key, Value)...) {
         self.keys = elements.map { $0.0 }
         self.dictionary = Dictionary(uniqueKeysWithValues: elements)
     }
