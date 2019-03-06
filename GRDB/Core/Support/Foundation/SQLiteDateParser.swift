@@ -23,16 +23,20 @@ class SQLiteDateParser {
     func components(cString: UnsafePointer<CChar>, length: Int) -> DatabaseDateComponents? {
         assert(strlen(cString) == length)
         
+        // "HH:MM" is the shortest valid string
         guard length >= 5 else { return nil }
         
-        if cString.advanced(by: 4).pointee == 45 /* '-' */ {
+        // "YYYY-..." -> datetime
+        if cString[4] == UInt8(ascii: "-") {
             return datetimeComponents(cString: cString, length: length)
         }
         
-        if cString.advanced(by: 2).pointee == 58 /* ':' */ {
+        // "HH-:..." -> time
+        if cString[2] == UInt8(ascii: ":") {
             return timeComponents(cString: cString, length: length)
         }
         
+        // Invalid
         return nil
     }
     
