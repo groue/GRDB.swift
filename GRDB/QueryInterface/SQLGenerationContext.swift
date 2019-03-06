@@ -20,10 +20,16 @@ public struct SQLGenerationContext {
     
     /// Used for SQLSelectQuery.makeSelectStatement() and SQLSelectQuery.makeDeleteStatement()
     static func queryGenerationContext(aliases: [TableAlias]) -> SQLGenerationContext {
+        // Unique aliases, but with preserved ordering, so that we have stable SQL generation
+        let uniqueAliases = aliases.reduce(into: [TableAlias]()) {
+            if !$0.contains($1) {
+                $0.append($1)
+            }
+        }
         return SQLGenerationContext(
             arguments: [],
-            resolvedNames: aliases.resolvedNames,
-            qualifierNeeded: aliases.count > 1)
+            resolvedNames: uniqueAliases.resolvedNames,
+            qualifierNeeded: uniqueAliases.count > 1)
     }
     
     /// Used for TableRecord.selectionSQL

@@ -54,6 +54,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#484](https://github.com/groue/GRDB.swift/pull/484): SE-0193 Cross-module inlining and specialization
 - [#486](https://github.com/groue/GRDB.swift/pull/486): Refactor PersistenceError.recordNotFound
 - [#488](https://github.com/groue/GRDB.swift/pull/488): ValueObservation Cleanup
+- [#490](https://github.com/groue/GRDB.swift/pull/490): Indirect Associations
 - [#493](https://github.com/groue/GRDB.swift/pull/493): Bump SQLite to [3.27.2](https://www.sqlite.org/releaselog/3_27_2.html)
 
 ### Breaking Changes

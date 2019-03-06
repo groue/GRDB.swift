@@ -31,25 +31,19 @@ public protocol Association: DerivableRequest {
     // Association is a protocol, not a struct.
     // This is because we want associations to be richly typed.
     // Yet, we don't want to pollute user code with implementation details of
-    // associations. So let's hide all this stuff behind the _impl property:
+    // associations. So let's hide all this stuff behind the
+    // sqlAssociation property:
     
     /// :nodoc:
-    associatedtype Impl: AssociationImpl
+    var sqlAssociation: SQLAssociation { get }
     
     /// :nodoc:
-    var _impl: Impl { get }
-    
-    /// :nodoc:
-    init(_impl: Impl)
+    init(sqlAssociation: SQLAssociation)
 }
 
 extension Association {
-    private func mapImpl(_ transform: (Impl) throws -> Impl) rethrows -> Self {
-        return try Self.init(_impl: transform(_impl))
-    }
-    
     private func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self {
-        return mapImpl { $0.mapRelation(transform) }
+        return Self.init(sqlAssociation: sqlAssociation.mapRelation(transform))
     }
 }
 
@@ -80,7 +74,7 @@ extension Association {
     ///         let team: Team = row["custom"]
     ///     }
     var key: String {
-        return _impl.key
+        return sqlAssociation.key
     }
     
     /// Creates an association which selects *selection*.
@@ -191,7 +185,7 @@ extension Association {
     ///         let team: Team = row["custom"]
     ///     }
     public func forKey(_ key: String) -> Self {
-        return mapImpl { $0.forKey(key) }
+        return Self.init(sqlAssociation: sqlAssociation.forKey(key))
     }
     
     /// Creates an association with the given key.
@@ -258,151 +252,268 @@ extension Association {
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association._impl.joinedRelation($0, joinOperator: .optional) }
+        return mapRelation { association.sqlAssociation.relation(from: $0, joinOperator: .optional) }
     }
     
     /// Creates an association that includes another one. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association._impl.joinedRelation($0, joinOperator: .required) }
+        return mapRelation { association.sqlAssociation.relation(from: $0, joinOperator: .required) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.select([])._impl.joinedRelation($0, joinOperator: .optional) }
+        return mapRelation { association.select([]).sqlAssociation.relation(from: $0, joinOperator: .optional) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.select([])._impl.joinedRelation($0, joinOperator: .required) }
+        return mapRelation { association.select([]).sqlAssociation.relation(from: $0, joinOperator: .required) }
     }
 }
 
-extension Association where OriginRowDecoder: MutablePersistableRecord {
-    /// Support for MutablePersistableRecord.request(for:).
-    ///
-    /// For example:
-    ///
-    ///     struct Team: {
-    ///         static let players = hasMany(Player.self)
-    ///         var players: QueryInterfaceRequest<Player> {
-    ///             return request(for: Team.players)
-    ///         }
-    ///     }
-    ///
-    ///     let team: Team = ...
-    ///     let players = try team.players.fetchAll(db) // [Player]
-    func request(from record: OriginRowDecoder) -> QueryInterfaceRequest<RowDecoder> {
-        // Goal: turn `JOIN association ON association.recordId = record.id`
-        // into a regular request `SELECT * FROM association WHERE association.recordId = 123`
-        
-        // We need table aliases to build the joining condition
-        let associationAlias = TableAlias()
-        let recordAlias = TableAlias()
-        
-        // Turn the association query into a query interface request:
-        // JOIN association -> SELECT FROM association
-        return QueryInterfaceRequest(query: SQLSelectQuery(relation: _impl.relation))
-            
-            // Turn the JOIN condition into a regular WHERE condition
-            .filter { db in
-                // Build a join condition: `association.recordId = record.id`
-                // We still need to replace `record.id` with the actual record id.
-                let joinExpression = try self._impl.joinCondition.sqlExpression(db, leftAlias: recordAlias, rightAlias: associationAlias)
-                
-                // Serialize record: ["id": 123, ...]
-                // We do it as late as possible, when request is about to be
-                // executed, in order to support long-lived reference types.
-                let container = PersistenceContainer(record)
-                
-                // Replace `record.id` with 123
-                return joinExpression.resolvedExpression(inContext: [recordAlias: container])
-            }
-            
-            // We just added a condition qualified with associationAlias. Don't
-            // risk introducing conflicting aliases that would prevent the user
-            // from setting a custom alias name: force the same alias for the
-            // whole request.
-            .aliased(associationAlias)
-    }
+// Allow association.filter(key: ...)
+extension Association where Self: TableRequest, RowDecoder: TableRecord {
+    /// :nodoc:
+    public var databaseTableName: String { return RowDecoder.databaseTableName }
 }
 
-// MARK: - AssociationImpl
+// MARK: - AssociationToMany
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
-/// The protocol for implementation details of associations.
-///
-/// :nodoc:
-public /* TODO: internal */ protocol AssociationImpl {
-    /// The association key
-    var key: String { get }
+/// The base protocol for all associations that define a one-to-many connection.
+public protocol AssociationToMany: Association { }
+
+extension AssociationToMany where OriginRowDecoder: TableRecord {
+    private func makeAggregate(_ expression: SQLExpression) -> AssociationAggregate<OriginRowDecoder> {
+        return AssociationAggregate { request in
+            let tableAlias = TableAlias()
+            let request = request
+                .joining(optional: self.aliased(tableAlias))
+                .groupByPrimaryKey()
+            let expression = tableAlias[expression]
+            return (request: request, expression: expression)
+        }
+    }
     
-    /// Creates an association with the given key.
-    func forKey(_ key: String) -> Self
-    
-    /// Returns an association whose relation is transformed by the
-    /// given closure.
+    /// The number of associated records.
     ///
-    /// This method provides fundamental support for association derivation:
+    /// For example:
     ///
-    ///     // Invokes Book.author.mapRelation { $0.filter(...) }
-    ///     Book.author.filter(...)
-    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self
+    ///     Team.annotated(with: Team.players.count())
+    public var count: AssociationAggregate<OriginRowDecoder> {
+        return makeAggregate(SQLExpressionCountDistinct(Column.rowID)).aliased("\(key)Count")
+    }
     
-    /// Returns a relation joined with self.
+    /// An aggregate that is true if there exists no associated records.
     ///
-    /// This method provides fundamental support for joining methods.
-    func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation
+    /// For example:
+    ///
+    ///     Team.having(Team.players.isEmpty())
+    ///     Team.having(!Team.players.isEmpty())
+    ///     Team.having(Team.players.isEmpty() == false)
+    public var isEmpty: AssociationAggregate<OriginRowDecoder> {
+        return makeAggregate(SQLExpressionIsEmpty(SQLExpressionCountDistinct(Column.rowID)))
+    }
     
-    // TODO: remove relation & joinCondition properties.
-    //
-    // They assume that an association is implemented as a direct join to an
-    // associated table. This is limiting: has-one-through and has-many-through
-    // associations can't be implemented in such context.
-    //
-    // Their impact is limited yet. Those propertise are currently only used by
-    // Association.request(from:). When this method gets a new implementation
-    // that does not need a direct join to an associated table, we'll be able to
-    // remove those properties.
-    var relation: SQLRelation { get }
-    var joinCondition: JoinCondition { get }
+    /// The average value of the given expression in associated records.
+    ///
+    /// For example:
+    ///
+    ///     Team.annotated(with: Team.players.average(Column("score")))
+    public func average(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
+        let aggregate = makeAggregate(SQLExpressionFunction(.avg, arguments: expression))
+        if let column = expression as? ColumnExpression {
+            return aggregate.aliased("average\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+        } else {
+            return aggregate
+        }
+    }
+    
+    /// The maximum value of the given expression in associated records.
+    ///
+    /// For example:
+    ///
+    ///     Team.annotated(with: Team.players.max(Column("score")))
+    public func max(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
+        let aggregate = makeAggregate(SQLExpressionFunction(.max, arguments: expression))
+        if let column = expression as? ColumnExpression {
+            return aggregate.aliased("max\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+        } else {
+            return aggregate
+        }
+    }
+    
+    /// The minimum value of the given expression in associated records.
+    ///
+    /// For example:
+    ///
+    ///     Team.annotated(with: Team.players.min(Column("score")))
+    public func min(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
+        let aggregate = makeAggregate(SQLExpressionFunction(.min, arguments: expression))
+        if let column = expression as? ColumnExpression {
+            return aggregate.aliased("min\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+        } else {
+            return aggregate
+        }
+    }
+    
+    /// The sum of the given expression in associated records.
+    ///
+    /// For example:
+    ///
+    ///     Team.annotated(with: Team.players.min(Column("score")))
+    public func sum(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
+        let aggregate = makeAggregate(SQLExpressionFunction(.sum, arguments: expression))
+        if let column = expression as? ColumnExpression {
+            return aggregate.aliased("\(key)\(column.name.uppercasingFirstCharacter)Sum")
+        } else {
+            return aggregate
+        }
+    }
 }
 
-// MARK: -
+// MARK: - AssociationToOne
 
-/// The AssociationImpl shared by BelongsTo, HasOne, and HasMany, which is
-/// implemented as a simple join.
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// The base protocol for all associations that define a one-to-one connection.
+public protocol AssociationToOne: Association { }
+
+// MARK: - SQLAssociation
+
+/// An SQL association is a chain of joins from an `origin` table to the
+/// `head` of the association. All tables between `origin` and `head` are
+/// the `tail`. The table that is immediately joined to `origin` is the `pivot`:
+///
+///     // SELECT origin.* FROM origin JOIN pivot (JOIN ...) JOIN head
+///     //                             ^ tail                ^ head
+///     origin.joining(required: association)
+///
+/// When tail is empty, `pivot` and `head` are the same:
+///
+///     // SELECT origin.* FROM origin JOIN pivot
+///     origin.joining(required: association)
 ///
 /// :nodoc:
-public /* TODO: internal */ struct JoinAssociationImpl: AssociationImpl {
-    public var key: String
-    public /* TODO: internal */ let joinCondition: JoinCondition
-    public /* TODO: internal */ var relation: SQLRelation
+public /* TODO: internal */ struct SQLAssociation {
+    // SQLAssociation is a non-empty array of association items
+    private struct Item {
+        var key: String
+        var joinCondition: JoinCondition
+        var relation: SQLRelation
+    }
+    private var head: Item
+    private var tail: [Item]
+    private var pivot: Item { return tail.last ?? head }
+    var key: String { return head.key }
     
-    public func forKey(_ key: String) -> JoinAssociationImpl {
-        var assoc = self
-        assoc.key = key
-        return assoc
+    private init(head: Item, tail: [Item]) {
+        self.head = head
+        self.tail = tail
     }
     
-    public func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> JoinAssociationImpl {
-        var assoc = self
-        assoc.relation = transform(relation)
-        return assoc
+    init(key: String, joinCondition: JoinCondition, relation: SQLRelation) {
+        head = Item(key: key, joinCondition: joinCondition, relation: relation)
+        tail = []
     }
     
-    public func joinedRelation(_ relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
-        let join = SQLJoin(
+    func forKey(_ key: String) -> SQLAssociation {
+        var result = self
+        result.head.key = key
+        return result
+    }
+    
+    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLAssociation {
+        var result = self
+        result.head.relation = transform(head.relation)
+        return result
+    }
+    
+    func appending(_ other: SQLAssociation) -> SQLAssociation {
+        var result = self
+        result.tail.append(other.head)
+        result.tail.append(contentsOf: other.tail)
+        return result
+    }
+    
+    /// Support for joining methods joining(optional:), etc.
+    func relation(from relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
+        let headJoin = SQLJoin(
             joinOperator: joinOperator,
-            joinCondition: joinCondition,
-            relation: self.relation)
-        return relation.appendingJoin(join, forKey: key)
+            joinCondition: head.joinCondition,
+            relation: head.relation)
+        
+        guard let next = tail.first else {
+            return relation.appendingJoin(headJoin, forKey: head.key)
+        }
+        
+        // Recursion step: remove one item from tail by shifting the next item
+        // to the head.
+        //
+        // From:
+        //  (... JOIN next) JOIN (head)
+        //  ^~ tail              ^~ head
+        //
+        // We reduce into:
+        //  (...) JOIN (next JOIN head)
+        //  ^~ tail    ^~ head
+        let nextRelation = next.relation.select([]).appendingJoin(headJoin, forKey: head.key)
+        let nextHead = Item(key: next.key, joinCondition: next.joinCondition, relation: nextRelation)
+        let nextTail = Array(tail.dropFirst())
+        let nextImpl = SQLAssociation(head: nextHead, tail: nextTail)
+        return nextImpl.relation(from: relation, joinOperator: joinOperator)
+    }
+    
+    /// Support for MutablePersistableRecord.request(for:).
+    ///
+    /// Returns a "reversed" relation:
+    ///
+    ///     // SELECT head.* FROM head (JOIN ...) JOIN pivot ON pivot.originId = 123
+    ///     origin.request(for: association)
+    ///
+    /// When tail is empty, `pivot` and `head` are the same:
+    ///
+    ///     // SELECT pivot.* FROM pivot WHERE pivot.originId = 123
+    ///     origin.request(for: association)
+    func relation(to originTable: String, container originContainer: @escaping (Database) throws -> PersistenceContainer) -> SQLRelation {
+        // We need a `pivot` relation filtered with origin:
+        let pivotRelation: SQLRelation = {
+            let pivotCondition = pivot.joinCondition
+            let pivotAlias = TableAlias()
+            return pivot.relation
+                .qualified(with: pivotAlias)
+                .filter { db in
+                    let originAlias = TableAlias(tableName: originTable)
+                    
+                    // Build a join condition: `association.originId = origin.id`
+                    // We still need to replace `origin.id` with the actual origin id.
+                    let joinExpression = try pivotCondition.sqlExpression(db, leftAlias: originAlias, rightAlias: pivotAlias)
+                    
+                    // Replace `origin.id` with 123
+                    return try joinExpression.resolvedExpression(inContext: [originAlias: originContainer(db)])
+            }
+        }()
+        
+        // Reverse items
+        let reversedItems = zip([head] + tail, tail)
+            .map { Item(key: "" /* ignored */, joinCondition: $0.joinCondition.reversed, relation: $1.relation.select([])) }
+            .reversed()
+        
+        // Empty tail
+        guard var reversedHead = reversedItems.first else {
+            return pivotRelation
+        }
+        
+        reversedHead.relation = pivotRelation.select([])
+        let reversedTail = Array(reversedItems.dropFirst())
+        let reversedAssociation = SQLAssociation(head: reversedHead, tail: reversedTail)
+        return reversedAssociation.relation(from: head.relation, joinOperator: .required)
     }
 }
-

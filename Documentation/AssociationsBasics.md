@@ -4,8 +4,10 @@ GRDB Associations
 - [Associations Benefits]
 - [The Types of Associations]
     - [BelongsTo]
-    - [HasOne]
     - [HasMany]
+    - [HasOne]
+    - [HasManyThrough]
+    - [HasOneThrough]
     - [Choosing Between BelongsTo and HasOne]
     - [Self Joins]
 - [Associations and the Database Schema]
@@ -122,19 +124,23 @@ Before we dive in, please remember that associations can not generate all possib
 The Types of Associations
 =========================
 
-GRDB handles three types of associations:
+GRDB handles five types of associations:
 
 - **BelongsTo**
-- **HasOne**
 - **HasMany**
+- **HasOne**
+- **HasManyThrough**
+- **HasOneThrough**
 
 An association declares a link from a record type to another, as in "one book **belongs to** its author". It instructs GRDB to use the foreign keys declared in the database as support for Swift methods.
 
 Each one of the three types of associations is appropriate for a particular database situation.
 
 - [BelongsTo]
-- [HasOne]
 - [HasMany]
+- [HasOne]
+- [HasManyThrough]
+- [HasOneThrough]
 - [Choosing Between BelongsTo and HasOne]
 - [Self Joins]
 
@@ -159,7 +165,7 @@ struct Author: TableRecord {
 }
 ```
 
-The `Book.author` association will help you build [association requests]. The property lets you fetch a book's author:
+The static `Book.author` association will help you build [association requests]. The property lets you fetch a book's author:
 
 ```swift
 let book: Book = ...
@@ -171,40 +177,6 @@ The **BelongsTo** association between a book and its author needs that the datab
 ![BelongsToSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/BelongsToSchema.svg)
 
 See [Convention for the BelongsTo Association] for some sample code that defines the database schema for such an association.
-
-
-## HasOne
-
-The **HasOne** association also sets up a one-to-one connection from a record type to another record type, but with different semantics, and underlying database schema. It is usually used when an entity has been denormalized into two database tables.
-
-For example, if your application has one database table for countries, and another for their demographic profiles, you'd declare the `Country.demographics` association as below, with its companion property:
-
-```swift
-struct Country: TableRecord {
-    static let demographics = hasOne(Demographics.self)
-    var demographics: QueryInterfaceRequest<Demographics> {
-        return request(for: Country.demographics)
-    }
-    ...
-}
-
-struct Demographics: TableRecord {
-    ...
-}
-```
-
-The `Country.demographics` association will help you build [association requests]. The property lets you fetch a country's demographic profile:
-
-```swift
-let country: Country = ...
-let demographics = try country.demographics.fetchOne(db) // Demographics?
-```
-
-The **HasOne** association between a country and its demographics needs that the database table for demographics has a column that points to the table for countries:
-
-![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneSchema.svg)
-
-See [Convention for the HasOne Association] for some sample code that defines the database schema for such an association.
 
 
 ## HasMany
@@ -226,7 +198,7 @@ struct Book: TableRecord {
 }
 ```
 
-The `Author.books` association will help you build [association requests]. The property lets you fetch an author's books:
+The static `Author.books` association will help you build [association requests]. The property lets you fetch an author's books:
 
 ```swift
 let author: Author = ...
@@ -238,6 +210,145 @@ The **HasMany** association between an author and its books needs that the datab
 ![HasManySchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasManySchema.svg)
 
 See [Convention for the HasMany Association] for some sample code that defines the database schema for such an association.
+
+
+## HasOne
+
+The **HasOne** association, like BelongsTo, sets up a one-to-one connection from a record type to another record type, but with different semantics, and underlying database schema. It is usually used when an entity has been denormalized into two database tables.
+
+For example, if your application has one database table for countries, and another for their demographic profiles, you'd declare the `Country.demographics` association as below, with its companion property:
+
+```swift
+struct Country: TableRecord {
+    static let demographics = hasOne(Demographics.self)
+    var demographics: QueryInterfaceRequest<Demographics> {
+        return request(for: Country.demographics)
+    }
+    ...
+}
+
+struct Demographics: TableRecord {
+    ...
+}
+```
+
+The static `Country.demographics` association will help you build [association requests]. The property lets you fetch a country's demographic profile:
+
+```swift
+let country: Country = ...
+let demographics = try country.demographics.fetchOne(db) // Demographics?
+```
+
+The **HasOne** association between a country and its demographics needs that the database table for demographics has a column that points to the table for countries:
+
+![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneSchema.svg)
+
+See [Convention for the HasOne Association] for some sample code that defines the database schema for such an association.
+
+
+## HasManyThrough
+
+The **HasManyThrough** association is often used to set up a many-to-many connection with another record. This association indicates that the declaring record can be matched with zero or more instances of another record by proceeding through a third record. For example, consider the practice of passport delivery. The relevant association declarations could look like this:
+
+```swift
+struct Country: TableRecord {
+    static let passports = hasMany(Passport.self)
+    static let citizens = hasMany(Citizen.self, through: passports, using: Passport.citizen)
+    var citizens: QueryInterfaceRequest<Citizen> {
+        return request(for: Country.citizens)
+    }
+}
+
+struct Passport: TableRecord {
+    static let country = belongsTo(Country.self)
+    static let citizen = belongsTo(Citizen.self)
+}
+ 
+struct Citizen: TableRecord {
+    static let passports = hasMany(Passport.self)
+    static let countries = hasMany(Country.self, through: passports, using: Passport.country)
+    var countries: QueryInterfaceRequest<Country> {
+        return request(for: Citizen.countries)
+    }
+}
+```
+
+![HasManyThroughSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasManyThroughSchema.svg)
+
+The static `Country.citizens` association will help you build [association requests]. The property lets you fetch a country's citizens:
+
+```swift
+let country: Country = ...
+let citizens = try country.citizens.fetchAll(db) // [Citizen]
+```
+
+The **HasManyThrough** association is also useful for setting up "shortcuts" through nested HasMany associations. For example, if a document has many sections, and a section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document. You could set that up this way:
+
+```swift
+struct Document: TableRecord {
+    static let sections = hasMany(Section.self)
+    static let paragraphs = hasMany(Paragraph.self, through: sections, using: Section.paragraphs)
+}
+
+struct Section: TableRecord {
+    static let paragraphs = hasMany(Paragraph.self)
+}
+ 
+struct Paragraph: TableRecord {
+}
+```
+
+As in the examples above, **HasManyThrough** association is always built from two other associations: the `through:` and `using:` arguments. Those associations can be any other association (BelongsTo, HasMany, HasManyThrough, etc). The above `Document.paragraphs` association can also be defined, in a much more explicit way, as below:
+
+```swift
+struct Document: TableRecord {
+    static let paragraphs = hasMany(
+        Paragraph.self, 
+        through: Document.hasMany(Section.self),
+        using: Section.hasMany(Paragraph.self))
+}
+```
+
+## HasOneThrough
+
+A **HasOneThrough** association sets up a one-to-one connection with another record. This association indicates that the declaring record can be matched with one instance of another record by proceeding through a third record. For example, if each book belongs to a library, and each library has one address, then one knows where the book should be returned to:
+
+```swift
+struct Book: TableRecord {
+    static let library = belongsTo(Library.self)
+    static let returnAddress = hasOne(Address.self, through: library, using: library.address)
+    var returnAddress: QueryInterfaceRequest<Address> {
+        return request(for: Book.returnAddress)
+    }
+}
+
+struct Library: TableRecord {
+    static let address = hasOne(Address.self)
+}
+ 
+struct Address: TableRecord {
+}
+```
+
+![HasOneThroughSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneThroughSchema.svg)
+
+The static `Book.returnAddress` association will help you build [association requests]. The property lets you fetch a book's return address:
+
+```swift
+let book: Book = ...
+let address = try book.returnAddress.fetchOne(db) // Address?
+```
+
+As in the example above, **HasOneThrough** association is always built from two other associations: the `through:` and `using:` arguments. Those associations can be any other association to one (BelongsTo, HasOne, HasOneThrough). The above `Book.returnAddress` association can also be defined, in a much more explicit way, as below:
+
+```swift
+struct Book: TableRecord {
+    static let returnAddress = hasOne(
+        Address.self,
+        through: Book.belongsTo(Library.self),
+        using: Library.hasOne(Address.self))
+}
+```
 
 
 ## Choosing Between BelongsTo and HasOne
@@ -303,8 +414,8 @@ Those conventions help associations be convenient and, generally, "just work". W
 
 - [Convention for Database Table Names]
 - [Convention for the BelongsTo Association]
-- [Convention for the HasOne Association]
 - [Convention for the HasMany Association]
+- [Convention for the HasOne Association]
 - [Foreign Keys]
 
 
@@ -362,13 +473,18 @@ See [The Structure of a Joined Request] for more information.
 
 ## Convention for the BelongsTo Association
 
-**[BelongsTo] associations should be supported by an SQLite foreign key.**
-
-Foreign keys are the recommended way to declare relationships between database tables. Not only will SQLite guarantee the integrity of your data, but GRDB will be able to use those foreign keys to automatically configure your associations.
+```swift
+extension Book: TableRecord {
+    static let author = belongsTo(Author.self)
+    var author: QueryInterfaceRequest<Author> {
+        return request(for: Book.author)
+    }
+}
+```
 
 ![BelongsToSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/BelongsToSchema.svg)
 
-The matching [migration] could look like:
+Here is the recommended [migration] for the **[BelongsTo]** association:
 
 ```swift
 migrator.registerMigration("Books and Authors") { db in
@@ -417,15 +533,82 @@ struct Book: FetchableRecord, TableRecord {
 See [Foreign Keys] for more information.
 
 
+## Convention for the HasMany Association
+
+```swift
+extension Author: TableRecord {
+    static let books = hasMany(Book.self)
+    var books: QueryInterfaceRequest<Book> {
+        return request(for: Author.books)
+    }
+}
+```
+
+![HasManySchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasManySchema.svg)
+
+Here is the recommended [migration] for the **[HasMany]** association:
+
+```swift
+migrator.registerMigration("Books and Authors") { db in
+    try db.create(table: "author") { t in
+        t.autoIncrementedPrimaryKey("id")             // (1)
+        t.column("name", .text)
+    }
+    try db.create(table: "book") { t in
+        t.autoIncrementedPrimaryKey("id")
+        t.column("authorId", .integer)                // (2)
+            .notNull()                                // (3)
+            .indexed()                                // (4)
+            .references("author", onDelete: .cascade) // (5)
+        t.column("title", .text)
+    }
+}
+```
+
+1. The `author` table has a primary key.
+2. The `book.authorId` column is used to link a book to the author it belongs to.
+3. Make the `book.authorId` column not null if you want SQLite to guarantee that all books have an author.
+4. Create an index on the `book.authorId` column in order to ease the selection of an author's books.
+5. Create a foreign key from `book.authorId` column to `authors.id`, so that SQLite guarantees that no book refers to a missing author. The `onDelete: .cascade` option has SQLite automatically delete all of an author's books when that author is deleted. See [Foreign Key Actions] for more information.
+
+The example above uses auto-incremented primary keys. But generally speaking, all primary keys are supported.
+
+Following this convention lets you write, for example:
+
+```swift
+struct Book: FetchableRecord, TableRecord {
+}
+
+struct Author: FetchableRecord, TableRecord {
+    static let books = hasMany(Book.self)
+}
+```
+
+If the database schema does not follow this convention, and does not define foreign keys between tables, you can still use **HasMany** associations. But your help is needed to define the missing foreign key:
+
+```swift
+struct Author: FetchableRecord, TableRecord {
+    static let books = hasMany(Book.self, using: ForeignKey(...))
+}
+```
+
+See [Foreign Keys] for more information.
+
+
 ## Convention for the HasOne Association
 
-**[HasOne] associations should be supported by an SQLite foreign key.**
-
-Foreign keys are the recommended way to declare relationships between database tables. Not only will SQLite guarantee the integrity of your data, but GRDB will be able to use those foreign keys to automatically configure your associations.
+```swift
+extension Country: TableRecord {
+    static let demographics = hasOne(Demographics.self)
+    var demographics: QueryInterfaceRequest<Demographics> {
+        return request(for: Country.demographics)
+    }
+}
+```
 
 ![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneSchema.svg)
 
-The matching [migration] could look like:
+Here is the recommended [migration] for the **[HasOne]** association:
 
 ```swift
 migrator.registerMigration("Countries") { db in
@@ -469,63 +652,6 @@ If the database schema does not follow this convention, and does not define fore
 ```swift
 struct Country: FetchableRecord, TableRecord {
     static let demographics = hasOne(Demographics.self, using: ForeignKey(...))
-}
-```
-
-See [Foreign Keys] for more information.
-
-
-## Convention for the HasMany Association
-
-**[HasMany] associations should be supported by an SQLite foreign key.**
-
-Foreign keys are the recommended way to declare relationships between database tables. Not only will SQLite guarantee the integrity of your data, but GRDB will be able to use those foreign keys to automatically configure your associations.
-
-![HasManySchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasManySchema.svg)
-
-The matching [migration] could look like:
-
-```swift
-migrator.registerMigration("Books and Authors") { db in
-    try db.create(table: "author") { t in
-        t.autoIncrementedPrimaryKey("id")             // (1)
-        t.column("name", .text)
-    }
-    try db.create(table: "book") { t in
-        t.autoIncrementedPrimaryKey("id")
-        t.column("authorId", .integer)                // (2)
-            .notNull()                                // (3)
-            .indexed()                                // (4)
-            .references("author", onDelete: .cascade) // (5)
-        t.column("title", .text)
-    }
-}
-```
-
-1. The `author` table has a primary key.
-2. The `book.authorId` column is used to link a book to the author it belongs to.
-3. Make the `book.authorId` column not null if you want SQLite to guarantee that all books have an author.
-4. Create an index on the `book.authorId` column in order to ease the selection of an author's books.
-5. Create a foreign key from `book.authorId` column to `authors.id`, so that SQLite guarantees that no book refers to a missing author. The `onDelete: .cascade` option has SQLite automatically delete all of an author's books when that author is deleted. See [Foreign Key Actions] for more information.
-
-The example above uses auto-incremented primary keys. But generally speaking, all primary keys are supported.
-
-Following this convention lets you write, for example:
-
-```swift
-struct Book: FetchableRecord, TableRecord {
-}
-
-struct Author: FetchableRecord, TableRecord {
-    static let books = hasMany(Book.self)
-}
-```
-
-If the database schema does not follow this convention, and does not define foreign keys between tables, you can still use **HasMany** associations. But your help is needed to define the missing foreign key:
-
-```swift
-struct Author: FetchableRecord, TableRecord {
-    static let books = hasMany(Book.self, using: ForeignKey(...))
 }
 ```
 
@@ -647,7 +773,7 @@ let book: Book = ...
 let author = try book.author.fetchOne(db)   // Author?
 ```
 
-**[HasOne]** and **[HasMany]** associations can also build requests for associated records. For example:
+**[HasOne]**, **[HasMany]**, **[HasOneThrough]**, and **[HasManyThrough]** associations can also build requests for associated records. For example:
 
 ```swift
 struct Author: PersistableRecord {
@@ -797,7 +923,7 @@ let request = Book
 
 The request above fetches all books, along with their author, and their author's country.
 
-When you chain associations, you can avoid fetching intermediate values by replacing the `including` method with `joining`:
+When you chain associations, you can avoid fetching intermediate tables by replacing the `including` method with `joining`. The request below fetches all books, along with their author's country, but does not include the intermediate authors in the fetched results:
 
 ```swift
 // SELECT book.*, country.*
@@ -809,7 +935,15 @@ let request = Book
         .including(optional: Person.country))
 ```
 
-The request above fetches all books, along with their author's country.
+**[HasOneThrough]** and **[HasManyThrough]** associations provide a shortcut for those requests that skip intermediate tables:
+
+```swift
+// SELECT book.*, country.*
+// FROM book
+// LEFT JOIN person ON person.id = book.authorId
+// LEFT JOIN country ON country.code = person.countryCode
+let request = Book.including(optional: Book.country)
+```
 
 > :warning: **Warning**: you can not currently chain a required association behind an optional association:
 >
@@ -1894,9 +2028,7 @@ The APIs that have been described above do not cover the whole topic of joined r
 
 - One can not yet express requests such as "all authors with all their books".
 
-- There's no HasOneThrough and HasManyThrough association, which would allow to skip intermediate bridge records when building requests.
-    
-Those features are not present yet because they hide several very tough challenges. Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those features into reality.
+Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those features into reality.
 
 
 ---
@@ -1942,8 +2074,10 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 [Associations Benefits]: #associations-benefits
 [BelongsTo]: #belongsto
-[HasOne]: #hasone
 [HasMany]: #hasmany
+[HasOne]: #hasone
+[HasManyThrough]: #hasmanythrough
+[HasOneThrough]: #hasonethrough
 [Choosing Between BelongsTo and HasOne]: #choosing-between-belongsto-and-hasone
 [Self Joins]: #self-joins
 [The Types of Associations]: #the-types-of-associations

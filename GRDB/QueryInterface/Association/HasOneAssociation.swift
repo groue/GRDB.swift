@@ -60,7 +60,7 @@
 ///     }
 ///
 /// See ForeignKey for more information.
-public struct HasOneAssociation<Origin, Destination>: Association {
+public struct HasOneAssociation<Origin, Destination>: AssociationToOne {
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
     
@@ -68,19 +68,16 @@ public struct HasOneAssociation<Origin, Destination>: Association {
     public typealias RowDecoder = Destination
     
     /// :nodoc:
-    public var _impl: JoinAssociationImpl
+    public var sqlAssociation: SQLAssociation
     
     /// :nodoc:
-    public init(_impl: JoinAssociationImpl) {
-        self._impl = _impl
+    public init(sqlAssociation: SQLAssociation) {
+        self.sqlAssociation = sqlAssociation
     }
 }
 
 // Allow HasOneAssociation(...).filter(key: ...)
-extension HasOneAssociation: TableRequest where Destination: TableRecord {
-    /// :nodoc:
-    public var databaseTableName: String { return Destination.databaseTableName }
-}
+extension HasOneAssociation: TableRequest where Destination: TableRecord { }
 
 extension TableRecord {
     /// Creates a "Has one" association between Self and the
@@ -155,7 +152,7 @@ extension TableRecord {
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: false)
         
-        return HasOneAssociation(_impl: JoinAssociationImpl(
+        return HasOneAssociation(sqlAssociation: SQLAssociation(
             key: key ?? Destination.databaseTableName,
             joinCondition: joinCondition,
             relation: Destination.all().relation))

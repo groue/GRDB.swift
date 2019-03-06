@@ -55,7 +55,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
     func testDefaultScopeIncludingRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.including(required: Player.defaultTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
         XCTAssertEqual(Set(rows[0].scopes.names), ["teams"])
@@ -65,7 +65,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
     func testDefaultScopeIncludingOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.including(optional: Player.defaultTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 2)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
         XCTAssertEqual(Set(rows[0].scopes.names), ["teams"])
@@ -78,7 +78,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
     func testDefaultScopeJoiningRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.joining(required: Player.defaultTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
         XCTAssertTrue(rows[0].scopes.names.isEmpty)
@@ -87,7 +87,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
     func testDefaultScopeJoiningOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.joining(optional: Player.defaultTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 2)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
         XCTAssertTrue(rows[0].scopes.names.isEmpty)
@@ -98,7 +98,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
     func testCustomScopeIncludingRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.including(required: Player.customTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
         XCTAssertEqual(Set(rows[0].scopes.names), ["customTeam"])
@@ -108,7 +108,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
     func testCustomScopeIncludingOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.including(optional: Player.customTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 2)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
         XCTAssertEqual(Set(rows[0].scopes.names), ["customTeam"])
@@ -121,7 +121,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
     func testCustomScopeJoiningRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.joining(required: Player.customTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
         XCTAssertTrue(rows[0].scopes.names.isEmpty)
@@ -130,7 +130,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
     func testCustomScopeJoiningOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.joining(optional: Player.customTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 2)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
         XCTAssertTrue(rows[0].scopes.names.isEmpty)

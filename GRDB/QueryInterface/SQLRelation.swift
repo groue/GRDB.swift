@@ -316,6 +316,10 @@ public /* TODO: internal */ struct JoinCondition: Equatable {
     ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
     var originIsLeft: Bool
     
+    var reversed: JoinCondition {
+        return JoinCondition(foreignKeyRequest: foreignKeyRequest, originIsLeft: !originIsLeft)
+    }
+
     /// Returns an SQL expression for the join condition.
     ///
     ///     SELECT ... FROM book JOIN author ON author.id = book.authorId

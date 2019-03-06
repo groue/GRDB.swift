@@ -58,7 +58,7 @@
 ///     }
 ///
 /// See ForeignKey for more information.
-public struct BelongsToAssociation<Origin, Destination>: Association {
+public struct BelongsToAssociation<Origin, Destination>: AssociationToOne {
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
     
@@ -66,19 +66,16 @@ public struct BelongsToAssociation<Origin, Destination>: Association {
     public typealias RowDecoder = Destination
     
     /// :nodoc:
-    public var _impl: JoinAssociationImpl
+    public var sqlAssociation: SQLAssociation
     
     /// :nodoc:
-    public init(_impl: JoinAssociationImpl) {
-        self._impl = _impl
+    public init(sqlAssociation: SQLAssociation) {
+        self.sqlAssociation = sqlAssociation
     }
 }
 
 // Allow BelongsToAssociation(...).filter(key: ...)
-extension BelongsToAssociation: TableRequest where Destination: TableRecord {
-    /// :nodoc:
-    public var databaseTableName: String { return Destination.databaseTableName }
-}
+extension BelongsToAssociation: TableRequest where Destination: TableRecord { }
 
 extension TableRecord {
     /// Creates a "Belongs To" association between Self and the
@@ -153,7 +150,7 @@ extension TableRecord {
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: true)
         
-        return BelongsToAssociation(_impl: JoinAssociationImpl(
+        return BelongsToAssociation(sqlAssociation: SQLAssociation(
             key: key ?? Destination.databaseTableName,
             joinCondition: joinCondition,
             relation: Destination.all().relation))
