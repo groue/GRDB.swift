@@ -25,5 +25,6 @@ let package = Package(
                 "Performance",
                 "SPM"
             ])
-    ]
+    ],
+    swiftLanguageVersions: [.v4_2, .version("5")]
 )
