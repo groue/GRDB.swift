@@ -336,7 +336,7 @@ class EncryptionTests: GRDBTestCase {
     func testCipherPageSize() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            dbConfiguration.cipherPageSize = .ps8192
+            dbConfiguration.cipherPageSize = .pageSize8K
             
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase({ db in
@@ -345,15 +345,21 @@ class EncryptionTests: GRDBTestCase {
         }
         
         do {
-            dbConfiguration.cipherPageSize = .ps4096
+            dbConfiguration.cipherPageSize = .pageSize4K
             
             let dbQueue = try makeDatabasePool(filename: "testpool.sqlite")
-            try dbQueue.read({ db in
-                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA cipher_page_size")!, 4096)
-            })
             try dbQueue.write({ db in
                 XCTAssertEqual(try Int.fetchOne(db, "PRAGMA cipher_page_size")!, 4096)
+                try db.execute("CREATE TABLE data(value INTEGER)")
+                try db.execute("INSERT INTO data(value) VALUES(1)")
             })
+            try dbQueue.read({ db in
+                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA cipher_page_size")!, 4096)
+                XCTAssertEqual(try Int.fetchOne(db, "SELECT value FROM data"), 1)
+            })
+            
+        }
+    }
         }
     }
     

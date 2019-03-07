@@ -83,16 +83,16 @@ public struct Configuration {
     public var passphrase: String?
     
     public enum CipherPageSize: Int {
-        case ps1024 = 1024
-        case ps2048 = 2048
-        case ps4096 = 4096
-        case ps8192 = 8192
-        case ps16384 = 16384
-        case ps32768 = 32768
-        case ps65536 = 65536
+        case pageSize1K = 1024
+        case pageSize2K = 2048
+        case pageSize4K = 4096
+        case pageSize8K = 8192
+        case pageSize16K = 16384
+        case pageSize32K = 32768
+        case pageSize64K = 65536
     }
     
-    public var cipherPageSize: CipherPageSize = .ps1024
+    public var cipherPageSize: CipherPageSize = .pageSize1K
     #endif
     
     
