@@ -364,7 +364,7 @@ class EncryptionTests: GRDBTestCase {
     func testCipherKDFSettings() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            dbConfiguration.cipherKDFIterations = 128000
+            dbConfiguration.KDFIterations = 128000
             
             var dbQueue: DatabaseQueue? = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue!.inDatabase { db in
@@ -376,7 +376,7 @@ class EncryptionTests: GRDBTestCase {
         }
 
         do {
-            dbConfiguration.cipherKDFIterations = 128000
+            dbConfiguration.KDFIterations = 128000
             
             var dbQueue: DatabasePool? = try makeDatabasePool(filename: "testpool.sqlite")
             try dbQueue!.write { db in

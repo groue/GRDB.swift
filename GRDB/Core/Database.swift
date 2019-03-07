@@ -174,7 +174,7 @@ public final class Database {
                 if let passphrase = configuration.passphrase {
                     try Database.set(passphrase: passphrase, forConnection: sqliteConnection)
                     try Database.set(cipherPageSize: configuration.cipherPageSize, forConnection: sqliteConnection)
-                    try Database.set(kdfIterations: configuration.cipherKDFIterations, forConnection: sqliteConnection)
+                    try Database.set(kdfIterations: configuration.KDFIterations, forConnection: sqliteConnection)
                 }
             #endif
             try Database.validateDatabaseFormat(sqliteConnection)

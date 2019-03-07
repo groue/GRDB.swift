@@ -94,7 +94,7 @@ public struct Configuration {
     
     public var cipherPageSize: CipherPageSize = .pageSize1K
     
-    public var cipherKDFIterations: Int = 64000
+    public var KDFIterations: Int = 64000
     #endif
     
     
