@@ -81,9 +81,9 @@ extension SQLRelation {
                 // can't merge
                 fatalError("The association key \"\(key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
             }
-            relation.joins.append(value: mergedJoin, forKey: key)
+            relation.joins.appendValue(mergedJoin, forKey: key)
         } else {
-            relation.joins.append(value: join, forKey: key)
+            relation.joins.appendValue(join, forKey: key)
         }
         return relation
     }
@@ -390,13 +390,13 @@ extension SQLRelation {
                     // can't merge
                     return nil
                 }
-                mergedJoins.append(value: mergedJoin, forKey: key)
+                mergedJoins.appendValue(mergedJoin, forKey: key)
             } else {
-                mergedJoins.append(value: join, forKey: key)
+                mergedJoins.appendValue(join, forKey: key)
             }
         }
         for (key, join) in other.joins where mergedJoins[key] == nil {
-            mergedJoins.append(value: join, forKey: key)
+            mergedJoins.appendValue(join, forKey: key)
         }
         
         // replace selection unless empty
