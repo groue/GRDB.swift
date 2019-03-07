@@ -7303,29 +7303,32 @@ try clearDBQueue.inDatabase { db in
 // Now the copy is done, and the clear-text database can be deleted.
 ```
 
-**Advanced configuration options for SQLCipher**
+## Advanced configuration options for SQLCipher
+
 There are two advanced configuration options that you can set for configuring SQLCipher that control aspects of the encryption and key generation process.
 
 ```swift
-var configuartion = Configuration()
+var configuration = Configuration()
 configuration.passphrase = "secret"
 configuration.cipherPageSize = .pageSize4K
-configuration.KDFIterations = 128000
+configuration.kdfIterations = 128000
 let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
 ```
-***cipherPageSize***
-The `cipherPageSize` is used to adjust the page size for the encrypted database (this corresponds to the SQLCipher `PRAGMA cipher_page_size` configuration option). Increasing the page size can noticeably improve performance for certain queries that access large numbers of pages. 
+### cipherPageSize
+
+The `cipherPageSize` is used to adjust the page size for the encrypted database (this corresponds to the [SQLCipher `PRAGMA cipher_page_size`](https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_page_size) configuration option). Increasing the page size can noticeably improve performance for certain queries that access large numbers of pages. 
 
 WARNING: The same `cipherPageSize` must be supplied every time that the database file is open; attempting to access the database without setting the proper `cipherPageSize` will result in the `SQLite error 26: file is encrypted or is not a database` error being thrown. 
 
 The default `cipherPageSize` in the current version of SQLCipher used in GRDB.swift is `.pageSize1K`.
 
-***KDFIterations***
-The `KDFIterations` value is used to adjust the number of iterations that the PBKDF2 key derivation is run to derive the key from the `passphrase` supplied (this corresponds to the SQLCipher `PRAGMA kdf_iter` configuration option).
+### kdfIterations
 
-WARNING: The same `KDFIterations` must be supplied every time that the database file is open; attempting to access the database without setting the proper `KDFIterations` will result in the `SQLite error 26: file is encrypted or is not a database` error being thrown. 
+The `kdfIterations` value is used to adjust the number of iterations that the PBKDF2 key derivation is run to derive the key from the `passphrase` supplied (this corresponds to the [SQLCipher `PRAGMA kdf_iter`](https://www.zetetic.net/sqlcipher/sqlcipher-api/#kdf_iter) configuration option).
 
-The default `KDFIterations` in the current version of SQLCipher used in GRDB.swift is `64000`. It is not recommend to reduce the number of iterations used from the default.
+WARNING: The same `kdfIterations` must be supplied every time that the database file is open; attempting to access the database without setting the proper `kdfIterations` will result in the `SQLite error 26: file is encrypted or is not a database` error being thrown. 
+
+The default `kdfIterations` in the current version of SQLCipher used in GRDB.swift is `64000`. It is not recommend to reduce the number of iterations used from the default.
 
 
 ## Backup

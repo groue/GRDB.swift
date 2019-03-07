@@ -101,7 +101,7 @@ public struct Configuration {
     /// The kdf_iter setting for encrypted database
     ///
     /// Default: 64000 - this corresponds to the default used until now in SQLCipher/GRDBCipher 3
-    public var KDFIterations: Int = 64000
+    public var kdfIterations: Int = 64000
     #endif
     
     
