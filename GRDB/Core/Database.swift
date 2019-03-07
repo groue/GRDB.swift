@@ -174,6 +174,7 @@ public final class Database {
                 if let passphrase = configuration.passphrase {
                     try Database.set(passphrase: passphrase, forConnection: sqliteConnection)
                     try Database.set(cipherPageSize: configuration.cipherPageSize, forConnection: sqliteConnection)
+                    try Database.set(kdfIterations: configuration.cipherKDFIterations, forConnection: sqliteConnection)
                 }
             #endif
             try Database.validateDatabaseFormat(sqliteConnection)
@@ -275,6 +276,21 @@ extension Database {
         let step = sqlite3_step(sqliteStatement)
         if step != SQLITE_DONE {
             throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Unable to set cipher_page_size")
+        }
+    }
+    
+    private static func set(kdfIterations: Int, forConnection sqliteConnection: SQLiteConnection) throws {
+        var sqliteStatement: SQLiteStatement? = nil
+        let code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA kdf_iter = \(kdfIterations)", -1, &sqliteStatement, nil)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+        defer {
+            sqlite3_finalize(sqliteStatement)
+        }
+        let step = sqlite3_step(sqliteStatement)
+        if step != SQLITE_DONE {
+            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Unable to set kdf_iter")
         }
     }
     #endif
