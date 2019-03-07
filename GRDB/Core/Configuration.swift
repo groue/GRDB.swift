@@ -82,6 +82,7 @@ public struct Configuration {
     /// Default: nil
     public var passphrase: String?
     
+    // Valid options for the cipher_page_size setting
     public enum CipherPageSize: Int {
         case pageSize1K = 1024
         case pageSize2K = 2048
@@ -92,8 +93,14 @@ public struct Configuration {
         case pageSize64K = 65536
     }
     
+    /// The cipher_page_size for encrypted databases
+    ///
+    /// Default: .pageSize1K - this corresponds to the default used until now in SQLCipher/GRDBCipher 3
     public var cipherPageSize: CipherPageSize = .pageSize1K
     
+    /// The kdf_iter setting for encrypted database
+    ///
+    /// Default: 64000 - this corresponds to the default used until now in SQLCipher/GRDBCipher 3
     public var KDFIterations: Int = 64000
     #endif
     
