@@ -366,19 +366,16 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             dbConfiguration.KDFIterations = 128000
             
-            var dbQueue: DatabaseQueue? = try makeDatabaseQueue(filename: "test.sqlite")
+            let dbQueue: DatabaseQueue? = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue!.inDatabase { db in
                 XCTAssertEqual(try Int.fetchOne(db, "PRAGMA kdf_iter"), 128000)
             }
-            
-            dbQueue = nil
-            print("Closed")
         }
 
         do {
             dbConfiguration.KDFIterations = 128000
             
-            var dbQueue: DatabasePool? = try makeDatabasePool(filename: "testpool.sqlite")
+            let dbQueue: DatabasePool? = try makeDatabasePool(filename: "testpool.sqlite")
             try dbQueue!.write { db in
                 XCTAssertEqual(try Int.fetchOne(db, "PRAGMA kdf_iter"), 128000)
                 try db.execute("CREATE TABLE data(value INTEGER)")
@@ -389,9 +386,6 @@ class EncryptionTests: GRDBTestCase {
                 XCTAssertEqual(try Int.fetchOne(db, "PRAGMA kdf_iter"), 128000)
                 XCTAssertEqual(try Int.fetchOne(db, "SELECT value FROM data"), 1)
             }
-            
-            dbQueue = nil
-            print("Closed")
         }
     }
     
