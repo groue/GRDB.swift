@@ -1,6 +1,8 @@
 Pod::Spec.new do |s|
   s.name     = 'GRDBPlus'
   s.version  = '3.6.2'
+  s.deprecated = true
+  s.deprecated_in_favor_of = 'GRDB.swift'
   
   s.license  = { :type => 'MIT', :file => 'LICENSE' }
   s.summary  = 'A toolkit for SQLite databases, with a focus on application development.'
