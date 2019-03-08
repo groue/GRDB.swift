@@ -173,6 +173,8 @@ public final class Database {
                 try Database.validateSQLCipher(sqliteConnection)
                 if let passphrase = configuration.passphrase {
                     try Database.set(passphrase: passphrase, forConnection: sqliteConnection)
+                    try Database.set(cipherPageSize: configuration.cipherPageSize, forConnection: sqliteConnection)
+                    try Database.set(kdfIterations: configuration.kdfIterations, forConnection: sqliteConnection)
                 }
             #endif
             try Database.validateDatabaseFormat(sqliteConnection)
@@ -258,6 +260,36 @@ extension Database {
             sqlite3_key(sqliteConnection, bytes, Int32(data.count))
         }
         guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+    }
+    
+    private static func set(cipherPageSize: Configuration.CipherPageSize, forConnection sqliteConnection: SQLiteConnection) throws {
+        var sqliteStatement: SQLiteStatement? = nil
+        var code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA cipher_page_size = \(cipherPageSize.rawValue)", -1, &sqliteStatement, nil)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+        defer {
+            sqlite3_finalize(sqliteStatement)
+        }
+        code = sqlite3_step(sqliteStatement)
+        if code != SQLITE_DONE {
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+    }
+    
+    private static func set(kdfIterations: Int, forConnection sqliteConnection: SQLiteConnection) throws {
+        var sqliteStatement: SQLiteStatement? = nil
+        var code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA kdf_iter = \(kdfIterations)", -1, &sqliteStatement, nil)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+        defer {
+            sqlite3_finalize(sqliteStatement)
+        }
+        code = sqlite3_step(sqliteStatement)
+        if code != SQLITE_DONE {
             throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
     }

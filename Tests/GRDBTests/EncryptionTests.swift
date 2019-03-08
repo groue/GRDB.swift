@@ -333,6 +333,62 @@ class EncryptionTests: GRDBTestCase {
         }
     }
     
+    func testCipherPageSize() throws {
+        do {
+            dbConfiguration.passphrase = "secret"
+            dbConfiguration.cipherPageSize = .pageSize8K
+            
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
+            try dbQueue.inDatabase({ db in
+                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA cipher_page_size")!, 8192)
+            })
+        }
+        
+        do {
+            dbConfiguration.cipherPageSize = .pageSize4K
+            
+            let dbQueue = try makeDatabasePool(filename: "testpool.sqlite")
+            try dbQueue.write({ db in
+                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA cipher_page_size")!, 4096)
+                try db.execute("CREATE TABLE data(value INTEGER)")
+                try db.execute("INSERT INTO data(value) VALUES(1)")
+            })
+            try dbQueue.read({ db in
+                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA cipher_page_size")!, 4096)
+                XCTAssertEqual(try Int.fetchOne(db, "SELECT value FROM data"), 1)
+            })
+            
+        }
+    }
+    
+    func testCipherKDFSettings() throws {
+        do {
+            dbConfiguration.passphrase = "secret"
+            dbConfiguration.kdfIterations = 128000
+            
+            let dbQueue: DatabaseQueue? = try makeDatabaseQueue(filename: "test.sqlite")
+            try dbQueue!.inDatabase { db in
+                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA kdf_iter"), 128000)
+            }
+        }
+
+        do {
+            dbConfiguration.kdfIterations = 128000
+            
+            let dbQueue: DatabasePool? = try makeDatabasePool(filename: "testpool.sqlite")
+            try dbQueue!.write { db in
+                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA kdf_iter"), 128000)
+                try db.execute("CREATE TABLE data(value INTEGER)")
+                try db.execute("INSERT INTO data(value) VALUES(1)")
+            }
+            
+            try dbQueue!.read { db in
+                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA kdf_iter"), 128000)
+                XCTAssertEqual(try Int.fetchOne(db, "SELECT value FROM data"), 1)
+            }
+        }
+    }
+    
     func testExportPlainTextDatabaseToEncryptedDatabase() throws {
         // See https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868?source_topic_id=939
         do {
