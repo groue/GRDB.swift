@@ -183,15 +183,6 @@ jobs:
       install:
         - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
       env:
-        - TID=CocoaPods Lint GRDBPlus (Xcode 10)
-      script: make test_CocoaPodsLint_GRDBPlus
-
-    # CocoaPods Lint (Xcode 10)
-    - stage: Test Installation
-      osx_image: xcode10
-      install:
-        - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
-      env:
         - TID=CocoaPods Lint GRDBCipher (Xcode 10)
       script: make test_CocoaPodsLint_GRDBCipher
 
@@ -203,15 +194,6 @@ jobs:
       env:
         - TID=CocoaPods GRDB (Xcode 10)
       script: make test_install_GRDB_CocoaPods
-
-    # CocoaPods Install (Xcode 10)
-    - stage: Test Installation
-      osx_image: xcode10
-      install:
-        - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
-      env:
-        - TID=CocoaPods GRDB+FTS5 (Xcode 10)
-      script: make test_install_GRDBFTS5_CocoaPods
 
     # CocoaPods Install (Xcode 10)
     - stage: Test Installation
