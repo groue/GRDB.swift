@@ -7329,7 +7329,7 @@ The `kdfIterations` value is used to adjust the number of iterations that the PB
 
 The default `kdfIterations` in the current version of SQLCipher used in GRDB.swift is `64000`. It is not recommend to reduce the number of iterations used from the default.
 
-> :point_up: **Note**: he same `kdfIterations` must be supplied every time that the database file is open; attempting to access the database without setting the proper `kdfIterations` will result in the `SQLite error 26: file is encrypted or is not a database` error being thrown. 
+> :point_up: **Note**: the same `kdfIterations` must be supplied every time that the database file is open; attempting to access the database without setting the proper `kdfIterations` will result in the `SQLite error 26: file is encrypted or is not a database` error being thrown. 
 
 
 ## Backup
