@@ -958,8 +958,10 @@
 		6A1B0FA42219B18700FC74A5 /* sqlite3.c in Sources */ = {isa = PBXBuildFile; fileRef = 6A1B0FA32219B18700FC74A5 /* sqlite3.c */; };
 		6A1B0FA72219B19400FC74A5 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A1B0FA62219B19400FC74A5 /* Security.framework */; };
 		6A1B0FA92219B2D000FC74A5 /* sqlcipher.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 6A1B0FA82219B2D000FC74A5 /* sqlcipher.xcconfig */; };
-		6A1B0FAC2219B41000FC74A5 /* libsqlcipher-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A1B0F982219B14700FC74A5 /* libsqlcipher-ios.a */; };
+		6A1B0FAC2219B41000FC74A5 /* libsqlcipher.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A1B0F982219B14700FC74A5 /* libsqlcipher.a */; };
 		6A738C5322336828001BD929 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 6A738C5222336821001BD929 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		6A738C56223376C4001BD929 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 6A738C5222336821001BD929 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		6A738C57223376ED001BD929 /* libsqlcipher.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A1B0F982219B14700FC74A5 /* libsqlcipher.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1004,6 +1006,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 6A738C4B22335F63001BD929;
 			remoteInfo = "sqlcipher-amalgamation";
+		};
+		6A738C5422337648001BD929 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DC3773EA19C8CBB3004FCF85 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6A1B0F972219B14700FC74A5;
+			remoteInfo = sqlcipher;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -1323,7 +1332,7 @@
 		56FF453F1D2C23BA00F21EF9 /* MutablePersistableRecordDeleteTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MutablePersistableRecordDeleteTests.swift; sourceTree = "<group>"; };
 		56FF45551D2CDA5200F21EF9 /* RecordUniqueIndexTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordUniqueIndexTests.swift; sourceTree = "<group>"; };
 		6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordPersistenceConflictPolicy.swift; sourceTree = "<group>"; };
-		6A1B0F982219B14700FC74A5 /* libsqlcipher-ios.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libsqlcipher-ios.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6A1B0F982219B14700FC74A5 /* libsqlcipher.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libsqlcipher.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		6A1B0FA32219B18700FC74A5 /* sqlite3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = sqlite3.c; path = SQLCipher/src_build/sqlite3.c; sourceTree = "<group>"; };
 		6A1B0FA62219B19400FC74A5 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS12.0.sdk/System/Library/Frameworks/Security.framework; sourceTree = DEVELOPER_DIR; };
 		6A1B0FA82219B2D000FC74A5 /* sqlcipher.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; name = sqlcipher.xcconfig; path = SQLCipher/sqlcipher.xcconfig; sourceTree = "<group>"; };
@@ -1339,6 +1348,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6A738C57223376ED001BD929 /* libsqlcipher.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1362,7 +1372,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6A1B0FAC2219B41000FC74A5 /* libsqlcipher-ios.a in Frameworks */,
+				6A1B0FAC2219B41000FC74A5 /* libsqlcipher.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2031,7 +2041,7 @@
 				56AFCA231CB1A8BB00F48B96 /* GRDBCipher.framework */,
 				56AFCA7F1CB1AA9900F48B96 /* GRDBCipheriOSTests.xctest */,
 				56AFCAD71CB1ABC800F48B96 /* GRDBCipheriOSEncryptedTests.xctest */,
-				6A1B0F982219B14700FC74A5 /* libsqlcipher-ios.a */,
+				6A1B0F982219B14700FC74A5 /* libsqlcipher.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2083,6 +2093,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				567DAF1D1EAB61ED00FC0928 /* grdb_config.h in Headers */,
+				6A738C56223376C4001BD929 /* sqlite3.h in Headers */,
 				568E1CBA1CB03847008D97A6 /* GRDBCipher.h in Headers */,
 				568E1CB91CB03847008D97A6 /* GRDBCipher-Bridging.h in Headers */,
 			);
@@ -2114,6 +2125,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				6A738C5522337648001BD929 /* PBXTargetDependency */,
 			);
 			name = GRDBCipherOSX;
 			productName = GRDB;
@@ -2211,9 +2223,9 @@
 			productReference = 56AFCAD71CB1ABC800F48B96 /* GRDBCipheriOSEncryptedTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		6A1B0F972219B14700FC74A5 /* sqlcipher-ios */ = {
+		6A1B0F972219B14700FC74A5 /* sqlcipher */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6A1B0F9E2219B14700FC74A5 /* Build configuration list for PBXNativeTarget "sqlcipher-ios" */;
+			buildConfigurationList = 6A1B0F9E2219B14700FC74A5 /* Build configuration list for PBXNativeTarget "sqlcipher" */;
 			buildPhases = (
 				6A1B0F942219B14700FC74A5 /* Sources */,
 				6A1B0F952219B14700FC74A5 /* Frameworks */,
@@ -2224,9 +2236,9 @@
 			dependencies = (
 				6A738C512233603E001BD929 /* PBXTargetDependency */,
 			);
-			name = "sqlcipher-ios";
+			name = sqlcipher;
 			productName = "sqlcipher-ios";
-			productReference = 6A1B0F982219B14700FC74A5 /* libsqlcipher-ios.a */;
+			productReference = 6A1B0F982219B14700FC74A5 /* libsqlcipher.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -2275,7 +2287,7 @@
 				56AFC9EE1CB1A8BB00F48B96 /* GRDBCipheriOS */,
 				56AFCA2B1CB1AA9900F48B96 /* GRDBCipheriOSTests */,
 				56AFCA841CB1ABC800F48B96 /* GRDBCipheriOSEncryptedTests */,
-				6A1B0F972219B14700FC74A5 /* sqlcipher-ios */,
+				6A1B0F972219B14700FC74A5 /* sqlcipher */,
 				6A738C4B22335F63001BD929 /* sqlcipher-amalgamation */,
 			);
 		};
@@ -3349,13 +3361,18 @@
 		};
 		6A1B0FAB2219B40500FC74A5 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 6A1B0F972219B14700FC74A5 /* sqlcipher-ios */;
+			target = 6A1B0F972219B14700FC74A5 /* sqlcipher */;
 			targetProxy = 6A1B0FAA2219B40500FC74A5 /* PBXContainerItemProxy */;
 		};
 		6A738C512233603E001BD929 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 6A738C4B22335F63001BD929 /* sqlcipher-amalgamation */;
 			targetProxy = 6A738C502233603E001BD929 /* PBXContainerItemProxy */;
+		};
+		6A738C5522337648001BD929 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6A1B0F972219B14700FC74A5 /* sqlcipher */;
+			targetProxy = 6A738C5422337648001BD929 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -3611,14 +3628,15 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "macosx iphonesimulator iphoneos";
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 armv7 armv7s i386 x86_64";
 			};
 			name = Debug;
 		};
@@ -3637,13 +3655,14 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				MTL_FAST_MATH = YES;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "macosx iphonesimulator iphoneos";
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = "arm64 armv7 armv7s i386 x86_64";
 			};
 			name = Release;
 		};
@@ -3823,7 +3842,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6A1B0F9E2219B14700FC74A5 /* Build configuration list for PBXNativeTarget "sqlcipher-ios" */ = {
+		6A1B0F9E2219B14700FC74A5 /* Build configuration list for PBXNativeTarget "sqlcipher" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				6A1B0F9F2219B14700FC74A5 /* Debug */,
