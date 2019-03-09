@@ -955,6 +955,7 @@ extension Database {
     ///
     /// To set the busy mode of a database, use Configuration:
     ///
+    ///     // Wait 1 second before failing with SQLITE_BUSY
     ///     let configuration = Configuration(busyMode: .timeout(1))
     ///     let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
     ///
@@ -970,7 +971,7 @@ extension Database {
         case immediateError
         
         /// The SQLITE_BUSY error will be returned only if the database remains
-        /// locked for more than the specified duration.
+        /// locked for more than the specified duration (in seconds).
         case timeout(TimeInterval)
         
         /// A custom callback that is called when a database is locked.
