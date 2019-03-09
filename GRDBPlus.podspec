@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name     = 'GRDBPlus'
-  s.version  = '3.6.2'
+  s.version  = '3.7.0'
   s.deprecated = true
   s.deprecated_in_favor_of = 'GRDB.swift'
   
