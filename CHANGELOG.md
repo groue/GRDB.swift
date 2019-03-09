@@ -53,11 +53,12 @@ Released March 9, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare
 
 ### New
 
-- [#497](https://github.com/groue/GRDB.swift/pull/497): Add additional SQLCipher configuration options
+- [#494](https://github.com/groue/GRDB.swift/pull/494)by [@davidkraus](https://github.com/davidkraus): Document how to enable FTS5 with GRDB.swift CocoaPod
+- [#497](https://github.com/groue/GRDB.swift/pull/497)by [@Marus](https://github.com/Marus): Add additional SQLCipher configuration options
 
 ### Documentation Diff
 
-- [Advanced configuration options for SQLCipher](README.md#advanced-configuration-options-for-sqlcipher): this new chapter documents the new GRDBCipher APIs.
+- [Advanced configuration options for SQLCipher](README.md#advanced-configuration-options-for-sqlcipher): this new chapter documents the new database encryption APIs.
 - [Enabling FTS5 Support](README.md#enabling-fts5-support) has been updated with a new technique for enabling FTS5 with the GRDB.swift CocoaPod.
 
 
