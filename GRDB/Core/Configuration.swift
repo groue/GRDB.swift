@@ -77,30 +77,23 @@ public struct Configuration {
     // MARK: - Encryption
     
     #if SQLITE_HAS_CODEC
-    /// The passphrase for encrypted database.
+    /// The passphrase for the encrypted database.
     ///
     /// Default: nil
     public var passphrase: String?
     
-    // Valid options for the cipher_page_size setting
-    public enum CipherPageSize: Int {
-        case pageSize1K = 1024
-        case pageSize2K = 2048
-        case pageSize4K = 4096
-        case pageSize8K = 8192
-        case pageSize16K = 16384
-        case pageSize32K = 32768
-        case pageSize64K = 65536
-    }
-    
-    /// The cipher_page_size for encrypted databases
+    /// The cipher_page_size setting for the encrypted database.
     ///
-    /// Default: .pageSize1K - this corresponds to the default used until now in SQLCipher/GRDBCipher 3
-    public var cipherPageSize: CipherPageSize = .pageSize1K
-    
-    /// The kdf_iter setting for encrypted database
+    /// See https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_page_size
     ///
-    /// Default: 64000 - this corresponds to the default used until now in SQLCipher/GRDBCipher 3
+    /// Default: 1024 - this corresponds to the default used by SQLCipher 3
+    public var cipherPageSize: Int = 1024
+    
+    /// The kdf_iter setting for the encrypted database.
+    ///
+    /// See https://www.zetetic.net/sqlcipher/sqlcipher-api/#kdf_iter
+    ///
+    /// Default: 64000 - this corresponds to the default used by SQLCipher 3
     public var kdfIterations: Int = 64000
     #endif
     

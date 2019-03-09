@@ -264,9 +264,9 @@ extension Database {
         }
     }
     
-    private static func set(cipherPageSize: Configuration.CipherPageSize, forConnection sqliteConnection: SQLiteConnection) throws {
+    private static func set(cipherPageSize: Int, forConnection sqliteConnection: SQLiteConnection) throws {
         var sqliteStatement: SQLiteStatement? = nil
-        var code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA cipher_page_size = \(cipherPageSize.rawValue)", -1, &sqliteStatement, nil)
+        var code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA cipher_page_size = \(cipherPageSize)", -1, &sqliteStatement, nil)
         guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }

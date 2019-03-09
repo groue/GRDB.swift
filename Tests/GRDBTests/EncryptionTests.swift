@@ -37,6 +37,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = nil
             do {
                 _ = try makeDatabaseQueue(filename: "test.sqlite")
+                XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
@@ -60,6 +61,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "wrong"
             do {
                 _ = try makeDatabaseQueue(filename: "test.sqlite")
+                XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
@@ -133,6 +135,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = nil
             do {
                 _ = try makeDatabasePool(filename: "test.sqlite")
+                XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
@@ -156,6 +159,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "wrong"
             do {
                 _ = try makeDatabasePool(filename: "test.sqlite")
+                XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
@@ -227,6 +231,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = nil
             do {
                 _ = try makeDatabasePool(filename: "test.sqlite")
+                XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
@@ -250,6 +255,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "wrong"
             do {
                 _ = try makeDatabasePool(filename: "test.sqlite")
+                XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
@@ -324,6 +330,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = nil
             do {
                 _ = try makeDatabaseQueue(filename: "test.sqlite")
+                XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
@@ -336,7 +343,7 @@ class EncryptionTests: GRDBTestCase {
     func testCipherPageSize() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            dbConfiguration.cipherPageSize = .pageSize8K
+            dbConfiguration.cipherPageSize = 8192
             
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase({ db in
@@ -345,15 +352,15 @@ class EncryptionTests: GRDBTestCase {
         }
         
         do {
-            dbConfiguration.cipherPageSize = .pageSize4K
+            dbConfiguration.cipherPageSize = 4096
             
-            let dbQueue = try makeDatabasePool(filename: "testpool.sqlite")
-            try dbQueue.write({ db in
+            let dbPool = try makeDatabasePool(filename: "testpool.sqlite")
+            try dbPool.write({ db in
                 XCTAssertEqual(try Int.fetchOne(db, "PRAGMA cipher_page_size")!, 4096)
                 try db.execute("CREATE TABLE data(value INTEGER)")
                 try db.execute("INSERT INTO data(value) VALUES(1)")
             })
-            try dbQueue.read({ db in
+            try dbPool.read({ db in
                 XCTAssertEqual(try Int.fetchOne(db, "PRAGMA cipher_page_size")!, 4096)
                 XCTAssertEqual(try Int.fetchOne(db, "SELECT value FROM data"), 1)
             })
@@ -361,13 +368,13 @@ class EncryptionTests: GRDBTestCase {
         }
     }
     
-    func testCipherKDFSettings() throws {
+    func testCipherKDFIterations() throws {
         do {
             dbConfiguration.passphrase = "secret"
             dbConfiguration.kdfIterations = 128000
             
-            let dbQueue: DatabaseQueue? = try makeDatabaseQueue(filename: "test.sqlite")
-            try dbQueue!.inDatabase { db in
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
+            try dbQueue.inDatabase { db in
                 XCTAssertEqual(try Int.fetchOne(db, "PRAGMA kdf_iter"), 128000)
             }
         }
@@ -375,14 +382,14 @@ class EncryptionTests: GRDBTestCase {
         do {
             dbConfiguration.kdfIterations = 128000
             
-            let dbQueue: DatabasePool? = try makeDatabasePool(filename: "testpool.sqlite")
-            try dbQueue!.write { db in
+            let dbPool = try makeDatabasePool(filename: "testpool.sqlite")
+            try dbPool.write { db in
                 XCTAssertEqual(try Int.fetchOne(db, "PRAGMA kdf_iter"), 128000)
                 try db.execute("CREATE TABLE data(value INTEGER)")
                 try db.execute("INSERT INTO data(value) VALUES(1)")
             }
             
-            try dbQueue!.read { db in
+            try dbPool.read { db in
                 XCTAssertEqual(try Int.fetchOne(db, "PRAGMA kdf_iter"), 128000)
                 XCTAssertEqual(try Int.fetchOne(db, "SELECT value FROM data"), 1)
             }
@@ -408,6 +415,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             do {
                 _ = try makeDatabaseQueue(filename: "plaintext.sqlite")
+                XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
