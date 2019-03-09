@@ -53,8 +53,8 @@ Released March 9, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare
 
 ### New
 
-- [#494](https://github.com/groue/GRDB.swift/pull/494)by [@davidkraus](https://github.com/davidkraus): Document how to enable FTS5 with GRDB.swift CocoaPod
-- [#497](https://github.com/groue/GRDB.swift/pull/497)by [@Marus](https://github.com/Marus): Add additional SQLCipher configuration options
+- [#494](https://github.com/groue/GRDB.swift/pull/494) by [@davidkraus](https://github.com/davidkraus): Document how to enable FTS5 with GRDB.swift CocoaPod
+- [#497](https://github.com/groue/GRDB.swift/pull/497) by [@Marus](https://github.com/Marus): Add additional SQLCipher configuration options
 
 ### Documentation Diff
 
