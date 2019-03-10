@@ -1,3 +1,5 @@
+import Foundation // For JSONEncoder
+
 /// Types that adopt EncodableRecord can be encoded into the database.
 public protocol EncodableRecord {
     /// Encodes the record into database values.
