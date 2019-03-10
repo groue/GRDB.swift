@@ -12,7 +12,7 @@ import XCTest
 class AssociationHasOneThroughSQLTests: GRDBTestCase {
     
     func testBelongsToBelongsTo() throws {
-        struct A: MutablePersistableRecord {
+        struct A: TableRecord, EncodableRecord {
             static let b = belongsTo(B.self)
             static let c = hasOne(C.self, through: b, using: B.c)
             func encode(to container: inout PersistenceContainer) {
@@ -52,7 +52,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     }
     
     func testBelongsToHasOne() throws {
-        struct A: MutablePersistableRecord {
+        struct A: TableRecord, EncodableRecord {
             static let b = belongsTo(B.self)
             static let c = hasOne(C.self, through: b, using: B.c)
             func encode(to container: inout PersistenceContainer) {
@@ -92,7 +92,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     }
     
     func testHasOneBelongsTo() throws {
-        struct A: MutablePersistableRecord {
+        struct A: TableRecord, EncodableRecord {
             static let b = hasOne(B.self)
             static let c = hasOne(C.self, through: b, using: B.c)
             func encode(to container: inout PersistenceContainer) {
@@ -132,7 +132,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     }
     
     func testHasOneHasOne() throws {
-        struct A: MutablePersistableRecord {
+        struct A: TableRecord, EncodableRecord {
             static let b = hasOne(B.self)
             static let c = hasOne(C.self, through: b, using: B.c)
             func encode(to container: inout PersistenceContainer) {
@@ -317,7 +317,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     }
     
     func testBelongsToBelongsToBelongsTo() throws {
-        struct A: MutablePersistableRecord {
+        struct A: TableRecord, EncodableRecord {
             static let b = belongsTo(B.self)
             static let c = hasOne(C.self, through: b, using: B.c)
             static let dThroughC = hasOne(D.self, through: c, using: C.d)
@@ -374,7 +374,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     }
     
     func testBelongsToBelongsToHasOne() throws {
-        struct A: MutablePersistableRecord {
+        struct A: TableRecord, EncodableRecord {
             static let b = belongsTo(B.self)
             static let c = hasOne(C.self, through: b, using: B.c)
             static let dThroughC = hasOne(D.self, through: c, using: C.d)
@@ -431,7 +431,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     }
     
     func testBelongsToHasOneBelongsTo() throws {
-        struct A: MutablePersistableRecord {
+        struct A: TableRecord, EncodableRecord {
             static let b = belongsTo(B.self)
             static let c = hasOne(C.self, through: b, using: B.c)
             static let dThroughC = hasOne(D.self, through: c, using: C.d)
@@ -488,7 +488,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     }
     
     func testBelongsToHasOneHasOne() throws {
-        struct A: MutablePersistableRecord {
+        struct A: TableRecord, EncodableRecord {
             static let b = belongsTo(B.self)
             static let c = hasOne(C.self, through: b, using: B.c)
             static let dThroughC = hasOne(D.self, through: c, using: C.d)
@@ -545,7 +545,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     }
     
     func testHasOneBelongsToBelongsTo() throws {
-        struct A: MutablePersistableRecord {
+        struct A: TableRecord, EncodableRecord {
             static let b = hasOne(B.self)
             static let c = hasOne(C.self, through: b, using: B.c)
             static let dThroughC = hasOne(D.self, through: c, using: C.d)
@@ -602,7 +602,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     }
     
     func testHasOneBelongsToHasOne() throws {
-        struct A: MutablePersistableRecord {
+        struct A: TableRecord, EncodableRecord {
             static let b = hasOne(B.self)
             static let c = hasOne(C.self, through: b, using: B.c)
             static let dThroughC = hasOne(D.self, through: c, using: C.d)
@@ -659,7 +659,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     }
     
     func testHasOneHasOneBelongsTo() throws {
-        struct A: MutablePersistableRecord {
+        struct A: TableRecord, EncodableRecord {
             static let b = hasOne(B.self)
             static let c = hasOne(C.self, through: b, using: B.c)
             static let dThroughC = hasOne(D.self, through: c, using: C.d)
@@ -716,7 +716,7 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
     }
     
     func testHasOneHasOneHasOne() throws {
-        struct A: MutablePersistableRecord {
+        struct A: TableRecord, EncodableRecord {
             static let b = hasOne(B.self)
             static let c = hasOne(C.self, through: b, using: B.c)
             static let dThroughC = hasOne(D.self, through: c, using: C.d)
