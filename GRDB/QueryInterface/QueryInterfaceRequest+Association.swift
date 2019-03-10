@@ -92,12 +92,12 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     }
 }
 
-extension MutablePersistableRecord {
+extension TableRecord where Self: EncodableRecord {
     /// Creates a request that fetches the associated record(s).
     ///
     /// For example:
     ///
-    ///     struct Team: {
+    ///     struct Team: TableRecord, EncodableRecord {
     ///         static let players = hasMany(Player.self)
     ///         var players: QueryInterfaceRequest<Player> {
     ///             return request(for: Team.players)

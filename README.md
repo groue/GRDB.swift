@@ -2526,27 +2526,32 @@ try Citizenship.fetchOne(db, key: ["citizenId": 1, "countryCode": "FR"]) // Citi
 
 ## PersistableRecord Protocol
 
-**GRDB provides two protocols that let adopting types create, update, and delete rows in the database:**
+**GRDB record types can create, update, and delete rows in the database.**
+
+Those abilities are granted by three protocols:
 
 ```swift
-protocol MutablePersistableRecord : TableRecord {
+// Defines how a record encodes itself into the database
+protocol EncodableRecord {
     /// Defines the values persisted in the database
     func encode(to container: inout PersistenceContainer)
-    
+}
+
+// Adds persistence methods
+protocol MutablePersistableRecord: TableRecord, EncodableRecord {
     /// Optional method that lets your adopting type store its rowID upon
     /// successful insertion. Don't call it directly: it is called for you.
     mutating func didInsert(with rowID: Int64, for column: String?)
 }
-```
 
-```swift
-protocol PersistableRecord : MutablePersistableRecord {
+// Adds immutability
+protocol PersistableRecord: MutablePersistableRecord {
     /// Non-mutating version of the optional didInsert(with:for:)
     func didInsert(with rowID: Int64, for column: String?)
 }
 ```
 
-Yes, two protocols instead of one. Both grant exactly the same advantages. Here is how you pick one or the other:
+Yes, three protocols instead of one. Here is how you pick one or the other:
 
 - **If your type is a class**, choose `PersistableRecord`. On top of that, implement `didInsert(with:for:)` if the database table has an auto-incremented primary key.
 

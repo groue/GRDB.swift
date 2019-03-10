@@ -471,7 +471,7 @@ public /* TODO: internal */ struct SQLAssociation {
         return nextImpl.relation(from: relation, joinOperator: joinOperator)
     }
     
-    /// Support for MutablePersistableRecord.request(for:).
+    /// Support for (TableRecord & EncodableRecord).request(for:).
     ///
     /// Returns a "reversed" relation:
     ///

@@ -1,6 +1,6 @@
 import Foundation
 
-extension MutablePersistableRecord where Self: Encodable {
+extension EncodableRecord where Self: Encodable {
     public func encode(to container: inout PersistenceContainer) {
         let encoder = RecordEncoder<Self>(persistenceContainer: container)
         try! encode(to: encoder)
@@ -11,7 +11,7 @@ extension MutablePersistableRecord where Self: Encodable {
 // MARK: - RecordEncoder
 
 /// The encoder that encodes a record into GRDB's PersistenceContainer
-private class RecordEncoder<Record: MutablePersistableRecord>: Encoder {
+private class RecordEncoder<Record: EncodableRecord>: Encoder {
     var codingPath: [CodingKey] { return [] }
     var userInfo: [CodingUserInfoKey: Any] { return Record.databaseEncodingUserInfo }
     private var _persistenceContainer: PersistenceContainer
@@ -162,7 +162,7 @@ private class RecordEncoder<Record: MutablePersistableRecord>: Encoder {
 // MARK: - ColumnEncoder
 
 /// The encoder that encodes into a database column
-private class ColumnEncoder<Record: MutablePersistableRecord>: Encoder {
+private class ColumnEncoder<Record: EncodableRecord>: Encoder {
     var recordEncoder: RecordEncoder<Record>
     var key: CodingKey
     var codingPath: [CodingKey] { return [key] }
@@ -225,7 +225,7 @@ extension ColumnEncoder: SingleValueEncodingContainer {
 private struct JSONRequiredError: Error { }
 
 /// The encoder that always ends up with a JSONRequiredError
-private struct JSONRequiredEncoder<Record: MutablePersistableRecord>: Encoder {
+private struct JSONRequiredEncoder<Record: EncodableRecord>: Encoder {
     var codingPath: [CodingKey]
     var userInfo: [CodingUserInfoKey: Any] { return Record.databaseEncodingUserInfo }
     
