@@ -7319,7 +7319,7 @@ let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
 
 The `cipherPageSize` is used to adjust the page size for the encrypted database (this corresponds to the [SQLCipher `PRAGMA cipher_page_size`](https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_page_size) configuration option). Increasing the page size can noticeably improve performance for certain queries that access large numbers of pages. 
 
-The default `cipherPageSize` in the current version of SQLCipher used in GRDB.swift is `.pageSize1K`.
+The default `cipherPageSize` in the current version of SQLCipher used in GRDB.swift is `1024`.
 
 > :point_up: **Note**: the same `cipherPageSize` must be supplied every time that the database file is open; attempting to access the database without setting the proper `cipherPageSize` will result in the `SQLite error 26: file is encrypted or is not a database` error being thrown. 
 
