@@ -11,6 +11,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 #### 3.x Releases
 
+- `3.7.x` Releases - [3.7.0](#370)
 - `3.6.x` Releases - [3.6.0](#360) | [3.6.1](#361) | [3.6.2](#362)
 - `3.5.x` Releases - [3.5.0](#350)
 - `3.4.x` Releases - [3.4.0](#340)
@@ -66,6 +67,25 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 ### Documentation Diff
 
 - [SQL Interpolation](Documentation/SQLInterpolation.md): this new document describes the new SQL interpolation feature.
+
+
+## 3.7.0
+
+Released March 9, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.6.2...v3.7.20)
+
+### Fixed
+
+- [#496](https://github.com/groue/GRDB.swift/pull/496): Fix crash when trying to perform fetchCount or ValueObservation.trackCount on joined query
+
+### New
+
+- [#494](https://github.com/groue/GRDB.swift/pull/494) by [@davidkraus](https://github.com/davidkraus): Document how to enable FTS5 with GRDB.swift CocoaPod
+- [#497](https://github.com/groue/GRDB.swift/pull/497) by [@Marus](https://github.com/Marus): Add additional SQLCipher configuration options
+
+### Documentation Diff
+
+- [Advanced configuration options for SQLCipher](README.md#advanced-configuration-options-for-sqlcipher): this new chapter documents the new database encryption APIs.
+- [Enabling FTS5 Support](README.md#enabling-fts5-support) has been updated with a new technique for enabling FTS5 with the GRDB.swift CocoaPod.
 
 
 ## 3.6.2

@@ -10,8 +10,8 @@
 ///     dict.map { $0.key } // ["foo", "bar"], in this order.
 @usableFromInline
 struct OrderedDictionary<Key: Hashable, Value> {
-    @usableFromInline var keys: [Key]
-    @usableFromInline var dictionary: [Key: Value]
+    @usableFromInline private(set) var keys: [Key]
+    @usableFromInline private(set) var dictionary: [Key: Value]
     
     var values: [Value] {
         return keys.map { dictionary[$0]! }

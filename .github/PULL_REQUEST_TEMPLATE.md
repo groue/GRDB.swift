@@ -10,4 +10,3 @@ Please verify that your pull request checks those boxes:
 - [ ] Inline documentation has been updated.
 - [ ] README.md or another dedicated guide has been updated.
 - [ ] Changes are tested, for all flavors of GRDB, GRDBCipher, and GRDBCustomSQLite.
-- [ ] CHANGELOG.md has been updated.

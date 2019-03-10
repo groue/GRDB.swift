@@ -173,6 +173,8 @@ public final class Database {
                 try Database.validateSQLCipher(sqliteConnection)
                 if let passphrase = configuration.passphrase {
                     try Database.set(passphrase: passphrase, forConnection: sqliteConnection)
+                    try Database.set(cipherPageSize: configuration.cipherPageSize, forConnection: sqliteConnection)
+                    try Database.set(kdfIterations: configuration.kdfIterations, forConnection: sqliteConnection)
                 }
             #endif
             try Database.validateDatabaseFormat(sqliteConnection)
@@ -264,6 +266,36 @@ extension Database {
         }
         #endif
         guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+    }
+    
+    private static func set(cipherPageSize: Int, forConnection sqliteConnection: SQLiteConnection) throws {
+        var sqliteStatement: SQLiteStatement? = nil
+        var code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA cipher_page_size = \(cipherPageSize)", -1, &sqliteStatement, nil)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+        defer {
+            sqlite3_finalize(sqliteStatement)
+        }
+        code = sqlite3_step(sqliteStatement)
+        if code != SQLITE_DONE {
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+    }
+    
+    private static func set(kdfIterations: Int, forConnection sqliteConnection: SQLiteConnection) throws {
+        var sqliteStatement: SQLiteStatement? = nil
+        var code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA kdf_iter = \(kdfIterations)", -1, &sqliteStatement, nil)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+        defer {
+            sqlite3_finalize(sqliteStatement)
+        }
+        code = sqlite3_step(sqliteStatement)
+        if code != SQLITE_DONE {
             throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
     }
@@ -935,6 +967,7 @@ extension Database {
     ///
     /// To set the busy mode of a database, use Configuration:
     ///
+    ///     // Wait 1 second before failing with SQLITE_BUSY
     ///     let configuration = Configuration(busyMode: .timeout(1))
     ///     let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
     ///
@@ -950,7 +983,7 @@ extension Database {
         case immediateError
         
         /// The SQLITE_BUSY error will be returned only if the database remains
-        /// locked for more than the specified duration.
+        /// locked for more than the specified duration (in seconds).
         case timeout(TimeInterval)
         
         /// A custom callback that is called when a database is locked.
