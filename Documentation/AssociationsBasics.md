@@ -2,6 +2,7 @@ GRDB Associations
 =================
 
 - [Associations Benefits]
+- [Required Protocols]
 - [The Types of Associations]
     - [BelongsTo]
     - [HasMany]
@@ -46,12 +47,12 @@ GRDB Associations
 Associations streamline common operations in your code, make them safer, and more efficient. For example, consider a library application that has two record types, author and book:
 
 ```swift
-struct Author: TableRecord, FetchableRecord {
+struct Author {
     var id: Int64
     var name: String
 }
 
-struct Book: TableRecord, FetchableRecord {
+struct Book {
     var id: Int64
     var authorId: Int64?
     var title: String
@@ -121,6 +122,52 @@ let bookInfos = BookInfo.fetchAll(db, request)
 Before we dive in, please remember that associations can not generate all possible SQL queries that involve several tables. You may also *prefer* writing SQL, and this is just OK, because your SQL skills are welcome: see the [Joined Queries Support](../README.md#joined-queries-support) chapter.
 
 
+## Required Protocols
+
+**Associations are available on types that adopt the necessary supporting protocols.**
+
+When your type is a subclass of the [Record class], all necessary protocols are already setup and ready.
+
+Otherwise:
+
+- **[TableRecord]** is fundamental. This is the one that lets you declare associations between record types:
+
+    ```swift
+    extension Author: TableRecord {
+        static let books = hasMany(Book.self)
+    }
+    
+    extension Book: TableRecord {
+        static let author = belongsTo(Author.self)
+    }
+    ```
+
+- **[EncodableRecord]** adds the `request(for:)` method, as below:
+
+    ```swift
+    extension Book: EncodableRecord {
+        var author: QueryInterfaceRequest<Author> {
+            return request(for: Book.author)
+        }
+        
+        func encode(to container: inout PersistenceContainer) {
+            container["authorId"] = self.authorId
+            ...
+        }
+    }
+    
+    // Fetch a book's author:
+    let book: Book = ...
+    let author: Author? = try dbQueue.read { db in
+        try book.author.fetchOne(db)
+    }
+    ```
+    
+    A record type often conforms to EncodableRecord via the [PersistableRecord] protocol. However PersistableRecord grants persistence methods that are able to insert, update, and delete rows in the database. When you want to profit from associations and keep your record type read-only, all you need is EncodableRecord.
+    
+    EncodableRecord conformance can be derived from the standard Encodable protocol, so that you do not have to write the `encode(to:)` method. See [Codable Records] for more information.
+
+
 The Types of Associations
 =========================
 
@@ -136,6 +183,7 @@ An association declares a link from a record type to another, as in "one book **
 
 Each one of the three types of associations is appropriate for a particular database situation.
 
+- [Required Protocols]
 - [BelongsTo]
 - [HasMany]
 - [HasOne]
@@ -152,7 +200,7 @@ The **BelongsTo** association sets up a one-to-one connection from a record type
 For example, if your application includes authors and books, and each book is assigned its author, you'd declare the `Book.author` association as below, with its companion property:
 
 ```swift
-struct Book: TableRecord {
+struct Book: TableRecord, EncodableRecord {
     static let author = belongsTo(Author.self)
     var author: QueryInterfaceRequest<Author> {
         return request(for: Book.author)
@@ -186,7 +234,7 @@ The **HasMany** association indicates a one-to-many connection between two recor
 For example, if your application includes authors and books, and each author is assigned zero or more books, you'd declare the `Author.books` association as below, with its companion property:
 
 ```swift
-struct Author: TableRecord {
+struct Author: TableRecord, EncodableRecord {
     static let books = hasMany(Book.self)
     var books: QueryInterfaceRequest<Book> {
         return request(for: Author.books)
@@ -219,7 +267,7 @@ The **HasOne** association, like BelongsTo, sets up a one-to-one connection from
 For example, if your application has one database table for countries, and another for their demographic profiles, you'd declare the `Country.demographics` association as below, with its companion property:
 
 ```swift
-struct Country: TableRecord {
+struct Country: TableRecord, EncodableRecord {
     static let demographics = hasOne(Demographics.self)
     var demographics: QueryInterfaceRequest<Demographics> {
         return request(for: Country.demographics)
@@ -251,7 +299,7 @@ See [Convention for the HasOne Association] for some sample code that defines th
 The **HasManyThrough** association is often used to set up a many-to-many connection with another record. This association indicates that the declaring record can be matched with zero or more instances of another record by proceeding through a third record. For example, consider the practice of passport delivery. The relevant association declarations could look like this:
 
 ```swift
-struct Country: TableRecord {
+struct Country: TableRecord, EncodableRecord {
     static let passports = hasMany(Passport.self)
     static let citizens = hasMany(Citizen.self, through: passports, using: Passport.citizen)
     var citizens: QueryInterfaceRequest<Citizen> {
@@ -264,7 +312,7 @@ struct Passport: TableRecord {
     static let citizen = belongsTo(Citizen.self)
 }
  
-struct Citizen: TableRecord {
+struct Citizen: TableRecord, EncodableRecord {
     static let passports = hasMany(Passport.self)
     static let countries = hasMany(Country.self, through: passports, using: Passport.country)
     var countries: QueryInterfaceRequest<Country> {
@@ -314,7 +362,7 @@ struct Document: TableRecord {
 A **HasOneThrough** association sets up a one-to-one connection with another record. This association indicates that the declaring record can be matched with one instance of another record by proceeding through a third record. For example, if each book belongs to a library, and each library has one address, then one knows where the book should be returned to:
 
 ```swift
-struct Book: TableRecord {
+struct Book: TableRecord, EncodableRecord {
     static let library = belongsTo(Library.self)
     static let returnAddress = hasOne(Address.self, through: library, using: library.address)
     var returnAddress: QueryInterfaceRequest<Address> {
@@ -474,7 +522,7 @@ See [The Structure of a Joined Request] for more information.
 ## Convention for the BelongsTo Association
 
 ```swift
-extension Book: TableRecord {
+extension Book: TableRecord, EncodableRecord {
     static let author = belongsTo(Author.self)
     var author: QueryInterfaceRequest<Author> {
         return request(for: Book.author)
@@ -536,7 +584,7 @@ See [Foreign Keys] for more information.
 ## Convention for the HasMany Association
 
 ```swift
-extension Author: TableRecord {
+extension Author: TableRecord, EncodableRecord {
     static let books = hasMany(Book.self)
     var books: QueryInterfaceRequest<Book> {
         return request(for: Author.books)
@@ -598,7 +646,7 @@ See [Foreign Keys] for more information.
 ## Convention for the HasOne Association
 
 ```swift
-extension Country: TableRecord {
+extension Country: TableRecord, EncodableRecord {
     static let demographics = hasOne(Demographics.self)
     var demographics: QueryInterfaceRequest<Demographics> {
         return request(for: Country.demographics)
@@ -756,7 +804,7 @@ Fetch requests do not visit the database until you fetch values from them. This 
 For example, given a `Book.author` **[BelongsTo]** association, you can build a request for the author of a book. In the example below, we return this request from the `Book.author` property:
 
 ```swift
-struct Book: PersistableRecord {
+struct Book: TableRecord, EncodableRecord {
     static let author = belongsTo(Author.self)
     
     /// The request for a book's author
@@ -776,7 +824,7 @@ let author = try book.author.fetchOne(db)   // Author?
 **[HasOne]**, **[HasMany]**, **[HasOneThrough]**, and **[HasManyThrough]** associations can also build requests for associated records. For example:
 
 ```swift
-struct Author: PersistableRecord {
+struct Author: TableRecord, EncodableRecord {
     static let books = hasMany(Book.self)
     
     /// The request for an author's books
@@ -2073,6 +2121,7 @@ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 [Associations Benefits]: #associations-benefits
+[Required Protocols]: #required-protocols
 [BelongsTo]: #belongsto
 [HasMany]: #hasmany
 [HasOne]: #hasone
@@ -2120,3 +2169,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [association requests]: #building-requests-from-associations
 [Good Practices for Designing Record Types]: GoodPracticesForDesigningRecordTypes.md
 [Fetching Aggregated Values]: ../README.md#fetching-aggregated-values
+[Record class]: ../README.md#record-class
+[EncodableRecord]: ../README.md#persistablerecord-protocol
+[PersistableRecord]: ../README.md#persistablerecord-protocol
+[Codable Records]: ../README.md#codable-records
