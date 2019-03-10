@@ -57,6 +57,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#488](https://github.com/groue/GRDB.swift/pull/488): ValueObservation Cleanup
 - [#490](https://github.com/groue/GRDB.swift/pull/490): Indirect Associations
 - [#493](https://github.com/groue/GRDB.swift/pull/493): Bump SQLite to [3.27.2](https://www.sqlite.org/releaselog/3_27_2.html)
+- [#499](https://github.com/groue/GRDB.swift/pull/499): Extract EncodableRecord from MutablePersistableRecord
 
 ### Breaking Changes
 
@@ -67,6 +68,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 ### Documentation Diff
 
 - [SQL Interpolation](Documentation/SQLInterpolation.md): this new document describes the new SQL interpolation feature.
+- [Required Protocols](Documentation/AssociationsBasics.md#required-protocols) describes which protocols your record types have to conform to in order to use Associations features.
 
 
 ## 3.7.0
