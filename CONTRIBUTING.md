@@ -86,7 +86,6 @@ The ideas, in alphabetical order:
 - [Linux]
 - [More SQL Generation]
 - [Reactive Database Observation]
-- [Records: Splitting Database Encoding from Ability to Write in the Database]
 - [SQL Console in the Debugger]
 - [SQLCipher in a Shared App Container]
 - [Static Library]
@@ -301,19 +300,6 @@ There are several SQLite features that GRDB could natively support:
 We already have the [RxGRDB] companion library, which offers [RxSwift](https://github.com/ReactiveX/RxSwift) bindings.
 
 We need more choices of reactive engines.
-
-
-### Records: Splitting Database Encoding from Ability to Write in the Database
-
-:baby: Starter Task :pencil: Documentation
-
-Record types that know how to encode themselves in the database (converting themselves into columns and database values) currently are granted with [persistence methods] which can write in the database. Those record types all adopt the [PersistableRecord] protocol.
-
-But encoding a record grants other features, such as [Record Comparison], or [Requesting Associated Records].
-
-This is a problem: one should not have to grant a type with persistence methods, when one just needs read-only features.
-
-The fix is to split database encoding from persistence methods. See [#426](https://github.com/groue/GRDB.swift/issues/426) for more information.
 
 
 ### SQL Console in the Debugger
