@@ -28,12 +28,6 @@ public protocol Association: DerivableRequest {
     ///     }
     associatedtype RowDecoder
     
-    // Association is a protocol, not a struct.
-    // This is because we want associations to be richly typed.
-    // Yet, we don't want to pollute user code with implementation details of
-    // associations. So let's hide all this stuff behind the
-    // sqlAssociation property:
-    
     /// :nodoc:
     var sqlAssociation: SQLAssociation { get }
     
@@ -388,39 +382,41 @@ public protocol AssociationToOne: Association { }
 
 // MARK: - SQLAssociation
 
-/// An SQL association is a chain of joins from an `origin` table to the
-/// `head` of the association. All tables between `origin` and `head` are
-/// the `tail`. The table that is immediately joined to `origin` is the `pivot`:
+/// An SQL association is a non-empty chain of joins from an "origin" table to
+/// the "head" of the association. All tables between "origin" and "head" are
+/// the "tail". The table that is immediately joined to "origin" is the "pivot":
 ///
-///     // SELECT origin.* FROM origin JOIN pivot (JOIN ...) JOIN head
-///     //                             ^ tail                ^ head
-///     origin.joining(required: association)
+///     // SELECT origin.*, head.*
+///     // FROM origin
+///     // JOIN pivot ON ... JOIN ... -- tail
+///     // JOIN head ON ...           -- head
+///     origin.including(required: association)
 ///
-/// When tail is empty, `pivot` and `head` are the same:
+/// When tail is empty, "pivot" and "head" are the same:
 ///
-///     // SELECT origin.* FROM origin JOIN pivot
-///     origin.joining(required: association)
+///     // SELECT origin.*, head.* FROM origin JOIN head ON ...
+///     origin.including(required: association)
 ///
 /// :nodoc:
 public /* TODO: internal */ struct SQLAssociation {
-    // SQLAssociation is a non-empty array of association items
-    private struct Item {
+    // SQLAssociation is a non-empty array of association elements
+    private struct Element {
         var key: String
         var joinCondition: JoinCondition
         var relation: SQLRelation
     }
-    private var head: Item
-    private var tail: [Item]
-    private var pivot: Item { return tail.last ?? head }
+    private var head: Element
+    private var tail: [Element]
+    private var pivot: Element { return tail.last ?? head }
     var key: String { return head.key }
     
-    private init(head: Item, tail: [Item]) {
+    private init(head: Element, tail: [Element]) {
         self.head = head
         self.tail = tail
     }
     
     init(key: String, joinCondition: JoinCondition, relation: SQLRelation) {
-        head = Item(key: key, joinCondition: joinCondition, relation: relation)
+        head = Element(key: key, joinCondition: joinCondition, relation: relation)
         tail = []
     }
     
@@ -444,75 +440,75 @@ public /* TODO: internal */ struct SQLAssociation {
     }
     
     /// Support for joining methods joining(optional:), etc.
-    func relation(from relation: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
+    func relation(from origin: SQLRelation, joinOperator: JoinOperator) -> SQLRelation {
         let headJoin = SQLJoin(
             joinOperator: joinOperator,
             joinCondition: head.joinCondition,
             relation: head.relation)
         
-        guard let next = tail.first else {
-            return relation.appendingJoin(headJoin, forKey: head.key)
-        }
-        
-        // Recursion step: remove one item from tail by shifting the next item
-        // to the head.
+        // Recursion step: remove one element from tail by shifting the next
+        // element to the head.
         //
         // From:
-        //  (... JOIN next) JOIN (head)
-        //  ^~ tail              ^~ head
+        //  ... JOIN next JOIN head
+        //  <-tail------> <-head-->
         //
         // We reduce into:
-        //  (...) JOIN (next JOIN head)
-        //  ^~ tail    ^~ head
+        //  ...      JOIN next JOIN head
+        //  <-tail-> <-head------------>
+        //
+        // Until the tail is empty:
+        guard let next = tail.first else {
+            return origin.appendingJoin(headJoin, forKey: head.key)
+        }
+        
         let nextRelation = next.relation.select([]).appendingJoin(headJoin, forKey: head.key)
-        let nextHead = Item(key: next.key, joinCondition: next.joinCondition, relation: nextRelation)
-        let nextTail = Array(tail.dropFirst())
-        let nextImpl = SQLAssociation(head: nextHead, tail: nextTail)
-        return nextImpl.relation(from: relation, joinOperator: joinOperator)
+        let reducedHead = Element(key: next.key, joinCondition: next.joinCondition, relation: nextRelation)
+        let reducedTail = Array(tail.dropFirst())
+        let reducedAssociation = SQLAssociation(head: reducedHead, tail: reducedTail)
+        return reducedAssociation.relation(from: origin, joinOperator: joinOperator)
     }
     
     /// Support for (TableRecord & EncodableRecord).request(for:).
     ///
     /// Returns a "reversed" relation:
     ///
-    ///     // SELECT head.* FROM head (JOIN ...) JOIN pivot ON pivot.originId = 123
+    ///     // SELECT head.* FROM head JOIN ... JOIN pivot ON pivot.originId = 123
     ///     origin.request(for: association)
     ///
-    /// When tail is empty, `pivot` and `head` are the same:
+    /// When tail is empty, "pivot" and "head" are the same:
     ///
-    ///     // SELECT pivot.* FROM pivot WHERE pivot.originId = 123
+    ///     // SELECT head.* FROM head WHERE head.originId = 123
     ///     origin.request(for: association)
     func relation(to originTable: String, container originContainer: @escaping (Database) throws -> PersistenceContainer) -> SQLRelation {
-        // We need a `pivot` relation filtered with origin:
-        let pivotRelation: SQLRelation = {
-            let pivotCondition = pivot.joinCondition
-            let pivotAlias = TableAlias()
-            return pivot.relation
-                .qualified(with: pivotAlias)
-                .filter { db in
-                    let originAlias = TableAlias(tableName: originTable)
-                    
-                    // Build a join condition: `association.originId = origin.id`
-                    // We still need to replace `origin.id` with the actual origin id.
-                    let joinExpression = try pivotCondition.sqlExpression(db, leftAlias: originAlias, rightAlias: pivotAlias)
-                    
-                    // Replace `origin.id` with 123
-                    return try joinExpression.resolvedExpression(inContext: [originAlias: originContainer(db)])
-            }
-        }()
+        // Build a "pivot" relation whose filter is the pivot condition
+        // injected with values contained in originContainer.
+        let pivotCondition = pivot.joinCondition
+        let pivotAlias = TableAlias()
+        let pivotRelation = pivot.relation
+            .qualified(with: pivotAlias)
+            .filter { db in
+                let originAlias = TableAlias(tableName: originTable)
+                
+                // Build a join condition: `association.originId = origin.id`
+                let joinExpression = try pivotCondition.sqlExpression(db, leftAlias: originAlias, rightAlias: pivotAlias)
+                
+                // Replace `origin.id` with 123
+                return try joinExpression.resolvedExpression(inContext: [originAlias: originContainer(db)])
+        }
         
-        // Reverse items
-        let reversedItems = zip([head] + tail, tail)
-            .map { Item(key: "" /* ignored */, joinCondition: $0.joinCondition.reversed, relation: $1.relation.select([])) }
+        // We use elements backward: join conditions have to be reversed.
+        let reversedElements = zip([head] + tail, tail)
+            .map { Element(key: $1.key, joinCondition: $0.joinCondition.reversed, relation: $1.relation.select([])) }
             .reversed()
         
-        // Empty tail
-        guard var reversedHead = reversedItems.first else {
+        // Empty tail?
+        guard var reversedHead = reversedElements.first else {
             return pivotRelation
         }
         
         reversedHead.relation = pivotRelation.select([])
-        let reversedTail = Array(reversedItems.dropFirst())
+        let reversedTail = Array(reversedElements.dropFirst())
         let reversedAssociation = SQLAssociation(head: reversedHead, tail: reversedTail)
         return reversedAssociation.relation(from: head.relation, joinOperator: .required)
     }
