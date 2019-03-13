@@ -107,10 +107,10 @@ extension TableRecord {
     ///         print("\(authorship.author.name) wrote \(authorship.book.title)")
     ///     }
     ///
-    /// It is recommended that you define, alongside the association, a property
-    /// with the same name:
+    /// It is recommended that you define, alongside the static association, a
+    /// property with the same name:
     ///
-    ///     struct Author: TableRecord {
+    ///     struct Author: TableRecord, EncodableRecord {
     ///         static let books = hasMany(Book.self)
     ///         var books: QueryInterfaceRequest<Book> {
     ///             return request(for: Author.books)

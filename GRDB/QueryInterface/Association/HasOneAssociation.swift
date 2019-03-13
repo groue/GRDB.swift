@@ -109,10 +109,10 @@ extension TableRecord {
     ///         print("\(countryInfo.country.name) has \(countryInfo.demographics.population) citizens")
     ///     }
     ///
-    /// It is recommended that you define, alongside the association, a property
-    /// with the same name:
+    /// It is recommended that you define, alongside the static association, a
+    /// property with the same name:
     ///
-    ///     struct Country: TableRecord {
+    ///     struct Country: TableRecord, EncodableRecord {
     ///         static let demographics = hasOne(Demographics.self)
     ///         var demographics: QueryInterfaceRequest<Demographics> {
     ///             return request(for: Country.demographics)
