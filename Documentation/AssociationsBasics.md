@@ -183,7 +183,6 @@ An association declares a link from a record type to another, as in "one book **
 
 Each one of the three types of associations is appropriate for a particular database situation.
 
-- [Required Protocols]
 - [BelongsTo]
 - [HasMany]
 - [HasOne]
