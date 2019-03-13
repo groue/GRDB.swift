@@ -42,7 +42,6 @@ struct DatabasePromise<T> {
         }
     }
     
-    // TODO: write human-readable documentation for this classic monadic operation
     func flatMap<U>(_ transform: @escaping (T) -> DatabasePromise<U>) -> DatabasePromise<U> {
         return DatabasePromise<U> { db in
             try transform(self.resolve(db)).resolve(db)
