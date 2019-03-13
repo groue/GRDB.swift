@@ -142,24 +142,20 @@ Otherwise:
     }
     ```
 
-- **[EncodableRecord]** adds the `request(for:)` method, as below:
+- **[EncodableRecord]** makes it possible to use the `request(for:)` method, as below:
 
     ```swift
     extension Book: EncodableRecord {
+        // The request which fetches the book's author.
         var author: QueryInterfaceRequest<Author> {
             return request(for: Book.author)
         }
-        
-        func encode(to container: inout PersistenceContainer) {
-            container["authorId"] = self.authorId
-            ...
-        }
     }
     
-    // Fetch a book's author:
-    let book: Book = ...
-    let author: Author? = try dbQueue.read { db in
-        try book.author.fetchOne(db)
+    // Let's fetch a book's author:
+    try dbQueue.read { db in
+        let book: Book = ...
+        let author = try book.author.fetchOne(db) // Author?
     }
     ```
     
