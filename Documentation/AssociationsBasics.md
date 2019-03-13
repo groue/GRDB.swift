@@ -130,7 +130,7 @@ When your type is a subclass of the [Record class], all necessary protocols are 
 
 Otherwise:
 
-- **[TableRecord]** is fundamental. This is the one that lets you declare associations between record types:
+- **[TableRecord]** is the protocol that lets you declare associations between record types:
 
     ```swift
     extension Author: TableRecord {
@@ -159,9 +159,9 @@ Otherwise:
     }
     ```
     
-    A record type often conforms to EncodableRecord via the [PersistableRecord] protocol. However PersistableRecord grants persistence methods that are able to insert, update, and delete rows in the database. When you want to profit from associations and keep your record type read-only, all you need is EncodableRecord.
+    A record type often conforms to EncodableRecord via the [PersistableRecord] protocol. However, PersistableRecord grants [persistence methods], the ones that are able to insert, update, and delete rows in the database. When you'd rather keep a record type read-only, and yet profit from associations, all you need is EncodableRecord.
     
-    EncodableRecord conformance can be derived from the standard Encodable protocol, so that you do not have to write the `encode(to:)` method. See [Codable Records] for more information.
+    EncodableRecord conformance can be derived from the standard Encodable protocol. See [Codable Records] for more information.
 
 
 The Types of Associations
@@ -2168,3 +2168,4 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [EncodableRecord]: ../README.md#persistablerecord-protocol
 [PersistableRecord]: ../README.md#persistablerecord-protocol
 [Codable Records]: ../README.md#codable-records
+[persistence methods]: ../README.md#persistence-methods
