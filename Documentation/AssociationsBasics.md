@@ -34,6 +34,7 @@ GRDB Associations
     - [Available Association Aggregates]
     - [Annotating a Request with Aggregates]
     - [Filtering a Request with Aggregates]
+    - [Aggregate Operations]
     - [Isolation of Multiple Aggregates]
 - [DerivableRequest Protocol]
 - [Known Issues]
@@ -1866,6 +1867,91 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     ```
 
 
+### Aggregate Operations
+
+Aggregates can be modified and combined with Swift operators:
+
+- Logical operators `&&`, `||` and `!`
+    
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    LEFT JOIN painting ON painting.authorId = author.id
+    GROUP BY author.id
+    HAVING ((COUNT(DISTINCT book.rowid) = 0) AND (COUNT(DISTINCT painting.rowid) = 0))
+    ```
+    
+    </details>
+    
+    ```swift
+    let condition = Author.books.isEmpty && Author.paintings.isEmpty
+    let request = Author.having(condition)
+    ```
+
+- Comparison operators `<`, `<=`, `=`, `!=`, `>=`, `>`
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    GROUP BY author.id
+    HAVING MAX(book.year) >= 2010
+    ```
+    
+    </details>
+    
+    ```swift
+    let request = Author.having(Author.books.max(Column("year")) >= 2010)
+    ```
+
+- Arithmetic operators `+`, `-`, `*`, `/`
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT author.*,
+           (COUNT(DISTINCT book.rowid) +
+            COUNT(DISTINCT painting.rowid)) AS workCount
+    FROM author
+    LEFT JOIN book ON book.authorId = author.id
+    LEFT JOIN painting ON painting.authorId = author.id
+    GROUP BY author.id
+    ```
+    
+    </details>
+    
+    ```swift
+    let workCount = Author.books.count + Author.paintings.count)
+    let request = Author.annotated(with: workCount.aliased("workCount"))
+    ```
+
+- IFNULL operator `??`
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT "team".*, IFNULL(MIN("player"."score"), 0) AS "minPlayerScore"
+    FROM "team"
+    LEFT JOIN "player" ON ("player"."teamId" = "team"."id")
+    GROUP BY "team"."id"
+    ```
+    
+    </details>
+    
+    ```swift
+    let request = Team.annotated(with: Team.players.min(Column("score")) ?? 0)
+    ```
+
+    
 ### Isolation of Multiple Aggregates
 
 When you compute multiple aggregates, make sure they use as many distinct **[association keys](#the-structure-of-a-joined-request)** as there are distinct populations of associated records.
@@ -2154,6 +2240,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Available Association Aggregates]: #available-association-aggregates
 [Annotating a Request with Aggregates]: #annotating-a-request-with-aggregates
 [Filtering a Request with Aggregates]: #filtering-a-request-with-aggregates
+[Aggregate Operations]: #aggregate-operations
 [Isolation of Multiple Aggregates]: #isolation-of-multiple-aggregates
 [DerivableRequest Protocol]: #derivablerequest-protocol
 [Known Issues]: #known-issues

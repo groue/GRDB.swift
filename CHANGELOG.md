@@ -70,6 +70,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 - [SQL Interpolation](Documentation/SQLInterpolation.md): this new document describes the new SQL interpolation feature.
 - [Required Protocols](Documentation/AssociationsBasics.md#required-protocols) describes which protocols your record types have to conform to in order to use Associations features.
+- [Aggregate Operations](Documentation/AssociationsBasics.md#aggregate-operations) describes all the ways to transform association aggregates with logical, comparison and arithmetic operators.
 
 
 ## 3.7.0
