@@ -1,11 +1,7 @@
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// A "relation" as defined by the [relational terminology](https://en.wikipedia.org/wiki/Relational_database#Terminology):
 ///
 /// > A set of tuples sharing the same attributes; a set of columns and rows.
-///
-/// :nodoc:
-public /* TODO: internal */ struct SQLRelation {
+struct SQLRelation {
     var source: SQLSource
     var selection: [SQLSelectable]
     var filterPromise: DatabasePromise<SQLExpression?>
@@ -260,9 +256,7 @@ extension SQLRelation {
 ///
 ///     // what is my meaning?
 ///     A.including(optional: A.b.including(required: B.c))
-///
-/// :nodoc:
-public /* TODO: internal */ enum JoinOperator {
+enum JoinOperator {
     case required, optional
 }
 
@@ -291,9 +285,7 @@ public /* TODO: internal */ enum JoinOperator {
 ///     let request4 = Book
 ///         .joining(required: Book.author.filter(condition1))
 ///         .including(optional: Book.author.filter(condition2))
-///
-/// :nodoc:
-public /* TODO: internal */ struct JoinCondition: Equatable {
+struct JoinCondition: Equatable {
     /// Definition of a foreign key
     var foreignKeyRequest: ForeignKeyRequest
     
