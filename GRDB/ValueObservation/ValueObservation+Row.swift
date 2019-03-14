@@ -120,7 +120,6 @@ public struct RowReducer<Request: FetchRequest>: ValueReducer
     public mutating func value(_ row: Row?) -> Row?? {
         if let previousRow = previousRow, previousRow == row {
             // Don't notify consecutive identical rows
-            // TODO: Remove this implicit `distinctUntilDatabaseChanged` in GRDB 4
             return nil
         }
         self.previousRow = row
