@@ -8049,7 +8049,7 @@ The correct solution is the `concurrentRead` method, which must be called from w
 
 ```swift
 // CORRECT
-let futureCount: Future<Int> = try dbPool.writeWithoutTransaction { db in
+let futureCount: DatabaseFuture<Int> = try dbPool.writeWithoutTransaction { db in
     // increment the number of players
     try Player(...).insert(db)
     
