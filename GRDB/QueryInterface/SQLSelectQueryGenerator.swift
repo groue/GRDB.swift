@@ -404,12 +404,12 @@ private enum SQLQualifiedSource {
 
 /// A "qualified" join, where all tables are identified with a table alias.
 private struct SQLQualifiedJoin {
-    private let kind: SQLJoin.Kind
+    private let isRequired: Bool
     private let condition: SQLJoin.Condition
     let relation: SQLQualifiedRelation
     
     init(_ join: SQLJoin) {
-        self.kind = join.kind
+        self.isRequired = join.isRequired
         self.condition = join.condition
         self.relation = SQLQualifiedRelation(join.relation)
     }
@@ -417,16 +417,16 @@ private struct SQLQualifiedJoin {
     func sql(_ db: Database,_ context: inout SQLGenerationContext, leftAlias: TableAlias, isRequiredAllowed: Bool) throws -> String {
         var isRequiredAllowed = isRequiredAllowed
         var sql = ""
-        switch kind {
-        case .optional:
-            isRequiredAllowed = false
-            sql += "LEFT JOIN"
-        case .required:
+        
+        if isRequired {
             guard isRequiredAllowed else {
                 // TODO: chainOptionalRequired
                 fatalError("Not implemented: chaining a required association behind an optional association")
             }
             sql += "JOIN"
+        } else {
+            isRequiredAllowed = false
+            sql += "LEFT JOIN"
         }
         
         sql += try " " + relation.source.sql(db, &context)

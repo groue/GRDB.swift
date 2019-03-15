@@ -246,28 +246,28 @@ extension Association {
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.sqlAssociation.relation(from: $0, joinKind: .optional) }
+        return mapRelation { association.sqlAssociation.relation(from: $0, required: false) }
     }
     
     /// Creates an association that includes another one. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.sqlAssociation.relation(from: $0, joinKind: .required) }
+        return mapRelation { association.sqlAssociation.relation(from: $0, required: true) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.select([]).sqlAssociation.relation(from: $0, joinKind: .optional) }
+        return mapRelation { association.select([]).sqlAssociation.relation(from: $0, required: false) }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.select([]).sqlAssociation.relation(from: $0, joinKind: .required) }
+        return mapRelation { association.select([]).sqlAssociation.relation(from: $0, required: true) }
     }
 }
 
@@ -440,9 +440,9 @@ public /* TODO: internal */ struct SQLAssociation {
     }
     
     /// Support for joining methods joining(optional:), etc.
-    func relation(from origin: SQLRelation, joinKind: SQLJoin.Kind) -> SQLRelation {
+    func relation(from origin: SQLRelation, required: Bool) -> SQLRelation {
         let headJoin = SQLJoin(
-            kind: joinKind,
+            isRequired: required,
             condition: head.condition,
             relation: head.relation)
         
@@ -466,7 +466,7 @@ public /* TODO: internal */ struct SQLAssociation {
         let reducedHead = Element(key: next.key, condition: next.condition, relation: nextRelation)
         let reducedTail = Array(tail.dropFirst())
         let reducedAssociation = SQLAssociation(head: reducedHead, tail: reducedTail)
-        return reducedAssociation.relation(from: origin, joinKind: joinKind)
+        return reducedAssociation.relation(from: origin, required: required)
     }
     
     /// Support for (TableRecord & EncodableRecord).request(for:).
@@ -510,6 +510,6 @@ public /* TODO: internal */ struct SQLAssociation {
         reversedHead.relation = pivotRelation.select([])
         let reversedTail = Array(reversedElements.dropFirst())
         let reversedAssociation = SQLAssociation(head: reversedHead, tail: reversedTail)
-        return reversedAssociation.relation(from: head.relation, joinKind: .required)
+        return reversedAssociation.relation(from: head.relation, required: true)
     }
 }

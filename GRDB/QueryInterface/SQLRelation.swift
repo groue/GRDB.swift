@@ -201,54 +201,6 @@ extension SQLRelation {
 // MARK: - SQLJoin
 
 struct SQLJoin {
-    
-    /// Not to be mismatched with SQL join operators (inner join, left join).
-    ///
-    /// SQLJoin.Kind is designed to be hierarchically nested, unlike
-    /// SQL join operators.
-    ///
-    /// Consider the following request for (A, B, C) tuples:
-    ///
-    ///     let r = A.including(optional: A.b.including(required: B.c))
-    ///
-    /// It chains three associations, the first optional, the second required.
-    ///
-    /// It looks like it means: "Give me all As, along with their Bs, granted those
-    /// Bs have their Cs. For As whose B has no C, give me a nil B".
-    ///
-    /// It can not be expressed as one left join, and a regular join, as below,
-    /// Because this would not honor the first optional:
-    ///
-    ///     -- dubious
-    ///     SELECT a.*, b.*, c.*
-    ///     FROM a
-    ///     LEFT JOIN b ON ...
-    ///     JOIN c ON ...
-    ///
-    /// Instead, it should:
-    /// - allow (A + missing (B + C))
-    /// - prevent (A + (B + missing C)).
-    ///
-    /// This can be expressed in SQL with two left joins, and an extra condition:
-    ///
-    ///     -- likely correct
-    ///     SELECT a.*, b.*, c.*
-    ///     FROM a
-    ///     LEFT JOIN b ON ...
-    ///     LEFT JOIN c ON ...
-    ///     WHERE NOT((b.id IS NOT NULL) AND (c.id IS NULL)) -- no B without C
-    ///
-    /// This is currently not implemented, and requires a little more thought.
-    /// I don't even know if inventing a whole new way to perform joins should even
-    /// be on the table. But we have a hierarchical way to express joined queries,
-    /// and they have a meaning:
-    ///
-    ///     // what is my meaning?
-    ///     A.including(optional: A.b.including(required: B.c))
-    enum Kind {
-        case required, optional
-    }
-    
     /// The condition that links two joined tables.
     ///
     /// Currently, we only support one kind of join condition: foreign keys.
@@ -327,7 +279,7 @@ struct SQLJoin {
         }
     }
     
-    var kind: Kind
+    var isRequired: Bool
     var condition: Condition
     var relation: SQLRelation
 }
@@ -439,16 +391,8 @@ extension SQLJoin {
             return nil
         }
         
-        let mergedKind: SQLJoin.Kind
-        switch (kind, other.kind) {
-        case (.required, _), (_, .required):
-            mergedKind = .required
-        default:
-            mergedKind = .optional
-        }
-        
         return SQLJoin(
-            kind: mergedKind,
+            isRequired: isRequired || other.isRequired,
             condition: condition,
             relation: mergedRelation)
     }
