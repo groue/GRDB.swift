@@ -855,8 +855,8 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         //                              <
         //                              }
         
-        let future: Future<Int> = try dbPool.writeWithoutTransaction { db in
-            let future: Future<Int> = dbPool.concurrentRead { db in
+        let future: DatabaseFuture<Int> = try dbPool.writeWithoutTransaction { db in
+            let future: DatabaseFuture<Int> = dbPool.concurrentRead { db in
                 _ = s1.wait(timeout: .distantFuture)
                 return try! Int.fetchOne(db, sql: "SELECT COUNT(*) FROM persons")!
             }

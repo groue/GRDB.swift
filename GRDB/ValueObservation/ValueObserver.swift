@@ -5,7 +5,7 @@ import Foundation
 class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
     /* private */ let region: DatabaseRegion // Internal for testability
     private var reducer: Reducer
-    private let fetch: (Database, Reducer) -> Future<Reducer.Fetched>
+    private let fetch: (Database, Reducer) -> DatabaseFuture<Reducer.Fetched>
     private let notificationQueue: DispatchQueue?
     private let onError: ((Error) -> Void)?
     private let onChange: (Reducer.Value) -> Void
@@ -16,7 +16,7 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
         region: DatabaseRegion,
         reducer: Reducer,
         configuration: Configuration,
-        fetch: @escaping (Database, Reducer) -> Future<Reducer.Fetched>,
+        fetch: @escaping (Database, Reducer) -> DatabaseFuture<Reducer.Fetched>,
         notificationQueue: DispatchQueue?,
         onError: ((Error) -> Void)?,
         onChange: @escaping (Reducer.Value) -> Void)
