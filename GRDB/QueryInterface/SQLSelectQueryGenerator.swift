@@ -404,20 +404,20 @@ private enum SQLQualifiedSource {
 
 /// A "qualified" join, where all tables are identified with a table alias.
 private struct SQLQualifiedJoin {
-    private let joinOperator: JoinOperator
-    private let joinCondition: JoinCondition
+    private let kind: SQLJoin.Kind
+    private let condition: SQLJoin.Condition
     let relation: SQLQualifiedRelation
     
     init(_ join: SQLJoin) {
-        self.joinOperator = join.joinOperator
-        self.joinCondition = join.joinCondition
+        self.kind = join.kind
+        self.condition = join.condition
         self.relation = SQLQualifiedRelation(join.relation)
     }
     
     func sql(_ db: Database,_ context: inout SQLGenerationContext, leftAlias: TableAlias, isRequiredAllowed: Bool) throws -> String {
         var isRequiredAllowed = isRequiredAllowed
         var sql = ""
-        switch joinOperator {
+        switch kind {
         case .optional:
             isRequiredAllowed = false
             sql += "LEFT JOIN"
@@ -433,7 +433,7 @@ private struct SQLQualifiedJoin {
         
         let rightAlias = relation.alias
         let filters = try [
-            joinCondition.sqlExpression(db, leftAlias: leftAlias, rightAlias: rightAlias),
+            condition.sqlExpression(db, leftAlias: leftAlias, rightAlias: rightAlias),
             relation.filterPromise.resolve(db)
             ].compactMap { $0 }
         if !filters.isEmpty {

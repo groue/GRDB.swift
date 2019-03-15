@@ -7,7 +7,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func including<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.sqlAssociation.relation(from: $0, joinOperator: .optional)
+                association.sqlAssociation.relation(from: $0, joinKind: .optional)
             }
         }
     }
@@ -18,7 +18,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func including<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.sqlAssociation.relation(from: $0, joinOperator: .required)
+                association.sqlAssociation.relation(from: $0, joinKind: .required)
             }
         }
     }
@@ -29,7 +29,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func joining<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.select([]).sqlAssociation.relation(from: $0, joinOperator: .optional)
+                association.select([]).sqlAssociation.relation(from: $0, joinKind: .optional)
             }
         }
     }
@@ -40,7 +40,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func joining<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.select([]).sqlAssociation.relation(from: $0, joinOperator: .required)
+                association.select([]).sqlAssociation.relation(from: $0, joinKind: .required)
             }
         }
     }

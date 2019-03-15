@@ -200,134 +200,135 @@ extension SQLRelation {
 
 // MARK: - SQLJoin
 
-/// Not to be mismatched with SQL join operators (inner join, left join).
-///
-/// JoinOperator is designed to be hierarchically nested, unlike
-/// SQL join operators.
-///
-/// Consider the following request for (A, B, C) tuples:
-///
-///     let r = A.including(optional: A.b.including(required: B.c))
-///
-/// It chains three associations, the first optional, the second required.
-///
-/// It looks like it means: "Give me all As, along with their Bs, granted those
-/// Bs have their Cs. For As whose B has no C, give me a nil B".
-///
-/// It can not be expressed as one left join, and a regular join, as below,
-/// Because this would not honor the first optional:
-///
-///     -- dubious
-///     SELECT a.*, b.*, c.*
-///     FROM a
-///     LEFT JOIN b ON ...
-///     JOIN c ON ...
-///
-/// Instead, it should:
-/// - allow (A + missing (B + C))
-/// - prevent (A + (B + missing C)).
-///
-/// This can be expressed in SQL with two left joins, and an extra condition:
-///
-///     -- likely correct
-///     SELECT a.*, b.*, c.*
-///     FROM a
-///     LEFT JOIN b ON ...
-///     LEFT JOIN c ON ...
-///     WHERE NOT((b.id IS NOT NULL) AND (c.id IS NULL)) -- no B without C
-///
-/// This is currently not implemented, and requires a little more thought.
-/// I don't even know if inventing a whole new way to perform joins should even
-/// be on the table. But we have a hierarchical way to express joined queries,
-/// and they have a meaning:
-///
-///     // what is my meaning?
-///     A.including(optional: A.b.including(required: B.c))
-enum JoinOperator {
-    case required, optional
-}
-
-/// The condition that links two joined tables.
-///
-/// Currently, we only support one kind of join condition: foreign keys.
-///
-///     SELECT ... FROM book JOIN author ON author.id = book.authorId
-///                                         <- the join condition -->
-///
-/// When we eventually add support for new ways to join tables, JoinCondition
-/// is the type we'll need to update.
-///
-/// JoinCondition equality allows merging of associations:
-///
-///     // request1 and request2 are equivalent
-///     let request1 = Book
-///         .including(required: Book.author)
-///     let request2 = Book
-///         .including(required: Book.author)
-///         .including(required: Book.author)
-///
-///     // request3 and request4 are equivalent
-///     let request3 = Book
-///         .including(required: Book.author.filter(condition1 && condition2))
-///     let request4 = Book
-///         .joining(required: Book.author.filter(condition1))
-///         .including(optional: Book.author.filter(condition2))
-struct JoinCondition: Equatable {
-    /// Definition of a foreign key
-    var foreignKeyRequest: ForeignKeyRequest
+struct SQLJoin {
     
-    /// True if the table at the origin of the foreign key is on the left of
-    /// the sql JOIN operator.
+    /// Not to be mismatched with SQL join operators (inner join, left join).
     ///
-    /// Let's consider the `book.authorId -> author.id` foreign key.
-    /// Its origin table is `book`.
+    /// SQLJoin.Kind is designed to be hierarchically nested, unlike
+    /// SQL join operators.
     ///
-    /// The origin table `book` is on the left of the JOIN operator for
-    /// the BelongsTo association:
+    /// Consider the following request for (A, B, C) tuples:
     ///
-    ///     -- Book.including(required: Book.author)
-    ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
+    ///     let r = A.including(optional: A.b.including(required: B.c))
     ///
-    /// The origin table `book`is on the right of the JOIN operator for
-    /// the HasMany and HasOne associations:
+    /// It chains three associations, the first optional, the second required.
     ///
-    ///     -- Author.including(required: Author.books)
-    ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
-    var originIsLeft: Bool
-    
-    var reversed: JoinCondition {
-        return JoinCondition(foreignKeyRequest: foreignKeyRequest, originIsLeft: !originIsLeft)
+    /// It looks like it means: "Give me all As, along with their Bs, granted those
+    /// Bs have their Cs. For As whose B has no C, give me a nil B".
+    ///
+    /// It can not be expressed as one left join, and a regular join, as below,
+    /// Because this would not honor the first optional:
+    ///
+    ///     -- dubious
+    ///     SELECT a.*, b.*, c.*
+    ///     FROM a
+    ///     LEFT JOIN b ON ...
+    ///     JOIN c ON ...
+    ///
+    /// Instead, it should:
+    /// - allow (A + missing (B + C))
+    /// - prevent (A + (B + missing C)).
+    ///
+    /// This can be expressed in SQL with two left joins, and an extra condition:
+    ///
+    ///     -- likely correct
+    ///     SELECT a.*, b.*, c.*
+    ///     FROM a
+    ///     LEFT JOIN b ON ...
+    ///     LEFT JOIN c ON ...
+    ///     WHERE NOT((b.id IS NOT NULL) AND (c.id IS NULL)) -- no B without C
+    ///
+    /// This is currently not implemented, and requires a little more thought.
+    /// I don't even know if inventing a whole new way to perform joins should even
+    /// be on the table. But we have a hierarchical way to express joined queries,
+    /// and they have a meaning:
+    ///
+    ///     // what is my meaning?
+    ///     A.including(optional: A.b.including(required: B.c))
+    enum Kind {
+        case required, optional
     }
-
-    /// Returns an SQL expression for the join condition.
+    
+    /// The condition that links two joined tables.
+    ///
+    /// Currently, we only support one kind of join condition: foreign keys.
     ///
     ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
-    ///                                         <- the SQL expression -->
+    ///                                         <- the join condition -->
     ///
-    /// - parameter db: A database connection.
-    /// - parameter leftAlias: A TableAlias for the table on the left of the
-    ///   JOIN operator.
-    /// - parameter rightAlias: A TableAlias for the table on the right of the
-    ///   JOIN operator.
-    /// - Returns: An SQL expression.
-    func sqlExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLExpression {
-        let foreignKeyMapping = try foreignKeyRequest.fetch(db).mapping
-        let columnMapping: [(left: Column, right: Column)]
-        if originIsLeft {
-            columnMapping = foreignKeyMapping.map { (left: Column($0.origin), right: Column($0.destination)) }
-        } else {
-            columnMapping = foreignKeyMapping.map { (left: Column($0.destination), right: Column($0.origin)) }
+    /// When we eventually add support for new ways to join tables, Condition
+    /// is the type we'll need to update.
+    ///
+    /// Condition equality allows merging of associations:
+    ///
+    ///     // request1 and request2 are equivalent
+    ///     let request1 = Book
+    ///         .including(required: Book.author)
+    ///     let request2 = Book
+    ///         .including(required: Book.author)
+    ///         .including(required: Book.author)
+    ///
+    ///     // request3 and request4 are equivalent
+    ///     let request3 = Book
+    ///         .including(required: Book.author.filter(condition1 && condition2))
+    ///     let request4 = Book
+    ///         .joining(required: Book.author.filter(condition1))
+    ///         .including(optional: Book.author.filter(condition2))
+    struct Condition: Equatable {
+        /// Definition of a foreign key
+        var foreignKeyRequest: ForeignKeyRequest
+        
+        /// True if the table at the origin of the foreign key is on the left of
+        /// the sql JOIN operator.
+        ///
+        /// Let's consider the `book.authorId -> author.id` foreign key.
+        /// Its origin table is `book`.
+        ///
+        /// The origin table `book` is on the left of the JOIN operator for
+        /// the BelongsTo association:
+        ///
+        ///     -- Book.including(required: Book.author)
+        ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
+        ///
+        /// The origin table `book`is on the right of the JOIN operator for
+        /// the HasMany and HasOne associations:
+        ///
+        ///     -- Author.including(required: Author.books)
+        ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
+        var originIsLeft: Bool
+        
+        var reversed: Condition {
+            return Condition(foreignKeyRequest: foreignKeyRequest, originIsLeft: !originIsLeft)
         }
         
-        return columnMapping
-            .map { $0.right.qualifiedExpression(with: rightAlias) == $0.left.qualifiedExpression(with: leftAlias) }
-            .joined(operator: .and)
+        /// Returns an SQL expression for the join condition.
+        ///
+        ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
+        ///                                         <- the SQL expression -->
+        ///
+        /// - parameter db: A database connection.
+        /// - parameter leftAlias: A TableAlias for the table on the left of the
+        ///   JOIN operator.
+        /// - parameter rightAlias: A TableAlias for the table on the right of the
+        ///   JOIN operator.
+        /// - Returns: An SQL expression.
+        func sqlExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLExpression {
+            let foreignKeyMapping = try foreignKeyRequest.fetchMapping(db)
+            let columnMapping: [(left: Column, right: Column)]
+            if originIsLeft {
+                columnMapping = foreignKeyMapping.map { (left: Column($0.origin), right: Column($0.destination)) }
+            } else {
+                columnMapping = foreignKeyMapping.map { (left: Column($0.destination), right: Column($0.origin)) }
+            }
+            
+            return columnMapping
+                .map { $0.right.qualifiedExpression(with: rightAlias) == $0.left.qualifiedExpression(with: leftAlias) }
+                .joined(operator: .and)
+        }
     }
-}
-
-struct SQLJoin {
-    var joinOperator: JoinOperator
-    var joinCondition: JoinCondition
+    
+    var kind: Kind
+    var condition: Condition
     var relation: SQLRelation
 }
 
@@ -428,7 +429,7 @@ extension SQLSource {
 extension SQLJoin {
     /// Returns nil if joins can't be merged (conflict in condition, relation...)
     func merged(with other: SQLJoin) -> SQLJoin? {
-        guard joinCondition == other.joinCondition else {
+        guard condition == other.condition else {
             // can't merge
             return nil
         }
@@ -438,17 +439,17 @@ extension SQLJoin {
             return nil
         }
         
-        let mergedJoinOperator: JoinOperator
-        switch (joinOperator, other.joinOperator) {
+        let mergedKind: SQLJoin.Kind
+        switch (kind, other.kind) {
         case (.required, _), (_, .required):
-            mergedJoinOperator = .required
+            mergedKind = .required
         default:
-            mergedJoinOperator = .optional
+            mergedKind = .optional
         }
         
         return SQLJoin(
-            joinOperator: mergedJoinOperator,
-            joinCondition: joinCondition,
+            kind: mergedKind,
+            condition: condition,
             relation: mergedRelation)
     }
 }

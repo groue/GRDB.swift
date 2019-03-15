@@ -19,14 +19,15 @@ struct ForeignKeyRequest: Equatable {
         self.destinationColumns = foreignKey?.destinationColumns
     }
     
-    func fetch(_ db: Database) throws -> ForeignKeyInfo {
+    /// The (origin, destination) column pairs that join a left table to a right table.
+    func fetchMapping(_ db: Database) throws -> [(origin: String, destination: String)] {
         if let originColumns = originColumns, let destinationColumns = destinationColumns {
             // Total information: no need to query the database schema.
             GRDBPrecondition(originColumns.count == destinationColumns.count, "Number of columns don't match")
             let mapping = zip(originColumns, destinationColumns).map {
                 (origin: $0, destination: $1)
             }
-            return ForeignKeyInfo(destinationTable: destinationTable, mapping: mapping)
+            return mapping
         }
         
         // Incomplete information: let's look for schema foreign keys
@@ -56,7 +57,7 @@ struct ForeignKeyRequest: Equatable {
         if let foreignKey = foreignKeys.first {
             if foreignKeys.count == 1 {
                 // Non-ambiguous
-                return foreignKey
+                return foreignKey.mapping
             } else {
                 // Ambiguous: can't choose
                 fatalError("Ambiguous foreign key from \(originTable) to \(destinationTable)")
@@ -70,13 +71,10 @@ struct ForeignKeyRequest: Equatable {
                 let mapping = zip(originColumns, destinationColumns).map {
                     (origin: $0, destination: $1)
                 }
-                return ForeignKeyInfo(destinationTable: destinationTable, mapping: mapping)
+                return mapping
             }
         }
         
         fatalError("Could not infer foreign key from \(originTable) to \(destinationTable)")
     }
 }
-
-/// The (origin, destination) column pairs that join a left table to a right table.
-typealias ForeignKeyMapping = [(origin: String, destination: String)]
