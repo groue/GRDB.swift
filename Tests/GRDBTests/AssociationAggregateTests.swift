@@ -1307,4 +1307,41 @@ class AssociationAggregateTests: GRDBTestCase {
             }
         }
     }
+    
+    func testIfNullOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.players.min(Column("score")) ?? 0)
+                .orderByPrimaryKey()
+                .asRequest(of: TeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, IFNULL(MIN("player"."score"), 0) AS "minPlayerScore" \
+                FROM "team" \
+                LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 4)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].minPlayerScore, 100)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].minPlayerScore, 200)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertEqual(teamInfos[2].minPlayerScore, 0)
+
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].minPlayerScore, 0)
+        }
+    }
 }

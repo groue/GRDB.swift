@@ -59,6 +59,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#493](https://github.com/groue/GRDB.swift/pull/493): Bump SQLite to [3.27.2](https://www.sqlite.org/releaselog/3_27_2.html)
 - [#499](https://github.com/groue/GRDB.swift/pull/499): Extract EncodableRecord from MutablePersistableRecord
 - [#502](https://github.com/groue/GRDB.swift/pull/502): Rename Future to DatabaseFuture
+- [#503](https://github.com/groue/GRDB.swift/pull/503): IFNULL support for association aggregates
 
 ### Breaking Changes
 
@@ -70,6 +71,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 - [SQL Interpolation](Documentation/SQLInterpolation.md): this new document describes the new SQL interpolation feature.
 - [Required Protocols](Documentation/AssociationsBasics.md#required-protocols) describes which protocols your record types have to conform to in order to use Associations features.
+- [Aggregate Operations](Documentation/AssociationsBasics.md#aggregate-operations) describes all the ways to transform association aggregates with logical, comparison and arithmetic operators.
 
 
 ## 3.7.0

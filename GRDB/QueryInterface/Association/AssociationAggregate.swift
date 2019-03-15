@@ -108,7 +108,7 @@ extension AssociationAggregate {
 ///
 /// For example:
 ///
-///     let request = Author.having(!Author.books.isEmpty)
+///     Author.having(!Author.books.isEmpty)
 public prefix func ! <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = aggregate.prepare(request)
@@ -120,7 +120,7 @@ public prefix func ! <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.isEmpty && Author.paintings.isEmpty)
+///     Author.having(Author.books.isEmpty && Author.paintings.isEmpty)
 public func && <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (lRequest, lExpression) = lhs.prepare(request)
@@ -152,7 +152,7 @@ public func && <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDe
 ///
 /// For example:
 ///
-///     let request = Author.having(!Author.books.isEmpty || !Author.paintings.isEmpty)
+///     Author.having(!Author.books.isEmpty || !Author.paintings.isEmpty)
 public func || <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (lRequest, lExpression) = lhs.prepare(request)
@@ -185,7 +185,7 @@ public func || <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDe
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count == Author.paintings.count)
+///     Author.having(Author.books.count == Author.paintings.count)
 public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (lRequest, lExpression) = lhs.prepare(request)
@@ -198,7 +198,7 @@ public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associat
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count == 3)
+///     Author.having(Author.books.count == 3)
 public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
@@ -210,7 +210,7 @@ public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpre
 ///
 /// For example:
 ///
-///     let request = Author.having(3 == Author.books.count)
+///    Author.having(3 == Author.books.count)
 public func == <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
@@ -222,7 +222,7 @@ public func == <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDe
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.isEmpty == false)
+///     Author.having(Author.books.isEmpty == false)
 public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
@@ -234,7 +234,7 @@ public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) ->
 ///
 /// For example:
 ///
-///     let request = Author.having(false == Author.books.isEmpty)
+///     Author.having(false == Author.books.isEmpty)
 public func == <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
@@ -246,7 +246,7 @@ public func == <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) ->
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count != Author.paintings.count)
+///     Author.having(Author.books.count != Author.paintings.count)
 public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (lRequest, lExpression) = lhs.prepare(request)
@@ -259,7 +259,7 @@ public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associat
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count != 3)
+///     Author.having(Author.books.count != 3)
 public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
@@ -271,7 +271,7 @@ public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpre
 ///
 /// For example:
 ///
-///     let request = Author.having(3 != Author.books.count)
+///     Author.having(3 != Author.books.count)
 public func != <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
@@ -283,7 +283,7 @@ public func != <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDe
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.isEmpty != true)
+///     Author.having(Author.books.isEmpty != true)
 public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
@@ -295,7 +295,7 @@ public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) ->
 ///
 /// For example:
 ///
-///     let request = Author.having(true != Author.books.isEmpty)
+///     Author.having(true != Author.books.isEmpty)
 public func != <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
@@ -307,7 +307,7 @@ public func != <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) ->
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count === Author.paintings.count)
+///     Author.having(Author.books.count === Author.paintings.count)
 public func === <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (lRequest, lExpression) = lhs.prepare(request)
@@ -320,7 +320,7 @@ public func === <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associa
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count === 3)
+///     Author.having(Author.books.count === 3)
 public func === <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
@@ -332,7 +332,7 @@ public func === <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpr
 ///
 /// For example:
 ///
-///     let request = Author.having(3 === Author.books.count)
+///     Author.having(3 === Author.books.count)
 public func === <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
@@ -344,7 +344,7 @@ public func === <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowD
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count !== Author.paintings.count)
+///     Author.having(Author.books.count !== Author.paintings.count)
 public func !== <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (lRequest, lExpression) = lhs.prepare(request)
@@ -357,7 +357,7 @@ public func !== <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associa
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count !== 3)
+///     Author.having(Author.books.count !== 3)
 public func !== <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
@@ -369,7 +369,7 @@ public func !== <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpr
 ///
 /// For example:
 ///
-///     let request = Author.having(3 !== Author.books.count)
+///     Author.having(3 !== Author.books.count)
 public func !== <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
@@ -383,7 +383,7 @@ public func !== <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowD
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count <= Author.paintings.count)
+///     Author.having(Author.books.count <= Author.paintings.count)
 public func <= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (lRequest, lExpression) = lhs.prepare(request)
@@ -396,7 +396,7 @@ public func <= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associat
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count <= 3)
+///     Author.having(Author.books.count <= 3)
 public func <= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
@@ -408,7 +408,7 @@ public func <= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpre
 ///
 /// For example:
 ///
-///     let request = Author.having(3 <= Author.books.count)
+///     Author.having(3 <= Author.books.count)
 public func <= <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
@@ -420,7 +420,7 @@ public func <= <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDe
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count < Author.paintings.count)
+///     Author.having(Author.books.count < Author.paintings.count)
 public func < <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (lRequest, lExpression) = lhs.prepare(request)
@@ -433,7 +433,7 @@ public func < <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associati
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count < 3)
+///     Author.having(Author.books.count < 3)
 public func < <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
@@ -445,7 +445,7 @@ public func < <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpres
 ///
 /// For example:
 ///
-///     let request = Author.having(3 < Author.books.count)
+///     Author.having(3 < Author.books.count)
 public func < <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
@@ -457,7 +457,7 @@ public func < <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDec
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count > Author.paintings.count)
+///     Author.having(Author.books.count > Author.paintings.count)
 public func > <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (lRequest, lExpression) = lhs.prepare(request)
@@ -470,7 +470,7 @@ public func > <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associati
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count > 3)
+///     Author.having(Author.books.count > 3)
 public func > <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
@@ -482,7 +482,7 @@ public func > <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpres
 ///
 /// For example:
 ///
-///     let request = Author.having(3 > Author.books.count)
+///     Author.having(3 > Author.books.count)
 public func > <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
@@ -494,7 +494,7 @@ public func > <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDec
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count >= Author.paintings.count)
+///     Author.having(Author.books.count >= Author.paintings.count)
 public func >= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (lRequest, lExpression) = lhs.prepare(request)
@@ -507,7 +507,7 @@ public func >= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associat
 ///
 /// For example:
 ///
-///     let request = Author.having(Author.books.count >= 3)
+///     Author.having(Author.books.count >= 3)
 public func >= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
@@ -519,7 +519,7 @@ public func >= <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpre
 ///
 /// For example:
 ///
-///     let request = Author.having(3 >= Author.books.count)
+///     Author.having(3 >= Author.books.count)
 public func >= <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
@@ -533,7 +533,7 @@ public func >= <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDe
 ///
 /// For example:
 ///
-///     let request = Author.annotated(with: -Author.books.count)
+///     Author.annotated(with: -Author.books.count)
 public prefix func - <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = aggregate.prepare(request)
@@ -545,7 +545,7 @@ public prefix func - <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -
 ///
 /// For example:
 ///
-///     let request = Author.annotated(with: Author.books.count + Author.paintings.count)
+///     Author.annotated(with: Author.books.count + Author.paintings.count)
 public func + <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (lRequest, lExpression) = lhs.prepare(request)
@@ -558,7 +558,7 @@ public func + <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associati
 ///
 /// For example:
 ///
-///     let request = Author.annotated(with: Author.books.count + 1)
+///     Author.annotated(with: Author.books.count + 1)
 public func + <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
@@ -570,7 +570,7 @@ public func + <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpres
 ///
 /// For example:
 ///
-///     let request = Author.annotated(with: 1 + Author.books.count)
+///     Author.annotated(with: 1 + Author.books.count)
 public func + <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
@@ -582,7 +582,7 @@ public func + <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDec
 ///
 /// For example:
 ///
-///     let request = Author.annotated(with: Author.books.count - Author.paintings.count)
+///     Author.annotated(with: Author.books.count - Author.paintings.count)
 public func - <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (lRequest, lExpression) = lhs.prepare(request)
@@ -595,7 +595,7 @@ public func - <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associati
 ///
 /// For example:
 ///
-///     let request = Author.annotated(with: Author.books.count - 1)
+///     Author.annotated(with: Author.books.count - 1)
 public func - <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
@@ -607,7 +607,7 @@ public func - <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpres
 ///
 /// For example:
 ///
-///     let request = Author.annotated(with: 1 - Author.books.count)
+///     Author.annotated(with: 1 - Author.books.count)
 public func - <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
@@ -619,7 +619,7 @@ public func - <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDec
 ///
 /// For example:
 ///
-///     let request = Author.annotated(with: Author.books.count * Author.paintings.count)
+///     Author.annotated(with: Author.books.count * Author.paintings.count)
 public func * <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (lRequest, lExpression) = lhs.prepare(request)
@@ -632,7 +632,7 @@ public func * <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associati
 ///
 /// For example:
 ///
-///     let request = Author.annotated(with: Author.books.count * 2)
+///     Author.annotated(with: Author.books.count * 2)
 public func * <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
@@ -644,7 +644,7 @@ public func * <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpres
 ///
 /// For example:
 ///
-///     let request = Author.annotated(with: 2 * Author.books.count)
+///     Author.annotated(with: 2 * Author.books.count)
 public func * <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
@@ -656,7 +656,7 @@ public func * <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDec
 ///
 /// For example:
 ///
-///     let request = Author.annotated(with: Author.books.count / Author.paintings.count)
+///     Author.annotated(with: Author.books.count / Author.paintings.count)
 public func / <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (lRequest, lExpression) = lhs.prepare(request)
@@ -669,7 +669,7 @@ public func / <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associati
 ///
 /// For example:
 ///
-///     let request = Author.annotated(with: Author.books.count / 2)
+///     Author.annotated(with: Author.books.count / 2)
 public func / <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
@@ -681,7 +681,7 @@ public func / <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpres
 ///
 /// For example:
 ///
-///     let request = Author.annotated(with: 2 / Author.books.count)
+///     Author.annotated(with: 2 / Author.books.count)
 public func / <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
@@ -689,7 +689,21 @@ public func / <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDec
     }
 }
 
+// MARK: - IFNULL(...)
+
+/// Returns an aggregate that evaluates the `IFNULL` SQL function.
+///
+///     Team.annotated(with: Team.players.min(Column("score")) ?? 0)
+public func ?? <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
+    var aggregate = AssociationAggregate<RowDecoder> { request in
+        let (request, expression) = lhs.prepare(request)
+        return (request: request, expression: expression ?? rhs)
+    }
+    
+    // Preserve alias
+    aggregate.alias = lhs.alias
+    return aggregate
+}
+
 // TODO: add support for ABS(aggregate)
 // TODO: add support for LENGTH(aggregate)
-// TODO: add support for IFNULL(aggregate, ...)
-// TODO: add support for IFNULL(..., aggregate)
