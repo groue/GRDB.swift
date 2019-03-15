@@ -58,6 +58,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#490](https://github.com/groue/GRDB.swift/pull/490): Indirect Associations
 - [#493](https://github.com/groue/GRDB.swift/pull/493): Bump SQLite to [3.27.2](https://www.sqlite.org/releaselog/3_27_2.html)
 - [#499](https://github.com/groue/GRDB.swift/pull/499): Extract EncodableRecord from MutablePersistableRecord
+- [#502](https://github.com/groue/GRDB.swift/pull/502): Rename Future to DatabaseFuture
 - [#503](https://github.com/groue/GRDB.swift/pull/503): IFNULL support for association aggregates
 
 ### Breaking Changes

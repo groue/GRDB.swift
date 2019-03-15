@@ -201,10 +201,10 @@ extension DatabaseQueue {
         return try writer.reentrantSync(block)
     }
     
-    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
+    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
         // DatabaseQueue can't perform parallel reads.
         // Perform a blocking read instead.
-        return Future(Result {
+        return DatabaseFuture(Result {
             // Check that we're on the writer queue...
             try writer.execute { db in
                 // ... and that no transaction is opened.

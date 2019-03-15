@@ -357,7 +357,7 @@ extension DatabasePool : DatabaseReader {
         }
     }
     
-    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
+    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
@@ -404,13 +404,13 @@ extension DatabasePool : DatabaseReader {
                 futureSemaphore.signal()
             }
         } catch {
-            return Future { throw error }
+            return DatabaseFuture { throw error }
         }
         
         // Block the writer queue until snapshot isolation success or error
         _ = isolationSemaphore.wait(timeout: .distantFuture)
         
-        return Future {
+        return DatabaseFuture {
             // Block the future until results are fetched
             _ = futureSemaphore.wait(timeout: .distantFuture)
             return try futureResult!.get()

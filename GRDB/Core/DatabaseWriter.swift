@@ -94,7 +94,7 @@ public protocol DatabaseWriter : DatabaseReader {
     ///         // Guaranteed to be zero
     ///         let count = try future.wait()
     ///     }
-    func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T>
+    func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T>
 }
 
 extension DatabaseWriter {
@@ -256,13 +256,13 @@ extension ValueReducer {
 
 extension ValueObservation where Reducer: ValueReducer {
     /// Helper method for DatabaseWriter.add(observation:onError:onChange:)
-    fileprivate func fetchAfterChange(in writer: DatabaseWriter) -> (Database, Reducer) -> Future<Reducer.Fetched> {
+    fileprivate func fetchAfterChange(in writer: DatabaseWriter) -> (Database, Reducer) -> DatabaseFuture<Reducer.Fetched> {
         // The technique to return a future value after database has changed
         // depends on the requiresWriteAccess flag:
         if requiresWriteAccess {
             // Synchronous fetch
             return { (db, reducer) in
-                Future(Result {
+                DatabaseFuture(Result {
                     var fetchedValue: Reducer.Fetched!
                     try db.inTransaction {
                         fetchedValue = try reducer.fetch(db)
@@ -280,9 +280,20 @@ extension ValueObservation where Reducer: ValueReducer {
     }
 }
 
-// TODO: Rename in order to avoid conflict with "real" Future libraries.
-/// A future value.
-public class Future<Value> {
+/// A future database value, returned by the DatabaseWriter.concurrentRead(_:)
+/// method.
+///
+///     let futureCount: Future<Int> = try writer.writeWithoutTransaction { db in
+///         try Player(...).insert()
+///
+///         // Count players concurrently
+///         return writer.concurrentRead { db in
+///             return try Player.fetchCount()
+///         }
+///     }
+///
+///     let count: Int = try futureCount.wait()
+public class DatabaseFuture<Value> {
     private var consumed = false
     private let _wait: () throws -> Value
     
@@ -302,7 +313,7 @@ public class Future<Value> {
     public func wait() throws -> Value {
         // Not thread-safe and quick and dirty.
         // Goal is that users learn not to call this method twice.
-        GRDBPrecondition(consumed == false, "Future.wait() must be called only once")
+        GRDBPrecondition(consumed == false, "DatabaseFuture.wait() must be called only once")
         consumed = true
         return try _wait()
     }
@@ -338,7 +349,7 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     }
     
     /// :nodoc:
-    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
+    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
         return base.concurrentRead(block)
     }
     
