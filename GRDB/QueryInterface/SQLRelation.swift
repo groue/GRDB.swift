@@ -8,10 +8,6 @@ struct SQLRelation {
     var ordering: SQLRelation.Ordering
     var joins: OrderedDictionary<String, SQLJoin>
     
-    var alias: TableAlias? {
-        return source.alias
-    }
-    
     init(
         source: SQLSource,
         selection: [SQLSelectable] = [],
@@ -96,15 +92,6 @@ extension SQLRelation {
 enum SQLSource {
     case table(tableName: String, alias: TableAlias?)
     indirect case query(SQLSelectQuery)
-    
-    var alias: TableAlias? {
-        switch self {
-        case .table(_, let alias):
-            return alias
-        case .query(let query):
-            return query.alias
-        }
-    }
     
     func qualified(with alias: TableAlias) -> SQLSource {
         switch self {

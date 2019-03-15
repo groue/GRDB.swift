@@ -21,10 +21,6 @@ struct SQLSelectQuery {
         self.havingExpression = havingExpression
         self.limit = limit
     }
-    
-    var alias: TableAlias? {
-        return relation.alias
-    }
 }
 
 extension SQLSelectQuery: SelectionRequest, FilteredRequest, OrderedRequest {
