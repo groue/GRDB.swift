@@ -309,11 +309,7 @@ extension Array where Element == TableAlias {
         for (lowercaseName, group) in groups {
             if group.count > 1 {
                 // It is a programmer error to reuse the same alias for multiple tables
-                #if compiler(>=5.0)
                 GRDBPrecondition(group.count { $0.hasUserName } < 2, "ambiguous alias: \(group[0].identityName)")
-                #else
-                GRDBPrecondition(group.filter({ $0.hasUserName }).count < 2, "ambiguous alias: \(group[0].identityName)")
-                #endif
                 ambiguousGroups.append(group)
             } else {
                 uniqueLowercaseNames.insert(lowercaseName)

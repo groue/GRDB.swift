@@ -92,3 +92,17 @@ extension DispatchQueue {
         return DispatchQueue.getSpecific(key: mainKey) != nil
     }
 }
+
+// Has SE-0220 been removed in Xcode 10.2 beta 4?
+// #if compiler(<5.0)
+extension Sequence {
+    @inlinable
+    func count(where predicate: (Element) throws -> Bool) rethrows -> Int {
+        var count = 0
+        for e in self where try predicate(e) {
+            count += 1
+        }
+        return count
+    }
+}
+// #endif
