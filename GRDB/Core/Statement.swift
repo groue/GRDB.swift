@@ -879,7 +879,10 @@ public struct StatementArguments: CustomStringConvertible, Equatable, Expressibl
 extension StatementArguments {
     /// Returns a StatementArguments from an array literal:
     ///
-    ///     db.selectRows("SELECT ...", arguments: ["Arthur", 41])
+    ///     let arguments: StatementArguments = ["Arthur", 41]
+    ///     try db.execute(
+    ///         sql: "INSERT INTO player (name, score) VALUES (?, ?)"
+    ///         arguments: arguments)
     public init(arrayLiteral elements: DatabaseValueConvertible?...) {
         self.init(elements)
     }
@@ -889,7 +892,10 @@ extension StatementArguments {
 extension StatementArguments {
     /// Returns a StatementArguments from a dictionary literal:
     ///
-    ///     db.selectRows("SELECT ...", arguments: ["name": "Arthur", "score": 41])
+    ///     let arguments: StatementArguments = ["name": "Arthur", "score": 41]
+    ///     try db.execute(
+    ///         sql: "INSERT INTO player (name, score) VALUES (:name, :score)"
+    ///         arguments: arguments)
     public init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
         self.init(elements)
     }
