@@ -6070,7 +6070,7 @@ class PlayerViewController: UIViewController {
         observer = try! observation.start(
             in: dbQueue,
             onChange: { [unowned self] (player: Player?) in
-                // Player has changed: update view
+                // Player has been refreshed: update view
                 self.nameLabel.text = player?.name
             })
     }
@@ -6086,13 +6086,13 @@ class PlayerViewController: UIViewController {
 
 By default, all values are notified on the main queue. Views can be updated right from the `onChange` callback.
 
-An initial fetch is performed as soon as the observation starts: the view is set up and ready when the `viewWillAppear` method returns.
+By default, an initial fetch is performed as soon as the observation starts: the view is set up and ready when the `viewWillAppear` method returns.
 
 The observer returned by the `start` method is stored in a property of the view controller. This allows the view controller to control the duration of the observation. When the observer is deallocated, the observation stops. Meanwhile, all transactions that modify the observed player are notified, and the `nameLabel` is kept up-to-date.
 
 > :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample app that uses ValueObservation.
 >
-> :bulb: **Tip**: When fetching initial values is slow, and should not block the main queue, opt in for async notifications:
+> :bulb: **Tip**: When fetching values is slow, and should never ever block the main queue, opt in for async notifications:
 >
 > ```swift
 > override func viewWillAppear(_ animated: Bool) {
@@ -6109,7 +6109,7 @@ The observer returned by the `start` method is stored in a property of the view 
 >     observer = try! observation.start(
 >         in: dbQueue,
 >         onChange: { [unowned self] (player: Player?) in
->             // Player has changed: update view
+>             // Player has been refreshed: update view
 >             self.activityIndicator.stopAnimating()
 >             self.nameLabel.text = player?.name
 >         })
