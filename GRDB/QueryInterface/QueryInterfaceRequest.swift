@@ -58,6 +58,7 @@ extension QueryInterfaceRequest : FetchRequest {
     /// - parameter db: A database connection.
     /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
+        // TODO: include region of indirect joins
         return try SQLSelectQueryGenerator(query).databaseRegion(db)
     }
 }
