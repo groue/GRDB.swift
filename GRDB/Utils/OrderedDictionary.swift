@@ -89,6 +89,22 @@ struct OrderedDictionary<Key: Hashable, Value> {
             dict.appendValue(try transform(pair.value), forKey: pair.key)
         }
     }
+    
+    /// Returns a new ordered dictionary containing the keys of this dictionary
+    /// with the values transformed by the given closure.
+    ///
+    /// - Parameter transform: A closure that transforms a value. `transform`
+    ///   accepts each value of the dictionary as its parameter and returns a
+    ///   transformed value of the same or of a different type.
+    /// - Returns: A dictionary containing the keys and transformed values of
+    ///   this dictionary.
+    func compactMapValues<T>(_ transform: (Value) throws -> T?) rethrows -> OrderedDictionary<Key, T> {
+        return try reduce(into: OrderedDictionary<Key, T>(), { dict, pair in
+            if let value = try transform(pair.value) {
+                dict[pair.key] = value
+            }
+        })
+    }
 }
 
 extension OrderedDictionary: Collection {

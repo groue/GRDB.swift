@@ -1,13 +1,22 @@
 extension QueryInterfaceRequest where RowDecoder: TableRecord {
     // MARK: - Associations
     
+    // TODO
+    public func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
+        return mapQuery {
+            $0.mapRelation {
+                association.sqlAssociation.relation(from: $0, kind: .all)
+            }
+        }
+    }
+    
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.sqlAssociation.relation(from: $0, required: false)
+                association.sqlAssociation.relation(from: $0, kind: .optional)
             }
         }
     }
@@ -18,7 +27,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func including<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.sqlAssociation.relation(from: $0, required: true)
+                association.sqlAssociation.relation(from: $0, kind: .required)
             }
         }
     }
@@ -29,7 +38,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func joining<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.select([]).sqlAssociation.relation(from: $0, required: false)
+                association.select([]).sqlAssociation.relation(from: $0, kind: .optional)
             }
         }
     }
@@ -40,7 +49,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func joining<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.select([]).sqlAssociation.relation(from: $0, required: true)
+                association.select([]).sqlAssociation.relation(from: $0, kind: .required)
             }
         }
     }

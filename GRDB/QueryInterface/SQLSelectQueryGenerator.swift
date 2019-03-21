@@ -56,7 +56,7 @@ struct SQLSelectQueryGenerator {
         
         sql += try " FROM " + relation.source.sql(db, &context)
         
-        for (_, join) in relation.joins {
+        for (_, join) in relation.directJoins {
             sql += try " " + join.sql(db, &context, leftAlias: relation.alias, isRequiredAllowed: true)
         }
         
@@ -132,7 +132,7 @@ struct SQLSelectQueryGenerator {
             fatalError("Can't delete query with HAVING clause")
         }
         
-        guard relation.joins.isEmpty else {
+        guard relation.directJoins.isEmpty else {
             // Programmer error
             fatalError("Can't delete query with JOIN clause")
         }
@@ -225,7 +225,7 @@ private struct SQLQualifiedRelation {
     /// All aliases, including aliases of joined relations
     var allAliases: [TableAlias] {
         var aliases = [alias]
-        for join in joins.values {
+        for join in directJoins.values {
             aliases.append(contentsOf: join.relation.allAliases)
         }
         aliases.append(contentsOf: source.allAliases)
@@ -246,7 +246,7 @@ private struct SQLQualifiedRelation {
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
     ///            ^ fullSelection
     var selection: [SQLSelectable] {
-        return joins.reduce(into: ownSelection) {
+        return directJoins.reduce(into: ownSelection) {
             $0.append(contentsOf: $1.value.relation.selection)
         }
     }
@@ -265,16 +265,16 @@ private struct SQLQualifiedRelation {
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
     ///                                                            ^ ordering
     var ordering: SQLRelation.Ordering {
-        return joins.reduce(ownOrdering) {
+        return directJoins.reduce(ownOrdering) {
             $0.appending($1.value.relation.ordering)
         }
     }
     
-    /// The joins
+    /// The direct joins (indirect ones will be fetched with other SQL queries).
     ///
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
-    ///                                ^ joins
-    let joins: OrderedDictionary<String, SQLQualifiedJoin>
+    ///                                ^ direct joins
+    let directJoins: OrderedDictionary<String, SQLQualifiedJoin>
     
     init(_ relation: SQLRelation) {
         // Qualify the source, so that it be disambiguated with an SQL alias
@@ -288,7 +288,9 @@ private struct SQLQualifiedRelation {
         
         // Qualify all joins, selection, filter, and ordering, so that all
         // identifiers can be correctly disambiguated and qualified.
-        joins = relation.joins.mapValues(SQLQualifiedJoin.init)
+        directJoins = relation.joins.compactMapValues { join in
+            (join.kind == .all) ? nil : SQLQualifiedJoin(join)
+        }
         ownSelection = relation.selection.map { $0.qualifiedSelectable(with: alias) }
         filterPromise = relation.filterPromise.map { [alias] in $0?.qualifiedExpression(with: alias) }
         ownOrdering = relation.ordering.qualified(with: alias)
@@ -306,7 +308,7 @@ private struct SQLQualifiedRelation {
     ///   relations does not need any row adapter.
     func rowAdapter(_ db: Database, fromIndex startIndex: Int) throws -> (adapter: RowAdapter, endIndex: Int)? {
         // Root relation && no join => no need for any adapter
-        if startIndex == 0 && joins.isEmpty {
+        if startIndex == 0 && directJoins.isEmpty {
             return nil
         }
         
@@ -320,7 +322,7 @@ private struct SQLQualifiedRelation {
         // Name them according to the join keys.
         var endIndex = startIndex + selectionWidth
         var scopes: [String: RowAdapter] = [:]
-        for (key, join) in joins {
+        for (key, join) in directJoins {
             if let (joinAdapter, joinEndIndex) = try join.relation.rowAdapter(db, fromIndex: endIndex) {
                 scopes[key] = joinAdapter
                 endIndex = joinEndIndex
@@ -404,12 +406,12 @@ private enum SQLQualifiedSource {
 
 /// A "qualified" join, where all tables are identified with a table alias.
 private struct SQLQualifiedJoin {
-    private let isRequired: Bool
+    private let kind: SQLJoin.Kind
     private let condition: SQLJoinCondition
     let relation: SQLQualifiedRelation
     
     init(_ join: SQLJoin) {
-        self.isRequired = join.isRequired
+        self.kind = join.kind
         self.condition = join.condition
         self.relation = SQLQualifiedRelation(join.relation)
     }
@@ -418,13 +420,16 @@ private struct SQLQualifiedJoin {
         var isRequiredAllowed = isRequiredAllowed
         var sql = ""
         
-        if isRequired {
+        switch kind {
+        case .all:
+            fatalError("Not implemented: chaining an `all` association")
+        case .required:
             guard isRequiredAllowed else {
                 // TODO: chainOptionalRequired
                 fatalError("Not implemented: chaining a required association behind an optional association")
             }
             sql += "JOIN"
-        } else {
+        case .optional:
             isRequiredAllowed = false
             sql += "LEFT JOIN"
         }
@@ -440,7 +445,7 @@ private struct SQLQualifiedJoin {
             sql += " ON " + filters.joined(operator: .and).expressionSQL(&context)
         }
         
-        for (_, join) in relation.joins {
+        for (_, join) in relation.directJoins {
             sql += try " " + join.sql(db, &context, leftAlias: rightAlias, isRequiredAllowed: isRequiredAllowed)
         }
         

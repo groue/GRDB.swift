@@ -228,7 +228,7 @@ extension SQLRelation {
 struct SQLJoinCondition: Equatable {
     /// Definition of a foreign key
     var foreignKeyRequest: ForeignKeyRequest
-
+    
     /// True if the table at the origin of the foreign key is on the left of
     /// the sql JOIN operator.
     ///
@@ -247,11 +247,11 @@ struct SQLJoinCondition: Equatable {
     ///     -- Author.including(required: Author.books)
     ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
     var originIsLeft: Bool
-
+    
     var reversed: SQLJoinCondition {
         return SQLJoinCondition(foreignKeyRequest: foreignKeyRequest, originIsLeft: !originIsLeft)
     }
-
+    
     /// Returns an SQL expression for the join condition.
     ///
     ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
@@ -281,7 +281,12 @@ struct SQLJoinCondition: Equatable {
 // MARK: - SQLJoin
 
 struct SQLJoin {
-    var isRequired: Bool
+    enum Kind {
+        case optional
+        case required
+        case all
+    }
+    var kind: Kind
     var condition: SQLJoinCondition
     var relation: SQLRelation
 }
@@ -393,9 +398,29 @@ extension SQLJoin {
             return nil
         }
         
+        guard let mergedKind = kind.merged(with: other.kind) else {
+            // can't merge
+            return nil
+        }
+        
         return SQLJoin(
-            isRequired: isRequired || other.isRequired,
+            kind: mergedKind,
             condition: condition,
             relation: mergedRelation)
+    }
+}
+
+extension SQLJoin.Kind {
+    func merged(with other: SQLJoin.Kind) -> SQLJoin.Kind? {
+        switch (self, other) {
+        case (.all, .all):
+            return .all
+        case (.all, _), (_, .all):
+            return nil
+        case (.required, _), (_, .required):
+            return .required
+        case (.optional, _), (_, .optional):
+            return .optional
+        }
     }
 }
