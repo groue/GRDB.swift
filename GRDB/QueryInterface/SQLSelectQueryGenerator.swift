@@ -405,7 +405,7 @@ private enum SQLQualifiedSource {
 /// A "qualified" join, where all tables are identified with a table alias.
 private struct SQLQualifiedJoin {
     private let isRequired: Bool
-    private let condition: SQLJoin.Condition
+    private let condition: SQLJoinCondition
     let relation: SQLQualifiedRelation
     
     init(_ join: SQLJoin) {

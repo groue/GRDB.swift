@@ -402,7 +402,7 @@ public /* TODO: internal */ struct SQLAssociation {
     // SQLAssociation is a non-empty array of association elements
     private struct Element {
         var key: String
-        var condition: SQLJoin.Condition
+        var condition: SQLJoinCondition
         var relation: SQLRelation
     }
     private var head: Element
@@ -415,7 +415,7 @@ public /* TODO: internal */ struct SQLAssociation {
         self.tail = tail
     }
     
-    init(key: String, condition: SQLJoin.Condition, relation: SQLRelation) {
+    init(key: String, condition: SQLJoinCondition, relation: SQLRelation) {
         head = Element(key: key, condition: condition, relation: relation)
         tail = []
     }
