@@ -2,11 +2,11 @@
 ///
 /// > A set of tuples sharing the same attributes; a set of columns and rows.
 ///
-///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
-///            |        |               |         |            |
-///            |        |               |         |            • ordering
-///            |        |               |         • filterPromise
-///            |        |               • joins
+///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
+///            |        |        |         |            |
+///            |        |        |         |            • ordering
+///            |        |        |         • filterPromise
+///            |        |        • joins
 ///            |        • source
 ///            • selection
 struct SQLRelation {
