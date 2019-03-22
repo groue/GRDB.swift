@@ -876,6 +876,69 @@ extension Row {
     }
 }
 
+extension Row {
+    
+    // MARK: - Fetching From QueryInterfaceRequest
+    
+    /// Returns an array of rows fetched from a fetch request.
+    ///
+    ///     let request = Player.all()
+    ///     let rows = try Row.fetchAll(db, request)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A FetchRequest.
+    /// - returns: An array of rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @inlinable
+    public static func fetchAll<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> [Row] {
+        if request.query.hasIndirectQueries {
+            return try fetchAllIndirect(db, request.query)
+        }
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchAll(statement, adapter: adapter)
+    }
+    
+    @usableFromInline
+    static func fetchAllIndirect(_ db: Database, _ query: SQLSelectQuery) throws -> [Row] {
+        let indirectJoins = query.relation.joins.compactMapValues { join in
+            (join.kind == .all) ? join : nil
+        }
+        // TODO: make sure columns used by indirect joins are fetched (and hidden by the row adapter if added)
+        let (statement, adapter) = try SQLSelectQueryGenerator(query).prepare(db)
+        var rows = try fetchAll(statement, adapter: adapter)
+        
+        for (key, join) in indirectJoins {
+            let indirectAssociation = SQLAssociation(key: key, condition: join.condition, relation: join.relation)
+            let indirecRelation = indirectAssociation.relation(to: query.sourceTableName) { (db, alias, expression) in
+                expression.resolved(with: rows, for: alias)
+            }
+            let indirectQuery = SQLSelectQuery(relation: indirecRelation)
+            let indirectRequest = QueryInterfaceRequest<Row>(query: indirectQuery)
+            let indirectRows = try indirectRequest.fetchAll(db)
+        }
+        
+        return rows
+    }
+    
+    /// Returns a single row fetched from a fetch request.
+    ///
+    ///     let request = Player.filter(key: 1)
+    ///     let row = try Row.fetchOne(db, request)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A FetchRequest.
+    /// - returns: An optional row.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @inlinable
+    public static func fetchOne<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> Row? {
+        // TODO: check for indirect request
+        let (statement, adapter) = try request.prepare(db)
+        return try fetchOne(statement, adapter: adapter)
+    }
+}
+
 extension FetchRequest where RowDecoder: Row {
     
     // MARK: Fetching Rows
@@ -936,7 +999,38 @@ extension FetchRequest where RowDecoder: Row {
         return try Row.fetchOne(db, self)
     }
 }
+
+extension QueryInterfaceRequest where RowDecoder: Row {
     
+    // MARK: Fetching Rows
+    
+    /// An array of fetched rows.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Row
+    ///     let rows = try request.fetchAll(db)
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: An array of fetched rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @inlinable
+    public func fetchAll(_ db: Database) throws -> [Row] {
+        return try Row.fetchAll(db, self)
+    }
+    
+    /// The first fetched row.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Row
+    ///     let row = try request.fetchOne(db)
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A,n optional rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @inlinable
+    public func fetchOne(_ db: Database) throws -> Row? {
+        return try Row.fetchOne(db, self)
+    }
+}
+
 // ExpressibleByDictionaryLiteral
 extension Row {
     

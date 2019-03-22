@@ -29,7 +29,7 @@
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
 public struct QueryInterfaceRequest<T> {
-    var query: SQLSelectQuery
+    @usableFromInline var query: SQLSelectQuery
 }
 
 extension QueryInterfaceRequest : FetchRequest {

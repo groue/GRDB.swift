@@ -1,12 +1,21 @@
 /// SQLSelectQuery is a representation of an SQL SELECT query.
 ///
 /// See SQLSelectQueryGenerator for actual SQL generation.
+@usableFromInline
 struct SQLSelectQuery {
     var relation: SQLRelation
     var isDistinct: Bool
     var groupPromise: DatabasePromise<[SQLExpression]>?
     var havingExpression: SQLExpression?
     var limit: SQLLimit?
+    
+    @usableFromInline var hasIndirectQueries: Bool {
+        return relation.joins.contains { $0.value.kind == .all }
+    }
+    
+    var sourceTableName: String {
+        return relation.source.tableName
+    }
     
     init(
         relation: SQLRelation,
@@ -24,6 +33,7 @@ struct SQLSelectQuery {
 }
 
 extension SQLSelectQuery: SelectionRequest, FilteredRequest, OrderedRequest {
+    @usableFromInline
     func select(_ selection: [SQLSelectable]) -> SQLSelectQuery {
         return mapRelation { $0.select(selection) }
     }
@@ -38,6 +48,7 @@ extension SQLSelectQuery: SelectionRequest, FilteredRequest, OrderedRequest {
         return query
     }
     
+    @usableFromInline
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLSelectQuery {
         return mapRelation { $0.filter(predicate) }
     }
@@ -58,10 +69,12 @@ extension SQLSelectQuery: SelectionRequest, FilteredRequest, OrderedRequest {
         return query
     }
 
+    @usableFromInline
     func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> SQLSelectQuery {
         return mapRelation { $0.order(orderings) }
     }
     
+    @usableFromInline
     func reversed() -> SQLSelectQuery {
         return mapRelation { $0.reversed() }
     }

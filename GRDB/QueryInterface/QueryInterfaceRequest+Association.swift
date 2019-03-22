@@ -116,16 +116,23 @@ extension TableRecord where Self: EncodableRecord {
     ///     let team: Team = ...
     ///     let players = try team.players.fetchAll(db) // [Player]
     public func request<A: Association>(for association: A) -> QueryInterfaceRequest<A.RowDecoder> where A.OriginRowDecoder == Self {
-        let relation = association.sqlAssociation.relation(
-            to: type(of: self).databaseTableName,
-            container: { try PersistenceContainer($0, self) })
-        return QueryInterfaceRequest<A.RowDecoder>(query: SQLSelectQuery(relation: relation))
+        let originTable = type(of: self).databaseTableName
+        let relation = association.sqlAssociation.relation(to: originTable) { (db, alias, expression) in
+            try expression.resolved(with: [Row(PersistenceContainer(db, self))], for: alias)
+        }
+        let query = SQLSelectQuery(relation: relation)
+        return QueryInterfaceRequest<A.RowDecoder>(query: query)
     }
 }
 
 extension TableRecord {
     
     // MARK: - Associations
+    
+    // TODO
+    public static func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self {
+        return all().including(all: association)
+    }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association does not

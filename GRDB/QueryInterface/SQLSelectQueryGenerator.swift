@@ -438,7 +438,7 @@ private struct SQLQualifiedJoin {
         
         let rightAlias = relation.alias
         let filters = try [
-            condition.sqlExpression(db, leftAlias: leftAlias, rightAlias: rightAlias),
+            condition.joinExpression(db, leftAlias: leftAlias, rightAlias: rightAlias),
             relation.filterPromise.resolve(db)
             ].compactMap { $0 }
         if !filters.isEmpty {

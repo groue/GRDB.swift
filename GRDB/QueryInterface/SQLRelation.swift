@@ -93,6 +93,15 @@ enum SQLSource {
     case table(tableName: String, alias: TableAlias?)
     indirect case query(SQLSelectQuery)
     
+    var tableName: String {
+        switch self {
+        case let .table(tableName: tableName, alias: _):
+            return tableName
+        case let .query(query):
+            return query.sourceTableName
+        }
+    }
+    
     func qualified(with alias: TableAlias) -> SQLSource {
         switch self {
         case .table(let tableName, let sourceAlias):
@@ -263,7 +272,7 @@ struct SQLJoinCondition: Equatable {
     /// - parameter rightAlias: A TableAlias for the table on the right of the
     ///   JOIN operator.
     /// - Returns: An SQL expression.
-    func sqlExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLExpression {
+    func joinExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLJoinExpression {
         let foreignKeyMapping = try foreignKeyRequest.fetchMapping(db)
         let columnMapping: [(left: Column, right: Column)]
         if originIsLeft {
@@ -271,10 +280,93 @@ struct SQLJoinCondition: Equatable {
         } else {
             columnMapping = foreignKeyMapping.map { (left: Column($0.destination), right: Column($0.origin)) }
         }
+        return SQLJoinExpression.columnsToColumns(leftAlias: leftAlias, rightAlias: rightAlias, mapping: columnMapping)
+    }
+    
+    func leftColumns(_ db: Database) throws -> [String] {
+        let foreignKeyMapping = try foreignKeyRequest.fetchMapping(db)
+        if originIsLeft {
+            return foreignKeyMapping.map { $0.origin }
+        } else {
+            return foreignKeyMapping.map { $0.destination }
+        }
+    }
+}
 
-        return columnMapping
-            .map { $0.right.qualifiedExpression(with: rightAlias) == $0.left.qualifiedExpression(with: leftAlias) }
-            .joined(operator: .and)
+enum SQLJoinExpression: SQLExpression {
+    // left.a = right.b
+    // (left.a = right.b) AND (left.c = right.d)
+    case columnsToColumns(leftAlias: TableAlias, rightAlias: TableAlias, mapping: [(left: Column, right: Column)])
+    
+    // table.a = 1
+    // (table.a = 1) AND (table.b = 2)
+    // table.a IN (1, 2, 3)
+    // ((table.a = 1) AND (table.b = 2)) OR ((table.a = 3) AND (table.b = 4))
+    case columnsToValues([(column: QualifiedColumn, values: [DatabaseValue])])
+    
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        switch self {
+        case let .columnsToColumns(leftAlias, rightAlias, mapping):
+            return mapping
+                .map { $0.right.qualifiedExpression(with: rightAlias) == $0.left.qualifiedExpression(with: leftAlias) }
+                .joined(operator: .and)
+                .expressionSQL(&context)
+        case let .columnsToValues(mapping):
+            guard let first = mapping.first else {
+                // Likely a GRDB bug
+                fatalError("Empty mapping")
+            }
+            if mapping.count > 1 {
+                assert(Set(mapping.map { $0.values.count }).count == 1, "inconsistent values count")
+                if first.values.count == 1 {
+                    return mapping.map { $0.column == $0.values[0] }.joined(operator: .and).expressionSQL(&context)
+                } else {
+                    fatalError("not implemented")
+                }
+            } else {
+                guard let value = first.values.first else {
+                    // Likely a GRDB bug
+                    fatalError("No value")
+                }
+                if first.values.count > 1 {
+                    return first.values.contains(first.column).expressionSQL(&context)
+                } else {
+                    return (first.column == value).expressionSQL(&context)
+                }
+            }
+        }
+    }
+    
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        // self is already qualified
+        return self
+    }
+    
+    func resolvedExpression(inContext context: [TableAlias : PersistenceContainer]) -> SQLExpression {
+        fatalError("not implemented")
+    }
+    
+    func resolved(with rows: [Row], for alias: TableAlias) -> SQLJoinExpression {
+        switch self {
+        case let .columnsToColumns(leftAlias, rightAlias, mapping):
+            if alias == leftAlias {
+                return .columnsToValues(mapping.map { columns in
+                    (column: QualifiedColumn(columns.right.name, alias: rightAlias),
+                     values: rows.map { $0[columns.left] })
+                })
+            } else if alias == rightAlias {
+                return .columnsToValues(mapping.map { columns in
+                    (column: QualifiedColumn(columns.left.name, alias: leftAlias),
+                     values: rows.map { $0[columns.right] })
+                })
+            } else {
+                // Likely a GRDB bug
+                fatalError("Can't resolve SQLJoinExpression with unknown alias")
+            }
+        default:
+            // Likely a GRDB bug
+            fatalError("SQLJoinExpression is already resolved")
+        }
     }
 }
 

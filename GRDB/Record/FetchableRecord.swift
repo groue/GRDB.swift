@@ -334,9 +334,13 @@ extension FetchableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchAll<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> [Self] {
-        // TODO: multi fetch if request contains indirect joins
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchAll(statement, adapter: adapter)
+        if request.query.hasIndirectQueries {
+            let rows = try Row.fetchAll(db, request)
+            return rows.map(Self.init(row:))
+        } else {
+            let (statement, adapter) = try request.prepare(db)
+            return try fetchAll(statement, adapter: adapter)
+        }
     }
     
     /// Returns a single record fetched from a query interface request.
@@ -351,9 +355,15 @@ extension FetchableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchOne<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> Self? {
-        // TODO: multi fetch if request contains indirect joins
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchOne(statement, adapter: adapter)
+        if request.query.hasIndirectQueries {
+            guard let row = try Row.fetchOne(db, request) else {
+                return nil
+            }
+            return Self.init(row: row)
+        } else {
+            let (statement, adapter) = try request.prepare(db)
+            return try fetchOne(statement, adapter: adapter)
+        }
     }
 }
 

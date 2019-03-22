@@ -495,7 +495,7 @@ public /* TODO: internal */ struct SQLAssociation {
     ///
     ///     // SELECT head.* FROM head WHERE head.originId = 123
     ///     origin.request(for: association)
-    func relation(to originTable: String, container originContainer: @escaping (Database) throws -> PersistenceContainer) -> SQLRelation {
+    func relation(to originTable: String, resolve: @escaping (Database, TableAlias, SQLJoinExpression) throws -> SQLJoinExpression) -> SQLRelation {
         // Build a "pivot" relation whose filter is the pivot condition
         // injected with values contained in originContainer.
         let pivotCondition = pivot.condition
@@ -505,11 +505,11 @@ public /* TODO: internal */ struct SQLAssociation {
             .filter { db in
                 let originAlias = TableAlias(tableName: originTable)
                 
-                // Build a join condition: `association.originId = origin.id`
-                let joinExpression = try pivotCondition.sqlExpression(db, leftAlias: originAlias, rightAlias: pivotAlias)
+                // Build a join expression: `association.originId = origin.id`
+                let joinExpression = try pivotCondition.joinExpression(db, leftAlias: originAlias, rightAlias: pivotAlias)
                 
                 // Replace `origin.id` with 123
-                return try joinExpression.resolvedExpression(inContext: [originAlias: originContainer(db)])
+                return try resolve(db, originAlias, joinExpression)
         }
         
         // We use elements backward: join conditions have to be reversed.
