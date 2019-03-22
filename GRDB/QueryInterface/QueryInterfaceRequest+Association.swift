@@ -117,10 +117,10 @@ extension TableRecord where Self: EncodableRecord {
     ///     let players = try team.players.fetchAll(db) // [Player]
     public func request<A: Association>(for association: A) -> QueryInterfaceRequest<A.RowDecoder> where A.OriginRowDecoder == Self {
         let originTable = type(of: self).databaseTableName
-        let relation = association.sqlAssociation.relation(from: originTable, rows: { db in
+        let pivot = association.sqlAssociation.pivot(from: originTable, rows: { db in
             try [Row(PersistenceContainer(db, self))]
         })
-        let query = SQLSelectQuery(relation: relation)
+        let query = SQLSelectQuery(relation: pivot.relation)
         return QueryInterfaceRequest<A.RowDecoder>(query: query)
     }
 }

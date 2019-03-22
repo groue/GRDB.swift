@@ -484,6 +484,12 @@ public /* TODO: internal */ struct SQLAssociation {
         return reducedAssociation.relation(from: origin, kind: kind)
     }
     
+    struct Pivot {
+        var relation: SQLRelation
+        var condition: SQLJoinCondition
+        var alias: TableAlias
+    }
+    
     /// Support for (TableRecord & EncodableRecord).request(for:).
     ///
     /// Returns a "reversed" relation:
@@ -495,7 +501,7 @@ public /* TODO: internal */ struct SQLAssociation {
     ///
     ///     // SELECT head.* FROM head WHERE head.originId = 123
     ///     origin.request(for: association)
-    func relation(from originTable: String, rows: @escaping (Database) throws -> [Row]) -> SQLRelation {
+    func pivot(from originTable: String, rows: @escaping (Database) throws -> [Row]) -> Pivot {
         // Build a "pivot" relation whose filter is the pivot condition
         // injected with values contained in originContainer.
         let pivotCondition = pivot.condition
@@ -521,12 +527,13 @@ public /* TODO: internal */ struct SQLAssociation {
         
         // Empty tail?
         guard var reversedHead = reversedElements.first else {
-            return pivotRelation
+            return Pivot(relation: pivotRelation, condition: pivotCondition, alias: pivotAlias)
         }
         
         reversedHead.relation = pivotRelation.select([])
         let reversedTail = Array(reversedElements.dropFirst())
         let reversedAssociation = SQLAssociation(head: reversedHead, tail: reversedTail)
-        return reversedAssociation.relation(from: head.relation, kind: .required)
+        let relation = reversedAssociation.relation(from: head.relation, kind: .required)
+        return Pivot(relation: relation, condition: pivotCondition, alias: pivotAlias)
     }
 }

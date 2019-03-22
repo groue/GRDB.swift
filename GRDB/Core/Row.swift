@@ -923,38 +923,37 @@ extension Row {
     
     @usableFromInline
     static func fetchAllWithAssociatedRows(_ db: Database, query: SQLSelectQuery) throws -> [Row] {
-        // TODO: avoid fatal errors by making sure columns used by joins are
-        // fetched (and hidden by a row adapter if added)
-        
         // Fetch base rows
+        // TODO: avoid fatal errors "column ... is not selected" by making sure
+        // columns used by joins are fetched (and hidden by a row adapter if added)
         let (statement, adapter) = try SQLSelectQueryGenerator(query).prepare(db)
         let rows = try fetchAll(statement, adapter: adapter)
         if rows.isEmpty {
             return []
         }
         
-        // Fetch associated rows
+        // Iterate associated joins
         for (key, join) in query.relation.associatedJoins {
+            // Build query for associated rows
+            let association = makeAssociation(key: key, join: join)
+            let pivot = association.pivot(from: query.sourceTableName, rows: { _ in rows })
+            let query = SQLSelectQuery(relation: pivot.relation)
+            
+            // Annotate with pivot columns, so that we support through associations
+            let pivotColumns = try pivot.condition.columns(db)
+            let pivotSelection = pivotColumns.right.map { pivot.alias[Column($0)].aliased("grdb_\($0)") }
+            let request = QueryInterfaceRequest<Row>(query: query).annotated(with: pivotSelection)
+            
             // Fetch
-            let request = associatedRequest(
-                from: query.sourceTableName, rows: rows,
-                key: key, condition: join.condition, relation: join.relation)
             let associatedRows = try request.fetchAll(db)
             
             // Group
-            let joinColumns = try join.condition.columns(db)
-            guard let groupedRows = group(associatedRows, on: joinColumns.right) else {
-                fatalError("""
-                    Column \(joinColumns.right.joined(separator: ", ")) \
-                    is not selected from table \(join.relation.source.tableName), \
-                    for association \(key)
-                    """)
-            }
+            let groupedRows = group(associatedRows, on: pivotColumns.right.map { "grdb_\($0)" })
             
             // Associate
-            if associate(groupedRows: groupedRows, to: rows, on: joinColumns.left, forKey: key) == false {
+            if associate(groupedRows: groupedRows, to: rows, on: pivotColumns.left, forKey: association.key) == false {
                 fatalError("""
-                    Column \(joinColumns.left.joined(separator: ", ")) \
+                    Column \(pivotColumns.left.joined(separator: ", ")) \
                     is not selected from table \(query.relation.source.tableName)
                     """)
             }
@@ -964,33 +963,33 @@ extension Row {
     }
     
     /// Helper for fetchAllWithAssociatedRows.
-    private static func associatedRequest(
-        from sourceTableName: String,
-        rows: [Row],
-        key: String,
-        condition: SQLJoinCondition,
-        relation: SQLRelation) -> QueryInterfaceRequest<Row>
-    {
-        // TODO: if there are too many rows, we may reach the SQLite maximum
-        // number of statement arguments. In this case, we should perform a
-        // batch fetch.
-        let association = SQLAssociation(key: key, condition: condition, relation: relation)
-        let associatedRelation = association.relation(from: sourceTableName, rows: { _ in rows })
-        let query = SQLSelectQuery(relation: associatedRelation)
-        return QueryInterfaceRequest(query: query)
+    private static func makeAssociation(key: String, join: SQLJoin) -> SQLAssociation {
+        var relation = join.relation
+        let associatedJoins = relation.associatedJoins
+        relation.joins = relation.directJoins
+        let association = SQLAssociation(key: key, condition: join.condition, relation: relation)
+        guard let (associatedKey, associatedJoin) = associatedJoins.first else {
+            return association
+        }
+        guard associatedJoins.count == 1 else {
+            // GRDB bug, or not implemented?
+            // Try:
+            //
+            //      Citizen
+            //          .including(all: passports) // hasMany passports
+            //          .including(all: countries) // hasMany countries through passports
+            fatalError("Can't build an association with multiple associated rows")
+        }
+        return makeAssociation(key: associatedKey, join: associatedJoin).appending(association)
     }
     
     /// Helper for fetchAllWithAssociatedRows.
-    /// Return nil if columns are missing.
-    private static func group(_ rows: [Row], on columns: [String]) -> [[DatabaseValue]: [Row]]? {
+    private static func group(_ rows: [Row], on columns: [String]) -> [[DatabaseValue]: [Row]] {
         guard let firstRow = rows.first else {
             return [:]
         }
         let indexes: [Int] = columns.compactMap { firstRow.index(ofColumn: $0) }
-        guard indexes.count == columns.count else {
-            // some column was not selected
-            return nil
-        }
+        assert(indexes.count == columns.count)
         return Dictionary(
             grouping: rows,
             by: { row in indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) } })
