@@ -1,6 +1,14 @@
 /// A "relation" as defined by the [relational terminology](https://en.wikipedia.org/wiki/Relational_database#Terminology):
 ///
 /// > A set of tuples sharing the same attributes; a set of columns and rows.
+///
+///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
+///            |        |               |         |            |
+///            |        |               |         |            • ordering
+///            |        |               |         • filterPromise
+///            |        |               • joins
+///            |        • source
+///            • selection
 struct SQLRelation {
     var source: SQLSource
     var selection: [SQLSelectable]
@@ -513,6 +521,11 @@ extension SQLJoin.Kind {
         case (.all, .all):
             return .all
         case (.all, _), (_, .all):
+            // Likely a programmer error:
+            //
+            //  Author
+            //    .including(all: Author.books)
+            //    .including(optional: Author.books)
             return nil
         case (.required, _), (_, .required):
             return .required
