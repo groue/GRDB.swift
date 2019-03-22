@@ -335,8 +335,7 @@ extension FetchableRecord {
     @inlinable
     public static func fetchAll<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> [Self] {
         if request.query.includesAssociatedRows {
-            let rows = try Row.fetchAll(db, request)
-            return rows.map(Self.init(row:))
+            return try Row.fetchAll(db, request).map(Self.init(row:))
         } else {
             let (statement, adapter) = try request.prepare(db)
             return try fetchAll(statement, adapter: adapter)
@@ -356,10 +355,7 @@ extension FetchableRecord {
     @inlinable
     public static func fetchOne<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> Self? {
         if request.query.includesAssociatedRows {
-            guard let row = try Row.fetchOne(db, request) else {
-                return nil
-            }
-            return Self.init(row: row)
+            return try Row.fetchOne(db, request).map(Self.init(row:))
         } else {
             let (statement, adapter) = try request.prepare(db)
             return try fetchOne(statement, adapter: adapter)
