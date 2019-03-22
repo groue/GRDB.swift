@@ -901,21 +901,44 @@ extension Row {
     
     @usableFromInline
     static func fetchAllIndirect(_ db: Database, _ query: SQLSelectQuery) throws -> [Row] {
-        let indirectJoins = query.relation.joins.compactMapValues { join in
-            (join.kind == .all) ? join : nil
-        }
-        // TODO: make sure columns used by indirect joins are fetched (and hidden by the row adapter if added)
+        // TODO: make sure columns used by indirect joins are fetched (and hidden by a row adapter if added)
         let (statement, adapter) = try SQLSelectQueryGenerator(query).prepare(db)
-        var rows = try fetchAll(statement, adapter: adapter)
+        let rows = try fetchAll(statement, adapter: adapter)
         
-        for (key, join) in indirectJoins {
-            let indirectAssociation = SQLAssociation(key: key, condition: join.condition, relation: join.relation)
-            let indirecRelation = indirectAssociation.relation(to: query.sourceTableName) { (db, alias, expression) in
-                expression.resolved(with: rows, for: alias)
+        if let firstRow = rows.first {
+            let indirectJoins = query.relation.joins.compactMapValues { join in
+                (join.kind == .all) ? join : nil
             }
-            let indirectQuery = SQLSelectQuery(relation: indirecRelation)
-            let indirectRequest = QueryInterfaceRequest<Row>(query: indirectQuery)
-            let indirectRows = try indirectRequest.fetchAll(db)
+            for (key, join) in indirectJoins {
+                let indirectAssociation = SQLAssociation(key: key, condition: join.condition, relation: join.relation)
+                let indirecRelation = indirectAssociation.relation(to: query.sourceTableName) { (db, alias, expression) in
+                    expression.resolved(with: rows, for: alias)
+                }
+                let indirectQuery = SQLSelectQuery(relation: indirecRelation)
+                let indirectRequest = QueryInterfaceRequest<Row>(query: indirectQuery)
+                let indirectRows = try indirectRequest.fetchAll(db)
+                
+                let dispatchedRows: [[DatabaseValue] : [Row]]
+                if let firstIndirectRow = indirectRows.first {
+                    let rightColumns = try join.condition.rightColumns(db)
+                    let rightIndexes = rightColumns.map { firstIndirectRow.index(ofColumn: $0)! }
+                    dispatchedRows = Dictionary(grouping: indirectRows, by: { row in rightIndexes.map { row[$0] as DatabaseValue } })
+                } else {
+                    dispatchedRows = [:]
+                }
+                
+                let leftColumns = try join.condition.leftColumns(db)
+                let leftIndexes = leftColumns.map { firstRow.index(ofColumn: $0)! }
+                for row in rows {
+                    let key = leftIndexes.map { row[$0] as DatabaseValue }
+                    print(key)
+                    if let indirectRows = dispatchedRows[key] {
+                        print(indirectRows)
+                    } else {
+                        print("none")
+                    }
+                }
+            }
         }
         
         return rows

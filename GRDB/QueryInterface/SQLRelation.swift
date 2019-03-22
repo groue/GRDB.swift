@@ -291,6 +291,15 @@ struct SQLJoinCondition: Equatable {
             return foreignKeyMapping.map { $0.destination }
         }
     }
+    
+    func rightColumns(_ db: Database) throws -> [String] {
+        let foreignKeyMapping = try foreignKeyRequest.fetchMapping(db)
+        if originIsLeft {
+            return foreignKeyMapping.map { $0.destination }
+        } else {
+            return foreignKeyMapping.map { $0.origin }
+        }
+    }
 }
 
 struct SQLJoinExpression: SQLExpression {

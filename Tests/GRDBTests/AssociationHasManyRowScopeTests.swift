@@ -32,6 +32,7 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
                 sql: """
                     INSERT INTO a (id, name) VALUES (?, ?);
                     INSERT INTO a (id, name) VALUES (?, ?);
+                    INSERT INTO a (id, name) VALUES (?, ?);
                     INSERT INTO b (id, aId, name) VALUES (?, ?, ?);
                     INSERT INTO b (id, aId, name) VALUES (?, ?, ?);
                     INSERT INTO b (id, aId, name) VALUES (?, ?, ?);
@@ -39,6 +40,7 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
                 arguments: [
                     1, "a1",
                     2, "a2",
+                    3, "a3",
                     1, 1, "b1",
                     2, 1, "b2",
                     3, 2, "b3",
