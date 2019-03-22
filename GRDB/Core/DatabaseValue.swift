@@ -183,6 +183,7 @@ extension DatabaseValue {
     /// storages instead:
     ///
     ///     1.databaseValue.storage == 1.0.databaseValue.storage // false
+    @inlinable
     public static func == (lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
         switch (lhs.storage, rhs.storage) {
         case (.null, .null):
@@ -208,11 +209,13 @@ extension DatabaseValue {
 // DatabaseValueConvertible
 extension DatabaseValue {
     /// Returns self
+    @inlinable
     public var databaseValue: DatabaseValue {
         return self
     }
     
     /// Returns the database value
+    @inlinable
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> DatabaseValue? {
         return dbValue
     }

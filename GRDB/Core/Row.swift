@@ -29,6 +29,9 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     
     /// The number of columns in the row.
     public let count: Int
+    
+    ///
+    var joinedRows: [String: [Row]] = [:]
 
     // MARK: - Building rows
     
@@ -892,50 +895,60 @@ extension Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchAll<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> [Row] {
-        if request.query.hasIndirectQueries {
-            return try fetchAllIndirect(db, request.query)
+        if request.query.includesJoinedRows {
+            return try fetchAllWithJoinedRows(db, request.query)
         }
         let (statement, adapter) = try request.prepare(db)
         return try fetchAll(statement, adapter: adapter)
     }
     
     @usableFromInline
-    static func fetchAllIndirect(_ db: Database, _ query: SQLSelectQuery) throws -> [Row] {
+    static func fetchAllWithJoinedRows(_ db: Database, _ query: SQLSelectQuery) throws -> [Row] {
         // TODO: make sure columns used by indirect joins are fetched (and hidden by a row adapter if added)
         let (statement, adapter) = try SQLSelectQueryGenerator(query).prepare(db)
         let rows = try fetchAll(statement, adapter: adapter)
         
         if let firstRow = rows.first {
-            let indirectJoins = query.relation.joins.compactMapValues { join in
+            let joins = query.relation.joins.compactMapValues { join in
                 (join.kind == .all) ? join : nil
             }
-            for (key, join) in indirectJoins {
-                let indirectAssociation = SQLAssociation(key: key, condition: join.condition, relation: join.relation)
-                let indirecRelation = indirectAssociation.relation(to: query.sourceTableName) { (db, alias, expression) in
+            for (key, join) in joins {
+                let association = SQLAssociation(key: key, condition: join.condition, relation: join.relation)
+                let relation = association.relation(to: query.sourceTableName) { (db, alias, expression) in
                     expression.resolved(with: rows, for: alias)
                 }
-                let indirectQuery = SQLSelectQuery(relation: indirecRelation)
-                let indirectRequest = QueryInterfaceRequest<Row>(query: indirectQuery)
-                let indirectRows = try indirectRequest.fetchAll(db)
+                let query = SQLSelectQuery(relation: relation)
+                let request = QueryInterfaceRequest<Row>(query: query)
+                let joinedRows = try request.fetchAll(db)
                 
+                let joinColumns = try join.condition.columns(db)
                 let dispatchedRows: [[DatabaseValue] : [Row]]
-                if let firstIndirectRow = indirectRows.first {
-                    let rightColumns = try join.condition.rightColumns(db)
-                    let rightIndexes = rightColumns.map { firstIndirectRow.index(ofColumn: $0)! }
-                    dispatchedRows = Dictionary(grouping: indirectRows, by: { row in rightIndexes.map { row[$0] as DatabaseValue } })
+                if let firstJoinedRow = joinedRows.first {
+                    let rightIndexes: [Int] = joinColumns.right.map {
+                        guard let index = firstJoinedRow.index(ofColumn: $0) else {
+                            fatalError("Column \($0) wasn't selected from table \(join.relation.source.tableName), for association \(key)")
+                        }
+                        return index
+                    }
+                    dispatchedRows = Dictionary(
+                        grouping: joinedRows,
+                        by: { row in rightIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) } })
                 } else {
                     dispatchedRows = [:]
                 }
                 
-                let leftColumns = try join.condition.leftColumns(db)
-                let leftIndexes = leftColumns.map { firstRow.index(ofColumn: $0)! }
+                let leftIndexes: [Int] = joinColumns.left.map {
+                    guard let index = firstRow.index(ofColumn: $0) else {
+                        fatalError("Column \($0) wasn't selected from table \(query.relation.source.tableName)")
+                    }
+                    return index
+                }
                 for row in rows {
-                    let key = leftIndexes.map { row[$0] as DatabaseValue }
-                    print(key)
-                    if let indirectRows = dispatchedRows[key] {
-                        print(indirectRows)
+                    let rowValue = leftIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
+                    if let joinedRows = dispatchedRows[rowValue] {
+                        row.joinedRows[key] = joinedRows
                     } else {
-                        print("none")
+                        row.joinedRows[key] = []
                     }
                 }
             }
@@ -1165,7 +1178,7 @@ extension Row {
     }
     
     private func debugDescription(level: Int) -> String {
-        if level == 0 && self == self.unadapted {
+        if level == 0 && self == self.unadapted && self.joinedRows.isEmpty {
             return description
         }
         let prefix = repeatElement("  ", count: level + 1).joined(separator: "")
@@ -1182,7 +1195,9 @@ extension Row {
         for (name, scopedRow) in scopes.sorted(by: { $0.name < $1.name }) {
             str += "\n" + prefix + "- " + name + ": " + scopedRow.debugDescription(level: level + 1)
         }
-        
+        for (name, joinedRows) in joinedRows.sorted(by: { $0.key < $1.key }) {
+            str += "\n" + prefix + "- " + name + ": \(joinedRows.count) row(s)"
+        }
         return str
     }
 }

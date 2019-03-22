@@ -9,7 +9,7 @@ struct SQLSelectQuery {
     var havingExpression: SQLExpression?
     var limit: SQLLimit?
     
-    @usableFromInline var hasIndirectQueries: Bool {
+    @usableFromInline var includesJoinedRows: Bool {
         return relation.joins.contains { $0.value.kind == .all }
     }
     
