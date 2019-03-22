@@ -495,7 +495,7 @@ public /* TODO: internal */ struct SQLAssociation {
     ///
     ///     // SELECT head.* FROM head WHERE head.originId = 123
     ///     origin.request(for: association)
-    func relation(to originTable: String, resolve: @escaping (Database, TableAlias, SQLJoinExpression) throws -> SQLJoinExpression) -> SQLRelation {
+    func relation(to originTable: String, resolve: @escaping (Database, TableAlias, SQLJoinExpression) throws -> SQLExpression) -> SQLRelation {
         // Build a "pivot" relation whose filter is the pivot condition
         // injected with values contained in originContainer.
         let pivotCondition = pivot.condition
