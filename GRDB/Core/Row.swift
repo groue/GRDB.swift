@@ -939,24 +939,25 @@ extension Row {
             let pivot = association.pivot(from: query.sourceTableName, rows: { _ in rows })
             let query = SQLSelectQuery(relation: pivot.relation)
             
-            // Annotate with pivot columns, so that we support through associations
+            // Annotate with pivot columns, so that we can group and match with
+            // base rows, below.
+            //
+            // Those pivot column are a required addition in the case of "through"
+            // associations:
+            //
+            //      // SELECT country.*, passport.citizenId AS grdb_citizenId
+            //      // FROM country
+            //      // JOIN passport ON passport.countryCode = country.code
+            //      //               AND passport.citizenId IN (1, 2, 3)
+            //      Citizen.including(all: Citizen.countries)
             let pivotColumns = try pivot.condition.columns(db)
             let pivotSelection = pivotColumns.right.map { pivot.alias[Column($0)].aliased("grdb_\($0)") }
             let request = QueryInterfaceRequest<Row>(query: query).annotated(with: pivotSelection)
             
-            // Fetch
+            // Fetch, Group, Match
             let associatedRows = try request.fetchAll(db)
-            
-            // Group
             let groupedRows = group(associatedRows, on: pivotColumns.right.map { "grdb_\($0)" })
-            
-            // Associate
-            if associate(groupedRows: groupedRows, to: rows, on: pivotColumns.left, forKey: association.key) == false {
-                fatalError("""
-                    Column \(pivotColumns.left.joined(separator: ", ")) \
-                    is not selected from table \(query.relation.source.tableName)
-                    """)
-            }
+            match(groupedRows: groupedRows, with: rows, on: pivotColumns.left, forKey: association.key)
         }
         
         return rows
@@ -996,15 +997,13 @@ extension Row {
     }
     
     /// Helper for fetchAllWithAssociatedRows.
-    /// Return false if columns are missing.
-    private static func associate(groupedRows: [[DatabaseValue]: [Row]], to rows: [Row], on columns: [String], forKey key: String) -> Bool {
+    private static func match(groupedRows: [[DatabaseValue]: [Row]], with rows: [Row], on columns: [String], forKey key: String) {
         guard let firstRow = rows.first else {
-            return true
+            return
         }
         let indexes: [Int] = columns.compactMap { firstRow.index(ofColumn: $0) }
         guard indexes.count == columns.count else {
-            // some column was not selected
-            return false
+            fatalError("Column \(columns.joined(separator: ", ")) is not selected")
         }
         for row in rows {
             let rowValue = indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
@@ -1014,7 +1013,6 @@ extension Row {
                 row.associatedRows[key] = []
             }
         }
-        return true
     }
     
     /// Returns a single row fetched from a fetch request.
