@@ -334,7 +334,7 @@ extension FetchableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchAll<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> [Self] {
-        if request.query.includesJoinedRows {
+        if request.query.includesAssociatedRows {
             let rows = try Row.fetchAll(db, request)
             return rows.map(Self.init(row:))
         } else {
@@ -355,7 +355,7 @@ extension FetchableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchOne<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> Self? {
-        if request.query.includesJoinedRows {
+        if request.query.includesAssociatedRows {
             guard let row = try Row.fetchOne(db, request) else {
                 return nil
             }

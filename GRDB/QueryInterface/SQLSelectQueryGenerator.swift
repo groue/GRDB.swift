@@ -288,9 +288,7 @@ private struct SQLQualifiedRelation {
         
         // Qualify all joins, selection, filter, and ordering, so that all
         // identifiers can be correctly disambiguated and qualified.
-        directJoins = relation.joins.compactMapValues { join in
-            (join.kind == .all) ? nil : SQLQualifiedJoin(join)
-        }
+        directJoins = relation.directJoins.mapValues(SQLQualifiedJoin.init)
         ownSelection = relation.selection.map { $0.qualifiedSelectable(with: alias) }
         filterPromise = relation.filterPromise.map { [alias] in $0?.qualifiedExpression(with: alias) }
         ownOrdering = relation.ordering.qualified(with: alias)

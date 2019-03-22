@@ -31,7 +31,7 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     public let count: Int
     
     ///
-    var joinedRows: [String: [Row]] = [:]
+    var associatedRows: [String: [Row]] = [:]
 
     // MARK: - Building rows
     
@@ -895,66 +895,108 @@ extension Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchAll<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> [Row] {
-        if request.query.includesJoinedRows {
-            return try fetchAllWithJoinedRows(db, request.query)
+        if request.query.includesAssociatedRows {
+            return try fetchAllWithAssociatedRows(db, query: request.query)
         }
         let (statement, adapter) = try request.prepare(db)
         return try fetchAll(statement, adapter: adapter)
     }
     
     @usableFromInline
-    static func fetchAllWithJoinedRows(_ db: Database, _ query: SQLSelectQuery) throws -> [Row] {
-        // TODO: make sure columns used by indirect joins are fetched (and hidden by a row adapter if added)
+    static func fetchAllWithAssociatedRows(_ db: Database, query: SQLSelectQuery) throws -> [Row] {
+        // TODO: avoid fatal errors by making sure columns used by joins are
+        // fetched (and hidden by a row adapter if added)
+        
+        // Fetch base rows
         let (statement, adapter) = try SQLSelectQueryGenerator(query).prepare(db)
         let rows = try fetchAll(statement, adapter: adapter)
+        if rows.isEmpty {
+            return []
+        }
         
-        if let firstRow = rows.first {
-            let joins = query.relation.joins.compactMapValues { join in
-                (join.kind == .all) ? join : nil
+        // Fetch associated rows
+        for (key, join) in query.relation.associatedJoins {
+            // Fetch
+            let request = associatedRequest(
+                from: query.sourceTableName, rows: rows,
+                key: key, condition: join.condition, relation: join.relation)
+            let associatedRows = try request.fetchAll(db)
+            
+            // Group
+            let joinColumns = try join.condition.columns(db)
+            guard let groupedRows = group(associatedRows, on: joinColumns.right) else {
+                fatalError("""
+                    Column \(joinColumns.right.joined(separator: ", ")) \
+                    is not selected from table \(join.relation.source.tableName), \
+                    for association \(key)
+                    """)
             }
-            for (key, join) in joins {
-                let association = SQLAssociation(key: key, condition: join.condition, relation: join.relation)
-                let relation = association.relation(to: query.sourceTableName) { (db, alias, expression) in
-                    expression.resolved(with: rows, for: alias)
-                }
-                let query = SQLSelectQuery(relation: relation)
-                let request = QueryInterfaceRequest<Row>(query: query)
-                let joinedRows = try request.fetchAll(db)
-                
-                let joinColumns = try join.condition.columns(db)
-                let dispatchedRows: [[DatabaseValue] : [Row]]
-                if let firstJoinedRow = joinedRows.first {
-                    let rightIndexes: [Int] = joinColumns.right.map {
-                        guard let index = firstJoinedRow.index(ofColumn: $0) else {
-                            fatalError("Column \($0) wasn't selected from table \(join.relation.source.tableName), for association \(key)")
-                        }
-                        return index
-                    }
-                    dispatchedRows = Dictionary(
-                        grouping: joinedRows,
-                        by: { row in rightIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) } })
-                } else {
-                    dispatchedRows = [:]
-                }
-                
-                let leftIndexes: [Int] = joinColumns.left.map {
-                    guard let index = firstRow.index(ofColumn: $0) else {
-                        fatalError("Column \($0) wasn't selected from table \(query.relation.source.tableName)")
-                    }
-                    return index
-                }
-                for row in rows {
-                    let rowValue = leftIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
-                    if let joinedRows = dispatchedRows[rowValue] {
-                        row.joinedRows[key] = joinedRows
-                    } else {
-                        row.joinedRows[key] = []
-                    }
-                }
+            
+            // Associate
+            if associate(groupedRows: groupedRows, to: rows, on: joinColumns.left, forKey: key) == false {
+                fatalError("""
+                    Column \(joinColumns.left.joined(separator: ", ")) \
+                    is not selected from table \(query.relation.source.tableName)
+                    """)
             }
         }
         
         return rows
+    }
+    
+    /// Helper for fetchAllWithAssociatedRows.
+    private static func associatedRequest(
+        from sourceTableName: String,
+        rows: [Row],
+        key: String,
+        condition: SQLJoinCondition,
+        relation: SQLRelation) -> QueryInterfaceRequest<Row>
+    {
+        // TODO: if there are too many rows, we may reach the SQLite maximum
+        // number of statement arguments. In this case, we should perform a
+        // batch fetch.
+        let association = SQLAssociation(key: key, condition: condition, relation: relation)
+        let associatedRelation = association.relation(from: sourceTableName, rows: { _ in rows })
+        let query = SQLSelectQuery(relation: associatedRelation)
+        return QueryInterfaceRequest(query: query)
+    }
+    
+    /// Helper for fetchAllWithAssociatedRows.
+    /// Return nil if columns are missing.
+    private static func group(_ rows: [Row], on columns: [String]) -> [[DatabaseValue]: [Row]]? {
+        guard let firstRow = rows.first else {
+            return [:]
+        }
+        let indexes: [Int] = columns.compactMap { firstRow.index(ofColumn: $0) }
+        guard indexes.count == columns.count else {
+            // some column was not selected
+            return nil
+        }
+        return Dictionary(
+            grouping: rows,
+            by: { row in indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) } })
+    }
+    
+    /// Helper for fetchAllWithAssociatedRows.
+    /// Return false if columns are missing.
+    private static func associate(groupedRows: [[DatabaseValue]: [Row]], to rows: [Row], on columns: [String], forKey key: String) -> Bool {
+        guard let firstRow = rows.first else {
+            return true
+        }
+        let indexes: [Int] = columns.compactMap { firstRow.index(ofColumn: $0) }
+        guard indexes.count == columns.count else {
+            // some column was not selected
+            return false
+        }
+        for row in rows {
+            let rowValue = indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
+            if let associatedRows = groupedRows[rowValue] {
+                row.associatedRows[key] = associatedRows
+            } else {
+                row.associatedRows[key] = []
+            }
+        }
+        return true
     }
     
     /// Returns a single row fetched from a fetch request.
@@ -1178,7 +1220,7 @@ extension Row {
     }
     
     private func debugDescription(level: Int) -> String {
-        if level == 0 && self == self.unadapted && self.joinedRows.isEmpty {
+        if level == 0 && self == self.unadapted && self.associatedRows.isEmpty {
             return description
         }
         let prefix = repeatElement("  ", count: level + 1).joined(separator: "")
@@ -1195,8 +1237,8 @@ extension Row {
         for (name, scopedRow) in scopes.sorted(by: { $0.name < $1.name }) {
             str += "\n" + prefix + "- " + name + ": " + scopedRow.debugDescription(level: level + 1)
         }
-        for (name, joinedRows) in joinedRows.sorted(by: { $0.key < $1.key }) {
-            str += "\n" + prefix + "- " + name + ": \(joinedRows.count) row(s)"
+        for (name, associatedRows) in associatedRows.sorted(by: { $0.key < $1.key }) {
+            str += "\n" + prefix + "- " + name + ": \(associatedRows.count) row(s)"
         }
         return str
     }
