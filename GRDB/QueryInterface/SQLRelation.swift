@@ -307,31 +307,36 @@ enum SQLJoinExpression: SQLExpression {
     func expressionSQL(_ context: inout SQLGenerationContext) -> String {
         switch self {
         case let .columnsToColumns(leftAlias, rightAlias, mapping):
+            // left.a = right.b
+            // (left.a = right.b) AND (left.c = right.d)
             return mapping
                 .map { $0.right.qualifiedExpression(with: rightAlias) == $0.left.qualifiedExpression(with: leftAlias) }
                 .joined(operator: .and)
                 .expressionSQL(&context)
         case let .columnsToValues(mapping):
             guard let first = mapping.first else {
-                // Likely a GRDB bug
                 fatalError("Empty mapping")
             }
-            if mapping.count > 1 {
-                assert(Set(mapping.map { $0.values.count }).count == 1, "inconsistent values count")
-                if first.values.count == 1 {
-                    return mapping.map { $0.column == $0.values[0] }.joined(operator: .and).expressionSQL(&context)
-                } else {
-                    fatalError("not implemented")
-                }
-            } else {
+            if mapping.count == 1 {
                 guard let value = first.values.first else {
-                    // Likely a GRDB bug
                     fatalError("No value")
                 }
-                if first.values.count > 1 {
-                    return first.values.contains(first.column).expressionSQL(&context)
-                } else {
+                if first.values.count == 1 {
+                    // table.a = 1
                     return (first.column == value).expressionSQL(&context)
+                } else {
+                    // table.a IN (1, 2, 3)
+                    return first.values.contains(first.column).expressionSQL(&context)
+                }
+            } else {
+                assert(Set(mapping.map { $0.values.count }).count == 1, "inconsistent values count")
+                if first.values.count == 1 {
+                    // (table.a = 1) AND (table.b = 2)
+                    return mapping.map { $0.column == $0.values[0] }
+                        .joined(operator: .and)
+                        .expressionSQL(&context)
+                } else {
+                    fatalError("not implemented")
                 }
             }
         }
@@ -340,10 +345,6 @@ enum SQLJoinExpression: SQLExpression {
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         // self is already qualified
         return self
-    }
-    
-    func resolvedExpression(inContext context: [TableAlias : PersistenceContainer]) -> SQLExpression {
-        fatalError("not implemented")
     }
     
     func resolved(with rows: [Row], for alias: TableAlias) -> SQLJoinExpression {

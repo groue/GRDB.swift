@@ -277,12 +277,6 @@ extension DatabaseValue {
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return self
     }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return self
-    }
 }
 
 // CustomStringConvertible
