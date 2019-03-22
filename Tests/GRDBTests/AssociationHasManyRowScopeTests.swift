@@ -10,10 +10,19 @@ import XCTest
 /// Test row scopes
 class AssociationHasManyRowScopeTests: GRDBTestCase {
     func testIndirect() throws {
-        struct A: TableRecord {
+        struct A: TableRecord, FetchableRecord, Decodable {
             static let bs = hasMany(B.self)
+            var id: Int64
+            var name: String
         }
-        struct B: TableRecord {
+        struct B: TableRecord, FetchableRecord, Decodable {
+            var id: Int64
+            var aId: Int64
+            var name: String
+        }
+        struct AInfo: FetchableRecord, Decodable {
+            var a: A
+            var bs: [B]
         }
         
         dbConfiguration.trace = { print($0) }
@@ -46,8 +55,34 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
                     3, 2, "b3",
                 ])
             
-            let request = A.including(all: A.bs)
-            let rows = try Row.fetchAll(db, request)
+            let request = A
+                .including(all: A.bs.orderByPrimaryKey().forKey("bs")) // TODO: auto-pluralization
+                .orderByPrimaryKey()
+                .asRequest(of: AInfo.self)
+            let infos = try request.fetchAll(db)
+            
+            XCTAssertEqual(infos.count, 3)
+            
+            XCTAssertEqual(infos[0].a.id, 1)
+            XCTAssertEqual(infos[0].a.name, "a1")
+            XCTAssertEqual(infos[0].bs.count, 2)
+            XCTAssertEqual(infos[0].bs[0].id, 1)
+            XCTAssertEqual(infos[0].bs[0].aId, 1)
+            XCTAssertEqual(infos[0].bs[0].name, "b1")
+            XCTAssertEqual(infos[0].bs[1].id, 2)
+            XCTAssertEqual(infos[0].bs[1].aId, 1)
+            XCTAssertEqual(infos[0].bs[1].name, "b2")
+
+            XCTAssertEqual(infos[1].a.id, 2)
+            XCTAssertEqual(infos[1].a.name, "a2")
+            XCTAssertEqual(infos[1].bs.count, 1)
+            XCTAssertEqual(infos[1].bs[0].id, 3)
+            XCTAssertEqual(infos[1].bs[0].aId, 2)
+            XCTAssertEqual(infos[1].bs[0].name, "b3")
+
+            XCTAssertEqual(infos[2].a.id, 3)
+            XCTAssertEqual(infos[2].a.name, "a3")
+            XCTAssertEqual(infos[2].bs.count, 0)
         }
     }
 }

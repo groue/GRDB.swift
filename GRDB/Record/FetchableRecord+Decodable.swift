@@ -21,7 +21,7 @@ private struct RowDecoder<Record: FetchableRecord>: Decoder {
     var userInfo: [CodingUserInfoKey: Any] { return Record.databaseDecodingUserInfo }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
-        return KeyedDecodingContainer(KeyedContainer<Key>(decoder: self))
+        return KeyedDecodingContainer(KeyedContainer<Record, Key>(decoder: self))
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
@@ -43,7 +43,7 @@ private struct RowDecoder<Record: FetchableRecord>: Decoder {
         return ColumnDecoder<Record>(row: row, columnIndex: index, codingPath: codingPath)
     }
     
-    struct KeyedContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
+    struct KeyedContainer<Record: FetchableRecord, Key: CodingKey>: KeyedDecodingContainerProtocol {
         let decoder: RowDecoder
         var codingPath: [CodingKey] { return decoder.codingPath }
         
@@ -137,7 +137,13 @@ private struct RowDecoder<Record: FetchableRecord>: Decoder {
                 return try decode(type, fromRow: scopedRow, codingPath: codingPath + [key])
             }
             
-            // Key is not a column, and not a scope.
+            // Associated Rows?
+            if let associatedRows = row.associatedRowsTree[keyName] {
+                let decoder = AssociatedRowsDecoder<Record>(rows: associatedRows, codingPath: codingPath)
+                return try T(from: decoder)
+            }
+            
+            // Key is not a column, not a scope, not an associated rows key
             //
             // Should be throw an error? Well... The use case is the following:
             //
@@ -232,6 +238,125 @@ private struct RowDecoder<Record: FetchableRecord>: Decoder {
                     .decode(type.self, from: data)
             }
         }
+    }
+}
+
+// MARK: - AssociatedRowsDecoder
+
+private struct AssociatedRowsDecoder<Record: FetchableRecord>: Decoder {
+    var rows: [Row]
+    var codingPath: [CodingKey]
+    var index: Int
+    var userInfo: [CodingUserInfoKey: Any] { return Record.databaseDecodingUserInfo }
+    
+    init(rows: [Row], codingPath: [CodingKey]) {
+        self.rows = rows
+        self.codingPath = codingPath
+        self.index = 0
+    }
+    
+    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
+        fatalError("keyed decoding from associated rows is not supported")
+    }
+    
+    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+        return self
+    }
+    
+    func singleValueContainer() throws -> SingleValueDecodingContainer {
+        fatalError("single value decoding from associated rows is not supported")
+    }
+}
+
+extension AssociatedRowsDecoder: UnkeyedDecodingContainer {
+    var count: Int? {
+        fatalError("not implemented")
+    }
+    
+    var isAtEnd: Bool {
+        return index >= rows.endIndex
+    }
+    
+    var currentIndex: Int {
+        fatalError("not implemented")
+    }
+    
+    mutating func decodeNil() throws -> Bool {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode(_ type: Bool.Type) throws -> Bool {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode(_ type: String.Type) throws -> String {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode(_ type: Double.Type) throws -> Double {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode(_ type: Float.Type) throws -> Float {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode(_ type: Int.Type) throws -> Int {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode(_ type: Int8.Type) throws -> Int8 {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode(_ type: Int16.Type) throws -> Int16 {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode(_ type: Int32.Type) throws -> Int32 {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode(_ type: Int64.Type) throws -> Int64 {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode(_ type: UInt.Type) throws -> UInt {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode(_ type: UInt8.Type) throws -> UInt8 {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode(_ type: UInt16.Type) throws -> UInt16 {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode(_ type: UInt32.Type) throws -> UInt32 {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode(_ type: UInt64.Type) throws -> UInt64 {
+        fatalError("not implemented")
+    }
+    
+    mutating func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+        defer { index += 1 }
+        let decoder = RowDecoder<Record>(row: rows[index], codingPath: codingPath)
+        return try T(from: decoder)
+    }
+    
+    mutating func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
+        fatalError("not implemented")
+    }
+    
+    mutating func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
+        fatalError("not implemented")
+    }
+    
+    mutating func superDecoder() throws -> Decoder {
+        fatalError("not implemented")
     }
 }
 

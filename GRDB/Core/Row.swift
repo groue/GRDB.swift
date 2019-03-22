@@ -534,6 +534,21 @@ extension Row {
         }
         return Record(row: scopedRow)
     }
+    
+    /// Returns the associated records encoded for the given key.
+    ///
+    /// A fatal error is raised in the row was not fetched with such associated
+    /// rows.
+    ///
+    /// See https://github.com/groue/GRDB.swift/blob/master/Documentation/AssociationsBasics.md
+    /// for more information.
+    public subscript<Record: FetchableRecord>(_ key: String) -> [Record] {
+        guard let rows = associatedRowsTree[key] else {
+            // Programmer error
+            fatalError("no associated rows for key: \(key)")
+        }
+        return rows.map(Record.init(row:))
+    }
 }
 
 extension Row {
@@ -585,6 +600,10 @@ extension Row {
     ///     row.scopesTree["baz"] // [baz:3]
     public var scopesTree: ScopesTreeView {
         return ScopesTreeView(scopes: scopes)
+    }
+    
+    var associatedRowsTree: AssociatedRowsTreeView {
+        return AssociatedRowsTreeView(row: self)
     }
     
     /// Returns a copy of the row, without any scopes.
@@ -1395,15 +1414,55 @@ extension Row {
         /// breadth-first search in this row's scopes and the scopes of its
         /// scoped rows, recursively.
         public subscript(_ name: String) -> Row? {
+            return first { $0.name == name }?.row
+        }
+        
+        /// Returns the first row matching the given predicate, by performing a
+        /// breadth-first search in this row's scopes and the scopes of its
+        /// scoped rows, recursively.
+        func first(where predicate: (Row.ScopesView.Element) throws -> Bool) rethrows -> Row.ScopesView.Element? {
             var fifo = Array(scopes)
             while !fifo.isEmpty {
                 let scope = fifo.removeFirst()
-                if scope.name == name {
-                    return scope.row
+                if try predicate(scope) {
+                    return scope
                 }
                 fifo.append(contentsOf: scope.row.scopes)
             }
             return nil
+        }
+    }
+}
+
+// MARK: - Row.AssociatedRowsTreeView
+
+extension Row {
+    
+    /// A view on the associated rows tree.
+    public struct AssociatedRowsTreeView {
+        let row: Row
+
+        /// The keys for associated rows defined on this row, recursively.
+        public var keys: Set<String> {
+            var keys = Set<String>()
+            keys.formUnion(row.associatedRows.keys)
+            for (_, row) in row.scopes {
+                keys.formUnion(row.associatedRows.keys)
+                keys.formUnion(row.associatedRowsTree.keys)
+            }
+            return keys
+        }
+        
+        /// Returns the row associated with the given scope, by performing a
+        /// breadth-first search in this row's scopes and the scopes of its
+        /// scoped rows, recursively.
+        public subscript(_ key: String) -> [Row]? {
+            if let rows = row.associatedRows[key] {
+                return rows
+            }
+            return ScopesTreeView(scopes: row.scopes)
+                .first { $0.row.associatedRows[key] != nil }?
+                .row.associatedRows[key]
         }
     }
 }
