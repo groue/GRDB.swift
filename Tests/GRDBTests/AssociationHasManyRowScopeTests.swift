@@ -13,56 +13,55 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
         struct A: TableRecord, FetchableRecord, Decodable {
             static let bs = hasMany(B.self)
             static let ds = hasMany(D.self, through: hasMany(C.self), using: C.hasMany(D.self))
-            var id: Int64
-            var name: String
+            var cola1: Int64
+            var cola2: String
         }
         struct B: TableRecord, FetchableRecord, Decodable {
-            var id: Int64
-            var aId: Int64
-            var name: String
+            var colb1: Int64
+            var colb2: Int64
+            var colb3: String
         }
         struct C: TableRecord {
         }
         struct D: TableRecord, FetchableRecord, Decodable {
-            var id: Int64
-            var cId: Int64
-            var name: String
+            var cold1: Int64
+            var cold2: Int64
+            var cold3: String
         }
         
-        dbConfiguration.trace = { print($0) }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "a") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("name", .text)
+                t.autoIncrementedPrimaryKey("cola1")
+                t.column("cola2", .text)
             }
             try db.create(table: "b") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("aId", .integer).references("a")
-                t.column("name", .text)
+                t.autoIncrementedPrimaryKey("colb1")
+                t.column("colb2", .integer).references("a")
+                t.column("colb3", .text)
             }
             try db.create(table: "c") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("aId", .integer).references("a")
+                t.autoIncrementedPrimaryKey("colc1")
+                t.column("colc2", .integer).references("a")
             }
             try db.create(table: "d") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("cId", .integer).references("c")
-                t.column("name", .text)
+                t.autoIncrementedPrimaryKey("cold1")
+                t.column("cold2", .integer).references("c")
+                t.column("cold3", .text)
             }
             try db.execute(
                 sql: """
-                    INSERT INTO a (id, name) VALUES (?, ?);
-                    INSERT INTO a (id, name) VALUES (?, ?);
-                    INSERT INTO a (id, name) VALUES (?, ?);
-                    INSERT INTO b (id, aId, name) VALUES (?, ?, ?);
-                    INSERT INTO b (id, aId, name) VALUES (?, ?, ?);
-                    INSERT INTO b (id, aId, name) VALUES (?, ?, ?);
-                    INSERT INTO c (id, aId) VALUES (?, ?);
-                    INSERT INTO c (id, aId) VALUES (?, ?);
-                    INSERT INTO d (id, cId, name) VALUES (?, ?, ?);
-                    INSERT INTO d (id, cId, name) VALUES (?, ?, ?);
-                    INSERT INTO d (id, cId, name) VALUES (?, ?, ?);
+                    INSERT INTO a (cola1, cola2) VALUES (?, ?);
+                    INSERT INTO a (cola1, cola2) VALUES (?, ?);
+                    INSERT INTO a (cola1, cola2) VALUES (?, ?);
+                    INSERT INTO b (colb1, colb2, colb3) VALUES (?, ?, ?);
+                    INSERT INTO b (colb1, colb2, colb3) VALUES (?, ?, ?);
+                    INSERT INTO b (colb1, colb2, colb3) VALUES (?, ?, ?);
+                    INSERT INTO c (colc1, colc2) VALUES (?, ?);
+                    INSERT INTO c (colc1, colc2) VALUES (?, ?);
+                    INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
+                    INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
+                    INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
                     """,
                 arguments: [
                     1, "a1",
@@ -87,29 +86,41 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
                     .including(all: A.bs.orderByPrimaryKey().forKey("bs")) // TODO: auto-pluralization
                     .orderByPrimaryKey()
                     .asRequest(of: AInfo.self)
+                
+                sqlQueries.removeAll()
                 let infos = try request.fetchAll(db)
+                
+                XCTAssertTrue(sqlQueries.contains("""
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """))
+                XCTAssertTrue(sqlQueries.contains("""
+                    SELECT *, "colb2" AS "grdb_colb2" \
+                    FROM "b" \
+                    WHERE ("colb2" IN (1, 2, 3)) \
+                    ORDER BY "colb1"
+                    """))
                 
                 XCTAssertEqual(infos.count, 3)
                 
-                XCTAssertEqual(infos[0].a.id, 1)
-                XCTAssertEqual(infos[0].a.name, "a1")
+                XCTAssertEqual(infos[0].a.cola1, 1)
+                XCTAssertEqual(infos[0].a.cola2, "a1")
                 XCTAssertEqual(infos[0].bs.count, 2)
-                XCTAssertEqual(infos[0].bs[0].id, 4)
-                XCTAssertEqual(infos[0].bs[0].aId, 1)
-                XCTAssertEqual(infos[0].bs[0].name, "b1")
-                XCTAssertEqual(infos[0].bs[1].id, 5)
-                XCTAssertEqual(infos[0].bs[1].aId, 1)
-                XCTAssertEqual(infos[0].bs[1].name, "b2")
+                XCTAssertEqual(infos[0].bs[0].colb1, 4)
+                XCTAssertEqual(infos[0].bs[0].colb2, 1)
+                XCTAssertEqual(infos[0].bs[0].colb3, "b1")
+                XCTAssertEqual(infos[0].bs[1].colb1, 5)
+                XCTAssertEqual(infos[0].bs[1].colb2, 1)
+                XCTAssertEqual(infos[0].bs[1].colb3, "b2")
                 
-                XCTAssertEqual(infos[1].a.id, 2)
-                XCTAssertEqual(infos[1].a.name, "a2")
+                XCTAssertEqual(infos[1].a.cola1, 2)
+                XCTAssertEqual(infos[1].a.cola2, "a2")
                 XCTAssertEqual(infos[1].bs.count, 1)
-                XCTAssertEqual(infos[1].bs[0].id, 6)
-                XCTAssertEqual(infos[1].bs[0].aId, 2)
-                XCTAssertEqual(infos[1].bs[0].name, "b3")
+                XCTAssertEqual(infos[1].bs[0].colb1, 6)
+                XCTAssertEqual(infos[1].bs[0].colb2, 2)
+                XCTAssertEqual(infos[1].bs[0].colb3, "b3")
                 
-                XCTAssertEqual(infos[2].a.id, 3)
-                XCTAssertEqual(infos[2].a.name, "a3")
+                XCTAssertEqual(infos[2].a.cola1, 3)
+                XCTAssertEqual(infos[2].a.cola2, "a3")
                 XCTAssertEqual(infos[2].bs.count, 0)
             }
             
@@ -122,29 +133,41 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
                     .including(all: A.ds.orderByPrimaryKey().forKey("ds")) // TODO: auto-pluralization
                     .orderByPrimaryKey()
                     .asRequest(of: AInfo.self)
+                
+                sqlQueries.removeAll()
                 let infos = try request.fetchAll(db)
                 
+                XCTAssertTrue(sqlQueries.contains("""
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """))
+                XCTAssertTrue(sqlQueries.contains("""
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2, 3))) \
+                    ORDER BY "d"."cold1"
+                    """))
+
                 XCTAssertEqual(infos.count, 3)
                 
-                XCTAssertEqual(infos[0].a.id, 1)
-                XCTAssertEqual(infos[0].a.name, "a1")
+                XCTAssertEqual(infos[0].a.cola1, 1)
+                XCTAssertEqual(infos[0].a.cola2, "a1")
                 XCTAssertEqual(infos[0].ds.count, 1)
-                XCTAssertEqual(infos[0].ds[0].id, 9)
-                XCTAssertEqual(infos[0].ds[0].cId, 7)
-                XCTAssertEqual(infos[0].ds[0].name, "d1")
+                XCTAssertEqual(infos[0].ds[0].cold1, 9)
+                XCTAssertEqual(infos[0].ds[0].cold2, 7)
+                XCTAssertEqual(infos[0].ds[0].cold3, "d1")
                 
-                XCTAssertEqual(infos[1].a.id, 2)
-                XCTAssertEqual(infos[1].a.name, "a2")
+                XCTAssertEqual(infos[1].a.cola1, 2)
+                XCTAssertEqual(infos[1].a.cola2, "a2")
                 XCTAssertEqual(infos[1].ds.count, 2)
-                XCTAssertEqual(infos[1].ds[0].id, 10)
-                XCTAssertEqual(infos[1].ds[0].cId, 8)
-                XCTAssertEqual(infos[1].ds[0].name, "d2")
-                XCTAssertEqual(infos[1].ds[1].id, 11)
-                XCTAssertEqual(infos[1].ds[1].cId, 8)
-                XCTAssertEqual(infos[1].ds[1].name, "d3")
+                XCTAssertEqual(infos[1].ds[0].cold1, 10)
+                XCTAssertEqual(infos[1].ds[0].cold2, 8)
+                XCTAssertEqual(infos[1].ds[0].cold3, "d2")
+                XCTAssertEqual(infos[1].ds[1].cold1, 11)
+                XCTAssertEqual(infos[1].ds[1].cold2, 8)
+                XCTAssertEqual(infos[1].ds[1].cold3, "d3")
 
-                XCTAssertEqual(infos[2].a.id, 3)
-                XCTAssertEqual(infos[2].a.name, "a3")
+                XCTAssertEqual(infos[2].a.cola1, 3)
+                XCTAssertEqual(infos[2].a.cola2, "a3")
                 XCTAssertEqual(infos[2].ds.count, 0)
             }
         }
