@@ -11,8 +11,6 @@ import XCTest
 class AssociationHasManyRowScopeTests: GRDBTestCase {
     func testIndirect() throws {
         struct A: TableRecord, FetchableRecord, Decodable {
-            static let bs = hasMany(B.self)
-            static let ds = hasMany(D.self, through: hasMany(C.self), using: C.hasMany(D.self))
             var cola1: Int64
             var cola2: String
         }
@@ -21,7 +19,9 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
             var colb2: Int64
             var colb3: String
         }
-        struct C: TableRecord {
+        struct C: TableRecord, FetchableRecord, Decodable {
+            var colc1: Int64
+            var colc2: String
         }
         struct D: TableRecord, FetchableRecord, Decodable {
             var cold1: Int64
@@ -77,13 +77,17 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
                     11, 8, "d3",
                 ])
             
+            // HasMany
             do {
                 struct AInfo: FetchableRecord, Decodable {
                     var a: A
                     var bs: [B]
                 }
                 let request = A
-                    .including(all: A.bs.orderByPrimaryKey().forKey("bs")) // TODO: auto-pluralization
+                    .including(all: A
+                        .hasMany(B.self)
+                        .orderByPrimaryKey()
+                        .forKey("bs")) // TODO: auto-pluralization
                     .orderByPrimaryKey()
                     .asRequest(of: AInfo.self)
                 
@@ -124,13 +128,17 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
                 XCTAssertEqual(infos[2].bs.count, 0)
             }
             
+            // HasManyThrough
             do {
                 struct AInfo: FetchableRecord, Decodable {
                     var a: A
                     var ds: [D]
                 }
                 let request = A
-                    .including(all: A.ds.orderByPrimaryKey().forKey("ds")) // TODO: auto-pluralization
+                    .including(all: A
+                        .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
+                        .orderByPrimaryKey()
+                        .forKey("ds")) // TODO: auto-pluralization
                     .orderByPrimaryKey()
                     .asRequest(of: AInfo.self)
                 
@@ -169,6 +177,27 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
                 XCTAssertEqual(infos[2].a.cola1, 3)
                 XCTAssertEqual(infos[2].a.cola2, "a3")
                 XCTAssertEqual(infos[2].ds.count, 0)
+            }
+            
+            // Association.including(all:): flat
+            do {
+                struct BInfo: FetchableRecord, Decodable {
+                    var b: B
+                    var a: A
+                    var cs: [C]
+                }
+                let request = B
+                    .including(required: B
+                        .belongsTo(A.self)
+                        .including(all: A.hasMany(C.self)
+                            .orderByPrimaryKey()
+                            .forKey("cs")) // TODO: auto-pluralization
+                    )
+                    .orderByPrimaryKey()
+                    .asRequest(of: BInfo.self)
+                
+                sqlQueries.removeAll()
+                let infos = try request.fetchAll(db)
             }
         }
     }
