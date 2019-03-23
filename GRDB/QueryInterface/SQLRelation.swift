@@ -24,8 +24,8 @@ struct SQLRelation {
         }
     }
     
-    /// The "associated" joins that are loaded in a distinct SQL query.
-    var associatedJoins: OrderedDictionary<String, SQLJoin> {
+    /// The "prefetched" joins that are loaded in a distinct SQL query.
+    var prefetchedJoins: OrderedDictionary<String, SQLJoin> {
         return joins.compactMapValues { join in
             (join.kind == .all) ? join : nil
         }

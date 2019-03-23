@@ -31,7 +31,7 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     public let count: Int
     
     ///
-    var associatedRows: [String: [Row]] = [:]
+    var prefetchedRows: [String: [Row]] = [:]
 
     // MARK: - Building rows
     
@@ -507,7 +507,7 @@ extension Row {
     
     /// Returns the record encoded in the given scope.
     ///
-    /// A fatal error is raised in the row was not fetched with a row adapter
+    /// A fatal error is raised if the row was not fetched with a row adapter
     /// that defines this scope.
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
@@ -535,17 +535,17 @@ extension Row {
         return Record(row: scopedRow)
     }
     
-    /// Returns the associated records encoded for the given key.
+    /// Returns the prefetched records encoded for the given key.
     ///
-    /// A fatal error is raised in the row was not fetched with such associated
-    /// rows.
+    /// A fatal error is raised if the row was not fetched with those
+    /// prefetched rows.
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/Documentation/AssociationsBasics.md
     /// for more information.
     public subscript<Record: FetchableRecord>(_ key: String) -> [Record] {
-        guard let rows = associatedRowsTree[key] else {
+        guard let rows = prefetchedRowsTree[key] else {
             // Programmer error
-            fatalError("no associated rows for key: \(key)")
+            fatalError("no prefetched rows for key: \(key)")
         }
         return rows.map(Record.init(row:))
     }
@@ -602,8 +602,8 @@ extension Row {
         return ScopesTreeView(scopes: scopes)
     }
     
-    var associatedRowsTree: AssociatedRowsTreeView {
-        return AssociatedRowsTreeView(row: self)
+    var prefetchedRowsTree: PrefetchedRowsTreeView {
+        return PrefetchedRowsTreeView(row: self)
     }
     
     /// Returns a copy of the row, without any scopes.
@@ -1070,7 +1070,7 @@ extension Row {
     }
     
     private func debugDescription(level: Int) -> String {
-        if level == 0 && self == self.unadapted && self.associatedRows.isEmpty {
+        if level == 0 && self == self.unadapted && self.prefetchedRows.isEmpty {
             return description
         }
         let prefix = repeatElement("  ", count: level + 1).joined(separator: "")
@@ -1087,8 +1087,8 @@ extension Row {
         for (name, scopedRow) in scopes.sorted(by: { $0.name < $1.name }) {
             str += "\n" + prefix + "- " + name + ": " + scopedRow.debugDescription(level: level + 1)
         }
-        for (name, associatedRows) in associatedRows.sorted(by: { $0.key < $1.key }) {
-            str += "\n" + prefix + "- " + name + ": \(associatedRows.count) row(s)"
+        for (name, rows) in prefetchedRows.sorted(by: { $0.key < $1.key }) {
+            str += "\n" + prefix + "- " + name + ": \(rows.count) row(s)"
         }
         return str
     }
@@ -1265,35 +1265,31 @@ extension Row {
     }
 }
 
-// MARK: - Row.AssociatedRowsTreeView
+// MARK: - Row.PrefetchedRowsTreeView
 
 extension Row {
     
-    /// A view on the associated rows tree.
-    public struct AssociatedRowsTreeView {
+    /// A view on the prefetched rows tree.
+    public struct PrefetchedRowsTreeView {
         let row: Row
 
-        /// The keys for associated rows defined on this row, recursively.
         public var keys: Set<String> {
             var keys = Set<String>()
-            keys.formUnion(row.associatedRows.keys)
+            keys.formUnion(row.prefetchedRows.keys)
             for (_, row) in row.scopes {
-                keys.formUnion(row.associatedRows.keys)
-                keys.formUnion(row.associatedRowsTree.keys)
+                keys.formUnion(row.prefetchedRows.keys)
+                keys.formUnion(row.prefetchedRowsTree.keys)
             }
             return keys
         }
         
-        /// Returns the row associated with the given scope, by performing a
-        /// breadth-first search in this row's scopes and the scopes of its
-        /// scoped rows, recursively.
         public subscript(_ key: String) -> [Row]? {
-            if let rows = row.associatedRows[key] {
+            if let rows = row.prefetchedRows[key] {
                 return rows
             }
             return ScopesTreeView(scopes: row.scopes)
-                .first { $0.row.associatedRows[key] != nil }?
-                .row.associatedRows[key]
+                .first { $0.row.prefetchedRows[key] != nil }?
+                .row.prefetchedRows[key]
         }
     }
 }

@@ -137,13 +137,13 @@ private struct RowDecoder<Record: FetchableRecord>: Decoder {
                 return try decode(type, fromRow: scopedRow, codingPath: codingPath + [key])
             }
             
-            // Associated Rows?
-            if let associatedRows = row.associatedRowsTree[keyName] {
-                let decoder = AssociatedRowsDecoder<Record>(rows: associatedRows, codingPath: codingPath)
+            // Prefetched Rows?
+            if let prefetchedRows = row.prefetchedRowsTree[keyName] {
+                let decoder = PrefetchedRowsDecoder<Record>(rows: prefetchedRows, codingPath: codingPath)
                 return try T(from: decoder)
             }
             
-            // Key is not a column, not a scope, not an associated rows key
+            // Key is not a column, not a scope, not a prefetched rows key
             //
             // Should be throw an error? Well... The use case is the following:
             //
@@ -241,9 +241,9 @@ private struct RowDecoder<Record: FetchableRecord>: Decoder {
     }
 }
 
-// MARK: - AssociatedRowsDecoder
+// MARK: - PrefetchedRowsDecoder
 
-private struct AssociatedRowsDecoder<Record: FetchableRecord>: Decoder {
+private struct PrefetchedRowsDecoder<Record: FetchableRecord>: Decoder {
     var rows: [Row]
     var codingPath: [CodingKey]
     var index: Int
@@ -256,7 +256,7 @@ private struct AssociatedRowsDecoder<Record: FetchableRecord>: Decoder {
     }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
-        fatalError("keyed decoding from associated rows is not supported")
+        fatalError("keyed decoding from prefetched rows is not supported")
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
@@ -264,11 +264,11 @@ private struct AssociatedRowsDecoder<Record: FetchableRecord>: Decoder {
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
-        fatalError("single value decoding from associated rows is not supported")
+        fatalError("single value decoding from prefetched rows is not supported")
     }
 }
 
-extension AssociatedRowsDecoder: UnkeyedDecodingContainer {
+extension PrefetchedRowsDecoder: UnkeyedDecodingContainer {
     var count: Int? {
         fatalError("not implemented")
     }
