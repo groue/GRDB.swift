@@ -14,7 +14,7 @@ extension Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchAll<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> [Row] {
-        if request.query.containsPrefetchedJoins {
+        if request.query.needsPrefetch {
             return try fetchAllWithPrefetchedRows(db, request)
         }
         let (statement, adapter) = try request.prepare(db)
@@ -33,7 +33,7 @@ extension Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchOne<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> Row? {
-        if request.query.containsPrefetchedJoins {
+        if request.query.needsPrefetch {
             return try fetchOneWithPrefetchedRows(db, request)
         }
         let (statement, adapter) = try request.prepare(db)
@@ -47,8 +47,7 @@ extension Row {
         // columns used by joins are fetched (and hidden by a row adapter if added)
         let (statement, adapter) = try request.prepare(db)
         let rows = try fetchAll(statement, adapter: adapter)
-        try prefetch(db, from: request.query, for: rows)
-        return rows
+        return try rowsWithPrefetchedRows(db, rows, with: request.query)
     }
 
     @usableFromInline
@@ -57,19 +56,18 @@ extension Row {
         // TODO: avoid fatal errors "column ... is not selected" by making sure
         // columns used by joins are fetched (and hidden by a row adapter if added)
         let (statement, adapter) = try request.prepare(db)
-        let row = try fetchOne(statement, adapter: adapter)
-        if let row = row {
-            try prefetch(db, from: request.query, for: [row])
+        guard let row = try fetchOne(statement, adapter: adapter) else {
+            return nil
         }
-        return row
+        return try rowsWithPrefetchedRows(db, [row], with: request.query)[0]
     }
 
-    private static func prefetch(_ db: Database, from query: SQLSelectQuery, for rows: [Row]) throws {
+    private static func rowsWithPrefetchedRows(_ db: Database, _ rows: [Row], with query: SQLSelectQuery) throws -> [Row] {
         if rows.isEmpty {
-            return
+            return []
         }
         
-        // Iterate prefetched joins
+        var rows = rows
         for (key, join) in query.relation.prefetchedJoins {
             // Build query for prefetched rows
             let association = makeAssociation(key: key, join: join)
@@ -94,8 +92,9 @@ extension Row {
             // Fetch, Group, Match
             let prefetchedRows = try request.fetchAll(db)
             let groupedRows = group(prefetchedRows, on: pivotColumns.right.map { "grdb_\($0)" })
-            match(groupedRows: groupedRows, with: rows, on: pivotColumns.left, forKey: association.key)
+            rows = rowsWithPrefetchedRows(rows, with: groupedRows, on: pivotColumns.left, forKey: association.key)
         }
+        return rows
     }
     
     private static func makeAssociation(key: String, join: SQLJoin) -> SQLAssociation {
@@ -129,21 +128,18 @@ extension Row {
             by: { row in indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) } })
     }
     
-    private static func match(groupedRows: [[DatabaseValue]: [Row]], with rows: [Row], on columns: [String], forKey key: String) {
+    private static func rowsWithPrefetchedRows(_ rows: [Row], with groupedRows: [[DatabaseValue]: [Row]], on columns: [String], forKey key: String) -> [Row] {
         guard let firstRow = rows.first else {
-            return
+            return rows
         }
         let indexes: [Int] = columns.compactMap { firstRow.index(ofColumn: $0) }
         guard indexes.count == columns.count else {
             fatalError("Column \(columns.joined(separator: ", ")) is not selected")
         }
-        for row in rows {
+        return rows.map { row in
             let rowValue = indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
-            if let prefetchedRows = groupedRows[rowValue] {
-                row.prefetchedRows[key] = prefetchedRows
-            } else {
-                row.prefetchedRows[key] = []
-            }
+            let prefetchedRows = groupedRows[rowValue] ?? []
+            return row.withPrefetchedRows(prefetchedRows, forKey: key)
         }
     }
 }

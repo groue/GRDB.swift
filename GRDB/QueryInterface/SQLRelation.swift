@@ -31,6 +31,10 @@ struct SQLRelation {
         }
     }
     
+    var needsPrefetch: Bool {
+        return joins.values.contains { $0.needsPrefetch }
+    }
+
     init(
         source: SQLSource,
         selection: [SQLSelectable] = [],
@@ -394,6 +398,13 @@ struct SQLJoin {
     var kind: Kind
     var condition: SQLJoinCondition
     var relation: SQLRelation
+    
+    var needsPrefetch: Bool {
+        if case .all = kind {
+            return true
+        }
+        return relation.needsPrefetch
+    }
 }
 
 // MARK: - Merging

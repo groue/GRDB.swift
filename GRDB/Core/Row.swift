@@ -30,9 +30,6 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     /// The number of columns in the row.
     public let count: Int
     
-    ///
-    var prefetchedRows: [String: [Row]] = [:]
-
     // MARK: - Building rows
     
     /// Creates an empty row.
@@ -602,8 +599,12 @@ extension Row {
         return ScopesTreeView(scopes: scopes)
     }
     
-    var prefetchedRowsTree: PrefetchedRowsTreeView {
-        return PrefetchedRowsTreeView(row: self)
+    public var prefetchedRows: [String: [Row]] {
+        return impl.prefetchedRows
+    }
+    
+    public var prefetchedRowsTree: PrefetchedRowsTreeView {
+        return PrefetchedRowsTreeView(row: self, scopes: scopes)
     }
     
     /// Returns a copy of the row, without any scopes.
@@ -626,6 +627,10 @@ extension Row {
     /// adapted rows, such as rows fetched from joined requests.
     public var unadapted: Row {
         return impl.unadaptedRow(self)
+    }
+    
+    func withPrefetchedRows(_ rows: [Row], forKey key: String) -> Row {
+        return impl.row(self, withPrefetchedRows: rows, forKey: key)
     }
 }
 
@@ -1245,18 +1250,11 @@ extension Row {
         /// breadth-first search in this row's scopes and the scopes of its
         /// scoped rows, recursively.
         public subscript(_ name: String) -> Row? {
-            return first { $0.name == name }?.row
-        }
-        
-        /// Returns the first row matching the given predicate, by performing a
-        /// breadth-first search in this row's scopes and the scopes of its
-        /// scoped rows, recursively.
-        func first(where predicate: (Row.ScopesView.Element) throws -> Bool) rethrows -> Row.ScopesView.Element? {
             var fifo = Array(scopes)
             while !fifo.isEmpty {
                 let scope = fifo.removeFirst()
-                if try predicate(scope) {
-                    return scope
+                if scope.name == name {
+                    return scope.row
                 }
                 fifo.append(contentsOf: scope.row.scopes)
             }
@@ -1272,12 +1270,12 @@ extension Row {
     /// A view on the prefetched rows tree.
     public struct PrefetchedRowsTreeView {
         let row: Row
+        let scopes: ScopesView
 
         public var keys: Set<String> {
             var keys = Set<String>()
             keys.formUnion(row.prefetchedRows.keys)
             for (_, row) in row.scopes {
-                keys.formUnion(row.prefetchedRows.keys)
                 keys.formUnion(row.prefetchedRowsTree.keys)
             }
             return keys
@@ -1287,9 +1285,15 @@ extension Row {
             if let rows = row.prefetchedRows[key] {
                 return rows
             }
-            return ScopesTreeView(scopes: row.scopes)
-                .first { $0.row.prefetchedRows[key] != nil }?
-                .row.prefetchedRows[key]
+            var fifo = Array(scopes)
+            while !fifo.isEmpty {
+                let scope = fifo.removeFirst()
+                if let rows = scope.row.prefetchedRows[key] {
+                    return rows
+                }
+                fifo.append(contentsOf: scope.row.scopes)
+            }
+            return nil
         }
     }
 }
@@ -1301,6 +1305,7 @@ protocol RowImpl {
     var count: Int { get }
     var isFetched: Bool { get }
     var scopes: Row.ScopesView { get }
+    var prefetchedRows: [String: [Row]] { get }
     func columnName(atUncheckedIndex index: Int) -> String
     func hasNull(atUncheckedIndex index:Int) -> Bool
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
@@ -1315,6 +1320,7 @@ protocol RowImpl {
     func unscopedRow(_ row: Row) -> Row
     func unadaptedRow(_ row: Row) -> Row
     func copiedRow(_ row: Row) -> Row
+    func row(_ row: Row, withPrefetchedRows rows: [Row], forKey key: String) -> Row
 }
 
 extension RowImpl {
@@ -1336,6 +1342,11 @@ extension RowImpl {
     var scopes: Row.ScopesView {
         // unless customized, assume unuscoped row (see AdaptedRowImpl for customization)
         return Row.ScopesView()
+    }
+    
+    var prefetchedRows: [String: [Row]] {
+        // unless customized, assume no prefetched rows (see AdaptedRowImpl for customization)
+        return [:]
     }
     
     func hasNull(atUncheckedIndex index:Int) -> Bool {
@@ -1368,6 +1379,73 @@ extension RowImpl {
         return Data.decodeIfPresent(
             from: databaseValue(atUncheckedIndex: index),
             conversionContext: ValueConversionContext(Row(impl: self)).atColumn(index))
+    }
+    
+    func row(_ row: Row, withPrefetchedRows rows: [Row], forKey key: String) -> Row {
+        return Row(impl: PrefetchedRowsImpl(base: row, prefetchedRows: [key: rows]))
+    }
+}
+
+private struct PrefetchedRowsImpl: RowImpl {
+    var base: Row
+    var prefetchedRows: [String : [Row]]
+    
+    var count: Int {
+        return base.count
+    }
+    
+    var isFetched: Bool {
+        return base.isFetched
+    }
+    
+    var scopes: Row.ScopesView {
+        return base.scopes
+    }
+    
+    func columnName(atUncheckedIndex index: Int) -> String {
+        return base.impl.columnName(atUncheckedIndex: index)
+    }
+    
+    func hasNull(atUncheckedIndex index:Int) -> Bool {
+        return base.impl.hasNull(atUncheckedIndex: index)
+    }
+    
+    func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
+        return base.impl.databaseValue(atUncheckedIndex: index)
+    }
+    
+    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int) -> Value {
+        return base.impl.fastDecode(type, atUncheckedIndex: index)
+    }
+    
+    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int) -> Value? {
+        return base.impl.fastDecodeIfPresent(type, atUncheckedIndex: index)
+    }
+    
+    func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
+        return base.impl.dataNoCopy(atUncheckedIndex: index)
+    }
+    
+    func index(ofColumn name: String) -> Int? {
+        return base.impl.index(ofColumn: name)
+    }
+    
+    func unscopedRow(_ row: Row) -> Row {
+        return base.unscoped
+    }
+    
+    func unadaptedRow(_ row: Row) -> Row {
+        return base.unadapted
+    }
+    
+    func copiedRow(_ row: Row) -> Row {
+        return row
+    }
+    
+    func row(_ row: Row, withPrefetchedRows rows: [Row], forKey key: String) -> Row {
+        var impl = self
+        impl.prefetchedRows[key] = rows
+        return Row(impl: impl)
     }
 }
 
