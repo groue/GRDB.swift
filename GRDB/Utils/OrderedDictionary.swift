@@ -90,6 +90,23 @@ struct OrderedDictionary<Key: Hashable, Value> {
         }
     }
     
+    /// Returns a new ordered dictionary containing the key-value pairs of the
+    /// dictionary that satisfy the given predicate.
+    ///
+    /// - Parameter isIncluded: A closure that takes a key-value pair as its
+    ///   argument and returns a Boolean value indicating whether the pair
+    ///   should be included in the returned dictionary.
+    /// - Returns: A dictionary of the key-value pairs that `isIncluded` allows.
+    func filter(_ isIncluded: (Element) throws -> Bool) rethrows -> OrderedDictionary<Key, Value> {
+        var result = OrderedDictionary<Key, Value>()
+        for element in self {
+            if try isIncluded(element) {
+                result.updateValue(element.value, forKey: element.key)
+            }
+        }
+        return result
+    }
+
     /// Returns a new ordered dictionary containing the keys of this dictionary
     /// with the values transformed by the given closure.
     ///

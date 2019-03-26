@@ -245,7 +245,7 @@ extension Association {
     // TODO
     public func including<A: AssociationToMany>(all association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRelation {
-            association.sqlAssociation.relation(from: $0, kind: .all)
+            association.sqlAssociation.relation(from: $0, kind: .all(prefetched: true))
         }
     }
     
@@ -481,7 +481,13 @@ public /* TODO: internal */ struct SQLAssociation {
         let reducedHead = Element(key: next.key, condition: next.condition, relation: nextRelation)
         let reducedTail = Array(tail.dropFirst())
         let reducedAssociation = SQLAssociation(head: reducedHead, tail: reducedTail)
-        return reducedAssociation.relation(from: origin, kind: kind)
+        let reducedKind: SQLJoin.Kind
+        switch kind {
+        case .required: reducedKind = .required
+        case .optional: reducedKind = .optional
+        case .all: reducedKind = .all(prefetched: false)
+        }
+        return reducedAssociation.relation(from: origin, kind: reducedKind)
     }
     
     struct Pivot {

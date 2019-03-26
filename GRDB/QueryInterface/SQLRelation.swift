@@ -19,16 +19,7 @@ struct SQLRelation {
     /// The "direct" joins that are loaded in a single SQL query with a JOIN or
     /// LEFT JOIN operator.
     var directJoins: OrderedDictionary<String, SQLJoin> {
-        return joins.compactMapValues { join in
-            (join.kind == .all) ? nil : join
-        }
-    }
-    
-    /// The "prefetched" joins that are loaded in a distinct SQL query.
-    var prefetchedJoins: OrderedDictionary<String, SQLJoin> {
-        return joins.compactMapValues { join in
-            (join.kind == .all) ? join : nil
-        }
+        return joins.filter { $0.value.isDirect }
     }
     
     var needsPrefetch: Bool {
@@ -125,7 +116,7 @@ enum SQLSource {
         case let .table(tableName: tableName, alias: _):
             return tableName
         case let .query(query):
-            return query.sourceTableName
+            return query.relation.source.tableName
         }
     }
     
@@ -301,11 +292,11 @@ struct SQLJoinCondition: Equatable {
     /// - Returns: An SQL expression.
     func joinExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLJoinExpression {
         let foreignKeyMapping = try foreignKeyRequest.fetchMapping(db)
-        let columnMapping: [(left: Column, right: Column)]
+        let columnMapping: [(left: String, right: String)]
         if originIsLeft {
-            columnMapping = foreignKeyMapping.map { (left: Column($0.origin), right: Column($0.destination)) }
+            columnMapping = foreignKeyMapping.map { (left: $0.origin, right: $0.destination) }
         } else {
-            columnMapping = foreignKeyMapping.map { (left: Column($0.destination), right: Column($0.origin)) }
+            columnMapping = foreignKeyMapping.map { (left: $0.destination, right: $0.origin) }
         }
         return SQLJoinExpression(leftAlias: leftAlias, rightAlias: rightAlias, mapping: columnMapping)
     }
@@ -327,11 +318,11 @@ struct SQLJoinCondition: Equatable {
 struct SQLJoinExpression: SQLExpression {
     var leftAlias: TableAlias
     var rightAlias: TableAlias
-    var mapping: [(left: Column, right: Column)]
+    var mapping: [(left: String, right: String)]
     
     func expressionSQL(_ context: inout SQLGenerationContext) -> String {
         return mapping
-            .map { $0.right.qualifiedExpression(with: rightAlias) == $0.left.qualifiedExpression(with: leftAlias) }
+            .map { QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias) }
             .joined(operator: .and)
             .expressionSQL(&context)
     }
@@ -345,12 +336,12 @@ struct SQLJoinExpression: SQLExpression {
         let valueMappings: [(column: QualifiedColumn, values: [DatabaseValue])]
         if alias == leftAlias {
             valueMappings = mapping.map { columns in
-                (column: QualifiedColumn(columns.right.name, alias: rightAlias),
+                (column: QualifiedColumn(columns.right, alias: rightAlias),
                  values: rows.map { $0[columns.left] })
             }
         } else if alias == rightAlias {
             valueMappings = mapping.map { columns in
-                (column: QualifiedColumn(columns.left.name, alias: leftAlias),
+                (column: QualifiedColumn(columns.left, alias: leftAlias),
                  values: rows.map { $0[columns.right] })
             }
         } else {
@@ -393,17 +384,77 @@ struct SQLJoin {
     enum Kind {
         case optional
         case required
-        case all
+        case all(prefetched: Bool)
+        
+        var isDirect: Bool {
+            switch self {
+            case .optional: return true
+            case .required: return true
+            case .all: return false
+            }
+        }
+        
+        var needsPrefetch: Bool {
+            switch self {
+            case .optional: return false
+            case .required: return false
+            case .all: return true
+            }
+        }
     }
     var kind: Kind
     var condition: SQLJoinCondition
     var relation: SQLRelation
     
+    var isDirect: Bool {
+        return kind.isDirect
+    }
+    
     var needsPrefetch: Bool {
-        if case .all = kind {
-            return true
+        return kind.needsPrefetch || relation.needsPrefetch
+    }
+    
+    func prefetches(from base: SQLAssociation?, key: String) -> [SQLPrefetch] {
+        switch kind {
+        case .all(prefetched: true):
+            var association = SQLAssociation(
+                key: key,
+                condition: condition,
+                relation: relation)
+            if let base = base {
+                association = association.appending(base)
+            }
+            return [SQLPrefetch(association: association)]
+        default:
+            var r = self.relation
+            r.joins = relation.directJoins
+            var association = SQLAssociation(
+                key: key,
+                condition: condition,
+                relation: r)
+            if let base = base {
+                association = association.appending(base)
+            }
+            return relation.prefetches(from: association)
         }
-        return relation.needsPrefetch
+    }
+}
+
+// MARK: - SQLPrefetch
+
+struct SQLPrefetch {
+    var association: SQLAssociation
+}
+
+extension SQLRelation {
+    func prefetches() -> [SQLPrefetch] {
+        return prefetches(from: nil)
+    }
+    
+    fileprivate func prefetches(from base: SQLAssociation?) -> [SQLPrefetch] {
+        return joins.flatMap {
+            $0.value.prefetches(from: base, key: $0.key)
+        }
     }
 }
 
@@ -529,8 +580,10 @@ extension SQLJoin {
 extension SQLJoin.Kind {
     func merged(with other: SQLJoin.Kind) -> SQLJoin.Kind? {
         switch (self, other) {
+        case (.all(prefetched: false), .all(prefetched: false)):
+            return .all(prefetched: false)
         case (.all, .all):
-            return .all
+            return .all(prefetched: true)
         case (.all, _), (_, .all):
             // Likely a programmer error:
             //

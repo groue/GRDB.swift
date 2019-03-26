@@ -5,7 +5,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.sqlAssociation.relation(from: $0, kind: .all)
+                association.sqlAssociation.relation(from: $0, kind: .all(prefetched: true))
             }
         }
     }

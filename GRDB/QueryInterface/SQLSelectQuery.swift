@@ -13,10 +13,6 @@ struct SQLSelectQuery {
         return relation.needsPrefetch
     }
     
-    var sourceTableName: String {
-        return relation.source.tableName
-    }
-    
     init(
         relation: SQLRelation,
         isDistinct: Bool = false,

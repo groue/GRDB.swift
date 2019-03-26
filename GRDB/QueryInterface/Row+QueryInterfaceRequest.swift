@@ -68,11 +68,14 @@ extension Row {
         }
         
         var rows = rows
-        for (key, join) in query.relation.prefetchedJoins {
+        for prefetch in query.relation.prefetches() {
+//        for (key, join) in query.relation.prefetchedJoins {
             // Build query for prefetched rows
-            let association = makeAssociation(key: key, join: join)
-            let pivot = association.pivot(from: query.sourceTableName, rows: { _ in rows })
-            let query = SQLSelectQuery(relation: pivot.relation)
+//            let association = makeAssociation(key: key, join: join)
+//            let pivot = association.pivot(from: query.sourceTableName, rows: { _ in rows })
+//            let query = SQLSelectQuery(relation: pivot.relation)
+            let pivot = prefetch.association.pivot(from: query.relation.source.tableName, rows: { _ in rows })
+            let pivotQuery = SQLSelectQuery(relation: pivot.relation)
             
             // Annotate with pivot columns, so that we can group and match with
             // base rows, below.
@@ -87,35 +90,35 @@ extension Row {
             //      Citizen.including(all: Citizen.countries)
             let pivotColumns = try pivot.condition.columns(db)
             let pivotSelection = pivotColumns.right.map { pivot.alias[Column($0)].aliased("grdb_\($0)") }
-            let request = QueryInterfaceRequest<Row>(query: query).annotated(with: pivotSelection)
+            let pivotRequest = QueryInterfaceRequest<Row>(query: pivotQuery).annotated(with: pivotSelection)
             
             // Fetch, Group, Match
-            let prefetchedRows = try request.fetchAll(db)
+            let prefetchedRows = try pivotRequest.fetchAll(db)
             let groupedRows = group(prefetchedRows, on: pivotColumns.right.map { "grdb_\($0)" })
-            rows = rowsWithPrefetchedRows(rows, with: groupedRows, on: pivotColumns.left, forKey: association.key)
+            //rows = rowsWithPrefetchedRows(rows, with: groupedRows, on: pivotColumns.left, forKeyPath: prefetch.keyPath)
         }
         return rows
     }
     
-    private static func makeAssociation(key: String, join: SQLJoin) -> SQLAssociation {
-        var relation = join.relation
-        let prefetchedJoins = relation.prefetchedJoins
-        relation.joins = relation.directJoins
-        let association = SQLAssociation(key: key, condition: join.condition, relation: relation)
-        guard let (prefetchedKey, prefetchedJoin) = prefetchedJoins.first else {
-            return association
-        }
-        guard prefetchedJoins.count == 1 else {
-            // GRDB bug, or not implemented?
-            // Try:
-            //
-            //      Citizen
-            //          .including(all: passports) // hasMany passports
-            //          .including(all: countries) // hasMany countries through passports
-            fatalError("Can't build an association with multiple prefetched rows")
-        }
-        return makeAssociation(key: prefetchedKey, join: prefetchedJoin).appending(association)
-    }
+//    private static func makeAssociation(key: String, join: SQLJoin) -> SQLAssociation {
+//        var relation = join.relation
+//        let prefetchedJoins = relation.prefetchedJoins
+//        relation.joins = relation.directJoins
+//        let association = SQLAssociation(key: key, condition: join.condition, relation: relation)
+//        guard let (prefetchedKey, prefetchedJoin) = prefetchedJoins.first else {
+//            return association
+//        }
+//        guard prefetchedJoins.count == 1 else {
+//            // GRDB bug, or not implemented?
+//            // Try:
+//            //
+//            //      Citizen
+//            //          .including(all: passports) // hasMany passports
+//            //          .including(all: countries) // hasMany countries through passports
+//            fatalError("Can't build an association with multiple prefetched rows")
+//        }
+//        return makeAssociation(key: prefetchedKey, join: prefetchedJoin).appending(association)
+//    }
     
     private static func group(_ rows: [Row], on columns: [String]) -> [[DatabaseValue]: [Row]] {
         guard let firstRow = rows.first else {
@@ -128,7 +131,12 @@ extension Row {
             by: { row in indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) } })
     }
     
-    private static func rowsWithPrefetchedRows(_ rows: [Row], with groupedRows: [[DatabaseValue]: [Row]], on columns: [String], forKey key: String) -> [Row] {
+    private static func rowsWithPrefetchedRows(_ rows: [Row], with groupedRows: [[DatabaseValue]: [Row]], on columns: [String], forKeyPath keyPath: [String]) -> [Row] {
+        guard keyPath.count == 1 else {
+            fatalError("TODO")
+        }
+        let key = keyPath[0]
+        
         guard let firstRow = rows.first else {
             return rows
         }
