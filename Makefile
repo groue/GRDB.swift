@@ -51,7 +51,11 @@ endif
 TEST_ACTIONS = clean build build-for-testing test-without-building
 
 # When adding support for an Xcode version, look for available devices with `instruments -s devices`
-ifeq ($(XCODEVERSION),10.1)
+ifeq ($(XCODEVERSION),10.2)
+  MAX_SWIFT_VERSION = 5
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone XS,OS=12.2"
+  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
+else ifeq ($(XCODEVERSION),10.1)
   MAX_SWIFT_VERSION = 4.2
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone XS,OS=12.1"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
