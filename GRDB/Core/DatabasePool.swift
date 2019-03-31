@@ -215,7 +215,7 @@ extension DatabasePool {
     #endif
 }
 
-#if SQLITE_HAS_CODEC
+#if SQLITE_HAS_CODEC && GRDBCIPHER
     extension DatabasePool {
 
         // MARK: - Encryption

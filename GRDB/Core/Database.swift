@@ -169,7 +169,7 @@ public final class Database {
         let sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
         do {
             try Database.activateExtendedCodes(sqliteConnection)
-            #if SQLITE_HAS_CODEC
+            #if SQLITE_HAS_CODEC && GRDBCIPHER
                 try Database.validateSQLCipher(sqliteConnection)
                 if let passphrase = configuration.passphrase {
                     try Database.set(passphrase: passphrase, forConnection: sqliteConnection)
@@ -229,7 +229,7 @@ extension Database {
         }
     }
     
-    #if SQLITE_HAS_CODEC
+    #if SQLITE_HAS_CODEC && GRDBCIPHER
     private static func validateSQLCipher(_ sqliteConnection: SQLiteConnection) throws {
         // https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
         //
@@ -914,7 +914,7 @@ extension Database {
     }
 }
 
-#if SQLITE_HAS_CODEC
+#if SQLITE_HAS_CODEC && GRDBCIPHER
     extension Database {
 
         // MARK: - Encryption

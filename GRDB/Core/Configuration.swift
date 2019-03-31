@@ -76,7 +76,7 @@ public struct Configuration {
     
     // MARK: - Encryption
     
-    #if SQLITE_HAS_CODEC
+    #if SQLITE_HAS_CODEC && GRDBCIPHER
     /// The passphrase for the encrypted database.
     ///
     /// Default: nil

@@ -1,4 +1,4 @@
-#if SQLITE_HAS_CODEC
+#if SQLITE_HAS_CODEC && GRDBCIPHER
 import XCTest
 import GRDBCipher
 

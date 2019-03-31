@@ -127,7 +127,7 @@ extension DatabaseWriter {
     /// - precondition: database is not accessed concurrently during the
     ///   execution of this method.
     public func erase() throws {
-        #if SQLITE_HAS_CODEC
+        #if SQLITE_HAS_CODEC && GRDBCIPHER
         // SQLCipher does not support the backup API: https://discuss.zetetic.net/t/using-the-sqlite-online-backup-api/2631
         // So we'll drop all database objects one after the other.
         try writeWithoutTransaction { db in

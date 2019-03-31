@@ -132,7 +132,7 @@ extension DatabaseQueue {
     #endif
 }
 
-#if SQLITE_HAS_CODEC
+#if SQLITE_HAS_CODEC && GRDBCIPHER
     extension DatabaseQueue {
 
         // MARK: - Encryption
