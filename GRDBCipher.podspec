@@ -21,5 +21,5 @@ Pod::Spec.new do |s|
 		'GCC_PREPROCESSOR_DEFINITIONS' => '$(inherited) SQLITE_HAS_CODEC=1 GRDBCIPHER=1 SQLITE_ENABLE_FTS5=1'
 	}
 	s.framework = 'Foundation'
-	s.dependency 'SQLCipher', '~> 3.4.1'
+	s.dependency 'SQLCipher', '~> 4.0.1'
 end
