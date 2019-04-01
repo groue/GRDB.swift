@@ -76,12 +76,23 @@ public struct Configuration {
     
     // MARK: - Encryption
     
+    // For SQLCipher
     #if SQLITE_HAS_CODEC && GRDBCIPHER
     /// The passphrase for the encrypted database.
     ///
     /// Default: nil
     public var passphrase: String?
     
+    #endif
+    
+    // For SQLite-SEE
+    #if SQLITE_HAS_CODEC && GRDB_SQLITE_SEE
+    /// The key for the encrypted database.
+    ///
+    /// Default: nil
+    public var key: String?
+    
+    public var encryptionType: Database.EncryptionType = .AES128
     #endif
 
     /// If set, allows custom configuration to be run every time
