@@ -229,6 +229,21 @@ extension DatabasePool {
         }
     }
 #endif
+#if SQLITE_HAS_CODEC && GRDB_SQLITE_SEE
+    extension DatabasePool {
+        
+        // MARK: - Encryption
+        
+        /// Changes the passphrase of an encrypted database
+        public func change(passphrase: String, encryptionType: Database.EncryptionType) throws {
+            try readerPool.clear(andThen: {
+                try writer.sync { try $0.change(key: passphrase, encryptionType: encryptionType) }
+                readerConfig.key = passphrase
+                readerConfig.encryptionType = encryptionType
+            })
+        }
+    }
+#endif
 
 extension DatabasePool : DatabaseReader {
     

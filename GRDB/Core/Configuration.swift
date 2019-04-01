@@ -76,6 +76,7 @@ public struct Configuration {
     
     // MARK: - Encryption
     
+    // For SQLCipher
     #if SQLITE_HAS_CODEC && GRDBCIPHER
     /// The passphrase for the encrypted database.
     ///
@@ -95,6 +96,17 @@ public struct Configuration {
     ///
     /// Default: 64000 - this corresponds to the default used by SQLCipher 3
     public var kdfIterations: Int = 64000
+    #endif
+    
+    // For SQLite-SEE
+    #if SQLITE_HAS_CODEC && GRDB_SQLITE_SEE
+    /// The key for the encrypted database.
+    ///
+    /// Default: nil
+    public var key: String?
+    
+    public var encryptionType: Database.EncryptionType = .AES128
+    
     #endif
     
     

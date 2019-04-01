@@ -177,6 +177,11 @@ public final class Database {
                     try Database.set(kdfIterations: configuration.kdfIterations, forConnection: sqliteConnection)
                 }
             #endif
+            #if SQLITE_HAS_CODEC && GRDB_SQLITE_SEE
+                if let key = configuration.key {
+                    try Database.set(key: key, withEncryptionType: configuration.encryptionType, forConnection: sqliteConnection)
+                }
+            #endif
             try Database.validateDatabaseFormat(sqliteConnection)
         } catch {
             Database.closeConnection(sqliteConnection)
@@ -296,6 +301,20 @@ extension Database {
         }
         code = sqlite3_step(sqliteStatement)
         if code != SQLITE_DONE {
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+    }
+    #endif
+    
+    // For SQLite-SEE
+    #if SQLITE_HAS_CODEC && GRDB_SQLITE_SEE
+    private static func set(key: String, withEncryptionType encType: EncryptionType, forConnection sqliteConnection: SQLiteConnection) throws {
+        let prefixedKey = "\(encType.prefixValue):\(key)"
+        let data = prefixedKey.data(using: .utf8)!
+        let code = data.withUnsafeBytes {
+            sqlite3_key_v2(sqliteConnection, nil, $0.baseAddress, Int32($0.count))
+        }
+        guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
     }
@@ -946,6 +965,24 @@ extension Database {
     }
 #endif
 
+#if SQLITE_HAS_CODEC && GRDB_SQLITE_SEE
+extension Database {
+    
+    // MARK: - Encryption
+    
+    func change(key: String, encryptionType:EncryptionType) throws {
+        let prefixedKey = "\(encryptionType.prefixValue):\(key)"
+        let data = prefixedKey.data(using: .utf8)!
+        let code = data.withUnsafeBytes {
+            sqlite3_rekey_v2(sqliteConnection, nil, $0.baseAddress, Int32($0.count))
+        }
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: lastErrorMessage)
+        }
+    }
+}
+#endif
+
 extension Database {
     
     /// See BusyMode and https://www.sqlite.org/c3ref/busy_handler.html
@@ -1128,3 +1165,28 @@ extension Database {
         }
     }
 }
+
+#if SQLITE_HAS_CODEC && GRDB_SQLITE_SEE
+extension Database {
+    /// An SQLite Encryption Extension encryption type
+    ///
+    /// The raw value is the string to prefix a key with
+    public enum EncryptionType: String {
+        
+        /// - note: AES128 is the default choice for new files
+        case AES128
+        
+        
+        case AES256
+        
+        /// - warning: Use of RC4 for new files is not recommended
+        case RC4
+        
+        
+        /// Prefix key strings with this value to specify type
+        public var prefixValue: String {
+            return String(describing: self).lowercased()
+        }
+    }
+}
+#endif
