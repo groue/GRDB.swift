@@ -1,0 +1,20 @@
+PODS:
+  - SQLCipher (4.1.0):
+    - SQLCipher/standard (= 4.1.0)
+  - SQLCipher/common (4.1.0)
+  - SQLCipher/standard (4.1.0):
+    - SQLCipher/common
+
+DEPENDENCIES:
+  - SQLCipher (~> 4.1)
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - SQLCipher
+
+SPEC CHECKSUMS:
+  SQLCipher: efbdb52cdbe340bcd892b1b14297df4e07241b7f
+
+PODFILE CHECKSUM: c92a0d63a0d1fe2052c35b9ad4437534a7d72a54
+
+COCOAPODS: 1.6.1

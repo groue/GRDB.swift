@@ -1,12 +1,13 @@
 import XCTest
 #if GRDBCIPHER
+    import SQLCipher
     import GRDBCipher
 #elseif GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     #if SWIFT_PACKAGE
         import CSQLite
-        #else
+    #else
         import SQLite3
     #endif
     import GRDB

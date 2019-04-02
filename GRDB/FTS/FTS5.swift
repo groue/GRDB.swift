@@ -1,4 +1,12 @@
 #if SQLITE_ENABLE_FTS5
+#if SWIFT_PACKAGE
+    import CSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
+
 /// FTS5 lets you define "fts5" virtual tables.
 ///
 ///     // CREATE VIRTUAL TABLE document USING fts5(content)

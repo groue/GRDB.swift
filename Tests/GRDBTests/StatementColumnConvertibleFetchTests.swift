@@ -1,5 +1,6 @@
 import XCTest
 #if GRDBCIPHER
+    import SQLCipher
     import GRDBCipher
 #elseif GRDBCUSTOMSQLITE
     import GRDBCustomSQLite

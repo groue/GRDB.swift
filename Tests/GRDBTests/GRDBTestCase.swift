@@ -1,5 +1,6 @@
 import XCTest
 #if GRDBCIPHER
+    import SQLCipher
     @testable import GRDBCipher // @testable so that we have access to SQLiteConnectionWillClose
 #elseif GRDBCUSTOMSQLITE
     @testable import GRDBCustomSQLite // @testable so that we have access to SQLiteConnectionWillClose

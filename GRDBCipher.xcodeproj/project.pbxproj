@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0AA05839047CBF0237D082CD /* Pods_GRDBCipherOSX.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3A0C2222B877DFEC1964DAB6 /* Pods_GRDBCipherOSX.framework */; };
+		2E6429D6EDEADD8CED34A8D6 /* Pods_GRDBCipherOSXEncryptedTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0AD4565B827AD66EE8FEA515 /* Pods_GRDBCipherOSXEncryptedTests.framework */; };
+		3769FC32B12933346AA5269A /* Pods_GRDBCipheriOSTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 14DDB01E56AD92795E3FD07D /* Pods_GRDBCipheriOSTests.framework */; };
 		56071A4E1DB54ED200CA6E47 /* FetchedRecordsControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B15D0A1CD4C35100A24C8B /* FetchedRecordsControllerTests.swift */; };
 		56071A4F1DB54ED300CA6E47 /* FetchedRecordsControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B15D0A1CD4C35100A24C8B /* FetchedRecordsControllerTests.swift */; };
 		560FC51C1CB003810014AA8E /* QueryInterfaceRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56300B6F1C53F592005A543B /* QueryInterfaceRequest.swift */; };
@@ -614,9 +617,6 @@
 		568BE5231CB0371D00270F93 /* GRDBCipher.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 560FC54D1CB003810014AA8E /* GRDBCipher.framework */; };
 		568D13242207214D00674B58 /* SQLSelectQueryGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568D13222207214D00674B58 /* SQLSelectQueryGenerator.swift */; };
 		568D13252207214D00674B58 /* SQLSelectQueryGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568D13222207214D00674B58 /* SQLSelectQueryGenerator.swift */; };
-		568E1CB21CB037BA008D97A6 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 568BE5191CB035A900270F93 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		568E1CB91CB03847008D97A6 /* GRDBCipher-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = 568E1CB71CB03847008D97A6 /* GRDBCipher-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		568E1CBA1CB03847008D97A6 /* GRDBCipher.h in Headers */ = {isa = PBXBuildFile; fileRef = 568E1CB81CB03847008D97A6 /* GRDBCipher.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5690C3271D23E6D800E59934 /* FoundationDateComponentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690C3251D23E6D800E59934 /* FoundationDateComponentsTests.swift */; };
 		5690C3281D23E6D800E59934 /* FoundationDateComponentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690C3251D23E6D800E59934 /* FoundationDateComponentsTests.swift */; };
 		5690C32B1D23E6D800E59934 /* FoundationDateComponentsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690C3251D23E6D800E59934 /* FoundationDateComponentsTests.swift */; };
@@ -725,7 +725,6 @@
 		56AF746D1D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AF746A1D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift */; };
 		56AF74701D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AF746A1D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift */; };
 		56AF74711D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AF746A1D41FB9C005E9FF3 /* DatabaseValueConvertibleEscapingTests.swift */; };
-		56AFC97A1CB1A41E00F48B96 /* libsqlcipher.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 560FC5561CB004AD0014AA8E /* libsqlcipher.a */; };
 		56AFC9F11CB1A8BB00F48B96 /* QueryInterfaceRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56300B6F1C53F592005A543B /* QueryInterfaceRequest.swift */; };
 		56AFC9F21CB1A8BB00F48B96 /* SQLCollatedExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5605F1891C6B1A8700235C62 /* SQLCollatedExpression.swift */; };
 		56AFC9F31CB1A8BB00F48B96 /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238711B9C75030082EB20 /* Database.swift */; };
@@ -756,10 +755,6 @@
 		56AFCA161CB1A8BB00F48B96 /* StatementColumnConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560D923F1C672C3E00F4F92B /* StatementColumnConvertible.swift */; };
 		56AFCA181CB1A8BB00F48B96 /* FetchedRecordsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A7787C1C6A4DD600F507F6 /* FetchedRecordsController.swift */; };
 		56AFCA191CB1A8BB00F48B96 /* DatabaseValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238751B9C75030082EB20 /* DatabaseValue.swift */; };
-		56AFCA271CB1A97600F48B96 /* libsqlcipher.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 560FC5561CB004AD0014AA8E /* libsqlcipher.a */; };
-		56AFCA281CB1A98D00F48B96 /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = 568BE5191CB035A900270F93 /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		56AFCA291CB1A98D00F48B96 /* GRDBCipher.h in Headers */ = {isa = PBXBuildFile; fileRef = 568E1CB81CB03847008D97A6 /* GRDBCipher.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		56AFCA2A1CB1A98D00F48B96 /* GRDBCipher-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = 568E1CB71CB03847008D97A6 /* GRDBCipher-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		56AFCA301CB1AA9900F48B96 /* Record+QueryInterfaceRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56300B841C54DC95005A543B /* Record+QueryInterfaceRequestTests.swift */; };
 		56AFCA311CB1AA9900F48B96 /* RecordPrimaryKeyNoneTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238291B9C74A90082EB20 /* RecordPrimaryKeyNoneTests.swift */; };
 		56AFCA321CB1AA9900F48B96 /* DatabaseQueueConcurrencyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563363BC1C93FD5E000BE133 /* DatabaseQueueConcurrencyTests.swift */; };
@@ -995,16 +990,12 @@
 		6340BF821E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */; };
 		6340BF851E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */; };
 		6340BF861E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */; };
+		99FA61748B89424193B0724E /* Pods_GRDBCipheriOSEncryptedTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5FA36FF8B9DBF5CA4F5D463 /* Pods_GRDBCipheriOSEncryptedTests.framework */; };
+		CA5A53FA161860D4EB704A85 /* Pods_GRDBCipheriOS.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9491294E01DE2F97E2E20BE2 /* Pods_GRDBCipheriOS.framework */; };
+		EBFFE4EADC4601556BC86E1C /* Pods_GRDBCipherOSXTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BC4B8918B7B9965FBA306E1B /* Pods_GRDBCipherOSXTests.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		560FC5551CB004AD0014AA8E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 560FC5501CB004AD0014AA8E /* sqlcipher.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = D2AAC046055464E500DB518D;
-			remoteInfo = sqlcipher;
-		};
 		5671561B1CB16729007DC145 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DC3773EA19C8CBB3004FCF85 /* Project object */;
@@ -1018,20 +1009,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 560FC5191CB003810014AA8E;
 			remoteInfo = GRDBCipherOSX;
-		};
-		56AFC9771CB1A3E200F48B96 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 560FC5501CB004AD0014AA8E /* sqlcipher.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D;
-			remoteInfo = sqlcipher;
-		};
-		56AFCA251CB1A96A00F48B96 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 560FC5501CB004AD0014AA8E /* sqlcipher.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = D2AAC045055464E500DB518D;
-			remoteInfo = sqlcipher;
 		};
 		56AFCA811CB1AAB400F48B96 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1050,7 +1027,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0AD4565B827AD66EE8FEA515 /* Pods_GRDBCipherOSXEncryptedTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBCipherOSXEncryptedTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1038E9609BAC27B0BC889805 /* Pods-GRDBCipherOSXEncryptedTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBCipherOSXEncryptedTests.release.xcconfig"; path = "Target Support Files/Pods-GRDBCipherOSXEncryptedTests/Pods-GRDBCipherOSXEncryptedTests.release.xcconfig"; sourceTree = "<group>"; };
+		13BE3B76C1BC2AF1B271F5BF /* Pods-GRDBCipheriOSTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBCipheriOSTests.release.xcconfig"; path = "Target Support Files/Pods-GRDBCipheriOSTests/Pods-GRDBCipheriOSTests.release.xcconfig"; sourceTree = "<group>"; };
+		14DDB01E56AD92795E3FD07D /* Pods_GRDBCipheriOSTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBCipheriOSTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1794D79F8B27A038DF3ECF29 /* Pods-GRDBCipherOSX.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBCipherOSX.release.xcconfig"; path = "Target Support Files/Pods-GRDBCipherOSX/Pods-GRDBCipherOSX.release.xcconfig"; sourceTree = "<group>"; };
+		2264E297FD36BC3C4114E578 /* Pods-GRDBCipheriOS.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBCipheriOS.release.xcconfig"; path = "Target Support Files/Pods-GRDBCipheriOS/Pods-GRDBCipheriOS.release.xcconfig"; sourceTree = "<group>"; };
+		2B1FC6A63378BAB52C888635 /* Pods-GRDBCipherOSXTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBCipherOSXTests.release.xcconfig"; path = "Target Support Files/Pods-GRDBCipherOSXTests/Pods-GRDBCipherOSXTests.release.xcconfig"; sourceTree = "<group>"; };
 		31A7787C1C6A4DD600F507F6 /* FetchedRecordsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedRecordsController.swift; sourceTree = "<group>"; };
+		335DC404EFC0AE669DD454A7 /* Pods-GRDBCipherOSXEncryptedTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBCipherOSXEncryptedTests.debug.xcconfig"; path = "Target Support Files/Pods-GRDBCipherOSXEncryptedTests/Pods-GRDBCipherOSXEncryptedTests.debug.xcconfig"; sourceTree = "<group>"; };
+		338B3D58AB6DF180AB51716F /* Pods-GRDBCipheriOSEncryptedTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBCipheriOSEncryptedTests.debug.xcconfig"; path = "Target Support Files/Pods-GRDBCipheriOSEncryptedTests/Pods-GRDBCipheriOSEncryptedTests.debug.xcconfig"; sourceTree = "<group>"; };
+		3A0C2222B877DFEC1964DAB6 /* Pods_GRDBCipherOSX.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBCipherOSX.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		54074563A202FDF3CDB19B4B /* Pods-GRDBCipherOSXTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBCipherOSXTests.debug.xcconfig"; path = "Target Support Files/Pods-GRDBCipherOSXTests/Pods-GRDBCipherOSXTests.debug.xcconfig"; sourceTree = "<group>"; };
 		5605F1491C672E4000235C62 /* CGFloat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGFloat.swift; sourceTree = "<group>"; };
 		5605F14C1C672E4000235C62 /* DatabaseDateComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDateComponents.swift; sourceTree = "<group>"; };
 		5605F14F1C672E4000235C62 /* Date.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Date.swift; sourceTree = "<group>"; };
@@ -1071,7 +1059,6 @@
 		560D92441C672C4B00F4F92B /* PersistableRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersistableRecord.swift; sourceTree = "<group>"; };
 		560D92461C672C4B00F4F92B /* TableRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableRecord.swift; sourceTree = "<group>"; };
 		560FC54D1CB003810014AA8E /* GRDBCipher.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDBCipher.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		560FC5501CB004AD0014AA8E /* sqlcipher.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = sqlcipher.xcodeproj; path = SQLCipher/src/sqlcipher.xcodeproj; sourceTree = "<group>"; };
 		560FC5B01CB00B880014AA8E /* GRDBCipherOSXTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBCipherOSXTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5613ED7321A95E8400DC7A68 /* ValueObservation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservation.swift; sourceTree = "<group>"; };
 		5613ED7421A95E8400DC7A68 /* ValueObservation+Combine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ValueObservation+Combine.swift"; sourceTree = "<group>"; };
@@ -1230,12 +1217,7 @@
 		567F45A71F888B2600030B59 /* TruncateOptimizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TruncateOptimizationTests.swift; sourceTree = "<group>"; };
 		568068301EBBA26100EFB8AA /* SQLRequestTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLRequestTests.swift; sourceTree = "<group>"; };
 		5687359E1CEDE16C009B9116 /* Betty.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Betty.jpeg; sourceTree = "<group>"; };
-		568BE5191CB035A900270F93 /* sqlite3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = SQLCipher/src/sqlite3.h; sourceTree = "<group>"; };
-		568BE51F1CB0360500270F93 /* GRDBCipher.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDBCipher.xcconfig; path = SQLCipher/GRDBCipher.xcconfig; sourceTree = "<group>"; };
-		568BE5201CB0360500270F93 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = module.modulemap; path = SQLCipher/module.modulemap; sourceTree = "<group>"; };
 		568D13222207214D00674B58 /* SQLSelectQueryGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLSelectQueryGenerator.swift; sourceTree = "<group>"; };
-		568E1CB71CB03847008D97A6 /* GRDBCipher-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "GRDBCipher-Bridging.h"; path = "SQLCipher/GRDBCipher-Bridging.h"; sourceTree = "<group>"; };
-		568E1CB81CB03847008D97A6 /* GRDBCipher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GRDBCipher.h; path = SQLCipher/GRDBCipher.h; sourceTree = "<group>"; };
 		5690C3251D23E6D800E59934 /* FoundationDateComponentsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationDateComponentsTests.swift; sourceTree = "<group>"; };
 		5690C3361D23E7D200E59934 /* FoundationDateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationDateTests.swift; sourceTree = "<group>"; };
 		5690C33F1D23E82A00E59934 /* Data.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Data.swift; sourceTree = "<group>"; };
@@ -1330,7 +1312,6 @@
 		56C3F7521CF9F12400F6A361 /* DatabaseSavepointTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseSavepointTests.swift; sourceTree = "<group>"; };
 		56C48E731C9A9923005DF1D9 /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDBDeploymentTarget.xcconfig; sourceTree = "<group>"; };
-		56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDBDeploymentTarget.xcconfig; path = SQLCipher/GRDBDeploymentTarget.xcconfig; sourceTree = "<group>"; };
 		56CC922E201DFFE200CB597E /* DropWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropWhileCursorTests.swift; sourceTree = "<group>"; };
 		56CC923D201E034200CB597E /* PrefixWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrefixWhileCursorTests.swift; sourceTree = "<group>"; };
 		56CC924B201E059100CB597E /* DropFirstCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropFirstCursorTests.swift; sourceTree = "<group>"; };
@@ -1371,10 +1352,17 @@
 		56FF453F1D2C23BA00F21EF9 /* MutablePersistableRecordDeleteTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MutablePersistableRecordDeleteTests.swift; sourceTree = "<group>"; };
 		56FF45551D2CDA5200F21EF9 /* RecordUniqueIndexTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordUniqueIndexTests.swift; sourceTree = "<group>"; };
 		6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordPersistenceConflictPolicy.swift; sourceTree = "<group>"; };
+		789B040F80E78095BDBB3C68 /* Pods-GRDBCipheriOSEncryptedTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBCipheriOSEncryptedTests.release.xcconfig"; path = "Target Support Files/Pods-GRDBCipheriOSEncryptedTests/Pods-GRDBCipheriOSEncryptedTests.release.xcconfig"; sourceTree = "<group>"; };
+		9491294E01DE2F97E2E20BE2 /* Pods_GRDBCipheriOS.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBCipheriOS.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B5FA36FF8B9DBF5CA4F5D463 /* Pods_GRDBCipheriOSEncryptedTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBCipheriOSEncryptedTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BC4B8918B7B9965FBA306E1B /* Pods_GRDBCipherOSXTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBCipherOSXTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA6782EA2A5969555CE75FB0 /* Pods-GRDBCipheriOSTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBCipheriOSTests.debug.xcconfig"; path = "Target Support Files/Pods-GRDBCipheriOSTests/Pods-GRDBCipheriOSTests.debug.xcconfig"; sourceTree = "<group>"; };
 		DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GRDB-Bridging.h"; sourceTree = "<group>"; };
 		DC3773F719C8CBB3004FCF85 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DC3773F819C8CBB3004FCF85 /* GRDB.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GRDB.h; sourceTree = "<group>"; };
 		DC37740419C8CBB3004FCF85 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E00D14C8D1A561ED59AC3358 /* Pods-GRDBCipherOSX.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBCipherOSX.debug.xcconfig"; path = "Target Support Files/Pods-GRDBCipherOSX/Pods-GRDBCipherOSX.debug.xcconfig"; sourceTree = "<group>"; };
+		E2EE1AC3460511CC46439405 /* Pods-GRDBCipheriOS.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBCipheriOS.debug.xcconfig"; path = "Target Support Files/Pods-GRDBCipheriOS/Pods-GRDBCipheriOS.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1382,7 +1370,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				56AFC97A1CB1A41E00F48B96 /* libsqlcipher.a in Frameworks */,
+				0AA05839047CBF0237D082CD /* Pods_GRDBCipherOSX.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1391,6 +1379,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				568BE5231CB0371D00270F93 /* GRDBCipher.framework in Frameworks */,
+				EBFFE4EADC4601556BC86E1C /* Pods_GRDBCipherOSXTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1399,6 +1388,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				567156671CB16729007DC145 /* GRDBCipher.framework in Frameworks */,
+				2E6429D6EDEADD8CED34A8D6 /* Pods_GRDBCipherOSXEncryptedTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1406,7 +1396,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				56AFCA271CB1A97600F48B96 /* libsqlcipher.a in Frameworks */,
+				CA5A53FA161860D4EB704A85 /* Pods_GRDBCipheriOS.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1415,6 +1405,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				56AFCA831CB1AAC900F48B96 /* GRDBCipher.framework in Frameworks */,
+				3769FC32B12933346AA5269A /* Pods_GRDBCipheriOSTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1423,6 +1414,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				56AFCAD21CB1ABC800F48B96 /* GRDBCipher.framework in Frameworks */,
+				99FA61748B89424193B0724E /* Pods_GRDBCipheriOSEncryptedTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1511,28 +1503,6 @@
 				563363AA1C933FF8000BE133 /* PersistableRecordTests.swift */,
 			);
 			name = PersistableRecord;
-			sourceTree = "<group>";
-		};
-		560FC54F1CB0047D0014AA8E /* GRDBCipher */ = {
-			isa = PBXGroup;
-			children = (
-				568BE51F1CB0360500270F93 /* GRDBCipher.xcconfig */,
-				56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */,
-				568BE5201CB0360500270F93 /* module.modulemap */,
-				568BE5191CB035A900270F93 /* sqlite3.h */,
-				568E1CB81CB03847008D97A6 /* GRDBCipher.h */,
-				568E1CB71CB03847008D97A6 /* GRDBCipher-Bridging.h */,
-				560FC5501CB004AD0014AA8E /* sqlcipher.xcodeproj */,
-			);
-			name = GRDBCipher;
-			sourceTree = "<group>";
-		};
-		560FC5511CB004AD0014AA8E /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				560FC5561CB004AD0014AA8E /* libsqlcipher.a */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		5613ED7221A95E8400DC7A68 /* ValueObservation */ = {
@@ -2050,6 +2020,19 @@
 			name = Foundation;
 			sourceTree = "<group>";
 		};
+		C0BF6F09B4E1613776656FEC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3A0C2222B877DFEC1964DAB6 /* Pods_GRDBCipherOSX.framework */,
+				0AD4565B827AD66EE8FEA515 /* Pods_GRDBCipherOSXEncryptedTests.framework */,
+				BC4B8918B7B9965FBA306E1B /* Pods_GRDBCipherOSXTests.framework */,
+				9491294E01DE2F97E2E20BE2 /* Pods_GRDBCipheriOS.framework */,
+				B5FA36FF8B9DBF5CA4F5D463 /* Pods_GRDBCipheriOSEncryptedTests.framework */,
+				14DDB01E56AD92795E3FD07D /* Pods_GRDBCipheriOSTests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		DC10500F19C904DD00D8CA30 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
@@ -2063,9 +2046,10 @@
 			isa = PBXGroup;
 			children = (
 				DC37742D19C8CC90004FCF85 /* GRDB */,
-				560FC54F1CB0047D0014AA8E /* GRDBCipher */,
 				DC10500F19C904DD00D8CA30 /* Tests */,
 				DC3773F419C8CBB3004FCF85 /* Products */,
+				EC142A35AD953F5A4727A057 /* Pods */,
+				C0BF6F09B4E1613776656FEC /* Frameworks */,
 			);
 			indentWidth = 4;
 			sourceTree = "<group>";
@@ -2124,6 +2108,25 @@
 			path = ../Support;
 			sourceTree = "<group>";
 		};
+		EC142A35AD953F5A4727A057 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				E00D14C8D1A561ED59AC3358 /* Pods-GRDBCipherOSX.debug.xcconfig */,
+				1794D79F8B27A038DF3ECF29 /* Pods-GRDBCipherOSX.release.xcconfig */,
+				335DC404EFC0AE669DD454A7 /* Pods-GRDBCipherOSXEncryptedTests.debug.xcconfig */,
+				1038E9609BAC27B0BC889805 /* Pods-GRDBCipherOSXEncryptedTests.release.xcconfig */,
+				54074563A202FDF3CDB19B4B /* Pods-GRDBCipherOSXTests.debug.xcconfig */,
+				2B1FC6A63378BAB52C888635 /* Pods-GRDBCipherOSXTests.release.xcconfig */,
+				E2EE1AC3460511CC46439405 /* Pods-GRDBCipheriOS.debug.xcconfig */,
+				2264E297FD36BC3C4114E578 /* Pods-GRDBCipheriOS.release.xcconfig */,
+				338B3D58AB6DF180AB51716F /* Pods-GRDBCipheriOSEncryptedTests.debug.xcconfig */,
+				789B040F80E78095BDBB3C68 /* Pods-GRDBCipheriOSEncryptedTests.release.xcconfig */,
+				CA6782EA2A5969555CE75FB0 /* Pods-GRDBCipheriOSTests.debug.xcconfig */,
+				13BE3B76C1BC2AF1B271F5BF /* Pods-GRDBCipheriOSTests.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -2132,9 +2135,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				567DAF1D1EAB61ED00FC0928 /* grdb_config.h in Headers */,
-				568E1CBA1CB03847008D97A6 /* GRDBCipher.h in Headers */,
-				568E1CB21CB037BA008D97A6 /* sqlite3.h in Headers */,
-				568E1CB91CB03847008D97A6 /* GRDBCipher-Bridging.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2143,9 +2143,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				567DAF201EAB61ED00FC0928 /* grdb_config.h in Headers */,
-				56AFCA291CB1A98D00F48B96 /* GRDBCipher.h in Headers */,
-				56AFCA2A1CB1A98D00F48B96 /* GRDBCipher-Bridging.h in Headers */,
-				56AFCA281CB1A98D00F48B96 /* sqlite3.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2156,6 +2153,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 560FC54A1CB003810014AA8E /* Build configuration list for PBXNativeTarget "GRDBCipherOSX" */;
 			buildPhases = (
+				41A4A4B2C31178A5E9975718 /* [CP] Check Pods Manifest.lock */,
 				560FC51A1CB003810014AA8E /* Sources */,
 				560FC5441CB003810014AA8E /* Frameworks */,
 				560FC5461CB003810014AA8E /* Headers */,
@@ -2164,7 +2162,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				56AFC9781CB1A3E200F48B96 /* PBXTargetDependency */,
 			);
 			name = GRDBCipherOSX;
 			productName = GRDB;
@@ -2175,9 +2172,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 560FC5AD1CB00B880014AA8E /* Build configuration list for PBXNativeTarget "GRDBCipherOSXTests" */;
 			buildPhases = (
+				98D1840D4D3737EBC3197EC3 /* [CP] Check Pods Manifest.lock */,
 				560FC5601CB00B880014AA8E /* Sources */,
 				560FC5A91CB00B880014AA8E /* Frameworks */,
 				560FC5AC1CB00B880014AA8E /* Resources */,
+				34D1D4597C80FA0BFBF93906 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -2193,9 +2192,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 567156691CB16729007DC145 /* Build configuration list for PBXNativeTarget "GRDBCipherOSXEncryptedTests" */;
 			buildPhases = (
+				4AA659BC6C7482FB838C37B7 /* [CP] Check Pods Manifest.lock */,
 				5671561C1CB16729007DC145 /* Sources */,
 				567156661CB16729007DC145 /* Frameworks */,
 				567156681CB16729007DC145 /* Resources */,
+				CC563C389797672D6F60AA26 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -2211,6 +2212,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 56AFCA201CB1A8BB00F48B96 /* Build configuration list for PBXNativeTarget "GRDBCipheriOS" */;
 			buildPhases = (
+				9922CB35CC88871C1072C81E /* [CP] Check Pods Manifest.lock */,
 				56AFC9EF1CB1A8BB00F48B96 /* Sources */,
 				56AFCA1A1CB1A8BB00F48B96 /* Frameworks */,
 				56AFCA1C1CB1A8BB00F48B96 /* Headers */,
@@ -2219,7 +2221,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				56AFCA261CB1A96A00F48B96 /* PBXTargetDependency */,
 			);
 			name = GRDBCipheriOS;
 			productName = GRDBiOS;
@@ -2230,9 +2231,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 56AFCA7C1CB1AA9900F48B96 /* Build configuration list for PBXNativeTarget "GRDBCipheriOSTests" */;
 			buildPhases = (
+				76EC19D636CDF1419908C620 /* [CP] Check Pods Manifest.lock */,
 				56AFCA2E1CB1AA9900F48B96 /* Sources */,
 				56AFCA781CB1AA9900F48B96 /* Frameworks */,
 				56AFCA7B1CB1AA9900F48B96 /* Resources */,
+				E350ED1636064E2CD9B8ECB2 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -2248,9 +2251,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 56AFCAD41CB1ABC800F48B96 /* Build configuration list for PBXNativeTarget "GRDBCipheriOSEncryptedTests" */;
 			buildPhases = (
+				301FF8FA380E083E3E259711 /* [CP] Check Pods Manifest.lock */,
 				56AFCA871CB1ABC800F48B96 /* Sources */,
 				56AFCAD11CB1ABC800F48B96 /* Frameworks */,
 				56AFCAD31CB1ABC800F48B96 /* Resources */,
+				D72755EE975AF89EC1B42D4E /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -2285,18 +2290,13 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
 			mainGroup = DC3773E919C8CBB3004FCF85;
 			productRefGroup = DC3773F419C8CBB3004FCF85 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = 560FC5511CB004AD0014AA8E /* Products */;
-					ProjectRef = 560FC5501CB004AD0014AA8E /* sqlcipher.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				560FC5191CB003810014AA8E /* GRDBCipherOSX */,
@@ -2308,16 +2308,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		560FC5561CB004AD0014AA8E /* libsqlcipher.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libsqlcipher.a;
-			remoteRef = 560FC5551CB004AD0014AA8E /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		560FC5491CB003810014AA8E /* Resources */ = {
@@ -2367,6 +2357,229 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		301FF8FA380E083E3E259711 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-GRDBCipheriOSEncryptedTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		34D1D4597C80FA0BFBF93906 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-GRDBCipherOSXTests/Pods-GRDBCipherOSXTests-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/SQLCipher-macOS/SQLCipher.framework",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SQLCipher.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-GRDBCipherOSXTests/Pods-GRDBCipherOSXTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		41A4A4B2C31178A5E9975718 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-GRDBCipherOSX-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		4AA659BC6C7482FB838C37B7 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-GRDBCipherOSXEncryptedTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		76EC19D636CDF1419908C620 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-GRDBCipheriOSTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		98D1840D4D3737EBC3197EC3 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-GRDBCipherOSXTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		9922CB35CC88871C1072C81E /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-GRDBCipheriOS-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		CC563C389797672D6F60AA26 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-GRDBCipherOSXEncryptedTests/Pods-GRDBCipherOSXEncryptedTests-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/SQLCipher-macOS/SQLCipher.framework",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SQLCipher.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-GRDBCipherOSXEncryptedTests/Pods-GRDBCipherOSXEncryptedTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		D72755EE975AF89EC1B42D4E /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-GRDBCipheriOSEncryptedTests/Pods-GRDBCipheriOSEncryptedTests-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/SQLCipher-iOS/SQLCipher.framework",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SQLCipher.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-GRDBCipheriOSEncryptedTests/Pods-GRDBCipheriOSEncryptedTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E350ED1636064E2CD9B8ECB2 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-GRDBCipheriOSTests/Pods-GRDBCipheriOSTests-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/SQLCipher-iOS/SQLCipher.framework",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SQLCipher.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-GRDBCipheriOSTests/Pods-GRDBCipheriOSTests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		560FC51A1CB003810014AA8E /* Sources */ = {
@@ -3394,16 +3607,6 @@
 			target = 560FC5191CB003810014AA8E /* GRDBCipherOSX */;
 			targetProxy = 568BE5211CB0371000270F93 /* PBXContainerItemProxy */;
 		};
-		56AFC9781CB1A3E200F48B96 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = sqlcipher;
-			targetProxy = 56AFC9771CB1A3E200F48B96 /* PBXContainerItemProxy */;
-		};
-		56AFCA261CB1A96A00F48B96 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = sqlcipher;
-			targetProxy = 56AFCA251CB1A96A00F48B96 /* PBXContainerItemProxy */;
-		};
 		56AFCA821CB1AAB400F48B96 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 56AFC9EE1CB1A8BB00F48B96 /* GRDBCipheriOS */;
@@ -3419,7 +3622,7 @@
 /* Begin XCBuildConfiguration section */
 		560FC54B1CB003810014AA8E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDBCipher.xcconfig */;
+			baseConfigurationReference = E00D14C8D1A561ED59AC3358 /* Pods-GRDBCipherOSX.debug.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -3431,8 +3634,12 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = Support/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				OTHER_SWIFT_FLAGS = "-D SQLITE_HAS_CODEC -D USING_BUILTIN_SQLITE -D GRDBCIPHER -D SQLITE_ENABLE_FTS5";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.github.groue.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = GRDBCipher;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -3440,7 +3647,7 @@
 		};
 		560FC54C1CB003810014AA8E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDBCipher.xcconfig */;
+			baseConfigurationReference = 1794D79F8B27A038DF3ECF29 /* Pods-GRDBCipherOSX.release.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -3452,8 +3659,12 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = Support/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				OTHER_SWIFT_FLAGS = "-D SQLITE_HAS_CODEC -D USING_BUILTIN_SQLITE -D GRDBCIPHER -D SQLITE_ENABLE_FTS5";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.github.groue.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = GRDBCipher;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 			};
@@ -3461,7 +3672,7 @@
 		};
 		560FC5AE1CB00B880014AA8E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
+			baseConfigurationReference = 54074563A202FDF3CDB19B4B /* Pods-GRDBCipherOSXTests.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -3478,7 +3689,7 @@
 		};
 		560FC5AF1CB00B880014AA8E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
+			baseConfigurationReference = 2B1FC6A63378BAB52C888635 /* Pods-GRDBCipherOSXTests.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -3497,7 +3708,7 @@
 		};
 		5671566A1CB16729007DC145 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
+			baseConfigurationReference = 335DC404EFC0AE669DD454A7 /* Pods-GRDBCipherOSXEncryptedTests.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -3514,7 +3725,7 @@
 		};
 		5671566B1CB16729007DC145 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
+			baseConfigurationReference = 1038E9609BAC27B0BC889805 /* Pods-GRDBCipherOSXEncryptedTests.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -3533,7 +3744,7 @@
 		};
 		56AFCA211CB1A8BB00F48B96 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDBCipher.xcconfig */;
+			baseConfigurationReference = E2EE1AC3460511CC46439405 /* Pods-GRDBCipheriOS.debug.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -3547,8 +3758,12 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = Support/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				OTHER_SWIFT_FLAGS = "-D SQLITE_HAS_CODEC -D USING_BUILTIN_SQLITE -D GRDBCIPHER -D SQLITE_ENABLE_FTS5";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.github.groue.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = GRDBCipher;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -3558,7 +3773,7 @@
 		};
 		56AFCA221CB1A8BB00F48B96 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 568BE51F1CB0360500270F93 /* GRDBCipher.xcconfig */;
+			baseConfigurationReference = 2264E297FD36BC3C4114E578 /* Pods-GRDBCipheriOS.release.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -3573,8 +3788,12 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = Support/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				OTHER_SWIFT_FLAGS = "-D SQLITE_HAS_CODEC -D USING_BUILTIN_SQLITE -D GRDBCIPHER -D SQLITE_ENABLE_FTS5";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.github.groue.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = GRDBCipher;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -3584,7 +3803,7 @@
 		};
 		56AFCA7D1CB1AA9900F48B96 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
+			baseConfigurationReference = CA6782EA2A5969555CE75FB0 /* Pods-GRDBCipheriOSTests.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -3601,7 +3820,7 @@
 		};
 		56AFCA7E1CB1AA9900F48B96 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
+			baseConfigurationReference = 13BE3B76C1BC2AF1B271F5BF /* Pods-GRDBCipheriOSTests.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -3620,7 +3839,7 @@
 		};
 		56AFCAD51CB1ABC800F48B96 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
+			baseConfigurationReference = 338B3D58AB6DF180AB51716F /* Pods-GRDBCipheriOSEncryptedTests.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -3637,7 +3856,7 @@
 		};
 		56AFCAD61CB1ABC800F48B96 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 56C494411ED7269800CC72AF /* GRDBDeploymentTarget.xcconfig */;
+			baseConfigurationReference = 789B040F80E78095BDBB3C68 /* Pods-GRDBCipheriOSEncryptedTests.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -3700,12 +3919,15 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
+				WATCHOS_DEPLOYMENT_TARGET = 2.2;
 			};
 			name = Debug;
 		};
@@ -3748,12 +3970,15 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 4.2;
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
+				WATCHOS_DEPLOYMENT_TARGET = 2.2;
 			};
 			name = Release;
 		};

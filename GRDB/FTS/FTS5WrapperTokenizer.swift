@@ -1,4 +1,12 @@
 #if SQLITE_ENABLE_FTS5
+#if SWIFT_PACKAGE
+    import CSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
+
 /// Flags that tell SQLite how to register a token.
 ///
 /// See https://www.sqlite.org/fts5.html#custom_tokenizers

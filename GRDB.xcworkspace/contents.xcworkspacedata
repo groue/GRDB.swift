@@ -56,4 +56,7 @@
    <FileRef
       location = "group:DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:Pods/Pods.xcodeproj">
+   </FileRef>
 </Workspace>

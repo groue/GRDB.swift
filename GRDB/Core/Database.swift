@@ -1,6 +1,8 @@
 import Foundation
 #if SWIFT_PACKAGE
     import CSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
     import SQLite3
 #endif
@@ -48,16 +50,17 @@ public final class Database {
     /// > for debugging.
     public static var logError: LogErrorFunction? = nil {
         didSet {
-            if logError != nil {
-                registerErrorLogCallback { (_, code, message) in
-                    guard let logError = Database.logError else { return }
-                    guard let message = message.map({ String(cString: $0) }) else { return }
-                    let resultCode = ResultCode(rawValue: code)
-                    logError(resultCode, message)
-                }
-            } else {
-                registerErrorLogCallback(nil)
-            }
+            // TODO: GRDBCipher
+//            if logError != nil {
+//                registerErrorLogCallback { (_, code, message) in
+//                    guard let logError = Database.logError else { return }
+//                    guard let message = message.map({ String(cString: $0) }) else { return }
+//                    let resultCode = ResultCode(rawValue: code)
+//                    logError(resultCode, message)
+//                }
+//            } else {
+//                registerErrorLogCallback(nil)
+//            }
         }
     }
     
