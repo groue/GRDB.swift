@@ -82,21 +82,10 @@ public struct Configuration {
     /// Default: nil
     public var passphrase: String?
     
-    /// The cipher_page_size setting for the encrypted database.
-    ///
-    /// See https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_page_size
-    ///
-    /// Default: 1024 - this corresponds to the default used by SQLCipher 3
-    public var cipherPageSize: Int = 1024
-    
-    /// The kdf_iter setting for the encrypted database.
-    ///
-    /// See https://www.zetetic.net/sqlcipher/sqlcipher-api/#kdf_iter
-    ///
-    /// Default: 64000 - this corresponds to the default used by SQLCipher 3
-    public var kdfIterations: Int = 64000
     #endif
-    
+
+    // TODO DOC
+    public var prepareDatabase: ((Database) throws -> Void)?
     
     // MARK: - Transactions
     

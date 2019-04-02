@@ -166,28 +166,10 @@ public final class Database {
     // MARK: - Initializer
 
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCache) throws {
-        let sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
-        do {
-            try Database.activateExtendedCodes(sqliteConnection)
-            #if SQLITE_HAS_CODEC
-                try Database.validateSQLCipher(sqliteConnection)
-                if let passphrase = configuration.passphrase {
-                    try Database.set(passphrase: passphrase, forConnection: sqliteConnection)
-                    try Database.set(cipherPageSize: configuration.cipherPageSize, forConnection: sqliteConnection)
-                    try Database.set(kdfIterations: configuration.kdfIterations, forConnection: sqliteConnection)
-                }
-            #endif
-            try Database.validateDatabaseFormat(sqliteConnection)
-        } catch {
-            Database.closeConnection(sqliteConnection)
-            throw error
-        }
-        
-        self.sqliteConnection = sqliteConnection
+
+        self.sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
         self.configuration = configuration
         self.schemaCache = schemaCache
-        
-        configuration.SQLiteConnectionDidOpen?()
     }
     
     deinit {
@@ -269,36 +251,6 @@ extension Database {
             throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
     }
-    
-    private static func set(cipherPageSize: Int, forConnection sqliteConnection: SQLiteConnection) throws {
-        var sqliteStatement: SQLiteStatement? = nil
-        var code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA cipher_page_size = \(cipherPageSize)", -1, &sqliteStatement, nil)
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-        }
-        defer {
-            sqlite3_finalize(sqliteStatement)
-        }
-        code = sqlite3_step(sqliteStatement)
-        if code != SQLITE_DONE {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-        }
-    }
-    
-    private static func set(kdfIterations: Int, forConnection sqliteConnection: SQLiteConnection) throws {
-        var sqliteStatement: SQLiteStatement? = nil
-        var code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA kdf_iter = \(kdfIterations)", -1, &sqliteStatement, nil)
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-        }
-        defer {
-            sqlite3_finalize(sqliteStatement)
-        }
-        code = sqlite3_step(sqliteStatement)
-        if code != SQLITE_DONE {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-        }
-    }
     #endif
     
     private static func validateDatabaseFormat(_ sqliteConnection: SQLiteConnection) throws {
@@ -317,11 +269,30 @@ extension Database {
 extension Database {
 
     // MARK: - Database Setup
-    
+    func setupConnection() throws {
+        do {
+            try Database.activateExtendedCodes(sqliteConnection)
+            #if SQLITE_HAS_CODEC
+            try Database.validateSQLCipher(sqliteConnection)
+            #endif
+            if let passphrase = configuration.passphrase {
+                try Database.set(passphrase: passphrase, forConnection: sqliteConnection)
+            }
+            try configuration.prepareDatabase?(self)
+
+            try Database.validateDatabaseFormat(sqliteConnection)
+        } catch {
+            throw error
+        }
+        configuration.SQLiteConnectionDidOpen?()
+    }
+
     /// This method must be called after database initialization
     func setup() throws {
         // Setup trace first, so that setup queries are traced.
         setupTrace()
+        
+        try setupConnection()
         try setupForeignKeys()
         setupBusyMode()
         setupDefaultFunctions()
