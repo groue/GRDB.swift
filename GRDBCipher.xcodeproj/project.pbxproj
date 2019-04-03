@@ -591,10 +591,6 @@
 		567DAF371EAB789800FC0928 /* DatabaseLogErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567DAF341EAB789800FC0928 /* DatabaseLogErrorTests.swift */; };
 		567DAF3A1EAB789800FC0928 /* DatabaseLogErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567DAF341EAB789800FC0928 /* DatabaseLogErrorTests.swift */; };
 		567DAF3B1EAB789800FC0928 /* DatabaseLogErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567DAF341EAB789800FC0928 /* DatabaseLogErrorTests.swift */; };
-		567E55ED1D2BDD3D00CC6F79 /* EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567156701CB18050007DC145 /* EncryptionTests.swift */; };
-		567E55EE1D2BDD3F00CC6F79 /* EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567156701CB18050007DC145 /* EncryptionTests.swift */; };
-		567E55F31D2BDDFE00CC6F79 /* EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567156701CB18050007DC145 /* EncryptionTests.swift */; };
-		567E55F41D2BDDFF00CC6F79 /* EncryptionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567156701CB18050007DC145 /* EncryptionTests.swift */; };
 		567F0B33220F196F00D111FB /* SQLInterpolationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F0B32220F196F00D111FB /* SQLInterpolationTests.swift */; };
 		567F0B34220F196F00D111FB /* SQLInterpolationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F0B32220F196F00D111FB /* SQLInterpolationTests.swift */; };
 		567F0B35220F196F00D111FB /* SQLInterpolationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F0B32220F196F00D111FB /* SQLInterpolationTests.swift */; };
@@ -995,6 +991,8 @@
 		6340BF821E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */; };
 		6340BF851E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */; };
 		6340BF861E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */; };
+		B501B34C2254A56B0071DCDC /* GRDBCipherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B501B34B2254A56B0071DCDC /* GRDBCipherTests.swift */; };
+		B501B34D2254A56B0071DCDC /* GRDBCipherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B501B34B2254A56B0071DCDC /* GRDBCipherTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1208,7 +1206,6 @@
 		567071F6208A00D4006AD95A /* SQLiteDateParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLiteDateParser.swift; sourceTree = "<group>"; };
 		567156151CB142AA007DC145 /* DatabaseQueueReadOnlyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueueReadOnlyTests.swift; sourceTree = "<group>"; };
 		5671566C1CB16729007DC145 /* GRDBCipherOSXEncryptedTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBCipherOSXEncryptedTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		567156701CB18050007DC145 /* EncryptionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EncryptionTests.swift; sourceTree = "<group>"; };
 		5671FC1F1DA3CAC9003BF4FF /* FTS3TokenizerDescriptor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS3TokenizerDescriptor.swift; sourceTree = "<group>"; };
 		5672DE581CDB72520022BA81 /* DatabaseQueueBackupTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueueBackupTests.swift; sourceTree = "<group>"; };
 		5672DE661CDB751D0022BA81 /* DatabasePoolBackupTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabasePoolBackupTests.swift; sourceTree = "<group>"; };
@@ -1371,6 +1368,7 @@
 		56FF453F1D2C23BA00F21EF9 /* MutablePersistableRecordDeleteTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MutablePersistableRecordDeleteTests.swift; sourceTree = "<group>"; };
 		56FF45551D2CDA5200F21EF9 /* RecordUniqueIndexTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordUniqueIndexTests.swift; sourceTree = "<group>"; };
 		6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordPersistenceConflictPolicy.swift; sourceTree = "<group>"; };
+		B501B34B2254A56B0071DCDC /* GRDBCipherTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GRDBCipherTests.swift; sourceTree = "<group>"; };
 		DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GRDB-Bridging.h"; sourceTree = "<group>"; };
 		DC3773F719C8CBB3004FCF85 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DC3773F819C8CBB3004FCF85 /* GRDB.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GRDB.h; sourceTree = "<group>"; };
@@ -1621,7 +1619,7 @@
 		56176CA01EACEE2A000F3F2B /* GRDBCipher */ = {
 			isa = PBXGroup;
 			children = (
-				567156701CB18050007DC145 /* EncryptionTests.swift */,
+				B501B34B2254A56B0071DCDC /* GRDBCipherTests.swift */,
 			);
 			name = GRDBCipher;
 			sourceTree = "<group>";
@@ -2285,6 +2283,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
@@ -2559,6 +2558,7 @@
 				560FC5791CB00B880014AA8E /* RecordPrimaryKeyMultipleTests.swift in Sources */,
 				56CC9257201E094F00CB597E /* PrefixCursorTests.swift in Sources */,
 				5698AC971DA4B0430056AF8C /* FTS4RecordTests.swift in Sources */,
+				B501B34C2254A56B0071DCDC /* GRDBCipherTests.swift in Sources */,
 				5657AB4F1D108BA9006283EF /* FoundationNSNumberTests.swift in Sources */,
 				56CC9236201E009700CB597E /* DropWhileCursorTests.swift in Sources */,
 				56D5075F1F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift in Sources */,
@@ -2593,7 +2593,6 @@
 				5665F86C203EF47D0084C6C0 /* ColumnInfoTests.swift in Sources */,
 				560FC5811CB00B880014AA8E /* RecordCopyTests.swift in Sources */,
 				560FC5821CB00B880014AA8E /* RawRepresentable+DatabaseValueConvertibleTests.swift in Sources */,
-				567E55ED1D2BDD3D00CC6F79 /* EncryptionTests.swift in Sources */,
 				56741EA91E66A8B3003E422D /* FetchRequestTests.swift in Sources */,
 				56176C641EACCCC7000F3F2B /* FTS5WrapperTokenizerTests.swift in Sources */,
 				5653EBB820961FE800F46237 /* AssociationParallelSQLTests.swift in Sources */,
@@ -2767,7 +2766,6 @@
 				56B6EF65208CB762002F0ACB /* ColumnExpressionTests.swift in Sources */,
 				5671563C1CB16729007DC145 /* MutablePersistableRecordTests.swift in Sources */,
 				5671563D1CB16729007DC145 /* FetchableRecord+QueryInterfaceRequestTests.swift in Sources */,
-				567E55F31D2BDDFE00CC6F79 /* EncryptionTests.swift in Sources */,
 				56B86E7E220FF4F500524C16 /* SQLLiteralTests.swift in Sources */,
 				5671563F1CB16729007DC145 /* RecordCopyTests.swift in Sources */,
 				5698ACB81DA6285E0056AF8C /* FTS3TokenizerTests.swift in Sources */,
@@ -3024,7 +3022,6 @@
 				562EA82B1F17B2AC00FA528C /* CompilationProtocolTests.swift in Sources */,
 				56DAA2D71DE99DAB006E10C8 /* DatabaseCursorTests.swift in Sources */,
 				5698AC4E1DA2D48A0056AF8C /* FTS3RecordTests.swift in Sources */,
-				567E55EE1D2BDD3F00CC6F79 /* EncryptionTests.swift in Sources */,
 				56AFCA361CB1AA9900F48B96 /* DatabaseCollationTests.swift in Sources */,
 				56AFCA371CB1AA9900F48B96 /* StatementColumnConvertibleFetchTests.swift in Sources */,
 				56AFCA381CB1AA9900F48B96 /* QueryInterfaceExpressionsTests.swift in Sources */,
@@ -3065,6 +3062,7 @@
 				566AD8CB1D531BED002EC1A8 /* TableDefinitionTests.swift in Sources */,
 				56AFCA4B1CB1AA9900F48B96 /* MutablePersistableRecordTests.swift in Sources */,
 				56CC9259201E094F00CB597E /* PrefixCursorTests.swift in Sources */,
+				B501B34D2254A56B0071DCDC /* GRDBCipherTests.swift in Sources */,
 				5657AB431D108BA9006283EF /* FoundationNSDataTests.swift in Sources */,
 				56AFCA4C1CB1AA9900F48B96 /* FetchableRecord+QueryInterfaceRequestTests.swift in Sources */,
 				56CC9238201E009900CB597E /* DropWhileCursorTests.swift in Sources */,
@@ -3214,7 +3212,6 @@
 				56DAA2D81DE99DAB006E10C8 /* DatabaseCursorTests.swift in Sources */,
 				5698AC4F1DA2D48A0056AF8C /* FTS3RecordTests.swift in Sources */,
 				56AFCA8F1CB1ABC800F48B96 /* DatabaseCollationTests.swift in Sources */,
-				567E55F41D2BDDFF00CC6F79 /* EncryptionTests.swift in Sources */,
 				56AFCA901CB1ABC800F48B96 /* StatementColumnConvertibleFetchTests.swift in Sources */,
 				5690C33D1D23E7D200E59934 /* FoundationDateTests.swift in Sources */,
 				5672DE6C1CDB751D0022BA81 /* DatabasePoolBackupTests.swift in Sources */,
