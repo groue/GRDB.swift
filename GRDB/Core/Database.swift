@@ -289,8 +289,8 @@ extension Database {
     
     // For SQLite-SEE
     #if SQLITE_HAS_CODEC && GRDB_SQLITE_SEE
-    private static func set(key: String, withEncryptionType encType: EncryptionType, forConnection sqliteConnection: SQLiteConnection) throws {
-        let prefixedKey = "\(encType.prefixValue):\(key)"
+    private static func set(key: String, withEncryptionAlgorithm algorithm: EncryptionAlgorithm, forConnection sqliteConnection: SQLiteConnection) throws {
+        let prefixedKey = "\(algorithm.rawValue):\(key)"
         let data = prefixedKey.data(using: .utf8)!
         let code = data.withUnsafeBytes {
             sqlite3_key_v2(sqliteConnection, nil, $0.baseAddress, Int32($0.count))
@@ -1016,8 +1016,8 @@ extension Database {
     
     // MARK: - Encryption
     
-    func change(key: String, encryptionType:EncryptionType) throws {
-        let prefixedKey = "\(encryptionType.prefixValue):\(key)"
+    func change(key: String, encryptionAlgorithm:EncryptionAlgorithm) throws {
+        let prefixedKey = "\(encryptionAlgorithm.rawValue):\(key)"
         let data = prefixedKey.data(using: .utf8)!
         let code = data.withUnsafeBytes {
             sqlite3_rekey_v2(sqliteConnection, nil, $0.baseAddress, Int32($0.count))
@@ -1217,22 +1217,16 @@ extension Database {
     /// An SQLite Encryption Extension encryption type
     ///
     /// The raw value is the string to prefix a key with
-    public enum EncryptionType: String {
+    public enum EncryptionAlgorithm: String {
         
         /// - note: AES128 is the default choice for new files
-        case AES128
+        case AES128 = "aes128"
         
         
-        case AES256
+        case AES256 = "aes256"
         
         /// - warning: Use of RC4 for new files is not recommended
-        case RC4
-        
-        
-        /// Prefix key strings with this value to specify type
-        public var prefixValue: String {
-            return String(describing: self).lowercased()
-        }
+        case RC4 = "rc4"
     }
 }
 #endif

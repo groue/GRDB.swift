@@ -234,12 +234,12 @@ extension DatabasePool {
         
         // MARK: - Encryption
         
-        /// Changes the passphrase of an encrypted database
-        public func change(passphrase: String, encryptionType: Database.EncryptionType) throws {
+        /// Changes the key of an encrypted database
+        public func change(key: String, encryptionAlgorithm: Database.EncryptionAlgorithm) throws {
             try readerPool.clear(andThen: {
-                try writer.sync { try $0.change(key: passphrase, encryptionType: encryptionType) }
-                readerConfig.key = passphrase
-                readerConfig.encryptionType = encryptionType
+                try writer.sync { try $0.change(key: key, encryptionAlgorithm: encryptionAlgorithm) }
+                readerConfig.key = key
+                readerConfig.encryptionAlgorithm = encryptionAlgorithm
             })
         }
     }

@@ -7,7 +7,7 @@ class GRDBSQLiteSEETests: GRDBTestCase {
     func testDatabaseQueueWithKeyToDatabaseQueueWithKey() throws {
         do {
             dbConfiguration.key = "secret"
-            dbConfiguration.encryptionType = .AES128
+            dbConfiguration.encryptionAlgorithm = .AES128
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "CREATE TABLE data (value INTEGER)")
@@ -17,7 +17,7 @@ class GRDBSQLiteSEETests: GRDBTestCase {
         
         do {
             dbConfiguration.key = "secret"
-            dbConfiguration.encryptionType = .AES128
+            dbConfiguration.encryptionAlgorithm = .AES128
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
@@ -28,7 +28,7 @@ class GRDBSQLiteSEETests: GRDBTestCase {
     func testDatabaseQueueWithKeyToDatabaseQueueWithoutKey() throws {
         do {
             dbConfiguration.key = "secret"
-            dbConfiguration.encryptionType = .AES128
+            dbConfiguration.encryptionAlgorithm = .AES128
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "CREATE TABLE data (value INTEGER)")
@@ -74,10 +74,10 @@ class GRDBSQLiteSEETests: GRDBTestCase {
         }
     }
     
-    func testDatabaseQueueWithKeyToDatabaseQueueWithWrongEncryptionType() throws {
+    func testDatabaseQueueWithKeyToDatabaseQueueWithWrongEncryptionAlgorithm() throws {
         do {
             dbConfiguration.key = "secret"
-            dbConfiguration.encryptionType = .AES128
+            dbConfiguration.encryptionAlgorithm = .AES128
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "CREATE TABLE data (value INTEGER)")
@@ -87,7 +87,7 @@ class GRDBSQLiteSEETests: GRDBTestCase {
         
         do {
             dbConfiguration.key = "secret"
-            dbConfiguration.encryptionType = .AES256
+            dbConfiguration.encryptionAlgorithm = .AES256
             do {
                 _ = try makeDatabaseQueue(filename: "test.sqlite")
                 XCTFail("Expected error")
@@ -100,10 +100,10 @@ class GRDBSQLiteSEETests: GRDBTestCase {
         }
     }
 
-    func testDatabaseQueueWithKeyToDatabaseQueueWithNewKeyAndType() throws {
+    func testDatabaseQueueWithKeyToDatabaseQueueWithNewKeyAndAlgorithm() throws {
         do {
             dbConfiguration.key = "secret"
-            dbConfiguration.encryptionType = .AES128
+            dbConfiguration.encryptionAlgorithm = .AES128
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "CREATE TABLE data (value INTEGER)")
@@ -114,7 +114,7 @@ class GRDBSQLiteSEETests: GRDBTestCase {
         do {
             dbConfiguration.key = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
-            try dbQueue.change(passphrase: "newSecret", encryptionType: .AES256)
+            try dbQueue.change(key: "newSecret", encryptionAlgorithm: .AES256)
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
             }
@@ -125,7 +125,7 @@ class GRDBSQLiteSEETests: GRDBTestCase {
 
         do {
             dbConfiguration.key = "newSecret"
-            dbConfiguration.encryptionType = .AES256
+            dbConfiguration.encryptionAlgorithm = .AES256
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
@@ -213,7 +213,7 @@ class GRDBSQLiteSEETests: GRDBTestCase {
         do {
             dbConfiguration.key = "secret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
-            try dbPool.change(passphrase: "newSecret", encryptionType: .AES128)
+            try dbPool.change(key: "newSecret", encryptionAlgorithm: .AES128)
             try dbPool.write { db in
                 try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
@@ -296,11 +296,11 @@ class GRDBSQLiteSEETests: GRDBTestCase {
         }
     }
     
-    func testDatabasePoolWithKeyToDatabasePoolWithWrongEncryptionType() throws {
+    func testDatabasePoolWithKeyToDatabasePoolWithWrongEncryptionAlgorithm() throws {
         let key = "secret"
         do {
             dbConfiguration.key = key
-            dbConfiguration.encryptionType = .AES128
+            dbConfiguration.encryptionAlgorithm = .AES128
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.write { db in
                 try db.execute(sql: "CREATE TABLE data (value INTEGER)")
@@ -310,7 +310,7 @@ class GRDBSQLiteSEETests: GRDBTestCase {
         
         do {
             dbConfiguration.key = key
-            dbConfiguration.encryptionType = .AES256
+            dbConfiguration.encryptionAlgorithm = .AES256
             do {
                 _ = try makeDatabasePool(filename: "test.sqlite")
                 XCTFail("Expected error")
@@ -337,7 +337,7 @@ class GRDBSQLiteSEETests: GRDBTestCase {
         do {
             dbConfiguration.key = "secret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
-            try dbPool.change(passphrase: "newSecret", encryptionType: .AES128)
+            try dbPool.change(key: "newSecret", encryptionAlgorithm: .AES128)
             try dbPool.write { db in
                 try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
