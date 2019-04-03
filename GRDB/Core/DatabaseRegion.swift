@@ -64,7 +64,7 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
     }
     
     /// A full table: (all columns in the table) × (all rows)
-    init(table: String) {
+    public init(table: String) {
         self.init(tableRegions: [table: TableRegion(columns: nil, rowIds: nil)])
     }
     
