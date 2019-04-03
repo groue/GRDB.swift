@@ -100,12 +100,18 @@ public struct Configuration {
     
     // For SQLite-SEE
     #if SQLITE_HAS_CODEC && GRDB_SQLITE_SEE
-    /// The key for the encrypted database.
+    
+    /// The key for an attempting to open an encrypted database.
+    ///
+    /// This is ignored if set to nil
     ///
     /// Default: nil
     public var key: String?
     
-    public var encryptionType: Database.EncryptionType = .AES128
+    /// Which algorithm to use when opening an encrypted database
+    ///
+    /// This is only used if a key is set to non-nil
+    public var encryptionAlgorithm: Database.EncryptionAlgorithm = .AES128
     
     #endif
     

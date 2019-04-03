@@ -148,9 +148,9 @@ extension DatabaseQueue {
     
     // MARK: - Encryption
     
-    /// Changes the passphrase of an encrypted database
-    public func change(passphrase: String, encryptionType: Database.EncryptionType) throws {
-        try writer.sync { try $0.change(key: passphrase, encryptionType: encryptionType) }
+    /// Changes the key of an encrypted database
+    public func change(key: String, encryptionAlgorithm: Database.EncryptionAlgorithm) throws {
+        try writer.sync { try $0.change(key: key, encryptionAlgorithm: encryptionAlgorithm) }
     }
 }
 #endif
