@@ -2,7 +2,7 @@
 import XCTest
 @testable import GRDBCustomSQLite
 
-class GRDBSQLiteSEETests: GRDBTestCase {
+class SQLiteEncryptionExtensionTests: GRDBTestCase {
     
     func testDatabaseQueueWithKeyToDatabaseQueueWithKey() throws {
         do {

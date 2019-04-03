@@ -2,7 +2,7 @@
 import XCTest
 import GRDBCipher
 
-class GRDBEncryptionTests: GRDBTestCase {
+class GRDBCipherTests: GRDBTestCase {
     
     func testDatabaseQueueWithPassphraseToDatabaseQueueWithPassphrase() throws {
         do {
