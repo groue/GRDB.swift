@@ -213,7 +213,7 @@ extension Database {
         
         #if SQLITE_HAS_CODEC
         try validateSQLCipher()
-        if let passphrase = configuration.passphrase {
+        if let passphrase = try configuration.passphraseBlock?() ?? configuration.passphrase {
             try setCipherPassphrase(passphrase)
         }
         #endif

@@ -23,6 +23,27 @@ class EncryptionTests: GRDBTestCase {
         }
     }
 
+    func testDatabaseQueueWithPassphraseToDatabaseQueueWithPassphraseBlock() throws {
+        do {
+            dbConfiguration.passphrase = "secret"
+            dbConfiguration.passphraseBlock = nil
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
+            }
+        }
+
+        do {
+            dbConfiguration.passphrase = nil
+            dbConfiguration.passphraseBlock = { return "secret" }
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
+            try dbQueue.inDatabase { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
+            }
+        }
+    }
+
     func testDatabaseQueueWithPassphraseToDatabaseQueueWithoutPassphrase() throws {
         do {
             dbConfiguration.passphrase = "secret"

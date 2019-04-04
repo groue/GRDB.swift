@@ -79,11 +79,29 @@ public struct Configuration {
     // MARK: - Encryption
     
     #if SQLITE_HAS_CODEC
-    /// The passphrase for the encrypted database.
+    /// A block which returns the passphrase for the encrypted database.
+    ///
+    /// If encrypting, you should use either this _or_ `passphrase`.
+    /// Using both is an error.
     ///
     /// Default: nil
-    public var passphrase: String?
-    
+    public var passphraseBlock: (() throws -> String)? {
+        didSet {
+            assert(passphraseBlock == nil || passphrase == nil, "cannot use both passphrase *and* passphraseBlock")
+        }
+    }
+
+    /// The passphrase for the encrypted database.
+    ///
+    /// If encrypting, you should use either this _or_ `passphraseBlock`.
+    /// Using both is an error.
+    ///
+    /// Default: nil
+    public var passphrase: String? {
+        didSet {
+            assert(passphraseBlock == nil || passphrase == nil, "cannot use both passphrase *and* passphraseBlock")
+        }
+    }
     #endif
     
     /// If set, allows custom configuration to be run every time
