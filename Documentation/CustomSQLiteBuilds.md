@@ -130,3 +130,30 @@ import GRDBCustomSQLite
 
 let dbQueue = try DatabaseQueue(...)
 ```
+
+
+**To install GRDB with a custom SQLite with Encryption Extension:**
+
+**Note:** You will need to use Swift 5 or above to use GRDB with the SQLite Encryption Extension
+
+1. Follow the steps above for installing a regular custom SQLite build
+
+2. Locate your copy of the SEE code on your system
+
+3. In your `GRDBCustomSQLite-USER.xcconfig`, add the following entries:
+
+Append `-D SQLITE_HAS_CODEC -D GRDB_SQLITE_SEE` to your `CUSTOM_OTHER_SWIFT_FLAGS`
+
+Add the following to the end of the file:
+```SQLITE_SEE_PREFIX = /path/to/your/see-code/see-prefix.txt
+SQLITE_SEE_CODE = /path/to/your/see-code/see.c
+```
+
+4. In your `GRDBCustomSQLite-USER.h`, add the following lines:
+```#define SQLITE_HAS_CODEC
+#define GRDB_SQLITE_SEE
+```
+
+This allows GRDB to include the needed API around the encryption extension.
+
+5. You can now use GRDB around the SQLite Encryption Extension by specifying a key in your database configuration
