@@ -274,10 +274,10 @@ extension Database {
             try Database.activateExtendedCodes(sqliteConnection)
             #if SQLITE_HAS_CODEC
             try Database.validateSQLCipher(sqliteConnection)
-            #endif
             if let passphrase = configuration.passphrase {
                 try Database.set(passphrase: passphrase, forConnection: sqliteConnection)
             }
+            #endif
             try configuration.prepareDatabase?(self)
 
             try Database.validateDatabaseFormat(sqliteConnection)
