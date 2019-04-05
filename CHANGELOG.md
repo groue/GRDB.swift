@@ -61,6 +61,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#502](https://github.com/groue/GRDB.swift/pull/502): Rename Future to DatabaseFuture
 - [#503](https://github.com/groue/GRDB.swift/pull/503): IFNULL support for association aggregates
 
+### Fixed
+
+- [#511](https://github.com/groue/GRDB.swift/pull/511) by [@charlesmchen-signal](https://github.com/charlesmchen-signal): Fix DatabasePool.setupMemoryManagement()
+
+
 ### Breaking Changes
 
 - Swift 4.0 and Swift 4.1 are no longer supported
