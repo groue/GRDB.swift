@@ -63,24 +63,21 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         self.init(tableRegions: [:])
     }
     
-    /// This initializer can be used to observe (all rows) & (all columns) in a single table.
+    /// Creates a region that spans all rows and columns of a database table.
+    ///
+    /// - parameter table: A table name.
     public init(table: String) {
         self.init(tableRegions: [table: TableRegion(columns: nil, rowIds: nil)])
     }
     
-    /// This initializer can be used to observe (all rows) & (a subset of columns) in a single table.
-    public init(table: String, columns: Set<String>) {
+    /// Full columns in a table: (some columns in a table) × (all rows)
+    init(table: String, columns: Set<String>) {
         self.init(tableRegions: [table: TableRegion(columns: columns, rowIds: nil)])
     }
     
-    /// This initializer can be used to observe (a subset of rows) & (all columns) in a single table.
-    public init(table: String, rowIds: Set<Int64>) {
+    /// Full rows in a table: (all columns in a table) × (some rows)
+    init(table: String, rowIds: Set<Int64>) {
         self.init(tableRegions: [table: TableRegion(columns: nil, rowIds: rowIds)])
-    }
-    
-    /// This initializer can be used to observe (a subset of rows) & (a subset of columns) in a single table.
-    public init(table: String, columns: Set<String>, rowIds: Set<Int64>) {
-        self.init(tableRegions: [table: TableRegion(columns: columns, rowIds: rowIds)])
     }
     
     /// Returns the intersection of this region and the given one.
