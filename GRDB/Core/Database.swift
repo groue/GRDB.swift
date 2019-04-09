@@ -207,7 +207,7 @@ extension Database {
 extension Database {
 
     // MARK: - Database Setup
-
+    
     /// This method must be called after database initialization
     func setup() throws {
         // Setup trace first, so that setup queries are traced.
@@ -286,7 +286,7 @@ extension Database {
         db.configuration.trace!(sql)
         return SQLITE_OK
     }
-
+    
     private func setupForeignKeys() throws {
         // Foreign keys are disabled by default with SQLite3
         if configuration.foreignKeysEnabled {
@@ -336,14 +336,14 @@ extension Database {
         add(collation: .localizedCompare)
         add(collation: .localizedStandardCompare)
     }
-
+    
     private func activateExtendedCodes() throws {
         let code = sqlite3_extended_result_codes(sqliteConnection, 1)
         guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
     }
-
+    
     #if SQLITE_HAS_CODEC
     private func validateSQLCipher() throws {
         // https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
@@ -360,7 +360,7 @@ extension Database {
                 """)
         }
     }
-
+    
     private func setCipherPassphrase(_ passphrase: String) throws {
         let data = passphrase.data(using: .utf8)!
         #if swift(>=5.0)
@@ -377,7 +377,7 @@ extension Database {
         }
     }
     #endif
-
+    
     private func validateFormat() throws {
         // Users are surprised when they open a picture as a database and
         // see no error (https://github.com/groue/GRDB.swift/issues/54).
