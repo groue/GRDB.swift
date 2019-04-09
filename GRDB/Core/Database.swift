@@ -226,6 +226,9 @@ extension Database {
         }
         #endif
 
+        // Last step before we can start accessing the database.
+        // This is the opportunity to run SQLCipher configuration
+        // pragmas such as cipher_page_size, for example.
         try configuration.prepareDatabase?(self)
         try validateFormat()
         configuration.SQLiteConnectionDidOpen?()
