@@ -141,3 +141,17 @@ extension ValueObservation {
         set { preconditionFailure() }
     }
 }
+
+extension Configuration {
+    @available(*, unavailable, message: "Run the PRAGMA cipher_page_size in Configuration.prepareDatabase instead.")
+    public var cipherPageSize: Int {
+        get { preconditionFailure() }
+        set { preconditionFailure() }
+    }
+    
+    @available(*, unavailable, message: "Run the PRAGMA kdf_iter in Configuration.prepareDatabase instead.")
+    public var kdfIterations: Int {
+        get { preconditionFailure() }
+        set { preconditionFailure() }
+    }
+}
