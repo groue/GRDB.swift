@@ -7271,8 +7271,6 @@ DatabaseRegion fuels, for example, [ValueObservation and DatabaseRegionObservati
 
 For example, if you observe the region of `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
 
-Similarly, observing the region of `Country.filter(key: "FR")` will notify all changes that happen to the whole `country` table. That is because SQLite only notifies the numerical [rowid](https://www.sqlite.org/rowidtable.html) of changed rows, and we can't check if it is the row "FR" that has been changed, or another. This limitation does not apply to tables whose primary key is the rowid: `Player.filter(key: 42)` will only notify of changes performed on the row with id 42.
-
 For more details, see the [reference](http://groue.github.io/GRDB.swift/docs/3.7/Structs/DatabaseRegion.html#/s:4GRDB14DatabaseRegionV10isModified2bySbAA0B5EventV_tF).
 
 
