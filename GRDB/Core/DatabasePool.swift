@@ -185,7 +185,7 @@ extension DatabasePool {
         center.addObserver(
             self,
             selector: #selector(DatabasePool.applicationDidEnterBackground(_:)),
-            name: UIApplication.didReceiveMemoryWarningNotification,
+            name: UIApplication.didEnterBackgroundNotification,
             object: nil)
     }
     
