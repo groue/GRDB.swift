@@ -166,7 +166,6 @@ public final class Database {
     // MARK: - Initializer
 
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCache) throws {
-
         self.sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
         self.configuration = configuration
         self.schemaCache = schemaCache
