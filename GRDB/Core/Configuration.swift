@@ -93,11 +93,10 @@ public struct Configuration {
     ///
     /// For example:
     ///
-    ///    var config = Configuration()
-    ///    config.prepareDatabase = { db in
-    ///        db.execute(sql: "PRAGMA kdf_iter = '10000';")
-    ///    }
-    ///
+    ///     var config = Configuration()
+    ///     config.prepareDatabase = { db in
+    ///         try db.execute(sql: "PRAGMA kdf_iter = 10000")
+    ///     }
     public var prepareDatabase: ((Database) throws -> Void)?
     
     // MARK: - Transactions
