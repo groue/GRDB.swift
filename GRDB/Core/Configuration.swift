@@ -84,20 +84,20 @@ public struct Configuration {
     
     #endif
 
-    // If set, allows custom configuration to be run every time
-    // a new connection is opened.
-    //
-    // This block is run after the Database's connection has opened, but
-    // before that connection has been made available to any read/write
-    // API's.
-    //
-    // For example:
-    //
-    //    var config = Configuration()
-    //    config.prepareDatabase = { db in
-    //        db.execute(sql: "PRAGMA kdf_iter = '10000';")
-    //    }
-    //
+    /// If set, allows custom configuration to be run every time
+    /// a new connection is opened.
+    ///
+    /// This block is run after the Database's connection has opened, but
+    /// before that connection has been made available to any read/write
+    /// API's.
+    ///
+    /// For example:
+    ///
+    ///    var config = Configuration()
+    ///    config.prepareDatabase = { db in
+    ///        db.execute(sql: "PRAGMA kdf_iter = '10000';")
+    ///    }
+    ///
     public var prepareDatabase: ((Database) throws -> Void)?
     
     // MARK: - Transactions
