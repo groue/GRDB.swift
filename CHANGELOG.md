@@ -60,12 +60,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#499](https://github.com/groue/GRDB.swift/pull/499): Extract EncodableRecord from MutablePersistableRecord
 - [#502](https://github.com/groue/GRDB.swift/pull/502): Rename Future to DatabaseFuture
 - [#503](https://github.com/groue/GRDB.swift/pull/503): IFNULL support for association aggregates
+- [#508](https://github.com/groue/GRDB.swift/pull/508) by [@michaelkirk-signal](https://github.com/michaelkirk-signal): Allow Database Connection Configuration
 - [#510](https://github.com/groue/GRDB.swift/pull/510) by [@charlesmchen-signal](https://github.com/charlesmchen-signal): Expose DatabaseRegion(table:) initializer
 
 ### Fixed
 
 - [#511](https://github.com/groue/GRDB.swift/pull/511) by [@charlesmchen-signal](https://github.com/charlesmchen-signal): Fix DatabasePool.setupMemoryManagement()
-
 
 ### Breaking Changes
 
