@@ -4612,7 +4612,7 @@ protocol FetchRequest: DatabaseRegionConvertible {
     associatedtype RowDecoder
     
     /// A tuple that contains a prepared statement, and an eventual row adapter.
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
+    func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?)
     
     /// The number of rows fetched by the request.
     func fetchCount(_ db: Database) throws -> Int
