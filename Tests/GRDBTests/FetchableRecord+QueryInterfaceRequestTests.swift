@@ -100,10 +100,12 @@ class FetchableRecordQueryInterfaceRequestTests: GRDBTestCase {
             
             do {
                 let names = try request.fetchCursor(db).map { $0.name }
-                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                 XCTAssertEqual(try names.next()!, arthur.name)
                 XCTAssertEqual(try names.next()!, barbara.name)
                 XCTAssertTrue(try names.next() == nil)
+                
+                // validate query *after* cursor has retrieved a record
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
             }
         }
     }
@@ -139,10 +141,12 @@ class FetchableRecordQueryInterfaceRequestTests: GRDBTestCase {
             do {
                 let cursor = try Reader.fetchCursor(db)
                 let names = cursor.map { $0.name }
-                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                 XCTAssertEqual(try names.next()!, arthur.name)
                 XCTAssertEqual(try names.next()!, barbara.name)
                 XCTAssertTrue(try names.next() == nil)
+                
+                // validate query *after* cursor has retrieved a record
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
             }
         }
     }
@@ -179,10 +183,12 @@ class FetchableRecordQueryInterfaceRequestTests: GRDBTestCase {
             
             do {
                 let names = try AltReader.fetchCursor(db, request).map { $0.name }
-                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                 XCTAssertEqual(try names.next()!, arthur.name)
                 XCTAssertEqual(try names.next()!, barbara.name)
                 XCTAssertTrue(try names.next() == nil)
+                
+                // validate query *after* cursor has retrieved a record
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
             }
         }
     }
