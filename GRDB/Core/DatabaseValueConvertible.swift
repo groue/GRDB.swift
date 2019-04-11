@@ -348,7 +348,7 @@ extension DatabaseValueConvertible {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> Self? {
-        let (statement, adapter) = try request.prepare(db)
+        let (statement, adapter) = try request.prepare(db, hint: .limitOne)
         return try fetchOne(statement, adapter: adapter)
     }
 }

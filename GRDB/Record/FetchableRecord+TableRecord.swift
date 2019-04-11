@@ -121,7 +121,7 @@ extension FetchableRecord where Self: TableRecord {
             // Avoid hitting the database
             return nil
         }
-        return try filter(key: key).fetchOne(db)
+        return try filter(key: key).fetchOne(db, hint: .primaryKeyOrUnique)
     }
 }
 
@@ -186,6 +186,6 @@ extension FetchableRecord where Self: TableRecord {
             // Avoid hitting the database
             return nil
         }
-        return try filter(key: key).fetchOne(db)
+        return try filter(key: key).fetchOne(db, hint: .primaryKeyOrUnique)
     }
 }

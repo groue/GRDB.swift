@@ -30,6 +30,10 @@
 /// See https://github.com/groue/GRDB.swift#the-query-interface
 public struct QueryInterfaceRequest<T> {
     var query: SQLSelectQuery
+    
+    init(query: SQLSelectQuery) {
+        self.query = query
+    }
 }
 
 extension QueryInterfaceRequest : FetchRequest {
@@ -41,7 +45,16 @@ extension QueryInterfaceRequest : FetchRequest {
     /// - parameter db: A database connection.
     /// - returns: A prepared statement and an eventual row adapter.
     /// :nodoc:
-    public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+    public func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?) {
+        let query: SQLSelectQuery
+
+        switch hint {
+        case .limitOne?:
+            query = self.query.limit(1)
+        case nil, .primaryKeyOrUnique?:
+            query = self.query
+        }
+
         return try SQLSelectQueryGenerator(query).prepare(db)
     }
     

@@ -112,7 +112,7 @@ private class UserPersistableRecord2 : PersistableRecord {
 private struct UserRowRequest : FetchRequest {
     struct CustomType { }
     typealias RowDecoder = CustomType
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
+    func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
 }
 
 // MARK: - FetchableRecord

@@ -56,7 +56,7 @@ class SQLRequestTests: GRDBTestCase {
     func testRequestInitializer() throws {
         struct CustomRequest: FetchRequest {
             typealias RowDecoder = Row
-            func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+            func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?) {
                 let statement = try db.makeSelectStatement(sql: "SELECT ? AS a, ? AS b")
                 statement.arguments = [1, "foo"]
                 return (statement, nil)

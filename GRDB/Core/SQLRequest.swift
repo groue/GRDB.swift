@@ -125,9 +125,10 @@ public struct SQLRequest<T> : FetchRequest {
     /// executed, and an eventual row adapter.
     ///
     /// - parameter db: A database connection.
+    /// - parameter hint: SQLRequest disregards this value.
     ///
     /// :nodoc:
-    public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+    public func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?) {
         let statement: SelectStatement
         switch cache {
         case .none:
