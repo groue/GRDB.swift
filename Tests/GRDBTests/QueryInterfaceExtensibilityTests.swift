@@ -67,7 +67,7 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
             let request = Record.select(strftime("%Y", Column("date")))
             let year = try Int.fetchOne(db, request)
             XCTAssertEqual(year, 1970)
-            XCTAssertEqual(self.lastSQLQuery, "SELECT STRFTIME('%Y', \"date\") FROM \"records\"")
+            XCTAssertEqual(self.lastSQLQuery, "SELECT STRFTIME('%Y', \"date\") FROM \"records\" LIMIT 1")
         }
     }
 
@@ -109,7 +109,7 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
             default:
                 XCTFail("Expected data blob")
             }
-            XCTAssertEqual(self.lastSQLQuery, "SELECT (CAST(\"text\" AS BLOB)) FROM \"records\"")
+            XCTAssertEqual(self.lastSQLQuery, "SELECT (CAST(\"text\" AS BLOB)) FROM \"records\" LIMIT 1")
         }
     }
 }

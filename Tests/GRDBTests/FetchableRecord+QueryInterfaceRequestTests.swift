@@ -92,7 +92,7 @@ class FetchableRecordQueryInterfaceRequestTests: GRDBTestCase {
             
             do {
                 let reader = try request.fetchOne(db)!
-                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" LIMIT 1")
                 XCTAssertEqual(reader.id!, arthur.id!)
                 XCTAssertEqual(reader.name, arthur.name)
                 XCTAssertEqual(reader.age, arthur.age)
@@ -130,7 +130,7 @@ class FetchableRecordQueryInterfaceRequestTests: GRDBTestCase {
             
             do {
                 let reader = try Reader.fetchOne(db)!
-                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" LIMIT 1")
                 XCTAssertEqual(reader.id!, arthur.id!)
                 XCTAssertEqual(reader.name, arthur.name)
                 XCTAssertEqual(reader.age, arthur.age)
@@ -171,7 +171,7 @@ class FetchableRecordQueryInterfaceRequestTests: GRDBTestCase {
             
             do {
                 let reader = try AltReader.fetchOne(db, request)!
-                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" LIMIT 1")
                 XCTAssertEqual(reader.id!, arthur.id!)
                 XCTAssertEqual(reader.name, arthur.name)
                 XCTAssertEqual(reader.age, arthur.age)

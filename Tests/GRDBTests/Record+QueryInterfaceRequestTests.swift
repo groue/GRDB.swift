@@ -84,7 +84,7 @@ class RecordQueryInterfaceRequestTests: GRDBTestCase {
             
             do {
                 let reader = try request.fetchOne(db)!
-                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" LIMIT 1")
                 XCTAssertEqual(reader.id!, arthur.id!)
                 XCTAssertEqual(reader.name, arthur.name)
                 XCTAssertEqual(reader.age, arthur.age)
