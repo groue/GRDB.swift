@@ -43,6 +43,7 @@ extension QueryInterfaceRequest : FetchRequest {
     /// executed, and an eventual row adapter.
     ///
     /// - parameter db: A database connection.
+    /// - parameter hint: A hint about how the query should be prepared.
     /// - returns: A prepared statement and an eventual row adapter.
     /// :nodoc:
     public func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?) {
