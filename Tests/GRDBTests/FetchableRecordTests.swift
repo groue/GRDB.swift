@@ -261,48 +261,49 @@ class FetchableRecordTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                func test(_ nilBecauseMissingRow: Fetched?) {
+                func test(_ nilBecauseMissingRow: Fetched?, sql: String) {
                     XCTAssertTrue(nilBecauseMissingRow == nil)
+                    XCTAssertEqual(lastSQLQuery, sql)
                 }
                 do {
                     let sql = "SELECT 1 WHERE 0"
                     let statement = try db.makeSelectStatement(sql: sql)
-                    try test(Fetched.fetchOne(db, sql: sql))
-                    try test(Fetched.fetchOne(statement))
-                    try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql)))
-                    try test(SQLRequest<Fetched>(sql: sql).fetchOne(db))
+                    try test(Fetched.fetchOne(db, sql: sql), sql: sql)
+                    try test(Fetched.fetchOne(statement), sql: sql)
+                    try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql)), sql: sql)
+                    try test(SQLRequest<Fetched>(sql: sql).fetchOne(db), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0, 1 WHERE 0"
                     let statement = try db.makeSelectStatement(sql: sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
-                    try test(Fetched.fetchOne(db, sql: sql, adapter: adapter))
-                    try test(Fetched.fetchOne(statement, adapter: adapter))
-                    try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)))
-                    try test(SQLRequest<Fetched>(sql: sql, adapter: adapter).fetchOne(db))
+                    try test(Fetched.fetchOne(db, sql: sql, adapter: adapter), sql: sql)
+                    try test(Fetched.fetchOne(statement, adapter: adapter), sql: sql)
+                    try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
+                    try test(SQLRequest<Fetched>(sql: sql, adapter: adapter).fetchOne(db), sql: sql)
                 }
             }
             do {
-                func test(_ record: Fetched?) {
+                func test(_ record: Fetched?, sql: String) {
                     XCTAssertEqual(record!.firstName, "Arthur")
                     XCTAssertEqual(record!.lastName, "Martin")
                 }
                 do {
                     let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName"
                     let statement = try db.makeSelectStatement(sql: sql)
-                    try test(Fetched.fetchOne(db, sql: sql))
-                    try test(Fetched.fetchOne(statement))
-                    try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql)))
-                    try test(SQLRequest<Fetched>(sql: sql).fetchOne(db))
+                    try test(Fetched.fetchOne(db, sql: sql), sql: sql)
+                    try test(Fetched.fetchOne(statement), sql: sql)
+                    try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql)), sql: sql)
+                    try test(SQLRequest<Fetched>(sql: sql).fetchOne(db), sql: sql)
                 }
                 do {
                     let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName"
                     let statement = try db.makeSelectStatement(sql: sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
-                    try test(Fetched.fetchOne(db, sql: sql, adapter: adapter))
-                    try test(Fetched.fetchOne(statement, adapter: adapter))
-                    try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)))
-                    try test(SQLRequest<Fetched>(sql: sql, adapter: adapter).fetchOne(db))
+                    try test(Fetched.fetchOne(db, sql: sql, adapter: adapter), sql: sql)
+                    try test(Fetched.fetchOne(statement, adapter: adapter), sql: sql)
+                    try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
+                    try test(SQLRequest<Fetched>(sql: sql, adapter: adapter).fetchOne(db), sql: sql)
                 }
             }
         }

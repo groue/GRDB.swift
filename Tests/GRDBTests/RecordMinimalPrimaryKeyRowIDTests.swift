@@ -310,6 +310,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             
             let fetchedRecord = try MinimalRowID.fetchOne(db, key: ["id": record.id])!
             XCTAssertTrue(fetchedRecord.id == record.id)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalRowIDs\" WHERE (\"id\" = \(record.id!))")
         }
     }
 
@@ -380,6 +381,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             
             let fetchedRecord = try MinimalRowID.filter(key: ["id": record.id]).fetchOne(db)!
             XCTAssertTrue(fetchedRecord.id == record.id)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalRowIDs\" WHERE (\"id\" = \(record.id!)) LIMIT 1")
         }
     }
     
