@@ -169,7 +169,7 @@ public final class Database {
         self.sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
         #if SQLITE_HAS_CODEC && GRDB_SQLITE_SEE
         if let key = configuration.key {
-        try Database.set(key: key, withEncryptionType: configuration.encryptionType, forConnection: sqliteConnection)
+            try Database.set(key: key, withEncryptionAlgorithm: configuration.encryptionAlgorithm, forConnection: sqliteConnection)
         }
         #endif
         self.configuration = configuration
@@ -300,18 +300,6 @@ extension Database {
         }
     }
     #endif
-    
-    private static func validateDatabaseFormat(_ sqliteConnection: SQLiteConnection) throws {
-        // Users are surprised when they open a picture as a database and
-        // see no error (https://github.com/groue/GRDB.swift/issues/54).
-        //
-        // So let's fail early if file is not a database, or encrypted with
-        // another passphrase.
-        let code = sqlite3_exec(sqliteConnection, "SELECT * FROM sqlite_master LIMIT 1", nil, nil, nil)
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-        }
-    }
 }
 
 extension Database {
@@ -329,7 +317,7 @@ extension Database {
         observationBroker.installCommitAndRollbackHooks()
         try activateExtendedCodes()
 
-        #if SQLITE_HAS_CODEC
+        #if SQLITE_HAS_CODEC && GRDBCIPHER
         try validateSQLCipher()
         if let passphrase = configuration.passphrase {
             try setCipherPassphrase(passphrase)
@@ -454,7 +442,7 @@ extension Database {
         }
     }
     
-    #if SQLITE_HAS_CODEC
+    #if SQLITE_HAS_CODEC && GRDBCIPHER
     private func validateSQLCipher() throws {
         // https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
         //
