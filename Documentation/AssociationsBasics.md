@@ -175,7 +175,7 @@ Otherwise:
     }
     ```
     
-    A record type can conforms to EncodableRecord via the [PersistableRecord] protocol. However, PersistableRecord also grants [persistence methods], the ones that are able to insert, update, and delete rows in the database. When you'd rather keep a record type read-only, and yet profit from associations, all you need is EncodableRecord.
+    A record type can conform to EncodableRecord via the [PersistableRecord] protocol. However, PersistableRecord also grants [persistence methods], the ones that are able to insert, update, and delete rows in the database. When you'd rather keep a record type read-only, and yet profit from associations, all you need is EncodableRecord.
     
     EncodableRecord conformance can be derived from the standard Encodable protocol. See [Codable Records] for more information.
 
