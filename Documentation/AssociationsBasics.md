@@ -1554,23 +1554,38 @@ It is possible to fetch aggregated values from **[HasMany]** and **[HasManyThrou
 
 Counting associated records, fetching the minimum, maximum, average value of an associated record column, computing the sum of an associated record column, these are all aggregation operations.
 
-When you need to compute aggregates **from a single record**, you use regular aggregating methods, detailed in the [Fetching Aggregated Values] chapter. For example:
+When you need to compute aggregates **from a single record**, you use [regular aggregating methods] on [requests for associated records]. For example:
 
 ```swift
+struct Author: TableRecord, EncodableRecord {
+    static let books = hasMany(Book.self)
+    var books: QueryInterfaceRequest<Book> {
+        return request(for: Author.books)
+    }
+}
+
 let author: Author = ...
+
+// The number of books by this author
 let bookCount = try author.books.fetchCount(db)  // Int
 
+// The year of the most recent book by this author
 let request = author.books.select(max(yearColumn))
 let maxBookYear = try Int.fetchOne(db, request)  // Int?
 ```
 
 When you need to compute aggregates **from several record**, in a single shot, you'll use an **association aggregate**. Those are the topic of this chapter.
 
-For example, you'll use the `isEmpty` aggregate when you want, say, to fetch all authors who wrote no book at all:
+For example, you'll use the `isEmpty` aggregate when you want, say, to fetch all authors who wrote no book at all, or some books:
 
 ```swift
-let lazyAuthors: [Author] = try Author.having(Author.books.isEmpty).fetchAll(db)
-let productiveAuthors: [Author] = try Author.having(Author.books.isEmpty == false).fetchAll(db)
+let lazyAuthors = try Author
+    .having(Author.books.isEmpty)
+    .fetchAll(db) // [Author]
+
+let productiveAuthors: [Author] = try Author
+    .having(Author.books.isEmpty == false)
+    .fetchAll(db) // [Author]
 ```
 
 And you'll use the `count` aggregate in order to fetch all authors along with the number of books they wrote:
@@ -2196,6 +2211,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Fetching Values from Associations]: #fetching-values-from-associations
 [Combining Associations]: #combining-associations
 [Requesting Associated Records]: #requesting-associated-records
+[requests for associated records]: #requesting-associated-records
 [Joining Methods]: #joining-methods
 [Filtering Associations]: #filtering-associations
 [Sorting Associations]: #sorting-associations
@@ -2220,7 +2236,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [query interface requests]: ../README.md#requests
 [TableRecord]: ../README.md#tablerecord-protocol
 [Good Practices for Designing Record Types]: GoodPracticesForDesigningRecordTypes.md
-[Fetching Aggregated Values]: ../README.md#fetching-aggregated-values
+[regular aggregating methods]: ../README.md#fetching-aggregated-values
 [Record class]: ../README.md#record-class
 [EncodableRecord]: ../README.md#persistablerecord-protocol
 [PersistableRecord]: ../README.md#persistablerecord-protocol
