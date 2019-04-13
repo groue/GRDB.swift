@@ -127,7 +127,7 @@ Before we dive in, please remember that associations can not generate all possib
 
 **Associations are available on types that adopt the necessary supporting protocols.**
 
-When your type is a subclass of the [Record class], all necessary protocols are already setup and ready.
+When your record type is a subclass of the [Record class], all necessary protocols are already setup and ready: you can skip this chapter.
 
 Otherwise:
 
@@ -143,24 +143,39 @@ Otherwise:
     }
     ```
 
-- **[EncodableRecord]** makes it possible to use the `request(for:)` method, as below:
+- **[FetchableRecord]** makes it possible to fetch records from the database:
+
+    ```swift
+    extension Author: FetchableRecord { }
+    
+    // Who's prolific?
+    let authors = try dbQueue.read { db in
+        try Author
+            .having(Author.book.count >= 20)
+            .fetchAll(db) // [Author]
+    }
+    ```
+    
+    FetchableRecord conformance can be derived from the standard Decodable protocol. See [Codable Records] for more information.
+
+- **[EncodableRecord]** makes it possible to fetch associated records with the `request(for:)` method:
 
     ```swift
     extension Book: EncodableRecord {
-        // The request which fetches the book's author.
+        // The request for the author of a book.
         var author: QueryInterfaceRequest<Author> {
             return request(for: Book.author)
         }
     }
     
-    // Let's fetch a book's author:
-    try dbQueue.read { db in
-        let book: Book = ...
-        let author = try book.author.fetchOne(db) // Author?
+    // Who wrote this book?
+    let book: Book = ...
+    let author = try dbQueue.read { db in
+        try book.author.fetchOne(db) // Author?
     }
     ```
     
-    A record type often conforms to EncodableRecord via the [PersistableRecord] protocol. However, PersistableRecord grants [persistence methods], the ones that are able to insert, update, and delete rows in the database. When you'd rather keep a record type read-only, and yet profit from associations, all you need is EncodableRecord.
+    A record type can conforms to EncodableRecord via the [PersistableRecord] protocol. However, PersistableRecord also grants [persistence methods], the ones that are able to insert, update, and delete rows in the database. When you'd rather keep a record type read-only, and yet profit from associations, all you need is EncodableRecord.
     
     EncodableRecord conformance can be derived from the standard Encodable protocol. See [Codable Records] for more information.
 
