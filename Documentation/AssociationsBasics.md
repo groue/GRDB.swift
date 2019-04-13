@@ -225,7 +225,7 @@ The **BelongsTo** association between a book and its author needs that the datab
 
 ![BelongsToSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/BelongsToSchema.svg)
 
-See [Convention for the BelongsTo Association] for some sample code that defines the database schema for such an association.
+See [Convention for the BelongsTo Association] for some sample code that defines the database schema for such an association, and [Building Requests from Associations] in order to learn how to use it.
 
 
 ## HasMany
@@ -248,7 +248,7 @@ The **HasMany** association between an author and its books needs that the datab
 
 ![HasManySchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasManySchema.svg)
 
-See [Convention for the HasMany Association] for some sample code that defines the database schema for such an association.
+See [Convention for the HasMany Association] for some sample code that defines the database schema for such an association, and [Building Requests from Associations] in order to learn how to use it.
 
 
 ## HasOne
@@ -272,7 +272,7 @@ The **HasOne** association between a country and its demographics needs that the
 
 ![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneSchema.svg)
 
-See [Convention for the HasOne Association] for some sample code that defines the database schema for such an association.
+See [Convention for the HasOne Association] for some sample code that defines the database schema for such an association, and [Building Requests from Associations] in order to learn how to use it.
 
 
 ## HasManyThrough
@@ -331,6 +331,9 @@ struct Document: TableRecord {
 }
 ```
 
+See [Building Requests from Associations] in order to learn how to use the HasManyThrough association.
+
+
 ## HasOneThrough
 
 A **HasOneThrough** association sets up a one-to-one connection with another record. This association indicates that the declaring record can be matched with one instance of another record by proceeding through a third record. For example, if each book belongs to a library, and each library has one address, then one knows where the book should be returned to:
@@ -365,6 +368,8 @@ struct Book: TableRecord {
     ...
 }
 ```
+
+See [Building Requests from Associations] in order to learn how to use the HasOneThrough association.
 
 
 ## Choosing Between BelongsTo and HasOne
@@ -2214,7 +2219,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Row Adapters]: ../README.md#row-adapters
 [query interface requests]: ../README.md#requests
 [TableRecord]: ../README.md#tablerecord-protocol
-[association requests]: #building-requests-from-associations
 [Good Practices for Designing Record Types]: GoodPracticesForDesigningRecordTypes.md
 [Fetching Aggregated Values]: ../README.md#fetching-aggregated-values
 [Record class]: ../README.md#record-class
