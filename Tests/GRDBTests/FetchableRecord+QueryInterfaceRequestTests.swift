@@ -148,6 +148,14 @@ class FetchableRecordQueryInterfaceRequestTests: GRDBTestCase {
                 // validate query *after* cursor has retrieved a record
                 XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
             }
+
+            do {
+                let reader = try Reader.limit(1, offset: 1).fetchOne(db)!
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" LIMIT 1 OFFSET 1")
+                XCTAssertEqual(reader.id!, barbara.id!)
+                XCTAssertEqual(reader.name, barbara.name)
+                XCTAssertEqual(reader.age, barbara.age)
+            }
         }
     }
 
