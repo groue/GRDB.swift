@@ -313,12 +313,7 @@ extension FetchableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> Self? {
-        return try Self.fetchOne(db, request, forSingleResult: true)
-    }
-    
-    @inlinable
-    static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R, forSingleResult singleResult: Bool) throws -> Self? {
-        let (statement, adapter) = try request.prepare(db, forSingleResult: singleResult)
+        let (statement, adapter) = try request.prepare(db, forSingleResult: true)
         return try fetchOne(statement, adapter: adapter)
     }
 }
@@ -373,12 +368,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
-        return try fetchOne(db, forSingleResult: true)
-    }
-    
-    @inlinable
-    func fetchOne(_ db: Database, forSingleResult singleResult: Bool) throws -> RowDecoder? {
-        return try RowDecoder.fetchOne(db, self, forSingleResult: singleResult)
+        return try RowDecoder.fetchOne(db, self)
     }
 }
 

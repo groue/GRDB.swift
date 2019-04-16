@@ -44,9 +44,9 @@ extension QueryInterfaceRequest : FetchRequest {
     /// :nodoc:
     public func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
         var query = self.query
-
+        
         // Optimize query by setting a limit of 1 when appropriate
-        if singleResult && !query.expectsSingleRecord {
+        if singleResult && !query.expectsSingleResult {
             query.limit = SQLLimit(limit: 1, offset: query.limit?.offset)
         }
 
@@ -189,6 +189,17 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///     request = request.filter { db in true }
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
         return mapQuery { $0.filter(predicate) }
+    }
+    
+    /// Creates a request which expects a single result.
+    ///
+    /// It is unlikely you need to call this method. Its net effect is that
+    /// QueryInterfaceRequest does not use any `LIMIT 1` sql clause when you
+    /// call a `fetchOne` method.
+    ///
+    /// :nodoc:
+    public func expectingSingleResult() -> QueryInterfaceRequest {
+        return mapQuery { $0.expectingSingleResult() }
     }
     
     /// Creates a request grouped according to *expressions promise*.
@@ -468,7 +479,7 @@ extension TableRecord {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public static func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType?) -> QueryInterfaceRequest<Self> {
-        return all().mapQuery { $0.expectingSingleRecord() }.filter(key: key)
+        return all().filter(key: key)
     }
     
     /// Creates a request with the provided primary key *predicate*.
@@ -495,7 +506,7 @@ extension TableRecord {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public static func filter(key: [String: DatabaseValueConvertible?]?) -> QueryInterfaceRequest<Self> {
-        return all().mapQuery { $0.expectingSingleRecord() }.filter(key: key)
+        return all().filter(key: key)
     }
     
     /// Creates a request with the provided primary key *predicate*.
