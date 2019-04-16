@@ -13,7 +13,7 @@ class SQLRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = SQLRequest<Row>(sql: "SELECT 1")
-            let (statement, adapter) = try request.prepare(db)
+            let (statement, adapter) = try request.prepare(db, forSingleResult: false)
             XCTAssertEqual(statement.sql, "SELECT 1")
             XCTAssertNil(adapter)
             let row = try request.fetchOne(db)
@@ -25,7 +25,7 @@ class SQLRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = SQLRequest<Int>(sql: "SELECT ?, ?", arguments: [1, 2], adapter: SuffixRowAdapter(fromIndex: 1))
-            let (statement, adapter) = try request.prepare(db)
+            let (statement, adapter) = try request.prepare(db, forSingleResult: false)
             XCTAssertEqual(statement.sql, "SELECT ?, ?")
             XCTAssertNotNil(adapter)
             let int = try request.fetchOne(db)!
@@ -37,8 +37,8 @@ class SQLRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = SQLRequest<Row>(sql: "SELECT 1")
-            let (statement1, _) = try request.prepare(db)
-            let (statement2, _) = try request.prepare(db)
+            let (statement1, _) = try request.prepare(db, forSingleResult: false)
+            let (statement2, _) = try request.prepare(db, forSingleResult: false)
             XCTAssertTrue(statement1 !== statement2)
         }
     }
@@ -47,8 +47,8 @@ class SQLRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = SQLRequest<Row>(sql: "SELECT 1", cached: true)
-            let (statement1, _) = try request.prepare(db)
-            let (statement2, _) = try request.prepare(db)
+            let (statement1, _) = try request.prepare(db, forSingleResult: false)
+            let (statement2, _) = try request.prepare(db, forSingleResult: false)
             XCTAssertTrue(statement1 === statement2)
         }
     }
@@ -56,7 +56,7 @@ class SQLRequestTests: GRDBTestCase {
     func testRequestInitializer() throws {
         struct CustomRequest: FetchRequest {
             typealias RowDecoder = Row
-            func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?) {
+            func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
                 let statement = try db.makeSelectStatement(sql: "SELECT ? AS a, ? AS b")
                 statement.arguments = [1, "foo"]
                 return (statement, nil)

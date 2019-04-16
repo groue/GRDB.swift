@@ -12,7 +12,7 @@ class FetchRequestTests: GRDBTestCase {
     func testRequestFetchRows() throws {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
-            func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?) {
+            func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
                 return try (db.makeSelectStatement(sql: "SELECT * FROM table1"), nil)
             }
         }
@@ -37,7 +37,7 @@ class FetchRequestTests: GRDBTestCase {
     func testRequestFetchValues() throws {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Int
-            func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?) {
+            func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
                 return try (db.makeSelectStatement(sql: "SELECT id FROM table1"), nil)
             }
         }
@@ -65,7 +65,7 @@ class FetchRequestTests: GRDBTestCase {
         }
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = CustomRecord
-            func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?) {
+            func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
                 return try (db.makeSelectStatement(sql: "SELECT id FROM table1"), nil)
             }
         }
@@ -90,7 +90,7 @@ class FetchRequestTests: GRDBTestCase {
     func testRequestFetchCount() throws {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
-            func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?) {
+            func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
                 return try (db.makeSelectStatement(sql: "SELECT * FROM table1"), nil)
             }
         }
@@ -113,7 +113,7 @@ class FetchRequestTests: GRDBTestCase {
     func testRequestCustomizedFetchCount() throws {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
-            func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?) {
+            func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
                 return try (db.makeSelectStatement(sql: "INVALID"), nil)
             }
             

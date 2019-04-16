@@ -43,17 +43,15 @@ extension QueryInterfaceRequest : FetchRequest {
     /// executed, and an eventual row adapter.
     ///
     /// - parameter db: A database connection.
-    /// - parameter hint: A hint about how the query should be prepared.
+    /// - parameter singleResult: A hint as to whether the query should be optimized for a single result.
     /// - returns: A prepared statement and an eventual row adapter.
     /// :nodoc:
-    public func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?) {
-        let query: SQLSelectQuery
+    public func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
 
-        switch hint {
-        case .limitOne?:
-            query = self.query.limit(1)
-        case nil, .primaryKeyOrUnique?:
-            query = self.query
+        var query = self.query
+
+        if singleResult {
+            query.limit = SQLLimit(limit: 1, offset: query.limit?.offset)
         }
 
         return try SQLSelectQueryGenerator(query).prepare(db)

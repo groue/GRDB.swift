@@ -121,7 +121,8 @@ extension FetchableRecord where Self: TableRecord {
             // Avoid hitting the database
             return nil
         }
-        return try filter(key: key).fetchOne(db, hint: .primaryKeyOrUnique)
+        // Fetch using `forSingleResult: false` to omit unnecessary "LIMIT 1"
+        return try filter(key: key).fetchOne(db, forSingleResult: false)
     }
 }
 
@@ -186,6 +187,7 @@ extension FetchableRecord where Self: TableRecord {
             // Avoid hitting the database
             return nil
         }
-        return try filter(key: key).fetchOne(db, hint: .primaryKeyOrUnique)
+        // Fetch using `forSingleResult: false` to omit unnecessary "LIMIT 1"
+        return try filter(key: key).fetchOne(db, forSingleResult: false)
     }
 }

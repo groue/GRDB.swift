@@ -281,7 +281,7 @@ extension FetchableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> RecordCursor<Self> {
-        let (statement, adapter) = try request.prepare(db)
+        let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         return try fetchCursor(statement, adapter: adapter)
     }
     
@@ -297,7 +297,7 @@ extension FetchableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchAll<R: FetchRequest>(_ db: Database, _ request: R) throws -> [Self] {
-        let (statement, adapter) = try request.prepare(db)
+        let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         return try fetchAll(statement, adapter: adapter)
     }
     
@@ -313,12 +313,12 @@ extension FetchableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> Self? {
-        return try Self.fetchOne(db, request, hint: .limitOne)
+        return try Self.fetchOne(db, request, forSingleResult: true)
     }
     
     @inlinable
-    static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R, hint: FetchRequestHint?) throws -> Self? {
-        let (statement, adapter) = try request.prepare(db, hint: hint)
+    static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R, forSingleResult singleResult: Bool) throws -> Self? {
+        let (statement, adapter) = try request.prepare(db, forSingleResult: singleResult)
         return try fetchOne(statement, adapter: adapter)
     }
 }
@@ -373,12 +373,12 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
-        return try fetchOne(db, hint: .limitOne)
+        return try fetchOne(db, forSingleResult: true)
     }
     
     @inlinable
-    func fetchOne(_ db: Database, hint: FetchRequestHint?) throws -> RowDecoder? {
-        return try RowDecoder.fetchOne(db, self, hint: hint)
+    func fetchOne(_ db: Database, forSingleResult singleResult: Bool) throws -> RowDecoder? {
+        return try RowDecoder.fetchOne(db, self, forSingleResult: singleResult)
     }
 }
 

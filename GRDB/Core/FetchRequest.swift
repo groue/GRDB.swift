@@ -11,23 +11,16 @@
 public protocol FetchRequest: DatabaseRegionConvertible {
     /// The type that tells how fetched database rows should be interpreted.
     associatedtype RowDecoder
-    
-    /// Returns a tuple that contains a prepared statement that is ready to be
-    /// executed, and an eventual row adapter.
-    ///
-    /// Default implementation uses `prepare(db, hint: nil)`.
-    ///
-    /// - parameter db: A database connection.
-    /// - returns: A prepared statement and an eventual row adapter.
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
-    
+
     /// Returns a tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
     ///
     /// - parameter db: A database connection.
-    /// - parameter hint: A hint as to how the request should be prepared.
+    /// - parameter singleResult: A hint that the query should return a single
+    ///                           result. Implementations can optionally use
+    ///                           this to optimize the prepared statement.
     /// - returns: A prepared statement and an eventual row adapter.
-    func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?)
+    func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
     
     /// Returns the number of rows fetched by the request.
     ///
@@ -43,10 +36,7 @@ public protocol FetchRequest: DatabaseRegionConvertible {
 }
 
 extension FetchRequest {
-    public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-        return try self.prepare(db, hint: nil)
-    }
-    
+
     /// Returns an adapted request.
     public func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedFetchRequest<Self> {
         return AdaptedFetchRequest(self, adapter)
@@ -59,7 +49,7 @@ extension FetchRequest {
     ///
     /// - parameter db: A database connection.
     public func fetchCount(_ db: Database) throws -> Int {
-        let (statement, _) = try prepare(db)
+        let (statement, _) = try prepare(db, forSingleResult: false)
         let sql = "SELECT COUNT(*) FROM (\(statement.sql))"
         return try Int.fetchOne(db, sql: sql, arguments: statement.arguments)!
     }
@@ -71,7 +61,7 @@ extension FetchRequest {
     ///
     /// - parameter db: A database connection.
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        let (statement, _) = try prepare(db)
+        let (statement, _) = try prepare(db, forSingleResult: false)
         return statement.databaseRegion
     }
 }
@@ -93,8 +83,8 @@ public struct AdaptedFetchRequest<Base: FetchRequest> : FetchRequest {
     }
     
     /// :nodoc:
-    public func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?) {
-        let (statement, baseAdapter) = try base.prepare(db, hint: hint)
+    public func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
+        let (statement, baseAdapter) = try base.prepare(db, forSingleResult: singleResult)
         if let baseAdapter = baseAdapter {
             return try (statement, ChainedAdapter(first: baseAdapter, second: adapter(db)))
         } else {
@@ -122,7 +112,7 @@ public struct AdaptedFetchRequest<Base: FetchRequest> : FetchRequest {
 public struct AnyFetchRequest<T> : FetchRequest {
     public typealias RowDecoder = T
     
-    private let _prepare: (Database, FetchRequestHint?) throws -> (SelectStatement, RowAdapter?)
+    private let _prepare: (Database, _ singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
     private let _fetchCount: (Database) throws -> Int
     private let _databaseRegion: (Database) throws -> DatabaseRegion
     
@@ -135,26 +125,26 @@ public struct AnyFetchRequest<T> : FetchRequest {
     
     /// Creates a request whose `prepare()` method wraps and forwards
     /// operations the argument closure.
-    public init(_ prepare: @escaping (Database, FetchRequestHint?) throws -> (SelectStatement, RowAdapter?)) {
-        _prepare = { db, hint in
-            try prepare(db, hint)
+    public init(_ prepare: @escaping (Database, _ singleResult: Bool) throws -> (SelectStatement, RowAdapter?)) {
+        _prepare = { db, singleResult in
+            try prepare(db, singleResult)
         }
         
         _fetchCount = { db in
-            let (statement, _) = try prepare(db, nil)
+            let (statement, _) = try prepare(db, false)
             let sql = "SELECT COUNT(*) FROM (\(statement.sql))"
             return try Int.fetchOne(db, sql: sql, arguments: statement.arguments)!
         }
         
         _databaseRegion = { db in
-            let (statement, _) = try prepare(db, nil)
+            let (statement, _) = try prepare(db, false)
             return statement.databaseRegion
         }
     }
     
     /// :nodoc:
-    public func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?) {
-        return try _prepare(db, hint)
+    public func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
+        return try _prepare(db, singleResult)
     }
     
     /// :nodoc:
@@ -166,15 +156,4 @@ public struct AnyFetchRequest<T> : FetchRequest {
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
         return try _databaseRegion(db)
     }
-}
-
-/// A hint as to how the fetch request should be prepared.
-///
-/// FetchRequest implementations (such as SQLRequest) may ignore these hints.
-///
-/// - limitOne: Only 1 record should be fetched.
-/// - primaryKeyOrUnique: The query filters on primary keys or a unique index and is expected to return 1 record.
-public enum FetchRequestHint {
-    case limitOne
-    case primaryKeyOrUnique
 }
