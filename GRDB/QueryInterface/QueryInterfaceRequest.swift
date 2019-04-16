@@ -47,10 +47,10 @@ extension QueryInterfaceRequest : FetchRequest {
     /// - returns: A prepared statement and an eventual row adapter.
     /// :nodoc:
     public func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
-
         var query = self.query
 
-        if singleResult {
+        // Optimize query by setting a limit of 1 when appropriate
+        if singleResult && !query.expectsSingleRecord {
             query.limit = SQLLimit(limit: 1, offset: query.limit?.offset)
         }
 
@@ -472,7 +472,7 @@ extension TableRecord {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public static func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType?) -> QueryInterfaceRequest<Self> {
-        return all().filter(key: key)
+        return all().mapQuery { $0.expectingSingleRecord() }.filter(key: key)
     }
     
     /// Creates a request with the provided primary key *predicate*.
@@ -499,7 +499,7 @@ extension TableRecord {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public static func filter(key: [String: DatabaseValueConvertible?]?) -> QueryInterfaceRequest<Self> {
-        return all().filter(key: key)
+        return all().mapQuery { $0.expectingSingleRecord() }.filter(key: key)
     }
     
     /// Creates a request with the provided primary key *predicate*.
