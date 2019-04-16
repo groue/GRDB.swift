@@ -115,7 +115,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             
             let fetchedRecord = try Item.filter(key: ["email": record.email]).fetchOne(db)!
             XCTAssertTrue(fetchedRecord.email == record.email)
-            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"items\" WHERE (\"email\" = 'item@example.com') LIMIT 1")
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"items\" WHERE (\"email\" = 'item@example.com')")
         }
     }
     
