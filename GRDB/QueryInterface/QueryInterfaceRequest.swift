@@ -30,10 +30,6 @@
 /// See https://github.com/groue/GRDB.swift#the-query-interface
 public struct QueryInterfaceRequest<T> {
     var query: SQLSelectQuery
-    
-    init(query: SQLSelectQuery) {
-        self.query = query
-    }
 }
 
 extension QueryInterfaceRequest : FetchRequest {
