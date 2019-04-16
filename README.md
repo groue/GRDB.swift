@@ -4612,7 +4612,7 @@ protocol FetchRequest: DatabaseRegionConvertible {
     associatedtype RowDecoder
     
     /// A tuple that contains a prepared statement, and an eventual row adapter.
-    func prepare(_ db: Database, hint: FetchRequestHint?) throws -> (SelectStatement, RowAdapter?)
+    func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
     
     /// The number of rows fetched by the request.
     func fetchCount(_ db: Database) throws -> Int
@@ -4621,7 +4621,7 @@ protocol FetchRequest: DatabaseRegionConvertible {
 
 When the `RowDecoder` associated type is [Row](#fetching-rows), or a [value](#value-queries), or a type that conforms to [FetchableRecord], the request can fetch: see [Fetching From Custom Requests](#fetching-from-custom-requests) below.
 
-The `prepare` method returns a prepared statement and an optional row adapter. The [prepared statement](#prepared-statements) tells which SQL query should be executed. The row adapter helps presenting the fetched rows in the way expected by the row decoders (see [row adapter](#row-adapters)).
+The `prepare(_:forSingleResult:)` method accepts a database connection, a `singleResult` hint, and returns a prepared statement and an optional row adapter. Conforming types can use the `singleResult` hint as an optimization opportunity, and return a [prepared statement](#prepared-statements) that fetches at most one row, with a `LIMIT` SQL clause, when possible. The optional row adapter helps presenting the fetched rows in the way expected by the row decoders (see [row adapters](#row-adapters)).
 
 The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
 
