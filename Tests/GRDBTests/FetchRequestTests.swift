@@ -357,4 +357,23 @@ class FetchRequestTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT 'multiple')")
         }
     }
+    
+    func testSingleResultHintIsNotUsedForDefaultDatabaseRegion() throws {
+        struct CustomRequest: FetchRequest {
+            typealias RowDecoder = Void
+            func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
+                if singleResult { fatalError("not implemented") }
+                return try (db.makeSelectStatement(sql: "SELECT * FROM multiple"), nil)
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE TABLE multiple(a)")
+            
+            let request = CustomRequest()
+            let region = try request.databaseRegion(db)
+            XCTAssertEqual(region.description, "multiple(a)")
+        }
+    }
 }
