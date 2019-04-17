@@ -340,4 +340,21 @@ class FetchRequestTests: GRDBTestCase {
             }
         }
     }
+    
+    func testSingleResultHintIsNotUsedForDefaultFetchCount() throws {
+        struct CustomRequest: FetchRequest {
+            typealias RowDecoder = Void
+            func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
+                if singleResult { fatalError("not implemented") }
+                return try (db.makeSelectStatement(sql: "SELECT 'multiple'"), nil)
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            let request = CustomRequest()
+            _ = try request.fetchCount(db)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT 'multiple')")
+        }
+    }
 }
