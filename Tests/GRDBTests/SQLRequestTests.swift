@@ -72,6 +72,21 @@ class SQLRequestTests: GRDBTestCase {
         }
     }
     
+    func testRequestInitializerAndSingleResultHint() throws {
+        struct CustomRequest: FetchRequest {
+            typealias RowDecoder = Row
+            func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
+                if singleResult { fatalError("not implemented") }
+                return try (db.makeSelectStatement(sql: "SELECT 'multiple'"), nil)
+            }
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            let request = try SQLRequest(db, request: CustomRequest())
+            XCTAssertEqual(request.sql, "SELECT 'multiple'")
+        }
+    }
+
     func testSQLLiteralInitializer() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
