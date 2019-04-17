@@ -284,6 +284,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             do {
                 let fetchedRecord = try Item.filter(key: id).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"items\" WHERE (\"rowid\" = \(id))")
             }
         }
     }

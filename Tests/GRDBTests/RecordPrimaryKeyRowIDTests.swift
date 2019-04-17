@@ -389,6 +389,7 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             XCTAssertTrue(fetchedRecord.name == record.name)
             XCTAssertTrue(fetchedRecord.age == record.age)
             XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"persons\" WHERE (\"id\" = \(record.id!))")
         }
     }
 
@@ -462,6 +463,7 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             XCTAssertTrue(fetchedRecord.name == record.name)
             XCTAssertTrue(fetchedRecord.age == record.age)
             XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"persons\" WHERE (\"id\" = \(record.id!))")
         }
     }
     
@@ -545,6 +547,7 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
                 XCTAssertTrue(fetchedRecord.name == record.name)
                 XCTAssertTrue(fetchedRecord.age == record.age)
                 XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"persons\" WHERE (\"id\" = \(record.id!))")
             }
         }
     }
@@ -617,6 +620,7 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
                 XCTAssertTrue(fetchedRecord.name == record.name)
                 XCTAssertTrue(fetchedRecord.age == record.age)
                 XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"persons\" WHERE (\"id\" = \(record.id!))")
             }
         }
     }
