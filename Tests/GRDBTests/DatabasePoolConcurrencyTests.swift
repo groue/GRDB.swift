@@ -296,8 +296,6 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_BUSY)
                 XCTAssertEqual(error.message!, "database is locked")
-                XCTAssertTrue(error.sql == nil)
-                XCTAssertEqual(error.description, "SQLite error 5: database is locked")
             } catch {
                 XCTFail("Expected DatabaseError")
             }
@@ -880,8 +878,6 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_BUSY)
                 XCTAssertEqual(error.message!, "database is locked")
-                XCTAssertTrue(error.sql == nil)
-                XCTAssertEqual(error.description, "SQLite error 5: database is locked")
             }
         }
     }

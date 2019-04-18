@@ -27,10 +27,6 @@ class DatabaseQueueTests: GRDBTestCase {
             XCTAssert([
                 "file is encrypted or is not a database",
                 "file is not a database"].contains(error.message!))
-            XCTAssertTrue(error.sql == nil)
-            XCTAssert([
-                "SQLite error 26: file is encrypted or is not a database",
-                "SQLite error 26: file is not a database"].contains(error.description))
         }
     }
     #endif

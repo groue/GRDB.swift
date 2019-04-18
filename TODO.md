@@ -40,6 +40,7 @@
     ```
 - [ ] Consider renaming dbQueue.inDatabase, dbPool.writeWithoutTransaction -> dbQueue/Pool.exclusive
 - [ ] FetchedRecordsController diff algorithm: check https://github.com/RxSwiftCommunity/RxDataSources/issues/256
+- [ ] https://github.com/groue/GRDB.swift/issues/514
 
 GRDB 4.0
 

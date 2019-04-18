@@ -127,7 +127,7 @@ Before we dive in, please remember that associations can not generate all possib
 
 **Associations are available on types that adopt the necessary supporting protocols.**
 
-When your type is a subclass of the [Record class], all necessary protocols are already setup and ready.
+When your record type is a subclass of the [Record class], all necessary protocols are already setup and ready: you can skip this chapter.
 
 Otherwise:
 
@@ -143,24 +143,39 @@ Otherwise:
     }
     ```
 
-- **[EncodableRecord]** makes it possible to use the `request(for:)` method, as below:
+- **[FetchableRecord]** makes it possible to fetch records from the database:
+
+    ```swift
+    extension Author: FetchableRecord { }
+    
+    // Who's prolific?
+    let authors = try dbQueue.read { db in
+        try Author
+            .having(Author.book.count >= 20)
+            .fetchAll(db) // [Author]
+    }
+    ```
+    
+    FetchableRecord conformance can be derived from the standard Decodable protocol. See [Codable Records] for more information.
+
+- **[EncodableRecord]** makes it possible to fetch associated records with the `request(for:)` method:
 
     ```swift
     extension Book: EncodableRecord {
-        // The request which fetches the book's author.
+        // The request for the author of a book.
         var author: QueryInterfaceRequest<Author> {
             return request(for: Book.author)
         }
     }
     
-    // Let's fetch a book's author:
-    try dbQueue.read { db in
-        let book: Book = ...
-        let author = try book.author.fetchOne(db) // Author?
+    // Who wrote this book?
+    let book: Book = ...
+    let author = try dbQueue.read { db in
+        try book.author.fetchOne(db) // Author?
     }
     ```
     
-    A record type often conforms to EncodableRecord via the [PersistableRecord] protocol. However, PersistableRecord grants [persistence methods], the ones that are able to insert, update, and delete rows in the database. When you'd rather keep a record type read-only, and yet profit from associations, all you need is EncodableRecord.
+    A record type can conform to EncodableRecord via the [PersistableRecord] protocol. However, PersistableRecord also grants [persistence methods], the ones that are able to insert, update, and delete rows in the database. When you'd rather keep a record type read-only, and yet profit from associations, all you need is EncodableRecord.
     
     EncodableRecord conformance can be derived from the standard Encodable protocol. See [Codable Records] for more information.
 
@@ -193,14 +208,11 @@ Each one of the three types of associations is appropriate for a particular data
 
 The **BelongsTo** association sets up a one-to-one connection from a record type to another record type, such as each instance of the declaring record "belongs to" an instance of the other record.
 
-For example, if your application includes authors and books, and each book is assigned its author, you'd declare the `Book.author` association as below, with its companion property:
+For example, if your application includes authors and books, and each book is assigned its author, you'd declare the `Book.author` association as below:
 
 ```swift
-struct Book: TableRecord, EncodableRecord {
+struct Book: TableRecord {
     static let author = belongsTo(Author.self)
-    var author: QueryInterfaceRequest<Author> {
-        return request(for: Book.author)
-    }
     ...
 }
 
@@ -209,32 +221,22 @@ struct Author: TableRecord {
 }
 ```
 
-The static `Book.author` association will help you build [association requests]. The property lets you fetch a book's author:
-
-```swift
-let book: Book = ...
-let author = try book.author.fetchOne(db) // Author?
-```
-
 The **BelongsTo** association between a book and its author needs that the database table for books has a column that points to the table for authors:
 
 ![BelongsToSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/BelongsToSchema.svg)
 
-See [Convention for the BelongsTo Association] for some sample code that defines the database schema for such an association.
+See [Convention for the BelongsTo Association] for some sample code that defines the database schema for such an association, and [Building Requests from Associations] in order to learn how to use it.
 
 
 ## HasMany
 
 The **HasMany** association indicates a one-to-many connection between two record types, such as each instance of the declaring record "has many" instances of the other record. You'll often find this association on the other side of a **BelongsTo** association.
 
-For example, if your application includes authors and books, and each author is assigned zero or more books, you'd declare the `Author.books` association as below, with its companion property:
+For example, if your application includes authors and books, and each author is assigned zero or more books, you'd declare the `Author.books` association as below:
 
 ```swift
-struct Author: TableRecord, EncodableRecord {
+struct Author: TableRecord {
     static let books = hasMany(Book.self)
-    var books: QueryInterfaceRequest<Book> {
-        return request(for: Author.books)
-    }
 }
 
 struct Book: TableRecord {
@@ -242,32 +244,22 @@ struct Book: TableRecord {
 }
 ```
 
-The static `Author.books` association will help you build [association requests]. The property lets you fetch an author's books:
-
-```swift
-let author: Author = ...
-let books = try author.books.fetchAll(db) // [Book]
-```
-
 The **HasMany** association between an author and its books needs that the database table for books has a column that points to the table for authors:
 
 ![HasManySchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasManySchema.svg)
 
-See [Convention for the HasMany Association] for some sample code that defines the database schema for such an association.
+See [Convention for the HasMany Association] for some sample code that defines the database schema for such an association, and [Building Requests from Associations] in order to learn how to use it.
 
 
 ## HasOne
 
 The **HasOne** association, like BelongsTo, sets up a one-to-one connection from a record type to another record type, but with different semantics, and underlying database schema. It is usually used when an entity has been denormalized into two database tables.
 
-For example, if your application has one database table for countries, and another for their demographic profiles, you'd declare the `Country.demographics` association as below, with its companion property:
+For example, if your application has one database table for countries, and another for their demographic profiles, you'd declare the `Country.demographics` association as below:
 
 ```swift
-struct Country: TableRecord, EncodableRecord {
+struct Country: TableRecord {
     static let demographics = hasOne(Demographics.self)
-    var demographics: QueryInterfaceRequest<Demographics> {
-        return request(for: Country.demographics)
-    }
     ...
 }
 
@@ -276,18 +268,11 @@ struct Demographics: TableRecord {
 }
 ```
 
-The static `Country.demographics` association will help you build [association requests]. The property lets you fetch a country's demographic profile:
-
-```swift
-let country: Country = ...
-let demographics = try country.demographics.fetchOne(db) // Demographics?
-```
-
 The **HasOne** association between a country and its demographics needs that the database table for demographics has a column that points to the table for countries:
 
 ![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneSchema.svg)
 
-See [Convention for the HasOne Association] for some sample code that defines the database schema for such an association.
+See [Convention for the HasOne Association] for some sample code that defines the database schema for such an association, and [Building Requests from Associations] in order to learn how to use it.
 
 
 ## HasManyThrough
@@ -298,9 +283,7 @@ The **HasManyThrough** association is often used to set up a many-to-many connec
 struct Country: TableRecord, EncodableRecord {
     static let passports = hasMany(Passport.self)
     static let citizens = hasMany(Citizen.self, through: passports, using: Passport.citizen)
-    var citizens: QueryInterfaceRequest<Citizen> {
-        return request(for: Country.citizens)
-    }
+    ...
 }
 
 struct Passport: TableRecord {
@@ -311,20 +294,11 @@ struct Passport: TableRecord {
 struct Citizen: TableRecord, EncodableRecord {
     static let passports = hasMany(Passport.self)
     static let countries = hasMany(Country.self, through: passports, using: Passport.country)
-    var countries: QueryInterfaceRequest<Country> {
-        return request(for: Citizen.countries)
-    }
+    ...
 }
 ```
 
 ![HasManyThroughSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasManyThroughSchema.svg)
-
-The static `Country.citizens` association will help you build [association requests]. The property lets you fetch a country's citizens:
-
-```swift
-let country: Country = ...
-let citizens = try country.citizens.fetchAll(db) // [Citizen]
-```
 
 The **HasManyThrough** association is also useful for setting up "shortcuts" through nested HasMany associations. For example, if a document has many sections, and a section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document. You could set that up this way:
 
@@ -332,13 +306,16 @@ The **HasManyThrough** association is also useful for setting up "shortcuts" thr
 struct Document: TableRecord {
     static let sections = hasMany(Section.self)
     static let paragraphs = hasMany(Paragraph.self, through: sections, using: Section.paragraphs)
+    ...
 }
 
 struct Section: TableRecord {
     static let paragraphs = hasMany(Paragraph.self)
+    ...
 }
  
 struct Paragraph: TableRecord {
+    ...
 }
 ```
 
@@ -350,8 +327,12 @@ struct Document: TableRecord {
         Paragraph.self, 
         through: Document.hasMany(Section.self),
         using: Section.hasMany(Paragraph.self))
+    ...
 }
 ```
+
+See [Building Requests from Associations] in order to learn how to use the HasManyThrough association.
+
 
 ## HasOneThrough
 
@@ -361,27 +342,20 @@ A **HasOneThrough** association sets up a one-to-one connection with another rec
 struct Book: TableRecord, EncodableRecord {
     static let library = belongsTo(Library.self)
     static let returnAddress = hasOne(Address.self, through: library, using: library.address)
-    var returnAddress: QueryInterfaceRequest<Address> {
-        return request(for: Book.returnAddress)
-    }
+    ...
 }
 
 struct Library: TableRecord {
     static let address = hasOne(Address.self)
+    ...
 }
  
 struct Address: TableRecord {
+    ...
 }
 ```
 
 ![HasOneThroughSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneThroughSchema.svg)
-
-The static `Book.returnAddress` association will help you build [association requests]. The property lets you fetch a book's return address:
-
-```swift
-let book: Book = ...
-let address = try book.returnAddress.fetchOne(db) // Address?
-```
 
 As in the example above, **HasOneThrough** association is always built from two other associations: the `through:` and `using:` arguments. Those associations can be any other association to one (BelongsTo, HasOne, HasOneThrough). The above `Book.returnAddress` association can also be defined, in a much more explicit way, as below:
 
@@ -391,8 +365,11 @@ struct Book: TableRecord {
         Address.self,
         through: Book.belongsTo(Library.self),
         using: Library.hasOne(Address.self))
+    ...
 }
 ```
+
+See [Building Requests from Associations] in order to learn how to use the HasOneThrough association.
 
 
 ## Choosing Between BelongsTo and HasOne
@@ -406,12 +383,12 @@ A country **has one** demographic profile, a demographic profile **belongs to** 
 ![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneSchema.svg)
 
 ```swift
-struct Country: TableRecord, FetchableRecord {
+struct Country: TableRecord {
     static let demographics = hasOne(Demographics.self)
     ...
 }
 
-struct Demographics: TableRecord, FetchableRecord {
+struct Demographics: TableRecord {
     static let country = belongsTo(Country.self)
     ...
 }
@@ -425,6 +402,7 @@ When designing your data model, you will sometimes find a record that should hav
 struct Employee {
     static let subordinates = hasMany(Employee.self)
     static let manager = belongsTo(Employee.self)
+    ...
 }
 ```
 
@@ -518,11 +496,8 @@ See [The Structure of a Joined Request] for more information.
 ## Convention for the BelongsTo Association
 
 ```swift
-extension Book: TableRecord, EncodableRecord {
+extension Book: TableRecord {
     static let author = belongsTo(Author.self)
-    var author: QueryInterfaceRequest<Author> {
-        return request(for: Book.author)
-    }
 }
 ```
 
@@ -558,18 +533,18 @@ The example above uses auto-incremented primary keys. But generally speaking, al
 Following this convention lets you write, for example:
 
 ```swift
-struct Book: FetchableRecord, TableRecord {
+struct Book: TableRecord {
     static let author = belongsTo(Author.self)
 }
 
-struct Author: FetchableRecord, TableRecord {
+struct Author: TableRecord {
 }
 ```
 
 If the database schema does not follow this convention, and does not define foreign keys between tables, you can still use **BelongsTo** associations. But your help is needed to define the missing foreign key:
 
 ```swift
-struct Book: FetchableRecord, TableRecord {
+struct Book: TableRecord {
     static let author = belongsTo(Author.self, using: ForeignKey(...))
 }
 ```
@@ -580,11 +555,8 @@ See [Foreign Keys] for more information.
 ## Convention for the HasMany Association
 
 ```swift
-extension Author: TableRecord, EncodableRecord {
+extension Author: TableRecord {
     static let books = hasMany(Book.self)
-    var books: QueryInterfaceRequest<Book> {
-        return request(for: Author.books)
-    }
 }
 ```
 
@@ -620,10 +592,10 @@ The example above uses auto-incremented primary keys. But generally speaking, al
 Following this convention lets you write, for example:
 
 ```swift
-struct Book: FetchableRecord, TableRecord {
+struct Book: TableRecord {
 }
 
-struct Author: FetchableRecord, TableRecord {
+struct Author: TableRecord {
     static let books = hasMany(Book.self)
 }
 ```
@@ -631,7 +603,7 @@ struct Author: FetchableRecord, TableRecord {
 If the database schema does not follow this convention, and does not define foreign keys between tables, you can still use **HasMany** associations. But your help is needed to define the missing foreign key:
 
 ```swift
-struct Author: FetchableRecord, TableRecord {
+struct Author: TableRecord {
     static let books = hasMany(Book.self, using: ForeignKey(...))
 }
 ```
@@ -642,11 +614,8 @@ See [Foreign Keys] for more information.
 ## Convention for the HasOne Association
 
 ```swift
-extension Country: TableRecord, EncodableRecord {
+extension Country: TableRecord {
     static let demographics = hasOne(Demographics.self)
-    var demographics: QueryInterfaceRequest<Demographics> {
-        return request(for: Country.demographics)
-    }
 }
 ```
 
@@ -683,18 +652,18 @@ The example above uses a string primary key for the "country" table. But general
 Following this convention lets you write, for example:
 
 ```swift
-struct Country: FetchableRecord, TableRecord {
+struct Country: TableRecord {
     static let demographics = hasOne(Demographics.self)
 }
 
-struct Demographics: FetchableRecord, TableRecord {
+struct Demographics: TableRecord {
 }
 ```
 
 If the database schema does not follow this convention, and does not define foreign keys between tables, you can still use HasOne associations. But your help is needed to define the missing foreign key:
 
 ```swift
-struct Country: FetchableRecord, TableRecord {
+struct Country: TableRecord {
     static let demographics = hasOne(Demographics.self, using: ForeignKey(...))
 }
 ```
@@ -797,40 +766,42 @@ Fetch requests do not visit the database until you fetch values from them. This 
 
 **You can use associations to build requests for associated records.**
 
-For example, given a `Book.author` **[BelongsTo]** association, you can build a request for the author of a book. In the example below, we return this request from the `Book.author` property:
+For example, given a `Book.author` **[BelongsTo]** association, you can build a request for the author of a book with the `request(for:)` method. In the example below, we return this request from the `Book.author` property:
 
 ```swift
 struct Book: TableRecord, EncodableRecord {
+    /// The association from a book to is author
     static let author = belongsTo(Author.self)
     
-    /// The request for a book's author
+    /// The request for the author of a book
     var author: QueryInterfaceRequest<Author> {
         return request(for: Book.author)
     }
 }
 ```
 
-This request can fetch a book's author:
+You can now fetch the author of a book:
 
 ```swift
 let book: Book = ...
-let author = try book.author.fetchOne(db)   // Author?
+let author = try book.author.fetchOne(db) // Author?
 ```
 
-**[HasOne]**, **[HasMany]**, **[HasOneThrough]**, and **[HasManyThrough]** associations can also build requests for associated records. For example:
+All other associations, **[HasOne]**, **[HasMany]**, **[HasOneThrough]**, and **[HasManyThrough]**, can also build requests for associated records. For example:
 
 ```swift
 struct Author: TableRecord, EncodableRecord {
+    /// The association from an author to its books
     static let books = hasMany(Book.self)
     
-    /// The request for an author's books
+    /// The request for the books of an author
     var books: QueryInterfaceRequest<Book> {
         return request(for: Author.books)
     }
 }
 
 let author: Author = ...
-let books = try author.books.fetchAll(db)   // [Book]
+let books = try author.books.fetchAll(db) // [Book]
 ```
 
 Requests for associated records can be filtered and ordered like all [query interface requests]:
@@ -840,19 +811,19 @@ let novels = try author
     .books
     .filter(Column("kind") == BookKind.novel)
     .order(Column("publishDate").desc)
-    .fetchAll(db)
+    .fetchAll(db) // [Book]
 ```
 
-Those requests can also turn out useful when you want to track their changes with database observation tools like [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB):
+Those requests can also turn out useful when you want to track their changes with [database observation tools] like [ValueObservation]:
 
 ```swift
 // Track changes in the author's books:
 let author: Author = ...
-author.books.rx
-    .fetchAll(in: dbQueue)
-    .subscribe(onNext: { (books: [Book]) in
+ValueObservation
+    .trackingAll(author.books)
+    .start(in: dbQueue) { (books: [Book]) in
         print("Author's book have changed")
-    })
+    }
 ```
 
 
@@ -1579,27 +1550,42 @@ You can also perform custom navigation in the tree by using *row scopes*. See [R
 
 ## Association Aggregates
 
-It is possible to fetch aggregated values from a **[HasMany]** association:
+It is possible to fetch aggregated values from **[HasMany]** and **[HasManyThrough]** associations:
 
 Counting associated records, fetching the minimum, maximum, average value of an associated record column, computing the sum of an associated record column, these are all aggregation operations.
 
-When you need to compute aggregates **from a single record**, you use regular aggregating methods, detailed in the [Fetching Aggregated Values] chapter. For example:
+When you need to compute aggregates **from a single record**, you use [regular aggregating methods] on [requests for associated records]. For example:
 
 ```swift
+struct Author: TableRecord, EncodableRecord {
+    static let books = hasMany(Book.self)
+    var books: QueryInterfaceRequest<Book> {
+        return request(for: Author.books)
+    }
+}
+
 let author: Author = ...
+
+// The number of books by this author
 let bookCount = try author.books.fetchCount(db)  // Int
 
+// The year of the most recent book by this author
 let request = author.books.select(max(yearColumn))
 let maxBookYear = try Int.fetchOne(db, request)  // Int?
 ```
 
 When you need to compute aggregates **from several record**, in a single shot, you'll use an **association aggregate**. Those are the topic of this chapter.
 
-For example, you'll use the `isEmpty` aggregate when you want, say, to fetch all authors who wrote no book at all:
+For example, you'll use the `isEmpty` aggregate when you want, say, to fetch all authors who wrote no book at all, or some books:
 
 ```swift
-let lazyAuthors: [Author] = try Author.having(Author.books.isEmpty).fetchAll(db)
-let productiveAuthors: [Author] = try Author.having(Author.books.isEmpty == false).fetchAll(db)
+let lazyAuthors = try Author
+    .having(Author.books.isEmpty)
+    .fetchAll(db) // [Author]
+
+let productiveAuthors: [Author] = try Author
+    .having(Author.books.isEmpty == false)
+    .fetchAll(db) // [Author]
 ```
 
 And you'll use the `count` aggregate in order to fetch all authors along with the number of books they wrote:
@@ -2225,6 +2211,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Fetching Values from Associations]: #fetching-values-from-associations
 [Combining Associations]: #combining-associations
 [Requesting Associated Records]: #requesting-associated-records
+[requests for associated records]: #requesting-associated-records
 [Joining Methods]: #joining-methods
 [Filtering Associations]: #filtering-associations
 [Sorting Associations]: #sorting-associations
@@ -2248,11 +2235,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Row Adapters]: ../README.md#row-adapters
 [query interface requests]: ../README.md#requests
 [TableRecord]: ../README.md#tablerecord-protocol
-[association requests]: #building-requests-from-associations
 [Good Practices for Designing Record Types]: GoodPracticesForDesigningRecordTypes.md
-[Fetching Aggregated Values]: ../README.md#fetching-aggregated-values
+[regular aggregating methods]: ../README.md#fetching-aggregated-values
 [Record class]: ../README.md#record-class
 [EncodableRecord]: ../README.md#persistablerecord-protocol
 [PersistableRecord]: ../README.md#persistablerecord-protocol
 [Codable Records]: ../README.md#codable-records
 [persistence methods]: ../README.md#persistence-methods
+[database observation tools]: ../README.md#database-changes-observation
+[ValueObservation]: ../README.md#valueobservation
