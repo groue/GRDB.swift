@@ -100,6 +100,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             
             let fetchedRecord = try Item.fetchOne(db, key: ["email": record.email])!
             XCTAssertTrue(fetchedRecord.email == record.email)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"items\" WHERE (\"email\" = 'item@example.com')")
         }
     }
 
@@ -114,6 +115,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             
             let fetchedRecord = try Item.filter(key: ["email": record.email]).fetchOne(db)!
             XCTAssertTrue(fetchedRecord.email == record.email)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"items\" WHERE (\"email\" = 'item@example.com')")
         }
     }
     
@@ -203,6 +205,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             do {
                 let fetchedRecord = try Item.fetchOne(db, key: id)!
                 XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"items\" WHERE (\"rowid\" = \(id))")
             }
         }
     }
@@ -281,6 +284,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             do {
                 let fetchedRecord = try Item.filter(key: id).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"items\" WHERE (\"rowid\" = \(id))")
             }
         }
     }

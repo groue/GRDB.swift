@@ -46,7 +46,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     func testSimpleRequestDoesNotUseAnyRowAdapter() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let (_, adapter) = try Reader.all().prepare(db)
+            let (_, adapter) = try Reader.all().prepare(db, forSingleResult: false)
             XCTAssertNil(adapter)
         }
     }
@@ -73,7 +73,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             
             do {
                 let row = try Row.fetchOne(db, tableRequest)!
-                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" LIMIT 1")
                 XCTAssertEqual(row["id"] as Int64, 1)
                 XCTAssertEqual(row["name"] as String, "Arthur")
                 XCTAssertEqual(row["age"] as Int, 42)
@@ -238,7 +238,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             
             let request = tableRequest.select(Col.name.aliased("nom"), (Col.age + 1).aliased("agePlusOne"))
             let row = try Row.fetchOne(db, request)!
-            XCTAssertEqual(lastSQLQuery, "SELECT \"name\" AS \"nom\", (\"age\" + 1) AS \"agePlusOne\" FROM \"readers\"")
+            XCTAssertEqual(lastSQLQuery, "SELECT \"name\" AS \"nom\", (\"age\" + 1) AS \"agePlusOne\" FROM \"readers\" LIMIT 1")
             XCTAssertEqual(row["nom"] as String, "Arthur")
             XCTAssertEqual(row["agePlusOne"] as Int, 43)
         }

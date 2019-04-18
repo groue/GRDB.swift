@@ -4,19 +4,22 @@
 struct SQLSelectQuery {
     var relation: SQLRelation
     var isDistinct: Bool
+    var expectsSingleResult: Bool
     var groupPromise: DatabasePromise<[SQLExpression]>?
     var havingExpression: SQLExpression?
     var limit: SQLLimit?
-    
+
     init(
         relation: SQLRelation,
         isDistinct: Bool = false,
+        expectsSingleResult: Bool = false,
         groupPromise: DatabasePromise<[SQLExpression]>? = nil,
         havingExpression: SQLExpression? = nil,
         limit: SQLLimit? = nil)
     {
         self.relation = relation
         self.isDistinct = isDistinct
+        self.expectsSingleResult = expectsSingleResult
         self.groupPromise = groupPromise
         self.havingExpression = havingExpression
         self.limit = limit
@@ -35,6 +38,12 @@ extension SQLSelectQuery: SelectionRequest, FilteredRequest, OrderedRequest {
     func distinct() -> SQLSelectQuery {
         var query = self
         query.isDistinct = true
+        return query
+    }
+
+    func expectingSingleResult() -> SQLSelectQuery {
+        var query = self
+        query.expectsSingleResult = true
         return query
     }
     

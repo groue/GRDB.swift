@@ -39,9 +39,17 @@ extension QueryInterfaceRequest : FetchRequest {
     /// executed, and an eventual row adapter.
     ///
     /// - parameter db: A database connection.
+    /// - parameter singleResult: A hint as to whether the query should be optimized for a single result.
     /// - returns: A prepared statement and an eventual row adapter.
     /// :nodoc:
-    public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+    public func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
+        var query = self.query
+        
+        // Optimize query by setting a limit of 1 when appropriate
+        if singleResult && !query.expectsSingleResult {
+            query.limit = SQLLimit(limit: 1, offset: query.limit?.offset)
+        }
+
         return try SQLSelectQueryGenerator(query).prepare(db)
     }
     
@@ -181,6 +189,17 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     ///     request = request.filter { db in true }
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
         return mapQuery { $0.filter(predicate) }
+    }
+    
+    /// Creates a request which expects a single result.
+    ///
+    /// It is unlikely you need to call this method. Its net effect is that
+    /// QueryInterfaceRequest does not use any `LIMIT 1` sql clause when you
+    /// call a `fetchOne` method.
+    ///
+    /// :nodoc:
+    public func expectingSingleResult() -> QueryInterfaceRequest {
+        return mapQuery { $0.expectingSingleResult() }
     }
     
     /// Creates a request grouped according to *expressions promise*.
