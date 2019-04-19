@@ -1,10 +1,8 @@
 import XCTest
-#if GRDBCIPHER
-import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
-import GRDBCustomSQLite
+#if GRDBCUSTOMSQLITE
+    import GRDBCustomSQLite
 #else
-import GRDB
+    import GRDB
 #endif
 
 private struct Author: FetchableRecord, PersistableRecord, Codable {

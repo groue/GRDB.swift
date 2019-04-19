@@ -1,16 +1,15 @@
 import XCTest
-#if GRDBCIPHER
-    import SQLCipher
-    @testable import GRDBCipher // @testable so that we have access to SQLiteConnectionWillClose
-#elseif GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite // @testable so that we have access to SQLiteConnectionWillClose
+#if GRDBCUSTOMSQLITE
+    @testable import GRDBCustomSQLite
 #else
-    #if SWIFT_PACKAGE
+    #if GRDBCIPHER
+        import SQLCipher
+    #elseif SWIFT_PACKAGE
         import CSQLite
     #else
         import SQLite3
     #endif
-    @testable import GRDB       // @testable so that we have access to SQLiteConnectionWillClose
+    @testable import GRDB
 #endif
 
 // Support for Database.logError

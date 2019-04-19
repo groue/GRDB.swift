@@ -1,37 +1,37 @@
 use_frameworks!
 workspace 'GRDB.xcworkspace'
+project 'GRDBCipher.xcodeproj'
 
 def sql_cipher
-  project 'GRDBCipher.xcodeproj'
   pod 'SQLCipher', '~> 4.1'
 end
 
-target 'GRDBCipherOSX' do
+target 'GRDBOSX' do
   platform :macos, '10.9'
   sql_cipher
 end
 
-target 'GRDBCipherOSXTests' do
+target 'GRDBOSXTests' do
   platform :macos, '10.9'
   sql_cipher
 end
 
-target 'GRDBCipherOSXEncryptedTests' do
+target 'GRDBOSXEncryptedTests' do
   platform :macos, '10.9'
   sql_cipher
 end
 
-target 'GRDBCipheriOS' do
+target 'GRDBiOS' do
   platform :ios, '9.0'
   sql_cipher
 end
 
-target 'GRDBCipheriOSTests' do
+target 'GRDBiOSTests' do
   platform :ios, '9.0'
   sql_cipher
 end
 
-target 'GRDBCipheriOSEncryptedTests' do
+target 'GRDBiOSEncryptedTests' do
   platform :ios, '9.0'
   sql_cipher
 end

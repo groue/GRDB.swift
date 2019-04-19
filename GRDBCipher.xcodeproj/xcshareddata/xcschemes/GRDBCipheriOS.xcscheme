@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "56AFC9EE1CB1A8BB00F48B96"
-               BuildableName = "GRDBCipher.framework"
-               BlueprintName = "GRDBCipheriOS"
+               BuildableName = "GRDB.framework"
+               BlueprintName = "GRDBiOS"
                ReferencedContainer = "container:GRDBCipher.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -29,8 +29,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "56AFCA841CB1ABC800F48B96"
-               BuildableName = "GRDBCipheriOSEncryptedTests.xctest"
-               BlueprintName = "GRDBCipheriOSEncryptedTests"
+               BuildableName = "GRDBiOSEncryptedTests.xctest"
+               BlueprintName = "GRDBiOSEncryptedTests"
                ReferencedContainer = "container:GRDBCipher.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -43,8 +43,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "56AFCA2B1CB1AA9900F48B96"
-               BuildableName = "GRDBCipheriOSTests.xctest"
-               BlueprintName = "GRDBCipheriOSTests"
+               BuildableName = "GRDBiOSTests.xctest"
+               BlueprintName = "GRDBiOSTests"
                ReferencedContainer = "container:GRDBCipher.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -61,8 +61,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "56AFCA2B1CB1AA9900F48B96"
-               BuildableName = "GRDBCipheriOSTests.xctest"
-               BlueprintName = "GRDBCipheriOSTests"
+               BuildableName = "GRDBiOSTests.xctest"
+               BlueprintName = "GRDBiOSTests"
                ReferencedContainer = "container:GRDBCipher.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -71,8 +71,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "56AFCA841CB1ABC800F48B96"
-               BuildableName = "GRDBCipheriOSEncryptedTests.xctest"
-               BlueprintName = "GRDBCipheriOSEncryptedTests"
+               BuildableName = "GRDBiOSEncryptedTests.xctest"
+               BlueprintName = "GRDBiOSEncryptedTests"
                ReferencedContainer = "container:GRDBCipher.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -81,8 +81,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "56AFC9EE1CB1A8BB00F48B96"
-            BuildableName = "GRDBCipher.framework"
-            BlueprintName = "GRDBCipheriOS"
+            BuildableName = "GRDB.framework"
+            BlueprintName = "GRDBiOS"
             ReferencedContainer = "container:GRDBCipher.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -103,8 +103,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "56AFC9EE1CB1A8BB00F48B96"
-            BuildableName = "GRDBCipher.framework"
-            BlueprintName = "GRDBCipheriOS"
+            BuildableName = "GRDB.framework"
+            BlueprintName = "GRDBiOS"
             ReferencedContainer = "container:GRDBCipher.xcodeproj">
          </BuildableReference>
       </MacroExpansion>

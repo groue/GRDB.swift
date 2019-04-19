@@ -1,6 +1,6 @@
 #if SQLITE_HAS_CODEC
 import XCTest
-import GRDBCipher
+import GRDB
 
 class EncryptionTests: GRDBTestCase {
     
