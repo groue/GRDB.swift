@@ -296,6 +296,7 @@ ifdef POD
 	rm -rf GRDBCipherMacOS.xcworkspace && \
 	rm -rf Pods && \
 	rm -rf Podfile.lock && \
+	$(POD) repo update && \
 	$(POD) install && \
 	$(XCODEBUILD) \
 	  -workspace GRDBCipherMacOS.xcworkspace \

@@ -12,18 +12,17 @@ Pod::Spec.new do |s|
   s.ios.deployment_target = '9.0'
   s.osx.deployment_target = '10.9'
   s.watchos.deployment_target = '2.0'
+  s.module_map = 'Support/module.modulemap'
   s.default_subspec  = 'standard'
   
   s.subspec 'standard' do |ss|
     ss.source_files = 'GRDB/**/*.swift', 'Support/*.h'
-    ss.module_map = 'Support/module.modulemap'
     ss.framework = 'Foundation'
     ss.library = 'sqlite3'
   end
   
   s.subspec 'SQLCipher' do |ss|
     ss.source_files = 'GRDB/**/*.swift', 'Support/*.h'
-    ss.module_map = 'Support/module.modulemap'
     ss.framework = 'Foundation'
     ss.dependency 'SQLCipher', '>= 3.4.0'
     ss.xcconfig = {
