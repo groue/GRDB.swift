@@ -182,14 +182,6 @@ jobs:
         - TID=Manual Install
       script: make test_install_manual
 
-    # Manual Install (GRDBCipher, Xcode 10)
-    - stage: Test Installation Xcode 10.1
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode10.1
-      env:
-        - TID=Manual Install (GRDBCipher, Xcode 10)
-      script: make test_install_GRDBCipher
-
     # CocoaPods Lint
     - stage: Test Installation Xcode 10.1
       osx_image: xcode10.1
