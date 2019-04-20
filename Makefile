@@ -218,7 +218,7 @@ test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
 
 test_framework_GRDBCipherOSX: SQLCipher
 	$(XCODEBUILD) \
-	  -project GRDBCipher.xcodeproj \
+	  -workspace GRDB.xcworkspace \
 	  -scheme GRDBCipherOSX \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
@@ -228,7 +228,7 @@ test_framework_GRDBCipheriOS: test_framework_GRDBCipheriOS_maxTarget test_framew
 
 test_framework_GRDBCipheriOS_maxTarget: SQLCipher
 	$(XCODEBUILD) \
-	  -project GRDBCipher.xcodeproj \
+	  -workspace GRDB.xcworkspace \
 	  -scheme GRDBCipheriOS \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
@@ -237,7 +237,7 @@ test_framework_GRDBCipheriOS_maxTarget: SQLCipher
 
 test_framework_GRDBCipheriOS_minTarget: SQLCipher
 	$(XCODEBUILD) \
-	  -project GRDBCipher.xcodeproj \
+	  -workspace GRDB.xcworkspace \
 	  -scheme GRDBCipheriOS \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
@@ -390,11 +390,12 @@ SQLiteCustom/src/sqlite3.h:
 	$(GIT) submodule update --init SQLiteCustom/src
 
 # Target that setups SQLCipher
-SQLCipher: SQLCipher/src/sqlite3.h
+SQLCipher: Pods/SQLCipher
 
-# Makes sure the SQLCipher/src submodule has been downloaded
-SQLCipher/src/sqlite3.h:
-	$(GIT) submodule update --init SQLCipher/src
+# Makes sure the SQLCipher pod has been downloaded
+Pods/SQLCipher:
+	$(POD) repo update
+	$(POD) install
 
 
 # Documentation
