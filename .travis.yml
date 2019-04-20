@@ -191,15 +191,6 @@ jobs:
         - TID=CocoaPods Lint GRDB.swift
       script: make test_CocoaPodsLint_GRDB
 
-    # CocoaPods Lint
-    - stage: Test Installation Xcode 10.1
-      osx_image: xcode10.1
-      install:
-        - gem install cocoapods # >= 1.6.0 for cocoapods lint
-      env:
-        - TID=CocoaPods Lint GRDBCipher (Xcode 10)
-      script: make test_CocoaPodsLint_GRDBCipher
-
     # CocoaPods Install
     - stage: Test Installation Xcode 10.1
       osx_image: xcode10.1
