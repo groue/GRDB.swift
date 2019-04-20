@@ -188,10 +188,10 @@ jobs:
       install:
         - gem install cocoapods # >= 1.6.0 for cocoapods lint
       env:
-        - TID=CocoaPods Lint GRDB.swift
+        - TID=CocoaPods Lint
       script: make test_CocoaPodsLint_GRDB
 
-    # CocoaPods Install
+    # CocoaPods Install GRDB
     - stage: Test Installation Xcode 10.1
       osx_image: xcode10.1
       install:
@@ -200,8 +200,8 @@ jobs:
         - TID=CocoaPods GRDB
       script: make test_install_GRDB_CocoaPods
 
-    # CocoaPods Install (Xcode 10)
-    - stage: Test Installation
+    # CocoaPods Install GRDBCipher
+    - stage: Test Installation Xcode 10.1
       osx_image: xcode10.1
       install:
         - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
@@ -216,12 +216,12 @@ jobs:
         - TID=SPM
       script: make test_install_SPM
 
-    ## Carthage Build
-    - stage: Test Installation Xcode 10.1
-      osx_image: xcode10.1
-      before_install:
-        - brew update
-        - brew outdated carthage || brew upgrade carthage
-      env:
-        - TID=Carthages
-      script: make test_CarthageBuild
+    # ## Carthage Build
+    # - stage: Test Installation Xcode 10.1
+    #   osx_image: xcode10.1
+    #   before_install:
+    #     - brew update
+    #     - brew outdated carthage || brew upgrade carthage
+    #   env:
+    #     - TID=Carthages
+    #   script: make test_CarthageBuild
