@@ -8,6 +8,13 @@ import XCTest
 class DatabasePoolBackupTests: GRDBTestCase {
 
     func testBackup() throws {
+        #if GRDBCIPHER
+        // SQLCipher can't backup encrypted databases: skip this test
+        if dbConfiguration.passphrase != nil {
+            return
+        }
+        #endif
+        
         let source = try makeDatabasePool(filename: "source.sqlite")
         let destination = try makeDatabasePool(filename: "destination.sqlite")
         
