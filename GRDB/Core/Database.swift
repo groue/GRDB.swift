@@ -50,17 +50,16 @@ public final class Database {
     /// > for debugging.
     public static var logError: LogErrorFunction? = nil {
         didSet {
-            // TODO: GRDBCipher
-//            if logError != nil {
-//                registerErrorLogCallback { (_, code, message) in
-//                    guard let logError = Database.logError else { return }
-//                    guard let message = message.map({ String(cString: $0) }) else { return }
-//                    let resultCode = ResultCode(rawValue: code)
-//                    logError(resultCode, message)
-//                }
-//            } else {
-//                registerErrorLogCallback(nil)
-//            }
+            if logError != nil {
+                registerErrorLogCallback { (_, code, message) in
+                    guard let logError = Database.logError else { return }
+                    guard let message = message.map({ String(cString: $0) }) else { return }
+                    let resultCode = ResultCode(rawValue: code)
+                    logError(resultCode, message)
+                }
+            } else {
+                registerErrorLogCallback(nil)
+            }
         }
     }
     
