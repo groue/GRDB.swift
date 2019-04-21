@@ -352,7 +352,7 @@ Note that Linux is not currently supported.
 
 ## Carthage
 
-[Carthage]((https://github.com/Carthage/Carthage) is **unsupported**. For some context about this decision, see [#433](https://github.com/groue/GRDB.swift/issues/433).
+[Carthage](https://github.com/Carthage/Carthage) is **unsupported**. For some context about this decision, see [#433](https://github.com/groue/GRDB.swift/issues/433).
 
 
 ## Manually
