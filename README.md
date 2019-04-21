@@ -352,7 +352,7 @@ Note that Linux is not currently supported.
 
 ## Carthage
 
-[Carthage]((https://github.com/Carthage/Carthage) is **unsupported**. For some context around this decision, see [#433](https://github.com/groue/GRDB.swift/issues/433).
+[Carthage]((https://github.com/Carthage/Carthage) is **unsupported**. For some context about this decision, see [#433](https://github.com/groue/GRDB.swift/issues/433).
 
 
 ## Manually
@@ -5155,10 +5155,10 @@ The version of SQLite that ships with iOS, macOS and watchOS does not always sup
     
     > :point_up: **Note**: there used to be a GRDBPlus CocoaPod with pre-enabled FTS5 support. This CocoaPod is deprecated: please switch to the above technique.
 
-2. Use the GRDBCipher CocoaPod. It uses SQLCipher (see [encryption](#encryption)), and requires iOS 9.0+ / macOS 10.9+ / watchOS 2.0+:
+2. Use the GRDB.swift/SQLCipher CocoaPod subspec (see [encryption](#encryption)):
     
     ```ruby
-    pod 'GRDBCipher'
+    pod 'GRDB.swift/SQLCipher'
     ```
     
 3. Use a [custom SQLite build] and activate the `SQLITE_ENABLE_FTS5` compilation option.
@@ -7309,31 +7309,35 @@ protocol TransactionObserverType : class {
 Encryption
 ==========
 
-**GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4.2.**
+**GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4+.**
 
-You can use [CocoaPods](http://cocoapods.org/) (version 1.2 or higher), and specify in your `Podfile`:
+Use [CocoaPods](http://cocoapods.org/), and specify in your `Podfile`:
 
 ```ruby
-use_frameworks!
-pod 'GRDBCipher'
+# GRDB with SQLCipher 4
+pod 'GRDB.swift/SQLCipher'
+pod 'SQLCipher', '~> 4.0'
+
+# GRDB with SQLCipher 3
+pod 'GRDB.swift/SQLCipher'
+pod 'SQLCipher', '~> 3.4'
 ```
 
-Alternatively, perform a manual installation of GRDB and SQLCipher:
-
-1. Clone the GRDB git repository, checkout the latest tagged version, and download SQLCipher sources:
-    
-    ```sh
-    cd [GRDB directory]
-    git checkout v3.7.0
-    git submodule update --init SQLCipher/src
-    ```
-    
-2. Embed the `GRDBCipher.xcodeproj` project in your own project.
-
-3. Add the `GRDBCipherOSX` or `GRDBCipheriOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
-
-4. Add the `GRDBCipher.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
-
+> :warning: **Warning**: SQLCipher 4 is *not compatible** with SQLCipher 3.
+>
+> When you want to open your SQLCipher 3 database with SQLCipher 4, you may want to run the `cipher_compatibility` pragma:
+>
+> ```swift
+> // Open an SQLCipher 3 database with SQLCipher 4
+> var configuration = Configuration()
+> configuration.passphrase = "..."
+> configuration.prepareDatabase = { db in
+>     try db.execute(sql: "PRAGMA cipher_compatibility = 3")
+> }
+> let dbQueue = try DatabaseQueue(path: dbPath, configuration: configuration)
+> ```
+>
+> See [SQLCipher 4.0.0 Release](https://www.zetetic.net/blog/2018/11/30/sqlcipher-400-release/) and [Upgrading to SQLCipher 4](https://discuss.zetetic.net/t/upgrading-to-sqlcipher-4/3283) for more information. See also [Advanced configuration options for SQLCipher](#advanced-configuration-options-for-sqlcipher) below.
 
 **You create and open an encrypted database** by providing a passphrase to your [database connection](#database-connections):
 
