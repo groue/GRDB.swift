@@ -14,11 +14,9 @@ default: test
 # ============
 #
 # Xcode >= 9.0, with iOS8.1 Simulator installed
-# CocoaPods ~> 1.2.0 - https://cocoapods.org
-# Carthage ~> 0.20.1 - https://github.com/carthage/carthage
+# CocoaPods ~> 1.6.0 - https://cocoapods.org
 # Jazzy ~> 0.7.4 - https://github.com/realm/jazzy
 
-CARTHAGE := $(shell command -v carthage)
 GIT := $(shell command -v git)
 JAZZY := $(shell command -v jazzy)
 POD := $(shell command -v pod)
@@ -294,22 +292,6 @@ ifdef POD
 	$(POD) lib lint GRDB.swift.podspec --allow-warnings $(COCOAPODS_EXTRA_TIME)
 else
 	@echo CocoaPods must be installed for test_CocoaPodsLint_GRDB
-	@exit 1
-endif
-
-test_CarthageBuild: SQLiteCustom
-ifdef CARTHAGE
-	rm -rf Carthage
-	$(CARTHAGE) build --no-skip-current
-	$(XCODEBUILD) \
-	  -project Tests/Carthage/GRDBiOS/iOS.xcodeproj \
-	  -scheme iOS \
-	  -configuration Release \
-	  -destination $(MAX_IOS_DESTINATION) \
-	  clean build \
-	  $(XCPRETTY)
-else
-	@echo Carthage must be installed for test_CarthageBuild
 	@exit 1
 endif
 
