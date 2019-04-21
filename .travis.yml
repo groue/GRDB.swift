@@ -176,24 +176,23 @@ jobs:
 
     # CocoaPods Lint
     - stage: Test Installation Xcode 10.1
+      gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode10.1
-      install:
-        - gem install cocoapods # >= 1.6.0 for cocoapods lint
       env:
         - TID=CocoaPods Lint
       script: make test_CocoaPodsLint_GRDB
 
     # CocoaPods Install GRDB
     - stage: Test Installation Xcode 10.1
+      gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode10.1
-      install:
-        - gem install cocoapods # >= 1.6.0 for cocoapods lint
       env:
         - TID=CocoaPods GRDB
       script: make test_install_GRDB_CocoaPods
 
     # SPM Install
     - stage: Test Installation Xcode 10.1
+      gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode10.1
       env:
         - TID=SPM
