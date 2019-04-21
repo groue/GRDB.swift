@@ -21,7 +21,6 @@ let package = Package(
                 "Carthage",
                 "CocoaPods",
                 "Crash",
-                "GRDBCipher",
                 "Performance",
                 "SPM"
             ])
