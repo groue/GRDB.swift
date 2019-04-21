@@ -352,9 +352,7 @@ Note that Linux is not currently supported.
 
 ## Carthage
 
-Carthage can build GRDB frameworks, but it can also inexplicably fail. This installation method is thus *unsupported*.
-
-If you decide to use Carthage despite this warning, and get any Carthage-related error, please open an issue in the [Carthage repo](https://github.com/Carthage/Carthage/issues), ask [Stack Overflow](http://stackoverflow.com), summon your local Xcode guru, or submit a pull request that has the `make test_CarthageBuild` command succeed 100% of the time (one time is not enough). See [#262](https://github.com/groue/GRDB.swift/pull/262) for more information.
+[Carthage]((https://github.com/Carthage/Carthage) is **unsupported**. For some context around this decision, see [#433](https://github.com/groue/GRDB.swift/issues/433).
 
 
 ## Manually
