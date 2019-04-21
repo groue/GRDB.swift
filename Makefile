@@ -100,10 +100,10 @@ endif
 test: test_framework test_install
 
 test_framework: test_framework_darwin
-test_framework_darwin: test_framework_GRDB test_framework_GRDBCustom test_framework_GRDBCipher test_SPM
+test_framework_darwin: test_framework_GRDB test_framework_GRDBCustom test_framework_SQLCipher test_SPM
 test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_framework_GRDBiOS
 test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRDBCustomSQLiteiOS
-test_framework_GRDBCipher: test_framework_GRDBCipher3 test_framework_GRDBCipher4
+test_framework_SQLCipher: test_framework_SQLCipher3 test_framework_SQLCipher4
 test_install: test_install_manual test_install_SPM test_install_GRDB_CocoaPods test_CocoaPodsLint
 test_CocoaPodsLint: test_CocoaPodsLint_GRDB
 
@@ -216,7 +216,7 @@ test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
-test_framework_GRDBCipher3:
+test_framework_SQLCipher3:
 ifdef POD
 	cd Tests/CocoaPods/SQLCipher3 && \
 	$(POD) install && \
@@ -227,11 +227,11 @@ ifdef POD
 	  build-for-testing test-without-building \
 	  $(XCPRETTY)
 else
-	@echo CocoaPods must be installed for test_framework_GRDBCipher3
+	@echo CocoaPods must be installed for test_framework_SQLCipher3
 	@exit 1
 endif
 
-test_framework_GRDBCipher4:
+test_framework_SQLCipher4:
 ifdef POD
 	cd Tests/CocoaPods/SQLCipher4 && \
 	$(POD) install && \
@@ -242,7 +242,7 @@ ifdef POD
 	  build-for-testing test-without-building \
 	  $(XCPRETTY)
 else
-	@echo CocoaPods must be installed for test_framework_GRDBCipher4
+	@echo CocoaPods must be installed for test_framework_SQLCipher4
 	@exit 1
 endif
 

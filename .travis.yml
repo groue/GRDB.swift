@@ -154,14 +154,14 @@ jobs:
       osx_image: xcode10.1
       env:
         - TID=SQLCipher 3
-      script: make test_framework_GRDBCipher3
+      script: make test_framework_SQLCipher3
 
     - stage: Test SQLCipher Xcode 10.1
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode10.1
       env:
         - TID=SQLCipher 4
-      script: make test_framework_GRDBCipher4
+      script: make test_framework_SQLCipher4
 
     ###########################################
     ## Test Installation Xcode 10.1
