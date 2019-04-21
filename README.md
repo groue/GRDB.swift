@@ -2066,14 +2066,17 @@ row.scopes["remainder"] // [c:2 d:3]
 
 **If not all SQLite APIs are exposed in GRDB, you can still use the [SQLite C Interface](https://www.sqlite.org/c3ref/intro.html) and call [SQLite C functions](https://www.sqlite.org/c3ref/funclist.html).**
 
-Those functions are embedded right into the GRDBCustom and GRCBCipher modules. For the "regular" GRDB framework: you'll need to import `SQLite3`, or `CSQLite`, depending on whether you use the Swift Package Manager or not:
+Those functions are embedded right into the [GRDBCustom](Documentation/CustomSQLiteBuilds.md) module. Otherwise, you'll need to import `SQLite3`, `SQLCipher`, or `CSQLite`, depending on the GRDB flavor you are using:
 
 ```swift
-#if SWIFT_PACKAGE
-    import CSQLite // For Swift Package Manager
-#else
-    import SQLite3 // Otherwise
-#endif
+// Swift Package Manager
+import CSQLite
+
+// SQLCipher
+import SQLCipher
+
+// System SQLite
+import SQLite3
 
 let sqliteVersion = String(cString: sqlite3_libversion())
 ```
@@ -7342,8 +7345,6 @@ pod 'SQLCipher', '~> 3.4'
 **You create and open an encrypted database** by providing a passphrase to your [database connection](#database-connections):
 
 ```swift
-import GRDBCipher
-
 var configuration = Configuration()
 configuration.passphrase = "secret"
 let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
