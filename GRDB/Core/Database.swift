@@ -167,11 +167,6 @@ public final class Database {
 
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCache) throws {
         self.sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
-        #if SQLITE_HAS_CODEC && GRDB_SQLITE_SEE
-        if let key = configuration.key {
-            try Database.set(key: key, withEncryptionAlgorithm: configuration.encryptionAlgorithm, forConnection: sqliteConnection)
-        }
-        #endif
         self.configuration = configuration
         self.schemaCache = schemaCache
     }
@@ -207,99 +202,6 @@ extension Database {
         }
         throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
     }
-    
-    private static func activateExtendedCodes(_ sqliteConnection: SQLiteConnection) throws {
-        let code = sqlite3_extended_result_codes(sqliteConnection, 1)
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-        }
-    }
-    
-    #if SQLITE_HAS_CODEC && GRDBCIPHER
-    private static func validateSQLCipher(_ sqliteConnection: SQLiteConnection) throws {
-        // https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
-        //
-        // > In order to avoid situations where SQLite might be used
-        // > improperly at runtime, we strongly recommend that
-        // > applications institute a runtime test to ensure that the
-        // > application is actually using SQLCipher on the active
-        // > connection.
-        var sqliteStatement: SQLiteStatement? = nil
-        let code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA cipher_version", -1, &sqliteStatement, nil)
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-        }
-        defer {
-            sqlite3_finalize(sqliteStatement)
-        }
-        if sqlite3_step(sqliteStatement) != SQLITE_ROW || (sqlite3_column_text(sqliteStatement, 0) == nil) {
-            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: """
-                GRDB is not linked against SQLCipher. \
-                Check https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
-                """)
-        }
-    }
-    
-    private static func set(passphrase: String, forConnection sqliteConnection: SQLiteConnection) throws {
-        let data = passphrase.data(using: .utf8)!
-        #if swift(>=5.0)
-        let code = data.withUnsafeBytes {
-            sqlite3_key(sqliteConnection, $0.baseAddress, Int32($0.count))
-        }
-        #else
-        let code = data.withUnsafeBytes {
-            sqlite3_key(sqliteConnection, $0, Int32(data.count))
-        }
-        #endif
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-        }
-    }
-    
-    private static func set(cipherPageSize: Int, forConnection sqliteConnection: SQLiteConnection) throws {
-        var sqliteStatement: SQLiteStatement? = nil
-        var code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA cipher_page_size = \(cipherPageSize)", -1, &sqliteStatement, nil)
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-        }
-        defer {
-            sqlite3_finalize(sqliteStatement)
-        }
-        code = sqlite3_step(sqliteStatement)
-        if code != SQLITE_DONE {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-        }
-    }
-    
-    private static func set(kdfIterations: Int, forConnection sqliteConnection: SQLiteConnection) throws {
-        var sqliteStatement: SQLiteStatement? = nil
-        var code = sqlite3_prepare_v2(sqliteConnection, "PRAGMA kdf_iter = \(kdfIterations)", -1, &sqliteStatement, nil)
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-        }
-        defer {
-            sqlite3_finalize(sqliteStatement)
-        }
-        code = sqlite3_step(sqliteStatement)
-        if code != SQLITE_DONE {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-        }
-    }
-    #endif
-    
-    // For SQLite-SEE
-    #if SQLITE_HAS_CODEC && GRDB_SQLITE_SEE
-    private static func set(key: String, withEncryptionAlgorithm algorithm: EncryptionAlgorithm, forConnection sqliteConnection: SQLiteConnection) throws {
-        let prefixedKey = "\(algorithm.rawValue):\(key)"
-        let data = prefixedKey.data(using: .utf8)!
-        let code = data.withUnsafeBytes {
-            sqlite3_key_v2(sqliteConnection, nil, $0.baseAddress, Int32($0.count))
-        }
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
-        }
-    }
-    #endif
 }
 
 extension Database {
@@ -321,6 +223,12 @@ extension Database {
         try validateSQLCipher()
         if let passphrase = configuration.passphrase {
             try setCipherPassphrase(passphrase)
+        }
+        #endif
+        
+        #if SQLITE_HAS_CODEC && GRDB_SQLITE_SEE
+        if let key = configuration.key {
+            try setEncryptionKey(key, algorithm: configuration.encryptionAlgorithm)
         }
         #endif
 
@@ -470,6 +378,19 @@ extension Database {
             sqlite3_key(sqliteConnection, $0, Int32(data.count))
         }
         #endif
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+    }
+    #endif
+    
+    #if SQLITE_HAS_CODEC && GRDB_SQLITE_SEE
+    private func setEncryptionKey(_ key: String, algorithm: EncryptionAlgorithm) throws {
+        let prefixedKey = "\(algorithm.rawValue):\(key)"
+        let data = prefixedKey.data(using: .utf8)!
+        let code = data.withUnsafeBytes {
+            sqlite3_key_v2(sqliteConnection, nil, $0.baseAddress, Int32($0.count))
+        }
         guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
