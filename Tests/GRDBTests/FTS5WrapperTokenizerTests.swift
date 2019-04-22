@@ -1,9 +1,7 @@
 #if SQLITE_ENABLE_FTS5
 import XCTest
 import Foundation
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB

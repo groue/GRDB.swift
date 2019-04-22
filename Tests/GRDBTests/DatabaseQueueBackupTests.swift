@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -10,6 +8,13 @@ import XCTest
 class DatabaseQueueBackupTests: GRDBTestCase {
 
     func testBackup() throws {
+        #if GRDBCIPHER
+        // SQLCipher can't backup encrypted databases: skip this test
+        if dbConfiguration.passphrase != nil {
+            return
+        }
+        #endif
+        
         let source = try makeDatabaseQueue(filename: "source.sqlite")
         let destination = try makeDatabaseQueue(filename: "destination.sqlite")
         

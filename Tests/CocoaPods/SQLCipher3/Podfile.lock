@@ -1,0 +1,28 @@
+PODS:
+  - GRDB.swift/SQLCipher (3.7.0):
+    - SQLCipher (>= 3.4.0)
+  - SQLCipher (3.4.2):
+    - SQLCipher/standard (= 3.4.2)
+  - SQLCipher/common (3.4.2)
+  - SQLCipher/standard (3.4.2):
+    - SQLCipher/common
+
+DEPENDENCIES:
+  - GRDB.swift/SQLCipher (from `../../..`)
+  - SQLCipher (~> 3.0)
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - SQLCipher
+
+EXTERNAL SOURCES:
+  GRDB.swift:
+    :path: "../../.."
+
+SPEC CHECKSUMS:
+  GRDB.swift: 71ab04a6e727e34c034513c4d15901ea35eb1f0d
+  SQLCipher: f9fcf29b2e59ced7defc2a2bdd0ebe79b40d4990
+
+PODFILE CHECKSUM: 3c40378cc007008eab577fee818c46fac6982d5f
+
+COCOAPODS: 1.6.1

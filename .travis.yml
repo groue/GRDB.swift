@@ -4,6 +4,16 @@
 language: objective-c
 xcode_project: GRDB.xcodeproj
 
+# Caches
+cache:
+  - bundler
+  - cocoapods
+
+# Custom CocoaPods installation so that Podfile.lock is honored
+install:
+  - bundle install
+  - bundle exec pod repo update
+
 # Disable the default Travis-CI submodule logic
 # The various make commands ensure that the appropriate submodules are retrieved
 git:
@@ -137,28 +147,21 @@ jobs:
       script: make test_framework_GRDBCustomSQLiteiOS_minTarget
 
     ###########################################
-    ## Test GRDBCipher Xcode 10.1
+    ## Test SQLCipher Xcode 10.1
 
-    - stage: Test GRDBCipher Xcode 10.1
+    - stage: Test SQLCipher Xcode 10.1
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode10.1
       env:
-        - TID=GRDBOSX (Swift 4.2, macOS)
-      script: make test_framework_GRDBCipherOSX
+        - TID=SQLCipher 3
+      script: make test_framework_SQLCipher3
 
-    - stage: Test GRDBCipher Xcode 10.1
+    - stage: Test SQLCipher Xcode 10.1
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode10.1
       env:
-        - TID=GRDBiOS (Swift 4.2, iOS <MAX>)
-      script: make test_framework_GRDBCipheriOS_maxTarget
-
-    - stage: Test GRDBCipher Xcode 10.1
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode10.1
-      env:
-        - TID=GRDBiOS (Swift 4.2, iOS <MIN>)
-      script: make test_framework_GRDBCipheriOS_minTarget
+        - TID=SQLCipher 4
+      script: make test_framework_SQLCipher4
 
     ###########################################
     ## Test Installation Xcode 10.1
@@ -171,66 +174,26 @@ jobs:
         - TID=Manual Install
       script: make test_install_manual
 
-    # Manual Install (GRDBCipher, Xcode 10)
+    # CocoaPods Lint
     - stage: Test Installation Xcode 10.1
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode10.1
       env:
-        - TID=Manual Install (GRDBCipher, Xcode 10)
-      script: make test_install_GRDBCipher
-
-    # CocoaPods Lint
-    - stage: Test Installation Xcode 10.1
-      osx_image: xcode10.1
-      install:
-        - gem install cocoapods # >= 1.6.0 for cocoapods lint
-      env:
-        - TID=CocoaPods Lint GRDB.swift
+        - TID=CocoaPods Lint
       script: make test_CocoaPodsLint_GRDB
 
-    # CocoaPods Lint
+    # CocoaPods Install GRDB
     - stage: Test Installation Xcode 10.1
+      gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode10.1
-      install:
-        - gem install cocoapods # >= 1.6.0 for cocoapods lint
-      env:
-        - TID=CocoaPods Lint GRDBCipher (Xcode 10)
-      script: make test_CocoaPodsLint_GRDBCipher
-
-    # CocoaPods Install
-    - stage: Test Installation Xcode 10.1
-      osx_image: xcode10.1
-      install:
-        - gem install cocoapods # >= 1.6.0 for cocoapods lint
       env:
         - TID=CocoaPods GRDB
       script: make test_install_GRDB_CocoaPods
 
-    # Disabled until we understand the reason for this failure:
-    # https://travis-ci.org/groue/GRDB.swift/jobs/503214543
-    #
-    # # CocoaPods Install (Xcode 10)
-    # - stage: Test Installation
-    #   osx_image: xcode10
-    #   install:
-    #     - gem install cocoapods --pre # >= 1.6.0.beta.1 for cocoapods lint
-    #   env:
-    #     - TID=CocoaPods GRDBCipher (Xcode 10)
-    #   script: make test_install_GRDBCipher_CocoaPods
-
     # SPM Install
     - stage: Test Installation Xcode 10.1
+      gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode10.1
       env:
         - TID=SPM
       script: make test_install_SPM
-
-    ## Carthage Build
-    - stage: Test Installation Xcode 10.1
-      osx_image: xcode10.1
-      before_install:
-        - brew update
-        - brew outdated carthage || brew upgrade carthage
-      env:
-        - TID=Carthages
-      script: make test_CarthageBuild

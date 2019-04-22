@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -108,6 +106,13 @@ class DatabaseWriterTests : GRDBTestCase {
     
     // See https://github.com/groue/GRDB.swift/issues/424
     func testIssue424Minimal() throws {
+        #if GRDBCIPHER
+        // SQLCipher can't backup encrypted databases: skip this test
+        if dbConfiguration.passphrase != nil {
+            return
+        }
+        #endif
+        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(sql: """

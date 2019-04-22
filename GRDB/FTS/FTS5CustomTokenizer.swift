@@ -1,4 +1,12 @@
 #if SQLITE_ENABLE_FTS5
+#if SWIFT_PACKAGE
+    import CSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
+
 /// The protocol for custom FTS5 tokenizers.
 public protocol FTS5CustomTokenizer : FTS5Tokenizer {
     /// The name of the tokenizer; should uniquely identify your custom

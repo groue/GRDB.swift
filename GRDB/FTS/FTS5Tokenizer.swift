@@ -1,4 +1,12 @@
 #if SQLITE_ENABLE_FTS5
+#if SWIFT_PACKAGE
+    import CSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+    import SQLite3
+#endif
+
 /// A low-level SQLite function that lets FTS5Tokenizer notify tokens.
 ///
 /// See FTS5Tokenizer.tokenize(context:flags:pText:nText:tokenCallback:)
