@@ -25,7 +25,7 @@ try db.execute(sql: "INSERT INTO player (name) VALUES (?)", arguments: ["Arthur"
 let playerCount = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM player")
 ```
 
-This change was made necessary by the introduction of [SQL Interpolation]
+This change was made necessary by the introduction of [SQL Interpolation].
 
 
 ### ValueObservation
@@ -34,16 +34,16 @@ This change was made necessary by the introduction of [SQL Interpolation]
 
 To guarantee asynchronous notifications, and never ever block your main thread, use the `.async(onQueue:startImmediately:)` scheduling:
 
-    ```swift
+```swift
+// On main queue
+var observation = ValueObservation.trackingAll(Player.all())
+observation.scheduling = .async(onQueue: .main, startImmediately: true)
+let observer = try observation.start(in: dbQueue) { (players: [Player]) in
     // On main queue
-    var observation = ValueObservation.trackingAll(Player.all())
-    observation.scheduling = .async(onQueue: .main, startImmediately: true)
-    let observer = try observation.start(in: dbQueue) { (players: [Player]) in
-        // On main queue
-        print("fresh players: \(players)")s
-    }
-    // <- here "fresh players" is not printed yet.
-    ```
+    print("fresh players: \(players)")s
+}
+// <- here "fresh players" is not printed yet.
+```
 
 In GRDB 3, this scheduling used to be named `.queue(_: startImmediately:)`.
 
