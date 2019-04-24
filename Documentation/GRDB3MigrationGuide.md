@@ -52,7 +52,24 @@ The second breaking change is `ValueObservation.extent`, which was removed in GR
 
 ### SQLCipher
 
-- GRDBCipher discontinued
+The integration of GRDB with SQLCipher has changed.
+
+With GRDB 3, it was possible to perform a manual installation, or to use CocoaPods and the GRDBCipher pod.
+
+With GRDB 4, CocoaPods is the only supported installation method. And the GRDBCipher pod is discontinued, replaced with GRDB.swift/SQLCipher:
+
+```diff
+-pod 'GRDBCipher'
++pod 'GRDB.swift/SQLCipher'
+```
+
+In your Swift code, you no longer import the GRDBCipher module, but GRDB:
+
+```diff
+-import GRDBCipher
++import GRDB
+```
+
 - #497 replaced with #508
 
 
