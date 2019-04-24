@@ -54,23 +54,35 @@ The second breaking change is `ValueObservation.extent`, which was removed in GR
 
 The integration of GRDB with SQLCipher has changed.
 
-With GRDB 3, it was possible to perform a manual installation, or to use CocoaPods and the GRDBCipher pod.
+1. With GRDB 3, it was possible to perform a manual installation, or to use CocoaPods and the GRDBCipher pod.
+    
+    With GRDB 4, CocoaPods is the only supported installation method. And the GRDBCipher pod is discontinued, replaced with GRDB.swift/SQLCipher:
+    
+    ```diff
+    -pod 'GRDBCipher'
+    +pod 'GRDB.swift/SQLCipher'
+    ```
+    
+    In your Swift code, you no longer import the GRDBCipher module, but GRDB:
+    
+    ```diff
+    -import GRDBCipher
+    +import GRDB
+    ```
 
-With GRDB 4, CocoaPods is the only supported installation method. And the GRDBCipher pod is discontinued, replaced with GRDB.swift/SQLCipher:
+2. The default SQLCipher version which comes with GRDB 4 is now SQLCipher 4, which is incompatible with SQLCipher 3. See [Encryption] for more details.
 
-```diff
--pod 'GRDBCipher'
-+pod 'GRDB.swift/SQLCipher'
-```
-
-In your Swift code, you no longer import the GRDBCipher module, but GRDB:
-
-```diff
--import GRDBCipher
-+import GRDB
-```
-
-- #497 replaced with #508
+3. The `cipherPageSize` and `kdfIterations` configuration properties are discontinued. With GRDB 4, run sql pragmas in `prepareDatabase`:
+    
+    ```swift
+    var configuration = Configuration()
+    configuration.passphrase = "secret"
+    configuration.prepareDatabase = { db in
+        try db.execute(sql: "PRAGMA cipher_page_size = 4096")
+        try db.execute(sql: "PRAGMA kdf_iter = 128000")
+    }
+    let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
+    ```
 
 
 ### PersistenceError.recordNotFound
@@ -96,3 +108,4 @@ do {
 
 [SQL Interpolation]: SQLInterpolation.md
 [ValueObservation]: ../README.md#valueobservation
+[Encryption]: ../README.md#encryption
