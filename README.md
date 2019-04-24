@@ -5,7 +5,7 @@ GRDB 4 [![Swift](https://img.shields.io/badge/swift-4.2-orange.svg?style=flat)](
 
 ---
 
-:construction: GRDB 4 is currently under development in the [GRDB-4.0](https://github.com/groue/GRDB.swift/tree/GRDB-4.0) branch. [Release notes](https://github.com/groue/GRDB.swift/blob/GRDB-4.0/CHANGELOG.md#grdb-40-branch).
+:construction: GRDB 4 is currently under development in the [GRDB-4.0](https://github.com/groue/GRDB.swift/tree/GRDB-4.0) branch. [Backlog](https://github.com/groue/GRDB.swift/pull/479) • [Release notes](https://github.com/groue/GRDB.swift/blob/GRDB-4.0/CHANGELOG.md#grdb-40-branch) • [Migrating From GRDB 3 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
 
 GRDB 4 will not be following semantic versioning during the development process. There may be breaking changes until 4.0.0 is released. There is not ETA (estimated time of arrival) for version 4.0.0. Your [help and support](https://github.com/groue/GRDB.swift/blob/master/CONTRIBUTING.md) are welcome.
 
@@ -14,7 +14,7 @@ The latest stable release [GRDB 3.7.0](https://github.com/groue/GRDB.swift/tree/
 ---
 
 <!--
-**Latest release**: March 9, 2019 • version 3.7.0 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 2 to GRDB 3](Documentation/GRDB2MigrationGuide.md)
+**Latest release**: March 9, 2019 • version 3.7.0 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 4 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
 -->
 
 **Requirements**: iOS 9.0+ / macOS 10.9+ / watchOS 2.0+ &bull; Swift 4.2+ / Xcode 10.0+
