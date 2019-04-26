@@ -296,7 +296,7 @@ public final class TableDefinition {
     /// See https://www.sqlite.org/lang_createtable.html#primkeyconst and
     /// https://www.sqlite.org/lang_createtable.html#rowid
     ///
-    /// - parameter conflitResolution: An optional conflict resolution
+    /// - parameter conflictResolution: An optional conflict resolution
     ///   (see https://www.sqlite.org/lang_conflict.html).
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
@@ -335,7 +335,7 @@ public final class TableDefinition {
     /// https://www.sqlite.org/lang_createtable.html#rowid
     ///
     /// - parameter columns: The primary key columns.
-    /// - parameter conflitResolution: An optional conflict resolution
+    /// - parameter conflictResolution: An optional conflict resolution
     ///   (see https://www.sqlite.org/lang_conflict.html).
     public func primaryKey(_ columns: [String], onConflict conflictResolution: Database.ConflictResolution? = nil) {
         guard primaryKeyConstraint == nil else {
@@ -356,7 +356,7 @@ public final class TableDefinition {
     /// See https://www.sqlite.org/lang_createtable.html#uniqueconst
     ///
     /// - parameter columns: The unique key columns.
-    /// - parameter conflitResolution: An optional conflict resolution
+    /// - parameter conflictResolution: An optional conflict resolution
     ///   (see https://www.sqlite.org/lang_conflict.html).
     public func uniqueKey(_ columns: [String], onConflict conflictResolution: Database.ConflictResolution? = nil) {
         uniqueKeyConstraints.append((columns: columns, conflictResolution: conflictResolution))
@@ -631,7 +631,7 @@ public final class ColumnDefinition {
     /// https://www.sqlite.org/lang_createtable.html#rowid
     ///
     /// - parameters:
-    ///     - conflitResolution: An optional conflict resolution
+    ///     - conflictResolution: An optional conflict resolution
     ///       (see https://www.sqlite.org/lang_conflict.html).
     ///     - autoincrement: If true, the primary key is autoincremented.
     /// - returns: Self so that you can further refine the column definition.
@@ -649,7 +649,7 @@ public final class ColumnDefinition {
     ///
     /// See https://www.sqlite.org/lang_createtable.html#notnullconst
     ///
-    /// - parameter conflitResolution: An optional conflict resolution
+    /// - parameter conflictResolution: An optional conflict resolution
     ///   (see https://www.sqlite.org/lang_conflict.html).
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
@@ -666,7 +666,7 @@ public final class ColumnDefinition {
     ///
     /// See https://www.sqlite.org/lang_createtable.html#uniqueconst
     ///
-    /// - parameter conflitResolution: An optional conflict resolution
+    /// - parameter conflictResolution: An optional conflict resolution
     ///   (see https://www.sqlite.org/lang_conflict.html).
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
