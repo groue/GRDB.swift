@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -347,6 +345,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             XCTAssertTrue(fetchedRecord.personName == record.personName)
             XCTAssertTrue(fetchedRecord.countryName == record.countryName)
             XCTAssertTrue(fetchedRecord.native == record.native)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"citizenships\" WHERE ((\"personName\" = '\(record.personName!)') AND (\"countryName\" = '\(record.countryName!)'))")
         }
     }
 
@@ -419,6 +418,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             XCTAssertTrue(fetchedRecord.personName == record.personName)
             XCTAssertTrue(fetchedRecord.countryName == record.countryName)
             XCTAssertTrue(fetchedRecord.native == record.native)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"citizenships\" WHERE ((\"personName\" = '\(record.personName!)') AND (\"countryName\" = '\(record.countryName!)'))")
         }
     }
     

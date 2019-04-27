@@ -17,7 +17,7 @@ extension Row {
         if request.query.needsPrefetch {
             return try fetchAllWithPrefetchedRows(db, request)
         }
-        let (statement, adapter) = try request.prepare(db)
+        let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         return try fetchAll(statement, adapter: adapter)
     }
     
@@ -36,7 +36,7 @@ extension Row {
         if request.query.needsPrefetch {
             return try fetchOneWithPrefetchedRows(db, request)
         }
-        let (statement, adapter) = try request.prepare(db)
+        let (statement, adapter) = try request.prepare(db, forSingleResult: true)
         return try fetchOne(statement, adapter: adapter)
     }
 
@@ -45,7 +45,7 @@ extension Row {
         // Fetch base rows
         // TODO: avoid fatal errors "column ... is not selected" by making sure
         // columns used by joins are fetched (and hidden by a row adapter if added)
-        let (statement, adapter) = try request.prepare(db)
+        let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         let rows = try fetchAll(statement, adapter: adapter)
         return try rowsWithPrefetchedRows(db, rows, with: request.query)
     }
@@ -55,7 +55,7 @@ extension Row {
         // Fetch base rows
         // TODO: avoid fatal errors "column ... is not selected" by making sure
         // columns used by joins are fetched (and hidden by a row adapter if added)
-        let (statement, adapter) = try request.prepare(db)
+        let (statement, adapter) = try request.prepare(db, forSingleResult: true)
         guard let row = try fetchOne(statement, adapter: adapter) else {
             return nil
         }

@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -328,6 +326,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             
             let fetchedRecord = try Email.fetchOne(db, key: ["email": record.email])!
             XCTAssertTrue(fetchedRecord.email == record.email)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"emails\" WHERE (\"email\" = '\(record.email!)')")
         }
     }
 
@@ -403,6 +402,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             
             let fetchedRecord = try Email.filter(key: ["email": record.email]).fetchOne(db)!
             XCTAssertTrue(fetchedRecord.email == record.email)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"emails\" WHERE (\"email\" = '\(record.email!)')")
         }
     }
     
@@ -488,6 +488,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             do {
                 let fetchedRecord = try Email.fetchOne(db, key: record.email)!
                 XCTAssertTrue(fetchedRecord.email == record.email)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"emails\" WHERE (\"email\" = '\(record.email!)')")
             }
         }
     }
@@ -562,6 +563,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             do {
                 let fetchedRecord = try Email.filter(key: record.email).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.email == record.email)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"emails\" WHERE (\"email\" = '\(record.email!)')")
             }
         }
     }

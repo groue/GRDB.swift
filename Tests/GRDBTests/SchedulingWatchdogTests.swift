@@ -1,10 +1,8 @@
 import XCTest
-#if GRDBCIPHER
-    @testable import GRDBCipher // @testable so that we can test SchedulingWatchdog
-#elseif GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite // @testable so that we can test SchedulingWatchdog
+#if GRDBCUSTOMSQLITE
+    @testable import GRDBCustomSQLite
 #else
-    @testable import GRDB // @testable so that we can test SchedulingWatchdog
+    @testable import GRDB
 #endif
 
 class SchedulingWatchdogTests: GRDBTestCase {

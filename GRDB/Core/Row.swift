@@ -1,6 +1,8 @@
 import Foundation
 #if SWIFT_PACKAGE
     import CSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
     import SQLite3
 #endif
@@ -866,7 +868,7 @@ extension Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> RowCursor {
-        let (statement, adapter) = try request.prepare(db)
+        let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         return try fetchCursor(statement, adapter: adapter)
     }
     
@@ -882,7 +884,7 @@ extension Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchAll<R: FetchRequest>(_ db: Database, _ request: R) throws -> [Row] {
-        let (statement, adapter) = try request.prepare(db)
+        let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         return try fetchAll(statement, adapter: adapter)
     }
     
@@ -898,7 +900,7 @@ extension Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> Row? {
-        let (statement, adapter) = try request.prepare(db)
+        let (statement, adapter) = try request.prepare(db, forSingleResult: true)
         return try fetchOne(statement, adapter: adapter)
     }
 }

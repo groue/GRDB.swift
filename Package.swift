@@ -18,10 +18,8 @@ let package = Package(
             dependencies: ["GRDB"],
             path: "Tests",
             exclude: [
-                "Carthage",
                 "CocoaPods",
                 "Crash",
-                "GRDBCipher",
                 "Performance",
                 "SPM"
             ])

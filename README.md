@@ -5,7 +5,7 @@ GRDB 4 [![Swift](https://img.shields.io/badge/swift-4.2-orange.svg?style=flat)](
 
 ---
 
-:construction: GRDB 4 is currently under development in the [GRDB-4.0](https://github.com/groue/GRDB.swift/tree/GRDB-4.0) branch. [Release notes](https://github.com/groue/GRDB.swift/blob/GRDB-4.0/CHANGELOG.md#grdb-40-branch).
+:construction: GRDB 4 is currently under development in the [GRDB-4.0](https://github.com/groue/GRDB.swift/tree/GRDB-4.0) branch. [Backlog](https://github.com/groue/GRDB.swift/pull/479) • [Release notes](https://github.com/groue/GRDB.swift/blob/GRDB-4.0/CHANGELOG.md#grdb-40-branch) • [Migrating From GRDB 3 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
 
 GRDB 4 will not be following semantic versioning during the development process. There may be breaking changes until 4.0.0 is released. There is not ETA (estimated time of arrival) for version 4.0.0. Your [help and support](https://github.com/groue/GRDB.swift/blob/master/CONTRIBUTING.md) are welcome.
 
@@ -14,7 +14,7 @@ The latest stable release [GRDB 3.7.0](https://github.com/groue/GRDB.swift/tree/
 ---
 
 <!--
-**Latest release**: March 9, 2019 • version 3.7.0 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 2 to GRDB 3](Documentation/GRDB2MigrationGuide.md)
+**Latest release**: March 9, 2019 • version 3.7.0 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 4 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
 -->
 
 **Requirements**: iOS 9.0+ / macOS 10.9+ / watchOS 2.0+ &bull; Swift 4.2+ / Xcode 10.0+
@@ -352,9 +352,7 @@ Note that Linux is not currently supported.
 
 ## Carthage
 
-Carthage can build GRDB frameworks, but it can also inexplicably fail. This installation method is thus *unsupported*.
-
-If you decide to use Carthage despite this warning, and get any Carthage-related error, please open an issue in the [Carthage repo](https://github.com/Carthage/Carthage/issues), ask [Stack Overflow](http://stackoverflow.com), summon your local Xcode guru, or submit a pull request that has the `make test_CarthageBuild` command succeed 100% of the time (one time is not enough). See [#262](https://github.com/groue/GRDB.swift/pull/262) for more information.
+[Carthage](https://github.com/Carthage/Carthage) is **unsupported**. For some context about this decision, see [#433](https://github.com/groue/GRDB.swift/issues/433).
 
 
 ## Manually
@@ -2068,14 +2066,17 @@ row.scopes["remainder"] // [c:2 d:3]
 
 **If not all SQLite APIs are exposed in GRDB, you can still use the [SQLite C Interface](https://www.sqlite.org/c3ref/intro.html) and call [SQLite C functions](https://www.sqlite.org/c3ref/funclist.html).**
 
-Those functions are embedded right into the GRDBCustom and GRCBCipher modules. For the "regular" GRDB framework: you'll need to import `SQLite3`, or `CSQLite`, depending on whether you use the Swift Package Manager or not:
+Those functions are embedded right into the [GRDBCustom](Documentation/CustomSQLiteBuilds.md) module. Otherwise, you'll need to import `SQLite3`, `SQLCipher`, or `CSQLite`, depending on the GRDB flavor you are using:
 
 ```swift
-#if SWIFT_PACKAGE
-    import CSQLite // For Swift Package Manager
-#else
-    import SQLite3 // Otherwise
-#endif
+// Swift Package Manager
+import CSQLite
+
+// SQLCipher
+import SQLCipher
+
+// System SQLite
+import SQLite3
 
 let sqliteVersion = String(cString: sqlite3_libversion())
 ```
@@ -4612,7 +4613,7 @@ protocol FetchRequest: DatabaseRegionConvertible {
     associatedtype RowDecoder
     
     /// A tuple that contains a prepared statement, and an eventual row adapter.
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
+    func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
     
     /// The number of rows fetched by the request.
     func fetchCount(_ db: Database) throws -> Int
@@ -4621,7 +4622,7 @@ protocol FetchRequest: DatabaseRegionConvertible {
 
 When the `RowDecoder` associated type is [Row](#fetching-rows), or a [value](#value-queries), or a type that conforms to [FetchableRecord], the request can fetch: see [Fetching From Custom Requests](#fetching-from-custom-requests) below.
 
-The `prepare` method returns a prepared statement and an optional row adapter. The [prepared statement](#prepared-statements) tells which SQL query should be executed. The row adapter helps presenting the fetched rows in the way expected by the row decoders (see [row adapter](#row-adapters)).
+The `prepare(_:forSingleResult:)` method accepts a database connection, a `singleResult` hint, and returns a prepared statement and an optional row adapter. Conforming types can use the `singleResult` hint as an optimization opportunity, and return a [prepared statement](#prepared-statements) that fetches at most one row, with a `LIMIT` SQL clause, when possible. The optional row adapter helps presenting the fetched rows in the way expected by the row decoders (see [row adapters](#row-adapters)).
 
 The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
 
@@ -5157,10 +5158,10 @@ The version of SQLite that ships with iOS, macOS and watchOS does not always sup
     
     > :point_up: **Note**: there used to be a GRDBPlus CocoaPod with pre-enabled FTS5 support. This CocoaPod is deprecated: please switch to the above technique.
 
-2. Use the GRDBCipher CocoaPod. It uses SQLCipher (see [encryption](#encryption)), and requires iOS 9.0+ / macOS 10.9+ / watchOS 2.0+:
+2. Use the GRDB.swift/SQLCipher CocoaPod subspec (see [encryption](#encryption)):
     
     ```ruby
-    pod 'GRDBCipher'
+    pod 'GRDB.swift/SQLCipher'
     ```
     
 3. Use a [custom SQLite build] and activate the `SQLITE_ENABLE_FTS5` compilation option.
@@ -7271,8 +7272,6 @@ DatabaseRegion fuels, for example, [ValueObservation and DatabaseRegionObservati
 
 For example, if you observe the region of `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
 
-Similarly, observing the region of `Country.filter(key: "FR")` will notify all changes that happen to the whole `country` table. That is because SQLite only notifies the numerical [rowid](https://www.sqlite.org/rowidtable.html) of changed rows, and we can't check if it is the row "FR" that has been changed, or another. This limitation does not apply to tables whose primary key is the rowid: `Player.filter(key: 42)` will only notify of changes performed on the row with id 42.
-
 For more details, see the [reference](http://groue.github.io/GRDB.swift/docs/3.7/Structs/DatabaseRegion.html#/s:4GRDB14DatabaseRegionV10isModified2bySbAA0B5EventV_tF).
 
 
@@ -7313,37 +7312,39 @@ protocol TransactionObserverType : class {
 Encryption
 ==========
 
-**GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4.2.**
+**GRDB can encrypt your database with [SQLCipher](http://sqlcipher.net) v3.4+.**
 
-You can use [CocoaPods](http://cocoapods.org/) (version 1.2 or higher), and specify in your `Podfile`:
+Use [CocoaPods](http://cocoapods.org/), and specify in your `Podfile`:
 
 ```ruby
-use_frameworks!
-pod 'GRDBCipher'
+# GRDB with SQLCipher 4
+pod 'GRDB.swift/SQLCipher'
+pod 'SQLCipher', '~> 4.0'
+
+# GRDB with SQLCipher 3
+pod 'GRDB.swift/SQLCipher'
+pod 'SQLCipher', '~> 3.4'
 ```
 
-Alternatively, perform a manual installation of GRDB and SQLCipher:
-
-1. Clone the GRDB git repository, checkout the latest tagged version, and download SQLCipher sources:
-    
-    ```sh
-    cd [GRDB directory]
-    git checkout v3.7.0
-    git submodule update --init SQLCipher/src
-    ```
-    
-2. Embed the `GRDBCipher.xcodeproj` project in your own project.
-
-3. Add the `GRDBCipherOSX` or `GRDBCipheriOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target.
-
-4. Add the `GRDBCipher.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your target.
-
+> :warning: **Warning**: SQLCipher 4 is *not compatible** with SQLCipher 3.
+>
+> When you want to open your SQLCipher 3 database with SQLCipher 4, you may want to run the `cipher_compatibility` pragma:
+>
+> ```swift
+> // Open an SQLCipher 3 database with SQLCipher 4
+> var configuration = Configuration()
+> configuration.passphrase = "..."
+> configuration.prepareDatabase = { db in
+>     try db.execute(sql: "PRAGMA cipher_compatibility = 3")
+> }
+> let dbQueue = try DatabaseQueue(path: dbPath, configuration: configuration)
+> ```
+>
+> See [SQLCipher 4.0.0 Release](https://www.zetetic.net/blog/2018/11/30/sqlcipher-400-release/) and [Upgrading to SQLCipher 4](https://discuss.zetetic.net/t/upgrading-to-sqlcipher-4/3283) for more information. See also [Advanced configuration options for SQLCipher](#advanced-configuration-options-for-sqlcipher) below.
 
 **You create and open an encrypted database** by providing a passphrase to your [database connection](#database-connections):
 
 ```swift
-import GRDBCipher
-
 var configuration = Configuration()
 configuration.passphrase = "secret"
 let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
@@ -7379,31 +7380,19 @@ try clearDBQueue.inDatabase { db in
 
 ## Advanced configuration options for SQLCipher
 
-There are two advanced configuration options that you can set for configuring SQLCipher that control aspects of the encryption and key generation process.
+Some advanced SQLCipher configuration steps must happen very early in the database lifetime, and you will have to use the `configuration.prepareDatabase` property in order to run them correctly:
 
 ```swift
 var configuration = Configuration()
 configuration.passphrase = "secret"
-configuration.cipherPageSize = .pageSize4K
-configuration.kdfIterations = 128000
+configuration.prepareDatabase = { db in
+    try db.execute(sql: "PRAGMA cipher_page_size = 4096")
+    try db.execute(sql: "PRAGMA kdf_iter = 128000")
+}
 let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
 ```
 
-### cipherPageSize
-
-The `cipherPageSize` is used to adjust the page size for the encrypted database (this corresponds to the [SQLCipher `PRAGMA cipher_page_size`](https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_page_size) configuration option). Increasing the page size can noticeably improve performance for certain queries that access large numbers of pages. 
-
-The default `cipherPageSize` in the current version of SQLCipher used in GRDB.swift is `1024`.
-
-> :point_up: **Note**: the same `cipherPageSize` must be supplied every time that the database file is open; attempting to access the database without setting the proper `cipherPageSize` will result in the `SQLite error 26: file is encrypted or is not a database` error being thrown. 
-
-### kdfIterations
-
-The `kdfIterations` value is used to adjust the number of iterations that the PBKDF2 key derivation is run to derive the key from the `passphrase` supplied (this corresponds to the [SQLCipher `PRAGMA kdf_iter`](https://www.zetetic.net/sqlcipher/sqlcipher-api/#kdf_iter) configuration option).
-
-The default `kdfIterations` in the current version of SQLCipher used in GRDB.swift is `64000`. It is not recommend to reduce the number of iterations used from the default.
-
-> :point_up: **Note**: the same `kdfIterations` must be supplied every time that the database file is open; attempting to access the database without setting the proper `kdfIterations` will result in the `SQLite error 26: file is encrypted or is not a database` error being thrown. 
+See [PRAGMA cipher_page_size](https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_page_size) and [PRAGMA kdf_iter](https://www.zetetic.net/sqlcipher/sqlcipher-api/#kdf_iter) for more information.
 
 
 ## Backup
@@ -8671,7 +8660,7 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@Chiliec](https://github.com/Chiliec), [@darrenclark](https://github.com/darrenclark), [@davidkraus](https://github.com/davidkraus), [@fpillet](http://github.com/fpillet), [@gusrota](https://github.com/gusrota), [@hartbit](https://github.com/hartbit), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@KyleLeneau](https://github.com/KyleLeneau), [@Marus](https://github.com/Marus), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@swiftlyfalling](https://github.com/swiftlyfalling), [@valexa](https://github.com/valexa), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
+- [@alextrob](https://github.com/alextrob), [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@charlesmchen-signal](https://github.com/charlesmchen-signal), [@Chiliec](https://github.com/Chiliec), [@darrenclark](https://github.com/darrenclark), [@davidkraus](https://github.com/davidkraus), [@fpillet](http://github.com/fpillet), [@gusrota](https://github.com/gusrota), [@hartbit](https://github.com/hartbit), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@KyleLeneau](https://github.com/KyleLeneau), [@Marus](https://github.com/Marus), [@michaelkirk-signal](https://github.com/michaelkirk-signal), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@swiftlyfalling](https://github.com/swiftlyfalling), [@valexa](https://github.com/valexa), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [@kali](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
 

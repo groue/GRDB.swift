@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -63,7 +61,7 @@ class AssociationHasOneThroughRowscopeTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = A.joining(required: A.defaultC)
-            let (_, adapter) = try request.prepare(db)
+            let (_, adapter) = try request.prepare(db, forSingleResult: false)
             XCTAssertNil(adapter)
         }
     }

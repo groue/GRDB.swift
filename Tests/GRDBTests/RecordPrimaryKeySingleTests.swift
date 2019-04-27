@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -339,6 +337,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             let fetchedRecord = try Pet.fetchOne(db, key: ["UUID": record.UUID])!
             XCTAssertTrue(fetchedRecord.UUID == record.UUID)
             XCTAssertTrue(fetchedRecord.name == record.name)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"pets\" WHERE (\"UUID\" = '\(record.UUID!)')")
         }
     }
 
@@ -410,6 +409,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             let fetchedRecord = try Pet.filter(key: ["UUID": record.UUID]).fetchOne(db)!
             XCTAssertTrue(fetchedRecord.UUID == record.UUID)
             XCTAssertTrue(fetchedRecord.name == record.name)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"pets\" WHERE (\"UUID\" = '\(record.UUID!)')")
         }
     }
     
@@ -491,6 +491,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
                 let fetchedRecord = try Pet.fetchOne(db, key: record.UUID)!
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                 XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"pets\" WHERE (\"UUID\" = '\(record.UUID!)')")
             }
         }
     }
@@ -561,6 +562,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
                 let fetchedRecord = try Pet.filter(key: record.UUID).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                 XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"pets\" WHERE (\"UUID\" = '\(record.UUID!)')")
             }
         }
     }

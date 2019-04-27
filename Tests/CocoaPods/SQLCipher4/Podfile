@@ -1,0 +1,15 @@
+platform :macos, '10.9'
+use_frameworks!
+
+def common
+  pod 'GRDB.swift/SQLCipher', :path => '../../..'
+  pod 'SQLCipher', '~> 4.0'
+end
+
+target 'GRDBTests' do
+  common
+end
+
+target 'GRDBTestsEncrypted' do
+  common
+end

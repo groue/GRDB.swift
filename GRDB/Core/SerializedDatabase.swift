@@ -42,7 +42,12 @@ final class SerializedDatabase {
         self.queue = configuration.makeDispatchQueue(defaultLabel: defaultLabel, purpose: purpose)
         SchedulingWatchdog.allowDatabase(db, onQueue: queue)
         try queue.sync {
-            try db.setup()
+            do {
+                try db.setup()
+            } catch {
+                db.close()
+                throw error
+            }
         }
     }
     

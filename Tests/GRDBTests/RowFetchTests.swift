@@ -1,12 +1,12 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
-    #if SWIFT_PACKAGE
+    #if GRDBCIPHER
+        import SQLCipher
+    #elseif SWIFT_PACKAGE
         import CSQLite
-        #else
+    #else
         import SQLite3
     #endif
     import GRDB
@@ -80,11 +80,9 @@ class RowFetchTests: GRDBTestCase {
                 do {
                     _ = try cursor.next()
                     XCTFail()
-                } catch let error as DatabaseError {
-                    XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
-                    XCTAssertEqual(error.message, "\(customError)")
-                    XCTAssertEqual(error.sql!, sql)
-                    XCTAssertEqual(error.description, "SQLite error 21 with statement `\(sql)`: \(customError)")
+                } catch is DatabaseError {
+                    // Various SQLite and SQLCipher versions don't emit the same
+                    // error. What we care about is that there is an error.
                 }
             }
             do {

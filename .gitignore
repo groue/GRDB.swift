@@ -101,9 +101,7 @@ SQLiteCustom/GRDBCustomSQLite-USER.h
 SQLiteCustom/GRDBCustomSQLite-USER.xcconfig
 
 # CocoaPods test
-Podfile.lock
 Pods
-Tests/CocoaPods/*/*.xcworkspace
 
 # SPM
 .build

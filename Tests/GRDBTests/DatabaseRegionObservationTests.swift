@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     #if SWIFT_PACKAGE
@@ -152,4 +150,41 @@ class DatabaseRegionObservationTests: GRDBTestCase {
         
         XCTAssertEqual(count, 1)
     }
+    
+    // Regression test for https://github.com/groue/GRDB.swift/issues/514
+    // TODO: uncomment and make this test pass.
+//    func testIssue514() throws {
+//        let dbQueue = try makeDatabaseQueue()
+//        try dbQueue.write { db in
+//            try db.create(table: "gallery") { t in
+//                t.column("id", .integer).primaryKey()
+//                t.column("status", .integer)
+//            }
+//        }
+//
+//        struct Gallery: TableRecord { }
+//        let observation = DatabaseRegionObservation(tracking: Gallery.select(Column("id")))
+//
+//        var notificationCount = 0
+//        let observer = try observation.start(in: dbQueue) { _ in
+//            notificationCount += 1
+//        }
+//
+//        try withExtendedLifetime(observer) {
+//            try dbQueue.write { db in
+//                try db.execute(sql: "INSERT INTO gallery (id, status) VALUES (NULL, 0)")
+//            }
+//            XCTAssertEqual(notificationCount, 1)
+//
+//            try dbQueue.write { db in
+//                try db.execute(sql: "UPDATE gallery SET status = 1")
+//            }
+//            XCTAssertEqual(notificationCount, 1) // status is not observed
+//
+//            try dbQueue.write { db in
+//                try db.execute(sql: "DELETE FROM gallery")
+//            }
+//            XCTAssertEqual(notificationCount, 2)
+//        }
+//    }
 }

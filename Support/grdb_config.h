@@ -8,9 +8,7 @@
         #include <sqlite3.h>
     #endif
 #else
-    #if defined(GRDBCIPHER)
-        #include <GRDBCipher/sqlite3.h>
-    #elsif defined(GRDBCUSTOMSQLITE)
+    #if defined(GRDBCUSTOMSQLITE)
         #include <GRDBCustom/sqlite3.h>
     #else
         #include <sqlite3.h>

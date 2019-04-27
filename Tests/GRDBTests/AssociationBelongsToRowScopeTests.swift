@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -47,7 +45,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = Player.joining(required: Player.defaultTeam)
-            let (_, adapter) = try request.prepare(db)
+            let (_, adapter) = try request.prepare(db, forSingleResult: false)
             XCTAssertNil(adapter)
         }
     }

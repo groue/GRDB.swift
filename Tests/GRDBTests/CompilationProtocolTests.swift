@@ -1,6 +1,4 @@
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -112,7 +110,7 @@ private class UserPersistableRecord2 : PersistableRecord {
 private struct UserRowRequest : FetchRequest {
     struct CustomType { }
     typealias RowDecoder = CustomType
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
+    func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
 }
 
 // MARK: - FetchableRecord

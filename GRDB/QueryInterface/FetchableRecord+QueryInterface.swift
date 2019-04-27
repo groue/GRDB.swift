@@ -17,7 +17,7 @@ extension FetchableRecord {
         if request.query.needsPrefetch {
             return try Row.fetchAllWithPrefetchedRows(db, request).map(Self.init(row:))
         } else {
-            let (statement, adapter) = try request.prepare(db)
+            let (statement, adapter) = try request.prepare(db, forSingleResult: false)
             return try fetchAll(statement, adapter: adapter)
         }
     }
@@ -37,7 +37,7 @@ extension FetchableRecord {
         if request.query.needsPrefetch {
             return try Row.fetchOneWithPrefetchedRows(db, request).map(Self.init(row:))
         } else {
-            let (statement, adapter) = try request.prepare(db)
+            let (statement, adapter) = try request.prepare(db, forSingleResult: true)
             return try fetchOne(statement, adapter: adapter)
         }
     }

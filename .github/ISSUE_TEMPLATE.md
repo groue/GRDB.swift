@@ -18,7 +18,7 @@ Please fill out this template when filing an issue.
 
 ### Environment
 
-**GRDB flavor(s):** (GRDB, GRDBCipher, GRDBCustom?)
+**GRDB flavor(s):** (GRDB, SQLCipher, Custom SQLite build?)
 **GRDB version:**
 **Installation method:** (CocoaPods, SPM, manual?)
 **Xcode version:**

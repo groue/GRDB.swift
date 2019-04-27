@@ -90,7 +90,7 @@ public struct SQLRequest<T> : FetchRequest {
     ///       prepared statement.
     /// - returns: An SQLRequest
     public init<Request: FetchRequest>(_ db: Database, request: Request, cached: Bool = false) throws where Request.RowDecoder == RowDecoder {
-        let (statement, adapter) = try request.prepare(db)
+        let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         self.init(literal: SQLLiteral(sql: statement.sql, arguments: statement.arguments), adapter: adapter, cached: cached)
     }
     
@@ -125,9 +125,10 @@ public struct SQLRequest<T> : FetchRequest {
     /// executed, and an eventual row adapter.
     ///
     /// - parameter db: A database connection.
+    /// - parameter singleResult: SQLRequest disregards this hint.
     ///
     /// :nodoc:
-    public func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
+    public func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
         let statement: SelectStatement
         switch cache {
         case .none:
