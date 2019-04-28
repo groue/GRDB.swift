@@ -242,6 +242,13 @@ extension Association {
 }
 
 extension Association {
+    /// Creates an association that prefetches another one.
+    public func including<A: AssociationToMany>(all association: A) -> Self where A.OriginRowDecoder == RowDecoder {
+        return mapRelation {
+            _ in fatalError("TODO")
+        }
+    }
+    
     /// Creates an association that includes another one. The columns of the
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.

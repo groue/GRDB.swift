@@ -1,6 +1,15 @@
 extension QueryInterfaceRequest where RowDecoder: TableRecord {
     // MARK: - Associations
     
+    /// Creates a request that prefetches an association.
+    public func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
+        return mapQuery {
+            $0.mapRelation {
+                _ in fatalError("TODO")
+            }
+        }
+    }
+
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
@@ -119,6 +128,11 @@ extension TableRecord {
     
     // MARK: - Associations
     
+    /// Creates a request that prefetches an association.
+    public static func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self {
+        return all().including(all: association)
+    }
+
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.

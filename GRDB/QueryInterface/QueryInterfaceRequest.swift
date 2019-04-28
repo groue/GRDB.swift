@@ -66,6 +66,7 @@ extension QueryInterfaceRequest : FetchRequest {
     /// - parameter db: A database connection.
     /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
+        // TODO: include prefetched regions
         return try SQLSelectQueryGenerator(query).databaseRegion(db)
     }
 }
