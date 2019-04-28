@@ -931,7 +931,7 @@ extension FetchRequest where RowDecoder: Row {
     ///     let row = try request.fetchOne(db)
     ///
     /// - parameter db: A database connection.
-    /// - returns: A,n optional rows.
+    /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public func fetchOne(_ db: Database) throws -> Row? {
