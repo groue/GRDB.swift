@@ -506,7 +506,7 @@ extension Row {
     
     /// Returns the record encoded in the given scope.
     ///
-    /// A fatal error is raised in the row was not fetched with a row adapter
+    /// A fatal error is raised if the row was not fetched with a row adapter
     /// that defines this scope.
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
