@@ -215,11 +215,21 @@ struct SQLSelectQueryGenerator {
 }
 
 /// A "qualified" relation, where all tables are identified with a table alias.
+///
+///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
+///            |        |      |        |         |            |
+///            |        |      |        |         |            • ordering
+///            |        |      |        |         • filterPromise
+///            |        |      |        • directJoins
+///            |        |      • alias
+///            |        • source
+///            • fullSelection
 private struct SQLQualifiedRelation {
     /// The alias for the relation
     ///
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
-    ///                            ^ alias
+    ///                            |
+    ///                            • alias
     let alias: TableAlias
     
     /// All aliases, including aliases of joined relations
@@ -235,7 +245,8 @@ private struct SQLQualifiedRelation {
     /// The source
     ///
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
-    ///                     ^ source
+    ///                     |
+    ///                     • source
     let source: SQLQualifiedSource
     
     /// The selection, not including selection of joined relations
@@ -244,7 +255,8 @@ private struct SQLQualifiedRelation {
     /// The full selection, including selection of joined relations
     ///
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
-    ///            ^ fullSelection
+    ///            |
+    ///            • fullSelection
     var selection: [SQLSelectable] {
         return joins.reduce(into: ownSelection) {
             $0.append(contentsOf: $1.value.relation.selection)
@@ -254,7 +266,8 @@ private struct SQLQualifiedRelation {
     /// The filtering clause
     ///
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
-    ///                                               ^ filterPromise
+    ///                                               |
+    ///                                               • filterPromise
     let filterPromise: DatabasePromise<SQLExpression?>
     
     /// The ordering, not including ordering of joined relations
@@ -263,7 +276,8 @@ private struct SQLQualifiedRelation {
     /// The full ordering, including orderings of joined relations
     ///
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
-    ///                                                            ^ ordering
+    ///                                                            |
+    ///                                                            • ordering
     var ordering: SQLRelation.Ordering {
         return joins.reduce(ownOrdering) {
             $0.appending($1.value.relation.ordering)
@@ -273,7 +287,8 @@ private struct SQLQualifiedRelation {
     /// The joins
     ///
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
-    ///                                ^ joins
+    ///                                     |
+    ///                                     • joins
     let joins: OrderedDictionary<String, SQLQualifiedJoin>
     
     init(_ relation: SQLRelation) {
@@ -433,7 +448,7 @@ private struct SQLQualifiedJoin {
         
         let rightAlias = relation.alias
         let filters = try [
-            condition.sqlExpression(db, leftAlias: leftAlias, rightAlias: rightAlias),
+            condition.joinExpression(db, leftAlias: leftAlias, rightAlias: rightAlias),
             relation.filterPromise.resolve(db)
             ].compactMap { $0 }
         if !filters.isEmpty {

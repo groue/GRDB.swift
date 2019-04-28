@@ -488,26 +488,26 @@ public /* TODO: internal */ struct SQLAssociation {
     ///
     ///     // SELECT head.* FROM head WHERE head.originId = 123
     ///     origin.request(for: association)
-    func relation(to originTable: String, container originContainer: @escaping (Database) throws -> PersistenceContainer) -> SQLRelation {
-        // Build a "pivot" relation whose filter is the pivot condition
-        // injected with values contained in originContainer.
+    func pivotRelation(from originAlias: TableAlias, rows originRows: @escaping (Database) throws -> [Row]) -> SQLRelation {
         let pivotCondition = pivot.condition
         let pivotAlias = TableAlias()
         let pivotRelation = pivot.relation
             .qualified(with: pivotAlias)
             .filter { db in
-                let originAlias = TableAlias(tableName: originTable)
+                // Build a join expression: `association.originId = origin.id`
+                let joinExpression = try pivotCondition.joinExpression(db, leftAlias: originAlias, rightAlias: pivotAlias)
                 
-                // Build a join condition: `association.originId = origin.id`
-                let joinExpression = try pivotCondition.sqlExpression(db, leftAlias: originAlias, rightAlias: pivotAlias)
-                
-                // Replace `origin.id` with 123
-                return try joinExpression.resolvedExpression(inContext: [originAlias: originContainer(db)])
+                // Resolve to `association.originId = 123` or `association.originId IN (1, 2, 3)`
+                return try joinExpression.resolved(withLeftRows: originRows(db))
         }
         
-        // We use elements backward: join conditions have to be reversed.
+        // We join elements backward: join conditions have to be reversed.
         let reversedElements = zip([head] + tail, tail)
-            .map { Element(key: $1.key, condition: $0.condition.reversed, relation: $1.relation.select([])) }
+            .map { (element, nextElement) in
+                Element(
+                    key: nextElement.key,
+                    condition: element.condition.reversed,
+                    relation: nextElement.relation.select([])) }
             .reversed()
         
         // Empty tail?

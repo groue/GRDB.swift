@@ -279,12 +279,6 @@ extension DatabaseValue {
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return self
     }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return self
-    }
 }
 
 // CustomStringConvertible
@@ -303,5 +297,47 @@ extension DatabaseValue {
         case .blob(let data):
             return "Data(\(data.description))"
         }
+    }
+}
+
+/// Compares DatabaseValue like SQLite.
+///
+/// See RxGRDB for tests.
+///
+/// This comparison is not public because it does not handle text collations,
+/// and may be dangerous when put in user hands.
+///
+/// So far, the only goal of this sorting method so far is aesthetic, and
+/// easier testing.
+func < (lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
+    switch (lhs.storage, rhs.storage) {
+    case (.int64(let lhs), .int64(let rhs)):
+        return lhs < rhs
+    case (.double(let lhs), .double(let rhs)):
+        return lhs < rhs
+    case (.int64(let lhs), .double(let rhs)):
+        return Double(lhs) < rhs
+    case (.double(let lhs), .int64(let rhs)):
+        return lhs < Double(rhs)
+    case (.string(let lhs), .string(let rhs)):
+        return lhs.utf8.lexicographicallyPrecedes(rhs.utf8)
+    case (.blob(let lhs), .blob(let rhs)):
+        return lhs.lexicographicallyPrecedes(rhs, by: <)
+    case (.blob, _):
+        return false
+    case (_, .blob):
+        return true
+    case (.string, _):
+        return false
+    case (_, .string):
+        return true
+    case (.int64, _), (.double, _):
+        return false
+    case (_, .int64), (_, .double):
+        return true
+    case (.null, _):
+        return false
+    case (_, .null):
+        return true
     }
 }

@@ -89,12 +89,6 @@ public struct SQLExpressionLiteral : SQLExpression {
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return self
     }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return self
-    }
 }
 
 // MARK: - SQLExpressionUnary
@@ -165,12 +159,6 @@ public struct SQLExpressionUnary : SQLExpression {
     /// :nodoc:
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return SQLExpressionUnary(op, expression.qualifiedExpression(with: alias))
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return SQLExpressionUnary(op, expression.resolvedExpression(inContext: context))
     }
 }
 
@@ -275,12 +263,6 @@ public struct SQLExpressionBinary : SQLExpression {
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return SQLExpressionBinary(op, lhs.qualifiedExpression(with: alias), rhs.qualifiedExpression(with: alias))
     }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return SQLExpressionBinary(op, lhs.resolvedExpression(inContext: context), rhs.resolvedExpression(inContext: context))
-    }
 }
 
 // MARK: - SQLExpressionAnd
@@ -306,10 +288,6 @@ struct SQLExpressionAnd : SQLExpression {
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return SQLExpressionAnd(expressions.map { $0.qualifiedExpression(with: alias) })
-    }
-    
-    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return SQLExpressionAnd(expressions.map { $0.resolvedExpression(inContext: context) })
     }
     
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
@@ -346,10 +324,6 @@ struct SQLExpressionOr : SQLExpression {
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return SQLExpressionOr(expressions.map { $0.qualifiedExpression(with: alias) })
-    }
-    
-    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return SQLExpressionOr(expressions.map { $0.resolvedExpression(inContext: context) })
     }
     
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
@@ -412,10 +386,6 @@ struct SQLExpressionEqual: SQLExpression {
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return SQLExpressionEqual(op, lhs.qualifiedExpression(with: alias), rhs.qualifiedExpression(with: alias))
-    }
-    
-    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return SQLExpressionEqual(op, lhs.resolvedExpression(inContext: context), rhs.resolvedExpression(inContext: context))
     }
     
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
@@ -486,10 +456,6 @@ struct SQLExpressionContains : SQLExpression {
         return SQLExpressionContains(expression.qualifiedExpression(with: alias), collection, negated: isNegated)
     }
     
-    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return SQLExpressionContains(expression.resolvedExpression(inContext: context), collection, negated: isNegated)
-    }
-    
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
         // FIXME: this implementation ignores column aliases
         // Look for `id IN (1, 2, 3)`
@@ -558,14 +524,6 @@ struct SQLExpressionBetween : SQLExpression {
             expression.qualifiedExpression(with: alias),
             lowerBound.qualifiedExpression(with: alias),
             upperBound.qualifiedExpression(with: alias),
-            negated: isNegated)
-    }
-    
-    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return SQLExpressionBetween(
-            expression.resolvedExpression(inContext: context),
-            lowerBound.resolvedExpression(inContext: context),
-            upperBound.resolvedExpression(inContext: context),
             negated: isNegated)
     }
 }
@@ -646,12 +604,6 @@ public struct SQLExpressionFunction : SQLExpression {
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return SQLExpressionFunction(functionName, arguments: arguments.map { $0.qualifiedExpression(with: alias) })
     }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return SQLExpressionFunction(functionName, arguments: arguments.map { $0.resolvedExpression(inContext: context) })
-    }
 }
 
 // MARK: - SQLExpressionCount
@@ -675,10 +627,6 @@ struct SQLExpressionCount : SQLExpression {
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return SQLExpressionCount(counted.qualifiedSelectable(with: alias))
     }
-    
-    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return self
-    }
 }
 
 // MARK: - SQLExpressionCountDistinct
@@ -700,10 +648,6 @@ struct SQLExpressionCountDistinct : SQLExpression {
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return SQLExpressionCountDistinct(counted.qualifiedExpression(with: alias))
-    }
-    
-    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return self
     }
 }
 
@@ -737,10 +681,6 @@ struct SQLExpressionIsEmpty : SQLExpression {
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return SQLExpressionIsEmpty(countExpression.qualifiedExpression(with: alias), isEmpty: isEmpty)
     }
-    
-    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return SQLExpressionIsEmpty(countExpression.resolvedExpression(inContext: context), isEmpty: isEmpty)
-    }
 }
 
 // MARK: - TableMatchExpression
@@ -757,12 +697,6 @@ struct TableMatchExpression: SQLExpression {
         return TableMatchExpression(
             alias: self.alias,
             pattern: pattern.qualifiedExpression(with: alias))
-    }
-    
-    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return TableMatchExpression(
-            alias: alias,
-            pattern: pattern.resolvedExpression(inContext: context))
     }
 }
 
@@ -792,9 +726,5 @@ struct SQLExpressionCollate : SQLExpression {
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return SQLExpressionCollate(expression.qualifiedExpression(with: alias), collationName: collationName)
-    }
-    
-    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return SQLExpressionCollate(expression.resolvedExpression(inContext: context), collationName: collationName)
     }
 }
