@@ -7,7 +7,7 @@ GRDB 4 [![Swift](https://img.shields.io/badge/swift-4.2-orange.svg?style=flat)](
 
 :construction: GRDB 4 is currently under development in the [GRDB-4.0](https://github.com/groue/GRDB.swift/tree/GRDB-4.0) branch. [Backlog](https://github.com/groue/GRDB.swift/pull/479) • [Release notes](https://github.com/groue/GRDB.swift/blob/GRDB-4.0/CHANGELOG.md#grdb-40-branch) • [Migrating From GRDB 3 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
 
-GRDB 4 will not be following semantic versioning during the development process. There may be breaking changes until 4.0.0 is released. There is not ETA (estimated time of arrival) for version 4.0.0. Your [help and support](https://github.com/groue/GRDB.swift/blob/master/CONTRIBUTING.md) are welcome.
+GRDB 4 will not be following semantic versioning during the development process. There may be breaking changes until 4.0.0 is released. There is no ETA (estimated time of arrival) for version 4.0.0. Your [help and support](https://github.com/groue/GRDB.swift/blob/master/CONTRIBUTING.md) are welcome.
 
 The latest stable release [GRDB 3.7.0](https://github.com/groue/GRDB.swift/tree/v3.7.0) does not support Xcode 10.2. There is currently no plan to make it happen. Instead, you are encouraged to migrate to GRDB 4. See [issue #482](https://github.com/groue/GRDB.swift/issues/482) for more information.
 
