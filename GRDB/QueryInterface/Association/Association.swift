@@ -246,28 +246,36 @@ extension Association {
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.sqlAssociation.relation(from: $0, required: false) }
+        return mapRelation {
+            association.sqlAssociation.relation(from: $0, required: false)
+        }
     }
     
     /// Creates an association that includes another one. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.sqlAssociation.relation(from: $0, required: true) }
+        return mapRelation {
+            association.sqlAssociation.relation(from: $0, required: true)
+        }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.select([]).sqlAssociation.relation(from: $0, required: false) }
+        return mapRelation {
+            association.select([]).sqlAssociation.relation(from: $0, required: false)
+        }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.select([]).sqlAssociation.relation(from: $0, required: true) }
+        return mapRelation {
+            association.select([]).sqlAssociation.relation(from: $0, required: true)
+        }
     }
 }
 
