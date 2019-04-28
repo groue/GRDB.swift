@@ -48,9 +48,6 @@ public protocol SQLExpression : SQLSpecificExpressible, SQLSelectable, SQLOrderi
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression
 }
 
 extension SQLExpression {
@@ -146,9 +143,5 @@ struct SQLExpressionNot : SQLExpression {
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return SQLExpressionNot(expression.qualifiedExpression(with: alias))
-    }
-    
-    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return SQLExpressionNot(expression.resolvedExpression(inContext: context))
     }
 }

@@ -36,12 +36,6 @@ extension ColumnExpression {
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return QualifiedColumn(name, alias: alias)
     }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return self
-    }
 }
 
 /// A column in a database table.
@@ -84,16 +78,6 @@ struct QualifiedColumn: ColumnExpression {
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         // Never requalify
         return self
-    }
-    
-    func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        guard
-            let container = context[alias],
-            let value = container.value(forCaseInsensitiveColumn: name) else
-        {
-            return self
-        }
-        return value
     }
 }
 

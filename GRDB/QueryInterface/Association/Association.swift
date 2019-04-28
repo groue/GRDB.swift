@@ -246,28 +246,36 @@ extension Association {
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.sqlAssociation.relation(from: $0, required: false) }
+        return mapRelation {
+            association.sqlAssociation.relation(from: $0, required: false)
+        }
     }
     
     /// Creates an association that includes another one. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.sqlAssociation.relation(from: $0, required: true) }
+        return mapRelation {
+            association.sqlAssociation.relation(from: $0, required: true)
+        }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.select([]).sqlAssociation.relation(from: $0, required: false) }
+        return mapRelation {
+            association.select([]).sqlAssociation.relation(from: $0, required: false)
+        }
     }
     
     /// Creates an association that joins another one. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation { association.select([]).sqlAssociation.relation(from: $0, required: true) }
+        return mapRelation {
+            association.select([]).sqlAssociation.relation(from: $0, required: true)
+        }
     }
 }
 
@@ -402,7 +410,7 @@ public /* TODO: internal */ struct SQLAssociation {
     // SQLAssociation is a non-empty array of association elements
     private struct Element {
         var key: String
-        var condition: SQLJoin.Condition
+        var condition: SQLJoinCondition
         var relation: SQLRelation
     }
     private var head: Element
@@ -415,7 +423,7 @@ public /* TODO: internal */ struct SQLAssociation {
         self.tail = tail
     }
     
-    init(key: String, condition: SQLJoin.Condition, relation: SQLRelation) {
+    init(key: String, condition: SQLJoinCondition, relation: SQLRelation) {
         head = Element(key: key, condition: condition, relation: relation)
         tail = []
     }
@@ -480,26 +488,26 @@ public /* TODO: internal */ struct SQLAssociation {
     ///
     ///     // SELECT head.* FROM head WHERE head.originId = 123
     ///     origin.request(for: association)
-    func relation(to originTable: String, container originContainer: @escaping (Database) throws -> PersistenceContainer) -> SQLRelation {
-        // Build a "pivot" relation whose filter is the pivot condition
-        // injected with values contained in originContainer.
+    func pivotRelation(from originAlias: TableAlias, rows originRows: @escaping (Database) throws -> [Row]) -> SQLRelation {
         let pivotCondition = pivot.condition
         let pivotAlias = TableAlias()
         let pivotRelation = pivot.relation
             .qualified(with: pivotAlias)
             .filter { db in
-                let originAlias = TableAlias(tableName: originTable)
+                // Build a join expression: `association.originId = origin.id`
+                let joinExpression = try pivotCondition.joinExpression(db, leftAlias: originAlias, rightAlias: pivotAlias)
                 
-                // Build a join condition: `association.originId = origin.id`
-                let joinExpression = try pivotCondition.sqlExpression(db, leftAlias: originAlias, rightAlias: pivotAlias)
-                
-                // Replace `origin.id` with 123
-                return try joinExpression.resolvedExpression(inContext: [originAlias: originContainer(db)])
+                // Resolve to `association.originId = 123` or `association.originId IN (1, 2, 3)`
+                return try joinExpression.resolved(withLeftRows: originRows(db))
         }
         
-        // We use elements backward: join conditions have to be reversed.
+        // We join elements backward: join conditions have to be reversed.
         let reversedElements = zip([head] + tail, tail)
-            .map { Element(key: $1.key, condition: $0.condition.reversed, relation: $1.relation.select([])) }
+            .map { (element, nextElement) in
+                Element(
+                    key: nextElement.key,
+                    condition: element.condition.reversed,
+                    relation: nextElement.relation.select([])) }
             .reversed()
         
         // Empty tail?

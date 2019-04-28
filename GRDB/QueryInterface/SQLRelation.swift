@@ -1,6 +1,14 @@
 /// A "relation" as defined by the [relational terminology](https://en.wikipedia.org/wiki/Relational_database#Terminology):
 ///
 /// > A set of tuples sharing the same attributes; a set of columns and rows.
+///
+///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
+///            |        |        |         |            |
+///            |        |        |         |            • ordering
+///            |        |        |         • filterPromise
+///            |        |        • joins
+///            |        • source
+///            • selection
 struct SQLRelation {
     var source: SQLSource
     var selection: [SQLSelectable]
@@ -198,89 +206,167 @@ extension SQLRelation {
     }
 }
 
+// MARK: - SQLJoinCondition
+
+/// The condition that links two joined tables.
+///
+/// Currently, we only support one kind of join condition: foreign keys.
+///
+///     SELECT ... FROM book JOIN author ON author.id = book.authorId
+///                                         <- the join condition -->
+///
+/// When we eventually add support for new ways to join tables, SQLJoinCondition
+/// is the type we'll need to update.
+///
+/// SQLJoinCondition equality allows merging of associations:
+///
+///     // request1 and request2 are equivalent
+///     let request1 = Book
+///         .including(required: Book.author)
+///     let request2 = Book
+///         .including(required: Book.author)
+///         .including(required: Book.author)
+///
+///     // request3 and request4 are equivalent
+///     let request3 = Book
+///         .including(required: Book.author.filter(condition1 && condition2))
+///     let request4 = Book
+///         .joining(required: Book.author.filter(condition1))
+///         .including(optional: Book.author.filter(condition2))
+struct SQLJoinCondition: Equatable {
+    /// Definition of a foreign key
+    var foreignKeyRequest: ForeignKeyRequest
+    
+    /// True if the table at the origin of the foreign key is on the left of
+    /// the sql JOIN operator.
+    ///
+    /// Let's consider the `book.authorId -> author.id` foreign key.
+    /// Its origin table is `book`.
+    ///
+    /// The origin table `book` is on the left of the JOIN operator for
+    /// the BelongsTo association:
+    ///
+    ///     -- Book.including(required: Book.author)
+    ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
+    ///
+    /// The origin table `book`is on the right of the JOIN operator for
+    /// the HasMany and HasOne associations:
+    ///
+    ///     -- Author.including(required: Author.books)
+    ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
+    var originIsLeft: Bool
+    
+    var reversed: SQLJoinCondition {
+        return SQLJoinCondition(foreignKeyRequest: foreignKeyRequest, originIsLeft: !originIsLeft)
+    }
+    
+    /// Returns an SQL expression for the join condition.
+    ///
+    ///     SELECT * FROM left JOIN right ON (right.a = left.b)
+    ///                                      <---------------->
+    ///                                      SQLJoinExpression
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter leftAlias: A TableAlias for the table on the left of the
+    ///   JOIN operator.
+    /// - parameter rightAlias: A TableAlias for the table on the right of the
+    ///   JOIN operator.
+    /// - Returns: An SQL expression.
+    func joinExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLJoinExpression {
+        let foreignKeyMapping = try foreignKeyRequest.fetchMapping(db)
+        let columnMapping: [(left: String, right: String)]
+        if originIsLeft {
+            columnMapping = foreignKeyMapping.map { (left: $0.origin, right: $0.destination) }
+        } else {
+            columnMapping = foreignKeyMapping.map { (left: $0.destination, right: $0.origin) }
+        }
+        return SQLJoinExpression(leftAlias: leftAlias, rightAlias: rightAlias, columnMapping: columnMapping)
+    }
+}
+
+// MARK: - SQLJoinExpression
+
+/// The expression used to join two tables:
+///
+///     SELECT * FROM left JOIN right ON (right.a = left.b)
+///                                      <---------------->
+///                                      SQLJoinExpression
+///
+/// SQLJoinExpression can be resolved against rows, in order to give
+/// `right.a = 1` or `right.a IN (1, 2, 3)`.
+struct SQLJoinExpression: SQLExpression {
+    var leftAlias: TableAlias
+    var rightAlias: TableAlias
+    var columnMapping: [(left: String, right: String)]
+    
+    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        return columnMapping
+            .map { QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias) }
+            .joined(operator: .and)
+            .expressionSQL(&context)
+    }
+    
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        // self is already qualified
+        return self
+    }
+    
+    /// Resolves against given rows.
+    ///
+    /// Given `right.a = left.b`, returns `right.a = 1` or
+    /// `right.a IN (1, 2, 3)`.
+    func resolved(withLeftRows rows: [Row]) -> SQLExpression {
+        let valueMappings = columnMapping.map { columns in
+            (column: QualifiedColumn(columns.right, alias: rightAlias),
+             dbValues: rows.map { $0[columns.left] as DatabaseValue })
+        }
+        
+        guard let firstValueMapping = valueMappings.first else {
+            // Likely a GRDB bug
+            fatalError("No joining column")
+        }
+        
+        if valueMappings.count == 1 {
+            // Join on a single column.
+            // Unique and sort database values for nicer output:
+            let dbValues = firstValueMapping.dbValues
+                .reduce(into: Set<DatabaseValue>(), { $0.insert($1) })
+                .sorted(by: <)
+            
+            guard let dbValue = dbValues.first else {
+                // Likely a GRDB bug
+                fatalError("No resolving rows")
+            }
+            
+            if dbValues.count == 1 {
+                // Single row: table.a = 1
+                return (firstValueMapping.column == dbValue)
+            } else {
+                // Multiple rows: table.a IN (1, 2, 3)
+                return dbValues.contains(firstValueMapping.column)
+            }
+        } else {
+            // Join on a multiple columns.
+            assert(Set(valueMappings.map { $0.dbValues.count }).count == 1, "inconsistent values count")
+            if firstValueMapping.dbValues.count == 1 {
+                // Single row: (table.a = 1) AND (table.b = 2)
+                return valueMappings
+                    .map { $0.column == $0.dbValues[0] }
+                    .joined(operator: .and)
+                
+            } else {
+                // Multiple rows: TODO
+                fatalError("not implemented")
+            }
+        }
+    }
+}
+
 // MARK: - SQLJoin
 
 struct SQLJoin {
-    /// The condition that links two joined tables.
-    ///
-    /// Currently, we only support one kind of join condition: foreign keys.
-    ///
-    ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
-    ///                                         <- the join condition -->
-    ///
-    /// When we eventually add support for new ways to join tables, Condition
-    /// is the type we'll need to update.
-    ///
-    /// Condition equality allows merging of associations:
-    ///
-    ///     // request1 and request2 are equivalent
-    ///     let request1 = Book
-    ///         .including(required: Book.author)
-    ///     let request2 = Book
-    ///         .including(required: Book.author)
-    ///         .including(required: Book.author)
-    ///
-    ///     // request3 and request4 are equivalent
-    ///     let request3 = Book
-    ///         .including(required: Book.author.filter(condition1 && condition2))
-    ///     let request4 = Book
-    ///         .joining(required: Book.author.filter(condition1))
-    ///         .including(optional: Book.author.filter(condition2))
-    struct Condition: Equatable {
-        /// Definition of a foreign key
-        var foreignKeyRequest: ForeignKeyRequest
-        
-        /// True if the table at the origin of the foreign key is on the left of
-        /// the sql JOIN operator.
-        ///
-        /// Let's consider the `book.authorId -> author.id` foreign key.
-        /// Its origin table is `book`.
-        ///
-        /// The origin table `book` is on the left of the JOIN operator for
-        /// the BelongsTo association:
-        ///
-        ///     -- Book.including(required: Book.author)
-        ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
-        ///
-        /// The origin table `book`is on the right of the JOIN operator for
-        /// the HasMany and HasOne associations:
-        ///
-        ///     -- Author.including(required: Author.books)
-        ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
-        var originIsLeft: Bool
-        
-        var reversed: Condition {
-            return Condition(foreignKeyRequest: foreignKeyRequest, originIsLeft: !originIsLeft)
-        }
-        
-        /// Returns an SQL expression for the join condition.
-        ///
-        ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
-        ///                                         <- the SQL expression -->
-        ///
-        /// - parameter db: A database connection.
-        /// - parameter leftAlias: A TableAlias for the table on the left of the
-        ///   JOIN operator.
-        /// - parameter rightAlias: A TableAlias for the table on the right of the
-        ///   JOIN operator.
-        /// - Returns: An SQL expression.
-        func sqlExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLExpression {
-            let foreignKeyMapping = try foreignKeyRequest.fetchMapping(db)
-            let columnMapping: [(left: Column, right: Column)]
-            if originIsLeft {
-                columnMapping = foreignKeyMapping.map { (left: Column($0.origin), right: Column($0.destination)) }
-            } else {
-                columnMapping = foreignKeyMapping.map { (left: Column($0.destination), right: Column($0.origin)) }
-            }
-            
-            return columnMapping
-                .map { $0.right.qualifiedExpression(with: rightAlias) == $0.left.qualifiedExpression(with: leftAlias) }
-                .joined(operator: .and)
-        }
-    }
-    
     var isRequired: Bool
-    var condition: Condition
+    var condition: SQLJoinCondition
     var relation: SQLRelation
 }
 
