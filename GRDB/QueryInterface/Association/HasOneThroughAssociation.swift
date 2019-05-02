@@ -110,6 +110,6 @@ extension TableRecord {
         Pivot.OriginRowDecoder == Self,
         Pivot.RowDecoder == Target.OriginRowDecoder
     {
-        return HasOneThroughAssociation(sqlAssociation: target.sqlAssociation.appending(pivot.sqlAssociation))
+        return HasOneThroughAssociation(sqlAssociation: target.sqlAssociation.through(pivot.sqlAssociation))
     }
 }

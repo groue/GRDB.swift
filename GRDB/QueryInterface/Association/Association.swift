@@ -247,7 +247,7 @@ extension Association {
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRelation {
-            association.sqlAssociation.relation(from: $0, required: false)
+            association.sqlAssociation.joinedRelation(from: $0, required: false)
         }
     }
     
@@ -256,7 +256,7 @@ extension Association {
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRelation {
-            association.sqlAssociation.relation(from: $0, required: true)
+            association.sqlAssociation.joinedRelation(from: $0, required: true)
         }
     }
     
@@ -265,7 +265,7 @@ extension Association {
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRelation {
-            association.select([]).sqlAssociation.relation(from: $0, required: false)
+            association.select([]).sqlAssociation.joinedRelation(from: $0, required: false)
         }
     }
     
@@ -274,7 +274,7 @@ extension Association {
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRelation {
-            association.select([]).sqlAssociation.relation(from: $0, required: true)
+            association.select([]).sqlAssociation.joinedRelation(from: $0, required: true)
         }
     }
 }
@@ -390,134 +390,195 @@ public protocol AssociationToOne: Association { }
 
 // MARK: - SQLAssociation
 
-/// An SQL association is a non-empty chain of joins from an "origin" table to
-/// the "head" of the association. All tables between "origin" and "head" are
-/// the "tail". The table that is immediately joined to "origin" is the "pivot":
+/// An SQL association is a non-empty chain on joins which starts from the
+/// "pivot" and ends to the "target":
 ///
 ///     // SELECT origin.*, head.*
 ///     // FROM origin
-///     // JOIN pivot ON ... JOIN ... -- tail
-///     // JOIN head ON ...           -- head
-///     origin.including(required: association)
+///     // JOIN pivot ON ...
+///     // JOIN ...
+///     // JOIN ...
+///     // JOIN target ON ...
+///     Origin.including(required: association)
 ///
-/// When tail is empty, "pivot" and "head" are the same:
+/// For direct associations such as BelongTo or HasMany, the chain contains a
+/// single element, and "pivot" and "target" are the same:
 ///
-///     // SELECT origin.*, head.* FROM origin JOIN head ON ...
-///     origin.including(required: association)
+///     // "Origin" belongsTo "target":
+///     // SELECT origin.*, target.*
+///     // FROM origin
+///     // JOIN target ON target.originId = origin.id
+///     let association = Origin.belongsTo(Target.self)
+///     Origin.including(required: association)
+///
+/// Indirect associations such as HasManyThrough have several steps:
+///
+///     // "Origin" has many "target" through "pivot":
+///     // SELECT origin.*, target.*
+///     // FROM origin
+///     // JOIN pivot ON pivot.originId = origin.id
+///     // JOIN target ON target.id = pivot.targetId
+///     let association = Origin.hasMany(
+///         Target.self,
+///         through: Origin.hasMany(Pivot.self),
+///         via: Pivot.belongsTo(Target.self))
+///     Origin.including(required: association)
+///
+///     // "Origin" has many "target" through "pivot1" and  "pivot2":
+///     // SELECT origin.*, target.*
+///     // FROM origin
+///     // JOIN pivot1 ON pivot1.originId = origin.id
+///     // JOIN pivot2 ON pivot2.pivot1Id = pivot1.id
+///     // JOIN target ON target.id = pivot.targetId
+///     let association = Origin.hasMany(
+///         Target.self,
+///         through: Origin.hasMany(Pivot1.self),
+///         via: Pivot1.hasMany(
+///             Target.self,
+///             through: Pivot1.hasMany(Pivot2.self),
+///             via: Pivot2.belongsTo(Target.self)))
+///     Origin.including(required: association)
 ///
 /// :nodoc:
 public /* TODO: internal */ struct SQLAssociation {
-    // SQLAssociation is a non-empty array of association elements
-    private struct Element {
+    private struct AssociationStep {
         var key: String
         var condition: SQLJoinCondition
         var relation: SQLRelation
+        
+        func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> AssociationStep {
+            return AssociationStep(key: key, condition: condition, relation: transform(relation))
+        }
     }
-    private var head: Element
-    private var tail: [Element]
-    private var pivot: Element { return tail.last ?? head }
-    var key: String { return head.key }
+    private var steps: [AssociationStep] // Never empty. Last is target.
+    private var target: AssociationStep {
+        get { return steps[steps.count - 1] }
+        set { steps[steps.count - 1] = newValue }
+    }
+    var key: String { return target.key }
     
-    private init(head: Element, tail: [Element]) {
-        self.head = head
-        self.tail = tail
+    private init(steps: [AssociationStep]) {
+        assert(!steps.isEmpty)
+        self.steps = steps
     }
     
     init(key: String, condition: SQLJoinCondition, relation: SQLRelation) {
-        head = Element(key: key, condition: condition, relation: relation)
-        tail = []
+        self.init(steps: [AssociationStep(key: key, condition: condition, relation: relation)])
     }
     
+    /// Changes the target key
     func forKey(_ key: String) -> SQLAssociation {
         var result = self
-        result.head.key = key
+        result.target.key = key
         return result
     }
     
+    /// Transforms the target relation
     func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLAssociation {
         var result = self
-        result.head.relation = transform(head.relation)
+        result.target = result.target.mapRelation(transform)
         return result
     }
     
-    func appending(_ other: SQLAssociation) -> SQLAssociation {
-        var result = self
-        result.tail.append(other.head)
-        result.tail.append(contentsOf: other.tail)
-        return result
+    /// Returns a new association
+    func through(_ other: SQLAssociation) -> SQLAssociation {
+        return SQLAssociation(steps: other.steps + steps)
     }
     
     /// Support for joining methods joining(optional:), etc.
-    func relation(from origin: SQLRelation, required: Bool) -> SQLRelation {
-        let headJoin = SQLJoin(
+    func joinedRelation(from origin: SQLRelation, required: Bool) -> SQLRelation {
+        let targetJoin = SQLJoin(
             isRequired: required,
-            condition: head.condition,
-            relation: head.relation)
+            condition: target.condition,
+            relation: target.relation)
         
-        // Recursion step: remove one element from tail by shifting the next
-        // element to the head.
-        //
-        // From:
-        //  ... JOIN next JOIN head
-        //  <-tail------> <-head-->
-        //
-        // We reduce into:
-        //  ...      JOIN next JOIN head
-        //  <-tail-> <-head------------>
-        //
-        // Until the tail is empty:
-        guard let next = tail.first else {
-            return origin.appendingJoin(headJoin, forKey: head.key)
+        let initialSteps = steps.dropLast()
+        if initialSteps.isEmpty {
+            // This is a direct join from origin to target (pivot is the target):
+            //
+            // SELECT origin.*, target.*
+            // FROM origin
+            // JOIN target ON target.originId = origin.id
+            //
+            // let association = Origin.belongsTo(Target.self)
+            // Origin.including(required: association)
+            return origin.appendingJoin(targetJoin, forKey: target.key)
         }
         
-        let nextRelation = next.relation.select([]).appendingJoin(headJoin, forKey: head.key)
-        let reducedHead = Element(key: next.key, condition: next.condition, relation: nextRelation)
-        let reducedTail = Array(tail.dropFirst())
-        let reducedAssociation = SQLAssociation(head: reducedHead, tail: reducedTail)
-        return reducedAssociation.relation(from: origin, required: required)
+        // This is an indirect join from origin to target, through some pivot(s):
+        //
+        // SELECT origin.*, target.*
+        // FROM origin
+        // JOIN pivot ON pivot.originId = origin.id
+        // JOIN target ON target.id = pivot.targetId
+        //
+        // let association = Origin.hasMany(
+        //     Target.self,
+        //     through: Origin.hasMany(Pivot.self),
+        //     via: Pivot.belongsTo(Target.self))
+        // Origin.including(required: association)
+        //
+        // Let's recurse toward a direct join, by making a new association which
+        // ends on the last pivot, to which we join our target:
+        var reducedAssociation = SQLAssociation(steps: Array(initialSteps))
+        reducedAssociation = reducedAssociation.mapRelation { lastPivot in
+            lastPivot
+                .select([]) // pivot is not included in the selection
+                .appendingJoin(targetJoin, forKey: target.key)
+        }
+        return reducedAssociation.joinedRelation(from: origin, required: required)
     }
     
     /// Support for (TableRecord & EncodableRecord).request(for:).
-    ///
-    /// Returns a "reversed" relation:
-    ///
-    ///     // SELECT head.* FROM head JOIN ... JOIN pivot ON pivot.originId = 123
-    ///     origin.request(for: association)
-    ///
-    /// When tail is empty, "pivot" and "head" are the same:
-    ///
-    ///     // SELECT head.* FROM head WHERE head.originId = 123
-    ///     origin.request(for: association)
     func pivotRelation(from originAlias: TableAlias, rows originRows: @escaping (Database) throws -> [Row]) -> SQLRelation {
-        let pivotCondition = pivot.condition
+        // Filter the pivot
+        let pivot = steps[0]
         let pivotAlias = TableAlias()
         let pivotRelation = pivot.relation
             .qualified(with: pivotAlias)
-            .filter { db in
-                // Build a join expression: `association.originId = origin.id`
-                let joinExpression = try pivotCondition.joinExpression(db, leftAlias: originAlias, rightAlias: pivotAlias)
-                
-                // Resolve to `association.originId = 123` or `association.originId IN (1, 2, 3)`
-                return try joinExpression.resolved(withLeftRows: originRows(db))
-        }
+            .filter({ db in
+                // `pivot.originId = 123` or `pivot.originId IN (1, 2, 3)`
+                try pivot.condition
+                    .joinExpression(db, leftAlias: originAlias, rightAlias: pivotAlias)
+                    .resolved(withLeftRows: originRows(db))
+            })
         
-        // We join elements backward: join conditions have to be reversed.
-        let reversedElements = zip([head] + tail, tail)
-            .map { (element, nextElement) in
-                Element(
-                    key: nextElement.key,
-                    condition: element.condition.reversed,
-                    relation: nextElement.relation.select([])) }
-            .reversed()
-        
-        // Empty tail?
-        guard var reversedHead = reversedElements.first else {
+        if steps.count == 1 {
+            // This is a direct join from origin to target (pivot is the target):
+            //
+            // SELECT target.*
+            // FROM target
+            // WHERE target.originId = 1
+            //
+            // let association = Origin.hasMany(Target.self)
+            // Origin(id: 1).request(for: association)
             return pivotRelation
         }
         
-        reversedHead.relation = pivotRelation.select([])
-        let reversedTail = Array(reversedElements.dropFirst())
-        let reversedAssociation = SQLAssociation(head: reversedHead, tail: reversedTail)
-        return reversedAssociation.relation(from: head.relation, required: true)
+        // This is an indirect join from origin to target, through some pivot(s):
+        //
+        // SELECT target.*
+        // FROM target
+        // JOIN pivot ON (pivot.targetId = target.id) AND (pivot.originId = 1)
+        //
+        // let association = Origin.hasMany(
+        //     Target.self,
+        //     through: Origin.hasMany(Pivot.self),
+        //     via: Pivot.belongsTo(Target.self))
+        // Origin(id: 1).request(for: association)
+        let reversedSteps = zip(steps, steps.dropFirst())
+            .map { (step, nextStep) in
+                AssociationStep(
+                    key: step.key,
+                    condition: nextStep.condition.reversed,
+                    relation: step.relation.select([]))
+            }
+            .reversed()
+        
+        var reversedAssociation = SQLAssociation(steps: Array(reversedSteps))
+        reversedAssociation = reversedAssociation.mapRelation { _ in
+            pivotRelation.select([]) // pivot is not included in the selection
+        }
+        return reversedAssociation.joinedRelation(from: steps.last!.relation, required: true)
     }
 }
