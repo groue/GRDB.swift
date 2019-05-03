@@ -512,6 +512,11 @@ public /* TODO: internal */ struct SQLAssociation {
     ///     // SELECT origin.*, target.*
     ///     // FROM origin
     ///     // JOIN target ON target.originId = origin.id
+    ///
+    /// This method works for simple direct associations such as BelongsTo or
+    /// HasMany in the above examples, but also for indirect associations such
+    /// as HasManyThrough, which have any number of pivot relations between the
+    /// origin and the target.
     func joinedRelation(from origin: SQLRelation, required: Bool) -> SQLRelation {
         let targetJoin = SQLJoin(
             isRequired: required,
@@ -555,8 +560,8 @@ public /* TODO: internal */ struct SQLAssociation {
         return reducedAssociation.joinedRelation(from: origin, required: required)
     }
     
-    /// Given an origin alias and rows, returns a relation to the
-    /// association target.
+    /// Given an origin alias and rows, returns the target of the association
+    /// as a relation.
     ///
     /// This method provides support for association methods such
     /// as `request(for:)`:
@@ -564,13 +569,16 @@ public /* TODO: internal */ struct SQLAssociation {
     ///     struct Target: TableRecord { }
     ///     struct Origin: TableRecord, EncodableRecord {
     ///         static let targets = hasMany(Target.self)
+    ///         var targets: QueryInterface<Target> {
+    ///             return request(for: Origin.targets)
+    ///         }
     ///     }
     ///
     ///     // SELECT target.*
     ///     // FROM target
     ///     // WHERE target.originId = 1
     ///     let origin = Origin(id: 1)
-    ///     let target = origin.request(for: Origin.targets).fetchAll(db)
+    ///     let target = origin.targets.fetchAll(db)
     ///
     /// At low-level, this gives:
     ///
@@ -587,6 +595,11 @@ public /* TODO: internal */ struct SQLAssociation {
     ///     // SELECT target.*
     ///     // FROM target
     ///     // WHERE target.originId = 1
+    ///
+    /// This method works for simple direct associations such as BelongsTo or
+    /// HasMany in the above examples, but also for indirect associations such
+    /// as HasManyThrough, which have any number of pivot relations between the
+    /// origin and the target.
     func targetRelation(from originAlias: TableAlias, rows originRows: @escaping (Database) throws -> [Row]) -> SQLRelation {
         // Filter the pivot
         let pivot = steps[0]
