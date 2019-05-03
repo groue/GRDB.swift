@@ -485,7 +485,33 @@ public /* TODO: internal */ struct SQLAssociation {
         return SQLAssociation(steps: other.steps + steps)
     }
     
-    /// Support for joining methods joining(optional:), etc.
+    /// Given a relation, returns a relation joined with this association.
+    ///
+    /// This method provides support for public joining methods such
+    /// as `including(required:)`:
+    ///
+    ///     struct Target: TableRecord { }
+    ///     struct Origin: TableRecord {
+    ///         static let target = belongsTo(Target.self)
+    ///     }
+    ///
+    ///     // SELECT origin.*, target.*
+    ///     // FROM origin
+    ///     // JOIN target ON target.id = origin.targetId
+    ///     let request = Origin.including(required: Origin.target)
+    ///
+    /// At low-level, this gives:
+    ///
+    ///     let sqlAssociation = Origin.target.sqlAssociation
+    ///     let origin = Origin.all().query.relation
+    ///     let joinedRelation = sqlAssociation.joinedRelation(from: origin, required: true)
+    ///     let query = SQLSelectQuery(relation: joinedRelation)
+    ///     let generator = SQLSelectQueryGenerator(query)
+    ///     let statement, _ = try generator.prepare(db)
+    ///     print(statement.sql)
+    ///     // SELECT origin.*, target.*
+    ///     // FROM origin
+    ///     // JOIN target ON target.originId = origin.id
     func joinedRelation(from origin: SQLRelation, required: Bool) -> SQLRelation {
         let targetJoin = SQLJoin(
             isRequired: required,
@@ -498,7 +524,7 @@ public /* TODO: internal */ struct SQLAssociation {
             //
             // SELECT origin.*, target.*
             // FROM origin
-            // JOIN target ON target.originId = origin.id
+            // JOIN target ON target.id = origin.targetId
             //
             // let association = Origin.belongsTo(Target.self)
             // Origin.including(required: association)
@@ -529,8 +555,39 @@ public /* TODO: internal */ struct SQLAssociation {
         return reducedAssociation.joinedRelation(from: origin, required: required)
     }
     
-    /// Support for (TableRecord & EncodableRecord).request(for:).
-    func pivotRelation(from originAlias: TableAlias, rows originRows: @escaping (Database) throws -> [Row]) -> SQLRelation {
+    /// Given an origin alias and rows, returns a relation to the
+    /// association target.
+    ///
+    /// This method provides support for association methods such
+    /// as `request(for:)`:
+    ///
+    ///     struct Target: TableRecord { }
+    ///     struct Origin: TableRecord, EncodableRecord {
+    ///         static let targets = hasMany(Target.self)
+    ///     }
+    ///
+    ///     // SELECT target.*
+    ///     // FROM target
+    ///     // WHERE target.originId = 1
+    ///     let origin = Origin(id: 1)
+    ///     let target = origin.request(for: Origin.targets).fetchAll(db)
+    ///
+    /// At low-level, this gives:
+    ///
+    ///     let origin = Origin(id: 1)
+    ///     let originAlias = TableAlias(tableName: Origin.databaseTableName)
+    ///     let sqlAssociation = Origin.target.sqlAssociation
+    ///     let targetRelation = sqlAssociation.targetRelation(
+    ///         from: originAlias,
+    ///         rows: { db in try [Row(PersistenceContainer(db, origin))] })
+    ///     let query = SQLSelectQuery(relation: targetRelation)
+    ///     let generator = SQLSelectQueryGenerator(query)
+    ///     let statement, _ = try generator.prepare(db)
+    ///     print(statement.sql)
+    ///     // SELECT target.*
+    ///     // FROM target
+    ///     // WHERE target.originId = 1
+    func targetRelation(from originAlias: TableAlias, rows originRows: @escaping (Database) throws -> [Row]) -> SQLRelation {
         // Filter the pivot
         let pivot = steps[0]
         let pivotAlias = TableAlias()
@@ -579,6 +636,6 @@ public /* TODO: internal */ struct SQLAssociation {
         reversedAssociation = reversedAssociation.mapRelation { _ in
             pivotRelation.select([]) // pivot is not included in the selection
         }
-        return reversedAssociation.joinedRelation(from: steps.last!.relation, required: true)
+        return reversedAssociation.joinedRelation(from: target.relation, required: true)
     }
 }
