@@ -308,6 +308,128 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
         }
     }
     
+    func testHasManyHasOne() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = A
+                    .including(all: A
+                        .hasMany(C.self)
+                        .including(required: C
+                            .hasOne(D.self)
+                            .orderByPrimaryKey())
+                        .orderByPrimaryKey())
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """,
+                    """
+                    SELECT "c".*, "c"."colc2" AS "grdb_colc2", "d".* \
+                    FROM "c" \
+                    JOIN "d" ON ("d"."cold2" = "c"."colc1") \
+                    WHERE ("c"."colc2" IN (1, 2, 3)) \
+                    ORDER BY "c"."colc1", "d"."cold1"
+                    """])
+            }
+            do {
+                let request = A
+                    .including(all: A
+                        .hasMany(C.self)
+                        .filter(false)
+                        .including(required: C
+                            .hasOne(D.self)
+                            .orderByPrimaryKey())
+                        .orderByPrimaryKey())
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """,
+                    """
+                    SELECT "c".*, "c"."colc2" AS "grdb_colc2", "d".* \
+                    FROM "c" \
+                    JOIN "d" ON ("d"."cold2" = "c"."colc1") \
+                    WHERE (0 AND ("c"."colc2" IN (1, 2, 3))) \
+                    ORDER BY "c"."colc1", "d"."cold1"
+                    """])
+            }
+            do {
+                let request = A
+                    .filter(Column("cola1") != 1)
+                    .including(all: A
+                        .hasMany(C.self)
+                        .filter(Column("colc1") > 7)
+                        .including(required: C
+                            .hasOne(D.self)
+                            .filter(Column("cold1") == 11)
+                            .orderByPrimaryKey()
+                            .forKey("d1"))
+                        .including(required: C
+                            .hasOne(D.self)
+                            .filter(Column("cold1") != 11)
+                            .orderByPrimaryKey()
+                            .forKey("d2"))
+                        .orderByPrimaryKey()
+                        .forKey("c1"))
+                    .including(all: A
+                        .hasMany(C.self)
+                        .filter(Column("colc1") < 9)
+                        .including(required: C
+                            .hasOne(D.self)
+                            .filter(Column("cold1") == 11)
+                            .orderByPrimaryKey()
+                            .forKey("d1"))
+                        .including(required: C
+                            .hasOne(D.self)
+                            .filter(Column("cold1") != 11)
+                            .orderByPrimaryKey()
+                            .forKey("d2"))
+                        .orderByPrimaryKey()
+                        .forKey("c2"))
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * \
+                    FROM "a" \
+                    WHERE ("cola1" <> 1) \
+                    ORDER BY "cola1"
+                    """,
+                    """
+                    SELECT "c".*, "c"."colc2" AS "grdb_colc2", "d1".*, "d2".* \
+                    FROM "c" \
+                    JOIN "d" "d1" ON (("d1"."cold2" = "c"."colc1") AND ("d1"."cold1" = 11)) \
+                    JOIN "d" "d2" ON (("d2"."cold2" = "c"."colc1") AND ("d2"."cold1" <> 11)) \
+                    WHERE (("c"."colc1" > 7) AND ("c"."colc2" IN (2, 3))) \
+                    ORDER BY "c"."colc1", "d1"."cold1", "d2"."cold1"
+                    """,
+                    """
+                    SELECT "c".*, "c"."colc2" AS "grdb_colc2", "d1".*, "d2".* \
+                    FROM "c" \
+                    JOIN "d" "d1" ON (("d1"."cold2" = "c"."colc1") AND ("d1"."cold1" = 11)) \
+                    JOIN "d" "d2" ON (("d2"."cold2" = "c"."colc1") AND ("d2"."cold1" <> 11)) \
+                    WHERE (("c"."colc1" < 9) AND ("c"."colc2" IN (2, 3))) \
+                    ORDER BY "c"."colc1", "d1"."cold1", "d2"."cold1"
+                    """])
+            }
+        }
+    }
+    
     func testHasManyThrough() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
