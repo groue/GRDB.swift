@@ -673,7 +673,6 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
-                // TODO: ("a"."cola1" IN (1, 2)) conditions are all wrong
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT "b".*, "a1".*, "a2".* \
