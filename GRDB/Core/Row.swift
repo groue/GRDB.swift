@@ -878,7 +878,7 @@ extension Row {
     }
 }
 
-extension FetchRequest where RowDecoder: Row {
+extension FetchRequest where RowDecoder == Row {
     
     // MARK: Fetching Rows
     
