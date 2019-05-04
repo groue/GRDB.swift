@@ -79,7 +79,7 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
         }
     }
     
-    func testHasMany() throws {
+    func testIncludingAllHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
@@ -162,7 +162,7 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
         }
     }
     
-    func testHasManyHasMany() throws {
+    func testIncludingAllHasManyIncludingAllHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
@@ -308,7 +308,7 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
         }
     }
     
-    func testHasManyHasOne() throws {
+    func testIncludingAllHasManyIncludingRequiredHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
@@ -316,7 +316,7 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
                     .including(all: A
                         .hasMany(C.self)
                         .including(required: C
-                            .hasOne(D.self)
+                            .hasMany(D.self)
                             .orderByPrimaryKey())
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
@@ -343,7 +343,7 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
                         .hasMany(C.self)
                         .filter(false)
                         .including(required: C
-                            .hasOne(D.self)
+                            .hasMany(D.self)
                             .orderByPrimaryKey())
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
@@ -371,12 +371,12 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
                         .hasMany(C.self)
                         .filter(Column("colc1") > 7)
                         .including(required: C
-                            .hasOne(D.self)
+                            .hasMany(D.self)
                             .filter(Column("cold1") == 11)
                             .orderByPrimaryKey()
                             .forKey("d1"))
                         .including(required: C
-                            .hasOne(D.self)
+                            .hasMany(D.self)
                             .filter(Column("cold1") != 11)
                             .orderByPrimaryKey()
                             .forKey("d2"))
@@ -386,12 +386,12 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
                         .hasMany(C.self)
                         .filter(Column("colc1") < 9)
                         .including(required: C
-                            .hasOne(D.self)
+                            .hasMany(D.self)
                             .filter(Column("cold1") == 11)
                             .orderByPrimaryKey()
                             .forKey("d1"))
                         .including(required: C
-                            .hasOne(D.self)
+                            .hasMany(D.self)
                             .filter(Column("cold1") != 11)
                             .orderByPrimaryKey()
                             .forKey("d2"))
@@ -430,7 +430,7 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
         }
     }
     
-    func testHasManyThrough() throws {
+    func testIncludingAllHasManyThrough() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
@@ -508,7 +508,7 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
         }
     }
     
-    func testHasManyMergedWithHasManyThrough() throws {
+    func testIncludingAllHasManyThroughMergedWithHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
@@ -606,7 +606,7 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
         }
     }
 
-    func testBelongsToHasMany() throws {
+    func testIncludingOptionalBelongsToIncludingAllHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             do {
