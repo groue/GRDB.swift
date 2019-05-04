@@ -257,10 +257,22 @@ struct SQLJoinCondition: Equatable {
     var originIsLeft: Bool
     
     var reversed: SQLJoinCondition {
-        return SQLJoinCondition(foreignKeyRequest: foreignKeyRequest, originIsLeft: !originIsLeft)
+        return SQLJoinCondition(
+            foreignKeyRequest: foreignKeyRequest,
+            originIsLeft: !originIsLeft)
     }
     
-    /// Returns an SQL expression for the join condition.
+    /// Orient foreignKey according to the originIsLeft flag
+    private func columnMapping(_ db: Database) throws -> [(left: String, right: String)] {
+        let foreignKeyMapping = try foreignKeyRequest.fetchMapping(db)
+        if originIsLeft {
+            return foreignKeyMapping.map { (left: $0.origin, right: $0.destination) }
+        } else {
+            return foreignKeyMapping.map { (left: $0.destination, right: $0.origin) }
+        }
+    }
+    
+    /// Returns an expression for the join condition.
     ///
     ///     SELECT * FROM left JOIN right ON (right.a = left.b)
     ///                                      <---------------->
@@ -273,14 +285,59 @@ struct SQLJoinCondition: Equatable {
     ///   JOIN operator.
     /// - Returns: An SQL expression.
     func joinExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLJoinExpression {
-        let foreignKeyMapping = try foreignKeyRequest.fetchMapping(db)
-        let columnMapping: [(left: String, right: String)]
-        if originIsLeft {
-            columnMapping = foreignKeyMapping.map { (left: $0.origin, right: $0.destination) }
-        } else {
-            columnMapping = foreignKeyMapping.map { (left: $0.destination, right: $0.origin) }
+        return try SQLJoinExpression(
+            leftAlias: leftAlias,
+            rightAlias: rightAlias,
+            columnMapping: columnMapping(db))
+    }
+    
+    /// Returns an expression for the join condition.
+    ///
+    /// Given `right.a = left.b`, returns `right.a = 1` or
+    /// `right.a IN (1, 2, 3)`.
+    func filteringExpression(_ db: Database, rightAlias: TableAlias, leftRows: [Row]) throws -> SQLExpression {
+        if leftRows.isEmpty {
+            // Degenerate case: therre is no row to attach
+            return false.sqlExpression
         }
-        return SQLJoinExpression(leftAlias: leftAlias, rightAlias: rightAlias, columnMapping: columnMapping)
+        
+        let columnMapping = try self.columnMapping(db)
+        let valueMappings = columnMapping.map { columns in
+            (column: QualifiedColumn(columns.right, alias: rightAlias),
+             dbValues: leftRows.map { $0[columns.left] as DatabaseValue })
+        }
+        
+        guard let valueMapping = valueMappings.first else {
+            // Degenerate case: no joining column
+            return true.sqlExpression
+        }
+        
+        if valueMappings.count == 1 {
+            // Join on a single column.
+            // Unique and sort database values for nicer output:
+            let dbValues = valueMapping.dbValues
+                .reduce(into: Set<DatabaseValue>(), { $0.insert($1) })
+                .sorted(by: <)
+            
+            if dbValues.count == 1 {
+                // Single row: table.a = 1
+                return (valueMapping.column == dbValues[0])
+            } else {
+                // Multiple rows: table.a IN (1, 2, 3)
+                return dbValues.contains(valueMapping.column)
+            }
+        } else {
+            // Join on a multiple columns.
+            if valueMapping.dbValues.count == 1 {
+                // Single row: (table.a = 1) AND (table.b = 2)
+                return valueMappings
+                    .map { $0.column == $0.dbValues[0] }
+                    .joined(operator: .and)
+            } else {
+                // Multiple rows: TODO
+                fatalError("not implemented")
+            }
+        }
     }
 }
 
@@ -309,56 +366,6 @@ struct SQLJoinExpression: SQLExpression {
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         // self is already qualified
         return self
-    }
-    
-    /// Resolves against given rows.
-    ///
-    /// Given `right.a = left.b`, returns `right.a = 1` or
-    /// `right.a IN (1, 2, 3)`.
-    func resolved(withLeftRows rows: [Row]) -> SQLExpression {
-        let valueMappings = columnMapping.map { columns in
-            (column: QualifiedColumn(columns.right, alias: rightAlias),
-             dbValues: rows.map { $0[columns.left] as DatabaseValue })
-        }
-        
-        guard let firstValueMapping = valueMappings.first else {
-            // Likely a GRDB bug
-            fatalError("No joining column")
-        }
-        
-        if valueMappings.count == 1 {
-            // Join on a single column.
-            // Unique and sort database values for nicer output:
-            let dbValues = firstValueMapping.dbValues
-                .reduce(into: Set<DatabaseValue>(), { $0.insert($1) })
-                .sorted(by: <)
-            
-            guard let dbValue = dbValues.first else {
-                // Likely a GRDB bug
-                fatalError("No resolving rows")
-            }
-            
-            if dbValues.count == 1 {
-                // Single row: table.a = 1
-                return (firstValueMapping.column == dbValue)
-            } else {
-                // Multiple rows: table.a IN (1, 2, 3)
-                return dbValues.contains(firstValueMapping.column)
-            }
-        } else {
-            // Join on a multiple columns.
-            assert(Set(valueMappings.map { $0.dbValues.count }).count == 1, "inconsistent values count")
-            if firstValueMapping.dbValues.count == 1 {
-                // Single row: (table.a = 1) AND (table.b = 2)
-                return valueMappings
-                    .map { $0.column == $0.dbValues[0] }
-                    .joined(operator: .and)
-                
-            } else {
-                // Multiple rows: TODO
-                fatalError("not implemented")
-            }
-        }
     }
 }
 

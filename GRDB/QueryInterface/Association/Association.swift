@@ -391,52 +391,53 @@ public protocol AssociationToOne: Association { }
 // MARK: - SQLAssociation
 
 /// An SQL association is a non-empty chain on joins which starts from the
-/// "pivot" and ends to the "target":
+/// "pivot" and ends to the "destination":
 ///
-///     // SELECT origin.*, head.*
+///     // SELECT origin.*, destination.*
 ///     // FROM origin
 ///     // JOIN pivot ON ...
 ///     // JOIN ...
 ///     // JOIN ...
-///     // JOIN target ON ...
+///     // JOIN destination ON ...
 ///     Origin.including(required: association)
 ///
 /// For direct associations such as BelongTo or HasMany, the chain contains a
-/// single element, and "pivot" and "target" are the same:
+/// single element, the "destination", without intermediate pivot:
 ///
-///     // "Origin" belongsTo "target":
-///     // SELECT origin.*, target.*
+///     // "Origin" belongsTo "destination":
+///     // SELECT origin.*, destination.*
 ///     // FROM origin
-///     // JOIN target ON target.originId = origin.id
-///     let association = Origin.belongsTo(Target.self)
+///     // JOIN destination ON destination.originId = origin.id
+///     let association = Origin.belongsTo(Destination.self)
 ///     Origin.including(required: association)
 ///
-/// Indirect associations such as HasManyThrough have several steps:
+/// Indirect associations such as HasManyThrough have one or several
+/// intermediate steps:
 ///
-///     // "Origin" has many "target" through "pivot":
-///     // SELECT origin.*, target.*
+///     // "Origin" has many "destination" through "pivot":
+///     // SELECT origin.*, destination.*
 ///     // FROM origin
 ///     // JOIN pivot ON pivot.originId = origin.id
-///     // JOIN target ON target.id = pivot.targetId
+///     // JOIN destination ON destination.id = pivot.destinationId
 ///     let association = Origin.hasMany(
-///         Target.self,
+///         Destination.self,
 ///         through: Origin.hasMany(Pivot.self),
-///         via: Pivot.belongsTo(Target.self))
+///         via: Pivot.belongsTo(Destination.self))
 ///     Origin.including(required: association)
 ///
-///     // "Origin" has many "target" through "pivot1" and  "pivot2":
-///     // SELECT origin.*, target.*
+///     // "Origin" has many "destination" through "pivot1" and  "pivot2":
+///     // SELECT origin.*, destination.*
 ///     // FROM origin
 ///     // JOIN pivot1 ON pivot1.originId = origin.id
 ///     // JOIN pivot2 ON pivot2.pivot1Id = pivot1.id
-///     // JOIN target ON target.id = pivot.targetId
+///     // JOIN destination ON destination.id = pivot.destinationId
 ///     let association = Origin.hasMany(
-///         Target.self,
+///         Destination.self,
 ///         through: Origin.hasMany(Pivot1.self),
 ///         via: Pivot1.hasMany(
-///             Target.self,
+///             Destination.self,
 ///             through: Pivot1.hasMany(Pivot2.self),
-///             via: Pivot2.belongsTo(Target.self)))
+///             via: Pivot2.belongsTo(Destination.self)))
 ///     Origin.including(required: association)
 ///
 /// :nodoc:
@@ -450,12 +451,12 @@ public /* TODO: internal */ struct SQLAssociation {
             return AssociationStep(key: key, condition: condition, relation: transform(relation))
         }
     }
-    private var steps: [AssociationStep] // Never empty. Last is target.
-    private var target: AssociationStep {
+    private var steps: [AssociationStep] // Never empty. Last is destination.
+    private var destination: AssociationStep {
         get { return steps[steps.count - 1] }
         set { steps[steps.count - 1] = newValue }
     }
-    var key: String { return target.key }
+    var key: String { return destination.key }
     
     private init(steps: [AssociationStep]) {
         assert(!steps.isEmpty)
@@ -466,17 +467,17 @@ public /* TODO: internal */ struct SQLAssociation {
         self.init(steps: [AssociationStep(key: key, condition: condition, relation: relation)])
     }
     
-    /// Changes the target key
+    /// Changes the destination key
     func forKey(_ key: String) -> SQLAssociation {
         var result = self
-        result.target.key = key
+        result.destination.key = key
         return result
     }
     
-    /// Transforms the target relation
+    /// Transforms the destination relation
     func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLAssociation {
         var result = self
-        result.target = result.target.mapRelation(transform)
+        result.destination = result.destination.mapRelation(transform)
         return result
     }
     
@@ -490,117 +491,119 @@ public /* TODO: internal */ struct SQLAssociation {
     /// This method provides support for public joining methods such
     /// as `including(required:)`:
     ///
-    ///     struct Target: TableRecord { }
+    ///     struct Destination: TableRecord { }
     ///     struct Origin: TableRecord {
-    ///         static let target = belongsTo(Target.self)
+    ///         static let destination = belongsTo(Destination.self)
     ///     }
     ///
-    ///     // SELECT origin.*, target.*
+    ///     // SELECT origin.*, destination.*
     ///     // FROM origin
-    ///     // JOIN target ON target.id = origin.targetId
-    ///     let request = Origin.including(required: Origin.target)
+    ///     // JOIN destination ON destination.id = origin.destinationId
+    ///     let request = Origin.including(required: Origin.destination)
     ///
     /// At low-level, this gives:
     ///
-    ///     let sqlAssociation = Origin.target.sqlAssociation
+    ///     let sqlAssociation = Origin.destination.sqlAssociation
     ///     let origin = Origin.all().query.relation
     ///     let joinedRelation = sqlAssociation.joinedRelation(from: origin, required: true)
     ///     let query = SQLSelectQuery(relation: joinedRelation)
     ///     let generator = SQLSelectQueryGenerator(query)
     ///     let statement, _ = try generator.prepare(db)
     ///     print(statement.sql)
-    ///     // SELECT origin.*, target.*
+    ///     // SELECT origin.*, destination.*
     ///     // FROM origin
-    ///     // JOIN target ON target.originId = origin.id
+    ///     // JOIN destination ON destination.originId = origin.id
     ///
     /// This method works for simple direct associations such as BelongsTo or
     /// HasMany in the above examples, but also for indirect associations such
     /// as HasManyThrough, which have any number of pivot relations between the
-    /// origin and the target.
+    /// origin and the destination.
     func joinedRelation(from origin: SQLRelation, required: Bool) -> SQLRelation {
-        let targetJoin = SQLJoin(
+        let destinationJoin = SQLJoin(
             isRequired: required,
-            condition: target.condition,
-            relation: target.relation)
+            condition: destination.condition,
+            relation: destination.relation)
         
         let initialSteps = steps.dropLast()
         if initialSteps.isEmpty {
-            // This is a direct join from origin to target (pivot is the target):
+            // This is a direct join from origin to destination, without
+            // intermediate pivot.
             //
-            // SELECT origin.*, target.*
+            // SELECT origin.*, destination.*
             // FROM origin
-            // JOIN target ON target.id = origin.targetId
+            // JOIN destination ON destination.id = origin.destinationId
             //
-            // let association = Origin.belongsTo(Target.self)
+            // let association = Origin.belongsTo(Destination.self)
             // Origin.including(required: association)
-            return origin.appendingJoin(targetJoin, forKey: target.key)
+            return origin.appendingJoin(destinationJoin, forKey: destination.key)
         }
         
-        // This is an indirect join from origin to target, through some pivot(s):
+        // This is an indirect join from origin to destination, through
+        // some pivot(s):
         //
-        // SELECT origin.*, target.*
+        // SELECT origin.*, destination.*
         // FROM origin
         // JOIN pivot ON pivot.originId = origin.id
-        // JOIN target ON target.id = pivot.targetId
+        // JOIN destination ON destination.id = pivot.destinationId
         //
         // let association = Origin.hasMany(
-        //     Target.self,
+        //     Destination.self,
         //     through: Origin.hasMany(Pivot.self),
-        //     via: Pivot.belongsTo(Target.self))
+        //     via: Pivot.belongsTo(Destination.self))
         // Origin.including(required: association)
         //
         // Let's recurse toward a direct join, by making a new association which
-        // ends on the last pivot, to which we join our target:
+        // ends on the last pivot, to which we join our destination:
         var reducedAssociation = SQLAssociation(steps: Array(initialSteps))
         reducedAssociation = reducedAssociation.mapRelation { lastPivot in
             lastPivot
                 .select([]) // pivot is not included in the selection
-                .appendingJoin(targetJoin, forKey: target.key)
+                .appendingJoin(destinationJoin, forKey: destination.key)
         }
         return reducedAssociation.joinedRelation(from: origin, required: required)
     }
     
-    /// Given an origin alias and rows, returns the target of the association
-    /// as a relation.
+    /// Given an origin alias and rows, returns the destination of the
+    /// association as a relation.
     ///
     /// This method provides support for association methods such
     /// as `request(for:)`:
     ///
-    ///     struct Target: TableRecord { }
+    ///     struct Destination: TableRecord { }
     ///     struct Origin: TableRecord, EncodableRecord {
-    ///         static let targets = hasMany(Target.self)
-    ///         var targets: QueryInterface<Target> {
-    ///             return request(for: Origin.targets)
+    ///         static let destinations = hasMany(Destination.self)
+    ///         var destinations: QueryInterface<Destination> {
+    ///             return request(for: Origin.destinations)
     ///         }
     ///     }
     ///
-    ///     // SELECT target.*
-    ///     // FROM target
-    ///     // WHERE target.originId = 1
+    ///     // SELECT destination.*
+    ///     // FROM destination
+    ///     // WHERE destination.originId = 1
     ///     let origin = Origin(id: 1)
-    ///     let target = origin.targets.fetchAll(db)
+    ///     let destinations = origin.destinations.fetchAll(db)
     ///
     /// At low-level, this gives:
     ///
     ///     let origin = Origin(id: 1)
     ///     let originAlias = TableAlias(tableName: Origin.databaseTableName)
-    ///     let sqlAssociation = Origin.target.sqlAssociation
-    ///     let targetRelation = sqlAssociation.targetRelation(
+    ///     let sqlAssociation = Origin.destination.sqlAssociation
+    ///     let destinationRelation = sqlAssociation.destinationRelation(
     ///         from: originAlias,
     ///         rows: { db in try [Row(PersistenceContainer(db, origin))] })
-    ///     let query = SQLSelectQuery(relation: targetRelation)
+    ///     let query = SQLSelectQuery(relation: destinationRelation)
     ///     let generator = SQLSelectQueryGenerator(query)
     ///     let statement, _ = try generator.prepare(db)
     ///     print(statement.sql)
-    ///     // SELECT target.*
-    ///     // FROM target
-    ///     // WHERE target.originId = 1
+    ///     // SELECT destination.*
+    ///     // FROM destination
+    ///     // WHERE destination.originId = 1
     ///
     /// This method works for simple direct associations such as BelongsTo or
     /// HasMany in the above examples, but also for indirect associations such
     /// as HasManyThrough, which have any number of pivot relations between the
-    /// origin and the target.
-    func targetRelation(from originAlias: TableAlias, rows originRows: @escaping (Database) throws -> [Row]) -> SQLRelation {
+    /// origin and the destination.
+    func destinationRelation(fromOriginRows originRows: @escaping (Database) throws -> [Row]) -> SQLRelation {
         // Filter the pivot
         let pivot = steps[0]
         let pivotAlias = TableAlias()
@@ -608,33 +611,33 @@ public /* TODO: internal */ struct SQLAssociation {
             .qualified(with: pivotAlias)
             .filter({ db in
                 // `pivot.originId = 123` or `pivot.originId IN (1, 2, 3)`
-                try pivot.condition
-                    .joinExpression(db, leftAlias: originAlias, rightAlias: pivotAlias)
-                    .resolved(withLeftRows: originRows(db))
+                try pivot.condition.filteringExpression(db, rightAlias: pivotAlias, leftRows: originRows(db))
             })
         
         if steps.count == 1 {
-            // This is a direct join from origin to target (pivot is the target):
+            // This is a direct join from origin to destination, without
+            // intermediate pivot.
             //
-            // SELECT target.*
-            // FROM target
-            // WHERE target.originId = 1
+            // SELECT destination.*
+            // FROM destination
+            // WHERE destination.originId = 1
             //
-            // let association = Origin.hasMany(Target.self)
+            // let association = Origin.hasMany(Destination.self)
             // Origin(id: 1).request(for: association)
             return pivotRelation
         }
         
-        // This is an indirect join from origin to target, through some pivot(s):
+        // This is an indirect join from origin to destination, through
+        // some pivot(s):
         //
-        // SELECT target.*
-        // FROM target
-        // JOIN pivot ON (pivot.targetId = target.id) AND (pivot.originId = 1)
+        // SELECT destination.*
+        // FROM destination
+        // JOIN pivot ON (pivot.destinationId = destination.id) AND (pivot.originId = 1)
         //
         // let association = Origin.hasMany(
-        //     Target.self,
+        //     Destination.self,
         //     through: Origin.hasMany(Pivot.self),
-        //     via: Pivot.belongsTo(Target.self))
+        //     via: Pivot.belongsTo(Destination.self))
         // Origin(id: 1).request(for: association)
         let reversedSteps = zip(steps, steps.dropFirst())
             .map { (step, nextStep) in
@@ -649,6 +652,6 @@ public /* TODO: internal */ struct SQLAssociation {
         reversedAssociation = reversedAssociation.mapRelation { _ in
             pivotRelation.select([]) // pivot is not included in the selection
         }
-        return reversedAssociation.joinedRelation(from: target.relation, required: true)
+        return reversedAssociation.joinedRelation(from: destination.relation, required: true)
     }
 }
