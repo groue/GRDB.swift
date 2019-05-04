@@ -641,7 +641,7 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
                 let request = B
                     .including(optional: B
                         .belongsTo(A.self)
-                        .filter(Column("cola1") == 1)
+                        .filter(Column("cola2") == "a1")
                         .including(all: A
                             .hasMany(C.self)
                             .filter(Column("colc1") == 9)
@@ -655,7 +655,7 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
                         .forKey("a1"))
                     .including(optional: B
                         .belongsTo(A.self)
-                        .filter(Column("cola1") == 2)
+                        .filter(Column("cola2") == "a2")
                         .including(all: A
                             .hasMany(C.self)
                             .filter(Column("colc1") == 9)
@@ -677,35 +677,35 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "b".*, "a1".*, "a2".* \
                     FROM "b" \
-                    LEFT JOIN "a" "a1" ON (("a1"."cola1" = "b"."colb2") AND ("a1"."cola1" = 1)) \
-                    LEFT JOIN "a" "a2" ON (("a2"."cola1" = "b"."colb2") AND ("a2"."cola1" = 2)) \
+                    LEFT JOIN "a" "a1" ON (("a1"."cola1" = "b"."colb2") AND ("a1"."cola2" = 'a1')) \
+                    LEFT JOIN "a" "a2" ON (("a2"."cola1" = "b"."colb2") AND ("a2"."cola2" = 'a2')) \
                     ORDER BY "b"."colb1"
                     """,
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
-                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola1" = 1) AND ("a"."cola1" IN (1, 2)))) \
+                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola2" = 'a1') AND ("a"."cola1" IN (1, 2)))) \
                     WHERE ("c"."colc1" = 9) \
                     ORDER BY "c"."colc1"
                     """,
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
-                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola1" = 1) AND ("a"."cola1" IN (1, 2)))) \
+                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola2" = 'a1') AND ("a"."cola1" IN (1, 2)))) \
                     WHERE ("c"."colc1" <> 9) \
                     ORDER BY "c"."colc1"
                     """,
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
-                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola1" = 2) AND ("a"."cola1" IN (1, 2)))) \
+                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola2" = 'a2') AND ("a"."cola1" IN (1, 2)))) \
                     WHERE ("c"."colc1" = 9) \
                     ORDER BY "c"."colc1"
                     """,
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
-                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola1" = 2) AND ("a"."cola1" IN (1, 2)))) \
+                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola2" = 'a2') AND ("a"."cola1" IN (1, 2)))) \
                     WHERE ("c"."colc1" <> 9) \
                     ORDER BY "c"."colc1"
                     """])
