@@ -25,6 +25,19 @@ struct SQLRelation {
         var kind: Kind
         var condition: SQLAssociationCondition
         var relation: SQLRelation
+        
+        /// Returns true iff this child can change the parent count.
+        ///
+        /// Record.including(required: association) // true
+        /// Record.including(all: association)      // false
+        var impactsParentCount: Bool {
+            switch kind {
+            case .oneOptional, .oneRequired:
+                return true
+            case .all, .allPrefetched:
+                return false
+            }
+        }
     }
     
     var source: SQLSource
