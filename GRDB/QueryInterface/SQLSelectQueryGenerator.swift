@@ -420,8 +420,8 @@ private enum SQLQualifiedSource {
 /// A "qualified" join, where all tables are identified with a table alias.
 private struct SQLQualifiedJoin {
     private enum Kind: String {
-        case left = "LEFT JOIN"
-        case inner = "JOIN"
+        case leftJoin = "LEFT JOIN"
+        case innerJoin = "JOIN"
     }
     private let kind: Kind
     private let condition: SQLAssociationCondition
@@ -430,11 +430,11 @@ private struct SQLQualifiedJoin {
     init?(_ child: SQLRelation.Child) {
         switch child.kind {
         case .oneRequired:
-            self.kind = .inner
+            self.kind = .innerJoin
         case .oneOptional:
-            self.kind = .left
-        case .all, .allPrefetched:
-            // This relation child is not implemented with an SQL join.
+            self.kind = .leftJoin
+        case .allPrefetched, .allNotPrefetched:
+            // This relation child is not fetched with an SQL join.
             return nil
         }
         
@@ -451,12 +451,12 @@ private struct SQLQualifiedJoin {
         var sql = ""
         
         switch self.kind {
-        case .inner:
+        case .innerJoin:
             guard allowsInnerJoin else {
                 // TODO: chainOptionalRequired
                 fatalError("Not implemented: chaining a required association behind an optional association")
             }
-        case .left:
+        case .leftJoin:
             allowsInnerJoin = false
         }
         sql += kind.rawValue

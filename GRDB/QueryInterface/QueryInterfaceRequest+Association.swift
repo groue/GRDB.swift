@@ -5,7 +5,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                _ in fatalError("TODO")
+                $0.including(all: association.sqlAssociation)
             }
         }
     }
@@ -16,7 +16,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func including<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.sqlAssociation.extendedRelation($0, required: false)
+                $0.including(optional: association.sqlAssociation)
             }
         }
     }
@@ -27,7 +27,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func including<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.sqlAssociation.extendedRelation($0, required: true)
+                $0.including(required: association.sqlAssociation)
             }
         }
     }
@@ -38,7 +38,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func joining<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.select([]).sqlAssociation.extendedRelation($0, required: false)
+                $0.joining(optional: association.sqlAssociation)
             }
         }
     }
@@ -49,7 +49,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func joining<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.select([]).sqlAssociation.extendedRelation($0, required: true)
+                $0.joining(required: association.sqlAssociation)
             }
         }
     }

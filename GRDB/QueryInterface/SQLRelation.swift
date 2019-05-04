@@ -19,7 +19,7 @@ struct SQLRelation {
             // Record.including(all: association)
             case allPrefetched
             // Record.including(all: associationThroughPivot)
-            case all
+            case allNotPrefetched
         }
         
         var kind: Kind
@@ -34,7 +34,7 @@ struct SQLRelation {
             switch kind {
             case .oneOptional, .oneRequired:
                 return true
-            case .all, .allPrefetched:
+            case .allPrefetched, .allNotPrefetched:
                 return false
             }
         }
@@ -115,6 +115,12 @@ extension SQLRelation {
         } else {
             relation.children.appendValue(child, forKey: key)
         }
+        return relation
+    }
+    
+    func deletingChildren() -> SQLRelation {
+        var relation = self
+        relation.children = [:]
         return relation
     }
     
@@ -513,8 +519,8 @@ extension SQLRelation.Child.Kind {
             return .oneOptional
             
         case (.allPrefetched, .allPrefetched),
-             (.allPrefetched, .all),
-             (.all, .allPrefetched):
+             (.allPrefetched, .allNotPrefetched),
+             (.allNotPrefetched, .allPrefetched):
             // Prefetches both Pivot and Destination:
             //
             // Record
@@ -522,13 +528,13 @@ extension SQLRelation.Child.Kind {
             //   .including(all: associationToPivot)
             return .allPrefetched
             
-        case (.all, .all):
+        case (.allNotPrefetched, .allNotPrefetched):
             // Equivalent to Record.including(all: association)
             //
             // Record
             //   .including(all: association)
             //   .including(all: association)
-            return .all
+            return .allNotPrefetched
             
         default:
             // Likely a programmer error:

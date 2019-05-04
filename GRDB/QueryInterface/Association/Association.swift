@@ -241,11 +241,46 @@ extension Association {
     }
 }
 
+extension SQLRelation {
+    /// Creates an relation that prefetches another one.
+    func including(all sqlAssociation: SQLAssociation) -> SQLRelation {
+        return sqlAssociation.extendedRelation(self, kind: .allPrefetched)
+    }
+    
+    /// Creates an relation that includes another one. The columns of the
+    /// associated record are selected. The returned relation does not
+    /// require that the associated database table contains a matching row.
+    func including(optional sqlAssociation: SQLAssociation) -> SQLRelation {
+        return sqlAssociation.extendedRelation(self, kind: .oneOptional)
+    }
+    
+    /// Creates an relation that includes another one. The columns of the
+    /// associated record are selected. The returned relation requires
+    /// that the associated database table contains a matching row.
+    func including(required sqlAssociation: SQLAssociation) -> SQLRelation {
+        return sqlAssociation.extendedRelation(self, kind: .oneRequired)
+    }
+    
+    /// Creates an relation that joins another one. The columns of the
+    /// associated record are not selected. The returned relation does not
+    /// require that the associated database table contains a matching row.
+    func joining(optional sqlAssociation: SQLAssociation) -> SQLRelation {
+        return sqlAssociation.mapRelation { $0.select([]) }.extendedRelation(self, kind: .oneOptional)
+    }
+    
+    /// Creates an relation that joins another one. The columns of the
+    /// associated record are not selected. The returned relation requires
+    /// that the associated database table contains a matching row.
+    func joining(required sqlAssociation: SQLAssociation) -> SQLRelation {
+        return sqlAssociation.mapRelation { $0.select([]) }.extendedRelation(self, kind: .oneRequired)
+    }
+}
+
 extension Association {
     /// Creates an association that prefetches another one.
     public func including<A: AssociationToMany>(all association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRelation {
-            _ in fatalError("TODO")
+            $0.including(all: association.sqlAssociation)
         }
     }
     
@@ -254,7 +289,7 @@ extension Association {
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRelation {
-            association.sqlAssociation.extendedRelation($0, required: false)
+            $0.including(optional: association.sqlAssociation)
         }
     }
     
@@ -263,7 +298,7 @@ extension Association {
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRelation {
-            association.sqlAssociation.extendedRelation($0, required: true)
+            $0.including(required: association.sqlAssociation)
         }
     }
     
@@ -272,7 +307,7 @@ extension Association {
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRelation {
-            association.select([]).sqlAssociation.extendedRelation($0, required: false)
+            $0.joining(optional: association.sqlAssociation)
         }
     }
     
@@ -281,7 +316,7 @@ extension Association {
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRelation {
-            association.select([]).sqlAssociation.extendedRelation($0, required: true)
+            $0.joining(required: association.sqlAssociation)
         }
     }
 }
@@ -409,7 +444,7 @@ public protocol AssociationToOne: Association { }
 ///     Origin.including(required: association)
 ///
 /// For direct associations such as BelongTo or HasMany, the chain contains a
-/// single element, the "destination", without intermediate pivot:
+/// single element, the "destination", without intermediate step:
 ///
 ///     // "Origin" belongsTo "destination":
 ///     // SELECT origin.*, destination.*
@@ -525,16 +560,16 @@ public /* TODO: internal */ struct SQLAssociation {
     /// HasMany in the above examples, but also for indirect associations such
     /// as HasManyThrough, which have any number of pivot relations between the
     /// origin and the destination.
-    func extendedRelation(_ origin: SQLRelation, required: Bool) -> SQLRelation {
+    func extendedRelation(_ origin: SQLRelation, kind: SQLRelation.Child.Kind) -> SQLRelation {
         let destinationChild = SQLRelation.Child(
-            kind: required ? .oneRequired : .oneOptional,
+            kind: kind,
             condition: destination.condition,
             relation: destination.relation)
         
         let initialSteps = steps.dropLast()
         if initialSteps.isEmpty {
             // This is a direct join from origin to destination, without
-            // intermediate pivot.
+            // intermediate step.
             //
             // SELECT origin.*, destination.*
             // FROM origin
@@ -562,12 +597,22 @@ public /* TODO: internal */ struct SQLAssociation {
         // Let's recurse toward a direct join, by making a new association which
         // ends on the last pivot, to which we join our destination:
         var reducedAssociation = SQLAssociation(steps: Array(initialSteps))
-        reducedAssociation = reducedAssociation.mapRelation { lastPivot in
-            lastPivot
-                .select([]) // pivot is not included in the selection
-                .appendingChild(destinationChild, forKey: destination.key)
+        reducedAssociation = reducedAssociation.mapRelation {
+            $0.appendingChild(destinationChild, forKey: destination.key)
         }
-        return reducedAssociation.extendedRelation(origin, required: required)
+        // Intermediate steps are not prefetched
+        reducedAssociation = reducedAssociation.mapRelation {
+            $0.select([])
+        }
+        // Intermediate steps are not prefetched: change the kind if necessary
+        let reducedKind: SQLRelation.Child.Kind
+        switch kind {
+        case .oneRequired, .oneOptional, .allNotPrefetched:
+            reducedKind = kind
+        case .allPrefetched:
+            reducedKind = .allNotPrefetched
+        }
+        return reducedAssociation.extendedRelation(origin, kind: reducedKind)
     }
     
     /// Given an origin alias and rows, returns the destination of the
@@ -614,7 +659,7 @@ public /* TODO: internal */ struct SQLAssociation {
         // Filter the pivot
         let pivot = steps[0]
         let pivotAlias = TableAlias()
-        let pivotRelation = pivot.relation
+        let filteredPivotRelation = pivot.relation
             .qualified(with: pivotAlias)
             .filter({ db in
                 // `pivot.originId = 123` or `pivot.originId IN (1, 2, 3)`
@@ -623,7 +668,7 @@ public /* TODO: internal */ struct SQLAssociation {
         
         if steps.count == 1 {
             // This is a direct join from origin to destination, without
-            // intermediate pivot.
+            // intermediate step.
             //
             // SELECT destination.*
             // FROM destination
@@ -631,11 +676,11 @@ public /* TODO: internal */ struct SQLAssociation {
             //
             // let association = Origin.hasMany(Destination.self)
             // Origin(id: 1).request(for: association)
-            return pivotRelation
+            return filteredPivotRelation
         }
         
         // This is an indirect join from origin to destination, through
-        // some pivot(s):
+        // some intermediate steps:
         //
         // SELECT destination.*
         // FROM destination
@@ -647,18 +692,23 @@ public /* TODO: internal */ struct SQLAssociation {
         //     via: Pivot.belongsTo(Destination.self))
         // Origin(id: 1).request(for: association)
         let reversedSteps = zip(steps, steps.dropFirst())
-            .map { (step, nextStep) in
-                AssociationStep(
+            .map { (step, nextStep) -> AssociationStep in
+                // Intermediate steps are not included in the selection, and
+                // don't have any child.
+                let relation = step.relation.select([]).deletingChildren()
+                return AssociationStep(
                     key: step.key,
                     condition: nextStep.condition.reversed,
-                    relation: step.relation.select([]))
+                    relation: relation)
             }
             .reversed()
         
         var reversedAssociation = SQLAssociation(steps: Array(reversedSteps))
+        // Replace pivot with the filtered one (not included in the selection,
+        // without children).
         reversedAssociation = reversedAssociation.mapRelation { _ in
-            pivotRelation.select([]) // pivot is not included in the selection
+            filteredPivotRelation.select([]).deletingChildren()
         }
-        return reversedAssociation.extendedRelation(destination.relation, required: true)
+        return reversedAssociation.extendedRelation(destination.relation, kind: .oneRequired)
     }
 }
