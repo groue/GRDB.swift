@@ -69,18 +69,29 @@ extension Row {
         
         let prefetchedAssociations = query.relation.prefetchedAssociations()
         for prefetchedAssociation in prefetchedAssociations {
-            let pivotAlias = TableAlias()
-            let pivotColumnMapping = try prefetchedAssociation.pivotCondition.columnMapping(db)
-            let pivotRightColumns = pivotColumnMapping.map { $0.right }
+            let groupingAlias = TableAlias()
+            let groupingColumns = try prefetchedAssociation.pivotCondition.columnMapping(db).map { $0.right }
             let prefetchedRelation = prefetchedAssociation
-                .mapPivotRelation { $0.qualified(with: pivotAlias) }
+                .mapPivotRelation { $0.qualified(with: groupingAlias) }
                 .destinationRelation(fromOriginRows: { _ in rows })
-                .annotated(with: pivotRightColumns.map { pivotAlias[Column($0)].aliased("grdb_\($0)") })
-            let prefetchedQuery = SQLSelectQuery(relation: prefetchedRelation)
-            let prefetchedRequest = QueryInterfaceRequest<Row>(query: prefetchedQuery)
+                .annotated(with: groupingColumns.map { groupingAlias[Column($0)].aliased("grdb_\($0)") })
+            let prefetchedRequest = QueryInterfaceRequest<Row>(relation: prefetchedRelation)
             let prefetchedRows = try prefetchedRequest.fetchAll(db)
+            let groupedRows = group(prefetchedRows, on: groupingColumns.map { "grdb_\($0)" })
         }
         return rows
+    }
+    
+    /// - precondition: Columns all exist in all rows. All rows have the same
+    ///   columnns, in the same order.
+    private static func group(_ rows: [Row], on columns: [String]) -> [[DatabaseValue]: [Row]] {
+        guard let firstRow = rows.first else {
+            return [:]
+        }
+        let indexes: [Int] = columns.map { firstRow.index(ofColumn: $0)! }
+        return Dictionary(grouping: rows, by: { row in
+            indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
+        })
     }
 }
 

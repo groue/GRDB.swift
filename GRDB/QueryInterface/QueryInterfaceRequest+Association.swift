@@ -119,8 +119,7 @@ extension TableRecord where Self: EncodableRecord {
         let destinationRelation = association.sqlAssociation.destinationRelation(fromOriginRows: { db in
             try [Row(PersistenceContainer(db, self))]
         })
-        let query = SQLSelectQuery(relation: destinationRelation)
-        return QueryInterfaceRequest<A.RowDecoder>(query: query)
+        return QueryInterfaceRequest<A.RowDecoder>(relation: destinationRelation)
     }
 }
 

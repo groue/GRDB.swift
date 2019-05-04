@@ -31,6 +31,14 @@
 public struct QueryInterfaceRequest<T> {
     var query: SQLSelectQuery
     
+    init(query: SQLSelectQuery) {
+        self.query = query
+    }
+    
+    init(relation: SQLRelation) {
+        self.init(query: SQLSelectQuery(relation: relation))
+    }
+    
     @usableFromInline
     var needsPrefetch: Bool {
         return query.relation.needsPrefetch
@@ -375,8 +383,7 @@ extension TableRecord {
         let relation = SQLRelation(
             source: .table(tableName: databaseTableName, alias: nil),
             selection: databaseSelection)
-        let query = SQLSelectQuery(relation: relation)
-        return QueryInterfaceRequest(query: query)
+        return QueryInterfaceRequest(relation: relation)
     }
     
     /// Creates a request which fetches no record.
