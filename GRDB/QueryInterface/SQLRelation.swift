@@ -46,6 +46,21 @@ struct SQLRelation {
     var ordering: SQLRelation.Ordering
     var children: OrderedDictionary<String, Child>
     
+    var needsPrefetch: Bool {
+        return children.contains { $0.value.kind == .allPrefetched }
+    }
+    
+    func prefetchedAssociations() -> [SQLAssociation] {
+        return children.flatMap { key, child -> [SQLAssociation] in
+            switch child.kind {
+            case .allPrefetched:
+                return [SQLAssociation(key: key, condition: child.condition, relation: child.relation)]
+            default:
+                return []
+            }
+        }
+    }
+    
     init(
         source: SQLSource,
         selection: [SQLSelectable] = [],
@@ -299,7 +314,7 @@ struct SQLAssociationCondition: Equatable {
     }
     
     /// Orient foreignKey according to the originIsLeft flag
-    private func columnMapping(_ db: Database) throws -> [(left: String, right: String)] {
+    func columnMapping(_ db: Database) throws -> [(left: String, right: String)] {
         let foreignKeyMapping = try foreignKeyRequest.fetchMapping(db)
         if originIsLeft {
             return foreignKeyMapping.map { (left: $0.origin, right: $0.destination) }

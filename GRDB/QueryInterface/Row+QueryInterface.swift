@@ -14,7 +14,9 @@ extension Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchAll<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> [Row] {
-        // TODO: prefetch if needed
+        if request.needsPrefetch {
+            return try fetchAllWithPrefetchedRows(db, request)
+        }
         let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         return try fetchAll(statement, adapter: adapter)
     }
@@ -31,13 +33,54 @@ extension Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @inlinable
     public static func fetchOne<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> Row? {
-        // TODO: prefetch if needed
+        if request.needsPrefetch {
+            return try fetchOneWithPrefetchedRows(db, request)
+        }
         let (statement, adapter) = try request.prepare(db, forSingleResult: true)
         return try fetchOne(statement, adapter: adapter)
     }
+
+    @usableFromInline
+    /* private */ static func fetchAllWithPrefetchedRows<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> [Row] {
+        // Fetch base rows
+        // TODO: avoid fatal errors "column ... is not selected" by making sure
+        // columns used by joins are fetched (and hidden by a row adapter if added)
+        let (statement, adapter) = try request.prepare(db, forSingleResult: false)
+        let rows = try fetchAll(statement, adapter: adapter)
+        return try rowsWithPrefetchedRows(db, rows, with: request.query)
+    }
+    
+    @usableFromInline
+    /* private */ static func fetchOneWithPrefetchedRows<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> Row? {
+        // Fetch base rows
+        // TODO: avoid fatal errors "column ... is not selected" by making sure
+        // columns used by joins are fetched (and hidden by a row adapter if added)
+        let (statement, adapter) = try request.prepare(db, forSingleResult: true)
+        guard let row = try fetchOne(statement, adapter: adapter) else {
+            return nil
+        }
+        return try rowsWithPrefetchedRows(db, [row], with: request.query)[0]
+    }
+    
+    private static func rowsWithPrefetchedRows(_ db: Database, _ rows: [Row], with query: SQLSelectQuery) throws -> [Row] {
+        let prefetchedAssociations = query.relation.prefetchedAssociations()
+        for prefetchedAssociation in prefetchedAssociations {
+            let pivotAlias = TableAlias()
+            let pivotColumnMapping = try prefetchedAssociation.pivotCondition.columnMapping(db)
+            let pivotRightColumns = pivotColumnMapping.map { $0.right }
+            let prefetchedRelation = prefetchedAssociation
+                .mapPivotRelation { $0.qualified(with: pivotAlias) }
+                .destinationRelation(fromOriginRows: { _ in rows })
+                .annotated(with: pivotRightColumns.map { pivotAlias[Column($0)].aliased("grdb_\($0)") })
+            let prefetchedQuery = SQLSelectQuery(relation: prefetchedRelation)
+            let prefetchedRequest = QueryInterfaceRequest<Row>(query: prefetchedQuery)
+            let prefetchedRows = try prefetchedRequest.fetchAll(db)
+        }
+        return rows
+    }
 }
 
-extension QueryInterfaceRequest where RowDecoder: Row {
+extension QueryInterfaceRequest where RowDecoder == Row {
     
     // MARK: Fetching Rows
     

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		560714F0227DD1810091BB10 /* AssociationHasManyPrefetchingSQLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560714EF227DD1810091BB10 /* AssociationHasManyPrefetchingSQLTests.swift */; };
+		560714F1227DD1810091BB10 /* AssociationHasManyPrefetchingSQLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560714EF227DD1810091BB10 /* AssociationHasManyPrefetchingSQLTests.swift */; };
 		564A1FDE226B89E1001F64F1 /* MutablePersistableRecordDeleteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A1F27226B89CE001F64F1 /* MutablePersistableRecordDeleteTests.swift */; };
 		564A1FDF226B89E1001F64F1 /* AssociationHasOneThroughRowScopeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A1F28226B89CE001F64F1 /* AssociationHasOneThroughRowScopeTests.swift */; };
 		564A1FE0226B89E1001F64F1 /* RowCopiedFromStatementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A1F29226B89CF001F64F1 /* RowCopiedFromStatementTests.swift */; };
@@ -381,6 +383,7 @@
 /* Begin PBXFileReference section */
 		04298D834C818285823558AB /* Pods-GRDBTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTests.release.xcconfig"; path = "Target Support Files/Pods-GRDBTests/Pods-GRDBTests.release.xcconfig"; sourceTree = "<group>"; };
 		47C5D1B9AFFE795AA1D6EA5D /* Pods-GRDBTestsEncrypted.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTestsEncrypted.release.xcconfig"; path = "Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted.release.xcconfig"; sourceTree = "<group>"; };
+		560714EF227DD1810091BB10 /* AssociationHasManyPrefetchingSQLTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationHasManyPrefetchingSQLTests.swift; sourceTree = "<group>"; };
 		564A1F1D226B876D001F64F1 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		564A1F22226B876D001F64F1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		564A1F26226B89CD001F64F1 /* GRDBTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBTests-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -627,6 +630,7 @@
 				564A1F95226B89DA001F64F1 /* AssociationBelongsToSQLTests.swift */,
 				564A1F33226B89CF001F64F1 /* AssociationChainRowScopesTests.swift */,
 				564A1F4D226B89D2001F64F1 /* AssociationChainSQLTests.swift */,
+				560714EF227DD1810091BB10 /* AssociationHasManyPrefetchingSQLTests.swift */,
 				564A1F7C226B89D7001F64F1 /* AssociationHasManySQLTests.swift */,
 				564A1FB4226B89DD001F64F1 /* AssociationHasManyThroughSQLTests.swift */,
 				564A1FAE226B89DC001F64F1 /* AssociationHasOneSQLDerivationTests.swift */,
@@ -729,6 +733,7 @@
 				564A1FC4226B89DE001F64F1 /* FTS5TokenizerTests.swift */,
 				564A1F43226B89D0001F64F1 /* FTS5WrapperTokenizerTests.swift */,
 				564A1FD5226B89E0001F64F1 /* GRDBTestCase.swift */,
+				564A1F26226B89CD001F64F1 /* GRDBTests-Bridging-Header.h */,
 				564A1F86226B89D8001F64F1 /* IndexInfoTests.swift */,
 				564A1FCD226B89DF001F64F1 /* JoinSupportTests.swift */,
 				564A1FB8226B89DD001F64F1 /* MapCursorTests.swift */,
@@ -801,7 +806,6 @@
 				564A1F9C226B89DA001F64F1 /* ValueObservationRowTests.swift */,
 				564A1F48226B89D1001F64F1 /* ValueObservationSchedulingTests.swift */,
 				564A1FBA226B89DD001F64F1 /* VirtualTableModuleTests.swift */,
-				564A1F26226B89CD001F64F1 /* GRDBTests-Bridging-Header.h */,
 			);
 			name = GRDBTests;
 			path = ../../GRDBTests;
@@ -1043,6 +1047,7 @@
 				564A2048226B89E1001F64F1 /* RowAdapterTests.swift in Sources */,
 				564A2040226B89E1001F64F1 /* StatementColumnConvertibleFetchTests.swift in Sources */,
 				564A2019226B89E1001F64F1 /* DatabasePoolReleaseMemoryTests.swift in Sources */,
+				560714F0227DD1810091BB10 /* AssociationHasManyPrefetchingSQLTests.swift in Sources */,
 				564A2080226B89E1001F64F1 /* StatementArgumentsTests.swift in Sources */,
 				564A2082226B89E1001F64F1 /* PersistableRecordTests.swift in Sources */,
 				564A2016226B89E1001F64F1 /* QueryInterfacePromiseTests.swift in Sources */,
@@ -1232,6 +1237,7 @@
 				564A20AC226B8E18001F64F1 /* RowAdapterTests.swift in Sources */,
 				564A20AD226B8E18001F64F1 /* StatementColumnConvertibleFetchTests.swift in Sources */,
 				564A20AE226B8E18001F64F1 /* DatabasePoolReleaseMemoryTests.swift in Sources */,
+				560714F1227DD1810091BB10 /* AssociationHasManyPrefetchingSQLTests.swift in Sources */,
 				564A20AF226B8E18001F64F1 /* StatementArgumentsTests.swift in Sources */,
 				564A20B0226B8E18001F64F1 /* PersistableRecordTests.swift in Sources */,
 				564A20B1226B8E18001F64F1 /* QueryInterfacePromiseTests.swift in Sources */,

@@ -498,7 +498,14 @@ public /* TODO: internal */ struct SQLAssociation {
         get { return steps[steps.count - 1] }
         set { steps[steps.count - 1] = newValue }
     }
+    private var pivot: AssociationStep {
+        get { return steps[0] }
+        set { steps[0] = newValue }
+    }
     var key: String { return destination.key }
+    var pivotCondition: SQLAssociationCondition {
+        return pivot.condition
+    }
     
     private init(steps: [AssociationStep]) {
         assert(!steps.isEmpty)
@@ -523,6 +530,13 @@ public /* TODO: internal */ struct SQLAssociation {
         return result
     }
     
+    /// Transforms the pivot relation
+    func mapPivotRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLAssociation {
+        var result = self
+        result.pivot = result.pivot.mapRelation(transform)
+        return result
+    }
+
     /// Returns a new association
     func through(_ other: SQLAssociation) -> SQLAssociation {
         return SQLAssociation(steps: other.steps + steps)
@@ -657,7 +671,7 @@ public /* TODO: internal */ struct SQLAssociation {
     /// origin and the destination.
     func destinationRelation(fromOriginRows originRows: @escaping (Database) throws -> [Row]) -> SQLRelation {
         // Filter the pivot
-        let pivot = steps[0]
+        let pivot = self.pivot
         let pivotAlias = TableAlias()
         let filteredPivotRelation = pivot.relation
             .qualified(with: pivotAlias)
