@@ -81,14 +81,7 @@ extension Row {
                 .fetchAll(db)
                 .grouped(byDatabaseValuesOnColumns: rightColumns.map { "grdb_\($0)" })
             
-            let groupingIndexes: [Int] = pivotMapping.map { columns -> Int in
-                let column = columns.left
-                guard let index = firstRow.index(ofColumn: column) else {
-                    fatalError("Column \(column) is not selected")
-                }
-                return index
-            }
-            
+            let groupingIndexes = firstRow.indexes(ofColumns: pivotMapping.map { $0.left })
             for row in rows {
                 let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
                 let prefetchedRows = prefetchedRows[groupingKey] ?? []
@@ -108,10 +101,22 @@ extension Array where Element == Row {
         guard let firstRow = first else {
             return [:]
         }
-        let indexes: [Int] = columns.map { firstRow.index(ofColumn: $0)! }
+        let indexes = firstRow.indexes(ofColumns: columns)
         return Dictionary(grouping: self, by: { row in
             indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
         })
+    }
+}
+
+extension Row {
+    /// - precondition: Columns all exist in tthe row.
+    fileprivate func indexes(ofColumns columns: [String]) -> [Int] {
+        return columns.map { column -> Int in
+            guard let index = index(ofColumn: column) else {
+                fatalError("Column \(column) is not selected")
+            }
+            return index
+        }
     }
 }
 
