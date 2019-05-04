@@ -11,45 +11,45 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     }
 
     /// Creates a request that includes an association. The columns of the
-    /// associated record are selected. The returned association does not
+    /// associated record are selected. The returned request does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.sqlAssociation.joinedRelation(from: $0, required: false)
+                association.sqlAssociation.extendedRelation($0, required: false)
             }
         }
     }
     
-    /// Creates a request that includes an association. The columns of the
-    /// associated record are selected. The returned association requires
+    /// Creates a request that joins an association. The columns of the
+    /// associated record are selected. The returned request requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.sqlAssociation.joinedRelation(from: $0, required: true)
+                association.sqlAssociation.extendedRelation($0, required: true)
             }
         }
     }
     
-    /// Creates a request that includes an association. The columns of the
-    /// associated record are not selected. The returned association does not
+    /// Creates a request that joins an association. The columns of the
+    /// associated record are not selected. The returned request does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.select([]).sqlAssociation.joinedRelation(from: $0, required: false)
+                association.select([]).sqlAssociation.extendedRelation($0, required: false)
             }
         }
     }
     
     /// Creates a request that includes an association. The columns of the
-    /// associated record are not selected. The returned association requires
+    /// associated record are not selected. The returned request requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.select([]).sqlAssociation.joinedRelation(from: $0, required: true)
+                association.select([]).sqlAssociation.extendedRelation($0, required: true)
             }
         }
     }

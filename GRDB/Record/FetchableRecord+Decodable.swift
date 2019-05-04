@@ -106,7 +106,7 @@ private struct RowDecoder<Record: FetchableRecord>: Decoder {
                 }
             }
             
-            // Scope? (beware left joins, and check if scoped row contains non-null values)
+            // Scope? (beware left joins: check if scoped row contains non-null values)
             if let scopedRow = row.scopesTree[keyName], scopedRow.containsNonNullValue {
                 return try decode(type, fromRow: scopedRow, codingPath: codingPath + [key])
             }

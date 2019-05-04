@@ -110,7 +110,7 @@ extension SQLSelectQuery {
             return trivialCountQuery
         }
         
-        guard relation.joins.isEmpty, case .table = relation.source else {
+        guard relation.children.isEmpty, case .table = relation.source else {
             // SELECT ... FROM (something which is not a plain table)
             return trivialCountQuery
         }

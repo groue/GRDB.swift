@@ -254,7 +254,7 @@ extension Association {
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRelation {
-            association.sqlAssociation.joinedRelation(from: $0, required: false)
+            association.sqlAssociation.extendedRelation($0, required: false)
         }
     }
     
@@ -263,7 +263,7 @@ extension Association {
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRelation {
-            association.sqlAssociation.joinedRelation(from: $0, required: true)
+            association.sqlAssociation.extendedRelation($0, required: true)
         }
     }
     
@@ -272,7 +272,7 @@ extension Association {
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRelation {
-            association.select([]).sqlAssociation.joinedRelation(from: $0, required: false)
+            association.select([]).sqlAssociation.extendedRelation($0, required: false)
         }
     }
     
@@ -281,7 +281,7 @@ extension Association {
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         return mapRelation {
-            association.select([]).sqlAssociation.joinedRelation(from: $0, required: true)
+            association.select([]).sqlAssociation.extendedRelation($0, required: true)
         }
     }
 }
@@ -397,7 +397,7 @@ public protocol AssociationToOne: Association { }
 
 // MARK: - SQLAssociation
 
-/// An SQL association is a non-empty chain on joins which starts from the
+/// An SQL association is a non-empty chain on steps which starts from the
 /// "pivot" and ends to the "destination":
 ///
 ///     // SELECT origin.*, destination.*
@@ -451,7 +451,7 @@ public protocol AssociationToOne: Association { }
 public /* TODO: internal */ struct SQLAssociation {
     private struct AssociationStep {
         var key: String
-        var condition: SQLJoinCondition
+        var condition: SQLAssociationCondition
         var relation: SQLRelation
         
         func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> AssociationStep {
@@ -470,7 +470,7 @@ public /* TODO: internal */ struct SQLAssociation {
         self.steps = steps
     }
     
-    init(key: String, condition: SQLJoinCondition, relation: SQLRelation) {
+    init(key: String, condition: SQLAssociationCondition, relation: SQLRelation) {
         self.init(steps: [AssociationStep(key: key, condition: condition, relation: relation)])
     }
     
@@ -493,7 +493,7 @@ public /* TODO: internal */ struct SQLAssociation {
         return SQLAssociation(steps: other.steps + steps)
     }
     
-    /// Given a relation, returns a relation joined with this association.
+    /// Given a relation, returns a relation extended with this association.
     ///
     /// This method provides support for public joining methods such
     /// as `including(required:)`:
@@ -512,8 +512,8 @@ public /* TODO: internal */ struct SQLAssociation {
     ///
     ///     let sqlAssociation = Origin.destination.sqlAssociation
     ///     let origin = Origin.all().query.relation
-    ///     let joinedRelation = sqlAssociation.joinedRelation(from: origin, required: true)
-    ///     let query = SQLSelectQuery(relation: joinedRelation)
+    ///     let extendedRelation = sqlAssociation.extendedRelation(origin, required: true)
+    ///     let query = SQLSelectQuery(relation: extendedRelation)
     ///     let generator = SQLSelectQueryGenerator(query)
     ///     let statement, _ = try generator.prepare(db)
     ///     print(statement.sql)
@@ -525,9 +525,9 @@ public /* TODO: internal */ struct SQLAssociation {
     /// HasMany in the above examples, but also for indirect associations such
     /// as HasManyThrough, which have any number of pivot relations between the
     /// origin and the destination.
-    func joinedRelation(from origin: SQLRelation, required: Bool) -> SQLRelation {
-        let destinationJoin = SQLJoin(
-            isRequired: required,
+    func extendedRelation(_ origin: SQLRelation, required: Bool) -> SQLRelation {
+        let destinationChild = SQLRelation.Child(
+            kind: required ? .oneRequired : .oneOptional,
             condition: destination.condition,
             relation: destination.relation)
         
@@ -542,7 +542,7 @@ public /* TODO: internal */ struct SQLAssociation {
             //
             // let association = Origin.belongsTo(Destination.self)
             // Origin.including(required: association)
-            return origin.appendingJoin(destinationJoin, forKey: destination.key)
+            return origin.appendingChild(destinationChild, forKey: destination.key)
         }
         
         // This is an indirect join from origin to destination, through
@@ -565,9 +565,9 @@ public /* TODO: internal */ struct SQLAssociation {
         reducedAssociation = reducedAssociation.mapRelation { lastPivot in
             lastPivot
                 .select([]) // pivot is not included in the selection
-                .appendingJoin(destinationJoin, forKey: destination.key)
+                .appendingChild(destinationChild, forKey: destination.key)
         }
-        return reducedAssociation.joinedRelation(from: origin, required: required)
+        return reducedAssociation.extendedRelation(origin, required: required)
     }
     
     /// Given an origin alias and rows, returns the destination of the
@@ -618,7 +618,7 @@ public /* TODO: internal */ struct SQLAssociation {
             .qualified(with: pivotAlias)
             .filter({ db in
                 // `pivot.originId = 123` or `pivot.originId IN (1, 2, 3)`
-                try pivot.condition.filteringExpression(db, rightAlias: pivotAlias, leftRows: originRows(db))
+                try pivot.condition.filteringExpression(db, leftRows: originRows(db), rightAlias: pivotAlias)
             })
         
         if steps.count == 1 {
@@ -659,6 +659,6 @@ public /* TODO: internal */ struct SQLAssociation {
         reversedAssociation = reversedAssociation.mapRelation { _ in
             pivotRelation.select([]) // pivot is not included in the selection
         }
-        return reversedAssociation.joinedRelation(from: destination.relation, required: true)
+        return reversedAssociation.extendedRelation(destination.relation, required: true)
     }
 }

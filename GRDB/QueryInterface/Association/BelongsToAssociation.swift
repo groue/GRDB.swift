@@ -146,7 +146,7 @@ extension TableRecord {
             destinationTable: Destination.databaseTableName,
             foreignKey: foreignKey)
         
-        let condition = SQLJoinCondition(
+        let condition = SQLAssociationCondition(
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: true)
         

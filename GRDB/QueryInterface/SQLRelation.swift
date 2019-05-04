@@ -6,28 +6,45 @@
 ///            |        |        |         |            |
 ///            |        |        |         |            • ordering
 ///            |        |        |         • filterPromise
-///            |        |        • joins
+///            |        |        • children
 ///            |        • source
 ///            • selection
 struct SQLRelation {
+    struct Child {
+        enum Kind {
+            // Record.including(optional: association)
+            case oneOptional
+            // Record.including(required: association)
+            case oneRequired
+            // Record.including(all: association)
+            case allPrefetched
+            // Record.including(all: associationThroughPivot)
+            case all
+        }
+        
+        var kind: Kind
+        var condition: SQLAssociationCondition
+        var relation: SQLRelation
+    }
+    
     var source: SQLSource
     var selection: [SQLSelectable]
     var filterPromise: DatabasePromise<SQLExpression?>
     var ordering: SQLRelation.Ordering
-    var joins: OrderedDictionary<String, SQLJoin>
+    var children: OrderedDictionary<String, Child>
     
     init(
         source: SQLSource,
         selection: [SQLSelectable] = [],
         filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil),
         ordering: SQLRelation.Ordering = SQLRelation.Ordering(),
-        joins: OrderedDictionary<String, SQLJoin> = [:])
+        children: OrderedDictionary<String, Child> = [:])
     {
         self.source = source
         self.selection = selection
         self.filterPromise = filterPromise
         self.ordering = ordering
-        self.joins = joins
+        self.children = children
     }
 }
 
@@ -74,16 +91,16 @@ extension SQLRelation {
         return order(SQLRelation.Ordering())
     }
     
-    func appendingJoin(_ join: SQLJoin, forKey key: String) -> SQLRelation {
+    func appendingChild(_ child: SQLRelation.Child, forKey key: String) -> SQLRelation {
         var relation = self
-        if let existingJoin = relation.joins.removeValue(forKey: key) {
-            guard let mergedJoin = existingJoin.merged(with: join) else {
+        if let existingChild = relation.children.removeValue(forKey: key) {
+            guard let mergedChild = existingChild.merged(with: child) else {
                 // can't merge
                 fatalError("The association key \"\(key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
             }
-            relation.joins.appendValue(mergedJoin, forKey: key)
+            relation.children.appendValue(mergedChild, forKey: key)
         } else {
-            relation.joins.appendValue(join, forKey: key)
+            relation.children.appendValue(child, forKey: key)
         }
         return relation
     }
@@ -206,19 +223,19 @@ extension SQLRelation {
     }
 }
 
-// MARK: - SQLJoinCondition
+// MARK: - SQLAssociationCondition
 
-/// The condition that links two joined tables.
+/// The condition that links two tables.
 ///
-/// Currently, we only support one kind of join condition: foreign keys.
+/// Currently, we only support one kind of condition: foreign keys.
 ///
 ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
-///                                         <- the join condition -->
+///                                         <---- the condition ---->
 ///
-/// When we eventually add support for new ways to join tables, SQLJoinCondition
-/// is the type we'll need to update.
+/// When we eventually add support for new ways to link tables,
+/// SQLAssociationCondition is the type we'll need to update.
 ///
-/// SQLJoinCondition equality allows merging of associations:
+/// SQLAssociationCondition adopts Equatable so that we can merge associations:
 ///
 ///     // request1 and request2 are equivalent
 ///     let request1 = Book
@@ -233,7 +250,7 @@ extension SQLRelation {
 ///     let request4 = Book
 ///         .joining(required: Book.author.filter(condition1))
 ///         .including(optional: Book.author.filter(condition2))
-struct SQLJoinCondition: Equatable {
+struct SQLAssociationCondition: Equatable {
     /// Definition of a foreign key
     var foreignKeyRequest: ForeignKeyRequest
     
@@ -256,8 +273,8 @@ struct SQLJoinCondition: Equatable {
     ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
     var originIsLeft: Bool
     
-    var reversed: SQLJoinCondition {
-        return SQLJoinCondition(
+    var reversed: SQLAssociationCondition {
+        return SQLAssociationCondition(
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: !originIsLeft)
     }
@@ -272,11 +289,11 @@ struct SQLJoinCondition: Equatable {
         }
     }
     
-    /// Returns an expression for the join condition.
+    /// Resolves the condition into an SQL expression which involves both left
+    /// and right tables.
     ///
     ///     SELECT * FROM left JOIN right ON (right.a = left.b)
     ///                                      <---------------->
-    ///                                      SQLJoinExpression
     ///
     /// - parameter db: A database connection.
     /// - parameter leftAlias: A TableAlias for the table on the left of the
@@ -284,18 +301,18 @@ struct SQLJoinCondition: Equatable {
     /// - parameter rightAlias: A TableAlias for the table on the right of the
     ///   JOIN operator.
     /// - Returns: An SQL expression.
-    func joinExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLJoinExpression {
-        return try SQLJoinExpression(
-            leftAlias: leftAlias,
-            rightAlias: rightAlias,
-            columnMapping: columnMapping(db))
+    func joinExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLExpression {
+        return try columnMapping(db)
+            .map { QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias) }
+            .joined(operator: .and)
     }
     
-    /// Returns an expression for the join condition.
+    /// Resolves the condition into an SQL expression which involves only the
+    /// right table.
     ///
     /// Given `right.a = left.b`, returns `right.a = 1` or
     /// `right.a IN (1, 2, 3)`.
-    func filteringExpression(_ db: Database, rightAlias: TableAlias, leftRows: [Row]) throws -> SQLExpression {
+    func filteringExpression(_ db: Database, leftRows: [Row], rightAlias: TableAlias) throws -> SQLExpression {
         if leftRows.isEmpty {
             // Degenerate case: therre is no row to attach
             return false.sqlExpression
@@ -341,42 +358,6 @@ struct SQLJoinCondition: Equatable {
     }
 }
 
-// MARK: - SQLJoinExpression
-
-/// The expression used to join two tables:
-///
-///     SELECT * FROM left JOIN right ON (right.a = left.b)
-///                                      <---------------->
-///                                      SQLJoinExpression
-///
-/// SQLJoinExpression can be resolved against rows, in order to give
-/// `right.a = 1` or `right.a IN (1, 2, 3)`.
-struct SQLJoinExpression: SQLExpression {
-    var leftAlias: TableAlias
-    var rightAlias: TableAlias
-    var columnMapping: [(left: String, right: String)]
-    
-    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
-        return columnMapping
-            .map { QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias) }
-            .joined(operator: .and)
-            .expressionSQL(&context)
-    }
-    
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        // self is already qualified
-        return self
-    }
-}
-
-// MARK: - SQLJoin
-
-struct SQLJoin {
-    var isRequired: Bool
-    var condition: SQLJoinCondition
-    var relation: SQLRelation
-}
-
 // MARK: - Merging
 //
 // "Merging" is an operation that takes two relations and, if they are
@@ -412,20 +393,20 @@ extension SQLRelation {
             }
         }
         
-        var mergedJoins: OrderedDictionary<String, SQLJoin> = [:]
-        for (key, join) in joins {
-            if let otherJoin = other.joins[key] {
-                guard let mergedJoin = join.merged(with: otherJoin) else {
+        var mergedChildren: OrderedDictionary<String, SQLRelation.Child> = [:]
+        for (key, child) in children {
+            if let otherChild = other.children[key] {
+                guard let mergedChild = child.merged(with: otherChild) else {
                     // can't merge
                     return nil
                 }
-                mergedJoins.appendValue(mergedJoin, forKey: key)
+                mergedChildren.appendValue(mergedChild, forKey: key)
             } else {
-                mergedJoins.appendValue(join, forKey: key)
+                mergedChildren.appendValue(child, forKey: key)
             }
         }
-        for (key, join) in other.joins where mergedJoins[key] == nil {
-            mergedJoins.appendValue(join, forKey: key)
+        for (key, child) in other.children where mergedChildren[key] == nil {
+            mergedChildren.appendValue(child, forKey: key)
         }
         
         // replace selection unless empty
@@ -439,7 +420,7 @@ extension SQLRelation {
             selection: mergedSelection,
             filterPromise: mergedFilterPromise,
             ordering: mergedOrdering,
-            joins: mergedJoins)
+            children: mergedChildren)
     }
 }
 
@@ -471,9 +452,9 @@ extension SQLSource {
     }
 }
 
-extension SQLJoin {
+extension SQLRelation.Child {
     /// Returns nil if joins can't be merged (conflict in condition, relation...)
-    func merged(with other: SQLJoin) -> SQLJoin? {
+    func merged(with other: SQLRelation.Child) -> SQLRelation.Child? {
         guard condition == other.condition else {
             // can't merge
             return nil
@@ -484,9 +465,65 @@ extension SQLJoin {
             return nil
         }
         
-        return SQLJoin(
-            isRequired: isRequired || other.isRequired,
+        guard let mergedKind = kind.merged(with: other.kind) else {
+            // can't merge
+            return nil
+        }
+        
+        return SQLRelation.Child(
+            kind: mergedKind,
             condition: condition,
             relation: mergedRelation)
+    }
+}
+
+extension SQLRelation.Child.Kind {
+    /// Returns nil if kinds can't be merged
+    func merged(with other: SQLRelation.Child.Kind) -> SQLRelation.Child.Kind? {
+        switch (self, other) {
+        case (.oneRequired, .oneRequired),
+             (.oneRequired, .oneOptional),
+             (.oneOptional, .oneRequired):
+            // Equivalent to Record.including(required: association):
+            //
+            // Record
+            //   .including(required: association)
+            //   .including(optional: association)
+            return .oneRequired
+            
+        case (.oneOptional, .oneOptional):
+            // Equivalent to Record.including(optional: association):
+            //
+            // Record
+            //   .including(optional: association)
+            //   .including(optional: association)
+            return .oneOptional
+            
+        case (.allPrefetched, .allPrefetched),
+             (.allPrefetched, .all),
+             (.all, .allPrefetched):
+            // Prefetches both Pivot and Destination:
+            //
+            // Record
+            //   .including(all: associationToDestinationThroughPivot)
+            //   .including(all: associationToPivot)
+            return .allPrefetched
+            
+        case (.all, .all):
+            // Equivalent to Record.including(all: association)
+            //
+            // Record
+            //   .including(all: association)
+            //   .including(all: association)
+            return .all
+            
+        default:
+            // Likely a programmer error:
+            //
+            // Record
+            //   .including(all: Author.books.forKey("foo"))
+            //   .including(optional: Author.books.forKey("foo"))
+            return nil
+        }
     }
 }

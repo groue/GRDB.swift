@@ -85,8 +85,20 @@ struct OrderedDictionary<Key: Hashable, Value> {
     /// Returns a new ordered dictionary containing the keys of this dictionary
     /// with the values transformed by the given closure.
     func mapValues<T>(_ transform: (Value) throws -> T) rethrows -> OrderedDictionary<Key, T> {
-        return try reduce(into: OrderedDictionary<Key, T>()) { dict, pair in
-            dict.appendValue(try transform(pair.value), forKey: pair.key)
+        return try reduce(into: .init()) { dict, pair in
+            let value = try transform(pair.value)
+            dict.appendValue(value, forKey: pair.key)
+        }
+    }
+    
+    /// Returns a new ordered dictionary containing only the key-value pairs
+    /// that have non-nil values as the result of transformation by the
+    /// given closure.
+    func compactMapValues<T>(_ transform: (Value) throws -> T?) rethrows -> OrderedDictionary<Key, T> {
+        return try reduce(into: .init()) { dict, pair in
+            if let value = try transform(pair.value) {
+                dict.appendValue(value, forKey: pair.key)
+            }
         }
     }
 }
