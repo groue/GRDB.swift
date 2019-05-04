@@ -503,6 +503,7 @@ public /* TODO: internal */ struct SQLAssociation {
         set { steps[0] = newValue }
     }
     var key: String { return destination.key }
+    var keyPath: [String] { return steps.map { $0.key} }
     var pivotCondition: SQLAssociationCondition {
         return pivot.condition
     }

@@ -63,33 +63,53 @@ extension Row {
     }
     
     private static func rowsWithPrefetchedRows(_ db: Database, _ rows: [Row], with query: SQLSelectQuery) throws -> [Row] {
-        if rows.isEmpty {
+        guard let firstRow = rows.first else {
             return rows
         }
         
         let prefetchedAssociations = query.relation.prefetchedAssociations()
-        for prefetchedAssociation in prefetchedAssociations {
-            let groupingAlias = TableAlias()
-            let groupingColumns = try prefetchedAssociation.pivotCondition.columnMapping(db).map { $0.right }
-            let prefetchedRelation = prefetchedAssociation
-                .mapPivotRelation { $0.qualified(with: groupingAlias) }
+        for association in prefetchedAssociations {
+            let pivotMapping = try association.pivotCondition.columnMapping(db)
+            
+            let rightColumns = pivotMapping.map { $0.right }
+            let rightAlias = TableAlias()
+            let prefetchedRelation = association
+                .mapPivotRelation { $0.qualified(with: rightAlias) }
                 .destinationRelation(fromOriginRows: { _ in rows })
-                .annotated(with: groupingColumns.map { groupingAlias[Column($0)].aliased("grdb_\($0)") })
-            let prefetchedRequest = QueryInterfaceRequest<Row>(relation: prefetchedRelation)
-            let prefetchedRows = try prefetchedRequest.fetchAll(db)
-            let groupedRows = group(prefetchedRows, on: groupingColumns.map { "grdb_\($0)" })
+                .annotated(with: rightColumns.map { rightAlias[Column($0)].aliased("grdb_\($0)") })
+            let prefetchedRows = try QueryInterfaceRequest(relation: prefetchedRelation)
+                .fetchAll(db)
+                .grouped(byDatabaseValuesOnColumns: rightColumns.map { "grdb_\($0)" })
+            
+            let groupingIndexes: [Int] = pivotMapping.map { columns -> Int in
+                let column = columns.left
+                guard let index = firstRow.index(ofColumn: column) else {
+                    fatalError("Column \(column) is not selected")
+                }
+                return index
+            }
+            
+            for row in rows {
+                let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
+                let prefetchedRows = prefetchedRows[groupingKey] ?? []
+                print(association.keyPath, prefetchedRows)
+                // TODO: embed prefetchedRows inside row at association.keyPath
+            }
         }
+        
         return rows
     }
-    
+}
+
+extension Array where Element == Row {
     /// - precondition: Columns all exist in all rows. All rows have the same
     ///   columnns, in the same order.
-    private static func group(_ rows: [Row], on columns: [String]) -> [[DatabaseValue]: [Row]] {
-        guard let firstRow = rows.first else {
+    fileprivate func grouped(byDatabaseValuesOnColumns columns: [String]) -> [[DatabaseValue]: [Row]] {
+        guard let firstRow = first else {
             return [:]
         }
         let indexes: [Int] = columns.map { firstRow.index(ofColumn: $0)! }
-        return Dictionary(grouping: rows, by: { row in
+        return Dictionary(grouping: self, by: { row in
             indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
         })
     }
