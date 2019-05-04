@@ -63,6 +63,10 @@ extension Row {
     }
     
     private static func rowsWithPrefetchedRows(_ db: Database, _ rows: [Row], with query: SQLSelectQuery) throws -> [Row] {
+        if rows.isEmpty {
+            return rows
+        }
+        
         let prefetchedAssociations = query.relation.prefetchedAssociations()
         for prefetchedAssociation in prefetchedAssociations {
             let pivotAlias = TableAlias()
