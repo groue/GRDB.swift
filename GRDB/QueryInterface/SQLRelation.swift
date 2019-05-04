@@ -46,8 +46,10 @@ struct SQLRelation {
     var ordering: SQLRelation.Ordering
     var children: OrderedDictionary<String, Child>
     
+    // TODO: replace with !prefetchedAssociations.isEmpty if prefetchedAssociations
+    // happens to be sufficient
     var needsPrefetch: Bool {
-        return children.contains { $0.value.kind == .allPrefetched }
+        return children.contains { $0.value.kind == .allPrefetched || $0.value.relation.needsPrefetch }
     }
     
     func prefetchedAssociations() -> [SQLAssociation] {
@@ -55,8 +57,10 @@ struct SQLRelation {
             switch child.kind {
             case .allPrefetched:
                 return [SQLAssociation(key: key, condition: child.condition, relation: child.relation)]
-            default:
-                return []
+            case .oneOptional, .oneRequired, .allNotPrefetched:
+                return child.relation
+                    .prefetchedAssociations()
+                    .map { $0.through(SQLAssociation(key: key, condition: child.condition, relation: child.relation)) }
             }
         }
     }

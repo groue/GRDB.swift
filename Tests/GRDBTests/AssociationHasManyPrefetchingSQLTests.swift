@@ -298,10 +298,10 @@ class AssociationHasManyPrefetchingSQLTests: GRDBTestCase {
                     ORDER BY "colc1"
                     """))
                 XCTAssertTrue(sqlQueries.contains("""
-                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    SELECT *, "cold2" AS "grdb_cold2" \
                     FROM "d" \
-                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2, 3))) \
-                    ORDER BY "d"."cold1", "c"."colc1"
+                    WHERE ("cold2" IN (7, 8, 9)) \
+                    ORDER BY "cold1"
                     """))
                 print(sqlQueries)
                 
