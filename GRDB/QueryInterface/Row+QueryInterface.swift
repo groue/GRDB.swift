@@ -12,7 +12,7 @@ extension QueryInterfaceRequest where RowDecoder == Row {
     /// - parameter db: A database connection.
     /// - returns: An array of fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
+    @inlinable // TODO: should not be inlinable
     public func fetchAll(_ db: Database) throws -> [Row] {
         return try Row.fetchAll(db, self)
     }
@@ -25,7 +25,7 @@ extension QueryInterfaceRequest where RowDecoder == Row {
     /// - parameter db: A database connection.
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
+    @inlinable // TODO: should not be inlinable
     public func fetchOne(_ db: Database) throws -> Row? {
         return try Row.fetchOne(db, self)
     }
@@ -45,7 +45,7 @@ extension Row {
     ///     - request: A FetchRequest.
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
+    @inlinable // TODO: should not be inlinable
     public static func fetchAll<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> [Row] {
         let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         let rows = try fetchAll(statement, adapter: adapter)
@@ -67,7 +67,7 @@ extension Row {
     ///     - request: A FetchRequest.
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
+    @inlinable // TODO: should not be inlinable
     public static func fetchOne<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> Row? {
         let (statement, adapter) = try request.prepare(db, forSingleResult: true)
         guard let row = try fetchOne(statement, adapter: adapter) else {
