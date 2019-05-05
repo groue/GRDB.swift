@@ -1,14 +1,103 @@
-/// A "relation" as defined by the [relational terminology](https://en.wikipedia.org/wiki/Relational_database#Terminology):
+/// A "relation", as defined by the [relational terminology](https://en.wikipedia.org/wiki/Relational_database#Terminology),
+/// is "a set of tuples sharing the same attributes; a set of columns and rows."
 ///
-/// > A set of tuples sharing the same attributes; a set of columns and rows.
+/// SQLRelation is defined with a selection, a source table of query, and an
+/// eventual filter and ordering.
 ///
-///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
-///            |        |        |         |            |
-///            |        |        |         |            • ordering
-///            |        |        |         • filterPromise
-///            |        |        • children
+///     SELECT ... FROM ... WHERE ... ORDER BY ...
+///            |        |         |            |
+///            |        |         |            • ordering
+///            |        |         • filter
 ///            |        • source
 ///            • selection
+///
+/// Other SQL clauses such as GROUP BY, LIMIT are defined one level up, in the
+/// SQLSelectQuery type.
+///
+/// ## Promises
+///
+/// Filter and ordering are actually "promises", which are only resolved
+/// when a database connection is available. This is how we can implement
+/// requests such as `Record.filter(key: 1)` or `Record.orderedByPrimaryKey()`:
+/// both need a database connection in order to introspect the primary key.
+///
+///     // SELECT * FROM player
+///     // WHERE continent = 'EU'
+///     // ORDER BY code -- primary key infered from the database schema
+///     Country
+///         .filter(Column("continent") == "EU")
+///         .orderedByPrimaryKey()
+///
+/// ## Children
+///
+/// Relations may also have children. A child is a link to another relation, and
+/// provide support for joins and prefetched relations.
+///
+/// Relations and their children constitute a tree of relations, which the user
+/// builds with associations:
+///
+///     // Builds a relation with two children:
+///     Author
+///         .including(required: Author.country)
+///         .including(all: Author.books)
+///
+/// There are four kinds of children:
+///
+/// - `.oneOptional`:
+///
+///     Such children are left joined. They may, or not, be included in
+///     the selection.
+///
+///         // SELECT book.*
+///         // FROM book
+///         // LEFT JOIN author ON author.id = book.id
+///         Book.joining(optional: Book.author)
+///
+///         // SELECT book.*, author.*
+///         // FROM book
+///         // LEFT JOIN author ON author.id = book.id
+///         Book.including(optional: Book.author)
+///
+/// - `.oneRequired`:
+///
+///     Such children are inner joined. They may, or not, be included in
+///     the selection.
+///
+///         // SELECT book.*
+///         // FROM book
+///         // JOIN author ON author.id = book.id AND author.country = 'FR'
+///         Book.joining(required: Book.author.filter(Column("country") == "FR"))
+///
+///         // SELECT book.*, author.*
+///         // FROM book
+///         // JOIN author ON author.id = book.id AND author.country = 'FR'
+///         Book.including(required: Book.author.filter(Column("country") == "FR"))
+///
+/// - `.allPrefetched`:
+///
+///     Such children are prefetched using several SQL requests:
+///
+///         // SELECT * FROM countries WHERE continent = 'EU'
+///         // SELECT * FROM passport WHERE countryCode IN ('BE', 'DE', 'FR', ...)
+///         Country
+///             .filter(Column("continent") == "EU")
+///             .including(all: Country.passports)
+///
+/// - `.allNotPrefetched`:
+///
+///     Such children are not joined, and not prefetched. They are used as
+///     intermediate children towards a prefetched child. In the example
+///     below, the country relation has a `.allNotPrefetched` child to
+///     passports, and the passport relation has a `.allPrefetched` child
+///     to citizens.
+///
+///         // SELECT * FROM countries WHERE continent = 'EU'
+///         // SELECT citizens.* FROM citizens
+///         // JOIN passport ON passport.citizenId = citizens.id
+///         //              AND passport.countryCode IN ('BE', 'DE', 'FR', ...)
+///         Country
+///             .filter(Column("continent") == "EU")
+///             .including(all: Country.citizens)
 struct SQLRelation {
     struct Child {
         enum Kind {
@@ -38,6 +127,10 @@ struct SQLRelation {
                 return false
             }
         }
+        
+        fileprivate func associationForKey(_ key: String) -> SQLAssociation {
+            return SQLAssociation(key: key, condition: condition, relation: relation)
+        }
     }
     
     var source: SQLSource
@@ -46,21 +139,15 @@ struct SQLRelation {
     var ordering: SQLRelation.Ordering
     var children: OrderedDictionary<String, Child>
     
-    // TODO: replace with !prefetchedAssociations.isEmpty if prefetchedAssociations
-    // happens to be sufficient
-    var needsPrefetch: Bool {
-        return children.contains { $0.value.kind == .allPrefetched || $0.value.relation.needsPrefetch }
-    }
-    
-    func prefetchedAssociations() -> [SQLAssociation] {
+    var prefetchedAssociations: [SQLAssociation] {
         return children.flatMap { key, child -> [SQLAssociation] in
             switch child.kind {
             case .allPrefetched:
-                return [SQLAssociation(key: key, condition: child.condition, relation: child.relation)]
+                return [child.associationForKey(key)]
             case .oneOptional, .oneRequired, .allNotPrefetched:
-                return child.relation
-                    .prefetchedAssociations()
-                    .map { $0.through(SQLAssociation(key: key, condition: child.condition, relation: child.relation)) }
+                return child.relation.prefetchedAssociations.map {
+                    $0.through(child.associationForKey(key))
+                }
             }
         }
     }

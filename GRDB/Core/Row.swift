@@ -31,6 +31,12 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     
     /// The number of columns in the row.
     public let count: Int
+    
+    struct Prefetch {
+        var rows: [Row]?
+        var prefetches: [String: Prefetch]
+    }
+    var prefetches: [String: Prefetch] = [:]
 
     // MARK: - Building rows
     
@@ -609,6 +615,18 @@ extension Row {
     }
 }
 
+extension Row {
+    
+    // MARK: - Prefetches
+    
+    /// TODO
+    public var prefetchedRows: [String: [Row]] {
+        return prefetches.compactMapValues { $0.rows }
+    }
+}
+
+// MARK: - RowCursor
+
 /// A cursor of database rows. For example:
 ///
 ///     try dbQueue.read { db in
@@ -1050,7 +1068,7 @@ extension Row {
     }
     
     private func debugDescription(level: Int) -> String {
-        if level == 0 && self == self.unadapted {
+        if level == 0 && self == self.unadapted && prefetches.isEmpty {
             return description
         }
         let prefix = repeatElement("  ", count: level + 1).joined(separator: "")
@@ -1066,6 +1084,11 @@ extension Row {
         }
         for (name, scopedRow) in scopes.sorted(by: { $0.name < $1.name }) {
             str += "\n" + prefix + "- " + name + ": " + scopedRow.debugDescription(level: level + 1)
+        }
+        for (key, prefetch) in prefetches.sorted(by: { $0.key < $1.key }) {
+            if let rows = prefetch.rows {
+                str += "\n" + prefix + "- " + key + ": \(rows.count) rows"
+            }
         }
         
         return str

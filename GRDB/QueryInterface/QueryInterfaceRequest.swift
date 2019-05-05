@@ -40,8 +40,8 @@ public struct QueryInterfaceRequest<T> {
     }
     
     @usableFromInline
-    var needsPrefetch: Bool {
-        return query.relation.needsPrefetch
+    var prefetchedAssociations: [SQLAssociation] {
+        return query.relation.prefetchedAssociations
     }
 }
 
