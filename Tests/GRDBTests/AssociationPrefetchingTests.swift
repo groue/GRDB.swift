@@ -1042,7 +1042,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                     XCTAssertEqual(rows[0].scopes["a"]!.prefetchTree.keys, ["cs"])
                     XCTAssertEqual(rows[0].scopes["a"]!.prefetchTree["cs"]!.count, 1)
                     XCTAssertEqual(rows[0].scopes["a"]!.prefetchTree["cs"]![0], ["colc1": 7, "colc2": 1, "grdb_cola1": 1]) // TODO: remove grdb_ column?
-
+                    
                     XCTAssertEqual(rows[1].unscoped, ["colb1": 5, "colb2": 1, "colb3": "b2"])
                     XCTAssertEqual(rows[1].prefetchTree.keys, ["cs"])
                     XCTAssertEqual(rows[1].prefetchTree["cs"]!.count, 1)
@@ -1052,7 +1052,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                     XCTAssertEqual(rows[1].scopes["a"]!.prefetchTree.keys, ["cs"])
                     XCTAssertEqual(rows[1].scopes["a"]!.prefetchTree["cs"]!.count, 1)
                     XCTAssertEqual(rows[1].scopes["a"]!.prefetchTree["cs"]![0], ["colc1": 7, "colc2": 1, "grdb_cola1": 1]) // TODO: remove grdb_ column?
-
+                    
                     XCTAssertEqual(rows[2].unscoped, ["colb1": 6, "colb2": 2, "colb3": "b3"])
                     XCTAssertEqual(rows[2].prefetchTree.keys, ["cs"])
                     XCTAssertEqual(rows[2].prefetchTree["cs"]!.count, 2)
@@ -1064,7 +1064,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                     XCTAssertEqual(rows[2].scopes["a"]!.prefetchTree["cs"]!.count, 2)
                     XCTAssertEqual(rows[2].scopes["a"]!.prefetchTree["cs"]![0], ["colc1": 8, "colc2": 2, "grdb_cola1": 2]) // TODO: remove grdb_ column?
                     XCTAssertEqual(rows[2].scopes["a"]!.prefetchTree["cs"]![1], ["colc1": 9, "colc2": 2, "grdb_cola1": 2]) // TODO: remove grdb_ column?
-
+                    
                     XCTAssertEqual(rows[3].unscoped, ["colb1": 14, "colb2": nil, "colb3": "b4"])
                     XCTAssertEqual(rows[3].prefetchTree.keys, ["cs"])
                     XCTAssertEqual(rows[3].prefetchTree["cs"]!.count, 0)

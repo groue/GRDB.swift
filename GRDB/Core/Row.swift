@@ -566,7 +566,7 @@ extension Row {
     ///     row.scopes["bar"] // [bar:2]
     ///     row.scopes["baz"] // nil
     public var scopes: ScopesView {
-        return impl.scopes
+        return impl.scopes(prefetches: prefetches)
     }
     
     /// Returns a view on the scopes tree defined by row adapters.
@@ -1154,19 +1154,21 @@ extension Row {
         public typealias Index = Dictionary<String, LayoutedRowAdapter>.Index
         private let row: Row
         private let scopes: [String: LayoutedRowAdapter]
-        
+        private let prefetches: [String: Row.Prefetch]
+
         /// The scopes defined on this row.
         public var names: Dictionary<String, LayoutedRowAdapter>.Keys {
             return scopes.keys
         }
         
         init() {
-            self.init(row: Row(), scopes: [:])
+            self.init(row: Row(), scopes: [:], prefetches: [:])
         }
         
-        init(row: Row, scopes: [String: LayoutedRowAdapter]) {
+        init(row: Row, scopes: [String: LayoutedRowAdapter], prefetches: [String: Row.Prefetch]) {
             self.row = row
             self.scopes = scopes
+            self.prefetches = prefetches
         }
         
         /// :nodoc:
@@ -1187,16 +1189,17 @@ extension Row {
         /// :nodoc:
         public subscript(position: Index) -> (name: String, row: Row) {
             let (name, adapter) = scopes[position]
-            return (name: name, row: Row(base: row, adapter: adapter))
+            let adaptedRow = Row(base: row, adapter: adapter)
+            if let prefetch = prefetches[name] {
+                adaptedRow.prefetches = prefetch.prefetches
+            }
+            return (name: name, row: adaptedRow)
         }
         
         /// Returns the row associated with the given scope, or nil if the
         /// scope is not defined.
         public subscript(_ name: String) -> Row? {
-            guard let adapter = scopes[name] else {
-                return nil
-            }
-            return Row(base: row, adapter: adapter)
+            return scopes.index(forKey: name).map { self[$0].row }
         }
     }
 }
@@ -1296,7 +1299,7 @@ extension Row {
 protocol RowImpl {
     var count: Int { get }
     var isFetched: Bool { get }
-    var scopes: Row.ScopesView { get }
+    func scopes(prefetches: [String: Row.Prefetch]) -> Row.ScopesView
     func columnName(atUncheckedIndex index: Int) -> String
     func hasNull(atUncheckedIndex index:Int) -> Bool
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
@@ -1329,7 +1332,7 @@ extension RowImpl {
         return row
     }
     
-    var scopes: Row.ScopesView {
+    func scopes(prefetches: [String: Row.Prefetch]) -> Row.ScopesView {
         // unless customized, assume unuscoped row (see AdaptedRowImpl for customization)
         return Row.ScopesView()
     }

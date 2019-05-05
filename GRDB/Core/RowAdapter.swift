@@ -489,8 +489,8 @@ struct AdaptedRowImpl : RowImpl {
         return base.isFetched
     }
     
-    var scopes: Row.ScopesView {
-        return Row.ScopesView(row: base, scopes: adapter.scopes)
+    func scopes(prefetches: [String: Row.Prefetch]) -> Row.ScopesView {
+        return Row.ScopesView(row: base, scopes: adapter.scopes, prefetches: prefetches)
     }
     
     func hasNull(atUncheckedIndex index: Int) -> Bool {
