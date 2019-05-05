@@ -288,6 +288,53 @@ class AssociationPrefetchingTests: GRDBTestCase {
                     XCTAssertEqual(row.prefetchTree["bs2"]!.count, 1)
                     XCTAssertEqual(row.prefetchTree["bs2"]![0], ["colb1": 5, "colb2": 1, "colb3": "b2", "grdb_colb2": 1]) // TODO: remove grdb_ column?
                 }
+                
+                // Record.fetchAll
+                do {
+                    struct Record: FetchableRecord, Decodable, Equatable {
+                        var a: A
+                        var bs1: [B]
+                        var bs2: [B]
+                    }
+                    
+                    let records = try Record.fetchAll(db, request)
+                    print(records)
+                    XCTAssertEqual(records, [
+                        Record(
+                            a: A(row: ["cola1": 1, "cola2": "a1"]),
+                            bs1: [
+                                B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                            ],
+                            bs2: [
+                                B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                            ]),
+                        Record(
+                            a: A(row: ["cola1": 2, "cola2": "a2"]),
+                            bs1: [],
+                            bs2: [
+                                B(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
+                            ]),
+                        ])
+                }
+                
+                // Record.fetchOne
+                do {
+                    struct Record: FetchableRecord, Decodable, Equatable {
+                        var a: A
+                        var bs1: [B]
+                        var bs2: [B]
+                    }
+                    
+                    let record = try Record.fetchOne(db, request)!
+                    XCTAssertEqual(record, Record(
+                        a: A(row: ["cola1": 1, "cola2": "a1"]),
+                        bs1: [
+                            B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                        ],
+                        bs2: [
+                            B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                        ]))
+                }
             }
         }
     }
