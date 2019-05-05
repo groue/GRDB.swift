@@ -830,6 +830,50 @@ class AssociationPrefetchingTests: GRDBTestCase {
         try dbQueue.read { db in
             // Plain request
             do {
+                // Thanks to our current implementation of SQLRelation.merge(_:),
+                // the tested request below is equivalent to this one, which
+                // happens to store the Ds inside the Cs, not inside the As:
+                //
+                //      let request = A
+                //          .including(all: A
+                //              .hasMany(C.self)
+                //              .orderByPrimaryKey()
+                //              .including(all: C
+                //                  .hasMany(D.self)
+                //                  .orderByPrimaryKey()
+                //                  .forKey("ds"))
+                //              .forKey("cs"))
+                //          .orderByPrimaryKey()
+                //
+                // This is not what the tested request below wants: Ds should
+                // be available from the As, not from the Cs.
+                //
+                // So we have one bug (or two, if we consider that Ds are
+                // misplaced twice: wrongly in the Cs, wrongly not in the As).
+                //
+                // I don't quite know how to fix this.
+                //
+                // Possible solutions:
+                //
+                // 1. Do nothing, answer user questions in support
+                // 2. Recognize this pattern and fatal error
+                // 3. Figure out what we really want, and do it.
+                //
+                // For case 3, consider this request:
+                //
+                //      extension Country {
+                //          static let passports = hasMany(Passport.self)
+                //          static let citizens = hasMany(Citizens.self, through: passports, using: Passport.citizen)
+                //      }
+                //      let request = Country
+                //          .including(all: Country.passports.filter(Column("isExpired") == true))
+                //          .including(all: Country.citizens)
+                //
+                // Because of relation merging, it only load citizens with
+                // expired passports. I am not sure this is the
+                // user expectation. ???
+                //
+                // TODO: Pick a solution :-)
                 let request = A
                     .including(all: A
                         .hasMany(C.self)
@@ -867,29 +911,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                 
                 // prefetchTree
                 do {
-                    let rows = try Row.fetchAll(db, request)
-                    XCTAssertEqual(rows.count, 3)
-                    
-                    XCTAssertEqual(rows[0], ["cola1": 1, "cola2": "a1"])
-                    XCTAssertEqual(rows[0].prefetchTree.keys, ["cs", "ds"])
-                    XCTAssertEqual(rows[0].prefetchTree["cs"]!.count, 1)
-                    XCTAssertEqual(rows[0].prefetchTree["cs"]![0], ["cold1": 10, "cold2": 7, "cold3": "d1", "grdb_colc2": 1]) // TODO: remove grdb_ column?
-                    XCTAssertEqual(rows[0].prefetchTree["ds"]!.count, 1)
-                    XCTAssertEqual(rows[0].prefetchTree["ds"]![0], ["cold1": 10, "cold2": 7, "cold3": "d1", "grdb_colc2": 1]) // TODO: remove grdb_ column?
-
-                    XCTAssertEqual(rows[1], ["cola1": 2, "cola2": "a2"])
-                    XCTAssertEqual(rows[1].prefetchTree.keys, ["cs", "ds"])
-                    XCTAssertEqual(rows[1].prefetchTree["cs"]!.count, 2)
-                    XCTAssertEqual(rows[1].prefetchTree["cs"]![0], ["cold1": 11, "cold2": 8, "cold3": "d2", "grdb_colc2": 2]) // TODO: remove grdb_ column?
-                    XCTAssertEqual(rows[1].prefetchTree["cs"]![1], ["cold1": 12, "cold2": 8, "cold3": "d3", "grdb_colc2": 2]) // TODO: remove grdb_ column?
-                    XCTAssertEqual(rows[1].prefetchTree["ds"]!.count, 3)
-                    XCTAssertEqual(rows[1].prefetchTree["ds"]![0], ["cold1": 11, "cold2": 8, "cold3": "d2", "grdb_colc2": 2]) // TODO: remove grdb_ column?
-                    XCTAssertEqual(rows[1].prefetchTree["ds"]![1], ["cold1": 12, "cold2": 8, "cold3": "d3", "grdb_colc2": 2]) // TODO: remove grdb_ column?
-                    XCTAssertEqual(rows[1].prefetchTree["ds"]![2], ["cold1": 13, "cold2": 9, "cold3": "d4", "grdb_colc2": 2]) // TODO: remove grdb_ column?
-                    
-                    XCTAssertEqual(rows[2], ["cola1": 3, "cola2": "a3"])
-                    XCTAssertEqual(rows[2].prefetchTree.keys, ["cs", "ds"])
-                    XCTAssertEqual(rows[2].prefetchTree["ds"]!.count, 0)
+                    // TODO
                 }
             }
             
@@ -960,6 +982,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                 
                 // prefetchTree
                 do {
+                    // TODO
                 }
             }
         }
