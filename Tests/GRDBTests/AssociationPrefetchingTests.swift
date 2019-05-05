@@ -699,7 +699,8 @@ class AssociationPrefetchingTests: GRDBTestCase {
                 let request = A
                     .including(all: A
                         .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
-                        .orderByPrimaryKey())
+                        .orderByPrimaryKey()
+                        .forKey("ds"))  // TODO: auto-pluralization
                     .orderByPrimaryKey()
                 
                 // SQL
@@ -722,6 +723,24 @@ class AssociationPrefetchingTests: GRDBTestCase {
                 
                 // PrefetchedRows
                 do {
+                    let rows = try Row.fetchAll(db, request)
+                    XCTAssertEqual(rows.count, 3)
+                    
+                    XCTAssertEqual(rows[0], ["cola1": 1, "cola2": "a1"])
+                    XCTAssertEqual(rows[0].prefetchedRows.count, 1)
+                    XCTAssertEqual(rows[0].prefetchedRows["ds"]!.count, 1)
+                    XCTAssertEqual(rows[0].prefetchedRows["ds"]![0], ["cold1": 10, "cold2": 7, "cold3": "d1", "grdb_colc2": 1]) // TODO: remove grdb_ column?
+                    
+                    XCTAssertEqual(rows[1], ["cola1": 2, "cola2": "a2"])
+                    XCTAssertEqual(rows[1].prefetchedRows.count, 1)
+                    XCTAssertEqual(rows[1].prefetchedRows["ds"]!.count, 3)
+                    XCTAssertEqual(rows[1].prefetchedRows["ds"]![0], ["cold1": 11, "cold2": 8, "cold3": "d2", "grdb_colc2": 2]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchedRows["ds"]![1], ["cold1": 12, "cold2": 8, "cold3": "d3", "grdb_colc2": 2]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchedRows["ds"]![2], ["cold1": 13, "cold2": 9, "cold3": "d4", "grdb_colc2": 2]) // TODO: remove grdb_ column?
+                    
+                    XCTAssertEqual(rows[2], ["cola1": 3, "cola2": "a3"])
+                    XCTAssertEqual(rows[2].prefetchedRows.count, 1)
+                    XCTAssertEqual(rows[2].prefetchedRows["ds"]!.count, 0)
                 }
             }
             

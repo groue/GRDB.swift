@@ -619,9 +619,19 @@ extension Row {
     
     // MARK: - Prefetches
     
-    /// TODO
+    /// TODO: replace with a view that performs the breadth-first search for a given key
     public var prefetchedRows: [String: [Row]] {
-        return prefetches.compactMapValues { $0.rows }
+        // Breadth-first search
+        var result: [String: [Row]] = [:]
+        var fifo = Array(prefetches)
+        while !fifo.isEmpty {
+            let prefetch = fifo.removeFirst()
+            if let rows = prefetch.value.rows, result[prefetch.key] == nil {
+                result[prefetch.key] = rows
+            }
+            fifo.append(contentsOf: prefetch.value.prefetches)
+        }
+        return result
     }
 }
 
