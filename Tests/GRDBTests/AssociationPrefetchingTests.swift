@@ -109,7 +109,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """])
                 }
                 
-                // PrefetchedRows
+                // prefetchTree
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 3)
@@ -152,7 +152,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """])
                 }
                 
-                // PrefetchedRows
+                // prefetchTree
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 0)
@@ -201,7 +201,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """])
                 }
                 
-                // PrefetchedRows
+                // prefetchTree
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 2)
@@ -326,7 +326,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """])
                 }
                 
-                // PrefetchedRows
+                // prefetchTree
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 3)
@@ -432,7 +432,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """])
                 }
                 
-                // PrefetchedRows
+                // prefetchTree
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 2)
@@ -507,7 +507,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """])
                 }
                 
-                // PrefetchedRows
+                // prefetchTree
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 3)
@@ -570,7 +570,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """])
                 }
                 
-                // PrefetchedRows
+                // prefetchTree
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 3)
@@ -656,7 +656,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """])
                 }
                 
-                // PrefetchedRows
+                // prefetchTree
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 2)
@@ -721,7 +721,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """])
                 }
                 
-                // PrefetchedRows
+                // prefetchTree
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 3)
@@ -749,7 +749,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                 let request = A
                     .filter(Column("cola1") != 3)
                     .including(all: A
-                        .hasMany(D.self, through: A.hasMany(C.self).filter(Column("colc1") > 7).forKey("c1"), using: C.hasMany(D.self))
+                        .hasMany(D.self, through: A.hasMany(C.self).filter(Column("colc1") == 8).forKey("c1"), using: C.hasMany(D.self))
                         .orderByPrimaryKey()
                         .forKey("ds1"))
                     .including(all: A
@@ -779,7 +779,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """
                         SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                         FROM "d" \
-                        JOIN "c" ON (("c"."colc1" = "d"."cold2") AND (("c"."colc1" > 7) AND ("c"."colc2" IN (1, 2)))) \
+                        JOIN "c" ON (("c"."colc1" = "d"."cold2") AND (("c"."colc1" = 8) AND ("c"."colc2" IN (1, 2)))) \
                         ORDER BY "d"."cold1"
                         """,
                         """
@@ -798,8 +798,28 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """])
                 }
                 
-                // PrefetchedRows
+                // prefetchTree
                 do {
+                    let rows = try Row.fetchAll(db, request)
+                    XCTAssertEqual(rows.count, 2)
+                    
+                    XCTAssertEqual(rows[0], ["cola1": 1, "cola2": "a1"])
+                    XCTAssertEqual(rows[0].prefetchTree.keys, ["ds1", "ds2", "ds3"])
+                    XCTAssertEqual(rows[0].prefetchTree["ds1"]!.count, 0)
+                    XCTAssertEqual(rows[0].prefetchTree["ds2"]!.count, 1)
+                    XCTAssertEqual(rows[0].prefetchTree["ds2"]![0], ["cold1": 10, "cold2": 7, "cold3": "d1", "grdb_colc2": 1]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[0].prefetchTree["ds3"]!.count, 0)
+
+                    XCTAssertEqual(rows[1], ["cola1": 2, "cola2": "a2"])
+                    XCTAssertEqual(rows[1].prefetchTree.keys, ["ds1", "ds2", "ds3"])
+                    XCTAssertEqual(rows[1].prefetchTree["ds1"]!.count, 2)
+                    XCTAssertEqual(rows[1].prefetchTree["ds1"]![0], ["cold1": 11, "cold2": 8, "cold3": "d2", "grdb_colc2": 2]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchTree["ds1"]![1], ["cold1": 12, "cold2": 8, "cold3": "d3", "grdb_colc2": 2]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchTree["ds2"]!.count, 2)
+                    XCTAssertEqual(rows[1].prefetchTree["ds2"]![0], ["cold1": 12, "cold2": 8, "cold3": "d3", "grdb_colc2": 2]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchTree["ds2"]![1], ["cold1": 13, "cold2": 9, "cold3": "d4", "grdb_colc2": 2]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchTree["ds3"]!.count, 1)
+                    XCTAssertEqual(rows[1].prefetchTree["ds3"]![0], ["cold1": 11, "cold2": 8, "cold3": "d2", "grdb_colc2": 2]) // TODO: remove grdb_ column?
                 }
             }
         }
@@ -843,7 +863,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """])
                 }
                 
-                // PrefetchedRows
+                // prefetchTree
                 do {
                 }
             }
@@ -913,7 +933,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """])
                 }
                 
-                // PrefetchedRows
+                // prefetchTree
                 do {
                 }
             }
@@ -955,7 +975,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """])
                 }
                 
-                // PrefetchedRows
+                // prefetchTree
                 do {
                 }
             }
@@ -1037,7 +1057,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         """])
                 }
                 
-                // PrefetchedRows
+                // prefetchTree
                 do {
                 }
             }
