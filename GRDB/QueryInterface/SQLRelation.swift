@@ -456,17 +456,20 @@ struct SQLAssociationCondition: Equatable {
         
         if valueMappings.count == 1 {
             // Join on a single column.
-            // Unique and sort database values for nicer output:
-            let dbValues = valueMapping.dbValues
-                .reduce(into: Set<DatabaseValue>(), { $0.insert($1) })
-                .sorted(by: <)
+            // Unique database values and filter out NULL:
+            var dbValues = Set(valueMapping.dbValues)
+            dbValues.remove(.null)
             
-            if dbValues.count == 1 {
+            if dbValues.isEmpty {
+                // Can't join
+                return false.sqlExpression
+            } else if dbValues.count == 1 {
                 // Single row: table.a = 1
-                return (valueMapping.column == dbValues[0])
+                return (valueMapping.column == dbValues.first!)
             } else {
                 // Multiple rows: table.a IN (1, 2, 3)
-                return dbValues.contains(valueMapping.column)
+                // Sort database values for nicer output.
+                return dbValues.sorted(by: <).contains(valueMapping.column)
             }
         } else {
             // Join on a multiple columns.
