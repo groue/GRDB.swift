@@ -74,6 +74,7 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     /// the iteration of a query: make sure to make a copy of it whenever you
     /// want to keep a specific one: `row.copy()`.
     public func copy() -> Row {
+        // TODO: copy prefetches
         return impl.copiedRow(self)
     }
     
@@ -608,6 +609,7 @@ extension Row {
     ///     // Success:
     ///     XCTAssertEqual(row.unscoped, ["id": 1, "name": "foo"])
     public var unscoped: Row {
+        // TODO: copy prefetches
         return impl.unscopedRow(self)
     }
     
@@ -616,6 +618,7 @@ extension Row {
     /// This property can turn out useful when you debug the consumption of
     /// adapted rows, such as rows fetched from joined requests.
     public var unadapted: Row {
+        // TODO: copy prefetches
         return impl.unadaptedRow(self)
     }
 }
@@ -1032,6 +1035,7 @@ extension Row {
             }
         }
         
+        // TODO: compare prefetches
         return true
     }
 }

@@ -113,6 +113,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                 
                 // prefetchTree
                 do {
+                    // TODO: test fetchOne and fetchCursor
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 3)
                     
