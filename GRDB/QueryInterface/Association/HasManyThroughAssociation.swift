@@ -61,6 +61,8 @@ public struct HasManyThroughAssociation<Origin, Destination>: AssociationToMany 
 extension HasManyThroughAssociation: TableRequest where Destination: TableRecord { }
 
 extension TableRecord {
+    // TODO: version without using: which figures out the foreign key to use.
+    
     /// Creates a "Has Many Through" association between Self and the
     /// destination type.
     ///
