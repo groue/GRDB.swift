@@ -1154,6 +1154,60 @@ class AssociationPrefetchingTests: GRDBTestCase {
                 
                 // prefetchTree
                 do {
+                    let rows = try Row.fetchAll(db, request)
+                    XCTAssertEqual(rows.count, 4)
+                    
+                    XCTAssertEqual(rows[0].unscoped, ["colb1": 4, "colb2": 1, "colb3": "b1"])
+                    XCTAssertEqual(rows[0].prefetchTree.keys, ["cs1", "cs2"])
+                    XCTAssertEqual(rows[0].scopes.count, 2)
+                    XCTAssertEqual(rows[0].scopes["a1"], ["cola1": 1, "cola2": "a1"])
+                    XCTAssertEqual(rows[0].scopes["a1"]!.prefetchTree.keys, ["cs1", "cs2"])
+                    XCTAssertEqual(rows[0].scopes["a1"]!.prefetchTree["cs1"]!.count, 0)
+                    XCTAssertEqual(rows[0].scopes["a1"]!.prefetchTree["cs2"]!.count, 1)
+                    XCTAssertEqual(rows[0].scopes["a1"]!.prefetchTree["cs2"]![0], ["colc1": 7, "colc2": 1, "grdb_cola1": 1]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[0].scopes["a2"], ["cola1": nil, "cola2": nil])
+                    XCTAssertEqual(rows[0].scopes["a2"]!.prefetchTree.keys, ["cs1", "cs2"])
+                    XCTAssertEqual(rows[0].scopes["a2"]!.prefetchTree["cs1"]!.count, 0)
+                    XCTAssertEqual(rows[0].scopes["a2"]!.prefetchTree["cs2"]!.count, 0)
+
+                    XCTAssertEqual(rows[1].unscoped, ["colb1": 5, "colb2": 1, "colb3": "b2"])
+                    XCTAssertEqual(rows[1].prefetchTree.keys, ["cs1", "cs2"])
+                    XCTAssertEqual(rows[1].scopes.count, 2)
+                    XCTAssertEqual(rows[1].scopes["a1"], ["cola1": 1, "cola2": "a1"])
+                    XCTAssertEqual(rows[1].scopes["a1"]!.prefetchTree.keys, ["cs1", "cs2"])
+                    XCTAssertEqual(rows[1].scopes["a1"]!.prefetchTree["cs1"]!.count, 0)
+                    XCTAssertEqual(rows[1].scopes["a1"]!.prefetchTree["cs2"]!.count, 1)
+                    XCTAssertEqual(rows[1].scopes["a1"]!.prefetchTree["cs2"]![0], ["colc1": 7, "colc2": 1, "grdb_cola1": 1]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].scopes["a2"], ["cola1": nil, "cola2": nil])
+                    XCTAssertEqual(rows[1].scopes["a2"]!.prefetchTree.keys, ["cs1", "cs2"])
+                    XCTAssertEqual(rows[1].scopes["a2"]!.prefetchTree["cs1"]!.count, 0)
+                    XCTAssertEqual(rows[1].scopes["a2"]!.prefetchTree["cs2"]!.count, 0)
+
+                    XCTAssertEqual(rows[2].unscoped, ["colb1": 6, "colb2": 2, "colb3": "b3"])
+                    XCTAssertEqual(rows[2].prefetchTree.keys, ["cs1", "cs2"])
+                    XCTAssertEqual(rows[2].scopes.count, 2)
+                    XCTAssertEqual(rows[2].scopes["a1"], ["cola1": nil, "cola2": nil])
+                    XCTAssertEqual(rows[2].scopes["a1"]!.prefetchTree.keys, ["cs1", "cs2"])
+                    XCTAssertEqual(rows[2].scopes["a1"]!.prefetchTree["cs1"]!.count, 0)
+                    XCTAssertEqual(rows[2].scopes["a1"]!.prefetchTree["cs2"]!.count, 0)
+                    XCTAssertEqual(rows[2].scopes["a2"], ["cola1": 2, "cola2": "a2"])
+                    XCTAssertEqual(rows[2].scopes["a2"]!.prefetchTree.keys, ["cs1", "cs2"])
+                    XCTAssertEqual(rows[2].scopes["a2"]!.prefetchTree["cs1"]!.count, 1)
+                    XCTAssertEqual(rows[2].scopes["a2"]!.prefetchTree["cs1"]![0], ["colc1": 9, "colc2": 2, "grdb_cola1": 2]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[2].scopes["a2"]!.prefetchTree["cs2"]!.count, 1)
+                    XCTAssertEqual(rows[2].scopes["a2"]!.prefetchTree["cs2"]![0], ["colc1": 8, "colc2": 2, "grdb_cola1": 2]) // TODO: remove grdb_ column?
+
+                    XCTAssertEqual(rows[3].unscoped, ["colb1": 14, "colb2": nil, "colb3": "b4"])
+                    XCTAssertEqual(rows[3].prefetchTree.keys, ["cs1", "cs2"])
+                    XCTAssertEqual(rows[3].scopes.count, 2)
+                    XCTAssertEqual(rows[3].scopes["a1"], ["cola1": nil, "cola2": nil])
+                    XCTAssertEqual(rows[3].scopes["a1"]!.prefetchTree.keys, ["cs1", "cs2"])
+                    XCTAssertEqual(rows[3].scopes["a1"]!.prefetchTree["cs1"]!.count, 0)
+                    XCTAssertEqual(rows[3].scopes["a1"]!.prefetchTree["cs2"]!.count, 0)
+                    XCTAssertEqual(rows[3].scopes["a2"], ["cola1": nil, "cola2": nil])
+                    XCTAssertEqual(rows[3].scopes["a2"]!.prefetchTree.keys, ["cs1", "cs2"])
+                    XCTAssertEqual(rows[3].scopes["a2"]!.prefetchTree["cs1"]!.count, 0)
+                    XCTAssertEqual(rows[3].scopes["a2"]!.prefetchTree["cs2"]!.count, 0)
                 }
             }
         }
