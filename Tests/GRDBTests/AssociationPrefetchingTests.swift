@@ -233,8 +233,10 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         .hasMany(C.self)
                         .including(all: C
                             .hasMany(D.self)
-                            .orderByPrimaryKey())
-                        .orderByPrimaryKey())
+                            .orderByPrimaryKey()
+                            .forKey("ds"))  // TODO: auto-pluralization
+                        .orderByPrimaryKey()
+                        .forKey("cs"))  // TODO: auto-pluralization
                     .orderByPrimaryKey()
                 
                 // SQL
@@ -263,6 +265,33 @@ class AssociationPrefetchingTests: GRDBTestCase {
                 
                 // PrefetchedRows
                 do {
+                    let rows = try Row.fetchAll(db, request)
+                    XCTAssertEqual(rows.count, 3)
+                    
+                    XCTAssertEqual(rows[0], ["cola1": 1, "cola2": "a1"])
+                    XCTAssertEqual(rows[0].prefetchedRows.count, 1)
+                    XCTAssertEqual(rows[0].prefetchedRows["cs"]!.count, 1)
+                    XCTAssertEqual(rows[0].prefetchedRows["cs"]![0], ["colc1": 7, "colc2": 1, "grdb_colc2": 1]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[0].prefetchedRows["cs"]![0].prefetchedRows.count, 1)
+                    XCTAssertEqual(rows[0].prefetchedRows["cs"]![0].prefetchedRows["ds"]!.count, 1)
+                    XCTAssertEqual(rows[0].prefetchedRows["cs"]![0].prefetchedRows["ds"]![0], ["cold1": 10, "cold2": 7, "cold3": "d1", "grdb_cold2": 7]) // TODO: remove grdb_ column?
+
+                    XCTAssertEqual(rows[1], ["cola1": 2, "cola2": "a2"])
+                    XCTAssertEqual(rows[1].prefetchedRows.count, 1)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs"]!.count, 2)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs"]![0], ["colc1": 8, "colc2": 2, "grdb_colc2": 2]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchedRows["cs"]![0].prefetchedRows.count, 1)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs"]![0].prefetchedRows["ds"]!.count, 2)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs"]![0].prefetchedRows["ds"]![0], ["cold1": 11, "cold2": 8, "cold3": "d2", "grdb_cold2": 8]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchedRows["cs"]![0].prefetchedRows["ds"]![1], ["cold1": 12, "cold2": 8, "cold3": "d3", "grdb_cold2": 8]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchedRows["cs"]![1], ["colc1": 9, "colc2": 2, "grdb_colc2": 2]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchedRows["cs"]![1].prefetchedRows.count, 1)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs"]![1].prefetchedRows["ds"]!.count, 1)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs"]![1].prefetchedRows["ds"]![0], ["cold1": 13, "cold2": 9, "cold3": "d4", "grdb_cold2": 9]) // TODO: remove grdb_ column?
+
+                    XCTAssertEqual(rows[2], ["cola1": 3, "cola2": "a3"])
+                    XCTAssertEqual(rows[2].prefetchedRows.count, 1)
+                    XCTAssertEqual(rows[2].prefetchedRows["cs"]!.count, 0)
                 }
             }
             
@@ -275,7 +304,8 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         .including(all: C
                             .hasMany(D.self)
                             .orderByPrimaryKey())
-                        .orderByPrimaryKey())
+                        .orderByPrimaryKey()
+                        .forKey("cs"))  // TODO: auto-pluralization
                     .orderByPrimaryKey()
                 
                 // SQL
@@ -298,6 +328,20 @@ class AssociationPrefetchingTests: GRDBTestCase {
                 
                 // PrefetchedRows
                 do {
+                    let rows = try Row.fetchAll(db, request)
+                    XCTAssertEqual(rows.count, 3)
+                    
+                    XCTAssertEqual(rows[0], ["cola1": 1, "cola2": "a1"])
+                    XCTAssertEqual(rows[0].prefetchedRows.count, 1)
+                    XCTAssertEqual(rows[0].prefetchedRows["cs"]!.count, 0)
+                    
+                    XCTAssertEqual(rows[1], ["cola1": 2, "cola2": "a2"])
+                    XCTAssertEqual(rows[1].prefetchedRows.count, 1)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs"]!.count, 0)
+                    
+                    XCTAssertEqual(rows[2], ["cola1": 3, "cola2": "a3"])
+                    XCTAssertEqual(rows[2].prefetchedRows.count, 1)
+                    XCTAssertEqual(rows[2].prefetchedRows["cs"]!.count, 0)
                 }
             }
             
@@ -390,6 +434,40 @@ class AssociationPrefetchingTests: GRDBTestCase {
                 
                 // PrefetchedRows
                 do {
+                    let rows = try Row.fetchAll(db, request)
+                    XCTAssertEqual(rows.count, 2)
+                    
+                    XCTAssertEqual(rows[0], ["cola1": 1, "cola2": "a1"])
+                    XCTAssertEqual(rows[0].prefetchedRows.count, 2)
+                    XCTAssertEqual(rows[0].prefetchedRows["cs1"]!.count, 0)
+                    XCTAssertEqual(rows[0].prefetchedRows["cs2"]!.count, 1)
+                    XCTAssertEqual(rows[0].prefetchedRows["cs2"]![0], ["colc1": 7, "colc2": 1, "grdb_colc2": 1]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[0].prefetchedRows["cs2"]![0].prefetchedRows.count, 2)
+                    XCTAssertEqual(rows[0].prefetchedRows["cs2"]![0].prefetchedRows["ds1"]!.count, 0)
+                    XCTAssertEqual(rows[0].prefetchedRows["cs2"]![0].prefetchedRows["ds2"]!.count, 1)
+                    XCTAssertEqual(rows[0].prefetchedRows["cs2"]![0].prefetchedRows["ds2"]![0], ["cold1": 10, "cold2": 7, "cold3": "d1", "grdb_cold2": 7]) // TODO: remove grdb_ column?
+
+                    XCTAssertEqual(rows[1], ["cola1": 2, "cola2": "a2"])
+                    XCTAssertEqual(rows[1].prefetchedRows.count, 2)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs1"]!.count, 2)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs1"]![0], ["colc1": 8, "colc2": 2, "grdb_colc2": 2]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchedRows["cs1"]![0].prefetchedRows.count, 2)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs1"]![0].prefetchedRows["ds1"]!.count, 1)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs1"]![0].prefetchedRows["ds1"]![0], ["cold1": 11, "cold2": 8, "cold3": "d2", "grdb_cold2": 8]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchedRows["cs1"]![0].prefetchedRows["ds2"]!.count, 1)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs1"]![0].prefetchedRows["ds2"]![0], ["cold1": 12, "cold2": 8, "cold3": "d3", "grdb_cold2": 8]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchedRows["cs1"]![1], ["colc1": 9, "colc2": 2, "grdb_colc2": 2]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchedRows["cs1"]![1].prefetchedRows.count, 2)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs1"]![1].prefetchedRows["ds1"]!.count, 0)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs1"]![1].prefetchedRows["ds2"]!.count, 1)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs1"]![1].prefetchedRows["ds2"]![0], ["cold1": 13, "cold2": 9, "cold3": "d4", "grdb_cold2": 9]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchedRows["cs2"]!.count, 1)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs2"]![0], ["colc1": 8, "colc2": 2, "grdb_colc2": 2]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchedRows["cs2"]![0].prefetchedRows.count, 2)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs2"]![0].prefetchedRows["ds1"]!.count, 1)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs2"]![0].prefetchedRows["ds1"]![0], ["cold1": 11, "cold2": 8, "cold3": "d2", "grdb_cold2": 8]) // TODO: remove grdb_ column?
+                    XCTAssertEqual(rows[1].prefetchedRows["cs2"]![0].prefetchedRows["ds2"]!.count, 1)
+                    XCTAssertEqual(rows[1].prefetchedRows["cs2"]![0].prefetchedRows["ds2"]![0], ["cold1": 12, "cold2": 8, "cold3": "d3", "grdb_cold2": 8]) // TODO: remove grdb_ column?
                 }
             }
         }
