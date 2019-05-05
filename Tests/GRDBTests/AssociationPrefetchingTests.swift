@@ -1026,6 +1026,17 @@ class AssociationPrefetchingTests: GRDBTestCase {
                 
                 // prefetchTree
                 do {
+                    let rows = try Row.fetchAll(db, request)
+                    XCTAssertEqual(rows.count, 3)
+                    
+                    XCTAssertEqual(rows[0].unscoped, ["colb1": 4, "colb2": 1, "colb3": "b1"])
+                    XCTAssertEqual(rows[0].prefetchTree.keys.count, 0)
+                    
+                    XCTAssertEqual(rows[1].unscoped, ["colb1": 5, "colb2": 1, "colb3": "b2"])
+                    XCTAssertEqual(rows[1].prefetchTree.keys.count, 0)
+                    
+                    XCTAssertEqual(rows[2].unscoped, ["colb1": 6, "colb2": 2, "colb3": "b3"])
+                    XCTAssertEqual(rows[2].prefetchTree.keys.count, 0)
                 }
             }
             
