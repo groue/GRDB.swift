@@ -543,7 +543,7 @@ extension Row {
 
 extension Row {
     
-    // MARK: - Scopes
+    // MARK: - Scopes & Prefetches
     
     /// Returns a view on the scopes defined by row adapters.
     ///
@@ -592,6 +592,11 @@ extension Row {
         return ScopesTreeView(scopes: scopes)
     }
     
+    /// Returns a view on the prefetch tree.
+    public var prefetchTree: PrefetchTreeView {
+        return PrefetchTreeView(row: self)
+    }
+
     /// Returns a copy of the row, without any scopes.
     ///
     /// This property can turn out useful when you want to test the content of
@@ -612,26 +617,6 @@ extension Row {
     /// adapted rows, such as rows fetched from joined requests.
     public var unadapted: Row {
         return impl.unadaptedRow(self)
-    }
-}
-
-extension Row {
-    
-    // MARK: - Prefetches
-    
-    /// TODO: replace with a view that performs the breadth-first search for a given key
-    public var prefetchedRows: [String: [Row]] {
-        // Breadth-first search
-        var result: [String: [Row]] = [:]
-        var fifo = Array(prefetches)
-        while !fifo.isEmpty {
-            let prefetch = fifo.removeFirst()
-            if let rows = prefetch.value.rows, result[prefetch.key] == nil {
-                result[prefetch.key] = rows
-            }
-            fifo.append(contentsOf: prefetch.value.prefetches)
-        }
-        return result
     }
 }
 
@@ -1263,6 +1248,42 @@ extension Row {
                     return scope.row
                 }
                 fifo.append(contentsOf: scope.row.scopes)
+            }
+            return nil
+        }
+    }
+}
+
+// MARK: - Row.PrefetchTreeView
+
+extension Row {
+    public struct PrefetchTreeView {
+        fileprivate let row: Row
+        
+        /// The prefetch keys defined on this row
+        public var keys: Set<String> {
+            var result: Set<String> = []
+            var fifo = Array(row.prefetches)
+            while !fifo.isEmpty {
+                let (prefetchKey, prefetch) = fifo.removeFirst()
+                if prefetch.rows != nil {
+                    result.insert(prefetchKey)
+                }
+                fifo.append(contentsOf: prefetch.prefetches)
+            }
+            return result
+        }
+
+        /// Returns the rows associated with the given key, by performing a
+        /// breadth-first search in this row's prefetch tree.
+        public subscript(_ key: String) -> [Row]? {
+            var fifo = Array(row.prefetches)
+            while !fifo.isEmpty {
+                let (prefetchKey, prefetch) = fifo.removeFirst()
+                if prefetchKey == key {
+                    return prefetch.rows
+                }
+                fifo.append(contentsOf: prefetch.prefetches)
             }
             return nil
         }
