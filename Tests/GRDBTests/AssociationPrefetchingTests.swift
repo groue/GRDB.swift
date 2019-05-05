@@ -830,50 +830,6 @@ class AssociationPrefetchingTests: GRDBTestCase {
         try dbQueue.read { db in
             // Plain request
             do {
-                // Thanks to our current implementation of SQLRelation.merge(_:),
-                // the tested request below is equivalent to this one, which
-                // happens to store the Ds inside the Cs, not inside the As:
-                //
-                //      let request = A
-                //          .including(all: A
-                //              .hasMany(C.self)
-                //              .orderByPrimaryKey()
-                //              .including(all: C
-                //                  .hasMany(D.self)
-                //                  .orderByPrimaryKey()
-                //                  .forKey("ds"))
-                //              .forKey("cs"))
-                //          .orderByPrimaryKey()
-                //
-                // This is not what the tested request below wants: Ds should
-                // be available from the As, not from the Cs.
-                //
-                // So we have one bug (or two, if we consider that Ds are
-                // misplaced twice: wrongly in the Cs, wrongly not in the As).
-                //
-                // I don't quite know how to fix this.
-                //
-                // Possible solutions:
-                //
-                // 1. Do nothing, answer user questions in support
-                // 2. Recognize this pattern and fatal error
-                // 3. Figure out what we really want, and do it.
-                //
-                // For case 3, consider this request:
-                //
-                //      extension Country {
-                //          static let passports = hasMany(Passport.self)
-                //          static let citizens = hasMany(Citizens.self, through: passports, using: Passport.citizen)
-                //      }
-                //      let request = Country
-                //          .including(all: Country.passports.filter(Column("isExpired") == true))
-                //          .including(all: Country.citizens)
-                //
-                // Because of relation merging, it only load citizens with
-                // expired passports. I am not sure this is the
-                // user expectation. ???
-                //
-                // TODO: Pick a solution :-)
                 let request = A
                     .including(all: A
                         .hasMany(C.self)
@@ -902,10 +858,10 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         ORDER BY "colc1"
                         """,
                         """
-                        SELECT *, "cold2" AS "grdb_cold2" \
+                        SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                         FROM "d" \
-                        WHERE ("cold2" IN (7, 8, 9)) \
-                        ORDER BY "cold1"
+                        JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2, 3))) \
+                        ORDER BY "d"."cold1"
                         """])
                 }
                 
@@ -961,10 +917,10 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         ORDER BY "colc1"
                         """,
                         """
-                        SELECT *, "cold2" AS "grdb_cold2" \
+                        SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                         FROM "d" \
-                        WHERE (("cold1" <> 11) AND ("cold2" IN (7, 9))) \
-                        ORDER BY "cold1"
+                        JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2))) \
+                        WHERE ("d"."cold1" <> 11) ORDER BY "d"."cold1"
                         """,
                         """
                         SELECT *, "colc2" AS "grdb_colc2" \
@@ -973,10 +929,10 @@ class AssociationPrefetchingTests: GRDBTestCase {
                         ORDER BY "colc1"
                         """,
                         """
-                        SELECT *, "cold2" AS "grdb_cold2" \
+                        SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                         FROM "d" \
-                        WHERE (("cold1" = 11) AND ("cold2" IN (7, 8))) \
-                        ORDER BY "cold1"
+                        JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2))) \
+                        WHERE ("d"."cold1" = 11) ORDER BY "d"."cold1"
                         """])
                 }
                 
