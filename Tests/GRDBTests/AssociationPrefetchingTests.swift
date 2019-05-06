@@ -1111,7 +1111,66 @@ class AssociationPrefetchingTests: GRDBTestCase {
                     XCTAssertEqual(row.prefetches["cs2"]![0].scopes["d1"], ["cold1": nil, "cold2": nil, "cold3": nil])
                     XCTAssertEqual(row.prefetches["cs2"]![0].scopes["d2"], ["cold1": 10, "cold2": 7, "cold3": "d1"])
                 }
-            }
+                
+                // Record.fetchAll
+                struct Record: FetchableRecord, Decodable, Equatable {
+                    struct CInfo: Decodable, Equatable {
+                        var c: C
+                        var d1: D?
+                        var d2: D
+                    }
+                    var a: A
+                    var cs1: [CInfo]
+                    var cs2: [CInfo]
+                }
+                
+                do {
+                    let records = try Record.fetchAll(db, request)
+                    XCTAssertEqual(records, [
+                        Record(
+                            a: A(row: ["cola1": 1, "cola2": "a1"]),
+                            cs1: [],
+                            cs2: [
+                                Record.CInfo(
+                                    c: C(row: ["colc1": 7, "colc2": 1]),
+                                    d1: nil,
+                                    d2: D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"])),
+                            ]),
+                        Record(
+                            a: A(row: ["cola1": 2, "cola2": "a2"]),
+                            cs1: [
+                                Record.CInfo(
+                                    c: C(row: ["colc1": 8, "colc2": 2]),
+                                    d1: D(row: ["cold1": 11, "cold2": 8, "cold3": "d2"]),
+                                    d2: D(row: ["cold1": 12, "cold2": 8, "cold3": "d3"])),
+                                Record.CInfo(
+                                    c: C(row: ["colc1": 9, "colc2": 2]),
+                                    d1: nil,
+                                    d2: D(row: ["cold1": 13, "cold2": 9, "cold3": "d4"])),
+                            ],
+                            cs2: [
+                                Record.CInfo(
+                                    c: C(row: ["colc1": 8, "colc2": 2]),
+                                    d1: D(row: ["cold1": 11, "cold2": 8, "cold3": "d2"]),
+                                    d2: D(row: ["cold1": 12, "cold2": 8, "cold3": "d3"])),
+                            ]),
+                        ])
+                }
+                
+                // Record.fetchOne
+                do {
+                    let record = try Record.fetchOne(db, request)!
+                    XCTAssertEqual(record, Record(
+                        a: A(row: ["cola1": 1, "cola2": "a1"]),
+                        cs1: [],
+                        cs2: [
+                            Record.CInfo(
+                                c: C(row: ["colc1": 7, "colc2": 1]),
+                                d1: nil,
+                                d2: D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"])),
+                        ]))
+                }
+           }
         }
     }
     
@@ -1176,6 +1235,43 @@ class AssociationPrefetchingTests: GRDBTestCase {
                     XCTAssertEqual(row.prefetches["ds"]!.count, 1)
                     XCTAssertEqual(row.prefetches["ds"]![0], ["cold1": 10, "cold2": 7, "cold3": "d1", "grdb_colc2": 1]) // TODO: remove grdb_ column?
                 }
+                
+                // Record.fetchAll
+                struct Record: FetchableRecord, Decodable, Equatable {
+                    var a: A
+                    var ds: [D]
+                }
+                
+                do {
+                    let records = try Record.fetchAll(db, request)
+                    XCTAssertEqual(records, [
+                        Record(
+                            a: A(row: ["cola1": 1, "cola2": "a1"]),
+                            ds: [
+                                D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"]),
+                            ]),
+                        Record(
+                            a: A(row: ["cola1": 2, "cola2": "a2"]),
+                            ds: [
+                                D(row: ["cold1": 11, "cold2": 8, "cold3": "d2"]),
+                                D(row: ["cold1": 12, "cold2": 8, "cold3": "d3"]),
+                                D(row: ["cold1": 13, "cold2": 9, "cold3": "d4"]),
+                            ]),
+                        Record(
+                            a: A(row: ["cola1": 3, "cola2": "a3"]),
+                            ds: []),
+                        ])
+                }
+                
+                // Record.fetchOne
+                do {
+                    let record = try Record.fetchOne(db, request)!
+                    XCTAssertEqual(record, Record(
+                        a: A(row: ["cola1": 1, "cola2": "a1"]),
+                        ds: [
+                            D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"]),
+                        ]))
+                }
             }
             
             // Request with filters
@@ -1183,16 +1279,16 @@ class AssociationPrefetchingTests: GRDBTestCase {
                 let request = A
                     .filter(Column("cola1") != 3)
                     .including(all: A
-                        .hasMany(D.self, through: A.hasMany(C.self).filter(Column("colc1") == 8).forKey("c1"), using: C.hasMany(D.self))
+                        .hasMany(D.self, through: A.hasMany(C.self).filter(Column("colc1") == 8), using: C.hasMany(D.self))
                         .orderByPrimaryKey()
                         .forKey("ds1"))
                     .including(all: A
-                        .hasMany(D.self, through: A.hasMany(C.self).forKey("c2"), using: C.hasMany(D.self))
+                        .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
                         .filter(Column("cold1") != 11)
                         .orderByPrimaryKey()
                         .forKey("ds2"))
                     .including(all: A
-                        .hasMany(D.self, through: A.hasMany(C.self).forKey("c2"), using: C.hasMany(D.self))
+                        .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
                         .filter(Column("cold1") == 11)
                         .orderByPrimaryKey()
                         .forKey("ds3"))
@@ -1266,6 +1362,52 @@ class AssociationPrefetchingTests: GRDBTestCase {
                     XCTAssertEqual(row.prefetches["ds2"]!.count, 1)
                     XCTAssertEqual(row.prefetches["ds2"]![0], ["cold1": 10, "cold2": 7, "cold3": "d1", "grdb_colc2": 1]) // TODO: remove grdb_ column?
                     XCTAssertEqual(row.prefetches["ds3"]!.count, 0)
+                }
+                
+                // Record.fetchAll
+                struct Record: FetchableRecord, Decodable, Equatable {
+                    var a: A
+                    var ds1: [D]
+                    var ds2: [D]
+                    var ds3: [D]
+                }
+                
+                do {
+                    let records = try Record.fetchAll(db, request)
+                    XCTAssertEqual(records, [
+                        Record(
+                            a: A(row: ["cola1": 1, "cola2": "a1"]),
+                            ds1: [],
+                            ds2: [
+                                D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"]),
+                            ],
+                            ds3: []),
+                        Record(
+                            a: A(row: ["cola1": 2, "cola2": "a2"]),
+                            ds1: [
+                                D(row: ["cold1": 11, "cold2": 8, "cold3": "d2"]),
+                                D(row: ["cold1": 12, "cold2": 8, "cold3": "d3"]),
+                            ],
+                            ds2: [
+                                D(row: ["cold1": 12, "cold2": 8, "cold3": "d3"]),
+                                D(row: ["cold1": 13, "cold2": 9, "cold3": "d4"]),
+                            ],
+                            ds3: [
+                                D(row: ["cold1": 11, "cold2": 8, "cold3": "d2"]),
+                            ]),
+                        ])
+                }
+                
+                // Record.fetchOne
+                do {
+                    let record = try Record.fetchOne(db, request)!
+                    XCTAssertEqual(record, Record(
+                        a: A(row: ["cola1": 1, "cola2": "a1"]),
+                        ds1: [],
+                        ds2: [
+                            D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"]),
+                        ],
+                        ds3: []))
                 }
             }
         }
