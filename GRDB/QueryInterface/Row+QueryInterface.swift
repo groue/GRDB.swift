@@ -161,15 +161,3 @@ extension Row {
         }
     }
 }
-
-extension Dictionary where Key == String, Value == Row.Prefetch {
-    fileprivate mutating func setRows(_ rows: [Row], forKeyPath keyPath: [String]) {
-        var keyPath = keyPath
-        let key = keyPath.removeFirst()
-        if keyPath.isEmpty {
-            self[key, default: Row.Prefetch(rows: nil, prefetches: [:])].rows = rows
-        } else {
-            self[key, default: Row.Prefetch(rows: nil, prefetches: [:])].prefetches.setRows(rows, forKeyPath: keyPath)
-        }
-    }
-}
