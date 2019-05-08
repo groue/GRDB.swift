@@ -1,3 +1,5 @@
+import Foundation
+
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// The base protocol for all associations that define a connection between two
