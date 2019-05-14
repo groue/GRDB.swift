@@ -289,6 +289,7 @@ Documentation
 #### Good to Know
 
 - [Avoiding SQL Injection](#avoiding-sql-injection)
+- [? as a parameter](#-as-a-parameter)
 - [Error Handling](#error-handling)
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
@@ -7466,6 +7467,26 @@ try dbQueue.write { db in
         student.name = name
         try student.update(db)
     }
+}
+```
+
+
+## ? as a parameter
+
+SQLite only understands `?` as a parameter when it is a placeholder for a whole value (int, double, string, blob, null).
+On the other side, the `?` in `'%?%'` is just a character in the `'%?%'` string value: it is not a query parameter, and is not processed in any way.
+You need to take this into consideration for queries like:
+
+```sql
+SELECT * FROM students where name like '%Robert%';
+```
+
+To provide the parameter, you can let SQLite build the like pattern using the string concatenation operator `||`:
+
+```swift
+let name = textField.text
+try dbQueue.read { db in
+    try db.execute(sql: "SELECT * FROM students where name like '%' || ? || '%'", arguments: [name])
 }
 ```
 
