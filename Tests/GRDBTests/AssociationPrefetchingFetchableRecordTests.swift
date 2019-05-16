@@ -14,7 +14,7 @@ private struct A: TableRecord, FetchableRecord, Equatable {
         cola2 = row["cola2"]
     }
 }
-private struct B: TableRecord, FetchableRecord, Equatable {
+private struct B: TableRecord, FetchableRecord, Hashable {
     var colb1: Int64
     var colb2: Int64?
     var colb3: String
@@ -115,50 +115,102 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                         .forKey("bs"))  // TODO: auto-pluralization
                     .orderByPrimaryKey()
                 
-                struct Record: FetchableRecord, Equatable {
-                    var a: A
-                    var bs: [B]
-                    
-                    init(a: A, bs: [B]) {
-                        self.a = a
-                        self.bs = bs
-                    }
-                    
-                    init(row: Row) {
-                        self.init(a: A(row: row), bs: row["bs"])
-                    }
-                }
-                
-                // Record.fetchAll
+                // Array
                 do {
-                    let records = try Record.fetchAll(db, request)
-                    XCTAssertEqual(records, [
-                        Record(
+                    struct Record: FetchableRecord, Equatable {
+                        var a: A
+                        var bs: [B]
+                        
+                        init(a: A, bs: [B]) {
+                            self.a = a
+                            self.bs = bs
+                        }
+                        
+                        init(row: Row) {
+                            self.init(a: A(row: row), bs: row["bs"])
+                        }
+                    }
+                    
+                    // Record.fetchAll
+                    do {
+                        let records = try Record.fetchAll(db, request)
+                        XCTAssertEqual(records, [
+                            Record(
+                                a: A(row: ["cola1": 1, "cola2": "a1"]),
+                                bs: [
+                                    B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                                    B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                                ]),
+                            Record(
+                                a: A(row: ["cola1": 2, "cola2": "a2"]),
+                                bs: [
+                                    B(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
+                                ]),
+                            Record(
+                                a: A(row: ["cola1": 3, "cola2": "a3"]),
+                                bs: []),
+                            ])
+                    }
+                    
+                    // Record.fetchOne
+                    do {
+                        let record = try Record.fetchOne(db, request)!
+                        XCTAssertEqual(record, Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
                             bs: [
                                 B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
                                 B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
-                            ]),
-                        Record(
-                            a: A(row: ["cola1": 2, "cola2": "a2"]),
-                            bs: [
-                                B(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
-                            ]),
-                        Record(
-                            a: A(row: ["cola1": 3, "cola2": "a3"]),
-                            bs: []),
-                        ])
+                            ]))
+                    }
                 }
                 
-                // Record.fetchOne
+                // Set
                 do {
-                    let record = try Record.fetchOne(db, request)!
-                    XCTAssertEqual(record, Record(
-                        a: A(row: ["cola1": 1, "cola2": "a1"]),
-                        bs: [
-                            B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
-                            B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
-                        ]))
+                    struct Record: FetchableRecord, Equatable {
+                        var a: A
+                        var bs: Set<B>
+                        
+                        init(a: A, bs: Set<B>) {
+                            self.a = a
+                            self.bs = bs
+                        }
+                        
+                        init(row: Row) {
+                            self.init(a: A(row: row), bs: row["bs"])
+                        }
+                    }
+                    
+                    // Record.fetchAll
+                    do {
+                        let records = try Record.fetchAll(db, request)
+                        XCTAssertEqual(records, [
+                            Record(
+                                a: A(row: ["cola1": 1, "cola2": "a1"]),
+                                bs: [
+                                    B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                                    B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                                ]),
+                            Record(
+                                a: A(row: ["cola1": 2, "cola2": "a2"]),
+                                bs: [
+                                    B(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
+                                ]),
+                            Record(
+                                a: A(row: ["cola1": 3, "cola2": "a3"]),
+                                bs: []),
+                            ])
+                    }
+                    
+                    // Record.fetchOne
+                    do {
+                        let record = try Record.fetchOne(db, request)!
+                        XCTAssertEqual(record, Record(
+                            a: A(row: ["cola1": 1, "cola2": "a1"]),
+                            bs: [
+                                B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                                B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                            ]))
+                    }
                 }
             }
             
