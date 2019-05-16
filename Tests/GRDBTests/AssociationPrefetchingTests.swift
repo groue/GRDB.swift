@@ -11,7 +11,7 @@ private struct A: TableRecord, FetchableRecord, Decodable, Equatable {
 }
 private struct B: TableRecord, FetchableRecord, Decodable, Equatable {
     var colb1: Int64
-    var colb2: Int64
+    var colb2: Int64?
     var colb3: String
 }
 private struct C: TableRecord, FetchableRecord, Decodable, Equatable {
@@ -1805,6 +1805,112 @@ class AssociationPrefetchingTests: GRDBTestCase {
                     XCTAssertEqual(row.scopes["a"]!.prefetches.keys, ["cs"])
                     XCTAssertEqual(row.scopes["a"]!.prefetches["cs"]!.count, 1)
                     XCTAssertEqual(row.scopes["a"]!.prefetches["cs"]![0], ["colc1": 7, "colc2": 1, "grdb_cola1": 1]) // TODO: remove grdb_ column?
+                }
+                
+                // Record (nested)
+                do {
+                    // Record.fetchAll
+                    struct Record: FetchableRecord, Decodable, Equatable {
+                        struct AInfo: Decodable, Equatable {
+                            var a: A
+                            var cs: [C]
+                        }
+                        var b: B
+                        var a: AInfo?
+                    }
+                    
+                    do {
+                        let records = try Record.fetchAll(db, request)
+                        XCTAssertEqual(records, [
+                            Record(
+                                b: B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                                a: Record.AInfo(
+                                    a: A(row: ["cola1": 1, "cola2": "a1"]),
+                                    cs: [
+                                        C(row: ["colc1": 7, "colc2": 1, "grdb_cola1": 1]),
+                                    ])),
+                            Record(
+                                b: B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                                a: Record.AInfo(
+                                    a: A(row: ["cola1": 1, "cola2": "a1"]),
+                                    cs: [
+                                        C(row: ["colc1": 7, "colc2": 1, "grdb_cola1": 1]),
+                                    ])),
+                            Record(
+                                b: B(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
+                                a: Record.AInfo(
+                                    a: A(row: ["cola1": 2, "cola2": "a2"]),
+                                    cs: [
+                                        C(row: ["colc1": 8, "colc2": 2, "grdb_cola1": 2]),
+                                        C(row: ["colc1": 9, "colc2": 2, "grdb_cola1": 2]),
+                                    ])),
+                            Record(
+                                b: B(row: ["colb1": 14, "colb2": nil, "colb3": "b4"]),
+                                a: nil),
+                            ])
+                    }
+                    
+                    // Record.fetchOne
+                    do {
+                        let record = try Record.fetchOne(db, request)!
+                        XCTAssertEqual(record, Record(
+                            b: B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                            a: Record.AInfo(
+                                a: A(row: ["cola1": 1, "cola2": "a1"]),
+                                cs: [
+                                    C(row: ["colc1": 7, "colc2": 1, "grdb_cola1": 1]),
+                                ])))
+                    }
+                }
+                
+                // Record (flat)
+                do {
+                    // Record.fetchAll
+                    struct Record: FetchableRecord, Decodable, Equatable {
+                        var b: B
+                        var a: A?
+                        var cs: [C] // not optional
+                    }
+                    
+                    do {
+                        let records = try Record.fetchAll(db, request)
+                        XCTAssertEqual(records, [
+                            Record(
+                                b: B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                                a: A(row: ["cola1": 1, "cola2": "a1"]),
+                                cs: [
+                                    C(row: ["colc1": 7, "colc2": 1, "grdb_cola1": 1]),
+                                ]),
+                            Record(
+                                b: B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                                a: A(row: ["cola1": 1, "cola2": "a1"]),
+                                cs: [
+                                    C(row: ["colc1": 7, "colc2": 1, "grdb_cola1": 1]),
+                                ]),
+                            Record(
+                                b: B(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
+                                a: A(row: ["cola1": 2, "cola2": "a2"]),
+                                cs: [
+                                    C(row: ["colc1": 8, "colc2": 2, "grdb_cola1": 2]),
+                                    C(row: ["colc1": 9, "colc2": 2, "grdb_cola1": 2]),
+                                ]),
+                            Record(
+                                b: B(row: ["colb1": 14, "colb2": nil, "colb3": "b4"]),
+                                a: nil,
+                                cs: []),
+                            ])
+                    }
+                    
+                    // Record.fetchOne
+                    do {
+                        let record = try Record.fetchOne(db, request)!
+                        XCTAssertEqual(record, Record(
+                            b: B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                            a: A(row: ["cola1": 1, "cola2": "a1"]),
+                            cs: [
+                                C(row: ["colc1": 7, "colc2": 1, "grdb_cola1": 1]),
+                            ]))
+                    }
                 }
             }
             
