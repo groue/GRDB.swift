@@ -1827,22 +1827,22 @@ class AssociationPrefetchingTests: GRDBTestCase {
                                 a: Record.AInfo(
                                     a: A(row: ["cola1": 1, "cola2": "a1"]),
                                     cs: [
-                                        C(row: ["colc1": 7, "colc2": 1, "grdb_cola1": 1]),
+                                        C(row: ["colc1": 7, "colc2": 1]),
                                     ])),
                             Record(
                                 b: B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
                                 a: Record.AInfo(
                                     a: A(row: ["cola1": 1, "cola2": "a1"]),
                                     cs: [
-                                        C(row: ["colc1": 7, "colc2": 1, "grdb_cola1": 1]),
+                                        C(row: ["colc1": 7, "colc2": 1]),
                                     ])),
                             Record(
                                 b: B(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
                                 a: Record.AInfo(
                                     a: A(row: ["cola1": 2, "cola2": "a2"]),
                                     cs: [
-                                        C(row: ["colc1": 8, "colc2": 2, "grdb_cola1": 2]),
-                                        C(row: ["colc1": 9, "colc2": 2, "grdb_cola1": 2]),
+                                        C(row: ["colc1": 8, "colc2": 2]),
+                                        C(row: ["colc1": 9, "colc2": 2]),
                                     ])),
                             Record(
                                 b: B(row: ["colb1": 14, "colb2": nil, "colb3": "b4"]),
@@ -1858,7 +1858,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                             a: Record.AInfo(
                                 a: A(row: ["cola1": 1, "cola2": "a1"]),
                                 cs: [
-                                    C(row: ["colc1": 7, "colc2": 1, "grdb_cola1": 1]),
+                                    C(row: ["colc1": 7, "colc2": 1]),
                                 ])))
                     }
                 }
@@ -1879,20 +1879,20 @@ class AssociationPrefetchingTests: GRDBTestCase {
                                 b: B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
                                 a: A(row: ["cola1": 1, "cola2": "a1"]),
                                 cs: [
-                                    C(row: ["colc1": 7, "colc2": 1, "grdb_cola1": 1]),
+                                    C(row: ["colc1": 7, "colc2": 1]),
                                 ]),
                             Record(
                                 b: B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
                                 a: A(row: ["cola1": 1, "cola2": "a1"]),
                                 cs: [
-                                    C(row: ["colc1": 7, "colc2": 1, "grdb_cola1": 1]),
+                                    C(row: ["colc1": 7, "colc2": 1]),
                                 ]),
                             Record(
                                 b: B(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
                                 a: A(row: ["cola1": 2, "cola2": "a2"]),
                                 cs: [
-                                    C(row: ["colc1": 8, "colc2": 2, "grdb_cola1": 2]),
-                                    C(row: ["colc1": 9, "colc2": 2, "grdb_cola1": 2]),
+                                    C(row: ["colc1": 8, "colc2": 2]),
+                                    C(row: ["colc1": 9, "colc2": 2]),
                                 ]),
                             Record(
                                 b: B(row: ["colb1": 14, "colb2": nil, "colb3": "b4"]),
@@ -1908,7 +1908,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                             b: B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
                             cs: [
-                                C(row: ["colc1": 7, "colc2": 1, "grdb_cola1": 1]),
+                                C(row: ["colc1": 7, "colc2": 1]),
                             ]))
                     }
                 }
@@ -2008,7 +2008,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                     XCTAssertEqual(rows[0].scopes["a2"]!.prefetches.keys, ["cs1", "cs2"])
                     XCTAssertEqual(rows[0].scopes["a2"]!.prefetches["cs1"]!.count, 0)
                     XCTAssertEqual(rows[0].scopes["a2"]!.prefetches["cs2"]!.count, 0)
-
+                    
                     XCTAssertEqual(rows[1].unscoped, ["colb1": 5, "colb2": 1, "colb3": "b2"])
                     XCTAssertEqual(rows[1].prefetches.keys, ["cs1", "cs2"])
                     XCTAssertEqual(rows[1].scopes.count, 2)
@@ -2021,7 +2021,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                     XCTAssertEqual(rows[1].scopes["a2"]!.prefetches.keys, ["cs1", "cs2"])
                     XCTAssertEqual(rows[1].scopes["a2"]!.prefetches["cs1"]!.count, 0)
                     XCTAssertEqual(rows[1].scopes["a2"]!.prefetches["cs2"]!.count, 0)
-
+                    
                     XCTAssertEqual(rows[2].unscoped, ["colb1": 6, "colb2": 2, "colb3": "b3"])
                     XCTAssertEqual(rows[2].prefetches.keys, ["cs1", "cs2"])
                     XCTAssertEqual(rows[2].scopes.count, 2)
@@ -2035,7 +2035,7 @@ class AssociationPrefetchingTests: GRDBTestCase {
                     XCTAssertEqual(rows[2].scopes["a2"]!.prefetches["cs1"]![0], ["colc1": 9, "colc2": 2, "grdb_cola1": 2]) // TODO: remove grdb_ column?
                     XCTAssertEqual(rows[2].scopes["a2"]!.prefetches["cs2"]!.count, 1)
                     XCTAssertEqual(rows[2].scopes["a2"]!.prefetches["cs2"]![0], ["colc1": 8, "colc2": 2, "grdb_cola1": 2]) // TODO: remove grdb_ column?
-
+                    
                     XCTAssertEqual(rows[3].unscoped, ["colb1": 14, "colb2": nil, "colb3": "b4"])
                     XCTAssertEqual(rows[3].prefetches.keys, ["cs1", "cs2"])
                     XCTAssertEqual(rows[3].scopes.count, 2)
@@ -2065,6 +2065,71 @@ class AssociationPrefetchingTests: GRDBTestCase {
                     XCTAssertEqual(row.scopes["a2"]!.prefetches.keys, ["cs1", "cs2"])
                     XCTAssertEqual(row.scopes["a2"]!.prefetches["cs1"]!.count, 0)
                     XCTAssertEqual(row.scopes["a2"]!.prefetches["cs2"]!.count, 0)
+                }
+                
+                // Record.fetchAll
+                struct Record: FetchableRecord, Decodable, Equatable {
+                    struct AInfo: Decodable, Equatable {
+                        var a: A
+                        var cs1: [C]
+                        var cs2: [C]
+                    }
+                    var b: B
+                    var a1: AInfo?
+                    var a2: AInfo?
+                }
+                
+                do {
+                    let records = try Record.fetchAll(db, request)
+                    XCTAssertEqual(records, [
+                        Record(
+                            b: B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                            a1: Record.AInfo(
+                                a: A(row: ["cola1": 1, "cola2": "a1"]),
+                                cs1: [],
+                                cs2: [
+                                    C(row: ["colc1": 7, "colc2": 1]),
+                                ]),
+                            a2: nil),
+                        Record(
+                            b: B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                            a1: Record.AInfo(
+                                a: A(row: ["cola1": 1, "cola2": "a1"]),
+                                cs1: [],
+                                cs2: [
+                                    C(row: ["colc1": 7, "colc2": 1]),
+                                ]),
+                            a2: nil),
+                        Record(
+                            b: B(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
+                            a1: nil,
+                            a2: Record.AInfo(
+                                a: A(row: ["cola1": 2, "cola2": "a2"]),
+                                cs1: [
+                                    C(row: ["colc1": 9, "colc2": 2]),
+                                ],
+                                cs2: [
+                                    C(row: ["colc1": 8, "colc2": 2]),
+                                ])),
+                        Record(
+                            b: B(row: ["colb1": 14, "colb2": nil, "colb3": "b4"]),
+                            a1: nil,
+                            a2: nil),
+                        ])
+                }
+                
+                // Record.fetchOne
+                do {
+                    let record = try Record.fetchOne(db, request)!
+                    XCTAssertEqual(record, Record(
+                        b: B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                        a1: Record.AInfo(
+                            a: A(row: ["cola1": 1, "cola2": "a1"]),
+                            cs1: [],
+                            cs2: [
+                                C(row: ["colc1": 7, "colc2": 1]),
+                            ]),
+                        a2: nil))
                 }
             }
         }
