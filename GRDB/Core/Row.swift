@@ -575,12 +575,22 @@ extension Row {
     ///             }
     ///         }
     ///     }
-    public subscript<Record: FetchableRecord>(_ key: String) -> [Record] {
+    public subscript<Collection>(_ key: String)
+        -> Collection
+        where
+        Collection: RangeReplaceableCollection,
+        Collection.Element: FetchableRecord
+    {
         guard let rows = prefetches[key] else {
             // Programmer error
             fatalError("no such prefetched rows: \(key)")
         }
-        return rows.map(Record.init(row:))
+        var collection = Collection()
+        collection.reserveCapacity(rows.count)
+        for row in rows {
+            collection.append(Collection.Element(row: row))
+        }
+        return collection
     }
     
     /// Returns the set of records encoded in the given prefetched rows.
