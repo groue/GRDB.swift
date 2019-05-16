@@ -542,6 +542,46 @@ extension Row {
         }
         return Record(row: scopedRow)
     }
+    
+    /// Returns the records encoded in the given prefetched rows.
+    ///
+    ///     struct Author: FetchableRecord, TableRecord {
+    ///         static let books = hasMany(Book.self)
+    ///         ...
+    ///     }
+    ///     struct Book: FetchableRecord, TableRecord {
+    ///         ...
+    ///     }
+    ///
+    ///     struct AuthorInfo {
+    ///         var author: Author
+    ///         var books: [Book]
+    ///
+    ///         init(row: Row) {
+    ///             author = Author(row: row)
+    ///             books = row["books"]    // <---
+    ///         }
+    ///     }
+    ///
+    ///     try dbQueue.read { db in
+    ///         // Fetch authors along with their books:
+    ///         let request = Author.including(all: Author.books)
+    ///         let authorInfos = try AuthorInfo.fetchAll(db, request)
+    ///
+    ///         for authorInfo in authorInfos {
+    ///             print("\(authorInfo.author.name) wrote:")
+    ///             for book in authorInfo.books {
+    ///                 print("- \(book.title)")
+    ///             }
+    ///         }
+    ///     }
+    public subscript<Record: FetchableRecord>(_ key: String) -> [Record] {
+        guard let rows = prefetches[key] else {
+            // Programmer error
+            fatalError("no such prefetched rows: \(key)")
+        }
+        return rows.map(Record.init(row:))
+    }
 }
 
 extension Row {
