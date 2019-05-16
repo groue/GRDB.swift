@@ -124,6 +124,7 @@ extension Row {
                 prefetchedRows = try QueryInterfaceRequest(relation: prefetchedRelation)
                     .fetchAll(db)
                     .grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
+                // TODO: can we remove those grdb_ columns now that grouping has been done?
             }
             
             let groupingIndexes = firstRow.indexes(ofColumns: pivotMapping.map { $0.left })
