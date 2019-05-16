@@ -376,6 +376,8 @@
 		564A214D226B8E18001F64F1 /* RecordMinimalPrimaryKeySingleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A1FAB226B89DC001F64F1 /* RecordMinimalPrimaryKeySingleTests.swift */; };
 		564A214F226B8E18001F64F1 /* Pods_GRDBTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BEFDC53B1F7A33C242013A38 /* Pods_GRDBTests.framework */; };
 		564A2151226B8E18001F64F1 /* Betty.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 564A1F6F226B89D6001F64F1 /* Betty.jpeg */; };
+		569BBA31228DF91000478429 /* AssociationPrefetchingFetchableRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569BBA30228DF91000478429 /* AssociationPrefetchingFetchableRecordTests.swift */; };
+		569BBA32228DF91000478429 /* AssociationPrefetchingFetchableRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569BBA30228DF91000478429 /* AssociationPrefetchingFetchableRecordTests.swift */; };
 		56DF0027228DE00900D611F3 /* AssociationPrefetchingCodableRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DF0025228DE00900D611F3 /* AssociationPrefetchingCodableRecordTests.swift */; };
 		56DF0028228DE00900D611F3 /* AssociationPrefetchingCodableRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DF0025228DE00900D611F3 /* AssociationPrefetchingCodableRecordTests.swift */; };
 		56DF0029228DE00900D611F3 /* AssociationPrefetchingRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DF0026228DE00900D611F3 /* AssociationPrefetchingRowTests.swift */; };
@@ -575,6 +577,7 @@
 		564A1FDC226B89E1001F64F1 /* AssociationParallelSQLTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationParallelSQLTests.swift; sourceTree = "<group>"; };
 		564A1FDD226B89E1001F64F1 /* FTS5RecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5RecordTests.swift; sourceTree = "<group>"; };
 		564A2156226B8E18001F64F1 /* GRDBTestsEncrypted.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTestsEncrypted.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		569BBA30228DF91000478429 /* AssociationPrefetchingFetchableRecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingFetchableRecordTests.swift; sourceTree = "<group>"; };
 		56DF0025228DE00900D611F3 /* AssociationPrefetchingCodableRecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingCodableRecordTests.swift; sourceTree = "<group>"; };
 		56DF0026228DE00900D611F3 /* AssociationPrefetchingRowTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingRowTests.swift; sourceTree = "<group>"; };
 		6A4788C0F815F6C5E4EBDE12 /* Pods-GRDBTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTests.debug.xcconfig"; path = "Target Support Files/Pods-GRDBTests/Pods-GRDBTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -649,6 +652,7 @@
 				564A1FD8226B89E0001F64F1 /* AssociationParallelRowScopesTests.swift */,
 				564A1FDC226B89E1001F64F1 /* AssociationParallelSQLTests.swift */,
 				56DF0025228DE00900D611F3 /* AssociationPrefetchingCodableRecordTests.swift */,
+				569BBA30228DF91000478429 /* AssociationPrefetchingFetchableRecordTests.swift */,
 				56DF0026228DE00900D611F3 /* AssociationPrefetchingRowTests.swift */,
 				560714EF227DD1810091BB10 /* AssociationPrefetchingSQLTests.swift */,
 				564A1F3E226B89D0001F64F1 /* AssociationRowScopeSearchTests.swift */,
@@ -1189,6 +1193,7 @@
 				564A2074226B89E1001F64F1 /* UpdateStatementTests.swift in Sources */,
 				564A203E226B89E1001F64F1 /* ValueObservationReducerTests.swift in Sources */,
 				564A2035226B89E1001F64F1 /* Row+FoundationTests.swift in Sources */,
+				569BBA31228DF91000478429 /* AssociationPrefetchingFetchableRecordTests.swift in Sources */,
 				564A205A226B89E1001F64F1 /* QueryInterfaceRequestTests.swift in Sources */,
 				564A2011226B89E1001F64F1 /* FetchRequestTests.swift in Sources */,
 				564A2060226B89E1001F64F1 /* RecordPrimaryKeyHiddenRowIDTests.swift in Sources */,
@@ -1381,6 +1386,7 @@
 				564A212F226B8E18001F64F1 /* UpdateStatementTests.swift in Sources */,
 				564A2130226B8E18001F64F1 /* ValueObservationReducerTests.swift in Sources */,
 				564A2131226B8E18001F64F1 /* Row+FoundationTests.swift in Sources */,
+				569BBA32228DF91000478429 /* AssociationPrefetchingFetchableRecordTests.swift in Sources */,
 				564A2132226B8E18001F64F1 /* QueryInterfaceRequestTests.swift in Sources */,
 				564A2133226B8E18001F64F1 /* FetchRequestTests.swift in Sources */,
 				564A2134226B8E18001F64F1 /* RecordPrimaryKeyHiddenRowIDTests.swift in Sources */,
