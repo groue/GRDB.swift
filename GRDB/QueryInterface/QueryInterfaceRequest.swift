@@ -39,7 +39,7 @@ public struct QueryInterfaceRequest<T> {
         self.init(query: SQLSelectQuery(relation: relation))
     }
     
-    @usableFromInline
+    @usableFromInline // TODO: should not be @usableFromInline
     var prefetchedAssociations: [SQLAssociation] {
         return query.relation.prefetchedAssociations
     }
