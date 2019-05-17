@@ -537,7 +537,7 @@ extension Row {
     public subscript<Record: FetchableRecord>(_ scope: String) -> Record {
         guard let scopedRow = scopesTree[scope] else {
             // Programmer error
-            fatalError("no such scope: \(scope)")
+            fatalError("missing scope `\(scope)` (row: \(self))")
         }
         return Record(row: scopedRow)
     }
@@ -597,7 +597,7 @@ extension Row {
     {
         guard let rows = prefetches[key] else {
             // Programmer error
-            fatalError("no such prefetched rows: \(key)")
+            fatalError("missing key for prefetched rows `\(key)` (row: \(self))")
         }
         var collection = Collection()
         collection.reserveCapacity(rows.count)
@@ -642,7 +642,7 @@ extension Row {
     public subscript<Record: FetchableRecord & Hashable>(_ key: String) -> Set<Record> {
         guard let rows = prefetches[key] else {
             // Programmer error
-            fatalError("no such prefetched rows: \(key)")
+            fatalError("missing key for prefetched rows `\(key)` (row: \(self))")
         }
         var set = Set<Record>(minimumCapacity: rows.count)
         for row in rows {
