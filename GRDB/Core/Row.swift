@@ -91,7 +91,6 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     /// the iteration of a query: make sure to make a copy of it whenever you
     /// want to keep a specific one: `row.copy()`.
     public func copy() -> Row {
-        // TODO: copy prefetches
         return impl.copiedRow(self)
     }
     

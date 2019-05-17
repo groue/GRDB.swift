@@ -1022,4 +1022,36 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
             XCTAssertNotEqual(row3, row3.unscoped)
         }
     }
+    
+    func testCopy() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request1 = A
+                .orderByPrimaryKey()
+            let request2 = A
+                .including(all: A.hasMany(B.self).orderByPrimaryKey().forKey("bs"))
+                .orderByPrimaryKey()
+            let request3 = A
+                .including(all: A.hasMany(B.self).none().forKey("bs"))
+                .orderByPrimaryKey()
+            
+            let row1 = try Row.fetchOne(db, request1)!.copy()
+            let row2 = try Row.fetchOne(db, request2)!.copy()
+            let row3 = try Row.fetchOne(db, request3)!.copy()
+            
+            XCTAssertEqual(row1.unscoped, ["cola1": 1, "cola2": "a1"])
+            XCTAssertEqual(row2.unscoped, ["cola1": 1, "cola2": "a1"])
+            XCTAssertEqual(row3.unscoped, ["cola1": 1, "cola2": "a1"])
+            
+            XCTAssertTrue(row1.prefetches.isEmpty)
+            XCTAssertFalse(row2.prefetches.isEmpty)
+            XCTAssertFalse(row3.prefetches.isEmpty)
+            
+            XCTAssertNil(row1.prefetches["bs"])
+            XCTAssertEqual(row2.prefetches["bs"], [
+                ["colb1": 4, "colb2": 1, "colb3": "b1", "grdb_colb2": 1],
+                ["colb1": 5, "colb2": 1, "colb3": "b2", "grdb_colb2": 1]])
+            XCTAssertEqual(row3.prefetches["bs"], [])
+        }
+    }
 }
