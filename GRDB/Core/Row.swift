@@ -53,7 +53,7 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     ///             print(bookBok) // [id:43, title:"Moby-Dick"]
     ///         }
     ///     }
-    public internal(set) var prefetchedRows: PrefetchedRowsView = PrefetchedRowsView(prefetches: [:])
+    public internal(set) var prefetchedRows: PrefetchedRowsView = PrefetchedRowsView()
     
     // MARK: - Building rows
     
@@ -721,7 +721,7 @@ extension Row {
             // Make sure we build another Row instance
             row = Row.init(impl: row.copy().impl)
             assert(row !== self)
-            row.prefetchedRows = PrefetchedRowsView(prefetches: [:])
+            row.prefetchedRows = PrefetchedRowsView()
         }
         return row
     }
@@ -1289,7 +1289,7 @@ extension Row {
         }
         
         init() {
-            self.init(row: Row(), scopes: [:], prefetchedRows: Row.PrefetchedRowsView(prefetches: [:]))
+            self.init(row: Row(), scopes: [:], prefetchedRows: Row.PrefetchedRowsView())
         }
         
         init(row: Row, scopes: [String: LayoutedRowAdapter], prefetchedRows: Row.PrefetchedRowsView) {
@@ -1318,6 +1318,12 @@ extension Row {
             let (name, adapter) = scopes[position]
             let adaptedRow = Row(base: row, adapter: adapter)
             if let prefetch = prefetchedRows.prefetches[name] {
+                // Let the adapted row access its own prefetched rows.
+                // Use case:
+                //
+                //      let request = A.including(required: A.b.including(all: B.c))
+                //      let row = try Row.fetchOne(db, request)!
+                //      row.scopes["b"]!.prefetchedRows["cs"]
                 adaptedRow.prefetchedRows = Row.PrefetchedRowsView(prefetches: prefetch.prefetches)
             }
             return (name: name, row: adaptedRow)
@@ -1390,6 +1396,8 @@ extension Row {
     fileprivate struct Prefetch: Equatable {
         // Nil for intermediate associations
         var rows: [Row]?
+        // OrderedDictionary so that breadth-first search gives a consistent result
+        // (we preserve the ordering of associations in the request)
         var prefetches: OrderedDictionary<String, Prefetch>
     }
     
@@ -1415,6 +1423,8 @@ extension Row {
     ///         }
     ///     }
     public struct PrefetchedRowsView: Equatable {
+        // OrderedDictionary so that breadth-first search gives a consistent result
+        // (we preserve the ordering of associations in the request)
         fileprivate var prefetches: OrderedDictionary<String, Prefetch> = [:]
         
         /// True if there is no prefetched associated rows.
