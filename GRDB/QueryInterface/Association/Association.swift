@@ -38,8 +38,8 @@ public protocol Association: DerivableRequest {
 }
 
 extension Association {
-    private func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self {
-        return Self.init(sqlAssociation: sqlAssociation.mapRelation(transform))
+    private func mapDestinationRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self {
+        return Self.init(sqlAssociation: sqlAssociation.mapDestinationRelation(transform))
     }
 }
 
@@ -95,7 +95,7 @@ extension Association {
     ///         .select([Column("color")])
     ///     var request = Player.including(required: association)
     public func select(_ selection: [SQLSelectable]) -> Self {
-        return mapRelation { $0.select(selection) }
+        return mapDestinationRelation { $0.select(selection) }
     }
     
     /// Creates an association with the provided *predicate promise* added to
@@ -111,7 +111,7 @@ extension Association {
     ///     let association = Player.team.filter { db in true }
     ///     var request = Player.including(required: association)
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        return mapRelation { $0.filter(predicate) }
+        return mapDestinationRelation { $0.filter(predicate) }
     }
     
     /// Creates an association with the provided *orderings promise*.
@@ -139,7 +139,7 @@ extension Association {
     ///         .order{ _ in [Column("name")] }
     ///     var request = Player.including(required: association)
     public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
-        return mapRelation { $0.order(orderings) }
+        return mapDestinationRelation { $0.order(orderings) }
     }
     
     /// Creates an association that reverses applied orderings.
@@ -163,7 +163,7 @@ extension Association {
     ///     let association = Player.team.reversed()
     ///     var request = Player.including(required: association)
     public func reversed() -> Self {
-        return mapRelation { $0.reversed() }
+        return mapDestinationRelation { $0.reversed() }
     }
     
     /// Creates an association with the given key.
@@ -181,7 +181,7 @@ extension Association {
     ///         let team: Team = row["custom"]
     ///     }
     public func forKey(_ key: String) -> Self {
-        return Self.init(sqlAssociation: sqlAssociation.forKey(key))
+        return Self.init(sqlAssociation: sqlAssociation.forDestinationKey(key))
     }
     
     /// Creates an association with the given key.
@@ -239,7 +239,7 @@ extension Association {
     ///         .including(required: Player.team.aliased(teamAlias))
     ///         .filter(sql: "custom.color = ?", arguments: ["red"])
     public func aliased(_ alias: TableAlias) -> Self {
-        return mapRelation { $0.qualified(with: alias) }
+        return mapDestinationRelation { $0.qualified(with: alias) }
     }
 }
 
@@ -267,21 +267,21 @@ extension SQLRelation {
     /// associated record are not selected. The returned relation does not
     /// require that the associated database table contains a matching row.
     func joining(optional sqlAssociation: SQLAssociation) -> SQLRelation {
-        return sqlAssociation.mapRelation { $0.select([]) }.extendedRelation(self, kind: .oneOptional)
+        return sqlAssociation.mapDestinationRelation { $0.select([]) }.extendedRelation(self, kind: .oneOptional)
     }
     
     /// Creates an relation that joins another one. The columns of the
     /// associated record are not selected. The returned relation requires
     /// that the associated database table contains a matching row.
     func joining(required sqlAssociation: SQLAssociation) -> SQLRelation {
-        return sqlAssociation.mapRelation { $0.select([]) }.extendedRelation(self, kind: .oneRequired)
+        return sqlAssociation.mapDestinationRelation { $0.select([]) }.extendedRelation(self, kind: .oneRequired)
     }
 }
 
 extension Association {
     /// Creates an association that prefetches another one.
     public func including<A: AssociationToMany>(all association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation {
+        return mapDestinationRelation {
             $0.including(all: association.sqlAssociation)
         }
     }
@@ -290,7 +290,7 @@ extension Association {
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation {
+        return mapDestinationRelation {
             $0.including(optional: association.sqlAssociation)
         }
     }
@@ -299,7 +299,7 @@ extension Association {
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation {
+        return mapDestinationRelation {
             $0.including(required: association.sqlAssociation)
         }
     }
@@ -308,7 +308,7 @@ extension Association {
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation {
+        return mapDestinationRelation {
             $0.joining(optional: association.sqlAssociation)
         }
     }
@@ -317,7 +317,7 @@ extension Association {
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapRelation {
+        return mapDestinationRelation {
             $0.joining(required: association.sqlAssociation)
         }
     }
@@ -520,7 +520,7 @@ public /* TODO: internal */ struct SQLAssociation {
     }
     
     /// Changes the destination key
-    func forKey(_ key: String) -> SQLAssociation {
+    func forDestinationKey(_ key: String) -> SQLAssociation {
         var result = self
         result.destination.key = key
         return result
@@ -534,7 +534,7 @@ public /* TODO: internal */ struct SQLAssociation {
     }
 
     /// Transforms the destination relation
-    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLAssociation {
+    func mapDestinationRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLAssociation {
         var result = self
         result.destination = result.destination.mapRelation(transform)
         return result
@@ -621,11 +621,11 @@ public /* TODO: internal */ struct SQLAssociation {
         // Let's recurse toward a direct join, by making a new association which
         // ends on the last pivot, to which we join our destination:
         var reducedAssociation = SQLAssociation(steps: Array(initialSteps))
-        reducedAssociation = reducedAssociation.mapRelation {
+        reducedAssociation = reducedAssociation.mapDestinationRelation {
             $0.appendingChild(destinationChild, forKey: destination.key)
         }
         // Intermediate steps are not prefetched
-        reducedAssociation = reducedAssociation.mapRelation {
+        reducedAssociation = reducedAssociation.mapDestinationRelation {
             $0.select([])
         }
         
@@ -783,7 +783,7 @@ public /* TODO: internal */ struct SQLAssociation {
         var reversedAssociation = SQLAssociation(steps: Array(reversedSteps))
         // Replace pivot with the filtered one (not included in the selection,
         // without children).
-        reversedAssociation = reversedAssociation.mapRelation { _ in
+        reversedAssociation = reversedAssociation.mapDestinationRelation { _ in
             filteredPivotRelation.select([]).deletingChildren()
         }
         return reversedAssociation.extendedRelation(destination.relation, kind: .oneRequired)
