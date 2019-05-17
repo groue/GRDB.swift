@@ -131,7 +131,7 @@ extension Row {
             for row in rows {
                 let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
                 let prefetchedRows = prefetchedRows[groupingKey, default: []]
-                row.prefetches.setRows(prefetchedRows, forKeyPath: association.keyPath)
+                row.prefetchedRows.setRows(prefetchedRows, forKeyPath: association.keyPath)
             }
         }
     }

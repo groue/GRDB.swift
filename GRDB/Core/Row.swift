@@ -53,7 +53,7 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     ///             print(bookBok) // [id:43, title:"Moby-Dick"]
     ///         }
     ///     }
-    public internal(set) var prefetches: PrefetchesView = PrefetchesView(prefetches: [:])
+    public internal(set) var prefetchedRows: PrefetchedRowsView = PrefetchedRowsView(prefetches: [:])
     
     // MARK: - Building rows
     
@@ -595,7 +595,7 @@ extension Row {
         Collection: RangeReplaceableCollection,
         Collection.Element: FetchableRecord
     {
-        guard let rows = prefetches[key] else {
+        guard let rows = prefetchedRows[key] else {
             // Programmer error
             fatalError("missing key for prefetched rows `\(key)` (row: \(self))")
         }
@@ -640,7 +640,7 @@ extension Row {
     ///         }
     ///     }
     public subscript<Record: FetchableRecord & Hashable>(_ key: String) -> Set<Record> {
-        guard let rows = prefetches[key] else {
+        guard let rows = prefetchedRows[key] else {
             // Programmer error
             fatalError("missing key for prefetched rows `\(key)` (row: \(self))")
         }
@@ -677,7 +677,7 @@ extension Row {
     ///     row.scopes["bar"] // [bar:2]
     ///     row.scopes["baz"] // nil
     public var scopes: ScopesView {
-        return impl.scopes(prefetches: prefetches)
+        return impl.scopes(prefetchedRows: prefetchedRows)
     }
     
     /// Returns a view on the scopes tree defined by row adapters.
@@ -716,12 +716,12 @@ extension Row {
     public var unscoped: Row {
         var row = impl.unscopedRow(self)
         
-        // Remove prefetches
-        if row.prefetches.isEmpty == false {
+        // Remove prefetchedRows
+        if row.prefetchedRows.isEmpty == false {
             // Make sure we build another Row instance
             row = Row.init(impl: row.copy().impl)
             assert(row !== self)
-            row.prefetches = PrefetchesView(prefetches: [:])
+            row.prefetchedRows = PrefetchedRowsView(prefetches: [:])
         }
         return row
     }
@@ -1148,7 +1148,7 @@ extension Row {
             }
         }
         
-        guard lhs.prefetches == rhs.prefetches else {
+        guard lhs.prefetchedRows == rhs.prefetchedRows else {
             return false
         }
         
@@ -1183,7 +1183,7 @@ extension Row {
     }
     
     private func debugDescription(level: Int) -> String {
-        if level == 0 && self == self.unadapted && prefetches.prefetches.isEmpty { // TODO prefetches cleanup
+        if level == 0 && self == self.unadapted && prefetchedRows.prefetches.isEmpty { // TODO prefetches cleanup
             return description
         }
         let prefix = repeatElement("  ", count: level + 1).joined(separator: "")
@@ -1200,7 +1200,7 @@ extension Row {
         for (name, scopedRow) in scopes.sorted(by: { $0.name < $1.name }) {
             str += "\n" + prefix + "- " + name + ": " + scopedRow.debugDescription(level: level + 1)
         }
-        for (key, prefetch) in prefetches.prefetches.sorted(by: { $0.key < $1.key }) { // TODO prefetches cleanup
+        for (key, prefetch) in prefetchedRows.prefetches.sorted(by: { $0.key < $1.key }) { // TODO prefetches cleanup
             if let rows = prefetch.rows {
                 str += "\n" + prefix + "- " + key + ": \(rows.count) rows"
             }
@@ -1274,7 +1274,7 @@ extension Row {
         public typealias Index = Dictionary<String, LayoutedRowAdapter>.Index
         private let row: Row
         private let scopes: [String: LayoutedRowAdapter]
-        private let prefetches: Row.PrefetchesView
+        private let prefetchedRows: Row.PrefetchedRowsView
 
         /// The scopes defined on this row.
         public var names: Dictionary<String, LayoutedRowAdapter>.Keys {
@@ -1282,13 +1282,13 @@ extension Row {
         }
         
         init() {
-            self.init(row: Row(), scopes: [:], prefetches: Row.PrefetchesView(prefetches: [:]))
+            self.init(row: Row(), scopes: [:], prefetchedRows: Row.PrefetchedRowsView(prefetches: [:]))
         }
         
-        init(row: Row, scopes: [String: LayoutedRowAdapter], prefetches: Row.PrefetchesView) {
+        init(row: Row, scopes: [String: LayoutedRowAdapter], prefetchedRows: Row.PrefetchedRowsView) {
             self.row = row
             self.scopes = scopes
-            self.prefetches = prefetches
+            self.prefetchedRows = prefetchedRows
         }
         
         /// :nodoc:
@@ -1310,8 +1310,8 @@ extension Row {
         public subscript(position: Index) -> (name: String, row: Row) {
             let (name, adapter) = scopes[position]
             let adaptedRow = Row(base: row, adapter: adapter)
-            if let prefetch = prefetches.prefetches[name] {
-                adaptedRow.prefetches = Row.PrefetchesView(prefetches: prefetch.prefetches)
+            if let prefetch = prefetchedRows.prefetches[name] {
+                adaptedRow.prefetchedRows = Row.PrefetchedRowsView(prefetches: prefetch.prefetches)
             }
             return (name: name, row: adaptedRow)
         }
@@ -1377,7 +1377,7 @@ extension Row {
     }
 }
 
-// MARK: - Row.PrefetchesView
+// MARK: - Row.PrefetchedRowsView
 
 extension Row {
     fileprivate struct Prefetch: Equatable {
@@ -1402,12 +1402,12 @@ extension Row {
     ///     let rows = try Row.fetchAll(db, request)
     ///     for row in rows {
     ///         print(row) // [id:1, name:"Hermann Melville"]
-    ///         let bookRows = row.prefetches["books"]
+    ///         let bookRows = row.prefetchedRows["books"]
     ///         for bookBok in bookRows {
     ///             print(bookBok) // [id:43, title:"Moby-Dick"]
     ///         }
     ///     }
-    public struct PrefetchesView: Equatable {
+    public struct PrefetchedRowsView: Equatable {
         fileprivate var prefetches: [String: Prefetch] = [:]
         
         /// True if there is no prefetched associated rows.
@@ -1467,7 +1467,7 @@ extension Dictionary where Key == String, Value == Row.Prefetch {
 protocol RowImpl {
     var count: Int { get }
     var isFetched: Bool { get }
-    func scopes(prefetches: Row.PrefetchesView) -> Row.ScopesView
+    func scopes(prefetchedRows: Row.PrefetchedRowsView) -> Row.ScopesView
     func columnName(atUncheckedIndex index: Int) -> String
     func hasNull(atUncheckedIndex index:Int) -> Bool
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
@@ -1500,9 +1500,9 @@ extension RowImpl {
         return row
     }
     
-    func scopes(prefetches: Row.PrefetchesView) -> Row.ScopesView {
+    func scopes(prefetchedRows: Row.PrefetchedRowsView) -> Row.ScopesView {
         // unless customized, assume unuscoped row (see AdaptedRowImpl for customization)
-        return Row.ScopesView() // TODO: add prefetches?
+        return Row.ScopesView()
     }
     
     func hasNull(atUncheckedIndex index:Int) -> Bool {

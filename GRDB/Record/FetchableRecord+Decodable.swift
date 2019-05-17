@@ -57,7 +57,7 @@ private struct RowDecoder<R: FetchableRecord>: Decoder {
             let row = decoder.row
             return Set(row.columnNames)
                 .union(Set(row.scopesTree.names))
-                .union(Set(row.prefetches.keys))
+                .union(Set(row.prefetchedRows.keys))
                 .compactMap { Key(stringValue: $0) }
         }
         
@@ -141,7 +141,7 @@ private struct RowDecoder<R: FetchableRecord>: Decoder {
             }
             
             // Prefetched Rows?
-            if let prefetchedRows = row.prefetches[keyName] {
+            if let prefetchedRows = row.prefetchedRows[keyName] {
                 let decoder = PrefetchedRowsDecoder<R>(rows: prefetchedRows, codingPath: codingPath)
                 return try T(from: decoder)
             }
