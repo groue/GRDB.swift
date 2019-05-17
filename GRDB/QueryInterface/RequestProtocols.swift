@@ -405,6 +405,13 @@ public protocol OrderedRequest {
     ///     var request = Player.all()
     ///     request = request.reversed()
     func reversed() -> Self
+    
+    /// Creates a request without any ordering.
+    ///
+    ///     // SELECT * FROM player
+    ///     var request = Player.all().order(Column("name"))
+    ///     request = request.unordered()
+    func unordered() -> Self
 }
 
 /// :nodoc:

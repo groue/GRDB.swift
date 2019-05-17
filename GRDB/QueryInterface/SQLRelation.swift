@@ -131,6 +131,10 @@ struct SQLRelation {
         fileprivate func associationForKey(_ key: String) -> SQLAssociation {
             return SQLAssociation(key: key, condition: condition, relation: relation)
         }
+        
+        func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> Child {
+            return Child(kind: kind, condition: condition, relation: transform(relation))
+        }
     }
     
     var source: SQLSource
@@ -200,14 +204,17 @@ extension SQLRelation {
         return order(ordering.reversed)
     }
     
+    func unordered() -> SQLRelation {
+        var relation = self
+        relation.ordering = SQLRelation.Ordering()
+        relation.children = relation.children.mapValues { $0.mapRelation { $0.unordered() } }
+        return relation
+    }
+    
     private func order(_ ordering: SQLRelation.Ordering) -> SQLRelation {
         var relation = self
         relation.ordering = ordering
         return relation
-    }
-    
-    func unordered() -> SQLRelation {
-        return order(SQLRelation.Ordering())
     }
     
     func appendingChild(_ child: SQLRelation.Child, forKey key: String) -> SQLRelation {

@@ -268,6 +268,15 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
         return mapQuery { $0.reversed() }
     }
     
+    /// Creates a request without any ordering.
+    ///
+    ///     // SELECT * FROM player
+    ///     var request = Player.all().order(Column("name"))
+    ///     request = request.unordered()
+    public func unordered() -> QueryInterfaceRequest {
+        return mapQuery { $0.unordered() }
+    }
+    
     /// Creates a request which fetches *limit* rows, starting at *offset*.
     ///
     ///     // SELECT * FROM player LIMIT 1

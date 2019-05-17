@@ -166,6 +166,21 @@ extension Association {
         return mapDestinationRelation { $0.reversed() }
     }
     
+    /// Creates an association without any ordering.
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     let association = Player.team.order(Column("name")).unordered()
+    ///     var request = Player.including(required: association)
+    public func unordered() -> Self {
+        return mapDestinationRelation { $0.unordered() }
+    }
+    
     /// Creates an association with the given key.
     ///
     /// This new key impacts how rows fetched from the resulting association
