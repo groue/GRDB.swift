@@ -42,7 +42,14 @@ struct OrderedDictionary<Key: Hashable, Value> {
             }
         }
     }
-    
+
+    /// Returns the value associated with key, or the default value.
+    @inlinable
+    subscript(_ key: Key, default defaultValue: Value) -> Value {
+        get { return dictionary[key] ?? defaultValue }
+        set { self[key] = newValue }
+    }
+
     /// Appends the given value for the given key.
     ///
     /// - precondition: There is no value associated with key yet.
@@ -128,6 +135,13 @@ extension OrderedDictionary: ExpressibleByDictionaryLiteral {
     @usableFromInline init(dictionaryLiteral elements: (Key, Value)...) {
         self.keys = elements.map { $0.0 }
         self.dictionary = Dictionary(uniqueKeysWithValues: elements)
+    }
+}
+
+extension OrderedDictionary: Equatable where Value: Equatable {
+    @usableFromInline
+    static func == (lhs: OrderedDictionary, rhs: OrderedDictionary) -> Bool {
+        return (lhs.keys == rhs.keys) && (lhs.dictionary == rhs.dictionary)
     }
 }
 

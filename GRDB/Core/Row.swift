@@ -731,7 +731,6 @@ extension Row {
     /// This property can turn out useful when you debug the consumption of
     /// adapted rows, such as rows fetched from joined requests.
     public var unadapted: Row {
-        // TODO: copy prefetches
         return impl.unadaptedRow(self)
     }
 }
@@ -1183,7 +1182,7 @@ extension Row {
     }
     
     private func debugDescription(level: Int) -> String {
-        if level == 0 && self == self.unadapted && prefetchedRows.prefetches.isEmpty { // TODO prefetches cleanup
+        if level == 0 && self == self.unadapted && prefetchedRows.prefetches.isEmpty {
             return description
         }
         let prefix = repeatElement("  ", count: level + 1).joined(separator: "")
@@ -1200,10 +1199,18 @@ extension Row {
         for (name, scopedRow) in scopes.sorted(by: { $0.name < $1.name }) {
             str += "\n" + prefix + "- " + name + ": " + scopedRow.debugDescription(level: level + 1)
         }
-        for (key, prefetch) in prefetchedRows.prefetches.sorted(by: { $0.key < $1.key }) { // TODO prefetches cleanup
-            if let rows = prefetch.rows {
-                str += "\n" + prefix + "- " + key + ": \(rows.count) rows"
+        for key in prefetchedRows.keys.sorted() {
+            let rows = prefetchedRows[key]!
+            let prefetchedRowsDescription: String
+            switch rows.count {
+            case 0:
+                prefetchedRowsDescription = "0 row"
+            case 1:
+                prefetchedRowsDescription = "1 row"
+            case let count:
+                prefetchedRowsDescription = "\(count) rows"
             }
+            str += "\n" + prefix + "+ " + key + ": \(prefetchedRowsDescription)"
         }
         
         return str
@@ -1383,7 +1390,7 @@ extension Row {
     fileprivate struct Prefetch: Equatable {
         // Nil for intermediate associations
         var rows: [Row]?
-        var prefetches: [String: Prefetch]
+        var prefetches: OrderedDictionary<String, Prefetch>
     }
     
     /// A view on the prefetched associated rows.
@@ -1408,7 +1415,7 @@ extension Row {
     ///         }
     ///     }
     public struct PrefetchedRowsView: Equatable {
-        fileprivate var prefetches: [String: Prefetch] = [:]
+        fileprivate var prefetches: OrderedDictionary<String, Prefetch> = [:]
         
         /// True if there is no prefetched associated rows.
         public var isEmpty: Bool {
@@ -1449,7 +1456,7 @@ extension Row {
     }
 }
 
-extension Dictionary where Key == String, Value == Row.Prefetch {
+extension OrderedDictionary where Key == String, Value == Row.Prefetch {
     fileprivate mutating func setRows(_ rows: [Row], forKeyPath keyPath: [String]) {
         var keyPath = keyPath
         let key = keyPath.removeFirst()
