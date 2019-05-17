@@ -2,7 +2,35 @@ extension QueryInterfaceRequest where RowDecoder == Row {
     
     // MARK: Fetching Rows
     
-    // TODO: cursor
+    /// A cursor over fetched rows.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Row
+    ///     let rows = try request.fetchCursor(db) // RowCursor
+    ///     while let row = try rows.next() {  // Row
+    ///         let id: Int64 = row[0]
+    ///         let name: String = row[1]
+    ///     }
+    ///
+    /// Fetched rows are reused during the cursor iteration: don't turn a row
+    /// cursor into an array with `Array(rows)` or `rows.filter { ... }` since
+    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
+    /// instead.
+    ///
+    /// For the same reason, make sure you make a copy whenever you extract a
+    /// row for later use: `row.copy()`.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over fetched rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @inlinable // TODO: should not be inlinable
+    public func fetchCursor(_ db: Database) throws -> RowCursor {
+        return try Row.fetchCursor(db, self)
+    }
     
     /// An array of fetched rows.
     ///
@@ -34,6 +62,40 @@ extension QueryInterfaceRequest where RowDecoder == Row {
 extension Row {
     
     // MARK: - Fetching From QueryInterfaceRequest
+    
+    /// Returns a cursor over rows fetched from a fetch request.
+    ///
+    ///     let request = Player.all()
+    ///     let rows = try Row.fetchCursor(db, request) // RowCursor
+    ///     while let row = try rows.next() { // Row
+    ///         let id: Int64 = row["id"]
+    ///         let name: String = row["name"]
+    ///     }
+    ///
+    /// Fetched rows are reused during the cursor iteration: don't turn a row
+    /// cursor into an array with `Array(rows)` or `rows.filter { ... }` since
+    /// you would not get the distinct rows you expect. Use `Row.fetchAll(...)`
+    /// instead.
+    ///
+    /// For the same reason, make sure you make a copy whenever you extract a
+    /// row for later use: `row.copy()`.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A FetchRequest.
+    /// - returns: A cursor over fetched rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @inlinable // TODO: should not be inlinable
+    public static func fetchCursor<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> RowCursor {
+        precondition(request.prefetchedAssociations.isEmpty, "Not implemented: fetching cursor with prefetched associations")
+        let (statement, adapter) = try request.prepare(db, forSingleResult: false)
+        return try fetchCursor(statement, adapter: adapter)
+    }
     
     /// Returns an array of rows fetched from a fetch request.
     ///

@@ -1,4 +1,25 @@
 extension QueryInterfaceRequest where RowDecoder: FetchableRecord {
+    /// A cursor over fetched records.
+    ///
+    ///     let request: ... // Some TypedRequest that fetches Player
+    ///     let players = try request.fetchCursor(db) // Cursor of Player
+    ///     while let player = try players.next() {   // Player
+    ///         ...
+    ///     }
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @inlinable // TODO: should not be inlinable
+    public func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder> {
+        return try RowDecoder.fetchCursor(db, self)
+    }
+    
     /// An array of fetched records.
     ///
     ///     let request: QueryInterfaceRequest<Player> = ...
@@ -29,6 +50,31 @@ extension QueryInterfaceRequest where RowDecoder: FetchableRecord {
 extension FetchableRecord {
     
     // MARK: Fetching From QueryInterfaceRequest
+    
+    /// Returns a cursor over records fetched from a fetch request.
+    ///
+    ///     let request = try Player.all()
+    ///     let players = try Player.fetchCursor(db, request) // Cursor of Player
+    ///     while let player = try players.next() { // Player
+    ///         ...
+    ///     }
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispath queue.
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sql: a FetchRequest.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @inlinable // TODO: should not be inlinable
+    public static func fetchCursor<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> RecordCursor<Self> {
+        precondition(request.prefetchedAssociations.isEmpty, "Not implemented: fetching cursor with prefetched associations")
+        let (statement, adapter) = try request.prepare(db, forSingleResult: false)
+        return try fetchCursor(statement, adapter: adapter)
+    }
     
     /// Returns an array of records fetched from a query interface request.
     ///

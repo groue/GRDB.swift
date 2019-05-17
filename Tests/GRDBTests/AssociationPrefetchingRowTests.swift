@@ -116,8 +116,6 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                     XCTAssertEqual(row.prefetchedRows["bs"]![0], ["colb1": 4, "colb2": 1, "colb3": "b1", "grdb_colb2": 1])
                     XCTAssertEqual(row.prefetchedRows["bs"]![1], ["colb1": 5, "colb2": 1, "colb3": "b2", "grdb_colb2": 1])
                 }
-                
-                // TODO: Row.fetchCursor
             }
             
             // Request with avoided prefetch
