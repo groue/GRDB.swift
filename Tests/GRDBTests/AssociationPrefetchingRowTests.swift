@@ -84,6 +84,12 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 3)
                     
+                    XCTAssertEqual(rows[0].description, "[cola1:1 cola2:\"a1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [cola1:1 cola2:"a1"]
+                          + bs: 2 rows
+                        """)
+                    
                     XCTAssertEqual(rows[0].unscoped, ["cola1": 1, "cola2": "a1"])
                     XCTAssertEqual(rows[0].prefetchedRows.keys, ["bs"])
                     XCTAssertEqual(rows[0].prefetchedRows["bs"]!.count, 2)
@@ -151,6 +157,13 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 2)
                     
+                    XCTAssertEqual(rows[0].description, "[cola1:1 cola2:\"a1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [cola1:1 cola2:"a1"]
+                          + bs1: 1 row
+                          + bs2: 1 row
+                        """)
+                    
                     XCTAssertEqual(rows[0].unscoped, ["cola1": 1, "cola2": "a1"])
                     XCTAssertEqual(rows[0].prefetchedRows.keys, ["bs1", "bs2"])
                     XCTAssertEqual(rows[0].prefetchedRows["bs1"]!.count, 1)
@@ -200,6 +213,12 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 3)
+                    
+                    XCTAssertEqual(rows[0].description, "[cola1:1 cola2:\"a1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [cola1:1 cola2:"a1"]
+                          + cs: 1 row
+                        """)
                     
                     XCTAssertEqual(rows[0].unscoped, ["cola1": 1, "cola2": "a1"])
                     XCTAssertEqual(rows[0].prefetchedRows.keys, ["cs"])
@@ -258,6 +277,12 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 3)
+                    
+                    XCTAssertEqual(rows[0].description, "[cola1:1 cola2:\"a1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [cola1:1 cola2:"a1"]
+                          + cs: 0 row
+                        """)
                     
                     XCTAssertEqual(rows[0].unscoped, ["cola1": 1, "cola2": "a1"])
                     XCTAssertEqual(rows[0].prefetchedRows.keys, ["cs"])
@@ -322,6 +347,13 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 2)
+                    
+                    XCTAssertEqual(rows[0].description, "[cola1:1 cola2:\"a1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [cola1:1 cola2:"a1"]
+                          + cs1: 0 row
+                          + cs2: 1 row
+                        """)
                     
                     XCTAssertEqual(rows[0].unscoped, ["cola1": 1, "cola2": "a1"])
                     XCTAssertEqual(rows[0].prefetchedRows.keys, ["cs1", "cs2"])
@@ -394,6 +426,12 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 3)
                     
+                    XCTAssertEqual(rows[0].description, "[cola1:1 cola2:\"a1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [cola1:1 cola2:"a1"]
+                          + cs: 1 row
+                        """)
+                    
                     XCTAssertEqual(rows[0].unscoped, ["cola1": 1, "cola2": "a1"])
                     XCTAssertEqual(rows[0].prefetchedRows.keys, ["cs"])
                     XCTAssertEqual(rows[0].prefetchedRows["cs"]!.count, 1)
@@ -449,6 +487,12 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 3)
+                    
+                    XCTAssertEqual(rows[0].description, "[cola1:1 cola2:\"a1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [cola1:1 cola2:"a1"]
+                          + cs: 0 row
+                        """)
                     
                     XCTAssertEqual(rows[0].unscoped, ["cola1": 1, "cola2": "a1"])
                     XCTAssertEqual(rows[0].prefetchedRows.keys, ["cs"])
@@ -514,6 +558,13 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 2)
                     
+                    XCTAssertEqual(rows[0].description, "[cola1:1 cola2:\"a1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [cola1:1 cola2:"a1"]
+                          + cs1: 0 row
+                          + cs2: 1 row
+                        """)
+                    
                     XCTAssertEqual(rows[0].unscoped, ["cola1": 1, "cola2": "a1"])
                     XCTAssertEqual(rows[0].prefetchedRows.keys, ["cs1", "cs2"])
                     XCTAssertEqual(rows[0].prefetchedRows["cs1"]!.count, 0)
@@ -575,6 +626,12 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 3)
                     
+                    XCTAssertEqual(rows[0].description, "[cola1:1 cola2:\"a1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [cola1:1 cola2:"a1"]
+                          + ds: 1 row
+                        """)
+                    
                     XCTAssertEqual(rows[0].unscoped, ["cola1": 1, "cola2": "a1"])
                     XCTAssertEqual(rows[0].prefetchedRows.keys, ["ds"])
                     XCTAssertEqual(rows[0].prefetchedRows["ds"]!.count, 1)
@@ -628,6 +685,14 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 2)
                     
+                    XCTAssertEqual(rows[0].description, "[cola1:1 cola2:\"a1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [cola1:1 cola2:"a1"]
+                          + ds1: 0 row
+                          + ds2: 1 row
+                          + ds3: 0 row
+                        """)
+                    
                     XCTAssertEqual(rows[0].unscoped, ["cola1": 1, "cola2": "a1"])
                     XCTAssertEqual(rows[0].prefetchedRows.keys, ["ds1", "ds2", "ds3"])
                     XCTAssertEqual(rows[0].prefetchedRows["ds1"]!.count, 0)
@@ -680,6 +745,13 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 3)
+                    
+                    XCTAssertEqual(rows[0].description, "[cola1:1 cola2:\"a1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [cola1:1 cola2:"a1"]
+                          + cs: 1 row
+                          + ds: 1 row
+                        """)
                     
                     XCTAssertEqual(rows[0].unscoped, ["cola1": 1, "cola2": "a1"])
                     XCTAssertEqual(rows[0].prefetchedRows.keys, ["cs", "ds"])
@@ -746,6 +818,15 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 2)
                     
+                    XCTAssertEqual(rows[0].description, "[cola1:1 cola2:\"a1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [cola1:1 cola2:"a1"]
+                          + cs1: 1 row
+                          + cs2: 1 row
+                          + ds1: 1 row
+                          + ds2: 0 row
+                        """)
+                    
                     XCTAssertEqual(rows[0].unscoped, ["cola1": 1, "cola2": "a1"])
                     XCTAssertEqual(rows[0].prefetchedRows.keys, ["cs1", "cs2", "ds1", "ds2"])
                     XCTAssertEqual(rows[0].prefetchedRows["cs1"]!.count, 1)
@@ -807,6 +888,15 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 4)
+                    
+                    XCTAssertEqual(rows[0].description, "[colb1:4 colb2:1 colb3:\"b1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [colb1:4 colb2:1 colb3:"b1"]
+                          unadapted: [colb1:4 colb2:1 colb3:"b1" cola1:1 cola2:"a1"]
+                          - a: [cola1:1 cola2:"a1"]
+                            + cs: 1 row
+                          + cs: 1 row
+                        """)
                     
                     XCTAssertEqual(rows[0].unscoped, ["colb1": 4, "colb2": 1, "colb3": "b1"])
                     XCTAssertEqual(rows[0].prefetchedRows.keys, ["cs"])
@@ -902,6 +992,20 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                 do {
                     let rows = try Row.fetchAll(db, request)
                     XCTAssertEqual(rows.count, 4)
+                    
+                    XCTAssertEqual(rows[0].description, "[colb1:4 colb2:1 colb3:\"b1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [colb1:4 colb2:1 colb3:"b1"]
+                          unadapted: [colb1:4 colb2:1 colb3:"b1" cola1:1 cola2:"a1" cola1:NULL cola2:NULL]
+                          - a1: [cola1:1 cola2:"a1"]
+                            + cs1: 0 row
+                            + cs2: 1 row
+                          - a2: [cola1:NULL cola2:NULL]
+                            + cs1: 0 row
+                            + cs2: 0 row
+                          + cs1: 0 row
+                          + cs2: 1 row
+                        """)
                     
                     XCTAssertEqual(rows[0].unscoped, ["colb1": 4, "colb2": 1, "colb3": "b1"])
                     XCTAssertEqual(rows[0].prefetchedRows.keys, ["cs1", "cs2"])
@@ -1008,6 +1112,7 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
             XCTAssertEqual(row3.prefetchedRows["bs"], [])
             
             XCTAssertEqual(row1, row1)
+            XCTAssertEqual(row1, row1.copy())
             XCTAssertEqual(row1, row1.unscoped)
             XCTAssertEqual(row1, row2.unscoped)
             XCTAssertEqual(row1, row3.unscoped)
@@ -1015,10 +1120,12 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
             XCTAssertNotEqual(row1, row3)
 
             XCTAssertEqual(row2, row2)
+            XCTAssertEqual(row2, row2.copy())
             XCTAssertNotEqual(row2, row2.unscoped)
             XCTAssertNotEqual(row2, row3)
 
             XCTAssertEqual(row3, row3)
+            XCTAssertEqual(row3, row3.copy())
             XCTAssertNotEqual(row3, row3.unscoped)
         }
     }
