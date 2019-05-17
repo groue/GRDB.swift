@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		56043296228F00A9009D3FE2 /* OrderedDictionaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56043295228F00A9009D3FE2 /* OrderedDictionaryTests.swift */; };
 		56043297228F00A9009D3FE2 /* OrderedDictionaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56043295228F00A9009D3FE2 /* OrderedDictionaryTests.swift */; };
+		560432A6228F167A009D3FE2 /* AssociationPrefetchingObservationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560432A5228F167A009D3FE2 /* AssociationPrefetchingObservationTests.swift */; };
+		560432A7228F167A009D3FE2 /* AssociationPrefetchingObservationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560432A5228F167A009D3FE2 /* AssociationPrefetchingObservationTests.swift */; };
 		5607149B227618660091BB10 /* Row+QueryInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56071499227618660091BB10 /* Row+QueryInterface.swift */; };
 		5607149C227618660091BB10 /* Row+QueryInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56071499227618660091BB10 /* Row+QueryInterface.swift */; };
 		5607149E227618800091BB10 /* FetchableRecord+QueryInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5607149D227618800091BB10 /* FetchableRecord+QueryInterface.swift */; };
@@ -686,6 +688,7 @@
 /* Begin PBXFileReference section */
 		31A7787C1C6A4DD600F507F6 /* FetchedRecordsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedRecordsController.swift; sourceTree = "<group>"; };
 		56043295228F00A9009D3FE2 /* OrderedDictionaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderedDictionaryTests.swift; sourceTree = "<group>"; };
+		560432A5228F167A009D3FE2 /* AssociationPrefetchingObservationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingObservationTests.swift; sourceTree = "<group>"; };
 		5605F1491C672E4000235C62 /* CGFloat.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CGFloat.swift; sourceTree = "<group>"; };
 		5605F14C1C672E4000235C62 /* DatabaseDateComponents.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseDateComponents.swift; sourceTree = "<group>"; };
 		5605F14F1C672E4000235C62 /* Date.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Date.swift; sourceTree = "<group>"; };
@@ -1372,6 +1375,7 @@
 				5653EB5820961FB000F46237 /* AssociationParallelSQLTests.swift */,
 				56DF0013228DDB8200D611F3 /* AssociationPrefetchingCodableRecordTests.swift */,
 				569BBA29228DE53200478429 /* AssociationPrefetchingFetchableRecordTests.swift */,
+				560432A5228F167A009D3FE2 /* AssociationPrefetchingObservationTests.swift */,
 				56DF0014228DDB8200D611F3 /* AssociationPrefetchingRowTests.swift */,
 				560714EB227DD10F0091BB10 /* AssociationPrefetchingSQLTests.swift */,
 				5653EB5E20961FB100F46237 /* AssociationRowScopeSearchTests.swift */,
@@ -2252,6 +2256,7 @@
 				5698ACCC1DA62A2D0056AF8C /* FTS5TokenizerTests.swift in Sources */,
 				5613EDA421A96A8100DC7A68 /* ValueObservationCombineTests.swift in Sources */,
 				5653EB6B20961FB200F46237 /* AssociationBelongsToFetchableRecordTests.swift in Sources */,
+				560432A7228F167A009D3FE2 /* AssociationPrefetchingObservationTests.swift in Sources */,
 				5690C33E1D23E7D200E59934 /* FoundationDateTests.swift in Sources */,
 				567A805A1D41350C00C7DCEC /* IndexInfoTests.swift in Sources */,
 				5674A7291F30A9090095F066 /* FetchableRecordDecodableTests.swift in Sources */,
@@ -2576,6 +2581,7 @@
 				F3BA80B81CFB2FCD003DC1BA /* DatabaseErrorTests.swift in Sources */,
 				5613EDA321A96A8100DC7A68 /* ValueObservationCombineTests.swift in Sources */,
 				5653EB6A20961FB200F46237 /* AssociationBelongsToFetchableRecordTests.swift in Sources */,
+				560432A6228F167A009D3FE2 /* AssociationPrefetchingObservationTests.swift in Sources */,
 				5698AC061D9B9FCF0056AF8C /* QueryInterfaceExtensibilityTests.swift in Sources */,
 				F3BA80FA1CFB3021003DC1BA /* SelectStatementTests.swift in Sources */,
 				5674A7271F30A9090095F066 /* FetchableRecordDecodableTests.swift in Sources */,

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		560432A9228F1752009D3FE2 /* AssociationPrefetchingObservationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560432A8228F1752009D3FE2 /* AssociationPrefetchingObservationTests.swift */; };
+		560432AA228F1752009D3FE2 /* AssociationPrefetchingObservationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560432A8228F1752009D3FE2 /* AssociationPrefetchingObservationTests.swift */; };
 		560714F0227DD1810091BB10 /* AssociationPrefetchingSQLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560714EF227DD1810091BB10 /* AssociationPrefetchingSQLTests.swift */; };
 		560714F1227DD1810091BB10 /* AssociationPrefetchingSQLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560714EF227DD1810091BB10 /* AssociationPrefetchingSQLTests.swift */; };
 		564A1FDE226B89E1001F64F1 /* MutablePersistableRecordDeleteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A1F27226B89CE001F64F1 /* MutablePersistableRecordDeleteTests.swift */; };
@@ -389,6 +391,7 @@
 /* Begin PBXFileReference section */
 		04298D834C818285823558AB /* Pods-GRDBTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTests.release.xcconfig"; path = "Target Support Files/Pods-GRDBTests/Pods-GRDBTests.release.xcconfig"; sourceTree = "<group>"; };
 		47C5D1B9AFFE795AA1D6EA5D /* Pods-GRDBTestsEncrypted.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTestsEncrypted.release.xcconfig"; path = "Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted.release.xcconfig"; sourceTree = "<group>"; };
+		560432A8228F1752009D3FE2 /* AssociationPrefetchingObservationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingObservationTests.swift; sourceTree = "<group>"; };
 		560714EF227DD1810091BB10 /* AssociationPrefetchingSQLTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingSQLTests.swift; sourceTree = "<group>"; };
 		564A1F1D226B876D001F64F1 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		564A1F22226B876D001F64F1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -653,6 +656,7 @@
 				564A1FDC226B89E1001F64F1 /* AssociationParallelSQLTests.swift */,
 				56DF0025228DE00900D611F3 /* AssociationPrefetchingCodableRecordTests.swift */,
 				569BBA30228DF91000478429 /* AssociationPrefetchingFetchableRecordTests.swift */,
+				560432A8228F1752009D3FE2 /* AssociationPrefetchingObservationTests.swift */,
 				56DF0026228DE00900D611F3 /* AssociationPrefetchingRowTests.swift */,
 				560714EF227DD1810091BB10 /* AssociationPrefetchingSQLTests.swift */,
 				564A1F3E226B89D0001F64F1 /* AssociationRowScopeSearchTests.swift */,
@@ -1207,6 +1211,7 @@
 				564A206D226B89E1001F64F1 /* ValueObservationCombineTests.swift in Sources */,
 				564A2022226B89E1001F64F1 /* CursorTests.swift in Sources */,
 				564A203A226B89E1001F64F1 /* DatabaseDateDecodingStrategyTests.swift in Sources */,
+				560432A9228F1752009D3FE2 /* AssociationPrefetchingObservationTests.swift in Sources */,
 				564A2036226B89E1001F64F1 /* SchedulingWatchdogTests.swift in Sources */,
 				564A2052226B89E1001F64F1 /* RowTestCase.swift in Sources */,
 				564A1FF3226B89E1001F64F1 /* TruncateOptimizationTests.swift in Sources */,
@@ -1400,6 +1405,7 @@
 				564A213C226B8E18001F64F1 /* ValueObservationCombineTests.swift in Sources */,
 				564A213D226B8E18001F64F1 /* CursorTests.swift in Sources */,
 				564A213E226B8E18001F64F1 /* DatabaseDateDecodingStrategyTests.swift in Sources */,
+				560432AA228F1752009D3FE2 /* AssociationPrefetchingObservationTests.swift in Sources */,
 				564A213F226B8E18001F64F1 /* SchedulingWatchdogTests.swift in Sources */,
 				564A2140226B8E18001F64F1 /* RowTestCase.swift in Sources */,
 				564A2141226B8E18001F64F1 /* TruncateOptimizationTests.swift in Sources */,
