@@ -32,12 +32,27 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     /// The number of columns in the row.
     public let count: Int
     
-    struct Prefetch {
-        var rows: [Row]?
-        var prefetches: [String: Prefetch]
-    }
-    
-    /// Returns a view on the prefetch tree.
+    /// A view on the prefetched associated rows.
+    ///
+    /// For example:
+    ///
+    ///     struct Author: TableRecord {
+    ///         static let books = hasMany(Book.self)
+    ///     }
+    ///
+    ///     struct Book: TableRecord {
+    ///     }
+    ///
+    ///     // All authors along with their books
+    ///     let request = Author.including(all: Author.books)
+    ///     let rows = try Row.fetchAll(db, request)
+    ///     for row in rows {
+    ///         print(row) // [id:1, name:"Hermann Melville"]
+    ///         let bookRows = row.prefetches["books"]
+    ///         for bookBok in bookRows {
+    ///             print(bookBok) // [id:43, title:"Moby-Dick"]
+    ///         }
+    ///     }
     public internal(set) var prefetches: PrefetchesView = PrefetchesView(prefetches: [:])
     
     // MARK: - Building rows
@@ -700,8 +715,16 @@ extension Row {
     ///     // Success:
     ///     XCTAssertEqual(row.unscoped, ["id": 1, "name": "foo"])
     public var unscoped: Row {
-        // TODO: copy prefetches
-        return impl.unscopedRow(self)
+        var row = impl.unscopedRow(self)
+        
+        // Remove prefetches
+        if row.prefetches.isEmpty == false {
+            // Make sure we build another Row instance
+            row = Row.init(impl: row.copy().impl)
+            assert(row !== self)
+            row.prefetches = PrefetchesView(prefetches: [:])
+        }
+        return row
     }
     
     /// Return the raw row fetched from the database.
@@ -1126,7 +1149,10 @@ extension Row {
             }
         }
         
-        // TODO: compare prefetches
+        guard lhs.prefetches == rhs.prefetches else {
+            return false
+        }
+        
         return true
     }
 }
@@ -1355,8 +1381,40 @@ extension Row {
 // MARK: - Row.PrefetchesView
 
 extension Row {
-    public struct PrefetchesView {
+    fileprivate struct Prefetch: Equatable {
+        // Nil for intermediate associations
+        var rows: [Row]?
+        var prefetches: [String: Prefetch]
+    }
+    
+    /// A view on the prefetched associated rows.
+    ///
+    /// For example:
+    ///
+    ///     struct Author: TableRecord {
+    ///         static let books = hasMany(Book.self)
+    ///     }
+    ///
+    ///     struct Book: TableRecord {
+    ///     }
+    ///
+    ///     // All authors along with their books
+    ///     let request = Author.including(all: Author.books)
+    ///     let rows = try Row.fetchAll(db, request)
+    ///     for row in rows {
+    ///         print(row) // [id:1, name:"Hermann Melville"]
+    ///         let bookRows = row.prefetches["books"]
+    ///         for bookBok in bookRows {
+    ///             print(bookBok) // [id:43, title:"Moby-Dick"]
+    ///         }
+    ///     }
+    public struct PrefetchesView: Equatable {
         fileprivate var prefetches: [String: Prefetch] = [:]
+        
+        /// True if there is no prefetched associated rows.
+        public var isEmpty: Bool {
+            return prefetches.isEmpty
+        }
 
         /// The prefetch keys defined on this row
         public var keys: Set<String> {
