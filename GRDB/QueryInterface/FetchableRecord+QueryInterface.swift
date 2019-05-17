@@ -1,7 +1,7 @@
 extension QueryInterfaceRequest where RowDecoder: FetchableRecord {
     /// A cursor over fetched records.
     ///
-    ///     let request: ... // Some TypedRequest that fetches Player
+    ///     let request: QueryInterfaceRequest<Player> = ...
     ///     let players = try request.fetchCursor(db) // Cursor of Player
     ///     while let player = try players.next() {   // Player
     ///         ...

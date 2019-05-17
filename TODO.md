@@ -46,7 +46,6 @@ GRDB 4.0
 
 - [ ] FTS: prefix queries
 - [ ] Test NOT TESTED methods
-- [ ] Remove references to obsolete `TypedRequest`
 
 Swift 4.2
 

@@ -1012,7 +1012,7 @@ extension FetchRequest where RowDecoder == Row {
     
     /// A cursor over fetched rows.
     ///
-    ///     let request: ... // Some TypedRequest that fetches Row
+    ///     let request: ... // Some FetchRequest that fetches Row
     ///     let rows = try request.fetchCursor(db) // RowCursor
     ///     while let row = try rows.next() {  // Row
     ///         let id: Int64 = row[0]
@@ -1042,7 +1042,7 @@ extension FetchRequest where RowDecoder == Row {
     
     /// An array of fetched rows.
     ///
-    ///     let request: ... // Some TypedRequest that fetches Row
+    ///     let request: ... // Some FetchRequest that fetches Row
     ///     let rows = try request.fetchAll(db)
     ///
     /// - parameter db: A database connection.
@@ -1055,7 +1055,7 @@ extension FetchRequest where RowDecoder == Row {
     
     /// The first fetched row.
     ///
-    ///     let request: ... // Some TypedRequest that fetches Row
+    ///     let request: ... // Some FetchRequest that fetches Row
     ///     let row = try request.fetchOne(db)
     ///
     /// - parameter db: A database connection.

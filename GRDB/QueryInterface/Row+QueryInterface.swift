@@ -4,7 +4,7 @@ extension QueryInterfaceRequest where RowDecoder == Row {
     
     /// A cursor over fetched rows.
     ///
-    ///     let request: ... // Some TypedRequest that fetches Row
+    ///     let request: QueryInterfaceRequest<Row> = ...
     ///     let rows = try request.fetchCursor(db) // RowCursor
     ///     while let row = try rows.next() {  // Row
     ///         let id: Int64 = row[0]
