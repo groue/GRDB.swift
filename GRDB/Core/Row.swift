@@ -719,9 +719,9 @@ extension Row {
         // Remove prefetchedRows
         if row.prefetchedRows.isEmpty == false {
             // Make sure we build another Row instance
-            row = Row.init(impl: row.copy().impl)
+            row = Row(impl: row.copy().impl)
             assert(row !== self)
-            row.prefetchedRows = PrefetchedRowsView()
+            assert(row.prefetchedRows.isEmpty)
         }
         return row
     }
