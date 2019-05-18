@@ -259,37 +259,41 @@ extension Association {
 }
 
 extension SQLRelation {
-    /// Creates an relation that prefetches another one.
+    /// Creates a relation that prefetches another one.
     func including(all sqlAssociation: SQLAssociation) -> SQLRelation {
         return sqlAssociation.extendedRelation(self, kind: .allPrefetched)
     }
     
-    /// Creates an relation that includes another one. The columns of the
+    /// Creates a relation that includes another one. The columns of the
     /// associated record are selected. The returned relation does not
     /// require that the associated database table contains a matching row.
     func including(optional sqlAssociation: SQLAssociation) -> SQLRelation {
         return sqlAssociation.extendedRelation(self, kind: .oneOptional)
     }
     
-    /// Creates an relation that includes another one. The columns of the
+    /// Creates a relation that includes another one. The columns of the
     /// associated record are selected. The returned relation requires
     /// that the associated database table contains a matching row.
     func including(required sqlAssociation: SQLAssociation) -> SQLRelation {
         return sqlAssociation.extendedRelation(self, kind: .oneRequired)
     }
     
-    /// Creates an relation that joins another one. The columns of the
+    /// Creates a relation that joins another one. The columns of the
     /// associated record are not selected. The returned relation does not
     /// require that the associated database table contains a matching row.
     func joining(optional sqlAssociation: SQLAssociation) -> SQLRelation {
-        return sqlAssociation.mapDestinationRelation { $0.select([]) }.extendedRelation(self, kind: .oneOptional)
+        return sqlAssociation
+            .mapDestinationRelation { $0.select([]) }
+            .extendedRelation(self, kind: .oneOptional)
     }
     
-    /// Creates an relation that joins another one. The columns of the
+    /// Creates a relation that joins another one. The columns of the
     /// associated record are not selected. The returned relation requires
     /// that the associated database table contains a matching row.
     func joining(required sqlAssociation: SQLAssociation) -> SQLRelation {
-        return sqlAssociation.mapDestinationRelation { $0.select([]) }.extendedRelation(self, kind: .oneRequired)
+        return sqlAssociation
+            .mapDestinationRelation { $0.select([]) }
+            .extendedRelation(self, kind: .oneRequired)
     }
 }
 

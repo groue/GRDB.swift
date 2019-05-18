@@ -21,7 +21,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
         }
     }
     
-    /// Creates a request that joins an association. The columns of the
+    /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned request requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
@@ -43,7 +43,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
         }
     }
     
-    /// Creates a request that includes an association. The columns of the
+    /// Creates a request that joins an association. The columns of the
     /// associated record are not selected. The returned request requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {

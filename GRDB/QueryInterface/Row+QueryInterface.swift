@@ -27,7 +27,6 @@ extension QueryInterfaceRequest where RowDecoder == Row {
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable // TODO: should not be inlinable
     public func fetchCursor(_ db: Database) throws -> RowCursor {
         return try Row.fetchCursor(db, self)
     }
@@ -40,7 +39,6 @@ extension QueryInterfaceRequest where RowDecoder == Row {
     /// - parameter db: A database connection.
     /// - returns: An array of fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable // TODO: should not be inlinable
     public func fetchAll(_ db: Database) throws -> [Row] {
         return try Row.fetchAll(db, self)
     }
@@ -53,7 +51,6 @@ extension QueryInterfaceRequest where RowDecoder == Row {
     /// - parameter db: A database connection.
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable // TODO: should not be inlinable
     public func fetchOne(_ db: Database) throws -> Row? {
         return try Row.fetchOne(db, self)
     }
@@ -90,9 +87,8 @@ extension Row {
     ///     - request: A FetchRequest.
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable // TODO: should not be inlinable
     public static func fetchCursor<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> RowCursor {
-        precondition(request.prefetchedAssociations.isEmpty, "Not implemented: fetching cursor with prefetched associations")
+        precondition(request.prefetchedAssociations.isEmpty, "Not implemented: fetchCursor with prefetched associations")
         let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         return try fetchCursor(statement, adapter: adapter)
     }
@@ -107,7 +103,6 @@ extension Row {
     ///     - request: A FetchRequest.
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable // TODO: should not be inlinable
     public static func fetchAll<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> [Row] {
         let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         let rows = try fetchAll(statement, adapter: adapter)
@@ -129,7 +124,6 @@ extension Row {
     ///     - request: A FetchRequest.
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable // TODO: should not be inlinable
     public static func fetchOne<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> Row? {
         let (statement, adapter) = try request.prepare(db, forSingleResult: true)
         guard let row = try fetchOne(statement, adapter: adapter) else {
@@ -143,8 +137,8 @@ extension Row {
         return row
     }
     
-    @usableFromInline
-    /* private */ static func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [Row]) throws {
+    /// Append rows from prefetched associations into the argument rows.
+    static func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [Row]) throws {
         guard let firstRow = rows.first else {
             return
         }
@@ -158,26 +152,24 @@ extension Row {
                 // Annotate prefetched rows with pivot columns, so that we can
                 // group them.
                 //
-                // Those pivot columns are necessaary when we prefetch
+                // Those pivot columns are necessary when we prefetch
                 // indirect associations:
                 //
                 //      // SELECT country.*, passport.citizenId AS grdb_citizenId
-                //      // --                ^ the necessaary pivot column
+                //      // --                ^ the necessary pivot column
                 //      // FROM country
                 //      // JOIN passport ON passport.countryCode = country.code
                 //      //               AND passport.citizenId IN (1, 2, 3)
                 //      Citizen.including(all: Citizen.countries)
                 //
-                // Those pivot columns are redundant when we prefetch
-                // direct associations:
+                // Those pivot columns are redundant when we prefetch direct
+                // associations (maybe we'll remove this redundancy later):
                 //
                 //      // SELECT *, authorId AS grdb_authorId
                 //      // --        ^ the redundant pivot column
                 //      // FROM book
                 //      // WHERE authorId IN (1, 2, 3)
                 //      Author.including(all: Author.books)
-                //
-                // Maybe we'll remove this redundancy later.
                 let pivotColumns = pivotMapping.map { $0.right }
                 let pivotAlias = TableAlias()
                 let prefetchedRelation = association

@@ -1282,7 +1282,7 @@ extension Row {
         private let row: Row
         private let scopes: [String: LayoutedRowAdapter]
         private let prefetchedRows: Row.PrefetchedRowsView
-
+        
         /// The scopes defined on this row.
         public var names: Dictionary<String, LayoutedRowAdapter>.Keys {
             return scopes.keys
@@ -1323,7 +1323,8 @@ extension Row {
                 //
                 //      let request = A.including(required: A.b.including(all: B.c))
                 //      let row = try Row.fetchOne(db, request)!
-                //      row.scopes["b"]!.prefetchedRows["cs"]
+                //      row.prefetchedRows["cs"]              // Some array
+                //      row.scopes["b"]!.prefetchedRows["cs"] // The same array
                 adaptedRow.prefetchedRows = Row.PrefetchedRowsView(prefetches: prefetch.prefetches)
             }
             return (name: name, row: adaptedRow)
@@ -1432,7 +1433,15 @@ extension Row {
             return prefetches.isEmpty
         }
 
-        /// The prefetch keys defined on this row
+        /// The keys for available prefetched rows
+        ///
+        /// For example:
+        ///
+        ///     let request = Author.including(all: Author.books)
+        ///     let row = try Row.fetchOne(db, request)!
+        ///
+        ///     print(row.prefetchedRows.keys)
+        ///     // Prints ["books"]
         public var keys: Set<String> {
             var result: Set<String> = []
             var fifo = Array(prefetches)
@@ -1448,6 +1457,18 @@ extension Row {
 
         /// Returns the rows associated with the given key, by performing a
         /// breadth-first search in this row's prefetch tree.
+        ///
+        /// For example:
+        ///
+        ///     let request = Author.including(all: Author.books)
+        ///     let row = try Row.fetchOne(db, request)!
+        ///
+        ///     print(row)
+        ///     // Prints [id:1 name:"Herman Melville"]
+        ///
+        ///     let bookRows = row.prefetchedRows["books"]
+        ///     print(bookRows[0])
+        ///     // Prints [id:42 title:"Moby-Dick"]
         public subscript(_ key: String) -> [Row]? {
             var fifo = Array(prefetches)
             while !fifo.isEmpty {

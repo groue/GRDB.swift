@@ -15,7 +15,6 @@ extension QueryInterfaceRequest where RowDecoder: FetchableRecord {
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable // TODO: should not be inlinable
     public func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder> {
         return try RowDecoder.fetchCursor(db, self)
     }
@@ -28,7 +27,6 @@ extension QueryInterfaceRequest where RowDecoder: FetchableRecord {
     /// - parameter db: A database connection.
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable // TODO: should not be inlinable
     public func fetchAll(_ db: Database) throws -> [RowDecoder] {
         return try RowDecoder.fetchAll(db, self)
     }
@@ -41,7 +39,6 @@ extension QueryInterfaceRequest where RowDecoder: FetchableRecord {
     /// - parameter db: A database connection.
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable // TODO: should not be inlinable
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
         return try RowDecoder.fetchOne(db, self)
     }
@@ -69,9 +66,8 @@ extension FetchableRecord {
     ///     - sql: a FetchRequest.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable // TODO: should not be inlinable
     public static func fetchCursor<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> RecordCursor<Self> {
-        precondition(request.prefetchedAssociations.isEmpty, "Not implemented: fetching cursor with prefetched associations")
+        precondition(request.prefetchedAssociations.isEmpty, "Not implemented: fetchCursor with prefetched associations")
         let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         return try fetchCursor(statement, adapter: adapter)
     }
@@ -86,7 +82,6 @@ extension FetchableRecord {
     ///     - sql: a FetchRequest.
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable // TODO: should not be inlinable
     public static func fetchAll<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> [Self] {
         let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         let associations = request.prefetchedAssociations
@@ -109,7 +104,6 @@ extension FetchableRecord {
     ///     - sql: a FetchRequest.
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable // TODO: should not be inlinable
     public static func fetchOne<T>(_ db: Database, _ request: QueryInterfaceRequest<T>) throws -> Self? {
         let (statement, adapter) = try request.prepare(db, forSingleResult: true)
         let associations = request.prefetchedAssociations
