@@ -17,7 +17,8 @@ extension String {
     }
 }
 
-struct Inflections {
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+public struct Inflections {
     private var pluralizeRules: [(NSRegularExpression, String)] = []
     private var singularizeRules: [(NSRegularExpression, String)] = []
     private var uncountablesRegularExpressions: [String: NSRegularExpression] = [:]
@@ -28,16 +29,35 @@ struct Inflections {
     public init() {
     }
     
+    /// Appends a pluralization rule.
+    ///
+    ///     var inflections = Inflections()
+    ///     inflections.plural("$", "s")
+    ///     inflections.pluralize("foo") // "foos"
+    ///     inflections.pluralize("bar") // "bars"
     public mutating func plural(_ pattern: String, options: NSRegularExpression.Options = [.caseInsensitive], _ template: String) {
         let reg = try! NSRegularExpression(pattern: pattern, options: options)
         pluralizeRules.append((reg, template))
     }
     
+    /// Appends a singularization rule.
+    ///
+    ///     var inflections = Inflections()
+    ///     inflections.singular("s$", "")
+    ///     inflections.singularize("foos") // "foo"
+    ///     inflections.singularize("bars") // "bar"
     public mutating func singular(_ pattern: String, options: NSRegularExpression.Options = [.caseInsensitive], _ template: String) {
         let reg = try! NSRegularExpression(pattern: pattern, options: options)
         singularizeRules.append((reg, template))
     }
     
+    /// Appends uncountable words.
+    ///
+    ///     var inflections = Inflections()
+    ///     inflections.plural("$", "s")
+    ///     inflections.uncountable("foo")
+    ///     inflections.pluralize("foo") // "foo"
+    ///     inflections.pluralize("bar") // "bars"
     public mutating func uncountable(_ words: String...) {
         for word in words {
             let escWord = NSRegularExpression.escapedPattern(for: word)
@@ -45,6 +65,13 @@ struct Inflections {
         }
     }
     
+    /// Appends an irregular singular/plural pair.
+    ///
+    ///     var inflections = Inflections()
+    ///     inflections.plural("$", "s")
+    ///     inflections.irregular("man", "men")
+    ///     inflections.pluralize("man")      // "men"
+    ///     inflections.singularizes("women") // "woman"
     public mutating func irregular(_ singular: String, _ plural: String) {
         let s0 = singular.first!
         let srest = singular.dropFirst()
@@ -71,16 +98,7 @@ struct Inflections {
         }
     }
     
-    func isUncountable(_ string: String) -> Bool {
-        let range = NSRange(location: 0, length: string.utf16.count)
-        for (_, reg) in uncountablesRegularExpressions {
-            if reg.firstMatch(in: string, options: [], range: range) != nil {
-                return true
-            }
-        }
-        return false
-    }
-    
+    /// Returns a pluralized string.
     public func pluralize(_ string: String) -> String {
         if isUncountable(string) {
             return string
@@ -88,11 +106,22 @@ struct Inflections {
         return inflect(string, with: pluralizeRules)
     }
     
+    /// Returns a singularized string.
     public func singularize(_ string: String) -> String {
         if isUncountable(string) {
             return string
         }
         return inflect(string, with: singularizeRules)
+    }
+    
+    private func isUncountable(_ string: String) -> Bool {
+        let range = NSRange(location: 0, length: string.utf16.count)
+        for (_, reg) in uncountablesRegularExpressions {
+            if reg.firstMatch(in: string, options: [], range: range) != nil {
+                return true
+            }
+        }
+        return false
     }
     
     private func inflect(_ string: String, with rules: [(NSRegularExpression, String)]) -> String {
@@ -112,6 +141,7 @@ struct Inflections {
 }
 
 extension Inflections {
+    /// The default inflections
     static var `default`: Inflections = {
         // Defines the standard inflection rules. These are the starting point
         // for new projects and are not considered complete. The current set of
@@ -165,7 +195,7 @@ extension Inflections {
         inflections.singular("^(a)x[ie]s$", "$1xis")
         inflections.singular("(octop|vir)(us|i)$", "$1us")
         inflections.singular("(alias|status)(es)?$", "$1")
-        inflections.singular("^(ox)en", "$1")
+        inflections.singular("^(ox)en$", "$1")
         inflections.singular("(vert|ind)ices$", "$1ex")
         inflections.singular("(matr)ices$", "$1ix")
         inflections.singular("(quiz)zes$", "$1")
