@@ -107,7 +107,9 @@
         "database"    : "databases",
         
         "slice"       : "slices",
-        "police"      : "police"
+        "police"      : "police",
+        
+        "specimen"    : "specimens"
     },
     
     "Irregularities": {

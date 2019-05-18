@@ -189,6 +189,7 @@ extension Inflections {
         inflections.irregular("sex", "sexes")
         inflections.irregular("move", "moves")
         inflections.irregular("zombie", "zombies")
+        inflections.irregular("specimen", "specimens")
         
         return inflections
     }()
