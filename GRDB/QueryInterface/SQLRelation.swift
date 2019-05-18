@@ -446,7 +446,7 @@ struct SQLAssociationCondition: Equatable {
     /// `right.a IN (1, 2, 3)`.
     func filteringExpression(_ db: Database, leftRows: [Row], rightAlias: TableAlias) throws -> SQLExpression {
         if leftRows.isEmpty {
-            // Degenerate case: therre is no row to attach
+            // Degenerate case: there is no row to attach
             return false.sqlExpression
         }
         

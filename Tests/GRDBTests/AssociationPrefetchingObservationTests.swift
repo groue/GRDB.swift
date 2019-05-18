@@ -88,12 +88,9 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
             do {
                 let request = A
                     .including(all: A
-                        .hasMany(B.self)
-                        .orderByPrimaryKey()
-                        .forKey("bs"))  // TODO: auto-pluralization
-                    .orderByPrimaryKey()
+                        .hasMany(B.self))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "TODO")
+                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),b(colb1,colb2,colb3)")
             }
             
             // Request with filters
@@ -103,16 +100,23 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                     .including(all: A
                         .hasMany(B.self)
                         .filter(Column("colb1") == 4)
-                        .orderByPrimaryKey()
                         .forKey("bs1"))
                     .including(all: A
                         .hasMany(B.self)
                         .filter(Column("colb1") != 4)
-                        .orderByPrimaryKey()
                         .forKey("bs2"))
-                    .orderByPrimaryKey()
+
+                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),b(colb1,colb2,colb3)")
+            }
+            
+            // Request with altered selection
+            do {
+                let request = A
+                    .including(all: A
+                        .hasMany(B.self)
+                        .select(Column("colb1")))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "TODO")
+                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),b(colb1,colb2)")
             }
         }
     }
@@ -126,14 +130,9 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                     .including(all: A
                         .hasMany(C.self)
                         .including(all: C
-                            .hasMany(D.self)
-                            .orderByPrimaryKey()
-                            .forKey("ds"))  // TODO: auto-pluralization
-                        .orderByPrimaryKey()
-                        .forKey("cs"))  // TODO: auto-pluralization
-                    .orderByPrimaryKey()
+                            .hasMany(D.self)))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "TODO")
+                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
             
             // Request with filters
@@ -146,14 +145,11 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                         .including(all: C
                             .hasMany(D.self)
                             .filter(Column("cold1") == 11)
-                            .orderByPrimaryKey()
                             .forKey("ds1"))
                         .including(all: C
                             .hasMany(D.self)
                             .filter(Column("cold1") != 11)
-                            .orderByPrimaryKey()
                             .forKey("ds2"))
-                        .orderByPrimaryKey()
                         .forKey("cs1"))
                     .including(all: A
                         .hasMany(C.self)
@@ -161,18 +157,14 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                         .including(all: C
                             .hasMany(D.self)
                             .filter(Column("cold1") == 11)
-                            .orderByPrimaryKey()
                             .forKey("ds1"))
                         .including(all: C
                             .hasMany(D.self)
                             .filter(Column("cold1") != 11)
-                            .orderByPrimaryKey()
                             .forKey("ds2"))
-                        .orderByPrimaryKey()
                         .forKey("cs2"))
-                    .orderByPrimaryKey()
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "TODO")
+                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
         }
     }
@@ -186,13 +178,9 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                     .including(all: A
                         .hasMany(C.self)
                         .including(required: C
-                            .hasMany(D.self)
-                            .orderByPrimaryKey())
-                        .orderByPrimaryKey()
-                        .forKey("cs"))  // TODO: auto-pluralization
-                    .orderByPrimaryKey()
+                            .hasMany(D.self)))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "TODO")
+                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
             
             // Request with filters
@@ -205,14 +193,11 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                         .including(optional: C
                             .hasMany(D.self)
                             .filter(Column("cold1") == 11)
-                            .orderByPrimaryKey()
                             .forKey("d1"))
                         .including(required: C
                             .hasMany(D.self)
                             .filter(Column("cold1") != 11)
-                            .orderByPrimaryKey()
                             .forKey("d2"))
-                        .orderByPrimaryKey()
                         .forKey("cs1"))
                     .including(all: A
                         .hasMany(C.self)
@@ -220,18 +205,14 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                         .including(optional: C
                             .hasMany(D.self)
                             .filter(Column("cold1") == 11)
-                            .orderByPrimaryKey()
                             .forKey("d1"))
                         .including(required: C
                             .hasMany(D.self)
                             .filter(Column("cold1") != 11)
-                            .orderByPrimaryKey()
                             .forKey("d2"))
-                        .orderByPrimaryKey()
                         .forKey("cs2"))
-                    .orderByPrimaryKey()
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "TODO")
+                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
         }
     }
@@ -243,12 +224,9 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
             do {
                 let request = A
                     .including(all: A
-                        .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
-                        .orderByPrimaryKey()
-                        .forKey("ds"))  // TODO: auto-pluralization
-                    .orderByPrimaryKey()
+                        .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self)))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "TODO")
+                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
             
             // Request with filters
@@ -257,21 +235,17 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                     .filter(Column("cola1") != 3)
                     .including(all: A
                         .hasMany(D.self, through: A.hasMany(C.self).filter(Column("colc1") == 8), using: C.hasMany(D.self))
-                        .orderByPrimaryKey()
                         .forKey("ds1"))
                     .including(all: A
                         .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
                         .filter(Column("cold1") != 11)
-                        .orderByPrimaryKey()
                         .forKey("ds2"))
                     .including(all: A
                         .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
                         .filter(Column("cold1") == 11)
-                        .orderByPrimaryKey()
                         .forKey("ds3"))
-                    .orderByPrimaryKey()
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "TODO")
+                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
         }
     }
@@ -283,14 +257,11 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
             do {
                 let cs = A.hasMany(C.self).forKey("cs")
                 let request = A
-                    .including(all: cs.orderByPrimaryKey())
+                    .including(all: cs)
                     .including(all: A
-                        .hasMany(D.self, through: cs, using: C.hasMany(D.self))
-                        .orderByPrimaryKey()
-                        .forKey("ds"))  // TODO: auto-pluralization
-                    .orderByPrimaryKey()
+                        .hasMany(D.self, through: cs, using: C.hasMany(D.self)))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "TODO")
+                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
             
             // Request with filters
@@ -300,24 +271,19 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                 let request = A
                     .filter(Column("cola1") != 3)
                     .including(all: cs1
-                        .filter(Column("colc1") != 8)
-                        .orderByPrimaryKey())
+                        .filter(Column("colc1") != 8))
                     .including(all: A
                         .hasMany(D.self, through: cs1, using: C.hasMany(D.self))
                         .filter(Column("cold1") != 11)
-                        .orderByPrimaryKey()
                         .forKey("ds1"))
                     .including(all: cs2
-                        .filter(Column("colc1") != 9)
-                        .orderByPrimaryKey())
+                        .filter(Column("colc1") != 9))
                     .including(all: A
                         .hasMany(D.self, through: cs2, using: C.hasMany(D.self))
                         .filter(Column("cold1") == 11)
-                        .orderByPrimaryKey()
                         .forKey("ds2"))
-                    .orderByPrimaryKey()
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "TODO")
+                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
         }
     }
@@ -332,13 +298,10 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                     .including(optional: B
                         .belongsTo(A.self)
                         .including(all: A
-                            .hasMany(C.self)
-                            .orderByPrimaryKey()
-                            .forKey("cs"))  // TODO: auto-pluralization
+                            .hasMany(C.self))
                     )
-                    .orderByPrimaryKey()
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "TODO")
+                try XCTAssertEqual(request.databaseRegion(db).description, "a(*),b(colb1,colb2,colb3),c(colc1,colc2)")
             }
             
             // Request with filters
@@ -350,12 +313,10 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                         .including(all: A
                             .hasMany(C.self)
                             .filter(Column("colc1") == 9)
-                            .orderByPrimaryKey()
                             .forKey("cs1"))
                         .including(all: A
                             .hasMany(C.self)
                             .filter(Column("colc1") != 9)
-                            .orderByPrimaryKey()
                             .forKey("cs2"))
                         .forKey("a1"))
                     .including(optional: B
@@ -364,17 +325,14 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                         .including(all: A
                             .hasMany(C.self)
                             .filter(Column("colc1") == 9)
-                            .orderByPrimaryKey()
                             .forKey("cs1"))
                         .including(all: A
                             .hasMany(C.self)
                             .filter(Column("colc1") != 9)
-                            .orderByPrimaryKey()
                             .forKey("cs2"))
                         .forKey("a2"))
-                    .orderByPrimaryKey()
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "TODO")
+                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),b(colb1,colb2,colb3),c(colc1,colc2)")
             }
         }
     }

@@ -79,8 +79,33 @@ extension QueryInterfaceRequest : FetchRequest {
     /// - parameter db: A database connection.
     /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        // TODO: include prefetched regions
-        return try SQLSelectQueryGenerator(query).databaseRegion(db)
+        var region = try SQLSelectQueryGenerator(query).databaseRegion(db)
+        
+        // Iterate all prefetched associations
+        var fifo = query.relation.prefetchedAssociations
+        while !fifo.isEmpty {
+            let association = fifo.removeFirst()
+            
+            // Build the query for prefetched rows.
+            // CAUTION: Keep this code in sync with Row.prefetch(_:associations:in:)
+            let pivotMapping = try association.pivotCondition.columnMapping(db)
+            let pivotColumns = pivotMapping.map { $0.right }
+            let pivotAlias = TableAlias()
+            let prefetchedRelation = association
+                .mapPivotRelation { $0.qualified(with: pivotAlias) }
+                .destinationRelation(fromOriginRows: { _ in [] /* no origin row */ })
+                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].aliased("grdb_\($0)") })
+            let prefetchedQuery = SQLSelectQuery(relation: prefetchedRelation)
+            
+            // Union region
+            try region.formUnion(SQLSelectQueryGenerator(prefetchedQuery).databaseRegion(db))
+            
+            // Append nested prefetched associations (support for
+            // A.including(all: A.bs.including(all: B.cs))
+            fifo.append(contentsOf: prefetchedRelation.prefetchedAssociations)
+        }
+        
+        return region
     }
 }
 

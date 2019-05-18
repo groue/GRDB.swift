@@ -149,6 +149,7 @@ extension Row {
             return
         }
         
+        // CAUTION: Keep this code in sync with QueryInterfaceRequest.databaseRegion(_:)
         for association in associations {
             let pivotMapping = try association.pivotCondition.columnMapping(db)
             
