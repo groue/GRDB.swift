@@ -303,7 +303,23 @@ private struct SQLQualifiedRelation {
         
         // Qualify all joins, selection, filter, and ordering, so that all
         // identifiers can be correctly disambiguated and qualified.
-        joins = relation.children.compactMapValues(SQLQualifiedJoin.init)
+        joins = relation.children.compactMapValues { child -> SQLQualifiedJoin? in
+            let kind: SQLQualifiedJoin.Kind
+            switch child.kind {
+            case .oneRequired:
+                kind = .innerJoin
+            case .oneOptional:
+                kind = .leftJoin
+            case .allPrefetched, .allNotPrefetched:
+                // This relation child is not fetched with an SQL join.
+                return nil
+            }
+            
+            return SQLQualifiedJoin(
+                kind: kind,
+                condition: child.condition,
+                relation: SQLQualifiedRelation(child.relation))
+        }
         ownSelection = relation.selection.map { $0.qualifiedSelectable(with: alias) }
         filterPromise = relation.filterPromise.map { [alias] in $0?.qualifiedExpression(with: alias) }
         ownOrdering = relation.ordering.qualified(with: alias)
@@ -419,28 +435,13 @@ private enum SQLQualifiedSource {
 
 /// A "qualified" join, where all tables are identified with a table alias.
 private struct SQLQualifiedJoin {
-    private enum Kind: String {
+    enum Kind: String {
         case leftJoin = "LEFT JOIN"
         case innerJoin = "JOIN"
     }
-    private let kind: Kind
-    private let condition: SQLAssociationCondition
+    let kind: Kind
+    let condition: SQLAssociationCondition
     let relation: SQLQualifiedRelation
-    
-    init?(_ child: SQLRelation.Child) {
-        switch child.kind {
-        case .oneRequired:
-            self.kind = .innerJoin
-        case .oneOptional:
-            self.kind = .leftJoin
-        case .allPrefetched, .allNotPrefetched:
-            // This relation child is not fetched with an SQL join.
-            return nil
-        }
-        
-        self.condition = child.condition
-        self.relation = SQLQualifiedRelation(child.relation)
-    }
     
     func sql(_ db: Database,_ context: inout SQLGenerationContext, leftAlias: TableAlias) throws -> String {
         return try sql(db, &context, leftAlias: leftAlias, allowingInnerJoin: true)

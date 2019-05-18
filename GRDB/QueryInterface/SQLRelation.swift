@@ -128,7 +128,7 @@ struct SQLRelation {
             }
         }
         
-        fileprivate func associationForKey(_ key: String) -> SQLAssociation {
+        fileprivate func makeAssociationForKey(_ key: String) -> SQLAssociation {
             return SQLAssociation(key: key, condition: condition, relation: relation)
         }
         
@@ -147,10 +147,10 @@ struct SQLRelation {
         return children.flatMap { key, child -> [SQLAssociation] in
             switch child.kind {
             case .allPrefetched:
-                return [child.associationForKey(key)]
+                return [child.makeAssociationForKey(key)]
             case .oneOptional, .oneRequired, .allNotPrefetched:
                 return child.relation.prefetchedAssociations.map {
-                    $0.through(child.associationForKey(key))
+                    $0.through(child.makeAssociationForKey(key))
                 }
             }
         }
