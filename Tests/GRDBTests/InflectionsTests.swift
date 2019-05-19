@@ -24,37 +24,68 @@ class InflectionsTests: GRDBTestCase {
         return try! JSONDecoder().decode(InflectionTestCases.self, from: data)
     }
     
-    func testIndexOfLastWord() {
+    func testStartIndexOfLastWord() {
         func lastWord(_ string: String) -> String {
-            return String(string.suffix(from: Inflections.indexOfLastWord(string)))
+            return String(string.suffix(from: Inflections.startIndexOfLastWord(string)))
         }
         XCTAssertEqual(lastWord(""), "")
         XCTAssertEqual(lastWord(" "), " ")
         XCTAssertEqual(lastWord("_"), "_")
-        XCTAssertEqual(lastWord("foo"), "foo")
-        XCTAssertEqual(lastWord("Foo"), "Foo")
-        XCTAssertEqual(lastWord("FOO"), "FOO")
-        XCTAssertEqual(lastWord("foo bar"), "bar")
-        XCTAssertEqual(lastWord("Foo Bar"), "Bar")
-        XCTAssertEqual(lastWord("FOO BAR"), "BAR")
-        XCTAssertEqual(lastWord("foo_bar"), "bar")
-        XCTAssertEqual(lastWord("Foo_Bar"), "Bar")
-        XCTAssertEqual(lastWord("FOO_BAR"), "BAR")
-        XCTAssertEqual(lastWord("foobar"), "foobar")
-        XCTAssertEqual(lastWord("FooBar"), "Bar")
-        XCTAssertEqual(lastWord("FOOBAR"), "FOOBAR")
-        XCTAssertEqual(lastWord("foo1"), "foo1")
-        XCTAssertEqual(lastWord("Foo1"), "Foo1")
-        XCTAssertEqual(lastWord("FOO1"), "FOO1")
-        XCTAssertEqual(lastWord("foo bar1"), "bar1")
-        XCTAssertEqual(lastWord("Foo Bar1"), "Bar1")
-        XCTAssertEqual(lastWord("FOO BAR1"), "BAR1")
-        XCTAssertEqual(lastWord("foo_bar1"), "bar1")
-        XCTAssertEqual(lastWord("Foo_Bar1"), "Bar1")
-        XCTAssertEqual(lastWord("FOO_BAR1"), "BAR1")
-        XCTAssertEqual(lastWord("foobar1"), "foobar1")
-        XCTAssertEqual(lastWord("FooBar1"), "Bar1")
-        XCTAssertEqual(lastWord("FOOBAR1"), "FOOBAR1")
+        
+        XCTAssertEqual(lastWord("player"), "player")
+        XCTAssertEqual(lastWord("Player"), "Player")
+        XCTAssertEqual(lastWord("PLAYER"), "PLAYER")
+        
+        XCTAssertEqual(lastWord(" player"), "player")
+        XCTAssertEqual(lastWord(" Player"), "Player")
+        XCTAssertEqual(lastWord(" PLAYER"), "PLAYER")
+        
+        XCTAssertEqual(lastWord("_player"), "player")
+        XCTAssertEqual(lastWord("_Player"), "Player")
+        XCTAssertEqual(lastWord("_PLAYER"), "PLAYER")
+        
+        XCTAssertEqual(lastWord("player score"), "score")
+        XCTAssertEqual(lastWord("player Score"), "Score")
+        XCTAssertEqual(lastWord("Player Score"), "Score")
+        XCTAssertEqual(lastWord("PLAYER SCORE"), "SCORE")
+        
+        XCTAssertEqual(lastWord("player_score"), "score")
+        XCTAssertEqual(lastWord("player_Score"), "Score")
+        XCTAssertEqual(lastWord("Player_Score"), "Score")
+        XCTAssertEqual(lastWord("PLAYER_SCORE"), "SCORE")
+        
+        XCTAssertEqual(lastWord("playerScore"), "Score")
+        XCTAssertEqual(lastWord("PlayerScore"), "Score")
+        
+        XCTAssertEqual(lastWord("best player score"), "score")
+        XCTAssertEqual(lastWord("best player Score"), "Score")
+        XCTAssertEqual(lastWord("Best Player Score"), "Score")
+        XCTAssertEqual(lastWord("BEST PLAYER SCORE"), "SCORE")
+        
+        XCTAssertEqual(lastWord("best_player_score"), "score")
+        XCTAssertEqual(lastWord("best_player_Score"), "Score")
+        XCTAssertEqual(lastWord("Best_Player_Score"), "Score")
+        XCTAssertEqual(lastWord("BEST_PLAYER_SCORE"), "SCORE")
+        
+        XCTAssertEqual(lastWord("bestPlayerScore"), "Score")
+        XCTAssertEqual(lastWord("BestPlayerScore"), "Score")
+        
+        XCTAssertEqual(lastWord("player1"), "player1")
+        XCTAssertEqual(lastWord("Player1"), "Player1")
+        XCTAssertEqual(lastWord("PLAYER1"), "PLAYER1")
+        
+        XCTAssertEqual(lastWord("player score1"), "score1")
+        XCTAssertEqual(lastWord("player Score1"), "Score1")
+        XCTAssertEqual(lastWord("Player Score1"), "Score1")
+        XCTAssertEqual(lastWord("PLAYER SCORE1"), "SCORE1")
+        
+        XCTAssertEqual(lastWord("player_score1"), "score1")
+        XCTAssertEqual(lastWord("player_Score1"), "Score1")
+        XCTAssertEqual(lastWord("Player_Score1"), "Score1")
+        XCTAssertEqual(lastWord("PLAYER_SCORE1"), "SCORE1")
+        
+        XCTAssertEqual(lastWord("playerScore1"), "Score1")
+        XCTAssertEqual(lastWord("PlayerScore1"), "Score1")
     }
     
     func testPluralizePlurals() {

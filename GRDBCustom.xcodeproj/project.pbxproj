@@ -339,6 +339,8 @@
 		569BBA41229065CF00478429 /* InflectionsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569BBA3E229065CF00478429 /* InflectionsTests.swift */; };
 		569BBA43229066CB00478429 /* InflectionsTests.json in Resources */ = {isa = PBXBuildFile; fileRef = 569BBA42229066CB00478429 /* InflectionsTests.json */; };
 		569BBA44229066CB00478429 /* InflectionsTests.json in Resources */ = {isa = PBXBuildFile; fileRef = 569BBA42229066CB00478429 /* InflectionsTests.json */; };
+		569BBA4C229170B300478429 /* Inflections+English.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569BBA4B229170B300478429 /* Inflections+English.swift */; };
+		569BBA4D229170B300478429 /* Inflections+English.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569BBA4B229170B300478429 /* Inflections+English.swift */; };
 		569EF0E6200D37FD00A9FA45 /* DatabaseRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569EF0E5200D37FC00A9FA45 /* DatabaseRegion.swift */; };
 		569EF0E7200D37FD00A9FA45 /* DatabaseRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569EF0E5200D37FC00A9FA45 /* DatabaseRegion.swift */; };
 		56A4CDB31D4234B200B1A9B9 /* SQLExpressionLiteralTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A4CDAF1D4234B200B1A9B9 /* SQLExpressionLiteralTests.swift */; };
@@ -904,6 +906,7 @@
 		569BBA29228DE53200478429 /* AssociationPrefetchingFetchableRecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingFetchableRecordTests.swift; sourceTree = "<group>"; };
 		569BBA3E229065CF00478429 /* InflectionsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InflectionsTests.swift; sourceTree = "<group>"; };
 		569BBA42229066CB00478429 /* InflectionsTests.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = InflectionsTests.json; sourceTree = "<group>"; };
+		569BBA4B229170B300478429 /* Inflections+English.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Inflections+English.swift"; sourceTree = "<group>"; };
 		569C1EB11CF07DDD0042627B /* SchedulingWatchdogTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SchedulingWatchdogTests.swift; sourceTree = "<group>"; };
 		569EF0E5200D37FC00A9FA45 /* DatabaseRegion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseRegion.swift; sourceTree = "<group>"; };
 		56A238131B9C74A90082EB20 /* DatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseTests.swift; sourceTree = "<group>"; };
@@ -1394,6 +1397,7 @@
 			isa = PBXGroup;
 			children = (
 				563EF44C2161F196007DAACD /* Inflections.swift */,
+				569BBA4B229170B300478429 /* Inflections+English.swift */,
 				563EF41E215F8A76007DAACD /* OrderedDictionary.swift */,
 				5659F4971EA8D989004A4992 /* Pool.swift */,
 				5659F48F1EA8D964004A4992 /* ReadWriteBox.swift */,
@@ -2081,6 +2085,7 @@
 				5653EB5520961F7D00F46237 /* QueryInterfaceRequest+Association.swift in Sources */,
 				F3BA802B1CFB289B003DC1BA /* QueryInterfaceRequest.swift in Sources */,
 				5698AD171DAAD16F0056AF8C /* FTS5Tokenizer.swift in Sources */,
+				569BBA4C229170B300478429 /* Inflections+English.swift in Sources */,
 				561729552235340E0006E219 /* EncodableRecord.swift in Sources */,
 				F3BA80131CFB2876003DC1BA /* DatabaseValue.swift in Sources */,
 				56B964B61DA51D010002DA19 /* FTS5TokenizerDescriptor.swift in Sources */,
@@ -2407,6 +2412,7 @@
 				5653EB5420961F7D00F46237 /* QueryInterfaceRequest+Association.swift in Sources */,
 				F3BA80871CFB2E70003DC1BA /* QueryInterfaceRequest.swift in Sources */,
 				5698AD161DAAD16F0056AF8C /* FTS5Tokenizer.swift in Sources */,
+				569BBA4D229170B300478429 /* Inflections+English.swift in Sources */,
 				561729562235340E0006E219 /* EncodableRecord.swift in Sources */,
 				F3BA806F1CFB2E55003DC1BA /* DatabaseValue.swift in Sources */,
 				56B964B31DA51D010002DA19 /* FTS5TokenizerDescriptor.swift in Sources */,
