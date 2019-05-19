@@ -545,7 +545,8 @@ extension Row {
     ///     print(country.name)
     ///     // Prints "United States"
     ///
-    /// A fatal error is raised if the scope is not available.
+    /// A fatal error is raised if the scope is not available, or contains only
+    /// null values.
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
@@ -553,6 +554,10 @@ extension Row {
         guard let scopedRow = scopesTree[scope] else {
             // Programmer error
             fatalError("missing scope `\(scope)` (row: \(self))")
+        }
+        guard scopedRow.containsNonNullValue else {
+            // Programmer error
+            fatalError("scope `\(scope)` only contains null values (row: \(self))")
         }
         return Record(row: scopedRow)
     }
@@ -637,7 +642,7 @@ extension Row {
     ///     // Prints "Herman Melville"
     ///
     ///     let books: Set<Book> = row["books"]
-    ///     print(books[0].title)
+    ///     print(books.first!.title)
     ///     // Prints "Moby-Dick"
     public subscript<Record: FetchableRecord & Hashable>(_ key: String) -> Set<Record> {
         guard let rows = prefetchedRows[key] else {
@@ -1399,6 +1404,8 @@ extension Row {
         ///     let countryRow = row.scopesTree["country"]
         ///     print(countryRow)
         ///     // Prints [code:"US" name:"United States"]
+        ///
+        /// Nil is returned if the scope is not available.
         public subscript(_ name: String) -> Row? {
             var fifo = Array(scopes)
             while !fifo.isEmpty {
@@ -1485,6 +1492,8 @@ extension Row {
         ///
         /// Prefetched rows stored in nested "to-one" associations are
         /// available, too.
+        ///
+        /// Nil is returned if the key is not available.
         public subscript(_ key: String) -> [Row]? {
             var fifo = Array(prefetches)
             while !fifo.isEmpty {
