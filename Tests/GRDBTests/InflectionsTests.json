@@ -117,7 +117,14 @@
         "advice"      : "advice",
         "thesis"      : "theses",
         "dice"        : "dice",
-        "kudos"       : "kudos"
+        "kudos"       : "kudos",
+        "life"        : "lives",
+        "leaf"        : "leaves",
+        "proof"       : "proofs",
+        "hero"        : "heroes",
+        "foot"        : "feet",
+        "matrix"      : "matrices",
+        "watch"       : "watches"
     },
     
     "Irregularities": {

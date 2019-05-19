@@ -61,7 +61,7 @@ extension Inflections {
         inflections.plural("(octop|vir)i$", "$1i")
         inflections.plural("(alias|status)$", "$1es")
         inflections.plural("(bu)s$", "$1ses")
-        inflections.plural("(buffal|tomat)o$", "$1oes")
+        inflections.plural("(buffal|tomat|her)o$", "$1oes")
         inflections.plural("([ti])um$", "$1a")
         inflections.plural("([ti])a$", "$1a")
         inflections.plural("sis$", "ses")
@@ -124,6 +124,8 @@ extension Inflections {
             ])
         
         inflections.irregular("child", "children")
+        inflections.irregular("foot", "feet")
+        inflections.irregular("leaf", "leaves")
         inflections.irregular("man", "men")
         inflections.irregular("move", "moves")
         inflections.irregular("person", "people")
