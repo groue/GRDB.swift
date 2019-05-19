@@ -12,13 +12,13 @@ private struct A : TableRecord {
     static let databaseTableName = "a"
     static let parent = belongsTo(A.self)
     static let child = hasOne(A.self)
-    static let b1 = belongsTo(B.self, name: "b1", using: ForeignKey(["bid1"]))
-    static let b2 = belongsTo(B.self, name: "b2", using: ForeignKey(["bid2"]))
+    static let b1 = belongsTo(B.self, key: "b1", using: ForeignKey(["bid1"]))
+    static let b2 = belongsTo(B.self, key: "b2", using: ForeignKey(["bid2"]))
 }
 private struct B : TableRecord {
     static let databaseTableName = "b"
-    static let a1 = hasOne(A.self, name: "a1", using: ForeignKey(["bid1"]))
-    static let a2 = hasOne(A.self, name: "a1", using: ForeignKey(["bid2"]))
+    static let a1 = hasOne(A.self, key: "a1", using: ForeignKey(["bid1"]))
+    static let a2 = hasOne(A.self, key: "a1", using: ForeignKey(["bid2"]))
 }
 
 /// Tests for table name conflicts, recursive associations,

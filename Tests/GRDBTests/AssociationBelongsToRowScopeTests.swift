@@ -14,7 +14,7 @@ private struct Team: Codable, FetchableRecord, PersistableRecord {
 private struct Player: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "players"
     static let defaultTeam = belongsTo(Team.self)
-    static let customTeam = belongsTo(Team.self, name: "customTeam")
+    static let customTeam = belongsTo(Team.self, key: "customTeam")
     var id: Int64
     var teamId: Int64?
     var name: String

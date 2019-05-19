@@ -9,7 +9,7 @@ private struct A: TableRecord, FetchableRecord, Decodable, Equatable {
     var cola1: Int64
     var cola2: String
 }
-private struct B: TableRecord, FetchableRecord, Decodable, Hashable {
+private struct B: TableRecord, FetchableRecord, Decodable, Equatable, Hashable {
     var colb1: Int64
     var colb2: Int64?
     var colb3: String
@@ -89,8 +89,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 let request = A
                     .including(all: A
                         .hasMany(B.self)
-                        .orderByPrimaryKey()
-                        .forKey("bs"))  // TODO: auto-pluralization
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 // Array
@@ -244,10 +243,8 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .hasMany(C.self)
                         .including(all: C
                             .hasMany(D.self)
-                            .orderByPrimaryKey()
-                            .forKey("ds"))  // TODO: auto-pluralization
-                        .orderByPrimaryKey()
-                        .forKey("cs"))  // TODO: auto-pluralization
+                            .orderByPrimaryKey())
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 struct Record: FetchableRecord, Decodable, Equatable {
@@ -317,8 +314,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .including(all: C
                             .hasMany(D.self)
                             .orderByPrimaryKey())
-                        .orderByPrimaryKey()
-                        .forKey("cs"))  // TODO: auto-pluralization
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 struct Record: FetchableRecord, Decodable, Equatable {
@@ -478,8 +474,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .including(required: C
                             .hasMany(D.self)
                             .orderByPrimaryKey())
-                        .orderByPrimaryKey()
-                        .forKey("cs"))  // TODO: auto-pluralization
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 struct Record: FetchableRecord, Decodable, Equatable {
@@ -543,8 +538,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .including(required: C
                             .hasMany(D.self)
                             .orderByPrimaryKey())
-                        .orderByPrimaryKey()
-                        .forKey("cs"))  // TODO: auto-pluralization
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 struct Record: FetchableRecord, Decodable, Equatable {
@@ -592,12 +586,12 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                             .hasMany(D.self)
                             .filter(Column("cold1") == 11)
                             .orderByPrimaryKey()
-                            .forKey("d1"))
+                            .forKey("ds1"))
                         .including(required: C
                             .hasMany(D.self)
                             .filter(Column("cold1") != 11)
                             .orderByPrimaryKey()
-                            .forKey("d2"))
+                            .forKey("ds2"))
                         .orderByPrimaryKey()
                         .forKey("cs1"))
                     .including(all: A
@@ -607,12 +601,12 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                             .hasMany(D.self)
                             .filter(Column("cold1") == 11)
                             .orderByPrimaryKey()
-                            .forKey("d1"))
+                            .forKey("ds1"))
                         .including(required: C
                             .hasMany(D.self)
                             .filter(Column("cold1") != 11)
                             .orderByPrimaryKey()
-                            .forKey("d2"))
+                            .forKey("ds2"))
                         .orderByPrimaryKey()
                         .forKey("cs2"))
                     .orderByPrimaryKey()
@@ -687,8 +681,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 let request = A
                     .including(all: A
                         .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
-                        .orderByPrimaryKey()
-                        .forKey("ds"))  // TODO: auto-pluralization
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 struct Record: FetchableRecord, Decodable, Equatable {
@@ -803,13 +796,12 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
         try dbQueue.read { db in
             // Plain request
             do {
-                let cs = A.hasMany(C.self).forKey("cs")
+                let cs = A.hasMany(C.self)
                 let request = A
                     .including(all: cs.orderByPrimaryKey())
                     .including(all: A
                         .hasMany(D.self, through: cs, using: C.hasMany(D.self))
-                        .orderByPrimaryKey()
-                        .forKey("ds"))  // TODO: auto-pluralization
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 struct Record: FetchableRecord, Decodable, Equatable {
@@ -959,8 +951,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .belongsTo(A.self)
                         .including(all: A
                             .hasMany(C.self)
-                            .orderByPrimaryKey()
-                            .forKey("cs"))  // TODO: auto-pluralization
+                            .orderByPrimaryKey())
                     )
                     .orderByPrimaryKey()
                 

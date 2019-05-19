@@ -138,7 +138,7 @@ extension TableRecord {
     ///       foreign keys from the destination table.
     public static func hasOne<Destination>(
         _ destination: Destination.Type,
-        name: String? = nil,    // TODD: fixit because `name` has replaced `key`
+        key: String? = nil,
         using foreignKey: ForeignKey? = nil)
         -> HasOneAssociation<Self, Destination>
         where Destination: TableRecord
@@ -152,8 +152,16 @@ extension TableRecord {
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: false)
         
+        let associationKey: SQLAssociationKey
+        if let key = key {
+            assert(key.singularized == key)
+            associationKey = .inflectableSingular(key)
+        } else {
+            associationKey = .inflectable(Destination.databaseTableName)
+        }
+        
         return HasOneAssociation(sqlAssociation: SQLAssociation(
-            key: SQLAssociationKey(name: name ?? Destination.databaseTableName, isInflectable: true),
+            key: associationKey,
             condition: condition,
             relation: Destination.all().relation,
             isSingular: true))

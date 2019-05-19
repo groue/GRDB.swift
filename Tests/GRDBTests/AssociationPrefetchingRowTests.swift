@@ -75,8 +75,7 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                 let request = A
                     .including(all: A
                         .hasMany(B.self)
-                        .orderByPrimaryKey()
-                        .forKey("bs"))  // TODO: auto-pluralization
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 // Row.fetchAll
@@ -201,10 +200,8 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                         .hasMany(C.self)
                         .including(all: C
                             .hasMany(D.self)
-                            .orderByPrimaryKey()
-                            .forKey("ds"))  // TODO: auto-pluralization
-                        .orderByPrimaryKey()
-                        .forKey("cs"))  // TODO: auto-pluralization
+                            .orderByPrimaryKey())
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 // Row.fetchAll
@@ -267,8 +264,7 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                         .including(all: C
                             .hasMany(D.self)
                             .orderByPrimaryKey())
-                        .orderByPrimaryKey()
-                        .forKey("cs"))  // TODO: auto-pluralization
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 // Row.fetchAll
@@ -415,8 +411,7 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                         .including(required: C
                             .hasMany(D.self)
                             .orderByPrimaryKey())
-                        .orderByPrimaryKey()
-                        .forKey("cs"))  // TODO: auto-pluralization
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 // Row.fetchAll
@@ -477,8 +472,7 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                         .including(required: C
                             .hasMany(D.self)
                             .orderByPrimaryKey())
-                        .orderByPrimaryKey()
-                        .forKey("cs"))  // TODO: auto-pluralization
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 // Row.fetchAll
@@ -526,12 +520,12 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                             .hasMany(D.self)
                             .filter(Column("cold1") == 11)
                             .orderByPrimaryKey()
-                            .forKey("d1"))
+                            .forKey("ds1"))
                         .including(required: C
                             .hasMany(D.self)
                             .filter(Column("cold1") != 11)
                             .orderByPrimaryKey()
-                            .forKey("d2"))
+                            .forKey("ds2"))
                         .orderByPrimaryKey()
                         .forKey("cs1"))
                     .including(all: A
@@ -541,12 +535,12 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                             .hasMany(D.self)
                             .filter(Column("cold1") == 11)
                             .orderByPrimaryKey()
-                            .forKey("d1"))
+                            .forKey("ds1"))
                         .including(required: C
                             .hasMany(D.self)
                             .filter(Column("cold1") != 11)
                             .orderByPrimaryKey()
-                            .forKey("d2"))
+                            .forKey("ds2"))
                         .orderByPrimaryKey()
                         .forKey("cs2"))
                     .orderByPrimaryKey()
@@ -615,8 +609,7 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                 let request = A
                     .including(all: A
                         .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
-                        .orderByPrimaryKey()
-                        .forKey("ds"))  // TODO: auto-pluralization
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 // Row.fetchAll
@@ -730,13 +723,12 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
         try dbQueue.read { db in
             // Plain request
             do {
-                let cs = A.hasMany(C.self).forKey("cs")
+                let cs = A.hasMany(C.self)
                 let request = A
                     .including(all: cs.orderByPrimaryKey())
                     .including(all: A
                         .hasMany(D.self, through: cs, using: C.hasMany(D.self))
-                        .orderByPrimaryKey()
-                        .forKey("ds"))  // TODO: auto-pluralization
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 // Row.fetchAll
@@ -877,8 +869,7 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                         .belongsTo(A.self)
                         .including(all: A
                             .hasMany(C.self)
-                            .orderByPrimaryKey()
-                            .forKey("cs"))  // TODO: auto-pluralization
+                            .orderByPrimaryKey())
                     )
                     .orderByPrimaryKey()
                 
@@ -1085,10 +1076,10 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
             let request1 = A
                 .orderByPrimaryKey()
             let request2 = A
-                .including(all: A.hasMany(B.self).orderByPrimaryKey().forKey("bs"))
+                .including(all: A.hasMany(B.self).orderByPrimaryKey())
                 .orderByPrimaryKey()
             let request3 = A
-                .including(all: A.hasMany(B.self).none().forKey("bs"))
+                .including(all: A.hasMany(B.self).none())
                 .orderByPrimaryKey()
             
             let row1 = try Row.fetchOne(db, request1)!
@@ -1134,10 +1125,10 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
             let request1 = A
                 .orderByPrimaryKey()
             let request2 = A
-                .including(all: A.hasMany(B.self).orderByPrimaryKey().forKey("bs"))
+                .including(all: A.hasMany(B.self).orderByPrimaryKey())
                 .orderByPrimaryKey()
             let request3 = A
-                .including(all: A.hasMany(B.self).none().forKey("bs"))
+                .including(all: A.hasMany(B.self).none())
                 .orderByPrimaryKey()
             
             let row1 = try Row.fetchOne(db, request1)!.copy()

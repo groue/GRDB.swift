@@ -155,32 +155,3 @@ extension Configuration {
         set { preconditionFailure() }
     }
 }
-
-extension TableRecord {
-    @available(*, unavailable, renamed: "belongsTo(_:name:using:)")
-    public static func belongsTo<Destination>(
-        _ destination: Destination.Type,
-        key: String?,
-        using foreignKey: ForeignKey? = nil)
-        -> BelongsToAssociation<Self, Destination>
-        where Destination: TableRecord
-    { preconditionFailure() }
-
-    @available(*, unavailable, renamed: "hasMany(_:name:using:)")
-    public static func hasMany<Destination>(
-        _ destination: Destination.Type,
-        key: String?,
-        using foreignKey: ForeignKey? = nil)
-        -> HasManyAssociation<Self, Destination>
-        where Destination: TableRecord
-    { preconditionFailure() }
-    
-    @available(*, unavailable, renamed: "hasOne(_:name:using:)")
-    public static func hasOne<Destination>(
-        _ destination: Destination.Type,
-        key: String?,
-        using foreignKey: ForeignKey? = nil)
-        -> HasOneAssociation<Self, Destination>
-        where Destination: TableRecord
-    { preconditionFailure() }
-}

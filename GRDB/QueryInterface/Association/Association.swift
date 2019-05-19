@@ -196,9 +196,15 @@ extension Association {
     ///         let team: Team = row["custom"]
     ///     }
     public func forKey(_ key: String) -> Self {
-        // TODO: consider instead Player.including(required: Player.team, forKey: "custom")
-        let key = SQLAssociationKey(name: key, isInflectable: false)
-        return Self.init(sqlAssociation: sqlAssociation.forDestinationKey(key))
+        let associationKey: SQLAssociationKey
+        if sqlAssociation.destinationIsSingular {
+            assert(key.singularized == key)
+            associationKey = .inflectableSingular(key)
+        } else {
+            assert(key.pluralized == key)
+            associationKey = .inflectablePlural(key)
+        }
+        return Self.init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
     }
     
     /// Creates an association with the given key.
@@ -459,22 +465,36 @@ public protocol AssociationToOne: Association { }
 
 // MARK: - SQLAssociationKey
 
-struct SQLAssociationKey {
-    var name: String
-    var isInflectable: Bool
+enum SQLAssociationKey {
+    case inflectableSingular(String)
+    case inflectablePlural(String)
+    case inflectable(String)
+    case fixed(String)
     
     var pluralizedName: String {
-        guard isInflectable else {
+        switch self {
+        case .inflectableSingular(let name):
+            return name.pluralized
+        case .inflectablePlural(let name):
+            return name
+        case .inflectable(let name):
+            return name.pluralized
+        case .fixed(let name):
             return name
         }
-        return name.pluralized
     }
     
     var singularizedName: String {
-        guard isInflectable else {
+        switch self {
+        case .inflectableSingular(let name):
+            return name
+        case .inflectablePlural(let name):
+            return name.singularized
+        case .inflectable(let name):
+            return name.singularized
+        case .fixed(let name):
             return name
         }
-        return name.singularized
     }
 }
 
@@ -558,6 +578,7 @@ public /* TODO: internal */ struct SQLAssociation {
         set { steps[steps.count - 1] = newValue }
     }
     var destinationKey: SQLAssociationKey { return destination.key }
+    var destinationIsSingular: Bool { return destination.isSingular }
     
     private var pivot: AssociationStep {
         get { return steps[0] }
@@ -751,7 +772,7 @@ public /* TODO: internal */ struct SQLAssociation {
             // key, and prevent merging of intermediate steps of
             // indirect associations:
             return reducedAssociation
-                .forPivotKey(SQLAssociationKey(name: "grdb_\(UUID().uuidString)", isInflectable: false))
+                .forPivotKey(SQLAssociationKey.fixed("grdb_\(UUID().uuidString)"))
                 .extendedRelation(origin, kind: .allNotPrefetched)
         }
     }

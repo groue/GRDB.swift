@@ -88,6 +88,13 @@ class InflectionsTests: GRDBTestCase {
         XCTAssertEqual(lastWord("PlayerScore1"), "Score1")
     }
     
+    func testDigitlessRadical() {
+        XCTAssertEqual("".digitlessRadical, "")
+        XCTAssertEqual("player".digitlessRadical, "player")
+        XCTAssertEqual("player0".digitlessRadical, "player")
+        XCTAssertEqual("player123".digitlessRadical, "player")
+    }
+    
     func testPluralizePlurals() {
         XCTAssertEqual("plurals".pluralized, "plurals")
         XCTAssertEqual("Plurals".pluralized, "Plurals")
@@ -160,6 +167,10 @@ class InflectionsTests: GRDBTestCase {
             let prefixedSingular = "prefixed" + singular.capitalized
             let prefixedPlural = "prefixed" + plural.capitalized
             XCTAssertEqual(prefixedSingular.pluralized, prefixedPlural)
+            
+            let suffixedSingular = singular + "123"
+            let suffixedPlural = plural + "123"
+            XCTAssertEqual(suffixedSingular.pluralized, suffixedPlural)
         }
     }
     
@@ -171,6 +182,10 @@ class InflectionsTests: GRDBTestCase {
             let prefixedSingular = "prefixed" + singular.capitalized
             let prefixedPlural = "prefixed" + plural.capitalized
             XCTAssertEqual(prefixedPlural.singularized, prefixedSingular)
+            
+            let suffixedSingular = singular + "123"
+            let suffixedPlural = plural + "123"
+            XCTAssertEqual(suffixedPlural.singularized, suffixedSingular)
         }
     }
     
@@ -181,6 +196,9 @@ class InflectionsTests: GRDBTestCase {
             
             let prefixedPlural = "prefixed" + plural.capitalized
             XCTAssertEqual(prefixedPlural.pluralized, prefixedPlural)
+            
+            let suffixedPlural = plural + "123"
+            XCTAssertEqual(suffixedPlural.pluralized, suffixedPlural)
         }
     }
     
@@ -191,6 +209,9 @@ class InflectionsTests: GRDBTestCase {
             
             let prefixedSingular = "prefixed" + singular.capitalized
             XCTAssertEqual(prefixedSingular.singularized, prefixedSingular)
+            
+            let suffixedSingular = singular + "123"
+            XCTAssertEqual(suffixedSingular.singularized, suffixedSingular)
         }
     }
     
@@ -208,6 +229,13 @@ class InflectionsTests: GRDBTestCase {
             XCTAssertEqual(prefixedSingular.pluralized, prefixedPlural)
             XCTAssertEqual(prefixedSingular.singularized, prefixedSingular)
             XCTAssertEqual(prefixedPlural.pluralized, prefixedPlural)
+            
+            let suffixedSingular = singular + "123"
+            let suffixedPlural = plural + "123"
+            XCTAssertEqual(suffixedPlural.singularized, suffixedSingular)
+            XCTAssertEqual(suffixedSingular.pluralized, suffixedPlural)
+            XCTAssertEqual(suffixedSingular.singularized, suffixedSingular)
+            XCTAssertEqual(suffixedPlural.pluralized, suffixedPlural)
         }
     }
 }

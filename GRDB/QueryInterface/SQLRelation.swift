@@ -138,7 +138,7 @@ struct SQLRelation {
         }
         
         fileprivate func makeAssociationForKey(_ key: String) -> SQLAssociation {
-            let key = SQLAssociationKey(name: key, isInflectable: false)
+            let key = SQLAssociationKey.fixed(key)
             return SQLAssociation(key: key, condition: condition, relation: relation, isSingular: kind.isSingular)
         }
         

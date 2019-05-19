@@ -20,6 +20,12 @@ extension String {
     var singularized: String {
         return Inflections.default.singularize(self)
     }
+    
+    /// "bar" -> "bar"
+    /// "foo12" -> "foo"
+    var digitlessRadical: String {
+        return String(prefix(upTo: Inflections.endIndexOfDigitlessRadical(self)))
+    }
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -142,22 +148,12 @@ public struct Inflections {
     ///
     ///     Inflections.default.pluralize("player") // "players"
     public func pluralize(_ string: String) -> String {
-        let indexOfLastWord = Inflections.startIndexOfLastWord(string)
-        let lastWord = String(string.suffix(from: indexOfLastWord))
-        if isUncountable(lastWord) {
-            return string
-        }
-        return string.prefix(upTo: indexOfLastWord) + inflect(lastWord, with: pluralizeRules)
+        return inflectString(string, with: pluralizeRules)
     }
     
     /// Returns a singularized string.
     public func singularize(_ string: String) -> String {
-        let indexOfLastWord = Inflections.startIndexOfLastWord(string)
-        let lastWord = String(string.suffix(from: indexOfLastWord))
-        if isUncountable(lastWord) {
-            return string
-        }
-        return string.prefix(upTo: indexOfLastWord) + inflect(lastWord, with: singularizeRules)
+        return inflectString(string, with: singularizeRules)
     }
     
     // MARK: - Utils
@@ -172,7 +168,21 @@ public struct Inflections {
         return false
     }
     
-    private func inflect(_ string: String, with rules: [(NSRegularExpression, String)]) -> String {
+    private func inflectString(_ string: String, with rules: [(NSRegularExpression, String)]) -> String {
+        let indexOfLastWord = Inflections.startIndexOfLastWord(string)
+        let endIndexOfDigitlessRadical = Inflections.endIndexOfDigitlessRadical(string)
+        let lastWord = String(string[indexOfLastWord..<endIndexOfDigitlessRadical])
+        if isUncountable(lastWord) {
+            return string
+        }
+        return """
+            \(string.prefix(upTo: indexOfLastWord))\
+            \(inflectWord(lastWord, with: rules))\
+            \(string.suffix(from: endIndexOfDigitlessRadical))
+            """
+    }
+
+    private func inflectWord(_ string: String, with rules: [(NSRegularExpression, String)]) -> String {
         if string.isEmpty {
             return string
         }
@@ -210,6 +220,17 @@ public struct Inflections {
         return [index1, index2, index3].compactMap { $0 }.max() ?? string.startIndex
     }
     
+    /// "bar" -> "bar"
+    /// "foo12" -> "foo"
+    static func endIndexOfDigitlessRadical(_ string: String) -> String.Index {
+        let digits: ClosedRange<Character> = "0"..."9"
+        return string                               // "foo12"
+            .reversed()                             // "21oof"
+            .prefix(while: { digits.contains($0) }) // "21"
+            .endIndex                               // reversed(foo^12)
+            .base                                   // foo^12
+    }
+
     private static let wordBoundaryReg = try! NSRegularExpression(pattern: "\\b\\w+$", options: [])
     private static let underscoreBoundaryReg = try! NSRegularExpression(pattern: "_[^_]+$", options: [])
     private static let caseBoundaryReg = try! NSRegularExpression(pattern: "[^A-Z][A-Z]+[a-z1-9]+$", options: [])
