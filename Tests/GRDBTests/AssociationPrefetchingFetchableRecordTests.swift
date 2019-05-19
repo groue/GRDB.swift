@@ -841,7 +841,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
         }
     }
     
-    func testIncludingAllHasManyThrough() throws {
+    func testIncludingAllHasManyThroughHasManyUsingHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             // Plain request

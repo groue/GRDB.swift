@@ -152,10 +152,9 @@ extension TableRecord {
         
         let associationKey: SQLAssociationKey
         if let key = key {
-            assert(key.pluralized == key)
-            associationKey = .inflectablePlural(key)
+            associationKey = .fixedPlural(key)
         } else {
-            associationKey = .inflectable(Destination.databaseTableName)
+            associationKey = .inflected(Destination.databaseTableName)
         }
         
         return HasManyAssociation(sqlAssociation: SQLAssociation(

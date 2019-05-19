@@ -198,11 +198,9 @@ extension Association {
     public func forKey(_ key: String) -> Self {
         let associationKey: SQLAssociationKey
         if sqlAssociation.destinationIsSingular {
-            assert(key.singularized == key)
-            associationKey = .inflectableSingular(key)
+            associationKey = .fixedSingular(key)
         } else {
-            assert(key.pluralized == key)
-            associationKey = .inflectablePlural(key)
+            associationKey = .fixedPlural(key)
         }
         return Self.init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
     }
@@ -466,19 +464,50 @@ public protocol AssociationToOne: Association { }
 // MARK: - SQLAssociationKey
 
 enum SQLAssociationKey {
-    case inflectableSingular(String)
-    case inflectablePlural(String)
-    case inflectable(String)
+    /// Inflected in singular and plural contexts.
+    //
+    /// For example:
+    ///
+    ///     struct Author: TableRecord {
+    ///         static let databaseTableName = "authors"
+    ///     }
+    ///     struct Book: TableRecord {
+    ///         let author = belongsTo(Author.self)
+    ///     }
+    ///
+    ///     let request = Book.including(required: Book.author)
+    ///     let row = try Row.fetchOne(db, request)!
+    ///     row.scopes["author"]  // singularized "authors" table name
+    case inflected(String)
+    
+    /// Fixed singular (stricly honors user-provided name in singular contexts).
+    //
+    /// For example:
+    ///
+    ///     struct Country: TableRecord {
+    ///         let demographics = hasOne(Demographics.self, key: "demographics")
+    ///     }
+    ///
+    ///     let request = Country.including(required: Country.demographics)
+    ///     let row = try Row.fetchOne(db, request)!
+    ///     row.scopes["demographics"]  // not singularized
+    case fixedSingular(String)
+    
+    /// Fixed plural (stricly honors user-provided name in plural contexts).
+    /// See .singular for some context.
+    case fixedPlural(String)
+    
+    /// Not inflected in singular or plural context.
     case fixed(String)
     
     var pluralizedName: String {
         switch self {
-        case .inflectableSingular(let name):
+        case .inflected(let name):
             return name.pluralized
-        case .inflectablePlural(let name):
+        case .fixedSingular(let name):
+            return name.pluralized
+        case .fixedPlural(let name):
             return name
-        case .inflectable(let name):
-            return name.pluralized
         case .fixed(let name):
             return name
         }
@@ -486,11 +515,11 @@ enum SQLAssociationKey {
     
     var singularizedName: String {
         switch self {
-        case .inflectableSingular(let name):
-            return name
-        case .inflectablePlural(let name):
+        case .inflected(let name):
             return name.singularized
-        case .inflectable(let name):
+        case .fixedSingular(let name):
+            return name
+        case .fixedPlural(let name):
             return name.singularized
         case .fixed(let name):
             return name
@@ -707,7 +736,7 @@ public /* TODO: internal */ struct SQLAssociation {
         // Let's recurse toward a direct join, by making a new association which
         // ends on the last pivot, to which we join our destination:
         var reducedAssociation = SQLAssociation(steps: Array(initialSteps))
-        let key = (kind.isSingular || reducedAssociation.destination.isSingular)
+        let key = kind.isSingular
             ? destination.key.singularizedName
             : destination.key.pluralizedName
         reducedAssociation.destination.relation = reducedAssociation.destination.relation

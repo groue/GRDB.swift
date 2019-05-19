@@ -152,10 +152,9 @@ extension TableRecord {
         
         let associationKey: SQLAssociationKey
         if let key = key {
-            assert(key.singularized == key)
-            associationKey = .inflectableSingular(key)
+            associationKey = .fixedSingular(key)
         } else {
-            associationKey = .inflectable(Destination.databaseTableName)
+            associationKey = .inflected(Destination.databaseTableName)
         }
         
         return BelongsToAssociation(sqlAssociation: SQLAssociation(
