@@ -1306,36 +1306,59 @@ Fetching Values from Associations
 
 We have seen in [Joining And Prefetching Associated Records] how to define requests that involve several records.
 
-If your application needs to display a list of books with information about their author, country, and cover image, you may build the following joined request:
+To consume those requests, you will generally define a record type that matches the structure of the request. You'll make it adopt the [FetchableRecord] protocol, so that it can decode database rows.
 
-```swift
-// SELECT book.*, author.*, country.*, coverImage.*
-// FROM book
-// JOIN author ON author.id = book.authorId
-// LEFT JOIN country ON country.code = author.countryCode
-// LEFT JOIN coverImage ON coverImage.bookId = book.id
-let request = Book
-    .including(required: Book.author
-        .including(optional: Author.country))
-    .including(optional: Bool.coverImage)
-```
+Often, you'll also make it adopt the standard Decodable protocol, because the compiler will generate the decoding code for you.
 
-**Now is the time to tell how joined requests should be consumed.**
+Each association included in the request can feed a property of the decoded record:
 
-You will generally define a record type that matches the structure of the request. You'll make it adopt the [FetchableRecord] protocol, so that it can decode database rows. Often, you'll also make it adopt the standard Decodable protocol, because the compiler will generate the decoding code for you.
+- `including(all:)` feeds an Array or Set property:
 
-For example, the request above can be consumed into the following record:
+    ```swift
+    // All authors with their books
+    let request = Author.including(all: Author.books)
+    
+    struct AuthorInfo: FetchableRecord, Decodable {
+        var author: Author
+        var books: [Book] // all associated books
+    }
+    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+    ```
 
-```swift
-struct BookInfo: FetchableRecord, Decodable {
-    var book: Book
-    var author: Author
-    var country: Country?
-    var coverImage: CoverImage?
-}
+- `including(optional:)` feeds an optional property:
 
-let bookInfos = try BookInfo.fetchAll(db, request) // [BookInfo]
-```
+    ```swift
+    // All employees with their manager and subordinate
+    let request = Employee
+        .including(optional: Employee.manager)
+        .including(all: Employee.subordinates)
+    
+    struct EmployeeInfo: FetchableRecord, Decodable {
+        var employee: Employee
+        var manager: Employee?
+        var subordinates: Set<Employee>
+    }
+    let employeeInfos: [EmployeeInfo] = try EmployeeInfo.fetchAll(db, request)
+    ```
+
+- `including(required:)` feeds an non-optional property:
+
+    ```swift
+    // All books with information about their author, country, and cover image:
+    let request = Book
+        .including(required: Book.author
+            .including(optional: Author.country))
+        .including(optional: Bool.coverImage)
+    
+    struct BookInfo: FetchableRecord, Decodable {
+        var book: Book
+        var author: Author
+        var country: Country?
+        var coverImage: CoverImage?
+    }
+    
+    let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
+    ```
 
 - [The Structure of a Joined Request]
 - [Decoding a Joined Request with a Decodable Record]
@@ -1360,18 +1383,7 @@ This request builds the following **tree of association keys**:
 
 ![TreeOfAssociationKeys](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/TreeOfAssociationKeys.svg)
 
-**Association keys** are strings. They are the names of the database tables of associated records (unless you specify otherwise, as we'll see below).
-
-Those keys are associated with slices in the fetched rows:
-
-![TreeOfAssociationKeysMapping](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/TreeOfAssociationKeysMapping.svg)
-
-We'll see below how this tree of association keys and row slices can feed a Decodable record type. We'll then add some details by using FetchableRecord without Decodable support.
-
-
-## Decoding a Joined Request with a Decodable Record
-
-When **association keys** match the property names of a Decodable record, you get free decoding of joined requests into this record:
+Requests can feed record types whose property names match those association keys:
 
 ```swift
 struct BookInfo: FetchableRecord, Decodable {
@@ -1381,24 +1393,64 @@ struct BookInfo: FetchableRecord, Decodable {
     var coverImage: CoverImage?
 }
 
-let bookInfos = try BookInfo.fetchAll(db, request) // [BookInfo]
+let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
+```
+
+By default, **association keys** are the names of the database tables of associated records. Keys are automatically singularized, or pluralized, depending of the cardinality of the included association:
+
+```swift
+extension Author {
+    static let books = hasMany(Book.self)
+}
+Author.including(all: Author.books)            // key "books"
+
+extension Book {
+    static let author = belongsTo(Author.self)
+}
+Book.including(required: Book.author)          // key "author"
+```
+
+Keys can be customized when the association is defined:
+
+```swift
+extension Employee {
+    static let manager = belongsTo(Employee.self, key: "manager")
+}
+Employee.including(optional: Employee.manager) // key "manager"
+```
+
+Keys can also be customized with the `forKey` method:
+
+```swift
+extension Author {
+    static let novels = books
+        .filter(Column("kind") == "novel")
+        .forKey("novels")
+}
+Author.including(all: Author.novels)           // key "novels"
+```
+
+
+## Decoding a Joined Request with a Decodable Record
+
+When **association keys** match the property names of a Decodable record, you get free decoding of joined requests into this record:
+
+```swift
+let request = Book
+    .including(required: Book.author
+        .including(optional: Author.country))
+    .including(optional: Bool.coverImage)
+
+struct BookInfo: FetchableRecord, Decodable {
+    var book: Book
+    var author: Author
+    var country: Country?
+    var coverImage: CoverImage?
+}
+let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
 We see that a hierarchical tree has been flattened in the `BookInfo` record.
-
-This flattening is made possible because the BookInfo initializer generated by the Decodable protocol matches **coding keys** with **association keys** by performing a breadth-first search in the tree of association keys.
-
-This deserves a little explanation:
-
-You known that the Decodable protocol feeds a value's properties by looking for **coding keys**. For example, the standard built-in JSONDecoder matches those coding keys with dictionary keys in a JSON object. The GRDB record decoder also matches coding keys, but with association keys:
-
-![TreeOfAssociationKeysMapping](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/TreeOfAssociationKeysMapping.svg)
-
-Practically speaking, the BookInfo initializer first looks for the "book" coding key. This key is not found anywhere in the tree of association keys, so the book property is initialized from the row slice associated with the root of the tree, which contains book columns.
-
-The BookInfo initializer then looks for the "author", "country", and "coverImage" coding keys. All those are found in the tree of association keys, and each property is initialized from its matching row slice.
-
-The key lookup digs into the tree of association keys, and stops as soon as a key as been found, digging into deep tree levels only if the key was not found in higher levels (that's called a "breadth-first search"). This is how we can decode a hierarchical tree into a flat record.
 
 But sometimes your decoded records will have better reflect the hierarchical structure of the request:
 
@@ -1495,40 +1547,6 @@ struct BookInfo: FetchableRecord, Decodable {
 }
 ```
 
-**Association keys** may not match the property names of your Decodable record. In this case, use the `forKey(_:)` method.
-
-This can be done at the request level:
-
-```swift
-struct BookInfo: FetchableRecord, Decodable {
-    var book: Book
-    var author: Author          // Expect "author" association key
-    var country: Country?
-    var coverImage: CoverImage?
-}
-
-let request = Book
-    .including(required: Book.author
-        .forKey("author")       // Change association key
-        .including(optional: Author.country))
-    .including(optional: Bool.coverImage)
-```
-
-Association keys can also be defined right into the definition of the association:
-
-```swift
-struct Book {
-    static let author = belongsTo(Person.self, key: "author")
-}
-
-let request = Book
-    .including(required: Book.author // "author" association key
-        .including(optional: Author.country))
-    .including(optional: Bool.coverImage)
-```
-
-The best choice is up to you and the structure of your application. See also [Decoding a Hierarchical Decodable Record] for further discussion about decoding keys.
-
 
 ## Decoding a Joined Request with FetchableRecord
 
@@ -1537,6 +1555,11 @@ When [Dedocable](#decoding-a-joined-request-with-a-decodable-record) records pro
 The `init(row:)` initializer of the FetchableRecord protocol is what you look after:
 
 ```swift
+let request = Book
+    .including(required: Book.author
+        .including(optional: Author.country))
+    .including(optional: Bool.coverImage)
+
 struct BookInfo: FetchableRecord {
     var book: Book
     var author: Author
@@ -1551,7 +1574,7 @@ struct BookInfo: FetchableRecord {
     }
 }
 
-let bookInfos = try BookInfo.fetchAll(db, request) // [BookInfo]
+let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
 You are already familiar with row subscripts to decode [database values](../README.md#column-values):
@@ -1560,7 +1583,7 @@ You are already familiar with row subscripts to decode [database values](../READ
 let name: String = row["name"]
 ```
 
-When you extract a record instead of a value from a row, GRDB perfoms a breadth-first search in the tree of **association keys** defined by the joined request. If the key is not found, or only associated with columns that all contain NULL values, an optional record is decoded as nil:
+When you extract a record instead of a value from a row, GRDB looks up the tree of **association keys**. If the key is not found, or only associated with columns that all contain NULL values, an optional record is decoded as nil:
 
 ```swift
 let author: Author = row["author"]
@@ -1568,6 +1591,24 @@ let country: Country? = row["country"]
 ```
 
 You can also perform custom navigation in the tree by using *row scopes*. See [Row Adapters] for more information.
+
+When you use the `include(all:)` method, you can decode an Array or a Set of records:
+
+```swift
+let request = Author.including(all: Author.books)
+
+struct AuthorInfo: FetchableRecord {
+    var author: Author
+    var books: [Book]
+    
+    init(row: Row) {
+        author = Author(row: row)
+        books = row["books"]
+    }
+}
+
+let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+```
 
 
 ## Association Aggregates
