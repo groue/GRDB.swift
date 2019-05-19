@@ -839,10 +839,11 @@ The pattern is always the same: you start from a base request, that you extend w
         .including(required: Book.author)
     
     // This request can feed the following record:
-    struct BookInfo {
+    struct BookInfo: FetchableRecord, Decodable {
         var book: Book
         var author: Author
     }
+    let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
     ```
     
     And to load authors with their respective books (a to-many association), you use `including` as well:
@@ -853,10 +854,11 @@ The pattern is always the same: you start from a base request, that you extend w
         .including(all: Author.books)
     
     // This request can feed the following record:
-    struct AuthorInfo {
+    struct AuthorInfo: FetchableRecord, Decodable {
         var author: Author
         var books: [Book]
     }
+    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
     
     On the other side, to load all books written by a French author, you sure need to filter authors, but you don't need them to be present in the fetched results. You prefer `joining`:
@@ -866,7 +868,8 @@ The pattern is always the same: you start from a base request, that you extend w
     let request = Book
         .joining(required: Book.author.filter(Column("countryCode") == "FR"))
     
-    // This request can feed the Book record.
+    // This request can feed the Book record:
+    let books: [Book] = try request.fetchAll(db)
     ```
 
 2. For to-one associations, should the request allow missing associated records?
@@ -881,10 +884,11 @@ The pattern is always the same: you start from a base request, that you extend w
         .including(optional: Book.author)
     
     // This request can feed the following record:
-    struct BookInfo {
+    struct BookInfo: FetchableRecord, Decodable {
         var book: Book
         var author: Author?
     }
+    let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
     ```
     
     You can remember to use `optional` when the fetched associated records should feed optional Swift values, of type `Author?`. Conversely, when the fetched results feed non-optional values of type `Author`, prefer `required`.
