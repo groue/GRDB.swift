@@ -45,6 +45,7 @@
 import Foundation
 
 extension String {
+    /// "player" -> "Player"
     var uppercasingFirstCharacter: String {
         guard let first = first else {
             return self
@@ -52,33 +53,50 @@ extension String {
         return String(first).uppercased() + dropFirst()
     }
     
+    /// "player" -> "players"
+    /// "players" -> "players"
     var pluralized: String {
         return Inflections.default.pluralize(self)
     }
     
+    /// "player" -> "player"
+    /// "players" -> "player"
     var singularized: String {
         return Inflections.default.singularize(self)
     }
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// A type that controls GRDB string inflections.
 public struct Inflections {
     private var pluralizeRules: [(NSRegularExpression, String)] = []
     private var singularizeRules: [(NSRegularExpression, String)] = []
     private var uncountablesRegularExpressions: [String: NSRegularExpression] = [:]
+    
+    // For testability
     var uncountables: Set<String> {
         return Set(uncountablesRegularExpressions.keys)
     }
     
+    // MARK: - Initialization
+    
     public init() {
     }
+    
+    // MARK: - Configuration
     
     /// Appends a pluralization rule.
     ///
     ///     var inflections = Inflections()
     ///     inflections.plural("$", "s")
-    ///     inflections.pluralize("foo") // "foos"
-    ///     inflections.pluralize("bar") // "bars"
+    ///     inflections.pluralize("player") // "players"
+    ///
+    /// - parameters:
+    ///     - pattern: A regular expression pattern.
+    ///     - options: Regular expression options (defaults to
+    ///       `[.caseInsensitive]`).
+    ///     - template: A replacement template string.
     public mutating func plural(_ pattern: String, options: NSRegularExpression.Options = [.caseInsensitive], _ template: String) {
         let reg = try! NSRegularExpression(pattern: pattern, options: options)
         pluralizeRules.append((reg, template))
@@ -88,8 +106,13 @@ public struct Inflections {
     ///
     ///     var inflections = Inflections()
     ///     inflections.singular("s$", "")
-    ///     inflections.singularize("foos") // "foo"
-    ///     inflections.singularize("bars") // "bar"
+    ///     inflections.singularize("players") // "player"
+    ///
+    /// - parameters:
+    ///     - pattern: A regular expression pattern.
+    ///     - options: Regular expression options (defaults to
+    ///       `[.caseInsensitive]`).
+    ///     - template: A replacement template string.
     public mutating func singular(_ pattern: String, options: NSRegularExpression.Options = [.caseInsensitive], _ template: String) {
         let reg = try! NSRegularExpression(pattern: pattern, options: options)
         singularizeRules.append((reg, template))
@@ -99,16 +122,27 @@ public struct Inflections {
     ///
     ///     var inflections = Inflections()
     ///     inflections.plural("$", "s")
-    ///     inflections.uncountable("foo")
+    ///     inflections.uncountable(["foo"])
     ///     inflections.pluralize("foo") // "foo"
     ///     inflections.pluralize("bar") // "bars"
-    public mutating func uncountable(_ words: String...) {
+    public mutating func uncountable(_ words: [String]) {
         for word in words {
-            let escWord = NSRegularExpression.escapedPattern(for: word)
-            uncountablesRegularExpressions[word] = try! NSRegularExpression(pattern: "\\b\(escWord)\\Z", options: [.caseInsensitive])
+            uncountable(word)
         }
     }
     
+    /// Appends an uncountable word.
+    ///
+    ///     var inflections = Inflections()
+    ///     inflections.plural("$", "s")
+    ///     inflections.uncountable("foo")
+    ///     inflections.pluralize("foo") // "foo"
+    ///     inflections.pluralize("bar") // "bars"
+    public mutating func uncountable(_ word: String) {
+        let escWord = NSRegularExpression.escapedPattern(for: word)
+        uncountablesRegularExpressions[word] = try! NSRegularExpression(pattern: "\\b\(escWord)\\Z", options: [.caseInsensitive])
+    }
+
     /// Appends an irregular singular/plural pair.
     ///
     ///     var inflections = Inflections()
@@ -116,6 +150,10 @@ public struct Inflections {
     ///     inflections.irregular("man", "men")
     ///     inflections.pluralize("man")      // "men"
     ///     inflections.singularizes("women") // "woman"
+    ///
+    /// - parameters:
+    ///     - singular: The singular form.
+    ///     - plural: The plural form.
     public mutating func irregular(_ singular: String, _ plural: String) {
         let s0 = singular.first!
         let srest = singular.dropFirst()
@@ -142,7 +180,11 @@ public struct Inflections {
         }
     }
     
+    // MARK: - Inflections
+    
     /// Returns a pluralized string.
+    ///
+    ///     Inflections.default.pluralize("player") // "players"
     public func pluralize(_ string: String) -> String {
         let indexOfLastWord = Inflections.indexOfLastWord(string)
         let lastWord = String(string.suffix(from: indexOfLastWord))
@@ -161,6 +203,8 @@ public struct Inflections {
         }
         return string.prefix(upTo: indexOfLastWord) + inflect(lastWord, with: singularizeRules)
     }
+    
+    // MARK: - Utils
     
     private func isUncountable(_ string: String) -> Bool {
         let range = NSRange(location: 0, length: string.utf16.count)
@@ -280,25 +324,31 @@ extension Inflections {
         inflections.singular("(database)s$", "$1")
         inflections.singular("(canvas)(es)?$", "$1")
         
-        inflections.uncountable(
+        inflections.uncountable([
+            "advice",
+            "corps",
+            "dice",
             "equipment",
-            "information",
-            "rice",
-            "money",
-            "species",
             "fish",
-            "sheep",
+            "information",
             "jeans",
-            "police")
+            "kudos",
+            "money",
+            "offspring",
+            "police",
+            "rice",
+            "sheep",
+            "species",
+            ])
         
-        inflections.irregular("person", "people")
-        inflections.irregular("man", "men")
         inflections.irregular("child", "children")
-        inflections.irregular("sex", "sexes")
+        inflections.irregular("man", "men")
         inflections.irregular("move", "moves")
-        inflections.irregular("zombie", "zombies")
+        inflections.irregular("person", "people")
+        inflections.irregular("sex", "sexes")
         inflections.irregular("specimen", "specimens")
-        
+        inflections.irregular("zombie", "zombies")
+
         return inflections
     }()
 }

@@ -112,6 +112,12 @@
         
         "specimen"    : "specimens",
         "canvas"      : "canvases",
+        "corps"       : "corps",
+        "offspring"   : "offspring",
+        "advice"      : "advice",
+        "thesis"      : "theses",
+        "dice"        : "dice",
+        "kudos"       : "kudos"
     },
     
     "Irregularities": {
