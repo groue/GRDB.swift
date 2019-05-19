@@ -33,6 +33,22 @@ public protocol Association: DerivableRequest {
     /// :nodoc:
     var sqlAssociation: SQLAssociation { get }
     
+    /// Creates an association with the given key.
+    ///
+    /// This new key impacts how rows fetched from the resulting association
+    /// should be consumed:
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // Consume rows:
+    ///     let request = Player.including(required: Player.team.forKey("custom"))
+    ///     for row in Row.fetchAll(db, request) {
+    ///         let team: Team = row["custom"]
+    ///     }
+    func forKey(_ key: String) -> Self
+    
     /// :nodoc:
     init(sqlAssociation: SQLAssociation)
 }
@@ -179,30 +195,6 @@ extension Association {
     ///     var request = Player.including(required: association)
     public func unordered() -> Self {
         return mapDestinationRelation { $0.unordered() }
-    }
-    
-    /// Creates an association with the given key.
-    ///
-    /// This new key impacts how rows fetched from the resulting association
-    /// should be consumed:
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // Consume rows:
-    ///     let request = Player.including(required: Player.team.forKey("custom"))
-    ///     for row in Row.fetchAll(db, request) {
-    ///         let team: Team = row["custom"]
-    ///     }
-    public func forKey(_ key: String) -> Self {
-        let associationKey: SQLAssociationKey
-        if sqlAssociation.destinationIsSingular {
-            associationKey = .fixedSingular(key)
-        } else {
-            associationKey = .fixedPlural(key)
-        }
-        return Self.init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
     }
     
     /// Creates an association with the given key.
@@ -361,6 +353,13 @@ extension Association where Self: TableRequest, RowDecoder: TableRecord {
 /// The base protocol for all associations that define a one-to-many connection.
 public protocol AssociationToMany: Association { }
 
+extension AssociationToMany {
+    public func forKey(_ key: String) -> Self {
+        let associationKey = SQLAssociationKey.fixedPlural(key)
+        return Self.init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
+    }
+}
+
 extension AssociationToMany where OriginRowDecoder: TableRecord {
     private func makeAggregate(_ expression: SQLExpression) -> AssociationAggregate<OriginRowDecoder> {
         return AssociationAggregate { request in
@@ -460,6 +459,13 @@ extension AssociationToMany where OriginRowDecoder: TableRecord {
 ///
 /// The base protocol for all associations that define a one-to-one connection.
 public protocol AssociationToOne: Association { }
+
+extension AssociationToOne {
+    public func forKey(_ key: String) -> Self {
+        let associationKey = SQLAssociationKey.fixedSingular(key)
+        return Self.init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
+    }
+}
 
 // MARK: - SQLAssociationKey
 
@@ -637,7 +643,6 @@ public /* TODO: internal */ struct SQLAssociation {
         set { steps[steps.count - 1] = newValue }
     }
     var destinationKey: SQLAssociationKey { return destination.key }
-    var destinationIsSingular: Bool { return destination.isSingular }
     
     private var pivot: AssociationStep {
         get { return steps[0] }

@@ -72,7 +72,8 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
         }
         
         struct Parent : TableRecord {
-            static let children = hasMany(Child.self, key: "littlePuppies")
+            static let littlePuppies = hasMany(Child.self, key: "littlePuppies")
+            static let kittens = hasMany(Child.self).forKey("kittens")
         }
         
         let dbQueue = try makeDatabaseQueue()
@@ -89,10 +90,18 @@ class AssociationHasManyRowScopeTests: GRDBTestCase {
                 INSERT INTO child (id, parentId) VALUES (2, 1);
                 """)
             
-            let request = Parent.including(required: Parent.children)
-            let row = try Row.fetchOne(db, request)!
-            XCTAssertEqual(row.unscoped, ["id": 1])
-            XCTAssertEqual(row.scopes["littlePuppy"], ["id": 2, "parentId": 1])
+            do {
+                let request = Parent.including(required: Parent.littlePuppies)
+                let row = try Row.fetchOne(db, request)!
+                XCTAssertEqual(row.unscoped, ["id": 1])
+                XCTAssertEqual(row.scopes["littlePuppy"], ["id": 2, "parentId": 1])
+            }
+            do {
+                let request = Parent.including(required: Parent.kittens)
+                let row = try Row.fetchOne(db, request)!
+                XCTAssertEqual(row.unscoped, ["id": 1])
+                XCTAssertEqual(row.scopes["kitten"], ["id": 2, "parentId": 1])
+            }
         }
     }
 }
