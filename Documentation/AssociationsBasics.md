@@ -1014,6 +1014,8 @@ let books: [Book] = try request.fetchAll(db)
 
 The request above fetches all books written by a French author.
 
+The one below fetches all authors along with their novels and poems:
+
 ```swift
 let request = Author
     .including(all: Author.book
@@ -1099,41 +1101,7 @@ let restrictedAuthor = Book.author.select(Column("id"), Column("name"))
 let request = Book.including(required: restrictedAuthor)
 ```
 
-To specify the default selection for all inclusions of a given type, define the `databaseSelection` property:
-
-```swift
-struct RestrictedAuthor: TableRecord {
-    static let databaseSelection: [SQLSelectable] = [Column("id"), Column("name")]
-}
-
-struct ExtendedAuthor: TableRecord {
-    static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
-}
-
-extension Book {
-    static let restrictedAuthor = belongsTo(RestrictedAuthor.self)
-    static let extendedAuthor = belongsTo(ExtendedAuthor.self)
-}
-
-// SELECT book.*, author.id, author.name
-// FROM book
-// JOIN author ON author.id = book.authorId
-let request = Book.including(required: Book.restrictedAuthor)
-
-// SELECT book.*, author.*, author.rowid
-// FROM book
-// JOIN author ON author.id = book.authorId
-let request = Book.including(required: Book.extendedAuthor)
-```
-
-Modifying `databaseSelection` not only affects joined requests, but all requests built from the modified record. This is how records make sure they are always fed with the columns they need, no more, no less:
-
-```swift
-// SELECT id, name FROM author
-let request = RestrictedAuthor.all()
-```
-
-> :point_up: **Note**: make sure the `databaseSelection` property is explicitely declared as `[SQLSelectable]`. If it is not, the Swift compiler may infer a type which may silently miss the protocol requirement, resulting in sticky SELECT * requests. See [Columns Selected by a Request](../README.md#columns-selected-by-a-request) for further information.
+To specify the default selection for all inclusions of a given type, see [Columns Selected by a Request](../README.md#columns-selected-by-a-request).
 
 
 ## Table Aliases
@@ -1212,6 +1180,17 @@ let request = Book.aliased(bookAlias)
 > let alias = TableAlias()
 > let books = Book.aliased(alias)...
 > let people = Person.aliased(alias)...
+> ```
+>
+> :point_up: **Note**: you can't use the `including(all:)` method and use table aliases to filter the associated records on other records:
+> 
+> ```swift
+> // NOT IMPLEMENTED: loading all authors along with their posthumous books
+> let authorAlias = TableAlias()
+> let request = Author
+>     .aliased(authorAlias)
+>     .including(all: Author.books
+>         .filter(Column("publishDate") >= authorAlias[Column("deathDate")]))    
 > ```
 
 
@@ -2176,6 +2155,17 @@ let request = Book
 ```
 
 This code compiles, but you'll get a runtime fatal error "Not implemented: chaining a required association behind an optional association". Future versions of GRDB may allow such requests.
+
+**You can't use the `including(all:)` method and use table aliases to filter the associated records on other records:**
+
+```swift
+// NOT IMPLEMENTED: loading all authors along with their posthumous books
+let authorAlias = TableAlias()
+let request = Author
+    .aliased(authorAlias)
+    .including(all: Author.books
+        .filter(Column("publishDate") >= authorAlias[Column("deathDate")]))    
+```
 
 
 ## Future Directions
