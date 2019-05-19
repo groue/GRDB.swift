@@ -128,7 +128,7 @@ Before we dive in, please remember that associations can not generate all possib
 
 When your record type is a subclass of the [Record class], all necessary protocols are already setup and ready: you can skip this chapter.
 
-Otherwise:
+Generally speaking, associations use the [TableRecord], [FetchableRecord], and [EncodableRecord] protocols:
 
 - **[TableRecord]** is the protocol that lets you declare associations between record types:
 
