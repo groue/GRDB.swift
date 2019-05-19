@@ -831,7 +831,7 @@ The pattern is always the same: you start from a base request, that you extend w
     
     If yes, use `including(...)`. Otherwise, use `joining(...)`.
     
-    For example, to load books with their respective author (a to-one association), you use `including`:
+    For example, to load books with their respective author, you use `including(required:)`:
     
     ```swift
     // All books with their respective author
@@ -841,12 +841,12 @@ The pattern is always the same: you start from a base request, that you extend w
     // This request can feed the following record:
     struct BookInfo: FetchableRecord, Decodable {
         var book: Book
-        var author: Author
+        var author: Author // the required associated author
     }
     let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
     ```
     
-    And to load authors with their respective books (a to-many association), you use `including` as well:
+    And to load authors with their respective books, you use `including(all:)`:
     
     ```swift
     // All authors with their respective books
@@ -856,7 +856,7 @@ The pattern is always the same: you start from a base request, that you extend w
     // This request can feed the following record:
     struct AuthorInfo: FetchableRecord, Decodable {
         var author: Author
-        var books: [Book]
+        var books: [Book] // all associated books
     }
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
@@ -868,7 +868,7 @@ The pattern is always the same: you start from a base request, that you extend w
     let request = Book
         .joining(required: Book.author.filter(Column("countryCode") == "FR"))
     
-    // This request can feed the Book record:
+    // This request feeds the Book record:
     let books: [Book] = try request.fetchAll(db)
     ```
 
@@ -886,7 +886,7 @@ The pattern is always the same: you start from a base request, that you extend w
     // This request can feed the following record:
     struct BookInfo: FetchableRecord, Decodable {
         var book: Book
-        var author: Author?
+        var author: Author? // the optional associated author
     }
     let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
     ```
@@ -894,15 +894,6 @@ The pattern is always the same: you start from a base request, that you extend w
     You can remember to use `optional` when the fetched associated records should feed optional Swift values, of type `Author?`. Conversely, when the fetched results feed non-optional values of type `Author`, prefer `required`.
     
     Another way to describe the difference is that `required` filters the fetched results in order to discard missing associated records, when `optional` does not filter anything, and lets missing values pass through.
-    
-    For example, consider this request:
-    
-    ```swift
-    let request = Book
-        .joining(optional: Book.author.filter(Column("countryCode") == "FR"))
-    ```
-    
-    It fetches books that have a French author, but also those who don't :sweat_smile:. It's just another way to tell `Book.all()`. But we'll see below that such join can turn out useful.
     
     Finally, readers who speak SQL may compare `optional` with left joins, and `required` with inner joins.
 
@@ -921,6 +912,14 @@ You can join several associations in parallel:
 let request = Book
     .including(required: Book.author)
     .including(optional: Book.translator)
+
+// This request can feed the following record:
+struct BookInfo: FetchableRecord, Decodable {
+    var book: Book
+    var author: Person
+    var translator: Person?
+}
+let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
 The request above fetches all books, along with their author and eventual translator.
@@ -935,6 +934,14 @@ You can chain associations in order to jump from a record to another:
 let request = Book
     .including(required: Book.author
         .including(optional: Person.country))
+
+// This request can feed the following record:
+struct BookInfo: FetchableRecord, Decodable {
+    var book: Book
+    var author: Author
+    var country: Country?
+}
+let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
 The request above fetches all books, along with their author, and their author's country.
@@ -949,6 +956,13 @@ When you chain associations, you can avoid fetching intermediate tables by repla
 let request = Book
     .joining(optional: Book.author
         .including(optional: Person.country))
+
+// This request can feed the following record:
+struct BookInfo: FetchableRecord, Decodable {
+    var book: Book
+    var country: Country?
+}
+let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
 **[HasOneThrough]** and **[HasManyThrough]** associations provide a shortcut for those requests that skip intermediate tables:
@@ -959,6 +973,13 @@ let request = Book
 // LEFT JOIN person ON person.id = book.authorId
 // LEFT JOIN country ON country.code = person.countryCode
 let request = Book.including(optional: Book.country)
+
+// This request can feed the following record:
+struct BookInfo: FetchableRecord, Decodable {
+    var book: Book
+    var country: Country?
+}
+let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
 > :warning: **Warning**: you can not currently chain a required association behind an optional association:
@@ -986,9 +1007,30 @@ The `filter(_:)`, `filter(key:)` and `filter(keys:)` methods, that you already k
 //            AND person.countryCode = 'FR'
 let frenchAuthor = Book.author.filter(Column("countryCode") == "FR")
 let request = Book.joining(required: frenchAuthor)
+
+// This request feeds the Book record:
+let books: [Book] = try request.fetchAll(db)
 ```
 
 The request above fetches all books written by a French author.
+
+```swift
+let request = Author
+    .including(all: Author.book
+        .filter(Column("kind") == "novel")
+        .forKey("novels"))
+    .including(all: Author.book
+        .filter(Column("kind") == "poems")
+        .forKey("poems"))
+
+// This request can feed the following record:
+struct AuthorInfo: FetchableRecord, Decodable {
+    var author: Author
+    var novels: [Book]
+    var poems: [Book]
+}
+let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+```
 
 **There are more filtering options:**
 
