@@ -117,7 +117,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
     }
     
     func testCustomPluralScopeIncludingRequired() throws {
-        // Make sure plural keys are preserved
+        // Make sure explicit plural keys are preserved
         let dbQueue = try makeDatabaseQueue()
         do {
             let request = Player.including(required: Player.belongsTo(Team.self, key: "teams"))
@@ -138,7 +138,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
     }
     
     func testCustomPluralScopeIncludingOptional() throws {
-        // Make sure plural keys are preserved
+        // Make sure explicit plural keys are preserved
         let dbQueue = try makeDatabaseQueue()
         do {
             let request = Player.including(optional: Player.belongsTo(Team.self, key: "teams"))

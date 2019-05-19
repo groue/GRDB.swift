@@ -255,7 +255,7 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
         try dbQueue.read { db in
             // Plain request
             do {
-                let cs = A.hasMany(C.self).forKey("cs")
+                let cs = A.hasMany(C.self)
                 let request = A
                     .including(all: cs)
                     .including(all: A
