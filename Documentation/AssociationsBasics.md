@@ -1402,12 +1402,12 @@ By default, **association keys** are the names of the database tables of associa
 extension Author {
     static let books = hasMany(Book.self)
 }
-Author.including(all: Author.books)            // key "books"
+Author.including(all: Author.books)            // association key "books"
 
 extension Book {
     static let author = belongsTo(Author.self)
 }
-Book.including(required: Book.author)          // key "author"
+Book.including(required: Book.author)          // association key "author"
 ```
 
 Keys can be customized when the association is defined:
@@ -1416,7 +1416,7 @@ Keys can be customized when the association is defined:
 extension Employee {
     static let manager = belongsTo(Employee.self, key: "manager")
 }
-Employee.including(optional: Employee.manager) // key "manager"
+Employee.including(optional: Employee.manager) // association key "manager"
 ```
 
 Keys can also be customized with the `forKey` method:
@@ -1427,7 +1427,7 @@ extension Author {
         .filter(Column("kind") == "novel")
         .forKey("novels")
 }
-Author.including(all: Author.novels)           // key "novels"
+Author.including(all: Author.novels)           // association key "novels"
 ```
 
 
@@ -1718,12 +1718,12 @@ As seen in the above example, some aggregated values are given a **default name*
 
 | Method | Key | Column | Default name |
 | --------- | --- | ------ | ------------- |
-| `Author.books.isEmpty  `                | `book` | -        | -                  |
-| `Author.books.count  `                  | `book` | -        | `bookCount`        |
-| `Author.books.min(Column("year"))`      | `book` | `year`   | `minBookYear`      |
-| `Author.books.max(Column("year"))`      | `book` | `year`   | `maxBookYear`      |
-| `Author.books.average(Column("price"))` | `book` | `price`  | `averageBookPrice` |
-| `Author.books.sum(Column("awards"))   ` | `book` | `awards` | `bookAwardsSum`    |
+| `Author.books.isEmpty  `                | `books` | -        | -                  |
+| `Author.books.count  `                  | `books` | -        | `bookCount`        |
+| `Author.books.min(Column("year"))`      | `books` | `year`   | `minBookYear`      |
+| `Author.books.max(Column("year"))`      | `books` | `year`   | `maxBookYear`      |
+| `Author.books.average(Column("price"))` | `books` | `price`  | `averageBookPrice` |
+| `Author.books.sum(Column("awards"))   ` | `books` | `awards` | `bookAwardsSum`    |
 
 You give a custom name to an aggregated value with the `aliased` method:
 
@@ -2025,7 +2025,7 @@ In the example below, we use compute two aggregates from the same association `A
     
     ```swift
     struct Author: TableRecord {
-        static let books = hasMany(Book.self) // association key "book"
+        static let books = hasMany(Book.self) // association key "books"
     }
     
     struct AuthorInfo: Decodable, FetchableRecord {
@@ -2035,8 +2035,8 @@ In the example below, we use compute two aggregates from the same association `A
     }
     
     let request = Author.annotated(with:
-        Author.books.min(Column("year")), // association key "book"
-        Author.books.max(Column("year"))) // association key "book"
+        Author.books.min(Column("year")), // association key "books"
+        Author.books.max(Column("year"))) // association key "books"
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
 
@@ -2060,8 +2060,8 @@ In this other example, the `Author.books` and `Author.paintings` have the distin
     
     ```swift
     struct Author: TableRecord {
-        static let books = hasMany(Book.self)         // association key "book"
-        static let paintings = hasMany(Painting.self) // association key "painting"
+        static let books = hasMany(Book.self)         // association key "books"
+        static let paintings = hasMany(Painting.self) // association key "paintings"
     }
     
     struct AuthorInfo: Decodable, FetchableRecord {
@@ -2069,8 +2069,8 @@ In this other example, the `Author.books` and `Author.paintings` have the distin
         var workCount: Int
     }
     
-    let aggregate = Author.books.count +   // association key "book"
-                    Author.paintings.count // association key "painting"
+    let aggregate = Author.books.count +   // association key "books"
+                    Author.paintings.count // association key "paintings"
     let request = Author.annotated(with: aggregate.aliased("workCount"))
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
@@ -2096,7 +2096,7 @@ But in the following example, we use the same association `Author.books` twice, 
     
     ```swift
     struct Author: TableRecord {
-        static let books = hasMany(Book.self) // association key "book"
+        static let books = hasMany(Book.self) // association key "books"
     }
     
     struct AuthorInfo: Decodable, FetchableRecord {
@@ -2107,11 +2107,11 @@ But in the following example, we use the same association `Author.books` twice, 
     
     let novelCount = Author.books
         .filter(Column("kind") == "novel")
-        .forKey("novel")                         // association key "novel"
+        .forKey("novels")                        // association key "novels"
         .count
     let theatrePlayCount = Author.books
         .filter(Column("kind") == "theatrePlay")
-        .forKey("theatrePlay")                   // association key "theatrePlay"
+        .forKey("theatrePlays")                  // association key "theatrePlays"
         .count
     let request = Author.annotated(with: novelCount, theatrePlayCount)
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
@@ -2136,11 +2136,11 @@ But in the following example, we use the same association `Author.books` twice, 
     
     ```swift
     // WRONG: not counting distinct sets of associated books
-    let novelCount = Author.books                // association key "book"
+    let novelCount = Author.books                // association key "books"
         .filter(Column("kind") == "novel")
         .count
         .aliased("novelCount")
-    let theatrePlayCount = Author.books          // association key "book"
+    let theatrePlayCount = Author.books          // association key "books"
         .filter(Column("kind") == "theatrePlay")
         .count
         .aliased("theatrePlayCount")
