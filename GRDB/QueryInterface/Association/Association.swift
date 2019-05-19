@@ -463,9 +463,37 @@ public protocol AssociationToOne: Association { }
 
 // MARK: - SQLAssociationKey
 
+/// Associations are meant to be consumed, most often into Decodable records.
+/// Those have singular or plural property names, depending on the way
+/// associations are used:
+///
+///     struct Author: TableRecord {
+///         static let books = hasMany(Book.self)
+///     }
+///     struct Book: TableRecord {
+///         static let author = belongsTo(Author.self)
+///     }
+///
+///     struct AuthorInfo: FetchableRecord, Decodable {
+///         var author: Author
+///         var books: [Book]   // plural
+///     }
+///     let request = Author.including(all: Author.books)
+///     let authorInfos = try AuthorInfo.fetchAll(db, request)
+///
+///     struct BookInfo: FetchableRecord, Decodable {
+///         var book: Book
+///         var author: Author  // singular
+///     }
+///     let request = Book.including(required: Book.author)
+///     let bookInfos = try BookInfo.fetchAll(db, request)
+///
+/// SQLAssociationKey aims at helping GRDB providing support for automatic
+/// inflections of association and database table names, so that the user does
+/// not have to explicitly provide any singular or plural form.
 enum SQLAssociationKey {
-    /// Inflected in singular and plural contexts.
-    //
+    /// A key that is inflected in singular and plural contexts.
+    ///
     /// For example:
     ///
     ///     struct Author: TableRecord {
@@ -480,8 +508,9 @@ enum SQLAssociationKey {
     ///     row.scopes["author"]  // singularized "authors" table name
     case inflected(String)
     
-    /// Fixed singular (stricly honors user-provided name in singular contexts).
-    //
+    /// A key that is inflected in plural contexts, but stricly honors
+    /// user-provided name in singular contexts.
+    ///
     /// For example:
     ///
     ///     struct Country: TableRecord {
@@ -493,11 +522,12 @@ enum SQLAssociationKey {
     ///     row.scopes["demographics"]  // not singularized
     case fixedSingular(String)
     
-    /// Fixed plural (stricly honors user-provided name in plural contexts).
+    /// A key that is inflected in singular contexts, but stricly honors
+    /// user-provided name in plural contexts.
     /// See .inflected and .fixedSingular for some context.
     case fixedPlural(String)
     
-    /// Not inflected in singular or plural context.
+    /// A key that is never inflected.
     case fixed(String)
     
     var pluralizedName: String {
