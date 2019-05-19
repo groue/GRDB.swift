@@ -12,7 +12,6 @@ GRDB Associations
     - [Choosing Between BelongsTo and HasOne]
     - [Self Joins]
 - [Associations and the Database Schema]
-    - [Convention for Database Table Names]
     - [Convention for the BelongsTo Association]
     - [Convention for the HasOne Association]
     - [Convention for the HasMany Association]
@@ -434,63 +433,11 @@ GRDB also comes with several *conventions* for defining your database schema.
 
 Those conventions help associations be convenient and, generally, "just work". When you can't, or don't want to follow conventions, you will have to override the expected defaults in your Swift code.
 
-- [Convention for Database Table Names]
 - [Convention for the BelongsTo Association]
 - [Convention for the HasMany Association]
 - [Convention for the HasOne Association]
 - [Foreign Keys]
 
-
-## Convention for Database Table Names
-
-**Database table names should be singular and camel-cased.**
-
-Make them look like Swift identifiers: `book`, `author`, `postalAddress`.
-
-This convention helps fetching values from associations. It is used, for example, in the sample code below, where we load all pairs of books along with their authors:
-
-```swift
-// The Author record
-struct Author: FetchableRecord, TableRecord {
-}
-
-// The Book record
-struct Book: FetchableRecord, TableRecord {
-    static let author = belongsTo(Author.self)
-}
-
-// A pair made of a book and its author
-struct BookInfo: FetchableRecord, Decodable {
-    let book: Book
-    let author: Author?
-}
-
-let request = Book.including(optional: Book.author)
-let bookInfos = BookInfo.fetchAll(db, request)
-```
-
-This sample code only works if the database table for authors is called "author". The name "author" is the key that helps BookInfo initialize its `author` property. For your convenience, "author" is also the default value of the `Author.databaseTableName` property (see the [TableRecord] protocol).
-
-If the database schema does not follow this convention, and has, for example, database tables named with plural names (`authors` and `books`), you can still use associations. But you need to help row consumption by providing the required key:
-
-```swift
-// Setup for customized table names
-
-struct Author: FetchableRecord, TableRecord {
-    // Customized table name
-    static let databaseTableName = "authors"
-}
-
-struct Book: FetchableRecord, TableRecord {
-    // Customized table name
-    static let databaseTableName = "books"
-    
-    // Explicit association key
-    static let author = belongsTo(Author.self, key: "author")
-}
-```
-
-See [The Structure of a Joined Request] for more information.
 
 
 ## Convention for the BelongsTo Association
@@ -2202,7 +2149,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Record]: ../README.md#records
 [Foreign Key Actions]: https://sqlite.org/foreignkeys.html#fk_actions
 [Associations and the Database Schema]: #associations-and-the-database-schema
-[Convention for Database Table Names]: #convention-for-database-table-names
 [Convention for the BelongsTo Association]: #convention-for-the-belongsto-association
 [Convention for the HasOne Association]: #convention-for-the-hasone-association
 [Convention for the HasMany Association]: #convention-for-the-hasmany-association
