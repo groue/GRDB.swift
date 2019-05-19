@@ -36,23 +36,15 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     ///
     /// For example:
     ///
-    ///     struct Author: TableRecord {
-    ///         static let books = hasMany(Book.self)
-    ///     }
-    ///
-    ///     struct Book: TableRecord {
-    ///     }
-    ///
-    ///     // All authors along with their books
     ///     let request = Author.including(all: Author.books)
-    ///     let rows = try Row.fetchAll(db, request)
-    ///     for row in rows {
-    ///         print(row) // [id:1, name:"Hermann Melville"]
-    ///         let bookRows = row.prefetches["books"]
-    ///         for bookBok in bookRows {
-    ///             print(bookBok) // [id:43, title:"Moby-Dick"]
-    ///         }
-    ///     }
+    ///     let row = try Row.fetchOne(db, request)!
+    ///
+    ///     print(row)
+    ///     // Prints [id:1 name:"Herman Melville"]
+    ///
+    ///     let bookRows = row.prefetchedRows["books"]
+    ///     print(bookRows[0])
+    ///     // Prints [id:42 title:"Moby-Dick"]
     public internal(set) var prefetchedRows: PrefetchedRowsView = PrefetchedRowsView()
     
     // MARK: - Building rows
@@ -527,10 +519,33 @@ extension Row {
     
     // MARK: - Extracting Records
     
-    /// Returns the record encoded in the given scope.
+    /// Returns the record associated with the given scope.
     ///
-    /// A fatal error is raised if the row was not fetched with a row adapter
-    /// that defines this scope.
+    /// For example:
+    ///
+    ///     let request = Book.including(required: Book.author)
+    ///     let row = try Row.fetchOne(db, request)!
+    ///
+    ///     print(Book(row: row).title)
+    ///     // Prints "Moby-Dick"
+    ///
+    ///     let author: Author = row["author"]
+    ///     print(author.name)
+    ///     // Prints "Herman Melville"
+    ///
+    /// Associated records stored in nested associations are available, too:
+    ///
+    ///     let request = Book.including(required: Book.author.including(required: Author.country))
+    ///     let row = try Row.fetchOne(db, request)!
+    ///
+    ///     print(Book(row: row).title)
+    ///     // Prints "Moby-Dick"
+    ///
+    ///     let country: Country = row["country"]
+    ///     print(country.name)
+    ///     // Prints "United States"
+    ///
+    /// A fatal error is raised if the scope is not available.
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
@@ -542,11 +557,34 @@ extension Row {
         return Record(row: scopedRow)
     }
 
-    /// Returns the record encoded in the given scope, if and only if the scope
-    /// has been defined by a row adapter, and the scoped row contains a
-    /// non-null value. Otherwise, return nil.
+    /// Returns the eventual record associated with the given scope.
     ///
-    /// This subscript is designed to handle left joined records.
+    /// For example:
+    ///
+    ///     let request = Book.including(optional: Book.author)
+    ///     let row = try Row.fetchOne(db, request)!
+    ///
+    ///     print(Book(row: row).title)
+    ///     // Prints "Moby-Dick"
+    ///
+    ///     let author: Author? = row["author"]
+    ///     print(author.name)
+    ///     // Prints "Herman Melville"
+    ///
+    /// Associated records stored in nested associations are available, too:
+    ///
+    ///     let request = Book.including(optional: Book.author.including(optional: Author.country))
+    ///     let row = try Row.fetchOne(db, request)!
+    ///
+    ///     print(Book(row: row).title)
+    ///     // Prints "Moby-Dick"
+    ///
+    ///     let country: Country? = row["country"]
+    ///     print(country.name)
+    ///     // Prints "United States"
+    ///
+    /// Nil is returned if the scope is not available, or contains only
+    /// null values.
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
@@ -559,36 +597,17 @@ extension Row {
     
     /// Returns the records encoded in the given prefetched rows.
     ///
-    ///     struct Author: FetchableRecord, TableRecord {
-    ///         static let books = hasMany(Book.self)
-    ///         ...
-    ///     }
-    ///     struct Book: FetchableRecord, TableRecord {
-    ///         ...
-    ///     }
+    /// For example:
     ///
-    ///     struct AuthorInfo {
-    ///         var author: Author
-    ///         var books: [Book]
+    ///     let request = Author.including(all: Author.books)
+    ///     let row = try Row.fetchOne(db, request)!
     ///
-    ///         init(row: Row) {
-    ///             author = Author(row: row)
-    ///             books = row["books"]    // <---
-    ///         }
-    ///     }
+    ///     print(Author(row: row).name)
+    ///     // Prints "Herman Melville"
     ///
-    ///     try dbQueue.read { db in
-    ///         // Fetch authors along with their books:
-    ///         let request = Author.including(all: Author.books)
-    ///         let authorInfos = try AuthorInfo.fetchAll(db, request)
-    ///
-    ///         for authorInfo in authorInfos {
-    ///             print("\(authorInfo.author.name) wrote:")
-    ///             for book in authorInfo.books {
-    ///                 print("- \(book.title)")
-    ///             }
-    ///         }
-    ///     }
+    ///     let books: [Book] = row["books"]
+    ///     print(books[0].title)
+    ///     // Prints "Moby-Dick"
     public subscript<Collection>(_ key: String)
         -> Collection
         where
@@ -609,36 +628,17 @@ extension Row {
     
     /// Returns the set of records encoded in the given prefetched rows.
     ///
-    ///     struct Author: FetchableRecord, TableRecord {
-    ///         static let books = hasMany(Book.self)
-    ///         ...
-    ///     }
-    ///     struct Book: FetchableRecord, TableRecord, Hashable {
-    ///         ...
-    ///     }
+    /// For example:
     ///
-    ///     struct AuthorInfo {
-    ///         var author: Author
-    ///         var books: Set<Book>
+    ///     let request = Author.including(all: Author.books)
+    ///     let row = try Row.fetchOne(db, request)!
     ///
-    ///         init(row: Row) {
-    ///             author = Author(row: row)
-    ///             books = row["books"]    // <---
-    ///         }
-    ///     }
+    ///     print(Author(row: row).name)
+    ///     // Prints "Herman Melville"
     ///
-    ///     try dbQueue.read { db in
-    ///         // Fetch authors along with their books:
-    ///         let request = Author.including(all: Author.books)
-    ///         let authorInfos = try AuthorInfo.fetchAll(db, request)
-    ///
-    ///         for authorInfo in authorInfos {
-    ///             print("\(authorInfo.author.name) wrote:")
-    ///             for book in authorInfo.books {
-    ///                 print("- \(book.title)")
-    ///             }
-    ///         }
-    ///     }
+    ///     let books: Set<Book> = row["books"]
+    ///     print(books[0].title)
+    ///     // Prints "Moby-Dick"
     public subscript<Record: FetchableRecord & Hashable>(_ key: String) -> Set<Record> {
         guard let rows = prefetchedRows[key] else {
             // Programmer error
@@ -654,7 +654,7 @@ extension Row {
 
 extension Row {
     
-    // MARK: - Scopes & Prefetches
+    // MARK: - Scopes
     
     /// Returns a view on the scopes defined by row adapters.
     ///
@@ -1374,9 +1374,31 @@ extension Row {
             return names
         }
 
-        /// Returns the row associated with the given scope, by performing a
-        /// breadth-first search in this row's scopes and the scopes of its
-        /// scoped rows, recursively.
+        /// Returns the row associated with the given scope.
+        ///
+        /// For example:
+        ///
+        ///     let request = Book.including(required: Book.author)
+        ///     let row = try Row.fetchOne(db, request)!
+        ///
+        ///     print(row)
+        ///     // Prints [id:42 title:"Moby-Dick"]
+        ///
+        ///     let authorRow = row.scopesTree["author"]
+        ///     print(authorRow)
+        ///     // Prints [id:1 name:"Herman Melville"]
+        ///
+        /// Associated rows stored in nested associations are available, too:
+        ///
+        ///     let request = Book.including(required: Book.author.including(required: Author.country))
+        ///     let row = try Row.fetchOne(db, request)!
+        ///
+        ///     print(row)
+        ///     // Prints [id:42 title:"Moby-Dick"]
+        ///
+        ///     let countryRow = row.scopesTree["country"]
+        ///     print(countryRow)
+        ///     // Prints [code:"US" name:"United States"]
         public subscript(_ name: String) -> Row? {
             var fifo = Array(scopes)
             while !fifo.isEmpty {
@@ -1406,23 +1428,15 @@ extension Row {
     ///
     /// For example:
     ///
-    ///     struct Author: TableRecord {
-    ///         static let books = hasMany(Book.self)
-    ///     }
-    ///
-    ///     struct Book: TableRecord {
-    ///     }
-    ///
-    ///     // All authors along with their books
     ///     let request = Author.including(all: Author.books)
-    ///     let rows = try Row.fetchAll(db, request)
-    ///     for row in rows {
-    ///         print(row) // [id:1, name:"Hermann Melville"]
-    ///         let bookRows = row.prefetchedRows["books"]
-    ///         for bookBok in bookRows {
-    ///             print(bookBok) // [id:43, title:"Moby-Dick"]
-    ///         }
-    ///     }
+    ///     let row = try Row.fetchOne(db, request)!
+    ///
+    ///     print(row)
+    ///     // Prints [id:1 name:"Herman Melville"]
+    ///
+    ///     let bookRows = row.prefetchedRows["books"]
+    ///     print(bookRows[0])
+    ///     // Prints [id:42 title:"Moby-Dick"]
     public struct PrefetchedRowsView: Equatable {
         // OrderedDictionary so that breadth-first search gives a consistent result
         // (we preserve the ordering of associations in the request)
@@ -1455,8 +1469,7 @@ extension Row {
             return result
         }
 
-        /// Returns the rows associated with the given key, by performing a
-        /// breadth-first search in this row's prefetch tree.
+        /// Returns the prefetched rows associated with the given key.
         ///
         /// For example:
         ///
@@ -1469,6 +1482,9 @@ extension Row {
         ///     let bookRows = row.prefetchedRows["books"]
         ///     print(bookRows[0])
         ///     // Prints [id:42 title:"Moby-Dick"]
+        ///
+        /// Prefetched rows stored in nested "to-one" associations are
+        /// available, too.
         public subscript(_ key: String) -> [Row]? {
             var fifo = Array(prefetches)
             while !fifo.isEmpty {
