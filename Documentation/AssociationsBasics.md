@@ -18,7 +18,7 @@ GRDB Associations
     - [Foreign Keys]
 - [Building Requests from Associations]
     - [Requesting Associated Records]
-    - [Joining Methods]
+    - [Joining And Prefetching Associated Records]
     - [Combining Associations]
     - [Filtering Associations]
     - [Sorting Associations]
@@ -718,7 +718,7 @@ Building Requests from Associations
 Fetch requests do not visit the database until you fetch values from them. This will be covered in [Fetching Values from Associations]. But before you can fetch anything, you have to describe what you want to fetch. This is the topic of this chapter.
 
 - [Requesting Associated Records]
-- [Joining Methods]
+- [Joining And Prefetching Associated Records]
 - [Combining Associations]
 - [Filtering Associations]
 - [Sorting Associations]
@@ -792,23 +792,28 @@ ValueObservation
 ```
 
 
-## Joining Methods
+## Joining And Prefetching Associated Records
 
-**You build requests that involve several records with the four "joining methods":**
+**You build requests that involve several records with the following "joining methods":**
 
-- `including(optional: association)`
-- `including(required: association)`
 - `joining(optional: association)`
 - `joining(required: association)`
+- `including(optional: association)`
+- `including(required: association)`
+- `including(all: associationToMany)`
 
 Before we describe them in detail, let's see a few requests they can build:
 
 ```swift
-/// All books with their respective authors
+/// All authors with their respective books
+let request = Author
+    .including(all: Author.books)
+
+/// All books with their respective author
 let request = Book
     .including(required: Book.author)
 
-/// All books with their respective authors, sorted by title
+/// All books with their respective author, sorted by title
 let request = Book
     .order(Column("title"))
     .including(required: Book.author)
@@ -826,33 +831,60 @@ The pattern is always the same: you start from a base request, that you extend w
     
     If yes, use `including(...)`. Otherwise, use `joining(...)`.
     
-    For example, to load all books with their respective authors, you want authors to be fetched, and you use `including`:
+    For example, to load books with their respective author (a to-one association), you use `including`:
     
     ```swift
-    /// All books with their respective authors
+    // All books with their respective author
     let request = Book
         .including(required: Book.author)
+    
+    // This request can feed the following record:
+    struct BookInfo {
+        var book: Book
+        var author: Author
+    }
+    ```
+    
+    And to load authors with their respective books (a to-many association), you use `including` as well:
+    
+    ```swift
+    // All authors with their respective books
+    let request = Author
+        .including(all: Author.books)
+    
+    // This request can feed the following record:
+    struct AuthorInfo {
+        var author: Author
+        var books: [Book]
+    }
     ```
     
     On the other side, to load all books written by a French author, you sure need to filter authors, but you don't need them to be present in the fetched results. You prefer `joining`:
     
     ```swift
-    /// All books written by a French author
+    // All books written by a French author
     let request = Book
         .joining(required: Book.author.filter(Column("countryCode") == "FR"))
+    
+    // This request can feed the Book record.
     ```
 
-2. Should the request allow missing associated records?
+2. For to-one associations, should the request allow missing associated records?
     
     If yes, choose the `optional` variant. Otherwise, choose `required`.
     
     For example, to load all books with their respective authors, even if the book has no recorded author, you'd use `including(optional:)`:
     
     ```swift
-    /// All books with their respective (eventual) authors
-    /// (One Thousand and One Nights should be there)
+    // All books with their respective (eventual) authors
     let request = Book
         .including(optional: Book.author)
+    
+    // This request can feed the following record:
+    struct BookInfo {
+        var book: Book
+        var author: Author?
+    }
     ```
     
     You can remember to use `optional` when the fetched associated records should feed optional Swift values, of type `Author?`. Conversely, when the fetched results feed non-optional values of type `Author`, prefer `required`.
@@ -1247,7 +1279,7 @@ When you join or include an association several times, with the same **[associat
 Fetching Values from Associations
 =================================
 
-We have seen in [Building Requests from Associations] how to define requests that involve several records by the mean of [Joining Methods].
+We have seen in [Joining And Prefetching Associated Records] how to define requests that involve several records.
 
 If your application needs to display a list of books with information about their author, country, and cover image, you may build the following joined request:
 
@@ -2176,7 +2208,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Combining Associations]: #combining-associations
 [Requesting Associated Records]: #requesting-associated-records
 [requests for associated records]: #requesting-associated-records
-[Joining Methods]: #joining-methods
+[Joining And Prefetching Associated Records]: #joining-and-prefetching-associated-records
 [Filtering Associations]: #filtering-associations
 [Sorting Associations]: #sorting-associations
 [Columns Selected by an Association]: #columns-selected-by-an-association
