@@ -37,7 +37,6 @@ GRDB Associations
     - [Isolation of Multiple Aggregates]
 - [DerivableRequest Protocol]
 - [Known Issues]
-- [Future Directions]
 
 
 ## Associations Benefits
@@ -2208,15 +2207,6 @@ let request = Author
         .filter(Column("publishDate") >= authorAlias[Column("deathDate")]))    
 ```
 
-
-## Future Directions
-
-The APIs that have been described above do not cover the whole topic of joined requests. Among the biggest omissions, there is:
-
-- One can not yet join two tables without a foreign key. One can not build the plain `SELECT * FROM a JOIN b`, for example.
-
-- One can not yet express requests such as "all authors with all their books".
-
 Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those features into reality.
 
 
@@ -2304,7 +2294,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Isolation of Multiple Aggregates]: #isolation-of-multiple-aggregates
 [DerivableRequest Protocol]: #derivablerequest-protocol
 [Known Issues]: #known-issues
-[Future Directions]: #future-directions
 [Row Adapters]: ../README.md#row-adapters
 [query interface requests]: ../README.md#requests
 [TableRecord]: ../README.md#tablerecord-protocol

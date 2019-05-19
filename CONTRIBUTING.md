@@ -96,7 +96,7 @@ The ideas, in alphabetical order:
 
 :bowtie: Public API Challenge :muscle: Hard :fire: Experimental
 
-Associations can be enhanced in several ways. See the "Known Issues" and "Future Directions" chapter of the [Associations Guide](Documentation/AssociationsBasics.md)
+Associations can be enhanced in several ways. See the "Known Issues" chapter of the [Associations Guide](Documentation/AssociationsBasics.md)
 
 
 ### CloudKit
