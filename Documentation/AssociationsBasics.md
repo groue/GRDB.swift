@@ -258,7 +258,7 @@ For example, if your application has one database table for countries, and anoth
 
 ```swift
 struct Country: TableRecord {
-    static let demographics = hasOne(Demographics.self)
+    static let demographics = hasOne(Demographics.self, key: "demographics")
     ...
 }
 
@@ -270,6 +270,8 @@ struct Demographics: TableRecord {
 The **HasOne** association between a country and its demographics needs that the database table for demographics has a column that points to the table for countries:
 
 ![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneSchema.svg)
+
+Note that this demographics example of HasOne association uses an explicit `"demographics"` key, unlike the BelongsTo and HasMany associations above. This key is necessary when you use a plural name for a one-to-one association. See [TODO] for more information.
 
 See [Convention for the HasOne Association] for some sample code that defines the database schema for such an association, and [Building Requests from Associations] in order to learn how to use it.
 
@@ -299,7 +301,7 @@ struct Citizen: TableRecord, EncodableRecord {
 
 ![HasManyThroughSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasManyThroughSchema.svg)
 
-The **HasManyThrough** association is also useful for setting up "shortcuts" through nested HasMany associations. For example, if a document has many sections, and a section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document. You could set that up this way:
+The **HasManyThrough** association is also useful for setting up "shortcuts" through nested associations. For example, if a document has many sections, and a section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document. You could set that up this way:
 
 ```swift
 struct Document: TableRecord {
@@ -399,8 +401,8 @@ When designing your data model, you will sometimes find a record that should hav
 
 ```swift
 struct Employee {
-    static let subordinates = hasMany(Employee.self)
-    static let manager = belongsTo(Employee.self)
+    static let subordinates = hasMany(Employee.self, key: "subordinates")
+    static let manager = belongsTo(Employee.self, key: "manager")
     ...
 }
 ```
@@ -419,6 +421,22 @@ migrator.registerMigration("Employees") { db in
         t.column("name", .text)
     }
 }
+```
+
+Note that both sides of the self-join use a customized [association key]. This helps consuming this association. For example:
+
+```swift
+struct EmployeeInfo: FetchableRecord, Decodable {
+    var employee: Employee
+    var manager: Employee?
+    var subordinates: Set<Employee>
+}
+
+let request = Employee
+    .including(optional: Employee.manager)
+    .including(all: Employee.subordinates)
+
+let employeeInfos: [EmployeeInfo] = try EmployeeInfo.fetchAll(db, request)
 ```
 
 

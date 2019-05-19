@@ -1162,4 +1162,72 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
             }
         }
     }
+    
+    func testSelfJoin() throws {
+        struct Employee: TableRecord, FetchableRecord, Decodable, Hashable {
+            static let subordinates = hasMany(Employee.self, key: "subordinates")
+            static let manager = belongsTo(Employee.self, key: "manager")
+            var id: Int64
+            var managerId: Int64?
+            var name: String
+        }
+
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "employee") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("managerId", .integer)
+                    .indexed()
+                    .references("employee", onDelete: .restrict)
+                t.column("name", .text)
+            }
+            try db.execute(sql: """
+                INSERT INTO employee (id, managerId, name) VALUES (1, NULL, 'Arthur');
+                INSERT INTO employee (id, managerId, name) VALUES (2, 1, 'Barbara');
+                INSERT INTO employee (id, managerId, name) VALUES (3, 1, 'Craig');
+                INSERT INTO employee (id, managerId, name) VALUES (4, 2, 'David');
+                INSERT INTO employee (id, managerId, name) VALUES (5, NULL, 'Eve');
+                """)
+            
+            struct EmployeeInfo: FetchableRecord, Decodable, Equatable {
+                var employee: Employee
+                var manager: Employee?
+                var subordinates: Set<Employee>
+            }
+            
+            let request = Employee
+                .including(optional: Employee.manager)
+                .including(all: Employee.subordinates)
+                .orderByPrimaryKey()
+            
+            let employeeInfos: [EmployeeInfo] = try EmployeeInfo.fetchAll(db, request)
+            XCTAssertEqual(employeeInfos, [
+                EmployeeInfo(
+                    employee: Employee(id: 1, managerId: nil, name: "Arthur"),
+                    manager: nil,
+                    subordinates: [
+                        Employee(id: 2, managerId: 1, name: "Barbara"),
+                        Employee(id: 3, managerId: 1, name: "Craig"),
+                    ]),
+                EmployeeInfo(
+                    employee: Employee(id: 2, managerId: 1, name: "Barbara"),
+                    manager: Employee(id: 1, managerId: nil, name: "Arthur"),
+                    subordinates: [
+                        Employee(id: 4, managerId: 2, name: "David"),
+                    ]),
+                EmployeeInfo(
+                    employee: Employee(id: 3, managerId: 1, name: "Craig"),
+                    manager: Employee(id: 1, managerId: nil, name: "Arthur"),
+                    subordinates: []),
+                EmployeeInfo(
+                    employee: Employee(id: 4, managerId: 2, name: "David"),
+                    manager: Employee(id: 2, managerId: 1, name: "Barbara"),
+                    subordinates: []),
+                EmployeeInfo(
+                    employee: Employee(id: 5, managerId: nil, name: "Eve"),
+                    manager: nil,
+                    subordinates: []),
+            ])
+        }
+    }
 }
