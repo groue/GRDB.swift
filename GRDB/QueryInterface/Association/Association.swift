@@ -559,8 +559,8 @@ enum SQLAssociationKey {
 
 // MARK: - SQLAssociation
 
-/// An SQL association is a non-empty chain on steps which starts from the
-/// "pivot" and ends to the "destination":
+/// An SQL association is a non-empty chain of steps which starts at the
+/// "pivot" and ends on the "destination":
 ///
 ///     // SELECT origin.*, destination.*
 ///     // FROM origin

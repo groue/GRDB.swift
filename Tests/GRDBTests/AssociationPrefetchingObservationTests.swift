@@ -5,24 +5,10 @@ import XCTest
     import GRDB
 #endif
 
-private struct A: TableRecord, FetchableRecord, Decodable, Equatable {
-    var cola1: Int64
-    var cola2: String
-}
-private struct B: TableRecord, FetchableRecord, Decodable, Hashable {
-    var colb1: Int64
-    var colb2: Int64?
-    var colb3: String
-}
-private struct C: TableRecord, FetchableRecord, Decodable, Equatable {
-    var colc1: Int64
-    var colc2: Int64
-}
-private struct D: TableRecord, FetchableRecord, Decodable, Equatable {
-    var cold1: Int64
-    var cold2: Int64
-    var cold3: String
-}
+private struct A: TableRecord { }
+private struct B: TableRecord { }
+private struct C: TableRecord { }
+private struct D: TableRecord { }
 
 class AssociationPrefetchingObservationTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
