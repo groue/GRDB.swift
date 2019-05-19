@@ -8,7 +8,7 @@ import XCTest
 private struct Team: Codable, FetchableRecord, PersistableRecord {
     static let players = hasMany(Player.self)
     static let awards = hasMany(Award.self)
-    static let customPlayers = hasMany(Player.self, key: "custom")
+    static let customPlayers = hasMany(Player.self, name: "custom")
     var id: Int64
     var name: String
 }

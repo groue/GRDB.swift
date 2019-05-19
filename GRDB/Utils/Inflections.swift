@@ -218,6 +218,7 @@ extension Inflections {
         inflections.plural("^(ox)$", "$1en")
         inflections.plural("^(oxen)$", "$1")
         inflections.plural("(quiz)$", "$1zes")
+        inflections.plural("(canva)s$", "$1ses")
 
         inflections.singular("s$", "")
         inflections.singular("(ss)$", "$1")
@@ -246,6 +247,7 @@ extension Inflections {
         inflections.singular("(matr)ices$", "$1ix")
         inflections.singular("(quiz)zes$", "$1")
         inflections.singular("(database)s$", "$1")
+        inflections.singular("(canvas)(es)?$", "$1")
         
         inflections.uncountable(
             "equipment",

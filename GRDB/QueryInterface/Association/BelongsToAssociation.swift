@@ -136,7 +136,7 @@ extension TableRecord {
     ///       foreign keys to the destination table.
     public static func belongsTo<Destination>(
         _ destination: Destination.Type,
-        key: String? = nil,
+        name: String? = nil,    // TODD: fixit because `name` has replaced `key`
         using foreignKey: ForeignKey? = nil)
         -> BelongsToAssociation<Self, Destination>
         where Destination: TableRecord
@@ -151,8 +151,9 @@ extension TableRecord {
             originIsLeft: true)
         
         return BelongsToAssociation(sqlAssociation: SQLAssociation(
-            key: key ?? Destination.databaseTableName,
+            key: SQLAssociationKey(name: name ?? Destination.databaseTableName, isInflectable: true),
             condition: condition,
-            relation: Destination.all().relation))
+            relation: Destination.all().relation,
+            isSingular: true))
     }
 }

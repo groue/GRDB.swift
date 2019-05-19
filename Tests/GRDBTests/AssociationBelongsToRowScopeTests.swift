@@ -14,7 +14,7 @@ private struct Team: Codable, FetchableRecord, PersistableRecord {
 private struct Player: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "players"
     static let defaultTeam = belongsTo(Team.self)
-    static let customTeam = belongsTo(Team.self, key: "customTeam")
+    static let customTeam = belongsTo(Team.self, name: "customTeam")
     var id: Int64
     var teamId: Int64?
     var name: String
@@ -56,8 +56,8 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
         let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
-        XCTAssertEqual(Set(rows[0].scopes.names), ["teams"])
-        XCTAssertEqual(rows[0].scopes["teams"]!, ["id":1, "name":"Reds"])
+        XCTAssertEqual(Set(rows[0].scopes.names), ["team"])
+        XCTAssertEqual(rows[0].scopes["team"]!, ["id":1, "name":"Reds"])
     }
     
     func testDefaultScopeIncludingOptional() throws {
@@ -66,11 +66,11 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
         let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 2)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
-        XCTAssertEqual(Set(rows[0].scopes.names), ["teams"])
-        XCTAssertEqual(rows[0].scopes["teams"]!, ["id":1, "name":"Reds"])
+        XCTAssertEqual(Set(rows[0].scopes.names), ["team"])
+        XCTAssertEqual(rows[0].scopes["team"]!, ["id":1, "name":"Reds"])
         XCTAssertEqual(rows[1].unscoped, ["id":2, "teamId":nil, "name":"Barbara"])
-        XCTAssertEqual(Set(rows[1].scopes.names), ["teams"])
-        XCTAssertEqual(rows[1].scopes["teams"]!, ["id":nil, "name":nil])
+        XCTAssertEqual(Set(rows[1].scopes.names), ["team"])
+        XCTAssertEqual(rows[1].scopes["team"]!, ["id":nil, "name":nil])
     }
     
     func testDefaultScopeJoiningRequired() throws {

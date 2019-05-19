@@ -109,6 +109,15 @@ struct SQLRelation {
             case allPrefetched
             // Record.including(all: associationThroughPivot)
             case allNotPrefetched
+            
+            var isSingular: Bool {
+                switch self {
+                case .oneOptional, .oneRequired:
+                    return true
+                case .allPrefetched, .allNotPrefetched:
+                    return false
+                }
+            }
         }
         
         var kind: Kind
@@ -129,7 +138,8 @@ struct SQLRelation {
         }
         
         fileprivate func makeAssociationForKey(_ key: String) -> SQLAssociation {
-            return SQLAssociation(key: key, condition: condition, relation: relation)
+            let key = SQLAssociationKey(name: key, isInflectable: false)
+            return SQLAssociation(key: key, condition: condition, relation: relation, isSingular: kind.isSingular)
         }
         
         func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> Child {

@@ -69,7 +69,7 @@ extension Association {
     ///     for row in Row.fetchAll(db, request) {
     ///         let team: Team = row["custom"]
     ///     }
-    var key: String {
+    var key: SQLAssociationKey {
         return sqlAssociation.destinationKey
     }
     
@@ -196,6 +196,8 @@ extension Association {
     ///         let team: Team = row["custom"]
     ///     }
     public func forKey(_ key: String) -> Self {
+        // TODO: consider instead Player.including(required: Player.team, forKey: "custom")
+        let key = SQLAssociationKey(name: key, isInflectable: false)
         return Self.init(sqlAssociation: sqlAssociation.forDestinationKey(key))
     }
     
@@ -373,7 +375,7 @@ extension AssociationToMany where OriginRowDecoder: TableRecord {
     ///
     ///     Team.annotated(with: Team.players.count())
     public var count: AssociationAggregate<OriginRowDecoder> {
-        return makeAggregate(SQLExpressionCountDistinct(Column.rowID)).aliased("\(key)Count")
+        return makeAggregate(SQLExpressionCountDistinct(Column.rowID)).aliased("\(key.singularizedName)Count")
     }
     
     /// An aggregate that is true if there exists no associated records.
@@ -395,7 +397,8 @@ extension AssociationToMany where OriginRowDecoder: TableRecord {
     public func average(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
         let aggregate = makeAggregate(SQLExpressionFunction(.avg, arguments: expression))
         if let column = expression as? ColumnExpression {
-            return aggregate.aliased("average\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+            let name = key.singularizedName
+            return aggregate.aliased("average\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
         } else {
             return aggregate
         }
@@ -409,7 +412,8 @@ extension AssociationToMany where OriginRowDecoder: TableRecord {
     public func max(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
         let aggregate = makeAggregate(SQLExpressionFunction(.max, arguments: expression))
         if let column = expression as? ColumnExpression {
-            return aggregate.aliased("max\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+            let name = key.singularizedName
+            return aggregate.aliased("max\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
         } else {
             return aggregate
         }
@@ -423,7 +427,8 @@ extension AssociationToMany where OriginRowDecoder: TableRecord {
     public func min(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
         let aggregate = makeAggregate(SQLExpressionFunction(.min, arguments: expression))
         if let column = expression as? ColumnExpression {
-            return aggregate.aliased("min\(key.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+            let name = key.singularizedName
+            return aggregate.aliased("min\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
         } else {
             return aggregate
         }
@@ -437,7 +442,8 @@ extension AssociationToMany where OriginRowDecoder: TableRecord {
     public func sum(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
         let aggregate = makeAggregate(SQLExpressionFunction(.sum, arguments: expression))
         if let column = expression as? ColumnExpression {
-            return aggregate.aliased("\(key)\(column.name.uppercasingFirstCharacter)Sum")
+            let name = key.singularizedName
+            return aggregate.aliased("\(name)\(column.name.uppercasingFirstCharacter)Sum")
         } else {
             return aggregate
         }
@@ -450,6 +456,27 @@ extension AssociationToMany where OriginRowDecoder: TableRecord {
 ///
 /// The base protocol for all associations that define a one-to-one connection.
 public protocol AssociationToOne: Association { }
+
+// MARK: - SQLAssociationKey
+
+struct SQLAssociationKey {
+    var name: String
+    var isInflectable: Bool
+    
+    var pluralizedName: String {
+        guard isInflectable else {
+            return name
+        }
+        return name.pluralized
+    }
+    
+    var singularizedName: String {
+        guard isInflectable else {
+            return name
+        }
+        return name.singularized
+    }
+}
 
 // MARK: - SQLAssociation
 
@@ -506,24 +533,31 @@ public protocol AssociationToOne: Association { }
 /// :nodoc:
 public /* TODO: internal */ struct SQLAssociation {
     private struct AssociationStep {
-        var key: String
+        var key: SQLAssociationKey
         var condition: SQLAssociationCondition
         var relation: SQLRelation
+        var isSingular: Bool
         
         func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> AssociationStep {
-            return AssociationStep(key: key, condition: condition, relation: transform(relation))
+            return AssociationStep(key: key, condition: condition, relation: transform(relation), isSingular: isSingular)
         }
     }
     
     // All steps, from pivot to destination. Never empty.
     private var steps: [AssociationStep]
-    var keyPath: [String] { return steps.map { $0.key} }
+    var keyPath: [String] {
+        return steps.map {
+            $0.isSingular
+                ? $0.key.singularizedName
+                : $0.key.pluralizedName
+        }
+    }
     
     private var destination: AssociationStep {
         get { return steps[steps.count - 1] }
         set { steps[steps.count - 1] = newValue }
     }
-    var destinationKey: String { return destination.key }
+    var destinationKey: SQLAssociationKey { return destination.key }
     
     private var pivot: AssociationStep {
         get { return steps[0] }
@@ -538,19 +572,24 @@ public /* TODO: internal */ struct SQLAssociation {
         self.steps = steps
     }
     
-    init(key: String, condition: SQLAssociationCondition, relation: SQLRelation) {
-        self.init(steps: [AssociationStep(key: key, condition: condition, relation: relation)])
+    init(
+        key: SQLAssociationKey,
+        condition: SQLAssociationCondition,
+        relation: SQLRelation,
+        isSingular: Bool)
+    {
+        self.init(steps: [AssociationStep(key: key, condition: condition, relation: relation, isSingular: isSingular)])
     }
     
     /// Changes the destination key
-    func forDestinationKey(_ key: String) -> SQLAssociation {
+    func forDestinationKey(_ key: SQLAssociationKey) -> SQLAssociation {
         var result = self
         result.destination.key = key
         return result
     }
     
     /// Changes the pivot key
-    func forPivotKey(_ key: String) -> SQLAssociation {
+    func forPivotKey(_ key: SQLAssociationKey) -> SQLAssociation {
         var result = self
         result.pivot.key = key
         return result
@@ -624,7 +663,10 @@ public /* TODO: internal */ struct SQLAssociation {
             //
             // let association = Origin.belongsTo(Destination.self)
             // Origin.including(required: association)
-            return origin.appendingChild(destinationChild, forKey: destination.key)
+            let key = kind.isSingular
+                ? destination.key.singularizedName
+                : destination.key.pluralizedName
+            return origin.appendingChild(destinationChild, forKey: key)
         }
         
         // This is an indirect join from origin to destination, through
@@ -644,13 +686,12 @@ public /* TODO: internal */ struct SQLAssociation {
         // Let's recurse toward a direct join, by making a new association which
         // ends on the last pivot, to which we join our destination:
         var reducedAssociation = SQLAssociation(steps: Array(initialSteps))
-        reducedAssociation = reducedAssociation.mapDestinationRelation {
-            $0.appendingChild(destinationChild, forKey: destination.key)
-        }
-        // Intermediate steps are not prefetched
-        reducedAssociation = reducedAssociation.mapDestinationRelation {
-            $0.select([])
-        }
+        let key = (kind.isSingular || reducedAssociation.destination.isSingular)
+            ? destination.key.singularizedName
+            : destination.key.pluralizedName
+        reducedAssociation.destination.relation = reducedAssociation.destination.relation
+            .select([]) // Intermediate steps are not prefetched
+            .appendingChild(destinationChild, forKey: key)
         
         switch kind {
         case .oneRequired, .oneOptional, .allNotPrefetched:
@@ -710,7 +751,7 @@ public /* TODO: internal */ struct SQLAssociation {
             // key, and prevent merging of intermediate steps of
             // indirect associations:
             return reducedAssociation
-                .forPivotKey("grdb_\(UUID().uuidString)")
+                .forPivotKey(SQLAssociationKey(name: "grdb_\(UUID().uuidString)", isInflectable: false))
                 .extendedRelation(origin, kind: .allNotPrefetched)
         }
     }
@@ -799,7 +840,8 @@ public /* TODO: internal */ struct SQLAssociation {
                 return AssociationStep(
                     key: step.key,
                     condition: nextStep.condition.reversed,
-                    relation: relation)
+                    relation: relation,
+                    isSingular: step.isSingular)
             }
             .reversed()
         

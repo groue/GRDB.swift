@@ -11,8 +11,8 @@ private struct A: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "a"
     static let defaultB = belongsTo(B.self)
     static let defaultD = belongsTo(D.self)
-    static let customB = belongsTo(B.self, key: "customB")
-    static let customD = belongsTo(D.self, key: "customD")
+    static let customB = belongsTo(B.self, name: "customB")
+    static let customD = belongsTo(D.self, name: "customD")
     var id: Int64
     var bid: Int64?
     var did: Int64?
@@ -22,8 +22,8 @@ private struct A: Codable, FetchableRecord, PersistableRecord {
 private struct B: Codable, FetchableRecord, PersistableRecord {
     static let defaultA = hasOne(A.self)
     static let defaultC = hasOne(C.self)
-    static let customA = hasOne(A.self, key: "customA")
-    static let customC = hasOne(C.self, key: "customC")
+    static let customA = hasOne(A.self, name: "customA")
+    static let customC = hasOne(C.self, name: "customC")
     static let databaseTableName = "b"
     var id: Int64
     var name: String
@@ -38,7 +38,7 @@ private struct C: Codable, FetchableRecord, PersistableRecord {
 
 private struct D: Codable, FetchableRecord, PersistableRecord {
     static let defaultA = hasOne(A.self)
-    static let customA = hasOne(A.self, key: "customA")
+    static let customA = hasOne(A.self, name: "customA")
     static let databaseTableName = "d"
     var id: Int64
     var name: String
