@@ -144,18 +144,22 @@ public struct Inflections {
     
     /// Returns a pluralized string.
     public func pluralize(_ string: String) -> String {
-        if isUncountable(string) {
+        let indexOfLastWord = Inflections.indexOfLastWord(string)
+        let lastWord = String(string.suffix(from: indexOfLastWord))
+        if isUncountable(lastWord) {
             return string
         }
-        return inflect(string, with: pluralizeRules)
+        return string.prefix(upTo: indexOfLastWord) + inflect(lastWord, with: pluralizeRules)
     }
     
     /// Returns a singularized string.
     public func singularize(_ string: String) -> String {
-        if isUncountable(string) {
+        let indexOfLastWord = Inflections.indexOfLastWord(string)
+        let lastWord = String(string.suffix(from: indexOfLastWord))
+        if isUncountable(lastWord) {
             return string
         }
-        return inflect(string, with: singularizeRules)
+        return string.prefix(upTo: indexOfLastWord) + inflect(lastWord, with: singularizeRules)
     }
     
     private func isUncountable(_ string: String) -> Bool {
@@ -172,7 +176,7 @@ public struct Inflections {
         if string.isEmpty {
             return string
         }
-        let range = NSRange(location: 0, length: string.utf16.count)
+        let range = NSRange(string.startIndex..<string.endIndex, in: string)
         for (reg, template) in rules.reversed() {
             let result = NSMutableString(string: string)
             let count = reg.replaceMatches(in: result, options: [], range: range, withTemplate: template)
@@ -182,11 +186,38 @@ public struct Inflections {
         }
         return string
     }
+    
+    /// indexOfLastWord("foo")     -> "foo"
+    /// indexOfLastWord("foo bar") -> "bar"
+    /// indexOfLastWord("foo_bar") -> "bar"
+    /// indexOfLastWord("fooBar")  -> "Bar"
+    static func indexOfLastWord(_ string: String) -> String.Index {
+        let range = NSRange(string.startIndex..<string.endIndex, in: string)
+
+        let index1: String.Index? = wordBoundaryReg.firstMatch(in: string, options: [], range: range).flatMap {
+            if $0.range.location == NSNotFound { return nil }
+            return Range($0.range, in: string)?.lowerBound
+        }
+        let index2: String.Index? = underscoreBoundaryReg.firstMatch(in: string, options: [], range: range).flatMap {
+            if $0.range.location == NSNotFound { return nil }
+            return Range($0.range, in: string).map { string.index(after: $0.lowerBound) }
+        }
+        let index3: String.Index? = caseBoundaryReg.firstMatch(in: string, options: [], range: range).flatMap {
+            if $0.range.location == NSNotFound { return nil }
+            return Range($0.range, in: string).map { string.index(after: $0.lowerBound) }
+        }
+        
+        return [index1, index2, index3].compactMap { $0 }.max() ?? string.startIndex
+    }
+    
+    private static let wordBoundaryReg = try! NSRegularExpression(pattern: "\\b\\w+$", options: [])
+    private static let underscoreBoundaryReg = try! NSRegularExpression(pattern: "_[^_]+$", options: [])
+    private static let caseBoundaryReg = try! NSRegularExpression(pattern: "[^A-Z][A-Z]+[a-z1-9]+$", options: [])
 }
 
 extension Inflections {
     /// The default inflections
-    static var `default`: Inflections = {
+    public static var `default`: Inflections = {
         // Defines the standard inflection rules. These are the starting point
         // for new projects and are not considered complete. The current set of
         // inflection rules is frozen. This means, we do not change them to
@@ -255,7 +286,6 @@ extension Inflections {
             "rice",
             "money",
             "species",
-            "series",
             "fish",
             "sheep",
             "jeans",

@@ -24,6 +24,39 @@ class InflectionsTests: GRDBTestCase {
         return try! JSONDecoder().decode(InflectionTestCases.self, from: data)
     }
     
+    func testIndexOfLastWord() {
+        func lastWord(_ string: String) -> String {
+            return String(string.suffix(from: Inflections.indexOfLastWord(string)))
+        }
+        XCTAssertEqual(lastWord(""), "")
+        XCTAssertEqual(lastWord(" "), " ")
+        XCTAssertEqual(lastWord("_"), "_")
+        XCTAssertEqual(lastWord("foo"), "foo")
+        XCTAssertEqual(lastWord("Foo"), "Foo")
+        XCTAssertEqual(lastWord("FOO"), "FOO")
+        XCTAssertEqual(lastWord("foo bar"), "bar")
+        XCTAssertEqual(lastWord("Foo Bar"), "Bar")
+        XCTAssertEqual(lastWord("FOO BAR"), "BAR")
+        XCTAssertEqual(lastWord("foo_bar"), "bar")
+        XCTAssertEqual(lastWord("Foo_Bar"), "Bar")
+        XCTAssertEqual(lastWord("FOO_BAR"), "BAR")
+        XCTAssertEqual(lastWord("foobar"), "foobar")
+        XCTAssertEqual(lastWord("FooBar"), "Bar")
+        XCTAssertEqual(lastWord("FOOBAR"), "FOOBAR")
+        XCTAssertEqual(lastWord("foo1"), "foo1")
+        XCTAssertEqual(lastWord("Foo1"), "Foo1")
+        XCTAssertEqual(lastWord("FOO1"), "FOO1")
+        XCTAssertEqual(lastWord("foo bar1"), "bar1")
+        XCTAssertEqual(lastWord("Foo Bar1"), "Bar1")
+        XCTAssertEqual(lastWord("FOO BAR1"), "BAR1")
+        XCTAssertEqual(lastWord("foo_bar1"), "bar1")
+        XCTAssertEqual(lastWord("Foo_Bar1"), "Bar1")
+        XCTAssertEqual(lastWord("FOO_BAR1"), "BAR1")
+        XCTAssertEqual(lastWord("foobar1"), "foobar1")
+        XCTAssertEqual(lastWord("FooBar1"), "Bar1")
+        XCTAssertEqual(lastWord("FOOBAR1"), "FOOBAR1")
+    }
+    
     func testPluralizePlurals() {
         XCTAssertEqual("plurals".pluralized, "plurals")
         XCTAssertEqual("Plurals".pluralized, "Plurals")
@@ -92,6 +125,10 @@ class InflectionsTests: GRDBTestCase {
         for (singular, plural) in inflectionTestCases.testCases["SingularToPlural"]! {
             XCTAssertEqual(singular.pluralized, plural)
             XCTAssertEqual(singular.capitalized.pluralized, plural.capitalized)
+            
+            let prefixedSingular = "prefixed" + singular.capitalized
+            let prefixedPlural = "prefixed" + plural.capitalized
+            XCTAssertEqual(prefixedSingular.pluralized, prefixedPlural)
         }
     }
     
@@ -99,6 +136,10 @@ class InflectionsTests: GRDBTestCase {
         for (singular, plural) in inflectionTestCases.testCases["SingularToPlural"]! {
             XCTAssertEqual(plural.singularized, singular)
             XCTAssertEqual(plural.capitalized.singularized, singular.capitalized)
+            
+            let prefixedSingular = "prefixed" + singular.capitalized
+            let prefixedPlural = "prefixed" + plural.capitalized
+            XCTAssertEqual(prefixedPlural.singularized, prefixedSingular)
         }
     }
     
@@ -106,6 +147,9 @@ class InflectionsTests: GRDBTestCase {
         for (_, plural) in inflectionTestCases.testCases["SingularToPlural"]! {
             XCTAssertEqual(plural.pluralized, plural)
             XCTAssertEqual(plural.capitalized.pluralized, plural.capitalized)
+            
+            let prefixedPlural = "prefixed" + plural.capitalized
+            XCTAssertEqual(prefixedPlural.pluralized, prefixedPlural)
         }
     }
     
@@ -113,6 +157,9 @@ class InflectionsTests: GRDBTestCase {
         for (singular, _) in inflectionTestCases.testCases["SingularToPlural"]! {
             XCTAssertEqual(singular.singularized, singular)
             XCTAssertEqual(singular.capitalized.singularized, singular.capitalized)
+            
+            let prefixedSingular = "prefixed" + singular.capitalized
+            XCTAssertEqual(prefixedSingular.singularized, prefixedSingular)
         }
     }
     
@@ -123,6 +170,13 @@ class InflectionsTests: GRDBTestCase {
             XCTAssertEqual(singular.pluralized, plural)
             XCTAssertEqual(singular.singularized, singular)
             XCTAssertEqual(plural.pluralized, plural)
+            
+            let prefixedSingular = "prefixed" + singular.capitalized
+            let prefixedPlural = "prefixed" + plural.capitalized
+            XCTAssertEqual(prefixedPlural.singularized, prefixedSingular)
+            XCTAssertEqual(prefixedSingular.pluralized, prefixedPlural)
+            XCTAssertEqual(prefixedSingular.singularized, prefixedSingular)
+            XCTAssertEqual(prefixedPlural.pluralized, prefixedPlural)
         }
     }
 }

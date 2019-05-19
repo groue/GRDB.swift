@@ -10,6 +10,7 @@
         "stack"       : "stacks",
         "wish"        : "wishes",
         "fish"        : "fish",
+        "sheep"       : "sheep",
         "jeans"       : "jeans",
         "funky jeans" : "funky jeans",
         "my money"    : "my money",
@@ -109,7 +110,8 @@
         "slice"       : "slices",
         "police"      : "police",
         
-        "specimen"    : "specimens"
+        "specimen"    : "specimens",
+        "canvas"      : "canvases",
     },
     
     "Irregularities": {
