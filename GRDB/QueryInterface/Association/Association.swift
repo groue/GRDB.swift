@@ -494,7 +494,7 @@ enum SQLAssociationKey {
     case fixedSingular(String)
     
     /// Fixed plural (stricly honors user-provided name in plural contexts).
-    /// See .singular for some context.
+    /// See .inflected and .fixedSingular for some context.
     case fixedPlural(String)
     
     /// Not inflected in singular or plural context.
