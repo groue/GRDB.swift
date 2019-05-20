@@ -1438,7 +1438,7 @@ struct BookInfo: FetchableRecord, Decodable {
 let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
-By default, **association keys** are the names of the database tables of associated records. Keys are automatically singularized, or pluralized, depending of the cardinality of the included association:
+By default, **association keys** are the names of the database tables of associated records. Keys are automatically [singularized or pluralized](#convention-for-database-table-names), depending of the cardinality of the included association:
 
 ```swift
 extension Author {
