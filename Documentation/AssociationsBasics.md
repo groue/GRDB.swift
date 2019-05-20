@@ -2247,49 +2247,49 @@ let request = Book.joining(required: Book.author
 
 ## Known Issues
 
-**You can't chain a required association on an optional association:**
+- **You can't chain a required association on an optional association:**
 
-```swift
-// NOT IMPLEMENTED
-let request = Book
-    .joining(optional: Book.author
-        .including(required: Person.country))
-```
+    ```swift
+    // NOT IMPLEMENTED
+    let request = Book
+        .joining(optional: Book.author
+            .including(required: Person.country))
+    ```
 
-This code compiles, but you'll get a runtime fatal error "Not implemented: chaining a required association behind an optional association". Future versions of GRDB may allow such requests.
+    This code compiles, but you'll get a runtime fatal error "Not implemented: chaining a required association behind an optional association". Future versions of GRDB may allow such requests.
 
-**You can't use the `including(all:)` method and use table aliases to filter the associated records on other records:**
+- **You can't use the `including(all:)` method and use table aliases to filter the associated records on other records:**
 
-```swift
-// NOT IMPLEMENTED: loading all authors along with their posthumous books
-let authorAlias = TableAlias()
-let request = Author
-    .aliased(authorAlias)
-    .including(all: Author.books
-        .filter(Column("publishDate") >= authorAlias[Column("deathDate")]))    
-```
+    ```swift
+    // NOT IMPLEMENTED: loading all authors along with their posthumous books
+    let authorAlias = TableAlias()
+    let request = Author
+        .aliased(authorAlias)
+        .including(all: Author.books
+            .filter(Column("publishDate") >= authorAlias[Column("deathDate")]))    
+    ```
 
-Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those features into reality.
+    Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those features into reality.
 
-**You can't use the `including(all:)` method with a [HasMany] and a [HasManyThrough] associations that shares the same base association in the same request:
+- **You can't use the `including(all:)` method with a [HasMany] and a [HasManyThrough] associations that share the same base association in the same request**:
 
-```swift
-// NOT IMPLEMENTED
-let request = Country
-    .including(all: Country.passports)
-    .including(all: Country.citizens)
-```
+    ```swift
+    // NOT IMPLEMENTED
+    let request = Country
+        .including(all: Country.passports)
+        .including(all: Country.citizens)
+    ```
 
-This code compiles, but you'll get a runtime fatal error "Not implemented: merging a direct association and an indirect one with including(all:)". Future versions of GRDB may allow such requests.
+    This code compiles, but you'll get a runtime fatal error "Not implemented: merging a direct association and an indirect one with including(all:)". Future versions of GRDB may allow such requests.
 
-The workaround is to nest the most remote association:
+    The workaround is to nest the most remote association:
 
-```swift
-// Workaround
-let request = Country
-    .including(all: Country.passports
-        .including(required: Passport.citizen))
-```
+    ```swift
+    // Workaround
+    let request = Country
+        .including(all: Country.passports
+            .including(required: Passport.citizen))
+    ```
 
 ---
 
