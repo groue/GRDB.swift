@@ -2271,6 +2271,25 @@ let request = Author
 
 Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those features into reality.
 
+**You can't use the `including(all:)` method with a [HasMany] and a [HasManyThrough] associations that shares the same base association in the same request:
+
+```swift
+// NOT IMPLEMENTED
+let request = Country
+    .including(all: Country.passports)
+    .including(all: Country.citizens)
+```
+
+This code compiles, but you'll get a runtime fatal error "Not implemented: merging a direct association and an indirect one with including(all:)". Future versions of GRDB may allow such requests.
+
+The workaround is to nest the most remote association:
+
+```swift
+// Workaround
+let request = Country
+    .including(all: Country.passports
+        .including(required: Passport.citizen))
+```
 
 ---
 

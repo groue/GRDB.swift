@@ -220,54 +220,16 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                 let request = A
                     .filter(Column("cola1") != 3)
                     .including(all: A
-                        .hasMany(D.self, through: A.hasMany(C.self).filter(Column("colc1") == 8), using: C.hasMany(D.self))
+                        .hasMany(D.self, through: A.hasMany(C.self).filter(Column("colc1") == 8).forKey("cs1"), using: C.hasMany(D.self))
                         .forKey("ds1"))
                     .including(all: A
-                        .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
+                        .hasMany(D.self, through: A.hasMany(C.self).forKey("cs2"), using: C.hasMany(D.self))
                         .filter(Column("cold1") != 11)
                         .forKey("ds2"))
                     .including(all: A
-                        .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
+                        .hasMany(D.self, through: A.hasMany(C.self).forKey("cs2"), using: C.hasMany(D.self))
                         .filter(Column("cold1") == 11)
                         .forKey("ds3"))
-                
-                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
-            }
-        }
-    }
-    
-    func testIncludingAllHasManyThroughIsNotMergedWithHasMany() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.read { db in
-            // Plain request
-            do {
-                let cs = A.hasMany(C.self)
-                let request = A
-                    .including(all: cs)
-                    .including(all: A
-                        .hasMany(D.self, through: cs, using: C.hasMany(D.self)))
-                
-                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
-            }
-            
-            // Request with filters
-            do {
-                let cs1 = A.hasMany(C.self).forKey("cs1")
-                let cs2 = A.hasMany(C.self).forKey("cs2")
-                let request = A
-                    .filter(Column("cola1") != 3)
-                    .including(all: cs1
-                        .filter(Column("colc1") != 8))
-                    .including(all: A
-                        .hasMany(D.self, through: cs1, using: C.hasMany(D.self))
-                        .filter(Column("cold1") != 11)
-                        .forKey("ds1"))
-                    .including(all: cs2
-                        .filter(Column("colc1") != 9))
-                    .including(all: A
-                        .hasMany(D.self, through: cs2, using: C.hasMany(D.self))
-                        .filter(Column("cold1") == 11)
-                        .forKey("ds2"))
                 
                 try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }

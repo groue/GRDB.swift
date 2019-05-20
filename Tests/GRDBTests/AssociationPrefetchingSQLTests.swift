@@ -465,16 +465,16 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 let request = A
                     .filter(Column("cola1") != 3)
                     .including(all: A
-                        .hasMany(D.self, through: A.hasMany(C.self).filter(Column("colc1") == 8), using: C.hasMany(D.self))
+                        .hasMany(D.self, through: A.hasMany(C.self).filter(Column("colc1") == 8).forKey("cs1"), using: C.hasMany(D.self))
                         .orderByPrimaryKey()
                         .forKey("ds1"))
                     .including(all: A
-                        .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
+                        .hasMany(D.self, through: A.hasMany(C.self).forKey("cs2"), using: C.hasMany(D.self))
                         .filter(Column("cold1") != 11)
                         .orderByPrimaryKey()
                         .forKey("ds2"))
                     .including(all: A
-                        .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
+                        .hasMany(D.self, through: A.hasMany(C.self).forKey("cs2"), using: C.hasMany(D.self))
                         .filter(Column("cold1") == 11)
                         .orderByPrimaryKey()
                         .forKey("ds3"))
@@ -509,104 +509,6 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2))) \
                     WHERE ("d"."cold1" = 11) \
                     ORDER BY "d"."cold1"
-                    """])
-            }
-        }
-    }
-    
-    func testIncludingAllHasManyThroughIsNotMergedWithHasMany() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.read { db in
-            // Plain request
-            do {
-                let cs = A.hasMany(C.self)
-                let request = A
-                    .including(all: cs.orderByPrimaryKey())
-                    .including(all: A
-                        .hasMany(D.self, through: cs, using: C.hasMany(D.self))
-                        .orderByPrimaryKey())
-                    .orderByPrimaryKey()
-                
-                sqlQueries.removeAll()
-                _ = try Row.fetchAll(db, request)
-                
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
-                XCTAssertEqual(selectQueries, [
-                    """
-                    SELECT * FROM "a" ORDER BY "cola1"
-                    """,
-                    """
-                    SELECT *, "colc2" AS "grdb_colc2" \
-                    FROM "c" \
-                    WHERE ("colc2" IN (1, 2, 3)) \
-                    ORDER BY "colc1"
-                    """,
-                    """
-                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
-                    FROM "d" \
-                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2, 3))) \
-                    ORDER BY "d"."cold1"
-                    """])
-            }
-            
-            // Request with filters
-            do {
-                let cs1 = A.hasMany(C.self).forKey("cs1")
-                let cs2 = A.hasMany(C.self).forKey("cs2")
-                let request = A
-                    .filter(Column("cola1") != 3)
-                    .including(all: cs1
-                        .filter(Column("colc1") != 8)
-                        .orderByPrimaryKey())
-                    .including(all: A
-                        .hasMany(D.self, through: cs1, using: C.hasMany(D.self))
-                        .filter(Column("cold1") != 11)
-                        .orderByPrimaryKey()
-                        .forKey("ds1"))
-                    .including(all: cs2
-                        .filter(Column("colc1") != 9)
-                        .orderByPrimaryKey())
-                    .including(all: A
-                        .hasMany(D.self, through: cs2, using: C.hasMany(D.self))
-                        .filter(Column("cold1") == 11)
-                        .orderByPrimaryKey()
-                        .forKey("ds2"))
-                    .orderByPrimaryKey()
-                
-                sqlQueries.removeAll()
-                _ = try Row.fetchAll(db, request)
-                
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
-                XCTAssertEqual(selectQueries, [
-                    """
-                    SELECT * \
-                    FROM "a" \
-                    WHERE ("cola1" <> 3) \
-                    ORDER BY "cola1"
-                    """,
-                    """
-                    SELECT *, "colc2" AS "grdb_colc2" \
-                    FROM "c" \
-                    WHERE (("colc1" <> 8) AND ("colc2" IN (1, 2))) \
-                    ORDER BY "colc1"
-                    """,
-                    """
-                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
-                    FROM "d" \
-                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2))) \
-                    WHERE ("d"."cold1" <> 11) ORDER BY "d"."cold1"
-                    """,
-                    """
-                    SELECT *, "colc2" AS "grdb_colc2" \
-                    FROM "c" \
-                    WHERE (("colc1" <> 9) AND ("colc2" IN (1, 2))) \
-                    ORDER BY "colc1"
-                    """,
-                    """
-                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
-                    FROM "d" \
-                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2))) \
-                    WHERE ("d"."cold1" = 11) ORDER BY "d"."cold1"
                     """])
             }
         }

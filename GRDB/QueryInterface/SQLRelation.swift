@@ -644,16 +644,21 @@ extension SQLRelation.Child.Kind {
             //   .including(optional: association)
             return .oneOptional
             
-        case (.allPrefetched, .allPrefetched),
-             (.allPrefetched, .allNotPrefetched),
-             (.allNotPrefetched, .allPrefetched):
-            // Prefetches both Pivot and Destination:
+        case (.allPrefetched, .allPrefetched):
+            // Equivalent to Record.including(all: association):
             //
+            // Record
+            //   .including(all: association)
+            //   .including(all: association)
+            return .allPrefetched
+            
+        case (.allPrefetched, .allNotPrefetched),
+             (.allNotPrefetched, .allPrefetched):
             // Record
             //   .including(all: associationToDestinationThroughPivot)
             //   .including(all: associationToPivot)
-            return .allPrefetched
-            
+            fatalError("Not implemented: merging a direct association and an indirect one with including(all:)")
+
         case (.allNotPrefetched, .allNotPrefetched):
             // Equivalent to Record.including(all: association)
             //

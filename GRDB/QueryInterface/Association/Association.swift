@@ -673,13 +673,6 @@ public /* TODO: internal */ struct SQLAssociation {
         return result
     }
     
-    /// Changes the pivot key
-    func forPivotKey(_ key: SQLAssociationKey) -> SQLAssociation {
-        var result = self
-        result.pivot.key = key
-        return result
-    }
-    
     /// Transforms the destination relation
     func mapDestinationRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLAssociation {
         var result = self
@@ -792,52 +785,7 @@ public /* TODO: internal */ struct SQLAssociation {
             //          static let citizens = hasMany(Citizens.self, through: passports, using: Passport.citizen)
             //      }
             //      let request = Country.including(all: Country.citizens)
-            //
-            // Also, pick a unique pivot key.
-            //
-            // Why? Consider this request:
-            //
-            //      let request = Country
-            //          .including(all: Country.passports.filter(Column("isExpired") == true))
-            //          .including(all: Country.citizens)
-            //
-            // A unique key makes the citizens' passports distinct from the
-            // expired passports. This has two desirable consequences:
-            //
-            // 1. As expected (since Country.citizens is included from Country),
-            //    it attaches prefetched citizens to countries, not
-            //    to passports.
-            // 2. It loads all citizens, not only citizens who have an expired
-            //    passport. This is debatable actually, because unlike
-            //    prefetches, joins are merged by keys. Joins require user to
-            //    provide explicit disambiguation keys in order to prevent
-            //    merging. But this inconsistency really helps our
-            //    implementation here. And it's not sure it is very wrong, from
-            //    the user's point of view.
-            //
-            // On the other side, if we would NOT pick a unique pivot key, then
-            // our current implementation makes the above request equivalent to
-            // the one below, which attaches citizens to passports, not
-            // to countries:
-            //
-            //      let request = Country
-            //          .including(all: Country.passports
-            //              .filter(Column("isExpired") == true)
-            //              .including(all: Passport.citizens))
-            //
-            // 1. It attaches citizens to passports, not to countries (BUG).
-            // 2. When we fetch citizens, we generate an SQL query which does
-            //    not contain country columns: we can not dispatch citizens
-            //    in countries when we have to (BUG).
-            // 3. It fetches citizens who have an expired passport (we have
-            //    decided it's a BUG).
-            //
-            // Conclusion: for better or for worse, let's pick a unique pivot
-            // key, and prevent merging of intermediate steps of
-            // indirect associations:
-            return reducedAssociation
-                .forPivotKey(SQLAssociationKey.fixed("grdb_\(UUID().uuidString)"))
-                .extendedRelation(origin, kind: .allNotPrefetched)
+            return reducedAssociation.extendedRelation(origin, kind: .allNotPrefetched)
         }
     }
     

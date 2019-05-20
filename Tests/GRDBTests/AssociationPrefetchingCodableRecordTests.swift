@@ -727,16 +727,16 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 let request = A
                     .filter(Column("cola1") != 3)
                     .including(all: A
-                        .hasMany(D.self, through: A.hasMany(C.self).filter(Column("colc1") == 8), using: C.hasMany(D.self))
+                        .hasMany(D.self, through: A.hasMany(C.self).filter(Column("colc1") == 8).forKey("cs1"), using: C.hasMany(D.self))
                         .orderByPrimaryKey()
                         .forKey("ds1"))
                     .including(all: A
-                        .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
+                        .hasMany(D.self, through: A.hasMany(C.self).forKey("cs2"), using: C.hasMany(D.self))
                         .filter(Column("cold1") != 11)
                         .orderByPrimaryKey()
                         .forKey("ds2"))
                     .including(all: A
-                        .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self))
+                        .hasMany(D.self, through: A.hasMany(C.self).forKey("cs2"), using: C.hasMany(D.self))
                         .filter(Column("cold1") == 11)
                         .orderByPrimaryKey()
                         .forKey("ds3"))
@@ -786,155 +786,6 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                             D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"]),
                         ],
                         ds3: []))
-                }
-            }
-        }
-    }
-    
-    func testIncludingAllHasManyThroughIsNotMergedWithHasMany() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.read { db in
-            // Plain request
-            do {
-                let cs = A.hasMany(C.self)
-                let request = A
-                    .including(all: cs.orderByPrimaryKey())
-                    .including(all: A
-                        .hasMany(D.self, through: cs, using: C.hasMany(D.self))
-                        .orderByPrimaryKey())
-                    .orderByPrimaryKey()
-                
-                struct Record: FetchableRecord, Decodable, Equatable {
-                    var a: A
-                    var cs: [C]
-                    var ds: [D]
-                }
-                
-                // Record.fetchAll
-                do {
-                    let records = try Record.fetchAll(db, request)
-                    XCTAssertEqual(records, [
-                        Record(
-                            a: A(row: ["cola1": 1, "cola2": "a1"]),
-                            cs: [
-                                C(row: ["colc1": 7, "colc2": 1]),
-                            ],
-                            ds: [
-                                D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"]),
-                            ]),
-                        Record(
-                            a: A(row: ["cola1": 2, "cola2": "a2"]),
-                            cs: [
-                                C(row: ["colc1": 8, "colc2": 2]),
-                                C(row: ["colc1": 9, "colc2": 2]),
-                            ],
-                            ds: [
-                                D(row: ["cold1": 11, "cold2": 8, "cold3": "d2"]),
-                                D(row: ["cold1": 12, "cold2": 8, "cold3": "d3"]),
-                                D(row: ["cold1": 13, "cold2": 9, "cold3": "d4"]),
-                            ]),
-                        Record(
-                            a: A(row: ["cola1": 3, "cola2": "a3"]),
-                            cs: [],
-                            ds: []),
-                        ])
-                }
-                
-                // Record.fetchOne
-                do {
-                    let record = try Record.fetchOne(db, request)!
-                    XCTAssertEqual(record, Record(
-                        a: A(row: ["cola1": 1, "cola2": "a1"]),
-                        cs: [
-                            C(row: ["colc1": 7, "colc2": 1]),
-                        ],
-                        ds: [
-                            D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"]),
-                        ]))
-                }
-            }
-            
-            // Request with filters
-            do {
-                let cs1 = A.hasMany(C.self).forKey("cs1")
-                let cs2 = A.hasMany(C.self).forKey("cs2")
-                let request = A
-                    .filter(Column("cola1") != 3)
-                    .including(all: cs1
-                        .filter(Column("colc1") != 8)
-                        .orderByPrimaryKey())
-                    .including(all: A
-                        .hasMany(D.self, through: cs1, using: C.hasMany(D.self))
-                        .filter(Column("cold1") != 11)
-                        .orderByPrimaryKey()
-                        .forKey("ds1"))
-                    .including(all: cs2
-                        .filter(Column("colc1") != 9)
-                        .orderByPrimaryKey())
-                    .including(all: A
-                        .hasMany(D.self, through: cs2, using: C.hasMany(D.self))
-                        .filter(Column("cold1") == 11)
-                        .orderByPrimaryKey()
-                        .forKey("ds2"))
-                    .orderByPrimaryKey()
-                
-                struct Record: FetchableRecord, Decodable, Equatable {
-                    var a: A
-                    var cs1: [C]
-                    var cs2: [C]
-                    var ds1: [D]
-                    var ds2: [D]
-                }
-                
-                // Record.fetchAll
-                do {
-                    let records = try Record.fetchAll(db, request)
-                    XCTAssertEqual(records, [
-                        Record(
-                            a: A(row: ["cola1": 1, "cola2": "a1"]),
-                            cs1: [
-                                C(row: ["colc1": 7, "colc2": 1]),
-                            ],
-                            cs2: [
-                                C(row: ["colc1": 7, "colc2": 1]),
-                            ],
-                            ds1: [
-                                D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"]),
-                            ],
-                            ds2: []),
-                        Record(
-                            a: A(row: ["cola1": 2, "cola2": "a2"]),
-                            cs1: [
-                                C(row: ["colc1": 9, "colc2": 2]),
-                            ],
-                            cs2: [
-                                C(row: ["colc1": 8, "colc2": 2]),
-                            ],
-                            ds1: [
-                                D(row: ["cold1": 12, "cold2": 8, "cold3": "d3"]),
-                                D(row: ["cold1": 13, "cold2": 9, "cold3": "d4"]),
-                            ],
-                            ds2: [
-                                D(row: ["cold1": 11, "cold2": 8, "cold3": "d2"]),
-                            ]),
-                        ])
-                }
-                
-                // Record.fetchOne
-                do {
-                    let record = try Record.fetchOne(db, request)!
-                    XCTAssertEqual(record, Record(
-                        a: A(row: ["cola1": 1, "cola2": "a1"]),
-                        cs1: [
-                            C(row: ["colc1": 7, "colc2": 1]),
-                        ],
-                        cs2: [
-                            C(row: ["colc1": 7, "colc2": 1]),
-                        ],
-                        ds1: [
-                            D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"]),
-                        ],
-                        ds2: []))
                 }
             }
         }
