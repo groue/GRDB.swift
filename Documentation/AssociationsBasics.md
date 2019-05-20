@@ -712,8 +712,6 @@ Building Requests from Associations
 
 **Once you have defined associations, you can define fetch request that involve several record types.**
 
-> :point_up: **Note**: Those requests are executed by SQLite as *SQL joined queries*. In all examples below, we'll show the SQL queries executed by our association-based requests. You can ignore them if you are not familiar with SQL.
-
 Fetch requests do not visit the database until you fetch values from them. This will be covered in [Fetching Values from Associations]. But before you can fetch anything, you have to describe what you want to fetch. This is the topic of this chapter.
 
 - [Requesting Associated Records]
