@@ -123,7 +123,7 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                     .filter(false)
                     .including(all: A
                         .hasMany(B.self)
-                        .orderByPrimaryKey())  // TODO: auto-pluralization
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 // Row.fetchAll
