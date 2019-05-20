@@ -100,7 +100,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     .filter(false)
                     .including(all: A
                         .hasMany(B.self)
-                        .orderByPrimaryKey())  // TODO: auto-pluralization
+                        .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
                 sqlQueries.removeAll()
@@ -155,6 +155,73 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
         }
     }
     
+    func testIncludingAllHasManyWithCompoundForeignKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "parent") { t in
+                t.column("parentA", .text)
+                t.column("parentB", .text)
+                t.primaryKey(["parentA", "parentB"])
+            }
+            try db.create(table: "child") { t in
+                t.column("parentA", .text)
+                t.column("parentB", .text)
+                t.column("name", .text)
+                t.foreignKey(["parentA", "parentB"], references: "parent")
+            }
+            try db.execute(sql: """
+                INSERT INTO parent (parentA, parentB) VALUES ('foo', 'bar');
+                INSERT INTO parent (parentA, parentB) VALUES ('baz', 'qux');
+                INSERT INTO child (parentA, parentB, name) VALUES ('foo', 'bar', 'foobar1');
+                INSERT INTO child (parentA, parentB, name) VALUES ('foo', 'bar', 'foobar2');
+                INSERT INTO child (parentA, parentB, name) VALUES ('baz', 'qux', 'bazqux1');
+                """)
+            
+            struct Parent: TableRecord { }
+            struct Child: TableRecord { }
+            
+            // Plain request
+            do {
+                let request = Parent
+                    .including(all: Parent
+                        .hasMany(Child.self))
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "parent" ORDER BY "parentA", "parentB"
+                    """,
+                    """
+                    SELECT *, "parentA" AS "grdb_parentA", "parentB" AS "grdb_parentB" \
+                    FROM "child" \
+                    WHERE ((("parentA" = 'baz') AND ("parentB" = 'qux')) OR (("parentA" = 'foo') AND ("parentB" = 'bar')))
+                    """])
+            }
+            
+            // Request with avoided prefetch
+            do {
+                let request = Parent
+                    .filter(false)
+                    .including(all: Parent
+                        .hasMany(Child.self))
+                    .orderByPrimaryKey()
+
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "parent" WHERE 0 ORDER BY "parentA", "parentB"
+                    """])
+            }
+        }
+    }
+
     func testIncludingAllHasManyIncludingAllHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in

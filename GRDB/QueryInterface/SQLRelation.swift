@@ -460,21 +460,18 @@ struct SQLAssociationCondition: Equatable {
             return false.sqlExpression
         }
         
-        let columnMapping = try self.columnMapping(db)
-        let valueMappings = columnMapping.map { columns in
-            (column: QualifiedColumn(columns.right, alias: rightAlias),
-             dbValues: leftRows.map { $0[columns.left] as DatabaseValue })
-        }
-        
-        guard let valueMapping = valueMappings.first else {
+        let columnMappings = try self.columnMapping(db)
+        guard let columnMapping = columnMappings.first else {
             // Degenerate case: no joining column
             return true.sqlExpression
         }
         
-        if valueMappings.count == 1 {
-            // Join on a single column.
+        if columnMappings.count == 1 {
+            // Join on a single right column.
+            let rightColumn = QualifiedColumn(columnMapping.right, alias: rightAlias)
+            
             // Unique database values and filter out NULL:
-            var dbValues = Set(valueMapping.dbValues)
+            var dbValues = Set(leftRows.map { $0[columnMapping.left] as DatabaseValue })
             dbValues.remove(.null)
             
             if dbValues.isEmpty {
@@ -482,23 +479,27 @@ struct SQLAssociationCondition: Equatable {
                 return false.sqlExpression
             } else if dbValues.count == 1 {
                 // Single row: table.a = 1
-                return (valueMapping.column == dbValues.first!)
+                return (rightColumn == dbValues.first!)
             } else {
-                // Multiple rows: table.a IN (1, 2, 3)
+                // Multiple rows: table.a IN (1, 2, 3, ...)
                 // Sort database values for nicer output.
-                return dbValues.sorted(by: <).contains(valueMapping.column)
+                return dbValues.sorted(by: <).contains(rightColumn)
             }
         } else {
             // Join on a multiple columns.
-            if valueMapping.dbValues.count == 1 {
-                // Single row: (table.a = 1) AND (table.b = 2)
-                return valueMappings
-                    .map { $0.column == $0.dbValues[0] }
-                    .joined(operator: .and)
-            } else {
-                // Multiple rows: TODO
-                fatalError("not implemented")
-            }
+            // ((table.a = 1) AND (table.b = 2)) OR ((table.a = 3) AND (table.b = 4)) ...
+            return leftRows
+                .map { leftRow in
+                    // (table.a = 1) AND (table.b = 2)
+                    columnMappings
+                        .map { columns -> SQLExpression in
+                            let rightColumn = QualifiedColumn(columns.right, alias: rightAlias)
+                            let leftValue = leftRow[columns.left] as DatabaseValue
+                            return rightColumn == leftValue
+                        }
+                        .joined(operator: .and)
+                }
+                .joined(operator: .or)
         }
     }
 }
