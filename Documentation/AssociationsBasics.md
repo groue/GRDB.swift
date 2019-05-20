@@ -149,7 +149,7 @@ Generally speaking, associations use the [TableRecord], [FetchableRecord], and [
     // Who's prolific?
     let authors = try dbQueue.read { db in
         try Author
-            .having(Author.book.count >= 20)
+            .having(Author.books.count >= 20)
             .fetchAll(db) // [Author]
     }
     ```
