@@ -30,6 +30,7 @@ GRDB Associations
     - [The Structure of a Joined Request]
     - [Decoding a Joined Request with a Decodable Record]
     - [Decoding a Joined Request with FetchableRecord]
+    - [Debugging Request Decoding]
 - [Association Aggregates]
     - [Available Association Aggregates]
     - [Annotating a Request with Aggregates]
@@ -1388,7 +1389,7 @@ Each association included in the request can feed a property of the decoded reco
     let request = Book
         .including(required: Book.author
             .including(optional: Author.country))
-        .including(optional: Bool.coverImage)
+        .including(optional: Book.coverImage)
     
     struct BookInfo: FetchableRecord, Decodable {
         var book: Book
@@ -1403,6 +1404,7 @@ Each association included in the request can feed a property of the decoded reco
 - [The Structure of a Joined Request]
 - [Decoding a Joined Request with a Decodable Record]
 - [Decoding a Joined Request with FetchableRecord]
+- [Debugging Request Decoding]
 - [Good Practices for Designing Record Types] - in this general guide about records, check out the "Compose Records" chapter.
 
 
@@ -1416,7 +1418,7 @@ Below, author and cover image are both associated to book, and country is associ
 let request = Book
     .including(required: Book.author
         .including(optional: Author.country))
-    .including(optional: Bool.coverImage)
+    .including(optional: Book.coverImage)
 ```
 
 This request builds the following **tree of association keys**:
@@ -1479,7 +1481,7 @@ When **association keys** match the property names of a Decodable record, you ge
 let request = Book
     .including(required: Book.author
         .including(optional: Author.country))
-    .including(optional: Bool.coverImage)
+    .including(optional: Book.coverImage)
 
 struct BookInfo: FetchableRecord, Decodable {
     var book: Book
@@ -1501,7 +1503,7 @@ Some requests are better decoded with a Decodable record that reflects the hiera
 
 ```swift
 let request = Book
-    .including(optional: Bool.coverImage)
+    .including(optional: Book.coverImage)
     .including(required: Book.author
         .including(optional: Person.country))
     .including(optional: Book.translator
@@ -1533,7 +1535,7 @@ And who is the most able to know those coding keys? BookInfo itself, thanks to i
 extension BookInfo {
     static func all() -> QueryInterfaceRequest<BookInfo> {
         return Book
-            .including(optional: Bool.coverImage)
+            .including(optional: Book.coverImage)
             .including(required: Book.author
                 .forKey(CodingKeys.authorInfo)        // (1)
                 .including(optional: Person.country))
@@ -1551,43 +1553,6 @@ let bookInfos = try BookInfo.all().fetchAll(db, request) // [BookInfo]
 2. The `asRequest(of:)` method turns the request into a request of BookInfo. See [Custom Requests] for more information.
 
 
-### Debugging Joined Request Decoding
-
-When you have difficulties building a Decodable record that successfully decodes a joined request, we advise to temporarily decode raw database rows, and inspect them.
-
-```swift
-let request = Book
-    .including(required: Book.author
-        .including(optional: Author.country))
-    .including(optional: Bool.coverImage)
-
-let rows = try Row.fetchAll(db, request)
-print(rows[0])
-// Prints:
-// ▿ [id:1, authorId:2, title:"Moby-Dick"]
-//   unadapted: [id:1, authorId:2, title:"Moby-Dick", id:2, name:"Herman Melville", countryCode:"US", code:"US", name:"United States of America", id:NULL, imageId:NULL, path:NULL]
-//   - person: [id:2, name:"Herman Melville", countryCode:"US"]
-//     - country: [code:"US", name:"United States of America"]
-//   - coverImage: [id:NULL, imageId:NULL, path:NULL]
-```
-
-There are two important things to look into the row debugging description:
-
-- the **association keys**: "person", "country", and "coverImage" in our example
-- associated rows that contain only null values (coverImage).
-
-The associated rows that contain only null values are easy to deal with: null rows loaded from optional associated records should be decoded into Swift optionals:
-
-```swift
-struct BookInfo: FetchableRecord, Decodable {
-    var book: Book
-    var author: Author          // .including(required: Book.author)
-    var country: Country?       // .including(optional: Author.country)
-    var coverImage: CoverImage? // .including(optional: Bool.coverImage)
-}
-```
-
-
 ## Decoding a Joined Request with FetchableRecord
 
 When [Dedocable](#decoding-a-joined-request-with-a-decodable-record) records provides convenient decoding of joined rows, you may want a little more control over row decoding.
@@ -1598,7 +1563,7 @@ The `init(row:)` initializer of the FetchableRecord protocol is what you look af
 let request = Book
     .including(required: Book.author
         .including(optional: Author.country))
-    .including(optional: Bool.coverImage)
+    .including(optional: Book.coverImage)
 
 struct BookInfo: FetchableRecord {
     var book: Book
@@ -1648,6 +1613,60 @@ struct AuthorInfo: FetchableRecord {
 }
 
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+```
+
+
+## Debugging Request Decoding
+
+When you have difficulties building a Decodable record that successfully decodes a joined request, we advise to temporarily decode raw database rows, and inspect them.
+
+```swift
+let request = Book
+    .including(required: Book.author
+        .including(optional: Author.country))
+    .including(optional: Book.coverImage)
+    .including(all: Book.prizes)
+
+let rows = try Row.fetchAll(db, request)
+print(rows[0].debugDescription)
+// Prints:
+// ▿ [id:1, authorId:2, title:"Moby-Dick"]
+//   unadapted: [id:1, authorId:2, title:"Moby-Dick", id:2, name:"Herman Melville", countryCode:"US", code:"US", name:"United States of America", id:NULL, imageId:NULL, path:NULL]
+//   - author: [id:2, name:"Herman Melville", countryCode:"US"]
+//     - country: [code:"US", name:"United States of America"]
+//   - coverImage: [id:NULL, imageId:NULL, path:NULL]
+//   + prizes: 3 rows
+```
+
+Watch in the row debugging description:
+
+- the **association keys**: "person", "country", "coverImage" and "prizes" in our example
+- associated rows that contain only null values ("coverImage", above).
+
+The associated rows that contain only null values are easy to deal with: null rows loaded from optional associated records should be decoded into Swift optionals:
+
+```swift
+struct BookInfo: FetchableRecord, Decodable {
+    var book: Book
+    var author: Author          // .including(required: Book.author)
+    var country: Country?       // .including(optional: Author.country)
+    var coverImage: CoverImage? // .including(optional: Book.coverImage)
+    var prizes: [Prize]         // .including(all: Book.prizes)
+}
+```
+
+When the **association keys** don't match your expectations, change them (see [The Structure of a Joined Request]):
+
+```swift
+let request = Book
+    .including(optional: Book.author.forKey("writer")) // customized association key
+
+let rows = try Row.fetchAll(db, request)
+print(rows[0].debugDescription)
+// Prints:
+// ▿ [id:1, authorId:2, title:"Moby-Dick"]
+//   unadapted: [id:1, authorId:2, title:"Moby-Dick", id:2, name:"Herman Melville"]
+//   - writer: [id:2, name:"Herman Melville", countryCode:"US"]
 ```
 
 
@@ -2327,6 +2346,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Decoding a Joined Request with a Decodable Record]: #decoding-a-joined-request-with-a-decodable-record
 [Decoding a Hierarchical Decodable Record]: #decoding-a-hierarchical-decodable-record
 [Decoding a Joined Request with FetchableRecord]: #decoding-a-joined-request-with-fetchablerecord
+[Debugging Request Decoding]: #debugging-request-decoding
 [Custom Requests]: ../README.md#custom-requests
 [Association Aggregates]: #association-aggregates
 [Available Association Aggregates]: #available-association-aggregates
