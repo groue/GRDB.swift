@@ -463,7 +463,7 @@ Those conventions help associations be convenient and, generally, "just work". W
 
 ## Convention for Database Table Names
 
-**Database table names should be singular and camelCased.**
+**Database table names should be written in English, singular, and camelCased.**
 
 Make them look like Swift identifiers: `book`, `author`, `postalAddress`.
 
@@ -495,8 +495,10 @@ When using class names composed of two or more words, the table name should use 
 | ---------- | ---------- | ------------------- |
 | Book       | book       | `book`, `books`, `bookCount` |
 | LineItem   | lineItem   | `lineItem`, `lineItems`, `lineItemPriceSum` |
-| Mouse      | mouse      | `mouse`, `mice`, `mouseCount` |
+| Mouse      | mouse      | `mouse`, `mice`, `maxMouseSize` |
 | Person     | person     | `person`, `people`, `personCount` |
+
+If your application relies on non-English names, GRDB may generate unexpected identifiers. If this happens, please [open an issue](http://github.com/groue/GRDB.swift/issues).
 
 See [The Structure of a Joined Request] for more information.
 
