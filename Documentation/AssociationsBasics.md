@@ -12,6 +12,7 @@ GRDB Associations
     - [Choosing Between BelongsTo and HasOne]
     - [Self Joins]
 - [Associations and the Database Schema]
+    - [Convention for Database Table Names]
     - [Convention for the BelongsTo Association]
     - [Convention for the HasOne Association]
     - [Convention for the HasMany Association]
@@ -270,7 +271,7 @@ The **HasOne** association between a country and its demographics needs that the
 
 ![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneSchema.svg)
 
-Note that this demographics example of HasOne association uses an explicit `"demographics"` key, unlike the BelongsTo and HasMany associations above. This key is necessary when you use a plural name for a one-to-one association. See [TODO] for more information.
+Note that this demographics example of HasOne association uses an explicit `"demographics"` key, unlike the BelongsTo and HasMany associations above. This key is necessary when you use a plural name for a one-to-one association. See [Convention for Database Table Names] for more information.
 
 See [Convention for the HasOne Association] for some sample code that defines the database schema for such an association, and [Building Requests from Associations] in order to learn how to use it.
 
@@ -450,11 +451,51 @@ GRDB also comes with several *conventions* for defining your database schema.
 
 Those conventions help associations be convenient and, generally, "just work". When you can't, or don't want to follow conventions, you will have to override the expected defaults in your Swift code.
 
+- [Convention for Database Table Names]
 - [Convention for the BelongsTo Association]
 - [Convention for the HasMany Association]
 - [Convention for the HasOne Association]
 - [Foreign Keys]
 
+
+## Convention for Database Table Names
+
+**Database table names should be singular and camelCased.**
+
+Make them look like Swift identifiers: `book`, `author`, `postalAddress`.
+
+If the database schema does not follow this convention, and has, for example, database tables which are named with underscores (`postal_address`), you can still use associations. But you need to help row consumption by providing the required key:
+
+```swift
+// Setup for customized table names
+
+struct PostalAddress: TableRecord {
+    // Customized table name
+    static let databaseTableName = "postal_address"
+}
+
+extension Author {
+    // Explicit association key
+    static let postalAddress = belongsTo(PostalAddress.self, key: "postalAddress")
+}
+```
+
+GRDB will automatically *pluralize** or *singularize** names in order to help you easily associate records.
+
+For example, the Book and Author records will automatically feed properties named `books`, `author`, or `bookCount`, without explicit configuration, if the names of the backing database tables are "book" and "author".
+
+The GRDB pluralization mechanisms are very powerful, being capable of pluralizing (and singularizing) both regular and irregular words (it's directly inspired from the battle-tested [Ruby on Rails inflections](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-pluralize)).
+
+When using class names composed of two or more words, the table name should use the camelCase singular form:
+
+| RecordType | Table Name | Derived identifiers |
+| ---------- | ---------- | ------------------- |
+| Book       | book       | `book`, `books`, `bookCount` |
+| LineItem   | lineItem   | `lineItem`, `lineItems`, `lineItemPriceSum` |
+| Mouse      | mouse      | `mouse`, `mice`, `mouseCount` |
+| Person     | person     | `person`, `people`, `personCount` |
+
+See [The Structure of a Joined Request] for more information.
 
 
 ## Convention for the BelongsTo Association
@@ -2264,6 +2305,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Record]: ../README.md#records
 [Foreign Key Actions]: https://sqlite.org/foreignkeys.html#fk_actions
 [Associations and the Database Schema]: #associations-and-the-database-schema
+[Convention for Database Table Names]: #convention-for-database-table-names
 [Convention for the BelongsTo Association]: #convention-for-the-belongsto-association
 [Convention for the HasOne Association]: #convention-for-the-hasone-association
 [Convention for the HasMany Association]: #convention-for-the-hasmany-association
