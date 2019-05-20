@@ -492,7 +492,7 @@ migrator.registerMigration("Books and Authors") { db in
 4. Create an index on the `book.authorId` column in order to ease the selection of an author's books.
 5. Create a foreign key from `book.authorId` column to `authors.id`, so that SQLite guarantees that no book refers to a missing author. The `onDelete: .cascade` option has SQLite automatically delete all of an author's books when that author is deleted. See [Foreign Key Actions] for more information.
 
-The example above uses auto-incremented primary keys. But generally speaking, all primary keys are supported.
+The example above uses auto-incremented primary keys. But generally speaking, all primary keys are supported, including composite primary keys that span several columns.
 
 Following this convention lets you write, for example:
 
@@ -551,7 +551,7 @@ migrator.registerMigration("Books and Authors") { db in
 4. Create an index on the `book.authorId` column in order to ease the selection of an author's books.
 5. Create a foreign key from `book.authorId` column to `authors.id`, so that SQLite guarantees that no book refers to a missing author. The `onDelete: .cascade` option has SQLite automatically delete all of an author's books when that author is deleted. See [Foreign Key Actions] for more information.
 
-The example above uses auto-incremented primary keys. But generally speaking, all primary keys are supported.
+The example above uses auto-incremented primary keys. But generally speaking, all primary keys are supported, including composite primary keys that span several columns.
 
 Following this convention lets you write, for example:
 
@@ -611,7 +611,7 @@ migrator.registerMigration("Countries") { db in
 4. Create a unique index on the `demographics.countryCode` column in order to guarantee the unicity of any country's profile.
 5. Create a foreign key from `demographics.countryCode` column to `country.code`, so that SQLite guarantees that no profile refers to a missing country. The `onDelete: .cascade` option has SQLite automatically delete a profile when its country is deleted. See [Foreign Key Actions] for more information.
 
-The example above uses a string primary key for the "country" table. But generally speaking, all primary keys are supported.
+The example above uses a string primary key for the "country" table. But generally speaking, all primary keys are supported, including composite primary keys that span several columns.
 
 Following this convention lets you write, for example:
 
