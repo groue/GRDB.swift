@@ -467,10 +467,10 @@ Those conventions help associations be convenient and, generally, "just work". W
 
 Make them look like Swift identifiers: `book`, `author`, `postalAddress`.
 
-If the database schema does not follow this convention, and has, for example, database tables which are named with underscores (`postal_address`), you can still use associations. But you need to help row consumption by providing the required key:
+If the database schema does not follow this convention, and has, for example, database tables which are named with underscores (`postal_address`), you can still use associations. But you need to help row consumption by naming your associations with a customized key:
 
 ```swift
-// Setup for customized table names
+// Setup for table names that does not follow the expected convention
 
 struct PostalAddress: TableRecord {
     // Customized table name
@@ -478,7 +478,7 @@ struct PostalAddress: TableRecord {
 }
 
 extension Author {
-    // Explicit association key
+    // Customized association key
     static let postalAddress = belongsTo(PostalAddress.self, key: "postalAddress")
 }
 ```
