@@ -485,9 +485,9 @@ extension Author {
 
 GRDB will automatically **pluralize** or **singularize** names in order to help you easily associate records.
 
-For example, the Book and Author records will automatically feed properties named `books`, `author`, or `bookCount`, without any explicit configuration, if the names of the backing database tables are "book" and "author".
+For example, the Book and Author records will automatically feed properties named `books`, `author`, or `bookCount` in your decoded records, without any explicit configuration, as long as the names of the backing database tables are "book" and "author".
 
-The GRDB pluralization mechanisms are very powerful, being capable of pluralizing (and singularizing) both regular and irregular words (it's directly inspired from the battle-tested [Ruby on Rails inflections](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-pluralize)).
+The GRDB pluralization mechanisms are very powerful, being capable of pluralizing and singularizing both regular and irregular words (it's directly inspired from the battle-tested [Ruby on Rails inflections](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-pluralize)).
 
 When using class names composed of two or more words, the table name should use the camelCase singular form:
 
