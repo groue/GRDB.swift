@@ -8,7 +8,7 @@ import XCTest
 // https://github.com/rails/rails/blob/v6.0.0.rc1/activesupport/test/inflector_test.rb
 class InflectionsTests: GRDBTestCase {
     private var originalInflections: Inflections?
-
+    
     override func setUp() {
         // Dups the singleton before each test, restoring the original inflections later.
         originalInflections = Inflections.default
@@ -18,11 +18,14 @@ class InflectionsTests: GRDBTestCase {
         Inflections.default = originalInflections!
     }
     
+    // Until SPM tests can load resources, disable this test for SPM.
+    #if !SWIFT_PACKAGE
     private var inflectionTestCases: InflectionTestCases {
         let url = Bundle(for: type(of: self)).url(forResource: "InflectionsTests", withExtension: "json")!
         let data = try! Data(contentsOf: url)
         return try! JSONDecoder().decode(InflectionTestCases.self, from: data)
     }
+    #endif
     
     func testStartIndexOfLastWord() {
         func lastWord(_ string: String) -> String {
@@ -119,7 +122,7 @@ class InflectionsTests: GRDBTestCase {
         XCTAssertEqual(word.singularized, word)
         XCTAssertEqual(word.pluralized, word.singularized)
     }
-
+    
     func testUncountableWords() {
         for word in Inflections.default.uncountables {
             XCTAssertEqual(word.pluralized, word)
@@ -153,12 +156,14 @@ class InflectionsTests: GRDBTestCase {
         XCTAssertEqual(uncountableWord.singularized, uncountableWord)
         XCTAssertEqual(uncountableWord.pluralized, uncountableWord)
         XCTAssertEqual(uncountableWord.pluralized, uncountableWord.singularized)
-
+        
         XCTAssertEqual(countableWord.singularized, "sponsor")
         XCTAssertEqual(countableWord.pluralized, "sponsors")
         XCTAssertEqual(countableWord.pluralized.singularized, "sponsor")
     }
     
+    // Until SPM tests can load resources, disable this test for SPM.
+    #if !SWIFT_PACKAGE
     func testPluralizeSingularWord() {
         for (singular, plural) in inflectionTestCases.testCases["SingularToPlural"]! {
             XCTAssertEqual(singular.pluralized, plural)
@@ -173,7 +178,10 @@ class InflectionsTests: GRDBTestCase {
             XCTAssertEqual(suffixedSingular.pluralized, suffixedPlural)
         }
     }
+    #endif
     
+    // Until SPM tests can load resources, disable this test for SPM.
+    #if !SWIFT_PACKAGE
     func testSingularizePluralWord() {
         for (singular, plural) in inflectionTestCases.testCases["SingularToPlural"]! {
             XCTAssertEqual(plural.singularized, singular)
@@ -188,7 +196,10 @@ class InflectionsTests: GRDBTestCase {
             XCTAssertEqual(suffixedPlural.singularized, suffixedSingular)
         }
     }
+    #endif
     
+    // Until SPM tests can load resources, disable this test for SPM.
+    #if !SWIFT_PACKAGE
     func testPluralizePluralWord() {
         for (_, plural) in inflectionTestCases.testCases["SingularToPlural"]! {
             XCTAssertEqual(plural.pluralized, plural)
@@ -201,7 +212,10 @@ class InflectionsTests: GRDBTestCase {
             XCTAssertEqual(suffixedPlural.pluralized, suffixedPlural)
         }
     }
+    #endif
     
+    // Until SPM tests can load resources, disable this test for SPM.
+    #if !SWIFT_PACKAGE
     func testSingularizeSingularWord() {
         for (singular, _) in inflectionTestCases.testCases["SingularToPlural"]! {
             XCTAssertEqual(singular.singularized, singular)
@@ -214,7 +228,10 @@ class InflectionsTests: GRDBTestCase {
             XCTAssertEqual(suffixedSingular.singularized, suffixedSingular)
         }
     }
+    #endif
     
+    // Until SPM tests can load resources, disable this test for SPM.
+    #if !SWIFT_PACKAGE
     func testIrregularityBetweenSingularAndPlural() {
         for (singular, plural) in inflectionTestCases.testCases["Irregularities"]! {
             Inflections.default.irregular(singular, plural)
@@ -238,15 +255,18 @@ class InflectionsTests: GRDBTestCase {
             XCTAssertEqual(suffixedPlural.pluralized, suffixedPlural)
         }
     }
+    #endif
 }
 
+// Until SPM tests can load resources, disable this test for SPM.
+#if !SWIFT_PACKAGE
 struct InflectionTestCases: Decodable {
     var testCases: [String: [(String, String)]]
     
     struct AnyCodingKey: CodingKey {
         var stringValue: String
         var intValue: Int? { return nil }
-
+        
         init?(stringValue: String) {
             self.stringValue = stringValue
         }
@@ -269,3 +289,4 @@ struct InflectionTestCases: Decodable {
         self.testCases = testCases
     }
 }
+#endif
