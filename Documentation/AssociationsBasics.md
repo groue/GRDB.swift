@@ -423,7 +423,7 @@ migrator.registerMigration("Employees") { db in
 }
 ```
 
-Note that both sides of the self-join use a customized [association key]. This helps consuming this association. For example:
+Note that both sides of the self-join use a customized **[association key](#the-structure-of-a-joined-request)**. This helps consuming this association. For example:
 
 ```swift
 struct EmployeeInfo: FetchableRecord, Decodable {
@@ -438,6 +438,8 @@ let request = Employee
 
 let employeeInfos: [EmployeeInfo] = try EmployeeInfo.fetchAll(db, request)
 ```
+
+See [Fetching Values from Associations] for more information.
 
 
 Associations and the Database Schema
