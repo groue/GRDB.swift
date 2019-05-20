@@ -482,7 +482,7 @@ extension Author {
 }
 ```
 
-GRDB will automatically *pluralize** or *singularize** names in order to help you easily associate records.
+GRDB will automatically **pluralize** or **singularize** names in order to help you easily associate records.
 
 For example, the Book and Author records will automatically feed properties named `books`, `author`, or `bookCount`, without explicit configuration, if the names of the backing database tables are "book" and "author".
 
