@@ -167,10 +167,10 @@ do {
 [SQL Interpolation]: SQLInterpolation.md
 [ValueObservation]: ../README.md#valueobservation
 [Encryption]: ../README.md#encryption
-[HasOneThrough]: AssociationBasics.md#hasonethrough
-[HasManyThrough]: AssociationBasics.md#hasmanythrough
+[HasOneThrough]: AssociationsBasics.md#hasonethrough
+[HasManyThrough]: AssociationsBasics.md#hasmanythrough
 [PersistableRecord]: ../README.md#persistablerecord-protocol
-[associations]: AssociationBasics.md
+[associations]: AssociationsBasics.md
 [EncodableRecord]: ../README.md#persistablerecord-protocol
-[The Structure of a Joined Request]: AssociationBasics.md#the-structure-of-a-joined-request
-[Joining And Prefetching Associated Records]: AssociationBasics.md#joining-and-prefetching-associated-records
+[The Structure of a Joined Request]: AssociationsBasics.md#the-structure-of-a-joined-request
+[Joining And Prefetching Associated Records]: AssociationsBasics.md#joining-and-prefetching-associated-records
