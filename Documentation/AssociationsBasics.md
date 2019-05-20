@@ -2269,8 +2269,6 @@ let request = Book.joining(required: Book.author
             .filter(Column("publishDate") >= authorAlias[Column("deathDate")]))    
     ```
 
-    Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those features into reality.
-
 - **You can't use the `including(all:)` method with a [HasMany] and a [HasManyThrough] associations that share the same base association in the same request**:
 
     ```swift
@@ -2290,6 +2288,8 @@ let request = Book.joining(required: Book.author
         .including(all: Country.passports
             .including(required: Passport.citizen))
     ```
+    
+Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those missing features into reality.
 
 ---
 
