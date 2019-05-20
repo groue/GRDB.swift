@@ -470,33 +470,48 @@ extension AssociationToOne {
 // MARK: - SQLAssociationKey
 
 /// Associations are meant to be consumed, most often into Decodable records.
-/// Those have singular or plural property names, depending on the way
-/// associations are used:
+///
+/// Those records have singular or plural property names, and we want
+/// associations to be able to fill those singular or plural names
+/// automatically, so that the user does not have to perform explicit
+/// decoding configuration.
+///
+/// Those plural or singular names are not decided when the association is
+/// defined. For example, the Author.books association, which looks plural, may
+/// actually generate "book" or "books" depending on the context:
 ///
 ///     struct Author: TableRecord {
 ///         static let books = hasMany(Book.self)
 ///     }
 ///     struct Book: TableRecord {
-///         static let author = belongsTo(Author.self)
 ///     }
 ///
+///     // "books"
 ///     struct AuthorInfo: FetchableRecord, Decodable {
 ///         var author: Author
-///         var books: [Book]   // plural
+///         var books: [Book]
 ///     }
 ///     let request = Author.including(all: Author.books)
 ///     let authorInfos = try AuthorInfo.fetchAll(db, request)
 ///
-///     struct BookInfo: FetchableRecord, Decodable {
+///     "book"
+///     struct AuthorInfo: FetchableRecord, Decodable {
+///         var author: Author
 ///         var book: Book
-///         var author: Author  // singular
 ///     }
-///     let request = Book.including(required: Book.author)
-///     let bookInfos = try BookInfo.fetchAll(db, request)
+///     let request = Author.including(required: Author.books)
+///     let authorInfos = try AuthorInfo.fetchAll(db, request)
 ///
-/// SQLAssociationKey aims at helping GRDB providing support for automatic
-/// inflections of association and database table names, so that the user does
-/// not have to explicitly provide any singular or plural form.
+///     "bookCount"
+///     struct AuthorInfo: FetchableRecord, Decodable {
+///         var author: Author
+///         var bookCount: Int
+///     }
+///     let request = Author.annotated(with: Author.books.count)
+///     let authorInfos = try AuthorInfo.fetchAll(db, request)
+///
+/// The SQLAssociationKey type aims at providing the necessary support for
+/// those various inflections.
 enum SQLAssociationKey {
     /// A key that is inflected in singular and plural contexts.
     ///
