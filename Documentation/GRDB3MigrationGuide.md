@@ -75,7 +75,7 @@ GRDB4 brought a few new [associations] features:
     
     let country: Country = ...
     let citizens: [Citizen] = try dbQueue.read { db in
-        country.citizens.fetchAll(db)
+        try country.citizens.fetchAll(db)
     }
     ```
     
@@ -101,7 +101,7 @@ GRDB4 brought a few new [associations] features:
     
     GRDB will automatically **pluralize** or **singularize** names in order to help you easily associate records.
 
-    For example, the Book and Author records will automatically feed properties named `books`, `author`, or `bookCount`, without explicit configuration, as long as the names of the backing database tables are "book" and "author".
+    For example, the Book and Author records will automatically feed properties named `books`, `author`, or `bookCount`, without any explicit configuration, as long as the names of the backing database tables are "book" and "author".
 
     The GRDB pluralization mechanisms are very powerful, being capable of pluralizing (and singularizing) both regular and irregular words (it's directly inspired from the battle-tested [Ruby on Rails inflections](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-pluralize)).
     
