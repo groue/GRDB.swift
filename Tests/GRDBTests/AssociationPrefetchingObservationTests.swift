@@ -287,7 +287,10 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                             .hasMany(C.self))
                     )
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "a(*),b(colb1,colb2,colb3),c(colc1,colc2)")
+                try XCTAssert([
+                    "a(*),b(colb1,colb2,colb3),c(colc1,colc2)",             // iOS 12
+                    "a(cola1,cola2),b(colb1,colb2,colb3),c(colc1,colc2)",   // iOS 9
+                    ].contains(request.databaseRegion(db).description))
             }
             
             // Request with filters
