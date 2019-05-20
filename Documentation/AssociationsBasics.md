@@ -1514,17 +1514,17 @@ let request = Book
 
 This requests for all books, with their cover images, and their authors and translators. Those people are themselves decorated with their respective nationalities.
 
-We plan to decode this request into is the following record:
+We plan to decode this request into is the following nested record:
 
 ```swift
 struct BookInfo: FetchableRecord, Decodable {
-    struct AuthorInfo: Decodable {
-        var author: Author
+    struct PersonInfo: Decodable {
+        var person: Person
         var country: Country?
     }
     var book: Book
-    var authorInfo: AuthorInfo
-    var translatorInfo: AuthorInfo?
+    var authorInfo: PersonInfo
+    var translatorInfo: PersonInfo?
     var coverImage: CoverImage?
 }
 ```
