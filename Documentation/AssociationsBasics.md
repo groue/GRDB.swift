@@ -1378,7 +1378,7 @@ Each association included in the request can feed a property of the decoded reco
     
     struct EmployeeInfo: FetchableRecord, Decodable {
         var employee: Employee
-        var manager: Employee?
+        var manager: Employee? // the optional manager
         var subordinates: Set<Employee>
     }
     let employeeInfos: [EmployeeInfo] = try EmployeeInfo.fetchAll(db, request)
@@ -1395,7 +1395,7 @@ Each association included in the request can feed a property of the decoded reco
     
     struct BookInfo: FetchableRecord, Decodable {
         var book: Book
-        var author: Author
+        var author: Author // the required author
         var country: Country?
         var coverImage: CoverImage?
     }
