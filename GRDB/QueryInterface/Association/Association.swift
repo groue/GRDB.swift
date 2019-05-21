@@ -114,6 +114,23 @@ extension Association {
         return mapDestinationRelation { $0.select(selection) }
     }
     
+    /// Creates an association which appends *selection*.
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.color, team.name
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     let association = Player.team
+    ///         .select([Column("color")])
+    ///         .annotated(with: [Column("name")])
+    ///     var request = Player.including(required: association)
+    public func annotated(with selection: [SQLSelectable]) -> Self {
+        return mapDestinationRelation { $0.annotated(with: selection) }
+    }
+    
     /// Creates an association with the provided *predicate promise* added to
     /// the eventual set of already applied predicates.
     ///

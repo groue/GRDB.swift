@@ -19,6 +19,15 @@ public protocol SelectionRequest {
     ///         .select([Column("id")])
     ///         .select([Column("email")])
     func select(_ selection: [SQLSelectable]) -> Self
+    
+    /// Creates a request which appends *selection*.
+    ///
+    ///     // SELECT id, email, name FROM player
+    ///     var request = Player.all()
+    ///     request = request
+    ///         .select([Column("id"), Column("email")])
+    ///         .annotated(with: [Column("name")])
+    func annotated(with selection: [SQLSelectable]) -> Self
 }
 
 /// :nodoc:
@@ -83,6 +92,17 @@ extension SelectionRequest {
     public func select(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
         return select(SQLSelectionLiteral(literal: sqlLiteral))
+    }
+    
+    /// Creates a request which appends *selection*.
+    ///
+    ///     // SELECT id, email, name FROM player
+    ///     var request = Player.all()
+    ///     request = request
+    ///         .select([Column("id"), Column("email")])
+    ///         .annotated(with: Column("name"))
+    public func annotated(with selection: SQLSelectable...) -> Self {
+        return annotated(with: selection)
     }
 }
 

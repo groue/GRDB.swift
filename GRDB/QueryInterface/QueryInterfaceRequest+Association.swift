@@ -179,7 +179,7 @@ extension TableRecord {
     public static func annotated(with aggregates: [AssociationAggregate<Self>]) -> QueryInterfaceRequest<Self> {
         return all().annotated(with: aggregates)
     }
-
+    
     /// Creates a request with the provided aggregate *predicate*.
     ///
     ///     // SELECT player.*

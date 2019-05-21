@@ -513,6 +513,26 @@ extension TableRecord {
         return all().select(literal: sqlLiteral, as: type)
     }
     
+    /// Creates a request which appends *selection*.
+    ///
+    ///     // SELECT id, email, name FROM player
+    ///     le request = Player
+    ///         .select([Column("id"), Column("email")])
+    ///         .annotated(with: [Column("name")])
+    public static func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest<Self> {
+        return all().annotated(with: selection)
+    }
+
+    /// Creates a request which appends *selection*.
+    ///
+    ///     // SELECT id, email, name FROM player
+    ///     le request = Player
+    ///         .select([Column("id"), Column("email")])
+    ///         .annotated(with: Column("name"))
+    public static func annotated(with selection: SQLSelectable...) -> QueryInterfaceRequest<Self> {
+        return all().annotated(with: selection)
+    }
+    
     /// Creates a request with the provided *predicate*.
     ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'

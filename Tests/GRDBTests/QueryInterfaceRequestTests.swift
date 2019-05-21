@@ -241,7 +241,43 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(row["agePlusOne"] as Int, 43)
         }
     }
-
+    
+    func testAnnotated() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                let request = Reader.annotated(with: [Col.id - 1])
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT *, (\"id\" - 1) FROM \"readers\"")
+            }
+            do {
+                let request = Reader.annotated(with: Col.id - 1, Col.id + 1)
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT *, (\"id\" - 1), (\"id\" + 1) FROM \"readers\"")
+            }
+            do {
+                let request = tableRequest.annotated(with: [Col.id - 1])
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT *, (\"id\" - 1) FROM \"readers\"")
+            }
+            do {
+                let request = tableRequest.annotated(with: Col.id - 1, Col.id + 1)
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT *, (\"id\" - 1), (\"id\" + 1) FROM \"readers\"")
+            }
+            do {
+                let request = tableRequest.select(Col.name).annotated(with: [Col.id - 1])
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT \"name\", (\"id\" - 1) FROM \"readers\"")
+            }
+            do {
+                let request = tableRequest.select(Col.name).annotated(with: Col.id - 1, Col.id + 1)
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, "SELECT \"name\", (\"id\" - 1), (\"id\" + 1) FROM \"readers\"")
+            }
+        }
+    }
+    
     func testMultipleSelect() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
