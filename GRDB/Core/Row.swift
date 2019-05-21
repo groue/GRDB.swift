@@ -553,7 +553,12 @@ extension Row {
     public subscript<Record: FetchableRecord>(_ scope: String) -> Record {
         guard let scopedRow = scopesTree[scope] else {
             // Programmer error
-            fatalError("missing scope `\(scope)` (row: \(self))")
+            let names = scopesTree.names
+            if names.isEmpty {
+                fatalError("missing scope `\(scope)` (row: \(self))")
+            } else {
+                fatalError("missing scope `\(scope)` (row: \(self), available scopes: \(names.sorted()))")
+            }
         }
         guard scopedRow.containsNonNullValue else {
             // Programmer error
@@ -621,7 +626,12 @@ extension Row {
     {
         guard let rows = prefetchedRows[key] else {
             // Programmer error
-            fatalError("missing key for prefetched rows `\(key)` (row: \(self))")
+            let keys = prefetchedRows.keys
+            if keys.isEmpty {
+                fatalError("missing key for prefetched rows `\(key)` (row: \(self))")
+            } else {
+                fatalError("missing key for prefetched rows `\(key)` (row: \(self), available keys: \(keys.sorted()))")
+            }
         }
         var collection = Collection()
         collection.reserveCapacity(rows.count)
@@ -647,7 +657,12 @@ extension Row {
     public subscript<Record: FetchableRecord & Hashable>(_ key: String) -> Set<Record> {
         guard let rows = prefetchedRows[key] else {
             // Programmer error
-            fatalError("missing key for prefetched rows `\(key)` (row: \(self))")
+            let keys = prefetchedRows.keys
+            if keys.isEmpty {
+                fatalError("missing key for prefetched rows `\(key)` (row: \(self))")
+            } else {
+                fatalError("missing key for prefetched rows `\(key)` (row: \(self), available keys: \(keys.sorted()))")
+            }
         }
         var set = Set<Record>(minimumCapacity: rows.count)
         for row in rows {

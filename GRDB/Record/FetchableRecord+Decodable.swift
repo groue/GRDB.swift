@@ -27,7 +27,18 @@ private struct RowDecoder<R: FetchableRecord>: Decoder {
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        fatalError("unkeyed decoding from database row is not supported")
+        let keys = row.prefetchedRows.keys
+        let debugDescription: String
+        if keys.isEmpty {
+            debugDescription = "No available prefetched rows"
+        } else {
+            debugDescription = "Available keys for prefetched rows: \(keys.sorted())"
+        }
+        throw DecodingError.keyNotFound(
+            codingPath.last!,
+            DecodingError.Context(
+                codingPath: codingPath.dropLast(),
+                debugDescription: debugDescription))
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
