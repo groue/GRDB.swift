@@ -380,16 +380,22 @@ extension QueryInterfaceRequest {
     }
 }
 
-/// Conditional conformance to TableRequest when RowDecoder conforms
-/// to TableRecord:
-///
-///     let request = Player.all()
-///     request.filter(key: ...)
-///     request.filter(keys: ...)
-extension QueryInterfaceRequest: TableRequest where RowDecoder: TableRecord {
+extension QueryInterfaceRequest: TableRequest {
     /// :nodoc:
     public var databaseTableName: String {
-        return RowDecoder.databaseTableName
+        switch query.relation.source {
+        case .table(tableName: let tableName, alias: _):
+            // Use case:
+            //
+            ///     let request = Player.all()
+            ///     request.filter(key: ...)
+            ///     request.filter(keys: ...)
+            ///     request.orderByPrimaryKey()
+            return tableName
+        case .query:
+            // Should not happen very often
+            fatalError("Request is not based on a database table")
+        }
     }
 }
 
