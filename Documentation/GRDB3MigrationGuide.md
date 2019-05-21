@@ -50,6 +50,64 @@ In GRDB 3, this scheduling used to be named `.queue(_: startImmediately:)`.
 The second breaking change is `ValueObservation.extent`, which was removed in GRDB 4. Now all observations last until the observer returned by the `start` method is deallocated.
 
 
+### Associations
+
+GRDB4 brought a few new [associations] features:
+
+- **Indirect associations** [HasOneThrough] and [HasManyThrough] let you define associations from a record to another through a third one. For example, they let you easily express many-to-many relations such as "a country has many citizens through its passports":
+
+    ```swift
+    struct Country: TableRecord, EncodableRecord {
+        static let passports = hasMany(Passport.self)
+        // New!
+        static let citizens = hasMany(Citizen.self, through: passports, using: Passport.citizen)
+        var citizens: QueryInterfaceRequest<Citizen> {
+            return request(for: Country.citizens)
+        }
+    }
+
+    struct Passport: TableRecord {
+        static let citizen = belongsTo(Citizen.self)
+    }
+ 
+    struct Citizen: TableRecord {
+    }
+    
+    let country: Country = ...
+    let citizens: [Citizen] = try dbQueue.read { db in
+        try country.citizens.fetchAll(db)
+    }
+    ```
+    
+    ![HasManyThroughSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasManyThroughSchema.svg)
+
+- **Eager loading of HasMany associations**: The new `including(all:)` method lets you load arrays or sets of associated records in a single request:
+
+    ```swift
+    // All authors with their respective books
+    let request = Author.including(all: Author.books)
+    
+    // This request can feed the following record:
+    struct AuthorInfo: FetchableRecord, Decodable {
+        var author: Author
+        var books: [Book] // all associated books
+    }
+    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+    ```
+    
+    See [Joining And Prefetching Associated Records] for more information.
+
+- **Automatic pluralization and singularization** of association identifiers.
+    
+    GRDB will automatically **pluralize** or **singularize** names in order to help you easily associate records.
+
+    For example, the Book and Author records will automatically feed properties named `books`, `author`, or `bookCount` in your decoded records, without any explicit configuration, as long as the names of the backing database tables are "book" and "author".
+
+    The GRDB pluralization mechanisms are very powerful, being capable of pluralizing and singularizing both regular and irregular words (it's directly inspired from the battle-tested [Ruby on Rails inflections](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-pluralize)).
+    
+    However, this change may have introduced some incompatibilities with GRDB 3 associations. Check [The Structure of a Joined Request] for more information.
+
+
 ### SQLCipher
 
 The integration of GRDB with SQLCipher has changed.
@@ -70,9 +128,9 @@ The integration of GRDB with SQLCipher has changed.
     +import GRDB
     ```
 
-2. The default SQLCipher version which comes with GRDB 4 is now SQLCipher 4, which is incompatible with SQLCipher 3. See [Encryption] for more details.
+2. The default SQLCipher version which comes with GRDB 4 is now SQLCipher 4, which is incompatible with SQLCipher 3. SQLCipher 3 is still supported, though. See [Encryption] for more details.
 
-3. The `cipherPageSize` and `kdfIterations` configuration properties are discontinued. With GRDB 4, run sql pragmas in `prepareDatabase`:
+3. The `cipherPageSize` and `kdfIterations` configuration properties are discontinued. With GRDB 4, run sql pragmas in the `prepareDatabase` property of the configuration:
     
     ```swift
     var configuration = Configuration()
@@ -109,3 +167,10 @@ do {
 [SQL Interpolation]: SQLInterpolation.md
 [ValueObservation]: ../README.md#valueobservation
 [Encryption]: ../README.md#encryption
+[HasOneThrough]: AssociationsBasics.md#hasonethrough
+[HasManyThrough]: AssociationsBasics.md#hasmanythrough
+[PersistableRecord]: ../README.md#persistablerecord-protocol
+[associations]: AssociationsBasics.md
+[EncodableRecord]: ../README.md#persistablerecord-protocol
+[The Structure of a Joined Request]: AssociationsBasics.md#the-structure-of-a-joined-request
+[Joining And Prefetching Associated Records]: AssociationsBasics.md#joining-and-prefetching-associated-records

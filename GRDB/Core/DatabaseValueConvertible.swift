@@ -361,7 +361,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     
     /// A cursor over fetched values.
     ///
-    ///     let request: ... // Some TypedRequest that fetches String
+    ///     let request: ... // Some FetchRequest that fetches String
     ///     let strings = try request.fetchCursor(db) // Cursor of String
     ///     while let string = try strings.next() {   // String
     ///         ...
@@ -382,7 +382,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     
     /// An array of fetched values.
     ///
-    ///     let request: ... // Some TypedRequest that fetches String
+    ///     let request: ... // Some FetchRequest that fetches String
     ///     let strings = try request.fetchAll(db) // [String]
     ///
     /// - parameter db: A database connection.
@@ -398,7 +398,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     /// The result is nil if the request returns no row, or if no value can be
     /// extracted from the first row.
     ///
-    ///     let request: ... // Some TypedRequest that fetches String
+    ///     let request: ... // Some FetchRequest that fetches String
     ///     let string = try request.fetchOne(db) // String?
     ///
     /// - parameter db: A database connection.
@@ -562,7 +562,7 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     
     /// A cursor over fetched optional values.
     ///
-    ///     let request: ... // Some TypedRequest that fetches Optional<String>
+    ///     let request: ... // Some FetchRequest that fetches Optional<String>
     ///     let strings = try request.fetchCursor(db) // Cursor of String?
     ///     while let string = try strings.next() {   // String?
     ///         ...
@@ -583,7 +583,7 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     
     /// An array of fetched optional values.
     ///
-    ///     let request: ... // Some TypedRequest that fetches Optional<String>
+    ///     let request: ... // Some FetchRequest that fetches Optional<String>
     ///     let strings = try request.fetchAll(db) // [String?]
     ///
     /// - parameter db: A database connection.

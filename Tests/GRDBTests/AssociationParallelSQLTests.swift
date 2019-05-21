@@ -109,49 +109,49 @@ class AssociationParallelSQLTests: GRDBTestCase {
     func testParallelTwoIncludingIncludingOtherKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try assertEqualSQL(db, A.including(required: A.b).including(required: A.b.forKey("altb")), """
+            try assertEqualSQL(db, A.including(required: A.b).including(required: A.b.forKey("customB")), """
                 SELECT "a".*, "b1".*, "b2".* \
                 FROM "a" \
                 JOIN "b" "b1" ON ("b1"."id" = "a"."bid") \
                 JOIN "b" "b2" ON ("b2"."id" = "a"."bid")
                 """)
-            try assertEqualSQL(db, A.including(required: A.b).including(optional: A.b.forKey("altb")), """
+            try assertEqualSQL(db, A.including(required: A.b).including(optional: A.b.forKey("customB")), """
                 SELECT "a".*, "b1".*, "b2".* \
                 FROM "a" \
                 JOIN "b" "b1" ON ("b1"."id" = "a"."bid") \
                 LEFT JOIN "b" "b2" ON ("b2"."id" = "a"."bid")
                 """)
-            try assertEqualSQL(db, A.including(optional: A.b).including(required: A.b.forKey("altb")), """
+            try assertEqualSQL(db, A.including(optional: A.b).including(required: A.b.forKey("customB")), """
                 SELECT "a".*, "b1".*, "b2".* \
                 FROM "a" \
                 LEFT JOIN "b" "b1" ON ("b1"."id" = "a"."bid") \
                 JOIN "b" "b2" ON ("b2"."id" = "a"."bid")
                 """)
-            try assertEqualSQL(db, A.including(optional: A.b).including(optional: A.b.forKey("altb")), """
+            try assertEqualSQL(db, A.including(optional: A.b).including(optional: A.b.forKey("customB")), """
                 SELECT "a".*, "b1".*, "b2".* \
                 FROM "a" \
                 LEFT JOIN "b" "b1" ON ("b1"."id" = "a"."bid") \
                 LEFT JOIN "b" "b2" ON ("b2"."id" = "a"."bid")
                 """)
-            try assertEqualSQL(db, B.including(required: B.a).including(required: B.a.forKey("alta")), """
+            try assertEqualSQL(db, B.including(required: B.a).including(required: B.a.forKey("customA")), """
                 SELECT "b".*, "a1".*, "a2".* \
                 FROM "b" \
                 JOIN "a" "a1" ON ("a1"."bid" = "b"."id") \
                 JOIN "a" "a2" ON ("a2"."bid" = "b"."id")
                 """)
-            try assertEqualSQL(db, B.including(required: B.a).including(optional: B.a.forKey("alta")), """
+            try assertEqualSQL(db, B.including(required: B.a).including(optional: B.a.forKey("customA")), """
                 SELECT "b".*, "a1".*, "a2".* \
                 FROM "b" \
                 JOIN "a" "a1" ON ("a1"."bid" = "b"."id") \
                 LEFT JOIN "a" "a2" ON ("a2"."bid" = "b"."id")
                 """)
-            try assertEqualSQL(db, B.including(optional: B.a).including(required: B.a.forKey("alta")), """
+            try assertEqualSQL(db, B.including(optional: B.a).including(required: B.a.forKey("customA")), """
                 SELECT "b".*, "a1".*, "a2".* \
                 FROM "b" \
                 LEFT JOIN "a" "a1" ON ("a1"."bid" = "b"."id") \
                 JOIN "a" "a2" ON ("a2"."bid" = "b"."id")
                 """)
-            try assertEqualSQL(db, B.including(optional: B.a).including(optional: B.a.forKey("alta")), """
+            try assertEqualSQL(db, B.including(optional: B.a).including(optional: B.a.forKey("customA")), """
                 SELECT "b".*, "a1".*, "a2".* \
                 FROM "b" \
                 LEFT JOIN "a" "a1" ON ("a1"."bid" = "b"."id") \

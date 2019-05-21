@@ -321,7 +321,7 @@ extension Array where Element == TableAlias {
             var index = 1
             for alias in group {
                 if alias.hasUserName { continue }
-                let radical = alias.identityName.databaseQualifierRadical
+                let radical = alias.identityName.digitlessRadical
                 var resolvedName: String
                 repeat {
                     resolvedName = "\(radical)\(index)"
@@ -332,19 +332,5 @@ extension Array where Element == TableAlias {
             }
         }
         return resolvedNames
-    }
-}
-
-extension String {
-    /// "bar" => "bar"
-    /// "foo12" => "foo"
-    fileprivate var databaseQualifierRadical: String {
-        let digits: ClosedRange<Character> = "0"..."9"
-        let radicalEndIndex = self                  // "foo12"
-            .reversed()                             // "21oof"
-            .prefix(while: { digits.contains($0) }) // "21"
-            .endIndex                               // reversed(foo^12)
-            .base                                   // foo^12
-        return String(prefix(upTo: radicalEndIndex))
     }
 }

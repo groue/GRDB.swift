@@ -117,19 +117,29 @@ extension TableRecord {
     ///
     /// - parameters:
     ///     - destination: The record type at the other side of the association.
-    ///     - through: An association from Self to the intermediate type.
-    ///     - using: An association from the intermediate type to the
+    ///     - pivot: An association from Self to the intermediate type.
+    ///     - target: A target association from the intermediate type to the
     ///       destination type.
+    ///     - key: An eventual decoding key for the association. By default, it
+    ///       is the same key as the target.
     public static func hasMany<Pivot, Target>(
         _ destination: Target.RowDecoder.Type,
         through pivot: Pivot,
-        using target: Target)
+        using target: Target,
+        key: String? = nil)
         -> HasManyThroughAssociation<Self, Target.RowDecoder>
         where Pivot: Association,
         Target: Association,
         Pivot.OriginRowDecoder == Self,
         Pivot.RowDecoder == Target.OriginRowDecoder
     {
-        return HasManyThroughAssociation(sqlAssociation: target.sqlAssociation.through(pivot.sqlAssociation))
+        let association = HasManyThroughAssociation<Self, Target.RowDecoder>(
+            sqlAssociation: target.sqlAssociation.through(pivot.sqlAssociation))
+        
+        if let key = key {
+            return association.forKey(key)
+        } else {
+            return association
+        }
     }
 }

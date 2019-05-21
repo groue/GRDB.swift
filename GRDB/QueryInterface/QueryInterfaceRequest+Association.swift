@@ -1,46 +1,55 @@
 extension QueryInterfaceRequest where RowDecoder: TableRecord {
     // MARK: - Associations
     
+    /// Creates a request that prefetches an association.
+    public func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
+        return mapQuery {
+            $0.mapRelation {
+                $0.including(all: association.sqlAssociation)
+            }
+        }
+    }
+
     /// Creates a request that includes an association. The columns of the
-    /// associated record are selected. The returned association does not
+    /// associated record are selected. The returned request does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.sqlAssociation.joinedRelation(from: $0, required: false)
+                $0.including(optional: association.sqlAssociation)
             }
         }
     }
     
     /// Creates a request that includes an association. The columns of the
-    /// associated record are selected. The returned association requires
+    /// associated record are selected. The returned request requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.sqlAssociation.joinedRelation(from: $0, required: true)
+                $0.including(required: association.sqlAssociation)
             }
         }
     }
     
-    /// Creates a request that includes an association. The columns of the
-    /// associated record are not selected. The returned association does not
+    /// Creates a request that joins an association. The columns of the
+    /// associated record are not selected. The returned request does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.select([]).sqlAssociation.joinedRelation(from: $0, required: false)
+                $0.joining(optional: association.sqlAssociation)
             }
         }
     }
     
-    /// Creates a request that includes an association. The columns of the
-    /// associated record are not selected. The returned association requires
+    /// Creates a request that joins an association. The columns of the
+    /// associated record are not selected. The returned request requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder {
         return mapQuery {
             $0.mapRelation {
-                association.select([]).sqlAssociation.joinedRelation(from: $0, required: true)
+                $0.joining(required: association.sqlAssociation)
             }
         }
     }
@@ -110,8 +119,7 @@ extension TableRecord where Self: EncodableRecord {
         let destinationRelation = association.sqlAssociation.destinationRelation(fromOriginRows: { db in
             try [Row(PersistenceContainer(db, self))]
         })
-        let query = SQLSelectQuery(relation: destinationRelation)
-        return QueryInterfaceRequest<A.RowDecoder>(query: query)
+        return QueryInterfaceRequest(relation: destinationRelation)
     }
 }
 
@@ -119,6 +127,11 @@ extension TableRecord {
     
     // MARK: - Associations
     
+    /// Creates a request that prefetches an association.
+    public static func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self {
+        return all().including(all: association)
+    }
+
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.

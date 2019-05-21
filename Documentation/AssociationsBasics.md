@@ -19,7 +19,7 @@ GRDB Associations
     - [Foreign Keys]
 - [Building Requests from Associations]
     - [Requesting Associated Records]
-    - [Joining Methods]
+    - [Joining And Prefetching Associated Records]
     - [Combining Associations]
     - [Filtering Associations]
     - [Sorting Associations]
@@ -30,6 +30,7 @@ GRDB Associations
     - [The Structure of a Joined Request]
     - [Decoding a Joined Request with a Decodable Record]
     - [Decoding a Joined Request with FetchableRecord]
+    - [Debugging Request Decoding]
 - [Association Aggregates]
     - [Available Association Aggregates]
     - [Annotating a Request with Aggregates]
@@ -38,7 +39,6 @@ GRDB Associations
     - [Isolation of Multiple Aggregates]
 - [DerivableRequest Protocol]
 - [Known Issues]
-- [Future Directions]
 
 
 ## Associations Benefits
@@ -129,7 +129,7 @@ Before we dive in, please remember that associations can not generate all possib
 
 When your record type is a subclass of the [Record class], all necessary protocols are already setup and ready: you can skip this chapter.
 
-Otherwise:
+Generally speaking, associations use the [TableRecord], [FetchableRecord], and [EncodableRecord] protocols:
 
 - **[TableRecord]** is the protocol that lets you declare associations between record types:
 
@@ -151,7 +151,7 @@ Otherwise:
     // Who's prolific?
     let authors = try dbQueue.read { db in
         try Author
-            .having(Author.book.count >= 20)
+            .having(Author.books.count >= 20)
             .fetchAll(db) // [Author]
     }
     ```
@@ -259,7 +259,7 @@ For example, if your application has one database table for countries, and anoth
 
 ```swift
 struct Country: TableRecord {
-    static let demographics = hasOne(Demographics.self)
+    static let demographics = hasOne(Demographics.self, key: "demographics")
     ...
 }
 
@@ -271,6 +271,8 @@ struct Demographics: TableRecord {
 The **HasOne** association between a country and its demographics needs that the database table for demographics has a column that points to the table for countries:
 
 ![HasOneSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasOneSchema.svg)
+
+Note that this demographics example of HasOne association uses an explicit `"demographics"` key, unlike the BelongsTo and HasMany associations above. This key is necessary when you use a plural name for a one-to-one association. See [Convention for Database Table Names] for more information.
 
 See [Convention for the HasOne Association] for some sample code that defines the database schema for such an association, and [Building Requests from Associations] in order to learn how to use it.
 
@@ -300,7 +302,7 @@ struct Citizen: TableRecord, EncodableRecord {
 
 ![HasManyThroughSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/HasManyThroughSchema.svg)
 
-The **HasManyThrough** association is also useful for setting up "shortcuts" through nested HasMany associations. For example, if a document has many sections, and a section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document. You could set that up this way:
+The **HasManyThrough** association is also useful for setting up "shortcuts" through nested associations. For example, if a document has many sections, and a section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document. You could set that up this way:
 
 ```swift
 struct Document: TableRecord {
@@ -400,8 +402,8 @@ When designing your data model, you will sometimes find a record that should hav
 
 ```swift
 struct Employee {
-    static let subordinates = hasMany(Employee.self)
-    static let manager = belongsTo(Employee.self)
+    static let subordinates = hasMany(Employee.self, key: "subordinates")
+    static let manager = belongsTo(Employee.self, key: "manager")
     ...
 }
 ```
@@ -421,6 +423,24 @@ migrator.registerMigration("Employees") { db in
     }
 }
 ```
+
+Note that both sides of the self-join use a customized **[association key](#the-structure-of-a-joined-request)**. This helps consuming this association. For example:
+
+```swift
+struct EmployeeInfo: FetchableRecord, Decodable {
+    var employee: Employee
+    var manager: Employee?
+    var subordinates: Set<Employee>
+}
+
+let request = Employee
+    .including(optional: Employee.manager)
+    .including(all: Employee.subordinates)
+
+let employeeInfos: [EmployeeInfo] = try EmployeeInfo.fetchAll(db, request)
+```
+
+See [Fetching Values from Associations] for more information.
 
 
 Associations and the Database Schema
@@ -443,52 +463,42 @@ Those conventions help associations be convenient and, generally, "just work". W
 
 ## Convention for Database Table Names
 
-**Database table names should be singular and camel-cased.**
+**Database table names should be written in English, singular, and camelCased.**
 
 Make them look like Swift identifiers: `book`, `author`, `postalAddress`.
 
-This convention helps fetching values from associations. It is used, for example, in the sample code below, where we load all pairs of books along with their authors:
+If the database schema does not follow this convention, and has, for example, database tables which are named with underscores (`postal_address`), you can still use associations. But you need to help row consumption by naming your associations with a customized key:
 
 ```swift
-// The Author record
-struct Author: FetchableRecord, TableRecord {
+// Setup for table names that does not follow the expected convention
+
+struct PostalAddress: TableRecord {
+    // Customized table name
+    static let databaseTableName = "postal_address"
 }
 
-// The Book record
-struct Book: FetchableRecord, TableRecord {
-    static let author = belongsTo(Author.self)
+extension Author {
+    // Customized association key
+    static let postalAddress = belongsTo(PostalAddress.self, key: "postalAddress")
 }
-
-// A pair made of a book and its author
-struct BookInfo: FetchableRecord, Decodable {
-    let book: Book
-    let author: Author?
-}
-
-let request = Book.including(optional: Book.author)
-let bookInfos = BookInfo.fetchAll(db, request)
 ```
 
-This sample code only works if the database table for authors is called "author". The name "author" is the key that helps BookInfo initialize its `author` property. For your convenience, "author" is also the default value of the `Author.databaseTableName` property (see the [TableRecord] protocol).
+GRDB will automatically **pluralize** or **singularize** names in order to help you easily associate records.
 
-If the database schema does not follow this convention, and has, for example, database tables named with plural names (`authors` and `books`), you can still use associations. But you need to help row consumption by providing the required key:
+For example, the Book and Author records will automatically feed properties named `books`, `author`, or `bookCount` in your decoded records, without any explicit configuration, as long as the names of the backing database tables are "book" and "author".
 
-```swift
-// Setup for customized table names
+The GRDB pluralization mechanisms are very powerful, being capable of pluralizing and singularizing both regular and irregular words (it's directly inspired from the battle-tested [Ruby on Rails inflections](https://api.rubyonrails.org/classes/ActiveSupport/Inflector.html#method-i-pluralize)).
 
-struct Author: FetchableRecord, TableRecord {
-    // Customized table name
-    static let databaseTableName = "authors"
-}
+When using class names composed of two or more words, the table name should use the camelCase singular form:
 
-struct Book: FetchableRecord, TableRecord {
-    // Customized table name
-    static let databaseTableName = "books"
-    
-    // Explicit association key
-    static let author = belongsTo(Author.self, key: "author")
-}
-```
+| RecordType | Table Name | Derived identifiers |
+| ---------- | ---------- | ------------------- |
+| Book       | book       | `book`, `books`, `bookCount` |
+| LineItem   | lineItem   | `lineItem`, `lineItems`, `lineItemPriceSum` |
+| Mouse      | mouse      | `mouse`, `mice`, `maxMouseSize` |
+| Person     | person     | `person`, `people`, `personCount` |
+
+If your application relies on non-English names, GRDB may generate unexpected identifiers. If this happens, please [open an issue](http://github.com/groue/GRDB.swift/issues).
 
 See [The Structure of a Joined Request] for more information.
 
@@ -528,7 +538,7 @@ migrator.registerMigration("Books and Authors") { db in
 4. Create an index on the `book.authorId` column in order to ease the selection of an author's books.
 5. Create a foreign key from `book.authorId` column to `authors.id`, so that SQLite guarantees that no book refers to a missing author. The `onDelete: .cascade` option has SQLite automatically delete all of an author's books when that author is deleted. See [Foreign Key Actions] for more information.
 
-The example above uses auto-incremented primary keys. But generally speaking, all primary keys are supported.
+The example above uses auto-incremented primary keys. But generally speaking, all primary keys are supported, including composite primary keys that span several columns.
 
 Following this convention lets you write, for example:
 
@@ -587,7 +597,7 @@ migrator.registerMigration("Books and Authors") { db in
 4. Create an index on the `book.authorId` column in order to ease the selection of an author's books.
 5. Create a foreign key from `book.authorId` column to `authors.id`, so that SQLite guarantees that no book refers to a missing author. The `onDelete: .cascade` option has SQLite automatically delete all of an author's books when that author is deleted. See [Foreign Key Actions] for more information.
 
-The example above uses auto-incremented primary keys. But generally speaking, all primary keys are supported.
+The example above uses auto-incremented primary keys. But generally speaking, all primary keys are supported, including composite primary keys that span several columns.
 
 Following this convention lets you write, for example:
 
@@ -647,7 +657,7 @@ migrator.registerMigration("Countries") { db in
 4. Create a unique index on the `demographics.countryCode` column in order to guarantee the unicity of any country's profile.
 5. Create a foreign key from `demographics.countryCode` column to `country.code`, so that SQLite guarantees that no profile refers to a missing country. The `onDelete: .cascade` option has SQLite automatically delete a profile when its country is deleted. See [Foreign Key Actions] for more information.
 
-The example above uses a string primary key for the "country" table. But generally speaking, all primary keys are supported.
+The example above uses a string primary key for the "country" table. But generally speaking, all primary keys are supported, including composite primary keys that span several columns.
 
 Following this convention lets you write, for example:
 
@@ -748,12 +758,10 @@ Building Requests from Associations
 
 **Once you have defined associations, you can define fetch request that involve several record types.**
 
-> :point_up: **Note**: Those requests are executed by SQLite as *SQL joined queries*. In all examples below, we'll show the SQL queries executed by our association-based requests. You can ignore them if you are not familiar with SQL.
-
 Fetch requests do not visit the database until you fetch values from them. This will be covered in [Fetching Values from Associations]. But before you can fetch anything, you have to describe what you want to fetch. This is the topic of this chapter.
 
 - [Requesting Associated Records]
-- [Joining Methods]
+- [Joining And Prefetching Associated Records]
 - [Combining Associations]
 - [Filtering Associations]
 - [Sorting Associations]
@@ -827,23 +835,28 @@ ValueObservation
 ```
 
 
-## Joining Methods
+## Joining And Prefetching Associated Records
 
-**You build requests that involve several records with the four "joining methods":**
+**You build requests that involve several records with the following "joining methods":**
 
-- `including(optional: association)`
-- `including(required: association)`
 - `joining(optional: association)`
 - `joining(required: association)`
+- `including(optional: association)`
+- `including(required: association)`
+- `including(all: associationToMany)`
 
 Before we describe them in detail, let's see a few requests they can build:
 
 ```swift
-/// All books with their respective authors
+/// All authors with their respective books
+let request = Author
+    .including(all: Author.books)
+
+/// All books with their respective author
 let request = Book
     .including(required: Book.author)
 
-/// All books with their respective authors, sorted by title
+/// All books with their respective author, sorted by title
 let request = Book
     .order(Column("title"))
     .including(required: Book.author)
@@ -861,47 +874,69 @@ The pattern is always the same: you start from a base request, that you extend w
     
     If yes, use `including(...)`. Otherwise, use `joining(...)`.
     
-    For example, to load all books with their respective authors, you want authors to be fetched, and you use `including`:
+    For example, to load books with their respective author, you use `including(required:)`:
     
     ```swift
-    /// All books with their respective authors
+    // All books with their respective author
     let request = Book
         .including(required: Book.author)
+    
+    // This request can feed the following record:
+    struct BookInfo: FetchableRecord, Decodable {
+        var book: Book
+        var author: Author // the required associated author
+    }
+    let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
+    ```
+    
+    And to load authors with their respective books, you use `including(all:)`:
+    
+    ```swift
+    // All authors with their respective books
+    let request = Author
+        .including(all: Author.books)
+    
+    // This request can feed the following record:
+    struct AuthorInfo: FetchableRecord, Decodable {
+        var author: Author
+        var books: [Book] // all associated books
+    }
+    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
     
     On the other side, to load all books written by a French author, you sure need to filter authors, but you don't need them to be present in the fetched results. You prefer `joining`:
     
     ```swift
-    /// All books written by a French author
+    // All books written by a French author
     let request = Book
         .joining(required: Book.author.filter(Column("countryCode") == "FR"))
+    
+    // This request feeds the Book record:
+    let books: [Book] = try request.fetchAll(db)
     ```
 
-2. Should the request allow missing associated records?
+2. For to-one associations, should the request allow missing associated records?
     
     If yes, choose the `optional` variant. Otherwise, choose `required`.
     
     For example, to load all books with their respective authors, even if the book has no recorded author, you'd use `including(optional:)`:
     
     ```swift
-    /// All books with their respective (eventual) authors
-    /// (One Thousand and One Nights should be there)
+    // All books with their respective (eventual) authors
     let request = Book
         .including(optional: Book.author)
+    
+    // This request can feed the following record:
+    struct BookInfo: FetchableRecord, Decodable {
+        var book: Book
+        var author: Author? // the optional associated author
+    }
+    let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
     ```
     
     You can remember to use `optional` when the fetched associated records should feed optional Swift values, of type `Author?`. Conversely, when the fetched results feed non-optional values of type `Author`, prefer `required`.
     
     Another way to describe the difference is that `required` filters the fetched results in order to discard missing associated records, when `optional` does not filter anything, and lets missing values pass through.
-    
-    For example, consider this request:
-    
-    ```swift
-    let request = Book
-        .joining(optional: Book.author.filter(Column("countryCode") == "FR"))
-    ```
-    
-    It fetches books that have a French author, but also those who don't :sweat_smile:. It's just another way to tell `Book.all()`. But we'll see below that such join can turn out useful.
     
     Finally, readers who speak SQL may compare `optional` with left joins, and `required` with inner joins.
 
@@ -920,6 +955,14 @@ You can join several associations in parallel:
 let request = Book
     .including(required: Book.author)
     .including(optional: Book.translator)
+
+// This request can feed the following record:
+struct BookInfo: FetchableRecord, Decodable {
+    var book: Book
+    var author: Person
+    var translator: Person?
+}
+let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
 The request above fetches all books, along with their author and eventual translator.
@@ -934,6 +977,14 @@ You can chain associations in order to jump from a record to another:
 let request = Book
     .including(required: Book.author
         .including(optional: Person.country))
+
+// This request can feed the following record:
+struct BookInfo: FetchableRecord, Decodable {
+    var book: Book
+    var author: Author
+    var country: Country?
+}
+let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
 The request above fetches all books, along with their author, and their author's country.
@@ -948,6 +999,13 @@ When you chain associations, you can avoid fetching intermediate tables by repla
 let request = Book
     .joining(optional: Book.author
         .including(optional: Person.country))
+
+// This request can feed the following record:
+struct BookInfo: FetchableRecord, Decodable {
+    var book: Book
+    var country: Country?
+}
+let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
 **[HasOneThrough]** and **[HasManyThrough]** associations provide a shortcut for those requests that skip intermediate tables:
@@ -958,6 +1016,13 @@ let request = Book
 // LEFT JOIN person ON person.id = book.authorId
 // LEFT JOIN country ON country.code = person.countryCode
 let request = Book.including(optional: Book.country)
+
+// This request can feed the following record:
+struct BookInfo: FetchableRecord, Decodable {
+    var book: Book
+    var country: Country?
+}
+let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
 > :warning: **Warning**: you can not currently chain a required association behind an optional association:
@@ -985,9 +1050,32 @@ The `filter(_:)`, `filter(key:)` and `filter(keys:)` methods, that you already k
 //            AND person.countryCode = 'FR'
 let frenchAuthor = Book.author.filter(Column("countryCode") == "FR")
 let request = Book.joining(required: frenchAuthor)
+
+// This request feeds the Book record:
+let books: [Book] = try request.fetchAll(db)
 ```
 
 The request above fetches all books written by a French author.
+
+The one below fetches all authors along with their novels and poems:
+
+```swift
+let request = Author
+    .including(all: Author.book
+        .filter(Column("kind") == "novel")
+        .forKey("novels"))
+    .including(all: Author.book
+        .filter(Column("kind") == "poems")
+        .forKey("poems"))
+
+// This request can feed the following record:
+struct AuthorInfo: FetchableRecord, Decodable {
+    var author: Author
+    var novels: [Book]
+    var poems: [Book]
+}
+let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+```
 
 **There are more filtering options:**
 
@@ -1056,41 +1144,7 @@ let restrictedAuthor = Book.author.select(Column("id"), Column("name"))
 let request = Book.including(required: restrictedAuthor)
 ```
 
-To specify the default selection for all inclusions of a given type, define the `databaseSelection` property:
-
-```swift
-struct RestrictedAuthor: TableRecord {
-    static let databaseSelection: [SQLSelectable] = [Column("id"), Column("name")]
-}
-
-struct ExtendedAuthor: TableRecord {
-    static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
-}
-
-extension Book {
-    static let restrictedAuthor = belongsTo(RestrictedAuthor.self)
-    static let extendedAuthor = belongsTo(ExtendedAuthor.self)
-}
-
-// SELECT book.*, author.id, author.name
-// FROM book
-// JOIN author ON author.id = book.authorId
-let request = Book.including(required: Book.restrictedAuthor)
-
-// SELECT book.*, author.*, author.rowid
-// FROM book
-// JOIN author ON author.id = book.authorId
-let request = Book.including(required: Book.extendedAuthor)
-```
-
-Modifying `databaseSelection` not only affects joined requests, but all requests built from the modified record. This is how records make sure they are always fed with the columns they need, no more, no less:
-
-```swift
-// SELECT id, name FROM author
-let request = RestrictedAuthor.all()
-```
-
-> :point_up: **Note**: make sure the `databaseSelection` property is explicitely declared as `[SQLSelectable]`. If it is not, the Swift compiler may infer a type which may silently miss the protocol requirement, resulting in sticky SELECT * requests. See [Columns Selected by a Request](../README.md#columns-selected-by-a-request) for further information.
+To specify the default selection for all inclusions of a given type, see [Columns Selected by a Request](../README.md#columns-selected-by-a-request).
 
 
 ## Table Aliases
@@ -1169,6 +1223,17 @@ let request = Book.aliased(bookAlias)
 > let alias = TableAlias()
 > let books = Book.aliased(alias)...
 > let people = Person.aliased(alias)...
+> ```
+>
+> :point_up: **Note**: you can't use the `including(all:)` method and use table aliases to filter the associated records on other records:
+> 
+> ```swift
+> // NOT IMPLEMENTED: loading all authors along with their posthumous books
+> let authorAlias = TableAlias()
+> let request = Author
+>     .aliased(authorAlias)
+>     .including(all: Author.books
+>         .filter(Column("publishDate") >= authorAlias[Column("deathDate")]))    
 > ```
 
 
@@ -1282,42 +1347,66 @@ When you join or include an association several times, with the same **[associat
 Fetching Values from Associations
 =================================
 
-We have seen in [Building Requests from Associations] how to define requests that involve several records by the mean of [Joining Methods].
+We have seen in [Joining And Prefetching Associated Records] how to define requests that involve several records.
 
-If your application needs to display a list of books with information about their author, country, and cover image, you may build the following joined request:
+To consume those requests, you will generally define a record type that matches the structure of the request. You'll make it adopt the [FetchableRecord] protocol, so that it can decode database rows.
 
-```swift
-// SELECT book.*, author.*, country.*, coverImage.*
-// FROM book
-// JOIN author ON author.id = book.authorId
-// LEFT JOIN country ON country.code = author.countryCode
-// LEFT JOIN coverImage ON coverImage.bookId = book.id
-let request = Book
-    .including(required: Book.author
-        .including(optional: Author.country))
-    .including(optional: Bool.coverImage)
-```
+Often, you'll also make it adopt the standard Decodable protocol, because the compiler will generate the decoding code for you.
 
-**Now is the time to tell how joined requests should be consumed.**
+Each association included in the request can feed a property of the decoded record:
 
-You will generally define a record type that matches the structure of the request. You'll make it adopt the [FetchableRecord] protocol, so that it can decode database rows. Often, you'll also make it adopt the standard Decodable protocol, because the compiler will generate the decoding code for you.
+- `including(all:)` feeds an Array or Set property:
 
-For example, the request above can be consumed into the following record:
+    ```swift
+    // All authors with their books
+    let request = Author.including(all: Author.books)
+    
+    struct AuthorInfo: FetchableRecord, Decodable {
+        var author: Author
+        var books: [Book] // all associated books
+    }
+    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+    ```
 
-```swift
-struct BookInfo: FetchableRecord, Decodable {
-    var book: Book
-    var author: Author
-    var country: Country?
-    var coverImage: CoverImage?
-}
+- `including(optional:)` feeds an optional property:
 
-let bookInfos = try BookInfo.fetchAll(db, request) // [BookInfo]
-```
+    ```swift
+    // All employees with their manager and subordinate
+    let request = Employee
+        .including(optional: Employee.manager)
+        .including(all: Employee.subordinates)
+    
+    struct EmployeeInfo: FetchableRecord, Decodable {
+        var employee: Employee
+        var manager: Employee? // the optional manager
+        var subordinates: Set<Employee>
+    }
+    let employeeInfos: [EmployeeInfo] = try EmployeeInfo.fetchAll(db, request)
+    ```
+
+- `including(required:)` feeds an non-optional property:
+
+    ```swift
+    // All books with information about their author, country, and cover image:
+    let request = Book
+        .including(required: Book.author
+            .including(optional: Author.country))
+        .including(optional: Book.coverImage)
+    
+    struct BookInfo: FetchableRecord, Decodable {
+        var book: Book
+        var author: Author // the required author
+        var country: Country?
+        var coverImage: CoverImage?
+    }
+    
+    let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
+    ```
 
 - [The Structure of a Joined Request]
 - [Decoding a Joined Request with a Decodable Record]
 - [Decoding a Joined Request with FetchableRecord]
+- [Debugging Request Decoding]
 - [Good Practices for Designing Record Types] - in this general guide about records, check out the "Compose Records" chapter.
 
 
@@ -1331,25 +1420,14 @@ Below, author and cover image are both associated to book, and country is associ
 let request = Book
     .including(required: Book.author
         .including(optional: Author.country))
-    .including(optional: Bool.coverImage)
+    .including(optional: Book.coverImage)
 ```
 
 This request builds the following **tree of association keys**:
 
 ![TreeOfAssociationKeys](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/TreeOfAssociationKeys.svg)
 
-**Association keys** are strings. They are the names of the database tables of associated records (unless you specify otherwise, as we'll see below).
-
-Those keys are associated with slices in the fetched rows:
-
-![TreeOfAssociationKeysMapping](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/TreeOfAssociationKeysMapping.svg)
-
-We'll see below how this tree of association keys and row slices can feed a Decodable record type. We'll then add some details by using FetchableRecord without Decodable support.
-
-
-## Decoding a Joined Request with a Decodable Record
-
-When **association keys** match the property names of a Decodable record, you get free decoding of joined requests into this record:
+Requests can feed record types whose property names match those association keys:
 
 ```swift
 struct BookInfo: FetchableRecord, Decodable {
@@ -1359,24 +1437,64 @@ struct BookInfo: FetchableRecord, Decodable {
     var coverImage: CoverImage?
 }
 
-let bookInfos = try BookInfo.fetchAll(db, request) // [BookInfo]
+let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
+```
+
+By default, **association keys** are the names of the database tables of associated records. Keys are automatically [singularized or pluralized](#convention-for-database-table-names), depending of the cardinality of the included association:
+
+```swift
+extension Author {
+    static let books = hasMany(Book.self)
+}
+Author.including(all: Author.books)            // association key "books"
+
+extension Book {
+    static let author = belongsTo(Author.self)
+}
+Book.including(required: Book.author)          // association key "author"
+```
+
+Keys can be customized when the association is defined:
+
+```swift
+extension Employee {
+    static let manager = belongsTo(Employee.self, key: "manager")
+}
+Employee.including(optional: Employee.manager) // association key "manager"
+```
+
+Keys can also be customized with the `forKey` method:
+
+```swift
+extension Author {
+    static let novels = books
+        .filter(Column("kind") == "novel")
+        .forKey("novels")
+}
+Author.including(all: Author.novels)           // association key "novels"
+```
+
+
+## Decoding a Joined Request with a Decodable Record
+
+When **association keys** match the property names of a Decodable record, you get free decoding of joined requests into this record:
+
+```swift
+let request = Book
+    .including(required: Book.author
+        .including(optional: Author.country))
+    .including(optional: Book.coverImage)
+
+struct BookInfo: FetchableRecord, Decodable {
+    var book: Book
+    var author: Author
+    var country: Country?
+    var coverImage: CoverImage?
+}
+let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
 We see that a hierarchical tree has been flattened in the `BookInfo` record.
-
-This flattening is made possible because the BookInfo initializer generated by the Decodable protocol matches **coding keys** with **association keys** by performing a breadth-first search in the tree of association keys.
-
-This deserves a little explanation:
-
-You known that the Decodable protocol feeds a value's properties by looking for **coding keys**. For example, the standard built-in JSONDecoder matches those coding keys with dictionary keys in a JSON object. The GRDB record decoder also matches coding keys, but with association keys:
-
-![TreeOfAssociationKeysMapping](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/TreeOfAssociationKeysMapping.svg)
-
-Practically speaking, the BookInfo initializer first looks for the "book" coding key. This key is not found anywhere in the tree of association keys, so the book property is initialized from the row slice associated with the root of the tree, which contains book columns.
-
-The BookInfo initializer then looks for the "author", "country", and "coverImage" coding keys. All those are found in the tree of association keys, and each property is initialized from its matching row slice.
-
-The key lookup digs into the tree of association keys, and stops as soon as a key as been found, digging into deep tree levels only if the key was not found in higher levels (that's called a "breadth-first search"). This is how we can decode a hierarchical tree into a flat record.
 
 But sometimes your decoded records will have better reflect the hierarchical structure of the request:
 
@@ -1387,7 +1505,7 @@ Some requests are better decoded with a Decodable record that reflects the hiera
 
 ```swift
 let request = Book
-    .including(optional: Bool.coverImage)
+    .including(optional: Book.coverImage)
     .including(required: Book.author
         .including(optional: Person.country))
     .including(optional: Book.translator
@@ -1396,17 +1514,17 @@ let request = Book
 
 This requests for all books, with their cover images, and their authors and translators. Those people are themselves decorated with their respective nationalities.
 
-We plan to decode this request into is the following record:
+We plan to decode this request into is the following nested record:
 
 ```swift
 struct BookInfo: FetchableRecord, Decodable {
-    struct AuthorInfo: Decodable {
-        var author: Author
+    struct PersonInfo: Decodable {
+        var person: Person
         var country: Country?
     }
     var book: Book
-    var authorInfo: AuthorInfo
-    var translatorInfo: AuthorInfo?
+    var authorInfo: PersonInfo
+    var translatorInfo: PersonInfo?
     var coverImage: CoverImage?
 }
 ```
@@ -1419,7 +1537,7 @@ And who is the most able to know those coding keys? BookInfo itself, thanks to i
 extension BookInfo {
     static func all() -> QueryInterfaceRequest<BookInfo> {
         return Book
-            .including(optional: Bool.coverImage)
+            .including(optional: Book.coverImage)
             .including(required: Book.author
                 .forKey(CodingKeys.authorInfo)        // (1)
                 .including(optional: Person.country))
@@ -1437,84 +1555,18 @@ let bookInfos = try BookInfo.all().fetchAll(db, request) // [BookInfo]
 2. The `asRequest(of:)` method turns the request into a request of BookInfo. See [Custom Requests] for more information.
 
 
-### Debugging Joined Request Decoding
-
-When you have difficulties building a Decodable record that successfully decodes a joined request, we advise to temporarily decode raw database rows, and inspect them.
-
-```swift
-let request = Book
-    .including(required: Book.author
-        .including(optional: Author.country))
-    .including(optional: Bool.coverImage)
-
-let rows = try Row.fetchAll(db, request)
-print(rows[0])
-// Prints:
-// ▿ [id:1, authorId:2, title:"Moby-Dick"]
-//   unadapted: [id:1, authorId:2, title:"Moby-Dick", id:2, name:"Herman Melville", countryCode:"US", code:"US", name:"United States of America", id:NULL, imageId:NULL, path:NULL]
-//   - person: [id:2, name:"Herman Melville", countryCode:"US"]
-//     - country: [code:"US", name:"United States of America"]
-//   - coverImage: [id:NULL, imageId:NULL, path:NULL]
-```
-
-There are two important things to look into the row debugging description:
-
-- the **association keys**: "person", "country", and "coverImage" in our example
-- associated rows that contain only null values (coverImage).
-
-The associated rows that contain only null values are easy to deal with: null rows loaded from optional associated records should be decoded into Swift optionals:
-
-```swift
-struct BookInfo: FetchableRecord, Decodable {
-    var book: Book
-    var author: Author          // .including(required: Book.author)
-    var country: Country?       // .including(optional: Author.country)
-    var coverImage: CoverImage? // .including(optional: Bool.coverImage)
-}
-```
-
-**Association keys** may not match the property names of your Decodable record. In this case, use the `forKey(_:)` method.
-
-This can be done at the request level:
-
-```swift
-struct BookInfo: FetchableRecord, Decodable {
-    var book: Book
-    var author: Author          // Expect "author" association key
-    var country: Country?
-    var coverImage: CoverImage?
-}
-
-let request = Book
-    .including(required: Book.author
-        .forKey("author")       // Change association key
-        .including(optional: Author.country))
-    .including(optional: Bool.coverImage)
-```
-
-Association keys can also be defined right into the definition of the association:
-
-```swift
-struct Book {
-    static let author = belongsTo(Person.self, key: "author")
-}
-
-let request = Book
-    .including(required: Book.author // "author" association key
-        .including(optional: Author.country))
-    .including(optional: Bool.coverImage)
-```
-
-The best choice is up to you and the structure of your application. See also [Decoding a Hierarchical Decodable Record] for further discussion about decoding keys.
-
-
 ## Decoding a Joined Request with FetchableRecord
 
 When [Dedocable](#decoding-a-joined-request-with-a-decodable-record) records provides convenient decoding of joined rows, you may want a little more control over row decoding.
 
-The `init(row:)` initializer of the FetchableRecord protocol is what you look after:
+The `init(row:)` initializer of the [FetchableRecord] protocol is what you look after:
 
 ```swift
+let request = Book
+    .including(required: Book.author
+        .including(optional: Author.country))
+    .including(optional: Book.coverImage)
+
 struct BookInfo: FetchableRecord {
     var book: Book
     var author: Author
@@ -1529,7 +1581,7 @@ struct BookInfo: FetchableRecord {
     }
 }
 
-let bookInfos = try BookInfo.fetchAll(db, request) // [BookInfo]
+let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 ```
 
 You are already familiar with row subscripts to decode [database values](../README.md#column-values):
@@ -1538,7 +1590,7 @@ You are already familiar with row subscripts to decode [database values](../READ
 let name: String = row["name"]
 ```
 
-When you extract a record instead of a value from a row, GRDB perfoms a breadth-first search in the tree of **association keys** defined by the joined request. If the key is not found, or only associated with columns that all contain NULL values, an optional record is decoded as nil:
+When you extract a record instead of a value from a row, GRDB looks up the tree of **association keys**. If the key is not found, or only associated with columns that all contain NULL values, an optional record is decoded as nil:
 
 ```swift
 let author: Author = row["author"]
@@ -1546,6 +1598,78 @@ let country: Country? = row["country"]
 ```
 
 You can also perform custom navigation in the tree by using *row scopes*. See [Row Adapters] for more information.
+
+When you use the `include(all:)` method, you can decode an Array or a Set of records:
+
+```swift
+let request = Author.including(all: Author.books)
+
+struct AuthorInfo: FetchableRecord {
+    var author: Author
+    var books: [Book]
+    
+    init(row: Row) {
+        author = Author(row: row)
+        books = row["books"]
+    }
+}
+
+let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+```
+
+
+## Debugging Request Decoding
+
+When you have difficulties building a Decodable record that successfully decodes a joined request, we advise to temporarily decode raw database rows, and inspect them.
+
+```swift
+let request = Book
+    .including(required: Book.author
+        .including(optional: Author.country))
+    .including(optional: Book.coverImage)
+    .including(all: Book.prizes)
+
+let rows = try Row.fetchAll(db, request)
+print(rows[0].debugDescription)
+// Prints:
+// ▿ [id:1, authorId:2, title:"Moby-Dick"]
+//   unadapted: [id:1, authorId:2, title:"Moby-Dick", id:2, name:"Herman Melville", countryCode:"US", code:"US", name:"United States of America", id:NULL, imageId:NULL, path:NULL]
+//   - author: [id:2, name:"Herman Melville", countryCode:"US"]
+//     - country: [code:"US", name:"United States of America"]
+//   - coverImage: [id:NULL, imageId:NULL, path:NULL]
+//   + prizes: 3 rows
+```
+
+Watch in the row debugging description:
+
+- the **association keys**: "person", "country", "coverImage" and "prizes" in our example
+- associated rows that contain only null values ("coverImage", above).
+
+The associated rows that contain only null values are easy to deal with: null rows loaded from optional associated records should be decoded into Swift optionals:
+
+```swift
+struct BookInfo: FetchableRecord, Decodable {
+    var book: Book
+    var author: Author          // .including(required: Book.author)
+    var country: Country?       // .including(optional: Author.country)
+    var coverImage: CoverImage? // .including(optional: Book.coverImage)
+    var prizes: [Prize]         // .including(all: Book.prizes)
+}
+```
+
+When the **association keys** don't match your expectations, change them (see [The Structure of a Joined Request]):
+
+```swift
+let request = Book
+    .including(optional: Book.author.forKey("writer")) // customized association key
+
+let rows = try Row.fetchAll(db, request)
+print(rows[0].debugDescription)
+// Prints:
+// ▿ [id:1, authorId:2, title:"Moby-Dick"]
+//   unadapted: [id:1, authorId:2, title:"Moby-Dick", id:2, name:"Herman Melville"]
+//   - writer: [id:2, name:"Herman Melville", countryCode:"US"]
+```
 
 
 ## Association Aggregates
@@ -1655,12 +1779,12 @@ As seen in the above example, some aggregated values are given a **default name*
 
 | Method | Key | Column | Default name |
 | --------- | --- | ------ | ------------- |
-| `Author.books.isEmpty  `                | `book` | -        | -                  |
-| `Author.books.count  `                  | `book` | -        | `bookCount`        |
-| `Author.books.min(Column("year"))`      | `book` | `year`   | `minBookYear`      |
-| `Author.books.max(Column("year"))`      | `book` | `year`   | `maxBookYear`      |
-| `Author.books.average(Column("price"))` | `book` | `price`  | `averageBookPrice` |
-| `Author.books.sum(Column("awards"))   ` | `book` | `awards` | `bookAwardsSum`    |
+| `Author.books.isEmpty  `                | `books` | -        | -                  |
+| `Author.books.count  `                  | `books` | -        | `bookCount`        |
+| `Author.books.min(Column("year"))`      | `books` | `year`   | `minBookYear`      |
+| `Author.books.max(Column("year"))`      | `books` | `year`   | `maxBookYear`      |
+| `Author.books.average(Column("price"))` | `books` | `price`  | `averageBookPrice` |
+| `Author.books.sum(Column("awards"))   ` | `books` | `awards` | `bookAwardsSum`    |
 
 You give a custom name to an aggregated value with the `aliased` method:
 
@@ -1962,7 +2086,7 @@ In the example below, we use compute two aggregates from the same association `A
     
     ```swift
     struct Author: TableRecord {
-        static let books = hasMany(Book.self) // association key "book"
+        static let books = hasMany(Book.self) // association key "books"
     }
     
     struct AuthorInfo: Decodable, FetchableRecord {
@@ -1972,8 +2096,8 @@ In the example below, we use compute two aggregates from the same association `A
     }
     
     let request = Author.annotated(with:
-        Author.books.min(Column("year")), // association key "book"
-        Author.books.max(Column("year"))) // association key "book"
+        Author.books.min(Column("year")), // association key "books"
+        Author.books.max(Column("year"))) // association key "books"
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
 
@@ -1997,8 +2121,8 @@ In this other example, the `Author.books` and `Author.paintings` have the distin
     
     ```swift
     struct Author: TableRecord {
-        static let books = hasMany(Book.self)         // association key "book"
-        static let paintings = hasMany(Painting.self) // association key "painting"
+        static let books = hasMany(Book.self)         // association key "books"
+        static let paintings = hasMany(Painting.self) // association key "paintings"
     }
     
     struct AuthorInfo: Decodable, FetchableRecord {
@@ -2006,8 +2130,8 @@ In this other example, the `Author.books` and `Author.paintings` have the distin
         var workCount: Int
     }
     
-    let aggregate = Author.books.count +   // association key "book"
-                    Author.paintings.count // association key "painting"
+    let aggregate = Author.books.count +   // association key "books"
+                    Author.paintings.count // association key "paintings"
     let request = Author.annotated(with: aggregate.aliased("workCount"))
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
@@ -2033,7 +2157,7 @@ But in the following example, we use the same association `Author.books` twice, 
     
     ```swift
     struct Author: TableRecord {
-        static let books = hasMany(Book.self) // association key "book"
+        static let books = hasMany(Book.self) // association key "books"
     }
     
     struct AuthorInfo: Decodable, FetchableRecord {
@@ -2044,11 +2168,11 @@ But in the following example, we use the same association `Author.books` twice, 
     
     let novelCount = Author.books
         .filter(Column("kind") == "novel")
-        .forKey("novel")                         // association key "novel"
+        .forKey("novels")                        // association key "novels"
         .count
     let theatrePlayCount = Author.books
         .filter(Column("kind") == "theatrePlay")
-        .forKey("theatrePlay")                   // association key "theatrePlay"
+        .forKey("theatrePlays")                  // association key "theatrePlays"
         .count
     let request = Author.annotated(with: novelCount, theatrePlayCount)
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
@@ -2073,11 +2197,11 @@ But in the following example, we use the same association `Author.books` twice, 
     
     ```swift
     // WRONG: not counting distinct sets of associated books
-    let novelCount = Author.books                // association key "book"
+    let novelCount = Author.books                // association key "books"
         .filter(Column("kind") == "novel")
         .count
         .aliased("novelCount")
-    let theatrePlayCount = Author.books          // association key "book"
+    let theatrePlayCount = Author.books          // association key "books"
         .filter(Column("kind") == "theatrePlay")
         .count
         .aliased("theatrePlayCount")
@@ -2123,28 +2247,49 @@ let request = Book.joining(required: Book.author
 
 ## Known Issues
 
-**You can't chain a required association on an optional association:**
+- **You can't chain a required association on an optional association:**
 
-```swift
-// NOT IMPLEMENTED
-let request = Book
-    .joining(optional: Book.author
-        .including(required: Person.country))
-```
+    ```swift
+    // NOT IMPLEMENTED
+    let request = Book
+        .joining(optional: Book.author
+            .including(required: Person.country))
+    ```
 
-This code compiles, but you'll get a runtime fatal error "Not implemented: chaining a required association behind an optional association". Future versions of GRDB may allow such requests.
+    This code compiles, but you'll get a runtime fatal error "Not implemented: chaining a required association behind an optional association". Future versions of GRDB may allow such requests.
 
+- **You can't use the `including(all:)` method and use table aliases to filter the associated records on other records:**
 
-## Future Directions
+    ```swift
+    // NOT IMPLEMENTED: loading all authors along with their posthumous books
+    let authorAlias = TableAlias()
+    let request = Author
+        .aliased(authorAlias)
+        .including(all: Author.books
+            .filter(Column("publishDate") >= authorAlias[Column("deathDate")]))    
+    ```
 
-The APIs that have been described above do not cover the whole topic of joined requests. Among the biggest omissions, there is:
+- **You can't use the `including(all:)` method with a [HasMany] and a [HasManyThrough] associations that share the same base association in the same request**:
 
-- One can not yet join two tables without a foreign key. One can not build the plain `SELECT * FROM a JOIN b`, for example.
+    ```swift
+    // NOT IMPLEMENTED
+    let request = Country
+        .including(all: Country.passports)
+        .including(all: Country.citizens)
+    ```
 
-- One can not yet express requests such as "all authors with all their books".
+    This code compiles, but you'll get a runtime fatal error "Not implemented: merging a direct association and an indirect one with including(all:)". Future versions of GRDB may allow such requests.
 
-Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those features into reality.
+    The workaround is to nest the most remote association:
 
+    ```swift
+    // Workaround
+    let request = Country
+        .including(all: Country.passports
+            .including(required: Passport.citizen))
+    ```
+    
+Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those missing features into reality.
 
 ---
 
@@ -2212,7 +2357,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Combining Associations]: #combining-associations
 [Requesting Associated Records]: #requesting-associated-records
 [requests for associated records]: #requesting-associated-records
-[Joining Methods]: #joining-methods
+[Joining And Prefetching Associated Records]: #joining-and-prefetching-associated-records
 [Filtering Associations]: #filtering-associations
 [Sorting Associations]: #sorting-associations
 [Columns Selected by an Association]: #columns-selected-by-an-association
@@ -2222,6 +2367,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Decoding a Joined Request with a Decodable Record]: #decoding-a-joined-request-with-a-decodable-record
 [Decoding a Hierarchical Decodable Record]: #decoding-a-hierarchical-decodable-record
 [Decoding a Joined Request with FetchableRecord]: #decoding-a-joined-request-with-fetchablerecord
+[Debugging Request Decoding]: #debugging-request-decoding
 [Custom Requests]: ../README.md#custom-requests
 [Association Aggregates]: #association-aggregates
 [Available Association Aggregates]: #available-association-aggregates
@@ -2231,7 +2377,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Isolation of Multiple Aggregates]: #isolation-of-multiple-aggregates
 [DerivableRequest Protocol]: #derivablerequest-protocol
 [Known Issues]: #known-issues
-[Future Directions]: #future-directions
 [Row Adapters]: ../README.md#row-adapters
 [query interface requests]: ../README.md#requests
 [TableRecord]: ../README.md#tablerecord-protocol

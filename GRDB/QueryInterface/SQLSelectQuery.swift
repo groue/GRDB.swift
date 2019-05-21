@@ -110,7 +110,12 @@ extension SQLSelectQuery {
             return trivialCountQuery
         }
         
-        guard relation.joins.isEmpty, case .table = relation.source else {
+        if relation.children.contains(where: { $0.value.impactsParentCount }) { // TODO: not tested
+            // SELECT ... FROM ... JOIN ...
+            return trivialCountQuery
+        }
+        
+        guard case .table = relation.source else {
             // SELECT ... FROM (something which is not a plain table)
             return trivialCountQuery
         }

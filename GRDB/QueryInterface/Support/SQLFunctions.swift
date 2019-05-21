@@ -1,6 +1,7 @@
 // MARK: - Custom Functions
 
 extension DatabaseFunction {
+    // TODO: rename call (https://forums.swift.org/t/se-0253-callable-values-of-user-defined-nominal-types/24177)
     /// Returns an SQL expression that applies the function.
     ///
     /// See https://github.com/groue/GRDB.swift/#sql-functions

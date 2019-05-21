@@ -106,3 +106,15 @@ extension Sequence {
     }
 }
 // #endif
+
+#if !compiler(>=5.0)
+extension Character {
+    func uppercased() -> String {
+        return String(self).uppercased()
+    }
+    
+    func lowercased() -> String {
+        return String(self).lowercased()
+    }
+}
+#endif

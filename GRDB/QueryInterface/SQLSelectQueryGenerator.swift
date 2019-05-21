@@ -57,7 +57,7 @@ struct SQLSelectQueryGenerator {
         sql += try " FROM " + relation.source.sql(db, &context)
         
         for (_, join) in relation.joins {
-            sql += try " " + join.sql(db, &context, leftAlias: relation.alias, isRequiredAllowed: true)
+            sql += try " " + join.sql(db, &context, leftAlias: relation.alias)
         }
         
         if let filter = try relation.filterPromise.resolve(db) {
@@ -303,7 +303,23 @@ private struct SQLQualifiedRelation {
         
         // Qualify all joins, selection, filter, and ordering, so that all
         // identifiers can be correctly disambiguated and qualified.
-        joins = relation.joins.mapValues(SQLQualifiedJoin.init)
+        joins = relation.children.compactMapValues { child -> SQLQualifiedJoin? in
+            let kind: SQLQualifiedJoin.Kind
+            switch child.kind {
+            case .oneRequired:
+                kind = .innerJoin
+            case .oneOptional:
+                kind = .leftJoin
+            case .allPrefetched, .allNotPrefetched:
+                // This relation child is not fetched with an SQL join.
+                return nil
+            }
+            
+            return SQLQualifiedJoin(
+                kind: kind,
+                condition: child.condition,
+                relation: SQLQualifiedRelation(child.relation))
+        }
         ownSelection = relation.selection.map { $0.qualifiedSelectable(with: alias) }
         filterPromise = relation.filterPromise.map { [alias] in $0?.qualifiedExpression(with: alias) }
         ownOrdering = relation.ordering.qualified(with: alias)
@@ -419,31 +435,32 @@ private enum SQLQualifiedSource {
 
 /// A "qualified" join, where all tables are identified with a table alias.
 private struct SQLQualifiedJoin {
-    private let isRequired: Bool
-    private let condition: SQLJoinCondition
+    enum Kind: String {
+        case leftJoin = "LEFT JOIN"
+        case innerJoin = "JOIN"
+    }
+    let kind: Kind
+    let condition: SQLAssociationCondition
     let relation: SQLQualifiedRelation
     
-    init(_ join: SQLJoin) {
-        self.isRequired = join.isRequired
-        self.condition = join.condition
-        self.relation = SQLQualifiedRelation(join.relation)
+    func sql(_ db: Database,_ context: inout SQLGenerationContext, leftAlias: TableAlias) throws -> String {
+        return try sql(db, &context, leftAlias: leftAlias, allowingInnerJoin: true)
     }
     
-    func sql(_ db: Database,_ context: inout SQLGenerationContext, leftAlias: TableAlias, isRequiredAllowed: Bool) throws -> String {
-        var isRequiredAllowed = isRequiredAllowed
+    private func sql(_ db: Database,_ context: inout SQLGenerationContext, leftAlias: TableAlias, allowingInnerJoin allowsInnerJoin: Bool) throws -> String {
+        var allowsInnerJoin = allowsInnerJoin
         var sql = ""
         
-        if isRequired {
-            guard isRequiredAllowed else {
+        switch self.kind {
+        case .innerJoin:
+            guard allowsInnerJoin else {
                 // TODO: chainOptionalRequired
                 fatalError("Not implemented: chaining a required association behind an optional association")
             }
-            sql += "JOIN"
-        } else {
-            isRequiredAllowed = false
-            sql += "LEFT JOIN"
+        case .leftJoin:
+            allowsInnerJoin = false
         }
-        
+        sql += kind.rawValue
         sql += try " " + relation.source.sql(db, &context)
         
         let rightAlias = relation.alias
@@ -456,7 +473,7 @@ private struct SQLQualifiedJoin {
         }
         
         for (_, join) in relation.joins {
-            sql += try " " + join.sql(db, &context, leftAlias: rightAlias, isRequiredAllowed: isRequiredAllowed)
+            sql += try " " + join.sql(db, &context, leftAlias: rightAlias, allowingInnerJoin: allowsInnerJoin)
         }
         
         return sql

@@ -64,6 +64,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#510](https://github.com/groue/GRDB.swift/pull/510) by [@charlesmchen-signal](https://github.com/charlesmchen-signal): Expose DatabaseRegion(table:) initializer
 - [#515](https://github.com/groue/GRDB.swift/pull/515) by [@alextrob](https://github.com/alextrob): Add "LIMIT 1" to `fetchOne` requests
 - [#517](https://github.com/groue/GRDB.swift/pull/517): Support for SQLCipher 4
+- [#525](https://github.com/groue/GRDB.swift/pull/525): Eager Loading of HasMany associations
 
 ### Fixed
 

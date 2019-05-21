@@ -8,7 +8,7 @@ import XCTest
 private struct Team: Codable, FetchableRecord, PersistableRecord {
     static let players = hasMany(Player.self)
     static let awards = hasMany(Award.self)
-    static let customPlayers = hasMany(Player.self, key: "custom")
+    static let customPlayers = hasMany(Player.self, key: "customPlayers")
     var id: Int64
     var name: String
 }
@@ -38,11 +38,11 @@ private struct TeamInfo: Decodable, FetchableRecord {
 
 private struct CustomTeamInfo: Decodable, FetchableRecord {
     var team: Team
-    var averageCustomScore: Double?
-    var customCount: Int?
-    var maxCustomScore: Int?
-    var minCustomScore: Int?
-    var customScoreSum: Int?
+    var averageCustomPlayerScore: Double?
+    var customPlayerCount: Int?
+    var maxCustomPlayerScore: Int?
+    var minCustomPlayerScore: Int?
+    var customPlayerScoreSum: Int?
 }
 
 class AssociationAggregateTests: GRDBTestCase {
@@ -416,7 +416,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 .asRequest(of: CustomTeamInfo.self)
             
             try assertEqualSQL(db, request, """
-                SELECT "team".*, AVG("player"."score") AS "averageCustomScore" \
+                SELECT "team".*, AVG("player"."score") AS "averageCustomPlayerScore" \
                 FROM "team" \
                 LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
                 GROUP BY "team"."id" \
@@ -428,19 +428,19 @@ class AssociationAggregateTests: GRDBTestCase {
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
-            XCTAssertEqual(teamInfos[0].averageCustomScore, 550)
+            XCTAssertEqual(teamInfos[0].averageCustomPlayerScore, 550)
             
             XCTAssertEqual(teamInfos[1].team.id, 2)
             XCTAssertEqual(teamInfos[1].team.name, "Blues")
-            XCTAssertEqual(teamInfos[1].averageCustomScore, 500)
+            XCTAssertEqual(teamInfos[1].averageCustomPlayerScore, 500)
             
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
-            XCTAssertNil(teamInfos[2].averageCustomScore)
+            XCTAssertNil(teamInfos[2].averageCustomPlayerScore)
             
             XCTAssertEqual(teamInfos[3].team.id, 4)
             XCTAssertEqual(teamInfos[3].team.name, "Oranges")
-            XCTAssertEqual(teamInfos[3].averageCustomScore, 0)
+            XCTAssertEqual(teamInfos[3].averageCustomPlayerScore, 0)
         }
     }
     
@@ -453,7 +453,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 .asRequest(of: CustomTeamInfo.self)
             
             try assertEqualSQL(db, request, """
-                SELECT "team".*, COUNT(DISTINCT "player"."rowid") AS "customCount" \
+                SELECT "team".*, COUNT(DISTINCT "player"."rowid") AS "customPlayerCount" \
                 FROM "team" \
                 LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
                 GROUP BY "team"."id" \
@@ -465,19 +465,19 @@ class AssociationAggregateTests: GRDBTestCase {
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
-            XCTAssertEqual(teamInfos[0].customCount, 2)
+            XCTAssertEqual(teamInfos[0].customPlayerCount, 2)
             
             XCTAssertEqual(teamInfos[1].team.id, 2)
             XCTAssertEqual(teamInfos[1].team.name, "Blues")
-            XCTAssertEqual(teamInfos[1].customCount, 3)
+            XCTAssertEqual(teamInfos[1].customPlayerCount, 3)
             
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
-            XCTAssertEqual(teamInfos[2].customCount, 0)
+            XCTAssertEqual(teamInfos[2].customPlayerCount, 0)
             
             XCTAssertEqual(teamInfos[3].team.id, 4)
             XCTAssertEqual(teamInfos[3].team.name, "Oranges")
-            XCTAssertEqual(teamInfos[3].customCount, 1)
+            XCTAssertEqual(teamInfos[3].customPlayerCount, 1)
         }
     }
     
@@ -490,7 +490,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 .asRequest(of: CustomTeamInfo.self)
             
             try assertEqualSQL(db, request, """
-                SELECT "team".*, MAX("player"."score") AS "maxCustomScore" \
+                SELECT "team".*, MAX("player"."score") AS "maxCustomPlayerScore" \
                 FROM "team" \
                 LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
                 GROUP BY "team"."id" \
@@ -502,19 +502,19 @@ class AssociationAggregateTests: GRDBTestCase {
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
-            XCTAssertEqual(teamInfos[0].maxCustomScore, 1000)
+            XCTAssertEqual(teamInfos[0].maxCustomPlayerScore, 1000)
             
             XCTAssertEqual(teamInfos[1].team.id, 2)
             XCTAssertEqual(teamInfos[1].team.name, "Blues")
-            XCTAssertEqual(teamInfos[1].maxCustomScore, 800)
+            XCTAssertEqual(teamInfos[1].maxCustomPlayerScore, 800)
             
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
-            XCTAssertNil(teamInfos[2].maxCustomScore)
+            XCTAssertNil(teamInfos[2].maxCustomPlayerScore)
             
             XCTAssertEqual(teamInfos[3].team.id, 4)
             XCTAssertEqual(teamInfos[3].team.name, "Oranges")
-            XCTAssertEqual(teamInfos[3].maxCustomScore, 0)
+            XCTAssertEqual(teamInfos[3].maxCustomPlayerScore, 0)
         }
     }
     
@@ -527,7 +527,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 .asRequest(of: CustomTeamInfo.self)
             
             try assertEqualSQL(db, request, """
-                SELECT "team".*, MIN("player"."score") AS "minCustomScore" \
+                SELECT "team".*, MIN("player"."score") AS "minCustomPlayerScore" \
                 FROM "team" \
                 LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
                 GROUP BY "team"."id" \
@@ -539,19 +539,19 @@ class AssociationAggregateTests: GRDBTestCase {
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
-            XCTAssertEqual(teamInfos[0].minCustomScore, 100)
+            XCTAssertEqual(teamInfos[0].minCustomPlayerScore, 100)
             
             XCTAssertEqual(teamInfos[1].team.id, 2)
             XCTAssertEqual(teamInfos[1].team.name, "Blues")
-            XCTAssertEqual(teamInfos[1].minCustomScore, 200)
+            XCTAssertEqual(teamInfos[1].minCustomPlayerScore, 200)
             
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
-            XCTAssertNil(teamInfos[2].minCustomScore)
+            XCTAssertNil(teamInfos[2].minCustomPlayerScore)
             
             XCTAssertEqual(teamInfos[3].team.id, 4)
             XCTAssertEqual(teamInfos[3].team.name, "Oranges")
-            XCTAssertEqual(teamInfos[3].minCustomScore, 0)
+            XCTAssertEqual(teamInfos[3].minCustomPlayerScore, 0)
         }
     }
     
@@ -564,7 +564,7 @@ class AssociationAggregateTests: GRDBTestCase {
                 .asRequest(of: CustomTeamInfo.self)
             
             try assertEqualSQL(db, request, """
-                SELECT "team".*, SUM("player"."score") AS "customScoreSum" \
+                SELECT "team".*, SUM("player"."score") AS "customPlayerScoreSum" \
                 FROM "team" \
                 LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
                 GROUP BY "team"."id" \
@@ -576,19 +576,19 @@ class AssociationAggregateTests: GRDBTestCase {
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
-            XCTAssertEqual(teamInfos[0].customScoreSum, 1100)
+            XCTAssertEqual(teamInfos[0].customPlayerScoreSum, 1100)
             
             XCTAssertEqual(teamInfos[1].team.id, 2)
             XCTAssertEqual(teamInfos[1].team.name, "Blues")
-            XCTAssertEqual(teamInfos[1].customScoreSum, 1500)
+            XCTAssertEqual(teamInfos[1].customPlayerScoreSum, 1500)
             
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
-            XCTAssertNil(teamInfos[2].customScoreSum)
+            XCTAssertNil(teamInfos[2].customPlayerScoreSum)
             
             XCTAssertEqual(teamInfos[3].team.id, 4)
             XCTAssertEqual(teamInfos[3].team.name, "Oranges")
-            XCTAssertEqual(teamInfos[3].customScoreSum, 0)
+            XCTAssertEqual(teamInfos[3].customPlayerScoreSum, 0)
         }
     }
     
@@ -605,11 +605,11 @@ class AssociationAggregateTests: GRDBTestCase {
             
             try assertEqualSQL(db, request, """
                 SELECT "team".*, \
-                AVG("player"."score") AS "averageCustomScore", \
-                COUNT(DISTINCT "player"."rowid") AS "customCount", \
-                MIN("player"."score") AS "minCustomScore", \
-                MAX("player"."score") AS "maxCustomScore", \
-                SUM("player"."score") AS "customScoreSum" \
+                AVG("player"."score") AS "averageCustomPlayerScore", \
+                COUNT(DISTINCT "player"."rowid") AS "customPlayerCount", \
+                MIN("player"."score") AS "minCustomPlayerScore", \
+                MAX("player"."score") AS "maxCustomPlayerScore", \
+                SUM("player"."score") AS "customPlayerScoreSum" \
                 FROM "team" \
                 LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
                 GROUP BY "team"."id" \
@@ -621,35 +621,35 @@ class AssociationAggregateTests: GRDBTestCase {
             
             XCTAssertEqual(teamInfos[0].team.id, 1)
             XCTAssertEqual(teamInfos[0].team.name, "Reds")
-            XCTAssertEqual(teamInfos[0].averageCustomScore, 550)
-            XCTAssertEqual(teamInfos[0].customCount, 2)
-            XCTAssertEqual(teamInfos[0].maxCustomScore, 1000)
-            XCTAssertEqual(teamInfos[0].minCustomScore, 100)
-            XCTAssertEqual(teamInfos[0].customScoreSum, 1100)
+            XCTAssertEqual(teamInfos[0].averageCustomPlayerScore, 550)
+            XCTAssertEqual(teamInfos[0].customPlayerCount, 2)
+            XCTAssertEqual(teamInfos[0].maxCustomPlayerScore, 1000)
+            XCTAssertEqual(teamInfos[0].minCustomPlayerScore, 100)
+            XCTAssertEqual(teamInfos[0].customPlayerScoreSum, 1100)
             
             XCTAssertEqual(teamInfos[1].team.id, 2)
             XCTAssertEqual(teamInfos[1].team.name, "Blues")
-            XCTAssertEqual(teamInfos[1].averageCustomScore, 500)
-            XCTAssertEqual(teamInfos[1].customCount, 3)
-            XCTAssertEqual(teamInfos[1].maxCustomScore, 800)
-            XCTAssertEqual(teamInfos[1].minCustomScore, 200)
-            XCTAssertEqual(teamInfos[1].customScoreSum, 1500)
+            XCTAssertEqual(teamInfos[1].averageCustomPlayerScore, 500)
+            XCTAssertEqual(teamInfos[1].customPlayerCount, 3)
+            XCTAssertEqual(teamInfos[1].maxCustomPlayerScore, 800)
+            XCTAssertEqual(teamInfos[1].minCustomPlayerScore, 200)
+            XCTAssertEqual(teamInfos[1].customPlayerScoreSum, 1500)
             
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
-            XCTAssertNil(teamInfos[2].averageCustomScore)
-            XCTAssertEqual(teamInfos[2].customCount, 0)
-            XCTAssertNil(teamInfos[2].maxCustomScore)
-            XCTAssertNil(teamInfos[2].minCustomScore)
-            XCTAssertNil(teamInfos[2].customScoreSum)
+            XCTAssertNil(teamInfos[2].averageCustomPlayerScore)
+            XCTAssertEqual(teamInfos[2].customPlayerCount, 0)
+            XCTAssertNil(teamInfos[2].maxCustomPlayerScore)
+            XCTAssertNil(teamInfos[2].minCustomPlayerScore)
+            XCTAssertNil(teamInfos[2].customPlayerScoreSum)
             
             XCTAssertEqual(teamInfos[3].team.id, 4)
             XCTAssertEqual(teamInfos[3].team.name, "Oranges")
-            XCTAssertEqual(teamInfos[3].averageCustomScore, 0)
-            XCTAssertEqual(teamInfos[3].customCount, 1)
-            XCTAssertEqual(teamInfos[3].maxCustomScore, 0)
-            XCTAssertEqual(teamInfos[3].minCustomScore, 0)
-            XCTAssertEqual(teamInfos[3].customScoreSum, 0)
+            XCTAssertEqual(teamInfos[3].averageCustomPlayerScore, 0)
+            XCTAssertEqual(teamInfos[3].customPlayerCount, 1)
+            XCTAssertEqual(teamInfos[3].maxCustomPlayerScore, 0)
+            XCTAssertEqual(teamInfos[3].minCustomPlayerScore, 0)
+            XCTAssertEqual(teamInfos[3].customPlayerScoreSum, 0)
         }
     }
     
@@ -707,8 +707,8 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             let request = Team
-                .annotated(with: Team.players.filter(Column("score") < 500).forKey("lowPlayer").count)
-                .annotated(with: Team.players.filter(Column("score") >= 500).forKey("highPlayer").count)
+                .annotated(with: Team.players.filter(Column("score") < 500).forKey("lowPlayers").count)
+                .annotated(with: Team.players.filter(Column("score") >= 500).forKey("highPlayers").count)
                 .orderByPrimaryKey()
                 .asRequest(of: TeamInfo.self)
             

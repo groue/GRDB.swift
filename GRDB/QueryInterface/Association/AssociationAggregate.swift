@@ -129,7 +129,7 @@ public func && <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associat
     }
 }
 
-// TODO: test & document
+// TODO: test
 /// :nodoc:
 public func && <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
@@ -138,7 +138,7 @@ public func && <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpre
     }
 }
 
-// TODO: test & document
+// TODO: test
 /// :nodoc:
 public func && <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
@@ -161,7 +161,7 @@ public func || <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Associat
     }
 }
 
-// TODO: test & document
+// TODO: test
 /// :nodoc:
 public func || <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in
@@ -170,7 +170,7 @@ public func || <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpre
     }
 }
 
-// TODO: test & document
+// TODO: test
 /// :nodoc:
 public func || <RowDecoder>(lhs: SQLExpressible, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
     return AssociationAggregate { request in

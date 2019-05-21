@@ -148,13 +148,21 @@ extension TableRecord {
             destinationTable: databaseTableName,
             foreignKey: foreignKey)
         
-        let condition = SQLJoinCondition(
+        let condition = SQLAssociationCondition(
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: false)
         
+        let associationKey: SQLAssociationKey
+        if let key = key {
+            associationKey = .fixedSingular(key)
+        } else {
+            associationKey = .inflected(Destination.databaseTableName)
+        }
+        
         return HasOneAssociation(sqlAssociation: SQLAssociation(
-            key: key ?? Destination.databaseTableName,
+            key: associationKey,
             condition: condition,
-            relation: Destination.all().relation))
+            relation: Destination.all().relation,
+            isSingular: true))
     }
 }

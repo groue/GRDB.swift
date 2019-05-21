@@ -328,7 +328,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     
     /// A cursor over fetched records.
     ///
-    ///     let request: ... // Some TypedRequest that fetches Player
+    ///     let request: ... // Some FetchRequest that fetches Player
     ///     let players = try request.fetchCursor(db) // Cursor of Player
     ///     while let player = try players.next() {   // Player
     ///         ...
@@ -349,7 +349,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     
     /// An array of fetched records.
     ///
-    ///     let request: ... // Some TypedRequest that fetches Player
+    ///     let request: ... // Some FetchRequest that fetches Player
     ///     let players = try request.fetchAll(db) // [Player]
     ///
     /// - parameter db: A database connection.
@@ -362,7 +362,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     
     /// The first fetched record.
     ///
-    ///     let request: ... // Some TypedRequest that fetches Player
+    ///     let request: ... // Some FetchRequest that fetches Player
     ///     let player = try request.fetchOne(db) // Player?
     ///
     /// - parameter db: A database connection.
