@@ -3,6 +3,13 @@ Migrating From GRDB 3 to GRDB 4
 
 GRDB 4 comes with new features, but also a few breaking changes. This guide aims at helping you upgrading your applications.
 
+- [New requirements](#new-requirements)
+- [Raw SQL](#raw-sql)
+- [ValueObservation](#valueobservation)
+- [Associations](#associations)
+- [SQLCipher](#sqlcipher)
+- [PersistenceError.recordNotFound](#persistenceerrorrecordnotfound)
+
 
 ### New requirements
 
@@ -30,7 +37,7 @@ This change was made necessary by the introduction of [SQL Interpolation].
 
 ### ValueObservation
 
-[ValueObservation] had a lifting in GRDB 4.
+[ValueObservation] has been refreshed in GRDB 4.
 
 To guarantee asynchronous notifications, and never ever block your main thread, use the `.async(onQueue:startImmediately:)` scheduling:
 
@@ -52,7 +59,7 @@ The second breaking change is `ValueObservation.extent`, which was removed in GR
 
 ### Associations
 
-GRDB4 brought a few new [associations] features:
+GRDB 4 brought a few new [associations] features:
 
 - **Indirect associations** [HasOneThrough] and [HasManyThrough] let you define associations from a record to another through a third one. For example, they let you easily express many-to-many relations such as "a country has many citizens through its passports":
 
@@ -163,7 +170,6 @@ do {
 }
 ```
 
-
 [SQL Interpolation]: SQLInterpolation.md
 [ValueObservation]: ../README.md#valueobservation
 [Encryption]: ../README.md#encryption
@@ -174,3 +180,4 @@ do {
 [EncodableRecord]: ../README.md#persistablerecord-protocol
 [The Structure of a Joined Request]: AssociationsBasics.md#the-structure-of-a-joined-request
 [Joining And Prefetching Associated Records]: AssociationsBasics.md#joining-and-prefetching-associated-records
+
