@@ -37,7 +37,7 @@ private struct RowDecoder<R: FetchableRecord>: Decoder {
         throw DecodingError.keyNotFound(
             codingPath.last!,
             DecodingError.Context(
-                codingPath: codingPath.dropLast(),
+                codingPath: Array(codingPath.dropLast()),   // TODO: remove Array initializer when Swift >= 5
                 debugDescription: debugDescription))
     }
     
