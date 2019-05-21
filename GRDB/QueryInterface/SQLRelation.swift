@@ -18,7 +18,7 @@
 ///
 /// Filter and ordering are actually "promises", which are only resolved
 /// when a database connection is available. This is how we can implement
-/// requests such as `Record.filter(key: 1)` or `Record.orderedByPrimaryKey()`:
+/// requests such as `Record.filter(key: 1)` or `Record.orderByPrimaryKey()`:
 /// both need a database connection in order to introspect the primary key.
 ///
 ///     // SELECT * FROM player
@@ -26,7 +26,7 @@
 ///     // ORDER BY code -- primary key infered from the database schema
 ///     Country
 ///         .filter(Column("continent") == "EU")
-///         .orderedByPrimaryKey()
+///         .orderByPrimaryKey()
 ///
 /// ## Children
 ///

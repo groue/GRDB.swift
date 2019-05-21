@@ -220,7 +220,7 @@ struct SQLSelectQueryGenerator {
 ///            |        |      |        |         |            |
 ///            |        |      |        |         |            • ordering
 ///            |        |      |        |         • filterPromise
-///            |        |      |        • directJoins
+///            |        |      |        • joins
 ///            |        |      • alias
 ///            |        • source
 ///            • fullSelection
