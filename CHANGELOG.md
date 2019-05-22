@@ -85,7 +85,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 ### API diff
 
 <details>
-    <summary>**Associations**: indirect associations and eager loading of HasMany associations</summary>
+    <summary>Associations: indirect associations and eager loading of HasMany associations</summary>
 
 ```diff
  class Row {
@@ -144,7 +144,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 </details>
 
 <details>
-    <summary**SQL Interpolation**</summary>
+    <summarySQL Interpolation</summary>
 
 ```diff
 +struct SQLLiteral: ExpressibleByStringInterpolation {
@@ -288,7 +288,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 </details>
 
 <details>
-    <summary>**EncodableRecord**</summary>
+    <summary>EncodableRecord</summary>
 
 ```diff
 +protocol EncodableRecord {
@@ -318,7 +318,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 </details>
 
 <details>
-    <summary>**ValueObservation**</summary>
+    <summary>ValueObservation</summary>
 
 ```diff
  enum ValueScheduling {
@@ -336,7 +336,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 </details>
 
 <details>
-    <summary>**Customizing pluralization and singularization**</summary>
+    <summary>Customizing pluralization and singularization</summary>
 
 ```diff
 +struct Inflections {
@@ -358,7 +358,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 </details>
 
 <details>
-    <summary>**Full Text Search** Support for SQLite 3.27</summary>
+    <summary>Full Text Search: support for SQLite 3.27</summary>
 
 ```diff
  struct FTS3 {
@@ -395,7 +395,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 </details>
 
 <details>
-    <summary>**SQLCipher**</summary>
+    <summary>SQLCipher</summary>
 
 ```diff
  struct Configuration {
@@ -407,7 +407,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 </details>
 
 <details>
-    <summary>**Miscellaneous**</summary>
+    <summary>Miscellaneous</summary>
 
 ```diff
  struct Column {
