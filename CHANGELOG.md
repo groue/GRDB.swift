@@ -84,7 +84,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 ### API diff
 
-Associations
+<details>
+    <summary>Associations</summary>
 
 ```diff
  class Row {
@@ -140,7 +141,9 @@ Associations
 +func ?? <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder>
 ```
 
-Raw SQL & SQL Interpolation
+</detail>
+<details>
+    <summary>Raw SQL & SQL Interpolation</summary>
 
 ```diff
 +struct SQLLiteral: ExpressibleByStringInterpolation {
@@ -281,7 +284,9 @@ Raw SQL & SQL Interpolation
  }
 ```
 
-EncodableRecord
+</detail>
+<details>
+    <summary>EncodableRecord</summary>
 
 ```diff
 +protocol EncodableRecord {
@@ -308,7 +313,9 @@ EncodableRecord
  }
 ```
 
-ValueObservation updates
+</detail>
+<details>
+    <summary>ValueObservation updates</summary>
 
 ```diff
  enum ValueScheduling {
@@ -323,7 +330,9 @@ ValueObservation updates
  }
 ```
 
-Customizing pluralization and singularization
+</detail>
+<details>
+    <summary>Customizing pluralization and singularization</summary>
 
 ```diff
 +struct Inflections {
@@ -342,7 +351,9 @@ Customizing pluralization and singularization
 +}
 ```
 
-Full Text Search
+</detail>
+<details>
+    <summary>Full Text Search</summary>
 
 ```diff
  struct FTS3 {
@@ -376,7 +387,9 @@ Full Text Search
  }
 ```
 
-SQLCipher
+</detail>
+<details>
+    <summary>SQLCipher</summary>
 
 ```diff
  struct Configuration {
@@ -385,7 +398,9 @@ SQLCipher
  }
 ```
 
-Miscellaneous
+</detail>
+<details>
+    <summary>Miscellaneous</summary>
 
 ```diff
  struct Column {
@@ -446,6 +461,9 @@ Miscellaneous
  
 -final class StatementCursor: Cursor { }
 ```
+
+</detail>
+
 
 ## 3.7.0
 
