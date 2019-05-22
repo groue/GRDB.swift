@@ -141,7 +141,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 +func ?? <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder>
 ```
 
-</detail>
+</details>
 
 <details>
     <summary>Raw SQL & SQL Interpolation</summary>
@@ -285,7 +285,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
  }
 ```
 
-</detail>
+</details>
 
 <details>
     <summary>EncodableRecord</summary>
@@ -315,7 +315,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
  }
 ```
 
-</detail>
+</details>
 
 <details>
     <summary>ValueObservation updates</summary>
@@ -333,7 +333,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
  }
 ```
 
-</detail>
+</details>
 
 <details>
     <summary>Customizing pluralization and singularization</summary>
@@ -355,7 +355,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 +}
 ```
 
-</detail>
+</details>
 
 <details>
     <summary>Full Text Search</summary>
@@ -392,7 +392,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
  }
 ```
 
-</detail>
+</details>
 
 <details>
     <summary>SQLCipher</summary>
@@ -404,7 +404,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
  }
 ```
 
-</detail>
+</details>
 
 <details>
     <summary>Miscellaneous</summary>
@@ -469,7 +469,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 -final class StatementCursor: Cursor { }
 ```
 
-</detail>
+</details>
 
 
 ## 3.7.0
