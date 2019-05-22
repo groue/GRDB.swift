@@ -1,11 +1,11 @@
-/// ForeignKeyRequest looks for the foreign keys associations need to
+/// SQLForeignKeyRequest looks for the foreign keys associations need to
 /// join tables.
 ///
 /// Mappings come from foreign keys, when they exist in the database schema.
 ///
 /// When the schema does not define any foreign key, we can still infer complete
 /// mappings from partial information and primary keys.
-struct ForeignKeyRequest: Equatable {
+struct SQLForeignKeyRequest: Equatable {
     let originTable: String
     let destinationTable: String
     let originColumns: [String]?

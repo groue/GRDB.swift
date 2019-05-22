@@ -18,7 +18,7 @@ public struct SQLGenerationContext {
             qualifierNeeded: false)
     }
     
-    /// Used for SQLSelectQuery.makeSelectStatement() and SQLSelectQuery.makeDeleteStatement()
+    /// Used for SQLQuery.makeSelectStatement() and SQLQuery.makeDeleteStatement()
     static func queryGenerationContext(aliases: [TableAlias]) -> SQLGenerationContext {
         // TODO: since 5d9fa76, in the lines below, we started uniquing aliases.
         // Something tells me this is a wrong fix. We should try to investigate

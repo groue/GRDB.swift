@@ -1,12 +1,12 @@
-/// SQLSelectQueryGenerator is able to generate an SQL SELECT query.
-struct SQLSelectQueryGenerator {
+/// SQLQueryGenerator is able to generate an SQL SELECT query.
+struct SQLQueryGenerator {
     fileprivate let relation: SQLQualifiedRelation
     private let isDistinct: Bool
     private let groupPromise: DatabasePromise<[SQLExpression]>?
     private let havingExpression: SQLExpression?
     private let limit: SQLLimit?
     
-    init(_ query: SQLSelectQuery) {
+    init(_ query: SQLQuery) {
         // To generate SQL, we need a "qualified" relation, where all tables,
         // expressions, etc, are identified with table aliases.
         //
@@ -325,12 +325,12 @@ private struct SQLQualifiedRelation {
         ownOrdering = relation.ordering.qualified(with: alias)
     }
     
-    /// See SQLSelectQueryGenerator.rowAdapter(_:)
+    /// See SQLQueryGenerator.rowAdapter(_:)
     ///
     /// - parameter db: A database connection.
     /// - parameter startIndex: The index of the leftmost selected column of
     ///   this relation in a full SQL query. `startIndex` is 0 for the relation
-    ///   at the root of a SQLSelectQueryGenerator (as opposed to the
+    ///   at the root of a SQLQueryGenerator (as opposed to the
     ///   joined relations).
     /// - returns: An optional tuple made of a RowAdapter and the index past the
     ///   rightmost selected column of this relation. Nil is returned if this
@@ -389,7 +389,7 @@ private struct SQLQualifiedRelation {
 /// A "qualified" source, where all tables are identified with a table alias.
 private enum SQLQualifiedSource {
     case table(tableName: String, alias: TableAlias)
-    indirect case query(SQLSelectQueryGenerator)
+    indirect case query(SQLQueryGenerator)
     
     var alias: TableAlias {
         switch self {
@@ -415,7 +415,7 @@ private enum SQLQualifiedSource {
             let alias = alias ?? TableAlias(tableName: tableName)
             self = .table(tableName: tableName, alias: alias)
         case .query(let query):
-            self = .query(SQLSelectQueryGenerator(query))
+            self = .query(SQLQueryGenerator(query))
         }
     }
     

@@ -12,7 +12,7 @@
 ///            • selection
 ///
 /// Other SQL clauses such as GROUP BY, LIMIT are defined one level up, in the
-/// SQLSelectQuery type.
+/// SQLQuery type.
 ///
 /// ## Promises
 ///
@@ -110,12 +110,12 @@ struct SQLRelation {
             // Record.including(all: associationThroughPivot)
             case allNotPrefetched
             
-            var isSingular: Bool {
+            var cardinality: SQLAssociationCardinality {
                 switch self {
                 case .oneOptional, .oneRequired:
-                    return true
+                    return .toOne
                 case .allPrefetched, .allNotPrefetched:
-                    return false
+                    return .toMany
                 }
             }
         }
@@ -139,7 +139,11 @@ struct SQLRelation {
         
         fileprivate func makeAssociationForKey(_ key: String) -> SQLAssociation {
             let key = SQLAssociationKey.fixed(key)
-            return SQLAssociation(key: key, condition: condition, relation: relation, isSingular: kind.isSingular)
+            return SQLAssociation(
+                key: key,
+                condition: condition,
+                relation: relation,
+                cardinality: kind.cardinality)
         }
         
         func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> Child {
@@ -227,7 +231,147 @@ extension SQLRelation {
         return relation
     }
     
-    func appendingChild(_ child: SQLRelation.Child, forKey key: String) -> SQLRelation {
+    func qualified(with alias: TableAlias) -> SQLRelation {
+        var relation = self
+        relation.source = source.qualified(with: alias)
+        return relation
+    }
+}
+
+extension SQLRelation {
+    func deletingChildren() -> SQLRelation {
+        var relation = self
+        relation.children = [:]
+        return relation
+    }
+    
+    /// Creates a relation that prefetches another one.
+    func including(all association: SQLAssociation) -> SQLRelation {
+        return appending(association, kind: .allPrefetched)
+    }
+    
+    /// Creates a relation that includes another one. The columns of the
+    /// associated record are selected. The returned relation does not
+    /// require that the associated database table contains a matching row.
+    func including(optional association: SQLAssociation) -> SQLRelation {
+        return appending(association, kind: .oneOptional)
+    }
+    
+    /// Creates a relation that includes another one. The columns of the
+    /// associated record are selected. The returned relation requires
+    /// that the associated database table contains a matching row.
+    func including(required association: SQLAssociation) -> SQLRelation {
+        return appending(association, kind: .oneRequired)
+    }
+    
+    /// Creates a relation that joins another one. The columns of the
+    /// associated record are not selected. The returned relation does not
+    /// require that the associated database table contains a matching row.
+    func joining(optional association: SQLAssociation) -> SQLRelation {
+        return appending(association.mapDestinationRelation { $0.select([]) }, kind: .oneOptional)
+    }
+    
+    /// Creates a relation that joins another one. The columns of the
+    /// associated record are not selected. The returned relation requires
+    /// that the associated database table contains a matching row.
+    func joining(required association: SQLAssociation) -> SQLRelation {
+        return appending(association.mapDestinationRelation { $0.select([]) }, kind: .oneRequired)
+    }
+    
+    /// Returns a relation extended with an association.
+    ///
+    /// This method provides support for public joining methods such
+    /// as `including(required:)`:
+    ///
+    ///     struct Destination: TableRecord { }
+    ///     struct Origin: TableRecord {
+    ///         static let destination = belongsTo(Destination.self)
+    ///     }
+    ///
+    ///     // SELECT origin.*, destination.*
+    ///     // FROM origin
+    ///     // JOIN destination ON destination.id = origin.destinationId
+    ///     let request = Origin.including(required: Origin.destination)
+    ///
+    /// At low-level, this gives:
+    ///
+    ///     let sqlAssociation = Origin.destination.sqlAssociation
+    ///     let origin = Origin.all().query.relation
+    ///     let relation = origin.appending(sqlAssociation, kind: .oneRequired)
+    ///     let query = SQLQuery(relation: relation)
+    ///     let generator = SQLQueryGenerator(query)
+    ///     let statement, _ = try generator.prepare(db)
+    ///     print(statement.sql)
+    ///     // SELECT origin.*, destination.*
+    ///     // FROM origin
+    ///     // JOIN destination ON destination.originId = origin.id
+    ///
+    /// This method works for simple direct associations such as BelongsTo or
+    /// HasMany in the above examples, but also for indirect associations such
+    /// as HasManyThrough, which have any number of pivot relations between the
+    /// origin and the destination.
+    func appending(_ association: SQLAssociation, kind: SQLRelation.Child.Kind) -> SQLRelation {
+        let destinationChildKey = association.destination.key.name(for: kind.cardinality)
+        let destinationChild = SQLRelation.Child(
+            kind: kind,
+            condition: association.destination.condition,
+            relation: association.destination.relation)
+        
+        let initialSteps = association.steps.dropLast()
+        if initialSteps.isEmpty {
+            // This is a direct join from origin to destination, without
+            // intermediate step.
+            //
+            // SELECT origin.*, destination.*
+            // FROM origin
+            // JOIN destination ON destination.id = origin.destinationId
+            //
+            // let association = Origin.belongsTo(Destination.self)
+            // Origin.including(required: association)
+            return appendingChild(destinationChild, forKey: destinationChildKey)
+        }
+        
+        // This is an indirect join from origin to destination, through
+        // some pivot(s):
+        //
+        // SELECT origin.*, destination.*
+        // FROM origin
+        // JOIN pivot ON pivot.originId = origin.id
+        // JOIN destination ON destination.id = pivot.destinationId
+        //
+        // let association = Origin.hasMany(
+        //     Destination.self,
+        //     through: Origin.hasMany(Pivot.self),
+        //     via: Pivot.belongsTo(Destination.self))
+        // Origin.including(required: association)
+        //
+        // Let's recurse toward a direct join, by making a new association which
+        // ends on the last pivot, to which we join our destination:
+        var reducedAssociation = SQLAssociation(steps: Array(initialSteps))
+        
+        reducedAssociation.destination.relation = reducedAssociation.destination.relation
+            .select([]) // Intermediate steps are not prefetched
+            .appendingChild(destinationChild, forKey: destinationChildKey)
+        
+        switch kind {
+        case .oneRequired, .oneOptional, .allNotPrefetched:
+            return appending(reducedAssociation, kind: kind)
+        case .allPrefetched:
+            // Intermediate steps of indirect associations are not prefetched.
+            //
+            // For example, the request below prefetches citizens, not
+            // intermediate passports:
+            //
+            //      extension Country {
+            //          static let passports = hasMany(Passport.self)
+            //          static let citizens = hasMany(Citizens.self, through: passports, using: Passport.citizen)
+            //      }
+            //      let request = Country.including(all: Country.citizens)
+            return appending(reducedAssociation, kind: .allNotPrefetched)
+        }
+    }
+    
+    private func appendingChild(_ child: SQLRelation.Child, forKey key: String) -> SQLRelation {
         var relation = self
         if let existingChild = relation.children.removeValue(forKey: key) {
             guard let mergedChild = existingChild.merged(with: child) else {
@@ -240,25 +384,13 @@ extension SQLRelation {
         }
         return relation
     }
-    
-    func deletingChildren() -> SQLRelation {
-        var relation = self
-        relation.children = [:]
-        return relation
-    }
-    
-    func qualified(with alias: TableAlias) -> SQLRelation {
-        var relation = self
-        relation.source = source.qualified(with: alias)
-        return relation
-    }
 }
 
 // MARK: - SQLSource
 
 enum SQLSource {
     case table(tableName: String, alias: TableAlias?)
-    indirect case query(SQLSelectQuery)
+    indirect case query(SQLQuery)
     
     func qualified(with alias: TableAlias) -> SQLSource {
         switch self {
@@ -394,7 +526,7 @@ extension SQLRelation {
 ///         .including(optional: Book.author.filter(condition2))
 struct SQLAssociationCondition: Equatable {
     /// Definition of a foreign key
-    var foreignKeyRequest: ForeignKeyRequest
+    var foreignKeyRequest: SQLForeignKeyRequest
     
     /// True if the table at the origin of the foreign key is on the left of
     /// the sql JOIN operator.
@@ -422,7 +554,7 @@ struct SQLAssociationCondition: Equatable {
     }
     
     /// Orient foreignKey according to the originIsLeft flag
-    func columnMapping(_ db: Database) throws -> [(left: String, right: String)] {
+    func columnMappings(_ db: Database) throws -> [(left: String, right: String)] {
         let foreignKeyMapping = try foreignKeyRequest.fetchMapping(db)
         if originIsLeft {
             return foreignKeyMapping.map { (left: $0.origin, right: $0.destination) }
@@ -444,7 +576,7 @@ struct SQLAssociationCondition: Equatable {
     ///   JOIN operator.
     /// - Returns: An SQL expression.
     func joinExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLExpression {
-        return try columnMapping(db)
+        return try columnMappings(db)
             .map { QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias) }
             .joined(operator: .and)
     }
@@ -460,7 +592,7 @@ struct SQLAssociationCondition: Equatable {
             return false.sqlExpression
         }
         
-        let columnMappings = try self.columnMapping(db)
+        let columnMappings = try self.columnMappings(db)
         guard let columnMapping = columnMappings.first else {
             // Degenerate case: no joining column
             return true.sqlExpression

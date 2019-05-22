@@ -145,7 +145,7 @@ extension Row {
         
         // CAUTION: Keep this code in sync with QueryInterfaceRequest.databaseRegion(_:)
         for association in associations {
-            let pivotMapping = try association.pivotCondition.columnMapping(db)
+            let pivotMappings = try association.pivot.condition.columnMappings(db)
             
             let prefetchedRows: [[DatabaseValue] : [Row]]
             do {
@@ -170,7 +170,7 @@ extension Row {
                 //      // FROM book
                 //      // WHERE authorId IN (1, 2, 3)
                 //      Author.including(all: Author.books)
-                let pivotColumns = pivotMapping.map { $0.right }
+                let pivotColumns = pivotMappings.map { $0.right }
                 let pivotAlias = TableAlias()
                 let prefetchedRelation = association
                     .mapPivotRelation { $0.qualified(with: pivotAlias) }
@@ -182,7 +182,7 @@ extension Row {
                 // TODO: can we remove those grdb_ columns now that grouping has been done?
             }
             
-            let groupingIndexes = firstRow.indexes(ofColumns: pivotMapping.map { $0.left })
+            let groupingIndexes = firstRow.indexes(ofColumns: pivotMappings.map { $0.left })
             for row in rows {
                 let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
                 let prefetchedRows = prefetchedRows[groupingKey, default: []]

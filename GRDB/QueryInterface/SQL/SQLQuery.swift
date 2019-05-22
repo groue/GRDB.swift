@@ -1,7 +1,7 @@
-/// SQLSelectQuery is a representation of an SQL SELECT query.
+/// SQLQuery is a representation of an SQL query.
 ///
-/// See SQLSelectQueryGenerator for actual SQL generation.
-struct SQLSelectQuery {
+/// See SQLQueryGenerator for actual SQL generation.
+struct SQLQuery {
     var relation: SQLRelation
     var isDistinct: Bool
     var expectsSingleResult: Bool
@@ -26,38 +26,38 @@ struct SQLSelectQuery {
     }
 }
 
-extension SQLSelectQuery: SelectionRequest, FilteredRequest, OrderedRequest {
-    func select(_ selection: [SQLSelectable]) -> SQLSelectQuery {
+extension SQLQuery: SelectionRequest, FilteredRequest, OrderedRequest {
+    func select(_ selection: [SQLSelectable]) -> SQLQuery {
         return mapRelation { $0.select(selection) }
     }
     
-    func annotated(with selection: [SQLSelectable]) -> SQLSelectQuery {
+    func annotated(with selection: [SQLSelectable]) -> SQLQuery {
         return mapRelation { $0.annotated(with: selection) }
     }
     
-    func distinct() -> SQLSelectQuery {
+    func distinct() -> SQLQuery {
         var query = self
         query.isDistinct = true
         return query
     }
 
-    func expectingSingleResult() -> SQLSelectQuery {
+    func expectingSingleResult() -> SQLQuery {
         var query = self
         query.expectsSingleResult = true
         return query
     }
     
-    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLSelectQuery {
+    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLQuery {
         return mapRelation { $0.filter(predicate) }
     }
     
-    func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> SQLSelectQuery {
+    func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> SQLQuery {
         var query = self
         query.groupPromise = DatabasePromise { db in try expressions(db).map { $0.sqlExpression } }
         return query
     }
     
-    func having(_ predicate: SQLExpressible) -> SQLSelectQuery {
+    func having(_ predicate: SQLExpressible) -> SQLQuery {
         var query = self
         if let havingExpression = query.havingExpression {
             query.havingExpression = (havingExpression && predicate).sqlExpression
@@ -67,43 +67,43 @@ extension SQLSelectQuery: SelectionRequest, FilteredRequest, OrderedRequest {
         return query
     }
 
-    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> SQLSelectQuery {
+    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> SQLQuery {
         return mapRelation { $0.order(orderings) }
     }
     
-    func reversed() -> SQLSelectQuery {
+    func reversed() -> SQLQuery {
         return mapRelation { $0.reversed() }
     }
     
-    func unordered() -> SQLSelectQuery {
+    func unordered() -> SQLQuery {
         return mapRelation { $0.unordered() }
     }
 
-    func limit(_ limit: Int, offset: Int? = nil) -> SQLSelectQuery {
+    func limit(_ limit: Int, offset: Int? = nil) -> SQLQuery {
         var query = self
         query.limit = SQLLimit(limit: limit, offset: offset)
         return query
     }
     
-    func qualified(with alias: TableAlias) -> SQLSelectQuery {
+    func qualified(with alias: TableAlias) -> SQLQuery {
         return mapRelation { $0.qualified(with: alias) }
     }
     
     /// Returns a query whose relation is transformed by the given closure.
-    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLSelectQuery {
+    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLQuery {
         var query = self
         query.relation = transform(relation)
         return query
     }
 }
 
-extension SQLSelectQuery {
+extension SQLQuery {
     func fetchCount(_ db: Database) throws -> Int {
-        let (statement, adapter) = try SQLSelectQueryGenerator(countQuery).prepare(db)
+        let (statement, adapter) = try SQLQueryGenerator(countQuery).prepare(db)
         return try Int.fetchOne(statement, adapter: adapter)!
     }
     
-    private var countQuery: SQLSelectQuery {
+    private var countQuery: SQLQuery {
         guard groupPromise == nil && limit == nil else {
             // SELECT ... GROUP BY ...
             // SELECT ... LIMIT ...
@@ -149,11 +149,11 @@ extension SQLSelectQuery {
     }
     
     // SELECT COUNT(*) FROM (self)
-    private var trivialCountQuery: SQLSelectQuery {
+    private var trivialCountQuery: SQLQuery {
         let relation = SQLRelation(
             source: .query(unordered()),
             selection: [SQLExpressionCount(AllColumns())])
-        return SQLSelectQuery(relation: relation)
+        return SQLQuery(relation: relation)
     }
 }
 
