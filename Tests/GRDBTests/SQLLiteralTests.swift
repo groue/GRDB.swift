@@ -157,15 +157,26 @@ extension SQLLiteralTests {
     
     func testTableInterpolation() {
         struct Player: TableRecord { }
-        let query: SQLLiteral = """
-            SELECT *
-            FROM \(Player.self)
-            """
-        XCTAssertEqual(query.sql, #"""
-            SELECT *
-            FROM "player"
-            """#)
-        XCTAssert(query.arguments.isEmpty)
+        do {
+            let query: SQLLiteral = """
+                SELECT *
+                FROM \(Player.self)
+                """
+            XCTAssertEqual(query.sql, """
+                SELECT *
+                FROM "player"
+                """)
+                XCTAssert(query.arguments.isEmpty)
+        }
+        do {
+            let query: SQLLiteral = """
+                INSERT INTO \(tableOf: Player()) DEFAULT VALUES
+                """
+            XCTAssertEqual(query.sql, """
+                INSERT INTO "player" DEFAULT VALUES
+                """)
+            XCTAssert(query.arguments.isEmpty)
+        }
     }
     
     func testExpressibleInterpolation() {

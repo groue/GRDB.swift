@@ -39,9 +39,11 @@ class SQLInterpolationTests: GRDBTestCase {
         var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 1)
         
         struct Player: TableRecord { }
-        sql.appendInterpolation(Player.self)
+        sql.appendInterpolation(Player.self); sql.appendLiteral("\n")
+        sql.appendInterpolation(tableOf: Player())
         
         XCTAssertEqual(sql.sql, """
+            "player"
             "player"
             """)
         XCTAssert(sql.arguments.isEmpty)

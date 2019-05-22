@@ -9,6 +9,15 @@ extension SQLInterpolation {
         sql += table.databaseTableName.quotedDatabaseIdentifier
     }
     
+    /// Appends the table name of the record.
+    ///
+    ///     // INSERT INTO player ...
+    ///     let player: Player = ...
+    ///     let request: SQLRequest<Player> = "INSERT INTO \(tableOf: player) ..."
+    public mutating func appendInterpolation<T: TableRecord>(tableOf record: T) {
+        sql += type(of: record).databaseTableName.quotedDatabaseIdentifier
+    }
+    
     /// Appends the selectable SQL.
     ///
     ///     // SELECT * FROM player

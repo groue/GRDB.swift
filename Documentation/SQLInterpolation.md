@@ -329,6 +329,10 @@ This chapter lists all kinds of supported interpolations.
     // SELECT * FROM player
     extension Player: TableRecord { }
     "SELECT * FROM \(Player.self)"
+    
+    // INSERT INTO player ...
+    let player: Player = ...
+    "INSERT INTO \(tableOf: player) ..."
     ```
 
 - [Expressions] and [values]:
