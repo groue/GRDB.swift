@@ -84,8 +84,13 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 ### Documentation Diff
 
 - [SQL Interpolation](Documentation/SQLInterpolation.md): this new document describes the new SQL interpolation feature.
-- [Required Protocols](Documentation/AssociationsBasics.md#required-protocols) describes which protocols your record types have to conform to in order to use Associations features.
-- [Aggregate Operations](Documentation/AssociationsBasics.md#aggregate-operations) describes all the ways to transform association aggregates with logical, comparison and arithmetic operators.
+- The [Associations Guide](Documentation/AssociationsBasics.md) has been updated:
+    - [Required Protocols](Documentation/AssociationsBasics.md#required-protocols) describes which protocols your record types have to conform to in order to use Associations features.
+    - [The Types of Associations](Documentation/AssociationsBasics.md#the-types-of-associations) introduces the new HasManyThrough and HasOneThrough associations.
+    - [Convention for Database Table Names](Documentation/AssociationsBasics.md#convention-for-database-table-names) describes how GRDB inflects database table names into their singular or plural forms, depending on your usages of associations.
+    - [Joining And Prefetching Associated Records](Documentation/AssociationsBasics.md#joining-and-prefetching-associated-records) describes the new `including(all:)` method.
+    - [Fetching Values from Associations](Documentation/AssociationsBasics.md#fetching-values-from-associations) explains how to decode record types from associated requests, including requests built with the new `including(all:)` method.
+    - [Aggregate Operations](Documentation/AssociationsBasics.md#aggregate-operations) describes all the ways to transform association aggregates with logical, comparison and arithmetic operators.
 
 ### API diff
 
