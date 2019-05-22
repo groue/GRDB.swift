@@ -389,7 +389,7 @@ final class StatementCursor: Cursor {
     
     /// :nodoc:
     @inlinable
-    public func next() throws -> Void? {
+    func next() throws -> Void? {
         if _done {
             // make sure this instance never yields a value again, even if the
             // statement is reset by another cursor.
