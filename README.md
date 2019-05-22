@@ -2742,7 +2742,7 @@ For more information about Codable records, see:
 - [JSON Columns]
 - [Date and UUID Coding Strategies]
 - [The userInfo Dictionary]
-- [Tip: Use Coding Keys as Columns](#tip-use-coding-keys-as-columns)
+- [Tip: Derive Columns from Coding Keys](#tip-derive-columns-from-coding-keys)
 
 > :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample app that uses Codable records.
 
@@ -2875,32 +2875,36 @@ let player = try Player.fetchOne(db, ...)
 > :point_up: **Note**: make sure the `databaseDecodingUserInfo` and `databaseEncodingUserInfo` properties are explicitly declared as `[CodingUserInfoKey: Any]`. If they are not, the Swift compiler may silently miss the protocol requirement, resulting in sticky empty userInfo.
 
 
-### Tip: Use Coding Keys as Columns
+### Tip: Derive Columns from Coding Keys
 
-If you declare an explicit `CodingKeys` enum ([what is this?](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types)), you can instruct GRDB to use those coding keys as database columns:
+Codable types are granted with a [CodingKeys](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types) enum. You can use them to safely define database columns:
 
 ```swift
-struct Player: Codable, FetchableRecord, PersistableRecord {
+struct Player: Codable {
+    var id: Int64
     var name: String
     var score: Int
-    
-    // Add ColumnExpression conformance
-    private enum CodingKeys: String, CodingKey, ColumnExpression {
-        case name, score
+}
+
+extension Player: FetchableRecord, PersistableRecord {
+    enum Columns: String, ColumnExpression {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
     }
 }
 ```
 
-This allows your record to build requests with the [query interface](#the-query-interface):
+Those columns let you build requests with the [query interface](#the-query-interface):
 
 ```swift
 extension Player {
     static func filter(name: String) -> QueryInterfaceRequest<Player> {
-        return filter(CodingKeys.name == name)
+        return filter(Columns.name == name)
     }
     
     static var maximumScore: QueryInterfaceRequest<Int> {
-        return select(max(CodingKeys.score), as: Int.self)
+        return select(max(Columns.score), as: Int.self)
     }
 }
 ```

@@ -55,6 +55,11 @@ public struct Column: ColumnExpression {
     public init(_ name: String) {
         self.name = name
     }
+    
+    /// Creates a column given a CodingKey.
+    public init(_ codingKey: CodingKey) {
+        self.name = codingKey.stringValue
+    }
 }
 
 /// A qualified column in the database, as in `SELECT t.a FROM t`

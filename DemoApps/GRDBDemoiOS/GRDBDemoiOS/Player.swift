@@ -13,13 +13,11 @@ struct Player {
 // Turn Player into a Codable Record.
 // See https://github.com/groue/GRDB.swift/blob/master/README.md#records
 extension Player: Codable, FetchableRecord, MutablePersistableRecord {
-    // Add ColumnExpression to Codable's CodingKeys so that we can use them
-    // as database columns.
-    //
-    // See https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
-    // for more information about CodingKeys.
-    private enum CodingKeys: String, CodingKey, ColumnExpression {
-        case id, name, score
+    // Define database columns from CodingKeys
+    private enum Columns: String, ColumnExpression {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
     }
     
     // Update a player id after it has been inserted in the database.
@@ -34,11 +32,11 @@ extension Player: Codable, FetchableRecord, MutablePersistableRecord {
 // See https://github.com/groue/GRDB.swift/blob/master/README.md#requests
 extension Player {
     static func orderedByName() -> QueryInterfaceRequest<Player> {
-        return Player.order(CodingKeys.name)
+        return Player.order(Columns.name)
     }
     
     static func orderedByScore() -> QueryInterfaceRequest<Player> {
-        return Player.order(CodingKeys.score.desc, CodingKeys.name)
+        return Player.order(Columns.score.desc, Columns.name)
     }
 }
 
