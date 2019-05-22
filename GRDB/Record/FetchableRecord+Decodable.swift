@@ -27,6 +27,9 @@ private struct RowDecoder<R: FetchableRecord>: Decoder {
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
+        guard let codingKey = codingPath.last else {
+            fatalError("unkeyed decoding from database row is not supported")
+        }
         let keys = row.prefetchedRows.keys
         let debugDescription: String
         if keys.isEmpty {
@@ -35,7 +38,7 @@ private struct RowDecoder<R: FetchableRecord>: Decoder {
             debugDescription = "Available keys for prefetched rows: \(keys.sorted())"
         }
         throw DecodingError.keyNotFound(
-            codingPath.last!,
+            codingKey,
             DecodingError.Context(
                 codingPath: Array(codingPath.dropLast()),   // TODO: remove Array initializer when Swift >= 5
                 debugDescription: debugDescription))
