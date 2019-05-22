@@ -457,7 +457,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
  
  struct AnyFetchRequest<T> : FetchRequest {
 -    init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?))
--    init(_ prepare: @escaping (Database, _ singleResult: Bool) throws -> (SelectStatement, RowAdapter?))
++    init(_ prepare: @escaping (Database, _ singleResult: Bool) throws -> (SelectStatement, RowAdapter?))
  }
  
 -final class StatementCursor: Cursor { }
