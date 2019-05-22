@@ -142,6 +142,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 ```
 
 </detail>
+
 <details>
     <summary>Raw SQL & SQL Interpolation</summary>
 
@@ -285,6 +286,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 ```
 
 </detail>
+
 <details>
     <summary>EncodableRecord</summary>
 
@@ -314,6 +316,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 ```
 
 </detail>
+
 <details>
     <summary>ValueObservation updates</summary>
 
@@ -331,6 +334,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 ```
 
 </detail>
+
 <details>
     <summary>Customizing pluralization and singularization</summary>
 
@@ -352,6 +356,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 ```
 
 </detail>
+
 <details>
     <summary>Full Text Search</summary>
 
@@ -388,6 +393,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 ```
 
 </detail>
+
 <details>
     <summary>SQLCipher</summary>
 
@@ -399,6 +405,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 ```
 
 </detail>
+
 <details>
     <summary>Miscellaneous</summary>
 
