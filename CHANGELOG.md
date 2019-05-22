@@ -84,92 +84,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 ### API diff
 
+Associations
+
 ```diff
- struct Configuration {
--    var cipherPageSize: Int
--    var kdfIterations: Int
- }
- 
- extension Cursor {
--    func flatMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult>
- }
- 
- class Database {
--    func makeSelectStatement(_ sql: String) throws -> SelectStatement
--    func makeUpdateStatement(_ sql: String) throws -> UpdateStatement
-+    func makeSelectStatement(sql: String) throws -> SelectStatement
-+    func makeUpdateStatement(sql: String) throws -> UpdateStatement
-
--    func cachedSelectStatement(_ sql: String) throws -> SelectStatement
--    func cachedUpdateStatement(_ sql: String) throws -> UpdateStatement
-+    func cachedSelectStatement(sql: String) throws -> SelectStatement
-+    func cachedUpdateStatement(sql: String) throws -> UpdateStatement
-
--    func execute(_ sql: String, arguments: StatementArguments? = nil) throws
-+    func execute(sql: String, arguments: StatementArguments = StatementArguments()) throws
- }
- 
- struct DatabaseRegion {
-+    init(table: String)
- }
- 
- struct DatabaseValue {
--    func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T : DatabaseValueConvertible
--    func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T : DatabaseValueConvertible
- }
- 
- extension DatabaseValueConvertible {
--    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseValueCursor<Self>
--    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self]
--    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self?
-+    static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> DatabaseValueCursor<Self>
-+    static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Self]
-+    static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Self?
- }
- 
- extension Optional where Wrapped: DatabaseValueConvertible {
--    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> NullableDatabaseValueCursor<Wrapped>
--    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Wrapped?]
-+    static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> NullableDatabaseValueCursor<Wrapped>
-+    static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Wrapped?]
- }
- 
- protocol DatabaseWriter {
--    func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
- }
-
-- class Future<Value> { }
-+ class DatabaseFuture<Value> { }
-
- protocol FetchRequest {
--    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
-+    func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
- }
- 
- struct AnyFetchRequest<T> : FetchRequest {
--    init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?))
--    init(_ prepare: @escaping (Database, _ singleResult: Bool) throws -> (SelectStatement, RowAdapter?))
- }
- 
- struct SQLRequest<T> : FetchRequest {
--    init(_ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, cached: Bool = false)
-+    init(sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil, cached: Bool = false)
-+    init(literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, cached: Bool = false)
- }
- 
  class Row {
 +    var prefetchedRows: Row.PrefetchedRowsView { get }
 +    subscript<Collection>(_ key: String) -> Collection where Collection: RangeReplaceableCollection, Collection.Element: FetchableRecord { get }
 +    subscript<Record: FetchableRecord & Hashable>(_ key: String) -> Set<Record> { get }
-
--    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RowCursor
--    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row]
--    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row?
-+    static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RowCursor
-+    static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Row]
-+    static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Row?
  }
- 
+
  extension Row {
 +    struct PrefetchedRowsView: Equatable {
 +       var isEmpty: Bool { get }
@@ -178,6 +101,48 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 +    }
  }
 
++protocol AssociationToOne: Association { }
++protocol AssociationToMany: Association { }
++extension AssociationToMany {
++    var count: AssociationAggregate<OriginRowDecoder> { get }
++    var isEmpty: AssociationAggregate<OriginRowDecoder> { get }
++    func average(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder>
++    func max(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder>
++    func min(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder>
++    func sum(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder>
++}
+
++extension BelongsToAssociation: AssociationToOne { }
++extension HasManyAssociation: AssociationToMany { }
++extension HasOneAssociation: AssociationToOne { }
++struct HasManyThroughAssociation<Origin, Destination>: AssociationToMany { }
++extension HasManyThroughAssociation: TableRequest where Destination: TableRecord { }
++struct HasOneThroughAssociation<Origin, Destination>: AssociationToOne { }
++extension HasOneThroughAssociation: TableRequest where Destination: TableRecord { }
+ 
+ extension TableRecord {
++    static func hasMany<Pivot, Target>(_ destination: Target.RowDecoder.Type, through pivot: Pivot, using target: Target, key: String? = nil) -> HasManyThroughAssociation<Self, Target.RowDecoder> where Pivot: Association, Target: Association, Pivot.OriginRowDecoder == Self, Pivot.RowDecoder == Target.OriginRowDecoder
++    static func hasOne<Pivot, Target>(_ destination: Target.RowDecoder.Type, through pivot: Pivot, using target: Target, key: String? = nil) -> HasOneThroughAssociation<Self, Target.RowDecoder> where Pivot: AssociationToOne, Target: AssociationToOne, Pivot.OriginRowDecoder == Self, Pivot.RowDecoder == Target.OriginRowDecoder
+ }
+ 
+ extension Association {
++    func including<A: AssociationToMany>(all association: A) -> Self where A.OriginRowDecoder == RowDecoder
+ }
+ 
+ extension QueryInterfaceRequest {
++    func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder
+ }
+ 
+ extension TableRecord {
++    static func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self
+ }
+
++func ?? <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder>
+```
+
+Raw SQL & SQL Interpolation
+
+```diff
 +struct SQLLiteral: ExpressibleByStringInterpolation {
 +    var sql: String { get }
 +    var arguments: StatementArguments { get }
@@ -207,8 +172,179 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 +    mutating func appendInterpolation<T>(_ request: SQLRequest<T>)
 +}
 
--final class StatementCursor: Cursor { }
+ class Database {
+-    func makeSelectStatement(_ sql: String) throws -> SelectStatement
+-    func makeUpdateStatement(_ sql: String) throws -> UpdateStatement
++    func makeSelectStatement(sql: String) throws -> SelectStatement
++    func makeUpdateStatement(sql: String) throws -> UpdateStatement
 
+-    func cachedSelectStatement(_ sql: String) throws -> SelectStatement
+-    func cachedUpdateStatement(_ sql: String) throws -> UpdateStatement
++    func cachedSelectStatement(sql: String) throws -> SelectStatement
++    func cachedUpdateStatement(sql: String) throws -> UpdateStatement
+
+-    func execute(_ sql: String, arguments: StatementArguments? = nil) throws
++    func execute(sql: String, arguments: StatementArguments = StatementArguments()) throws
+ }
+ 
+ class Row {
+-    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RowCursor
+-    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row]
+-    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row?
++    static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RowCursor
++    static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Row]
++    static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Row?
+ }
+ 
+ extension FetchableRecord {
+-    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RecordCursor<Self>
+-    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self]
+-    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self?
++    static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RecordCursor<Self>
++    static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Self]
++    static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Self?
+ }
+
+ extension DatabaseValueConvertible {
+-    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DatabaseValueCursor<Self>
+-    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self]
+-    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self?
++    static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> DatabaseValueCursor<Self>
++    static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Self]
++    static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Self?
+ }
+ 
+ extension Optional where Wrapped: DatabaseValueConvertible {
+-    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> NullableDatabaseValueCursor<Wrapped>
+-    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Wrapped?]
++    static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> NullableDatabaseValueCursor<Wrapped>
++    static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Wrapped?]
+ }
+ 
+ extension TableRecord {
+-    static func select(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self>
++    static func select(sql: String, arguments: StatementArguments = StatementArguments()) -> QueryInterfaceRequest<Self>
++    static func select(literal sqlLiteral: SQLLiteral) -> QueryInterfaceRequest<Self>
+-    static func select<RowDecoder>(sql: String, arguments: StatementArguments? = nil, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder>
++    static func select<RowDecoder>(sql: String, arguments: StatementArguments = StatementArguments(), as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder>
++    static func select<RowDecoder>(literal sqlLiteral: SQLLiteral, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder>
+-    static func filter(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self>
++    static func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> QueryInterfaceRequest<Self>
++    static func filter(literal sqlLiteral: SQLLiteral) -> QueryInterfaceRequest<Self>
+-    static func order(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self>
++    static func order(sql: String, arguments: StatementArguments = StatementArguments()) -> QueryInterfaceRequest<Self>
++    static func order(literal sqlLiteral: SQLLiteral) -> QueryInterfaceRequest<Self>
+ }
+ 
+ final class FetchedRecordsController<Record: FetchableRecord> {
+-    func setRequest(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws
++    func setRequest(sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws
+ }
+
+ extension SelectionRequest {
+-    func select(sql: String, arguments: StatementArguments? = nil) -> Self
++    func select(sql: String, arguments: StatementArguments = StatementArguments()) -> Self
++    func select(literal sqlLiteral: SQLLiteral) -> Self
+ }
+ 
+ extension FilteredRequest {
+-    func filter(sql: String, arguments: StatementArguments? = nil) -> Self
++    func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> Self
++    func filter(literal sqlLiteral: SQLLiteral) -> Self
+ }
+ 
+ extension AggregatingRequest {
+-    func group(sql: String, arguments: StatementArguments? = nil) -> Self
++    func group(sql: String, arguments: StatementArguments = StatementArguments()) -> Self
++    func group(literal sqlLiteral: SQLLiteral) -> Self
+-    func having(sql: String, arguments: StatementArguments? = nil) -> Self
++    func having(sql: String, arguments: StatementArguments = StatementArguments()) -> Self
++    func having(literal sqlLiteral: SQLLiteral) -> Self
+ }
+ 
+ extension OrderedRequest {
+-    func order(sql: String, arguments: StatementArguments? = nil) -> Self
++    func order(sql: String, arguments: StatementArguments = StatementArguments()) -> Self
++    func order(literal sqlLiteral: SQLLiteral) -> Self
+ }
+
+ struct SQLRequest<T> : FetchRequest {
+-    init(_ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil, cached: Bool = false)
++    init(sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil, cached: Bool = false)
++    init(literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, cached: Bool = false)
+ }
+
+ struct SQLExpressionLiteral {
+-    init(_ sql: String, arguments: StatementArguments? = nil)
++    init(sql: String, arguments: StatementArguments = StatementArguments())
++    init(literal sqlLiteral: SQLLiteral)
+ }
+```
+
+EncodableRecord
+
+```diff
++protocol EncodableRecord {
++    func encode(to container: inout PersistenceContainer)
++    static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] { get }
++    static func databaseJSONEncoder(for column: String) -> JSONEncoder
++    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
++    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
++}
++
++extension EncodableRecord {
++    var databaseDictionary: [String: DatabaseValue] { get }
++    func databaseEquals(_ record: Self) -> Bool
++    func databaseChanges<Record: EncodableRecord>(from record: Record) -> [String: DatabaseValue]
++}
+
+-protocol MutablePersistableRecord: TableRecord {
++protocol MutablePersistableRecord: EncodableRecord, TableRecord {
+-    func encode(to container: inout PersistenceContainer)
+-    static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] { get }
+-    static func databaseJSONEncoder(for column: String) -> JSONEncoder
+-    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
+-    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
+ }
+```
+
+ValueObservation updates
+
+```diff
+ enum ValueScheduling {
+-    case onQueue(DispatchQueue, startImmediately: Bool)
++    case async(onQueue: DispatchQueue, startImmediately: Bool)
+ }
+ 
+ struct ValueObservation<Reducer> {
+-    var extent: Database.TransactionObservationExtent
+-    static func tracking(_ regions: DatabaseRegionConvertible..., reducer: Reducer) -> ValueObservation
+-    static func tracking<Value>(_ regions: DatabaseRegionConvertible..., fetchDistinct fetch: @escaping (Database) throws -> Value) -> ValueObservation<DistinctUntilChangedValueReducer<RawValueReducer<Value>>> where Value: Equatable
+ }
+```
+
+Customizing pluralization and singularization
+
+```diff
++struct Inflections {
++    init()
++    mutating func plural(_ pattern: String, options: NSRegularExpression.Options = [.caseInsensitive], _ template: String)
++    mutating func singular(_ pattern: String, options: NSRegularExpression.Options = [.caseInsensitive], _ template: String)
++    mutating func uncountable(_ words: [String])
++    mutating func uncountable(_ word: String)
++    mutating func irregular(_ singular: String, _ plural: String)
++    func pluralize(_ string: String) -> String
++    func singularize(_ string: String) -> String
++}
++
++extension Inflections {
++   static var `default`: Inflections { get set }
++}
+```
+
+Full Text Search
+
+```diff
  struct FTS3 {
 +    enum Diacritics {
 +        case keep
@@ -238,57 +374,22 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 -    static func unicode61(removeDiacritics: Bool = true, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS5TokenizerDescriptor
 +    static func unicode61(diacritics: FTS5.Diacritics = .removeLegacy, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS5TokenizerDescriptor
  }
+```
 
-+protocol AssociationToOne: Association { }
-+protocol AssociationToMany: Association { }
-+extension AssociationToMany {
-+    var count: AssociationAggregate<OriginRowDecoder> { get }
-+    var isEmpty: AssociationAggregate<OriginRowDecoder> { get }
-+    func average(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder>
-+    func max(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder>
-+    func min(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder>
-+    func sum(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder>
-+}
+SQLCipher
 
-+func ?? <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder>
+```diff
+ struct Configuration {
+-    var cipherPageSize: Int
+-    var kdfIterations: Int
+ }
+```
 
-+extension BelongsToAssociation: AssociationToOne { }
-+extension HasManyAssociation: AssociationToMany { }
-+extension HasOneAssociation: AssociationToOne { }
-+struct HasManyThroughAssociation<Origin, Destination>: AssociationToMany { }
-+extension HasManyThroughAssociation: TableRequest where Destination: TableRecord { }
-+struct HasOneThroughAssociation<Origin, Destination>: AssociationToOne { }
-+extension HasOneThroughAssociation: TableRequest where Destination: TableRecord { }
- 
- extension TableRecord {
-+    static func hasMany<Pivot, Target>(_ destination: Target.RowDecoder.Type, through pivot: Pivot, using target: Target, key: String? = nil) -> HasManyThroughAssociation<Self, Target.RowDecoder> where Pivot: Association, Target: Association, Pivot.OriginRowDecoder == Self, Pivot.RowDecoder == Target.OriginRowDecoder
-+    static func hasOne<Pivot, Target>(_ destination: Target.RowDecoder.Type, through pivot: Pivot, using target: Target, key: String? = nil) -> HasOneThroughAssociation<Self, Target.RowDecoder> where Pivot: AssociationToOne, Target: AssociationToOne, Pivot.OriginRowDecoder == Self, Pivot.RowDecoder == Target.OriginRowDecoder
- }
- 
- extension Association {
-+    func including<A: AssociationToMany>(all association: A) -> Self where A.OriginRowDecoder == RowDecoder
- }
- 
- extension QueryInterfaceRequest {
-+    func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder
- }
- 
- extension TableRecord {
-+    static func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self
--    static func select(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self>
-+    static func select(sql: String, arguments: StatementArguments = StatementArguments()) -> QueryInterfaceRequest<Self>
-+    static func select(literal sqlLiteral: SQLLiteral) -> QueryInterfaceRequest<Self>
--    static func select<RowDecoder>(sql: String, arguments: StatementArguments? = nil, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder>
-+    static func select<RowDecoder>(sql: String, arguments: StatementArguments = StatementArguments(), as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder>
-+    static func select<RowDecoder>(literal sqlLiteral: SQLLiteral, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder>
-+    static func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest<Self>
-+    static func annotated(with selection: SQLSelectable...) -> QueryInterfaceRequest<Self>
--    static func filter(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self>
-+    static func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> QueryInterfaceRequest<Self>
-+    static func filter(literal sqlLiteral: SQLLiteral) -> QueryInterfaceRequest<Self>
--    static func order(sql: String, arguments: StatementArguments? = nil) -> QueryInterfaceRequest<Self>
-+    static func order(sql: String, arguments: StatementArguments = StatementArguments()) -> QueryInterfaceRequest<Self>
-+    static func order(literal sqlLiteral: SQLLiteral) -> QueryInterfaceRequest<Self>
+Miscellaneous
+
+```diff
+ struct Column {
++    init(_ codingKey: CodingKey)
  }
  
  protocol SelectionRequest {
@@ -296,114 +397,54 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
  }
  
  extension SelectionRequest {
--    func select(sql: String, arguments: StatementArguments? = nil) -> Self
-+    func select(sql: String, arguments: StatementArguments = StatementArguments()) -> Self
-+    func select(literal sqlLiteral: SQLLiteral) -> Self
 +    func annotated(with selection: SQLSelectable...) -> Self
  }
  
- extension FilteredRequest {
--    func filter(sql: String, arguments: StatementArguments? = nil) -> Self
-+    func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> Self
-+    func filter(literal sqlLiteral: SQLLiteral) -> Self
+ extension TableRecord {
++    static func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest<Self>
++    static func annotated(with selection: SQLSelectable...) -> QueryInterfaceRequest<Self>
  }
  
- extension AggregatingRequest {
--    func group(sql: String, arguments: StatementArguments? = nil) -> Self
-+    func group(sql: String, arguments: StatementArguments = StatementArguments()) -> Self
-+    func group(literal sqlLiteral: SQLLiteral) -> Self
--    func having(sql: String, arguments: StatementArguments? = nil) -> Self
-+    func having(sql: String, arguments: StatementArguments = StatementArguments()) -> Self
-+    func having(literal sqlLiteral: SQLLiteral) -> Self
- }
-
  protocol OrderedRequest {
 +    func unordered()
  }
- 
- extension OrderedRequest {
--    func order(sql: String, arguments: StatementArguments? = nil) -> Self
-+    func order(sql: String, arguments: StatementArguments = StatementArguments()) -> Self
-+    func order(literal sqlLiteral: SQLLiteral) -> Self
- }
- 
- struct Column {
-+    init(_ codingKey: CodingKey)
- }
- 
- struct SQLExpressionLiteral {
--    init(_ sql: String, arguments: StatementArguments? = nil)
-+    init(sql: String, arguments: StatementArguments = StatementArguments())
-+    init(literal sqlLiteral: SQLLiteral)
- }
- 
-+protocol EncodableRecord {
-+    func encode(to container: inout PersistenceContainer)
-+    static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] { get }
-+    static func databaseJSONEncoder(for column: String) -> JSONEncoder
-+    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
-+    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
-+}
-+
-+extension EncodableRecord {
-+    var databaseDictionary: [String: DatabaseValue] { get }
-+    func databaseEquals(_ record: Self) -> Bool
-+    func databaseChanges<Record: EncodableRecord>(from record: Record) -> [String: DatabaseValue]
-+}
 
--protocol MutablePersistableRecord: TableRecord {
-+protocol MutablePersistableRecord: EncodableRecord, TableRecord {
--    func encode(to container: inout PersistenceContainer)
--    static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] { get }
--    static func databaseJSONEncoder(for column: String) -> JSONEncoder
--    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
--    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
- }
-
- extension FetchableRecord {
--    static func fetchCursor(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RecordCursor<Self>
--    static func fetchAll(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self]
--    static func fetchOne(_ db: Database, _ sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self?
-+    static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RecordCursor<Self>
-+    static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Self]
-+    static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Self?
- }
- 
- final class FetchedRecordsController<Record: FetchableRecord> {
--    func setRequest(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws
-+    func setRequest(sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws
- }
- 
  enum PersistenceError: Error {
 -    case recordNotFound(MutablePersistableRecord)
 +    case recordNotFound(databaseTableName: String, key: [String: DatabaseValue])
  }
- 
-+struct Inflections {
-+    init()
-+    mutating func plural(_ pattern: String, options: NSRegularExpression.Options = [.caseInsensitive], _ template: String)
-+    mutating func singular(_ pattern: String, options: NSRegularExpression.Options = [.caseInsensitive], _ template: String)
-+    mutating func uncountable(_ words: [String])
-+    mutating func uncountable(_ word: String)
-+    mutating func irregular(_ singular: String, _ plural: String)
-+    func pluralize(_ string: String) -> String
-+    func singularize(_ string: String) -> String
-+}
-+
-+extension Inflections {
-+   static var `default`: Inflections { get set }
-+}
 
- enum ValueScheduling {
--    case onQueue(DispatchQueue, startImmediately: Bool)
-+    case async(onQueue: DispatchQueue, startImmediately: Bool)
+ extension Cursor {
+-    func flatMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult>
  }
  
- struct ValueObservation<Reducer> {
--    var extent: Database.TransactionObservationExtent
--    static func tracking(_ regions: DatabaseRegionConvertible..., reducer: Reducer) -> ValueObservation
--    static func tracking<Value>(_ regions: DatabaseRegionConvertible..., fetchDistinct fetch: @escaping (Database) throws -> Value) -> ValueObservation<DistinctUntilChangedValueReducer<RawValueReducer<Value>>> where Value: Equatable
+ struct DatabaseRegion {
++    init(table: String)
  }
+ 
+ struct DatabaseValue {
+-    func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T : DatabaseValueConvertible
+-    func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T : DatabaseValueConvertible
+ }
+ 
+ protocol DatabaseWriter {
+-    func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
+ }
+
+- class Future<Value> { }
++ class DatabaseFuture<Value> { }
+
+ protocol FetchRequest {
+-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?)
++    func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
+ }
+ 
+ struct AnyFetchRequest<T> : FetchRequest {
+-    init(_ prepare: @escaping (Database) throws -> (SelectStatement, RowAdapter?))
+-    init(_ prepare: @escaping (Database, _ singleResult: Bool) throws -> (SelectStatement, RowAdapter?))
+ }
+ 
+-final class StatementCursor: Cursor { }
 ```
 
 ## 3.7.0
