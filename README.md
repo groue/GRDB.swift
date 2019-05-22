@@ -2991,7 +2991,7 @@ class Place: Record {
 
 ## Record Comparison
 
-**Records that adopt a [PersistableRecord] protocol can compare against other records, or against previous versions of themselves.**
+**Records that adopt the [EncodableRecord] protocol can compare against other records, or against previous versions of themselves.**
 
 This helps avoiding costly UPDATE statements when a record has not been edited.
 
@@ -8699,6 +8699,7 @@ This chapter has been renamed [Beyond FetchableRecord].
 [The userInfo Dictionary]: #the-userinfo-dictionary
 [JSON Columns]: #json-columns
 [FetchableRecord]: #fetchablerecord-protocol
+[EncodableRecord]: #persistablerecord-protocol
 [PersistableRecord]: #persistablerecord-protocol
 [Record Comparison]: #record-comparison
 [Record Customization Options]: #record-customization-options
