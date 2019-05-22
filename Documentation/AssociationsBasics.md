@@ -1775,64 +1775,64 @@ for info in authorInfos {
 }
 ```
 
-As seen in the above example, some aggregated values are given a **default name**, such as "bookCount" or "maxBookYear". The default name is built from the aggregating method, the **[association key](#the-structure-of-a-joined-request)**, and the aggregated column name:
+As seen in the above example, aggregated values are given a **default name**, such as "bookCount" or "maxBookYear", which directly feeds the decoded records.
 
-| Method | Key | Column | Default name |
-| --------- | --- | ------ | ------------- |
-| `Author.books.isEmpty  `                | `books` | -        | -                  |
-| `Author.books.count  `                  | `books` | -        | `bookCount`        |
+The default name is built from the aggregating method, the **[association key](#the-structure-of-a-joined-request)**, and the aggregated column name:
+
+| Method | Association Key | Aggregated Column | Aggregate name |
+| ------ | --------------- | ----------------- | -------------- |
+| `Author.books.isEmpty`.                 | `books` | -        | `hasNoBook`        |
+| `Author.books.count`.                   | `books` | -        | `bookCount`        |
 | `Author.books.min(Column("year"))`      | `books` | `year`   | `minBookYear`      |
 | `Author.books.max(Column("year"))`      | `books` | `year`   | `maxBookYear`      |
 | `Author.books.average(Column("price"))` | `books` | `price`  | `averageBookPrice` |
-| `Author.books.sum(Column("awards"))   ` | `books` | `awards` | `bookAwardsSum`    |
+| `Author.books.sum(Column("awards"))`    | `books` | `awards` | `bookAwardsSum`    |
 
-You give a custom name to an aggregated value with the `aliased` method:
+Those default names are lost whenever an aggregate is modified (negated, added, multiplied, whatever).
+
+You can name or rename aggregates with the `aliased` method:
 
 ```swift
 struct AuthorInfo: Decodable, FetchableRecord {
     var author: Author
     var numberOfBooks: Int
 }
+let numberOfBooks = Author.books.count.aliased("numberOfBooks")                    // <--
+let request = Author.annotated(with: numberOfBooks)
+let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 
-// SELECT author.*, COUNT(DISTINCT book.rowid) AS numberOfBooks
-// FROM author
-// LEFT JOIN book ON book.authorId = author.id
-// GROUP BY author.id
-let request = Author.annotated(with: Author.books.count.aliased("numberOfBooks"))
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var hasBooks: Bool
+}
+let hasBooks = (Author.books.isEmpty == false).aliased("hasBooks")                 // <--
+let request = Author.annotated(with: hasBooks)
+let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var workCount: Int
+}
+let workCount = (Author.books.count + Author.paintings.count).aliased("workCount") // <--
+let request = Author.annotated(with: workCount)
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 ```
 
-The `aliased` method also accept coding keys:
+Coding keys are also accepted:
 
 ```swift
 struct AuthorInfo: Decodable, FetchableRecord {
     var author: Author
     var numberOfBooks: Int
     
-    static func fetchAll(_ db: Database) throws -> [AuthorInfo] {
-        let request = Author.annotated(with: Author.books.count.aliased(CodingKey.numberOfBooks))
-        return try AuthorInfo.fetchAll(db, request)
+    static func all() -> QueryInterfaceRequest<AuthorInfo> {
+        let numberOfBooks = Author.books.count.aliased(CodingKey.numberOfBooks)    // <--
+        return Author
+            .annotated(with: numberOfBooks)
+            .asRequest(of: AuthorInfo.self)
     }
 }
-```
-
-Custom names help consuming complex aggregates that have no name by default:
-
-```swift
-struct AuthorInfo: Decodable, FetchableRecord {
-    var author: Author
-    var workCount: Int
-}
-
-// SELECT author.*,
-//        (COUNT(DISTINCT book.rowid) + COUNT(DISTINCT painting.rowid)) AS workCount
-// FROM author
-// LEFT JOIN book ON book.authorId = author.id
-// LEFT JOIN painting ON painting.authorId = author.id
-// GROUP BY author.id
-let aggregate = Author.books.count + Author.paintings.count
-let request = Author.annotated(with: aggregate.aliased("workCount"))
-let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
+let authorInfos: [AuthorInfo] = try AuthorInfo.all().fetchAll(db)
 ```
 
 

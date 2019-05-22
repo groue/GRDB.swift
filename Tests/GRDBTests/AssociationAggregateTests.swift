@@ -752,6 +752,28 @@ class AssociationAggregateTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
+                let request = Team.annotated(with: Team.players.isEmpty)
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, (COUNT(DISTINCT "player"."rowid") = 0) AS "hasNoPlayer" \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
+                    """)
+                try XCTAssertEqual(request.fetchAll(db).count, 4)
+                try XCTAssertEqual(request.fetchCount(db), 4)
+            }
+            do {
+                let request = Team.annotated(with: !Team.players.isEmpty)
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, (COUNT(DISTINCT "player"."rowid") > 0) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON ("player"."teamId" = "team"."id") \
+                    GROUP BY "team"."id"
+                    """)
+                try XCTAssertEqual(request.fetchAll(db).count, 4)
+                try XCTAssertEqual(request.fetchCount(db), 4)
+            }
+            do {
                 let request = Team.having(Team.players.isEmpty)
                 try assertEqualSQL(db, request, """
                     SELECT "team".* \

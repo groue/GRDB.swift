@@ -46,6 +46,7 @@ GRDB 4.0
 
 - [ ] FTS: prefix queries
 - [ ] Test NOT TESTED methods
+- [ ] Update best practices and stop fostering CodingKeys that adopt ColumnExpression
 
 Swift 4.2
 
