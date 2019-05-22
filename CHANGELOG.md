@@ -144,7 +144,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 </details>
 
 <details>
-    <summarySQL Interpolation</summary>
+    <summary>SQL Interpolation</summary>
 
 ```diff
 +struct SQLLiteral: ExpressibleByStringInterpolation {
