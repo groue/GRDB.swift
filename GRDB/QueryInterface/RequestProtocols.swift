@@ -233,24 +233,22 @@ extension TableRequest where Self: FilteredRequest {
     public func filter<Sequence: Swift.Sequence>(keys: Sequence) -> Self where Sequence.Element: DatabaseValueConvertible {
         var request = self
         let keys = Array(keys)
-        let makePredicate: (Column) -> SQLExpression
         switch keys.count {
         case 0:
             return none()
         case 1:
             request = request.expectingSingleResult()
-            makePredicate = { $0 == keys[0] }
         default:
-            makePredicate = { keys.contains($0) }
+            break
         }
-        
+
         let databaseTableName = self.databaseTableName
         return request.filter { db in
             let primaryKey = try db.primaryKey(databaseTableName)
             GRDBPrecondition(
                 primaryKey.columns.count == 1,
                 "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
-            return makePredicate(Column(primaryKey.columns[0]))
+            return keys.contains(Column(primaryKey.columns[0]))
         }
     }
     

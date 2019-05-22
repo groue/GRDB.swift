@@ -49,10 +49,15 @@ struct SQLExpressionsArray : SQLCollection {
     }
     
     func contains(_ value: SQLExpressible) -> SQLExpression {
-        if expressions.isEmpty {
+        guard let expression = expressions.first else {
+            // [].contains(Column("name")) => 0
             return false.databaseValue
-        } else {
-            return SQLExpressionContains(value, self)
         }
+        if expressions.count == 1 {
+            // ["foo"].contains(Column("name")) => name = 'foo'
+            return value == expression
+        }
+        // ["foo", "bar"].contains(Column("name")) => name IN ('foo', 'bar')
+        return SQLExpressionContains(value, self)
     }
 }

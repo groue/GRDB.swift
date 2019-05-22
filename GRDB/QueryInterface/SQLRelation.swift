@@ -477,11 +477,8 @@ struct SQLAssociationCondition: Equatable {
             if dbValues.isEmpty {
                 // Can't join
                 return false.sqlExpression
-            } else if dbValues.count == 1 {
-                // Single row: table.a = 1
-                return (rightColumn == dbValues.first!)
             } else {
-                // Multiple rows: table.a IN (1, 2, 3, ...)
+                // table.a IN (1, 2, 3, ...)
                 // Sort database values for nicer output.
                 return dbValues.sorted(by: <).contains(rightColumn)
             }

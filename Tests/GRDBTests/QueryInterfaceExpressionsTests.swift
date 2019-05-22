@@ -62,6 +62,11 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             sql(dbQueue, tableRequest.filter(![Int]().contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE 1")
         
+        // Array.contains(): = operator
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter([1].contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE (\"id\" = 1)")
+        
         // Array.contains(): IN operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter([1,2,3].contains(Col.id))),
@@ -70,7 +75,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         // Array.contains(): IN operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter([Col.id].contains(Col.id))),
-            "SELECT * FROM \"readers\" WHERE (\"id\" IN (\"id\"))")
+            "SELECT * FROM \"readers\" WHERE (\"id\" = \"id\")")
         
         // EmptyCollection.contains(): 0
         XCTAssertEqual(
@@ -82,6 +87,11 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             sql(dbQueue, tableRequest.filter(!EmptyCollection<Int>().contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE 1")
         
+        // Sequence.contains(): = operator
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(AnySequence([1]).contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE (\"id\" = 1)")
+        
         // Sequence.contains(): IN operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(AnySequence([1,2,3]).contains(Col.id))),
@@ -90,12 +100,22 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         // Sequence.contains(): IN operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(AnySequence([Col.id]).contains(Col.id))),
-            "SELECT * FROM \"readers\" WHERE (\"id\" IN (\"id\"))")
+            "SELECT * FROM \"readers\" WHERE (\"id\" = \"id\")")
+        
+        // !Sequence.contains(): <> operator
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(![1].contains(Col.id))),
+            "SELECT * FROM \"readers\" WHERE (\"id\" <> 1)")
         
         // !Sequence.contains(): NOT IN operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(![1,2,3].contains(Col.id))),
             "SELECT * FROM \"readers\" WHERE (\"id\" NOT IN (1, 2, 3))")
+        
+        // !!Sequence.contains(): = operator
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(!(![1].contains(Col.id)))),
+            "SELECT * FROM \"readers\" WHERE (\"id\" = 1)")
         
         // !!Sequence.contains(): IN operator
         XCTAssertEqual(
@@ -156,11 +176,16 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             sql(dbQueue, tableRequest.filter(AnySequence(["arthur", "barbara"]).contains(Col.name.collating(.nocase)))),
             "SELECT * FROM \"readers\" WHERE (\"name\" IN ('arthur', 'barbara') COLLATE NOCASE)")
         
-        // Sequence.contains(): IN operator
+        // Sequence.contains(): = operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(AnySequence([Col.name]).contains(Col.name.collating(.nocase)))),
-            "SELECT * FROM \"readers\" WHERE (\"name\" IN (\"name\") COLLATE NOCASE)")
+            "SELECT * FROM \"readers\" WHERE (\"name\" = \"name\" COLLATE NOCASE)")
         
+        // Sequence.contains(): false
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(EmptyCollection<Int>().contains(Col.name.collating(.nocase)))),
+            "SELECT * FROM \"readers\" WHERE 0 COLLATE NOCASE")
+
         // ClosedInterval: BETWEEN operator
         let closedInterval = "A"..."z"
         XCTAssertEqual(
