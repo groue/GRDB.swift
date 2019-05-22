@@ -1731,7 +1731,7 @@ for info in authorInfos {
 
 ### Available Association Aggregates
 
-**HasMany** associations let you build the following association aggregates:
+**[HasMany]** and **[HasManyThrough]** associations let you build the following association aggregates:
 
 - `books.count`
 - `books.isEmpty`
