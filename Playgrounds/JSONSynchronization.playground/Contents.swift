@@ -42,7 +42,7 @@ struct Player: Codable, FetchableRecord, MutablePersistableRecord {
     var score: Int
     
     // Define database columns from CodingKeys
-    private enum Columns: String, ColumnExpression {
+    private enum Columns {
         static let id = Column(CodingKeys.id)
         static let name = Column(CodingKeys.name)
         static let score = Column(CodingKeys.score)

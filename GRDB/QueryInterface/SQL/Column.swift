@@ -89,7 +89,7 @@ struct QualifiedColumn: ColumnExpression {
 /// Support for column enums:
 ///
 ///     struct Player {
-///         enum Columns: ColumnExpression {
+///         enum Columns: String, ColumnExpression {
 ///             case id, name, score
 ///         }
 ///     }

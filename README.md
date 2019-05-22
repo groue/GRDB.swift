@@ -2887,7 +2887,7 @@ struct Player: Codable {
 }
 
 extension Player: FetchableRecord, PersistableRecord {
-    enum Columns: String, ColumnExpression {
+    enum Columns {
         static let id = Column(CodingKeys.id)
         static let name = Column(CodingKeys.name)
         static let score = Column(CodingKeys.score)
