@@ -305,14 +305,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 +    func databaseChanges<Record: EncodableRecord>(from record: Record) -> [String: DatabaseValue]
 +}
 
--protocol MutablePersistableRecord: TableRecord {
-+protocol MutablePersistableRecord: EncodableRecord, TableRecord {
--    func encode(to container: inout PersistenceContainer)
--    static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] { get }
--    static func databaseJSONEncoder(for column: String) -> JSONEncoder
--    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
--    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
- }
+-protocol MutablePersistableRecord: TableRecord { }
++protocol MutablePersistableRecord: EncodableRecord, TableRecord { }
 ```
 
 </details>
