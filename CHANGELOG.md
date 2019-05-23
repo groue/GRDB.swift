@@ -97,21 +97,9 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 <details>
     <summary>Associations: indirect associations and eager loading of HasMany associations</summary>
 
-```diff
- class Row {
-+    var prefetchedRows: Row.PrefetchedRowsView { get }
-+    subscript<Collection>(_ key: String) -> Collection where Collection: RangeReplaceableCollection, Collection.Element: FetchableRecord { get }
-+    subscript<Record: FetchableRecord & Hashable>(_ key: String) -> Set<Record> { get }
- }
-
- extension Row {
-+    struct PrefetchedRowsView: Equatable {
-+       var isEmpty: Bool { get }
-+       var keys: Set<String> { get }
-+       subscript(_ key: String) -> [Row]? { get }
-+    }
- }
-
+```diff 
+ // New AssociationToOne and AssociationToMany protocols
+ 
 +protocol AssociationToOne: Association { }
 +protocol AssociationToMany: Association { }
 +extension AssociationToMany {
@@ -127,15 +115,22 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 +extension HasManyAssociation: AssociationToMany { }
 +extension HasOneAssociation: AssociationToOne { }
 
+ // New HasManyThroughAssociation and HasOneThroughAssociation
+
 +struct HasManyThroughAssociation<Origin, Destination>: AssociationToMany { }
 +extension HasManyThroughAssociation: TableRequest where Destination: TableRecord { }
-
 +struct HasOneThroughAssociation<Origin, Destination>: AssociationToOne { }
 +extension HasOneThroughAssociation: TableRequest where Destination: TableRecord { }
  
  extension TableRecord {
 +    static func hasMany<Pivot, Target>(_ destination: Target.RowDecoder.Type, through pivot: Pivot, using target: Target, key: String? = nil) -> HasManyThroughAssociation<Self, Target.RowDecoder> where Pivot: Association, Target: Association, Pivot.OriginRowDecoder == Self, Pivot.RowDecoder == Target.OriginRowDecoder
 +    static func hasOne<Pivot, Target>(_ destination: Target.RowDecoder.Type, through pivot: Pivot, using target: Target, key: String? = nil) -> HasOneThroughAssociation<Self, Target.RowDecoder> where Pivot: AssociationToOne, Target: AssociationToOne, Pivot.OriginRowDecoder == Self, Pivot.RowDecoder == Target.OriginRowDecoder
+ }
+ 
+ // Eager loading of HasMany associations
+ 
+ extension TableRecord {
++    static func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self
  }
  
  extension Association {
@@ -145,12 +140,22 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
  extension QueryInterfaceRequest {
 +    func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder
  }
+
+ // Accessing eager loaded rows
  
- extension TableRecord {
-+    static func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self
+ class Row {
++    var prefetchedRows: Row.PrefetchedRowsView { get }
++    subscript<Collection>(_ key: String) -> Collection where Collection: RangeReplaceableCollection, Collection.Element: FetchableRecord { get }
++    subscript<Record: FetchableRecord & Hashable>(_ key: String) -> Set<Record> { get }
  }
 
-+func ?? <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder>
+ extension Row {
++    struct PrefetchedRowsView: Equatable {
++       var isEmpty: Bool { get }
++       var keys: Set<String> { get }
++       subscript(_ key: String) -> [Row]? { get }
++    }
+ }
 ```
 
 </details>
@@ -359,12 +364,14 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 ```diff
 +struct Inflections {
 +    init()
++    func pluralize(_ string: String) -> String
++    func singularize(_ string: String) -> String
+
+     // Configuration
 +    mutating func plural(_ pattern: String, options: NSRegularExpression.Options = [.caseInsensitive], _ template: String)
 +    mutating func singular(_ pattern: String, options: NSRegularExpression.Options = [.caseInsensitive], _ template: String)
 +    mutating func uncountableWords(_ words: [String])
 +    mutating func irregularSuffix(_ singular: String, _ plural: String)
-+    func pluralize(_ string: String) -> String
-+    func singularize(_ string: String) -> String
 +}
 +
 +extension Inflections {
@@ -427,9 +434,23 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
     <summary>Miscellaneous additions</summary>
 
 ```diff
+ // Column initializer from CodingKey
+ 
  struct Column {
 +    init(_ codingKey: CodingKey)
  }
+ 
+ // Association aggregates: support for the IFNULL sql operator
+ 
++func ?? <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder>
+ 
+ // Remove all orderings from a request
+ 
+ protocol OrderedRequest {
++    func unordered()
+ }
+ 
+ // Annotate requests with any value, not only association aggregates
  
  protocol SelectionRequest {
 +    annotated(with selection: [SQLSelectable]) -> Self
@@ -444,9 +465,7 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 +    static func annotated(with selection: SQLSelectable...) -> QueryInterfaceRequest<Self>
  }
  
- protocol OrderedRequest {
-+    func unordered()
- }
+ // Build a DatabaseRegion from a table name
  
  struct DatabaseRegion {
 +    init(table: String)
@@ -464,19 +483,6 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 +    case recordNotFound(databaseTableName: String, key: [String: DatabaseValue])
  }
 
- extension Cursor {
--    func flatMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult>
- }
- 
- struct DatabaseValue {
--    func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T : DatabaseValueConvertible
--    func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T : DatabaseValueConvertible
- }
- 
- protocol DatabaseWriter {
--    func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
- }
-
 - class Future<Value> { }
 + class DatabaseFuture<Value> { }
 
@@ -491,6 +497,21 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
  }
  
 -final class StatementCursor: Cursor { }
+
+ // Discarded deprecated methods
+ 
+ extension Cursor {
+-    func flatMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult>
+ }
+ 
+ struct DatabaseValue {
+-    func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T : DatabaseValueConvertible
+-    func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T : DatabaseValueConvertible
+ }
+ 
+ protocol DatabaseWriter {
+-    func readFromCurrentState(_ block: @escaping (Database) -> Void) throws
+ }
 ```
 
 </details>
