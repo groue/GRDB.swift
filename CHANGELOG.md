@@ -97,9 +97,9 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 <details>
     <summary>Associations: indirect associations and eager loading of HasMany associations</summary>
 
+New AssociationToOne and AssociationToMany protocols
+
 ```diff 
- // New AssociationToOne and AssociationToMany protocols
- 
 +protocol AssociationToOne: Association { }
 +protocol AssociationToMany: Association { }
 +extension AssociationToMany {
@@ -114,9 +114,11 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 +extension BelongsToAssociation: AssociationToOne { }
 +extension HasManyAssociation: AssociationToMany { }
 +extension HasOneAssociation: AssociationToOne { }
+```
 
- // New HasManyThroughAssociation and HasOneThroughAssociation
+New HasManyThroughAssociation and HasOneThroughAssociation
 
+```diff 
 +struct HasManyThroughAssociation<Origin, Destination>: AssociationToMany { }
 +extension HasManyThroughAssociation: TableRequest where Destination: TableRecord { }
 +struct HasOneThroughAssociation<Origin, Destination>: AssociationToOne { }
@@ -126,9 +128,11 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 +    static func hasMany<Pivot, Target>(_ destination: Target.RowDecoder.Type, through pivot: Pivot, using target: Target, key: String? = nil) -> HasManyThroughAssociation<Self, Target.RowDecoder> where Pivot: Association, Target: Association, Pivot.OriginRowDecoder == Self, Pivot.RowDecoder == Target.OriginRowDecoder
 +    static func hasOne<Pivot, Target>(_ destination: Target.RowDecoder.Type, through pivot: Pivot, using target: Target, key: String? = nil) -> HasOneThroughAssociation<Self, Target.RowDecoder> where Pivot: AssociationToOne, Target: AssociationToOne, Pivot.OriginRowDecoder == Self, Pivot.RowDecoder == Target.OriginRowDecoder
  }
- 
- // Eager loading of HasMany associations
- 
+```
+
+Eager loading of HasMany associations
+
+```diff 
  extension TableRecord {
 +    static func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self
  }
@@ -140,9 +144,11 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
  extension QueryInterfaceRequest {
 +    func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest where A.OriginRowDecoder == RowDecoder
  }
+```
 
- // Accessing eager loaded rows
- 
+Accessing eager loaded rows
+
+```diff 
  class Row {
 +    var prefetchedRows: Row.PrefetchedRowsView { get }
 +    subscript<Collection>(_ key: String) -> Collection where Collection: RangeReplaceableCollection, Collection.Element: FetchableRecord { get }
@@ -437,25 +443,31 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 <details>
     <summary>Miscellaneous additions</summary>
 
+Column initializer from CodingKey
+
 ```diff
- // Column initializer from CodingKey
- 
  struct Column {
 +    init(_ codingKey: CodingKey)
  }
- 
- // Association aggregates: support for the IFNULL sql operator
- 
+```
+
+Association aggregates: support for the IFNULL sql operator
+
+```diff 
 +func ?? <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder>
- 
- // Remove all orderings from a request
- 
+```
+
+Remove all orderings from a request
+
+```diff 
  protocol OrderedRequest {
 +    func unordered()
  }
- 
- // Annotate requests with any value, not only association aggregates
- 
+```
+
+Annotate requests with any value, not only association aggregates
+
+```diff 
  protocol SelectionRequest {
 +    annotated(with selection: [SQLSelectable]) -> Self
  }
@@ -468,9 +480,11 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 +    static func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest<Self>
 +    static func annotated(with selection: SQLSelectable...) -> QueryInterfaceRequest<Self>
  }
- 
- // Build a DatabaseRegion from a table name
- 
+```
+
+Build a DatabaseRegion from a table name
+
+```diff 
  struct DatabaseRegion {
 +    init(table: String)
  }
