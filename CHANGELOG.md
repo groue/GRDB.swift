@@ -157,9 +157,9 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
     <summary>SQL Interpolation</summary>
 
 ```diff
- extension SQLRequest: ExpressibleByStringInterpolation {
++extension SQLRequest: ExpressibleByStringInterpolation {
 +    init(stringInterpolation sqlInterpolation: SQLInterpolation)
- }
++}
  
 +struct SQLLiteral: ExpressibleByStringInterpolation {
 +    var sql: String { get }
