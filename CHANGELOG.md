@@ -126,8 +126,10 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 +extension BelongsToAssociation: AssociationToOne { }
 +extension HasManyAssociation: AssociationToMany { }
 +extension HasOneAssociation: AssociationToOne { }
+
 +struct HasManyThroughAssociation<Origin, Destination>: AssociationToMany { }
 +extension HasManyThroughAssociation: TableRequest where Destination: TableRecord { }
+
 +struct HasOneThroughAssociation<Origin, Destination>: AssociationToOne { }
 +extension HasOneThroughAssociation: TableRequest where Destination: TableRecord { }
  
@@ -190,7 +192,14 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 +    mutating func appendInterpolation(_ ordering: SQLOrderingTerm)
 +    mutating func appendInterpolation<T>(_ request: SQLRequest<T>)
 +}
+```
 
+</details>
+
+<details>
+    <summary>Raw SQL breaking changes</summary>
+
+```diff
  class Database {
 -    func makeSelectStatement(_ sql: String) throws -> SelectStatement
 -    func makeUpdateStatement(_ sql: String) throws -> UpdateStatement
@@ -327,7 +336,7 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 </details>
 
 <details>
-    <summary>ValueObservation</summary>
+    <summary>ValueObservation breaking changes</summary>
 
 ```diff
  enum ValueScheduling {
@@ -366,7 +375,7 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 </details>
 
 <details>
-    <summary>Full Text Search: support for SQLite 3.27</summary>
+    <summary>Full Text Search breaking changes: support for SQLite 3.27</summary>
 
 ```diff
  struct FTS3 {
@@ -403,7 +412,7 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 </details>
 
 <details>
-    <summary>SQLCipher</summary>
+    <summary>SQLCipher breaking changes</summary>
 
 ```diff
  struct Configuration {
@@ -415,7 +424,7 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 </details>
 
 <details>
-    <summary>Miscellaneous</summary>
+    <summary>Miscellaneous additions</summary>
 
 ```diff
  struct Column {
@@ -438,7 +447,18 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
  protocol OrderedRequest {
 +    func unordered()
  }
+ 
+ struct DatabaseRegion {
++    init(table: String)
+ }
+```
 
+</details>
+
+<details>
+    <summary>Miscellaneous breaking changes</summary>
+
+```diff
  enum PersistenceError: Error {
 -    case recordNotFound(MutablePersistableRecord)
 +    case recordNotFound(databaseTableName: String, key: [String: DatabaseValue])
@@ -446,10 +466,6 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 
  extension Cursor {
 -    func flatMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult>
- }
- 
- struct DatabaseRegion {
-+    init(table: String)
  }
  
  struct DatabaseValue {
