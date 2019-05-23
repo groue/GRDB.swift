@@ -1,20 +1,23 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
 #endif
 
 // A -> B <- C -> D
-private struct A: TableRecord {
+private struct A: TableRecord, EncodableRecord {
     static let databaseTableName = "a"
     static let b = belongsTo(B.self)
+    static let c = hasOne(C.self, through: b, using: B.c)
+    func encode(to container: inout PersistenceContainer) {
+        container["bid"] = 1
+    }
 }
 
 private struct B: TableRecord {
     static let c = hasOne(C.self)
+    static let d = hasOne(D.self, through: c, using: C.d)
     static let databaseTableName = "b"
 }
 
@@ -48,6 +51,55 @@ class AssociationChainSQLTests: GRDBTestCase {
                 t.column("bid", .integer).references("b")
                 t.column("did", .integer).references("d")
             }
+        }
+    }
+    
+    func testChainOfTwoRequestForIncluding() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            // Direct, Direct
+            try assertEqualSQL(db, A().request(for: A.b.including(required: B.c)), """
+                SELECT "b".*, "c".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                WHERE ("b"."id" = 1)
+                """)
+            try assertEqualSQL(db, A().request(for: A.b.including(optional: B.c)), """
+                SELECT "b".*, "c".* \
+                FROM "b" \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
+                WHERE ("b"."id" = 1)
+                """)
+            
+            // Direct, Through
+            try assertEqualSQL(db, A().request(for: A.b.including(required: B.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did") \
+                WHERE ("b"."id" = 1)
+                """)
+            try assertEqualSQL(db, A().request(for: A.b.including(optional: B.d)), """
+                SELECT "b".*, "d".* \
+                FROM "b" \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did") \
+                WHERE ("b"."id" = 1)
+                """)
+            
+            // Through, Through
+            try assertEqualSQL(db, A().request(for: A.c.including(required: C.d)), """
+                SELECT "c".*, "d".* \
+                FROM "c" \
+                JOIN "d" ON ("d"."id" = "c"."did") \
+                JOIN "b" ON (("b"."id" = "c"."bid") AND ("b"."id" = 1))
+                """)
+            try assertEqualSQL(db, A().request(for: A.c.including(optional: C.d)), """
+                SELECT "c".*, "d".* \
+                FROM "c" \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did") \
+                JOIN "b" ON (("b"."id" = "c"."bid") AND ("b"."id" = 1))
+                """)
         }
     }
     
@@ -241,6 +293,55 @@ class AssociationChainSQLTests: GRDBTestCase {
                 FROM "b" \
                 LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
                 LEFT JOIN "d" ON ("d"."id" = "c"."did")
+                """)
+        }
+    }
+    
+    func testChainOfTwoRequestForJoining() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            // Direct, Direct
+            try assertEqualSQL(db, A().request(for: A.b.joining(required: B.c)), """
+                SELECT "b".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                WHERE ("b"."id" = 1)
+                """)
+            try assertEqualSQL(db, A().request(for: A.b.joining(optional: B.c)), """
+                SELECT "b".* \
+                FROM "b" \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
+                WHERE ("b"."id" = 1)
+                """)
+            
+            // Direct, Through
+            try assertEqualSQL(db, A().request(for: A.b.joining(required: B.d)), """
+                SELECT "b".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did") \
+                WHERE ("b"."id" = 1)
+                """)
+            try assertEqualSQL(db, A().request(for: A.b.joining(optional: B.d)), """
+                SELECT "b".* \
+                FROM "b" \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did") \
+                WHERE ("b"."id" = 1)
+                """)
+            
+            // Through, Through
+            try assertEqualSQL(db, A().request(for: A.c.joining(required: C.d)), """
+                SELECT "c".* \
+                FROM "c" \
+                JOIN "d" ON ("d"."id" = "c"."did") \
+                JOIN "b" ON (("b"."id" = "c"."bid") AND ("b"."id" = 1))
+                """)
+            try assertEqualSQL(db, A().request(for: A.c.joining(optional: C.d)), """
+                SELECT "c".* \
+                FROM "c" \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did") \
+                JOIN "b" ON (("b"."id" = "c"."bid") AND ("b"."id" = 1))
                 """)
         }
     }
@@ -826,7 +927,36 @@ class AssociationChainSQLTests: GRDBTestCase {
                 """)
         }
     }
-
+    
+    func testChainOfThreeRequestForIncludingIncluding() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try assertEqualSQL(db, A().request(for: A.b.including(required: B.c.including(required: C.d))), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                JOIN "d" ON ("d"."id" = "c"."did") \
+                WHERE ("b"."id" = 1)
+                """)
+            try assertEqualSQL(db, A().request(for: A.b.including(required: B.c.including(optional: C.d))), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did") \
+                WHERE ("b"."id" = 1)
+                """)
+            // TODO: chainOptionalRequired
+            // try assertEqualSQL(db, A().request(for: A.b.including(optional: B.c.including(required: C.d))), "TODO")
+            try assertEqualSQL(db, A().request(for: A.b.including(optional: B.c.including(optional: C.d))), """
+                SELECT "b".*, "c".*, "d".* \
+                FROM "b" \
+                LEFT JOIN "c" ON ("c"."bid" = "b"."id") \
+                LEFT JOIN "d" ON ("d"."id" = "c"."did") \
+                WHERE ("b"."id" = 1)
+                """)
+        }
+    }
+    
     func testChainOfThreeIncludingIncludingIncluding() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

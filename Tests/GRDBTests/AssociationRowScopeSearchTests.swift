@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    @testable import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     @testable import GRDBCustomSQLite
 #else
     @testable import GRDB
@@ -55,11 +53,11 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
                 t.column("id", .integer).primaryKey()
                 t.column("bid", .integer).references("b")
             }
-            try db.execute("INSERT INTO a (id) VALUES (1)")
-            try db.execute("INSERT INTO b (id, aid) VALUES (2, 1)")
-            try db.execute("INSERT INTO c (id, aid, bid) VALUES (3, NULL, 2)")
-            try db.execute("INSERT INTO c (id, aid, bid) VALUES (4, 1, NULL)")
-            try db.execute("INSERT INTO d (id, bid) VALUES (5, 2)")
+            try db.execute(sql: "INSERT INTO a (id) VALUES (1)")
+            try db.execute(sql: "INSERT INTO b (id, aid) VALUES (2, 1)")
+            try db.execute(sql: "INSERT INTO c (id, aid, bid) VALUES (3, NULL, 2)")
+            try db.execute(sql: "INSERT INTO c (id, aid, bid) VALUES (4, 1, NULL)")
+            try db.execute(sql: "INSERT INTO d (id, bid) VALUES (5, 2)")
         }
     }
     

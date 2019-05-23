@@ -1,10 +1,10 @@
 import XCTest
-#if GRDBCIPHER
-    @testable import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     @testable import GRDBCustomSQLite
 #else
-    #if SWIFT_PACKAGE
+    #if GRDBCIPHER
+        import SQLCipher
+    #elseif SWIFT_PACKAGE
         import CSQLite
     #else
         import SQLite3
@@ -17,7 +17,7 @@ class SelectStatementTests : GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE persons (
                     id INTEGER PRIMARY KEY,
                     creationDate TEXT,
@@ -25,9 +25,9 @@ class SelectStatementTests : GRDBTestCase {
                     age INT)
                 """)
             
-            try db.execute("INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Arthur", 41])
-            try db.execute("INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Barbara", 26])
-            try db.execute("INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Craig", 13])
+            try db.execute(sql: "INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Arthur", 41])
+            try db.execute(sql: "INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Barbara", 26])
+            try db.execute(sql: "INSERT INTO persons (name, age) VALUES (?,?)", arguments: ["Craig", 13])
         }
         try migrator.migrate(dbWriter)
     }
@@ -36,11 +36,11 @@ class SelectStatementTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
-            let statement = try db.makeSelectStatement(sql)
+            let statement = try db.makeSelectStatement(sql: sql)
             let cursor = statement.makeCursor()
             
             // Check that StatementCursor gives access to the raw SQLite API
-            XCTAssertEqual(String(cString: sqlite3_column_name(cursor.statement.sqliteStatement, 0)), "firstName")
+            XCTAssertEqual(String(cString: sqlite3_column_name(cursor._statement.sqliteStatement, 0)), "firstName")
             
             XCTAssertFalse(try cursor.next() == nil)
             XCTAssertFalse(try cursor.next() == nil)
@@ -55,7 +55,7 @@ class SelectStatementTests : GRDBTestCase {
         dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
             func test(_ cursor: StatementCursor) throws {
-                let sql = cursor.statement.sql
+                let sql = cursor._statement.sql
                 do {
                     _ = try cursor.next()
                     XCTFail()
@@ -68,22 +68,20 @@ class SelectStatementTests : GRDBTestCase {
                 do {
                     _ = try cursor.next()
                     XCTFail()
-                } catch let error as DatabaseError {
-                    XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
-                    XCTAssertEqual(error.message, "\(customError)")
-                    XCTAssertEqual(error.sql!, sql)
-                    XCTAssertEqual(error.description, "SQLite error 21 with statement `\(sql)`: \(customError)")
+                } catch is DatabaseError {
+                    // Various SQLite and SQLCipher versions don't emit the same
+                    // error. What we care about is that there is an error.
                 }
             }
-            try test(db.makeSelectStatement("SELECT throw(), NULL").makeCursor())
-            try test(db.makeSelectStatement("SELECT 0, throw(), NULL").makeCursor())
+            try test(db.makeSelectStatement(sql: "SELECT throw(), NULL").makeCursor())
+            try test(db.makeSelectStatement(sql: "SELECT 0, throw(), NULL").makeCursor())
         }
     }
     
     func testArrayStatementArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
+            let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM persons WHERE age < ?")
             let ages = [20, 30, 40, 50]
             let counts = try ages.map { try Int.fetchOne(statement, arguments: [$0])! }
             XCTAssertEqual(counts, [1,2,2,3])
@@ -93,7 +91,7 @@ class SelectStatementTests : GRDBTestCase {
     func testStatementArgumentsSetterWithArray() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age < ?")
+            let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM persons WHERE age < ?")
             let ages = [20, 30, 40, 50]
             let counts = try ages.map { (age: Int) -> Int in
                 statement.arguments = [age]
@@ -106,7 +104,7 @@ class SelectStatementTests : GRDBTestCase {
     func testDictionaryStatementArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
+            let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM persons WHERE age < :age")
             let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
             let counts = try ageDicts.map { dic -> Int in
                 // Make sure we don't trigger a failible initializer
@@ -120,7 +118,7 @@ class SelectStatementTests : GRDBTestCase {
     func testStatementArgumentsSetterWithDictionary() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM persons WHERE age < :age")
+            let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM persons WHERE age < :age")
             let ageDicts: [[String: DatabaseValueConvertible?]] = [["age": 20], ["age": 30], ["age": 40], ["age": 50]]
             let counts = try ageDicts.map { ageDict -> Int in
                 statement.arguments = StatementArguments(ageDict)
@@ -134,7 +132,7 @@ class SelectStatementTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                _ = try db.makeSelectStatement("SELECT * FROM blah")
+                _ = try db.makeSelectStatement(sql: "SELECT * FROM blah")
                 XCTFail()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
@@ -158,11 +156,11 @@ class SelectStatementTests : GRDBTestCase {
             let sql = "SELECT bomb()"
             
             needsThrow = false
-            XCTAssertEqual(try String.fetchAll(db.cachedSelectStatement(sql)), ["success"])
+            XCTAssertEqual(try String.fetchAll(db.cachedSelectStatement(sql: sql)), ["success"])
             
             do {
                 needsThrow = true
-                _ = try String.fetchAll(db.cachedSelectStatement(sql))
+                _ = try String.fetchAll(db.cachedSelectStatement(sql: sql))
                 XCTFail()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
@@ -172,7 +170,7 @@ class SelectStatementTests : GRDBTestCase {
             }
             
             needsThrow = false
-            XCTAssertEqual(try String.fetchAll(db.cachedSelectStatement(sql)), ["success"])
+            XCTAssertEqual(try String.fetchAll(db.cachedSelectStatement(sql: sql)), ["success"])
         }
     }
     
@@ -227,19 +225,19 @@ class SelectStatementTests : GRDBTestCase {
             try db.create(table: "table5") { t in
                 t.column("id", .integer).primaryKey()
             }
-            try db.execute("CREATE TRIGGER table5trigger AFTER INSERT ON table5 BEGIN INSERT INTO table1 (id3, id4, a, b) VALUES (NULL, NULL, 0, 0); END")
+            try db.execute(sql: "CREATE TRIGGER table5trigger AFTER INSERT ON table5 BEGIN INSERT INTO table1 (id3, id4, a, b) VALUES (NULL, NULL, 0, 0); END")
             
             let statements = try [
-                db.makeSelectStatement("SELECT * FROM table1"),
-                db.makeSelectStatement("SELECT id, id3, a FROM table1"),
-                db.makeSelectStatement("SELECT table1.id, table1.a, table2.a FROM table1 JOIN table2 ON table1.id = table2.id"),
+                db.makeSelectStatement(sql: "SELECT * FROM table1"),
+                db.makeSelectStatement(sql: "SELECT id, id3, a FROM table1"),
+                db.makeSelectStatement(sql: "SELECT table1.id, table1.a, table2.a FROM table1 JOIN table2 ON table1.id = table2.id"),
                 
                 // This last request triggers its observer or not, depending on the SQLite version.
                 // Before SQLite 3.19.0, its region is doubtful, and every database change is deemed impactful.
                 // Starting SQLite 3.19.0, it knows that only table1 is involved.
                 //
                 // See doubtfulCountFunction below
-                db.makeSelectStatement("SELECT COUNT(*) FROM table1"),
+                db.makeSelectStatement(sql: "SELECT COUNT(*) FROM table1"),
             ]
             
             let doubtfulCountFunction = (sqlite3_libversion_number() < 3019000)
@@ -255,43 +253,43 @@ class SelectStatementTests : GRDBTestCase {
                 db.add(transactionObserver: observer)
             }
             
-            try db.execute("INSERT INTO table3 (id) VALUES (1)")
-            try db.execute("INSERT INTO table4 (id) VALUES (1)")
-            try db.execute("INSERT INTO table1 (id, a, b, id3, id4) VALUES (NULL, 0, 0, 1, 1)")
+            try db.execute(sql: "INSERT INTO table3 (id) VALUES (1)")
+            try db.execute(sql: "INSERT INTO table4 (id) VALUES (1)")
+            try db.execute(sql: "INSERT INTO table1 (id, a, b, id3, id4) VALUES (NULL, 0, 0, 1, 1)")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
             
-            try db.execute("INSERT INTO table2 (id, a, b) VALUES (NULL, 0, 0)")
+            try db.execute(sql: "INSERT INTO table2 (id, a, b) VALUES (NULL, 0, 0)")
             XCTAssertEqual(observers.map { $0.triggered }, [false, false, true, doubtfulCountFunction])
             
-            try db.execute("UPDATE table1 SET a = 1")
+            try db.execute(sql: "UPDATE table1 SET a = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
             
-            try db.execute("UPDATE table1 SET b = 1")
+            try db.execute(sql: "UPDATE table1 SET b = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
             
-            try db.execute("UPDATE table2 SET a = 1")
+            try db.execute(sql: "UPDATE table2 SET a = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [false, false, true, doubtfulCountFunction])
             
-            try db.execute("UPDATE table2 SET b = 1")
+            try db.execute(sql: "UPDATE table2 SET b = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [false, false, false, doubtfulCountFunction])
             
-            try db.execute("UPDATE table3 SET id = 2 WHERE id = 1")
+            try db.execute(sql: "UPDATE table3 SET id = 2 WHERE id = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, false, true])
             
-            try db.execute("UPDATE table4 SET id = 2 WHERE id = 1")
+            try db.execute(sql: "UPDATE table4 SET id = 2 WHERE id = 1")
             XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
             
-            try db.execute("DELETE FROM table4")
+            try db.execute(sql: "DELETE FROM table4")
             XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
             
-            try db.execute("INSERT INTO table4 (id) VALUES (1)")
-            try db.execute("DELETE FROM table4")
+            try db.execute(sql: "INSERT INTO table4 (id) VALUES (1)")
+            try db.execute(sql: "DELETE FROM table4")
             XCTAssertEqual(observers.map { $0.triggered }, [false, false, false, doubtfulCountFunction])
             
-            try db.execute("DELETE FROM table3")
+            try db.execute(sql: "DELETE FROM table3")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
             
-            try db.execute("INSERT INTO table5 (id) VALUES (NULL)")
+            try db.execute(sql: "INSERT INTO table5 (id) VALUES (NULL)")
             XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
         }
     }

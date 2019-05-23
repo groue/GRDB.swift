@@ -1,10 +1,10 @@
 import XCTest
-#if GRDBCIPHER
-    @testable import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     @testable import GRDBCustomSQLite
 #else
-    #if SWIFT_PACKAGE
+    #if GRDBCIPHER
+        import SQLCipher
+    #elseif SWIFT_PACKAGE
         import CSQLite
     #else
         import SQLite3
@@ -258,18 +258,18 @@ class DatabaseRegionTests : GRDBTestCase {
     func testSelectStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (id INTEGER, name TEXT)")
-            try db.execute("CREATE TABLE bar (id INTEGER, fooId INTEGER)")
+            try db.execute(sql: "CREATE TABLE foo (id INTEGER, name TEXT)")
+            try db.execute(sql: "CREATE TABLE bar (id INTEGER, fooId INTEGER)")
             
             do {
-                let statement = try db.makeSelectStatement("SELECT foo.name FROM FOO JOIN BAR ON fooId = foo.id")
+                let statement = try db.makeSelectStatement(sql: "SELECT foo.name FROM FOO JOIN BAR ON fooId = foo.id")
                 let expectedRegion = DatabaseRegion(table: "foo", columns: ["name", "id"])
                     .union(DatabaseRegion(table: "bar", columns: ["fooId"]))
                 XCTAssertEqual(statement.databaseRegion, expectedRegion)
                 XCTAssertEqual(statement.databaseRegion.description, "bar(fooId),foo(id,name)")
             }
             do {
-                let statement = try db.makeSelectStatement("SELECT COUNT(*) FROM foo")
+                let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM foo")
                 if sqlite3_libversion_number() < 3019000 {
                     let expectedRegion = DatabaseRegion.fullDatabase
                     XCTAssertEqual(statement.databaseRegion, expectedRegion)
@@ -286,7 +286,7 @@ class DatabaseRegionTests : GRDBTestCase {
     func testRegionRowIds() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (id INTEGER PRIMARY KEY, a TEXT)")
+            try db.execute(sql: "CREATE TABLE foo (id INTEGER PRIMARY KEY, a TEXT)")
             struct Record: TableRecord {
                 static let databaseTableName = "foo"
             }
@@ -413,9 +413,9 @@ class DatabaseRegionTests : GRDBTestCase {
     func testDatabaseRegionOfJoinedRequests() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE a (id INTEGER PRIMARY KEY, name TEXT)")
-            try db.execute("CREATE TABLE b (id INTEGER PRIMARY KEY, name TEXT, aid INTEGER REFERENCES a(id))")
-            try db.execute("CREATE TABLE c (id INTEGER PRIMARY KEY, name TEXT, aid INTEGER REFERENCES a(id))")
+            try db.execute(sql: "CREATE TABLE a (id INTEGER PRIMARY KEY, name TEXT)")
+            try db.execute(sql: "CREATE TABLE b (id INTEGER PRIMARY KEY, name TEXT, aid INTEGER REFERENCES a(id))")
+            try db.execute(sql: "CREATE TABLE c (id INTEGER PRIMARY KEY, name TEXT, aid INTEGER REFERENCES a(id))")
             struct A: TableRecord {
                 static let databaseTableName = "a"
                 static let b = hasOne(B.self)
@@ -448,7 +448,7 @@ class DatabaseRegionTests : GRDBTestCase {
     func testDatabaseRegionOfDerivedRequests() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (id INTEGER PRIMARY KEY, a TEXT)")
+            try db.execute(sql: "CREATE TABLE foo (id INTEGER PRIMARY KEY, a TEXT)")
             struct Record: TableRecord {
                 static let databaseTableName = "foo"
             }
@@ -475,8 +475,8 @@ class DatabaseRegionTests : GRDBTestCase {
     func testUpdateStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
-            let statement = try db.makeUpdateStatement("UPDATE foo SET bar = 'bar', baz = 'baz' WHERE id = 1")
+            try db.execute(sql: "CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
+            let statement = try db.makeUpdateStatement(sql: "UPDATE foo SET bar = 'bar', baz = 'baz' WHERE id = 1")
             XCTAssertFalse(statement.invalidatesDatabaseSchemaCache)
             XCTAssertEqual(statement.databaseEventKinds.count, 1)
             guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
@@ -502,21 +502,21 @@ class DatabaseRegionTests : GRDBTestCase {
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (name TEXT)")
+            try db.execute(sql: "CREATE TABLE foo (name TEXT)")
             do {
-                let statement = try db.makeSelectStatement("SELECT rowid FROM FOO")
+                let statement = try db.makeSelectStatement(sql: "SELECT rowid FROM FOO")
                 let expectedRegion = DatabaseRegion(table: "foo", columns: ["ROWID"])
                 XCTAssertEqual(statement.databaseRegion, expectedRegion)
                 XCTAssertEqual(statement.databaseRegion.description, "foo(ROWID)")
             }
             do {
-                let statement = try db.makeSelectStatement("SELECT _ROWID_ FROM FOO")
+                let statement = try db.makeSelectStatement(sql: "SELECT _ROWID_ FROM FOO")
                 let expectedRegion = DatabaseRegion(table: "foo", columns: ["ROWID"])
                 XCTAssertEqual(statement.databaseRegion, expectedRegion)
                 XCTAssertEqual(statement.databaseRegion.description, "foo(ROWID)")
             }
             do {
-                let statement = try db.makeSelectStatement("SELECT oID FROM FOO")
+                let statement = try db.makeSelectStatement(sql: "SELECT oID FROM FOO")
                 let expectedRegion = DatabaseRegion(table: "foo", columns: ["ROWID"])
                 XCTAssertEqual(statement.databaseRegion, expectedRegion)
                 XCTAssertEqual(statement.databaseRegion.description, "foo(ROWID)")
@@ -537,9 +537,9 @@ class DatabaseRegionTests : GRDBTestCase {
         }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (name TEXT)")
+            try db.execute(sql: "CREATE TABLE foo (name TEXT)")
             do {
-                let statement = try db.makeUpdateStatement("UPDATE foo SET rowid = 1")
+                let statement = try db.makeUpdateStatement(sql: "UPDATE foo SET rowid = 1")
                 XCTAssertEqual(statement.databaseEventKinds.count, 1)
                 guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
                     XCTFail()
@@ -549,7 +549,7 @@ class DatabaseRegionTests : GRDBTestCase {
                 XCTAssertEqual(columnNames, ["ROWID"])
             }
             do {
-                let statement = try db.makeUpdateStatement("UPDATE foo SET _ROWID_ = 1")
+                let statement = try db.makeUpdateStatement(sql: "UPDATE foo SET _ROWID_ = 1")
                 XCTAssertEqual(statement.databaseEventKinds.count, 1)
                 guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
                     XCTFail()
@@ -559,7 +559,7 @@ class DatabaseRegionTests : GRDBTestCase {
                 XCTAssertEqual(columnNames, ["ROWID"])
             }
             do {
-                let statement = try db.makeUpdateStatement("UPDATE foo SET oID = 1")
+                let statement = try db.makeUpdateStatement(sql: "UPDATE foo SET oID = 1")
                 XCTAssertEqual(statement.databaseEventKinds.count, 1)
                 guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
                     XCTFail()
@@ -574,8 +574,8 @@ class DatabaseRegionTests : GRDBTestCase {
     func testInsertStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
-            let statement = try db.makeUpdateStatement("INSERT INTO foo (id, bar) VALUES (1, 'bar')")
+            try db.execute(sql: "CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
+            let statement = try db.makeUpdateStatement(sql: "INSERT INTO foo (id, bar) VALUES (1, 'bar')")
             XCTAssertFalse(statement.invalidatesDatabaseSchemaCache)
             XCTAssertEqual(statement.databaseEventKinds.count, 1)
             guard case .insert(let tableName) = statement.databaseEventKinds[0] else {
@@ -589,8 +589,8 @@ class DatabaseRegionTests : GRDBTestCase {
     func testDeleteStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
-            let statement = try db.makeUpdateStatement("DELETE FROM foo")
+            try db.execute(sql: "CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
+            let statement = try db.makeUpdateStatement(sql: "DELETE FROM foo")
             XCTAssertFalse(statement.invalidatesDatabaseSchemaCache)
             XCTAssertEqual(statement.databaseEventKinds.count, 1)
             guard case .delete(let tableName) = statement.databaseEventKinds[0] else {
@@ -605,16 +605,16 @@ class DatabaseRegionTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                let statement = try db.makeUpdateStatement("CREATE TABLE foo (id INTEGER)")
+                let statement = try db.makeUpdateStatement(sql: "CREATE TABLE foo (id INTEGER)")
                 XCTAssertTrue(statement.invalidatesDatabaseSchemaCache)
                 try statement.execute()
             }
             do {
-                let statement = try db.makeUpdateStatement("ALTER TABLE foo ADD COLUMN name TEXT")
+                let statement = try db.makeUpdateStatement(sql: "ALTER TABLE foo ADD COLUMN name TEXT")
                 XCTAssertTrue(statement.invalidatesDatabaseSchemaCache)
             }
             do {
-                let statement = try db.makeUpdateStatement("DROP TABLE foo")
+                let statement = try db.makeUpdateStatement(sql: "DROP TABLE foo")
                 XCTAssertTrue(statement.invalidatesDatabaseSchemaCache)
             }
         }
@@ -782,6 +782,52 @@ class DatabaseRegionTests : GRDBTestCase {
                 let eventKind = DatabaseEventKind.update(tableName: "qux", columnNames: ["a", "b"])
                 XCTAssertFalse(region.isModified(byEventsOfKind: eventKind))
                 // Can't test for individual events due to DatabaseRegion.isModified(by:) precondition
+            }
+        }
+    }
+    
+    // Regression test for https://github.com/groue/GRDB.swift/issues/514
+    func testIssue514() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: """
+                CREATE TABLE a (id INTEGER PRIMARY KEY, name TEXT);
+                CREATE TABLE b (id TEXT, name TEXT);
+                """)
+            
+            // INTEGER PRIMARY KEY
+            do {
+                // TODO: contact SQLite and ask if this test is expected to fail
+//                let statement = try db.makeSelectStatement(sql: "SELECT id FROM a")
+//                let expectedRegion = DatabaseRegion(table: "a", columns: ["id"])
+//                XCTAssertEqual(statement.databaseRegion, expectedRegion)
+            }
+            do {
+                let statement = try db.makeSelectStatement(sql: "SELECT name FROM a")
+                let expectedRegion = DatabaseRegion(table: "a", columns: ["name"])
+                XCTAssertEqual(statement.databaseRegion, expectedRegion)
+            }
+            do {
+                let statement = try db.makeSelectStatement(sql: "SELECT id, name FROM a")
+                let expectedRegion = DatabaseRegion(table: "a", columns: ["id", "name"])
+                XCTAssertEqual(statement.databaseRegion, expectedRegion)
+            }
+            
+            // TEXT primary key
+            do {
+                let statement = try db.makeSelectStatement(sql: "SELECT id FROM b")
+                let expectedRegion = DatabaseRegion(table: "b", columns: ["id"])
+                XCTAssertEqual(statement.databaseRegion, expectedRegion)
+            }
+            do {
+                let statement = try db.makeSelectStatement(sql: "SELECT name FROM b")
+                let expectedRegion = DatabaseRegion(table: "b", columns: ["name"])
+                XCTAssertEqual(statement.databaseRegion, expectedRegion)
+            }
+            do {
+                let statement = try db.makeSelectStatement(sql: "SELECT id, name FROM b")
+                let expectedRegion = DatabaseRegion(table: "b", columns: ["id", "name"])
+                XCTAssertEqual(statement.databaseRegion, expectedRegion)
             }
         }
     }

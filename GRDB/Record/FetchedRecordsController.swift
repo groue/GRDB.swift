@@ -40,14 +40,14 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     public convenience init(
         _ databaseWriter: DatabaseWriter,
         sql: String,
-        arguments: StatementArguments? = nil,
+        arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil,
         queue: DispatchQueue = .main,
         isSameRecord: ((Record, Record) -> Bool)? = nil) throws
     {
         try self.init(
             databaseWriter,
-            request: SQLRequest<Record>(sql, arguments: arguments, adapter: adapter),
+            request: SQLRequest<Record>(sql: sql, arguments: arguments, adapter: adapter),
             queue: queue,
             isSameRecord: isSameRecord)
     }
@@ -196,8 +196,8 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     ///
     /// This method must be used from the controller's dispatch queue (the
     /// main queue unless stated otherwise in the controller's initializer).
-    public func setRequest(sql: String, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
-        try setRequest(SQLRequest(sql, arguments: arguments, adapter: adapter))
+    public func setRequest(sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws {
+        try setRequest(SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Registers changes notification callbacks.
@@ -429,13 +429,13 @@ extension FetchedRecordsController where Record: TableRecord {
     public convenience init(
         _ databaseWriter: DatabaseWriter,
         sql: String,
-        arguments: StatementArguments? = nil,
+        arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil,
         queue: DispatchQueue = .main) throws
     {
         try self.init(
             databaseWriter,
-            request: SQLRequest(sql, arguments: arguments, adapter: adapter),
+            request: SQLRequest(sql: sql, arguments: arguments, adapter: adapter),
             queue: queue)
     }
     
@@ -879,7 +879,7 @@ extension FetchedRecordsController {
     }
 }
 
-extension FetchedRecordsController where Record: MutablePersistableRecord {
+extension FetchedRecordsController where Record: EncodableRecord {
     
     /// Returns the indexPath of a given record.
     ///
@@ -887,7 +887,7 @@ extension FetchedRecordsController where Record: MutablePersistableRecord {
     ///   if record could not be found.
     public func indexPath(for record: Record) -> IndexPath? {
         let item = Item<Record>(row: Row(record))
-        guard let fetchedItems = fetchedItems, let index = fetchedItems.index(where: { itemsAreIdentical($0, item) }) else {
+        guard let fetchedItems = fetchedItems, let index = fetchedItems.firstIndex(where: { itemsAreIdentical($0, item) }) else {
             return nil
         }
         return IndexPath(indexes: [0, index])

@@ -14,8 +14,9 @@
 extension Array {
     /// Creates an array containing the elements of a cursor.
     ///
-    ///     let cursor = try String.fetchCursor(db, "SELECT 'foo' UNION ALL SELECT 'bar'")
+    ///     let cursor = try String.fetchCursor(db, sql: "SELECT 'foo' UNION ALL SELECT 'bar'")
     ///     let strings = try Array(cursor) // ["foo", "bar"]
+    @inlinable
     public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
         self.init()
         while let element = try cursor.next() {
@@ -36,7 +37,7 @@ extension Sequence {
 extension Set {
     /// Creates a set containing the elements of a cursor.
     ///
-    ///     let cursor = try String.fetchCursor(db, "SELECT 'foo' UNION ALL SELECT 'foo'")
+    ///     let cursor = try String.fetchCursor(db, sql: "SELECT 'foo' UNION ALL SELECT 'foo'")
     ///     let strings = try Set(cursor) // ["foo"]
     public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
         self.init()
@@ -111,7 +112,7 @@ extension Cursor {
     /// Returns a cursor of pairs (n, x), where n represents a consecutive
     /// integer starting at zero, and x represents an element of the cursor.
     ///
-    ///     let cursor = try String.fetchCursor(db, "SELECT 'foo' UNION ALL SELECT 'bar'")
+    ///     let cursor = try String.fetchCursor(db, sql: "SELECT 'foo' UNION ALL SELECT 'bar'")
     ///     let c = cursor.enumerated()
     ///     while let (n, x) = c.next() {
     ///         print("\(n): \(x)")
@@ -142,11 +143,6 @@ extension Cursor {
     /// transform over this cursor.
     public func compactMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult> {
         return map(transform).filter { $0 != nil }.map { $0! }
-    }
-    
-    @available(*, deprecated, renamed: "compactMap")
-    public func flatMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult> {
-        return compactMap(transform)
     }
     
     /// Returns a cursor that skips any initial elements that satisfy
@@ -600,7 +596,7 @@ public final class DropWhileCursor<Base: Cursor> : Cursor {
 /// To create an instance of `EnumeratedCursor`, call the `enumerated()` method
 /// on a cursor:
 ///
-///     let cursor = try String.fetchCursor(db, "SELECT 'foo' UNION ALL SELECT 'bar'")
+///     let cursor = try String.fetchCursor(db, sql: "SELECT 'foo' UNION ALL SELECT 'bar'")
 ///     let c = cursor.enumerated()
 ///     while let (n, x) = c.next() {
 ///         print("\(n): \(x)")

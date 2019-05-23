@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -110,10 +108,10 @@ class RecordInitializersTests : GRDBTestCase {
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE pedigrees (foo INTEGER)")
-            try db.execute("INSERT INTO pedigrees (foo) VALUES (NULL)")
+            try db.execute(sql: "CREATE TABLE pedigrees (foo INTEGER)")
+            try db.execute(sql: "INSERT INTO pedigrees (foo) VALUES (NULL)")
             
-            let pedigree = try RecordWithPedigree.fetchOne(db, "SELECT * FROM pedigrees")!
+            let pedigree = try RecordWithPedigree.fetchOne(db, sql: "SELECT * FROM pedigrees")!
             XCTAssertTrue(pedigree.initializedFromRow)  // very important
         }
     }

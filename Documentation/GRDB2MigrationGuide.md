@@ -172,41 +172,31 @@ extension Player {
 }
 ```
 
-When your record adopts the Codable protocol, you can use its [coding keys](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types) as columns:
+When your record adopts the Codable protocol, you can use its [coding keys](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types) to safely define database columns:
 
 ```swift
 // GRDB 3
-struct Player: Codable, FetchableRecord, PersistableRecord {
+struct Player: Codable {
     var id: Int64
     var name: String
     var score: Int
-    
-    // Add ColumnExpression conformance
-    private enum CodingKeys: String, CodingKey, ColumnExpression {
-        case id, name, score
-    }
 }
 
-extension Player {
+extension Player: FetchableRecord, PersistableRecord {
+    enum Columns {
+        static let id = Column(CodingKeys.id.stringValue)
+        static let name = Column(CodingKeys.name.stringValue)
+        static let score = Column(CodingKeys.score.stringValue)
+    }
+    
     static func filter(name: String) -> QueryInterfaceRequest<Player> {
-        return filter(CodingKeys.name == name)
+        return filter(Columns.name == name)
     }
     
     static var maximumScore: QueryInterfaceRequest<Int> {
-        return select(max(CodingKeys.score), as: Int.self)
+        return select(max(Columns.score), as: Int.self)
     }
 }
-```
-
-GRDB can apply additional optimizations on expressions that adopt ColumnExpression, so conform to this protocol whenever you define a custom column type:
-
-```swift
-struct TypedColumn: ColumnExpression {
-    var name: String
-    var sqlType: String
-}
-let nameColumn = TypedColumn(name: "name", sqlType: "VARCHAR")
-let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db)
 ```
 
 

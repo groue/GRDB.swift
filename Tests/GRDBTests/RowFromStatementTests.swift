@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -18,10 +16,10 @@ class RowFromStatementTests : RowTestCase {
     func testRowAsSequence() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(sql: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(sql: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
+            let rows = try Row.fetchCursor(db, sql: "SELECT * FROM ints")
             while let row = try rows.next() {
                 rowFetched = true
                 var columnNames = [String]()
@@ -44,10 +42,10 @@ class RowFromStatementTests : RowTestCase {
     func testRowValueAtIndex() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(sql: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(sql: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
+            let rows = try Row.fetchCursor(db, sql: "SELECT * FROM ints")
             while let row = try rows.next() {
                 rowFetched = true
                 
@@ -78,10 +76,10 @@ class RowFromStatementTests : RowTestCase {
     func testRowValueNamed() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(sql: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(sql: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
+            let rows = try Row.fetchCursor(db, sql: "SELECT * FROM ints")
             while let row = try rows.next() {
                 rowFetched = true
                 
@@ -107,10 +105,10 @@ class RowFromStatementTests : RowTestCase {
     func testRowValueFromColumn() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(sql: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(sql: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
+            let rows = try Row.fetchCursor(db, sql: "SELECT * FROM ints")
             while let row = try rows.next() {
                 rowFetched = true
                 
@@ -139,7 +137,7 @@ class RowFromStatementTests : RowTestCase {
             let data = "foo".data(using: .utf8)!
             let emptyData = Data()
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT ? AS a, ? AS b, ? AS c", arguments: [data, emptyData, nil])
+            let rows = try Row.fetchCursor(db, sql: "SELECT ? AS a, ? AS b, ? AS c", arguments: [data, emptyData, nil])
             while let row = try rows.next() {
                 rowFetched = true
                 
@@ -163,7 +161,7 @@ class RowFromStatementTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT NULL, 1, 1.1, 'foo', x'53514C697465'")
+            let rows = try Row.fetchCursor(db, sql: "SELECT NULL, 1, 1.1, 'foo', x'53514C697465'")
             while let row = try rows.next() {
                 rowFetched = true
                 guard case .null = (row[0] as DatabaseValue).storage else { XCTFail(); return }
@@ -180,7 +178,7 @@ class RowFromStatementTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT NULL AS \"null\", 1 AS \"int64\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"blob\"")
+            let rows = try Row.fetchCursor(db, sql: "SELECT NULL AS \"null\", 1 AS \"int64\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"blob\"")
             while let row = try rows.next() {
                 rowFetched = true
                 guard case .null = (row["null"] as DatabaseValue).storage else { XCTFail(); return }
@@ -196,10 +194,10 @@ class RowFromStatementTests : RowTestCase {
     func testRowCount() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(sql: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(sql: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
+            let rows = try Row.fetchCursor(db, sql: "SELECT * FROM ints")
             while let row = try rows.next() {
                 rowFetched = true
                 XCTAssertEqual(row.count, 3)
@@ -211,10 +209,10 @@ class RowFromStatementTests : RowTestCase {
     func testRowColumnNames() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(sql: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(sql: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT a, b, c FROM ints")
+            let rows = try Row.fetchCursor(db, sql: "SELECT a, b, c FROM ints")
             while let row = try rows.next() {
                 rowFetched = true
                 XCTAssertEqual(Array(row.columnNames), ["a", "b", "c"])
@@ -226,10 +224,10 @@ class RowFromStatementTests : RowTestCase {
     func testRowDatabaseValues() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(sql: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(sql: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT a, b, c FROM ints")
+            let rows = try Row.fetchCursor(db, sql: "SELECT a, b, c FROM ints")
             while let row = try rows.next() {
                 rowFetched = true
                 XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue, 2.databaseValue])
@@ -242,7 +240,7 @@ class RowFromStatementTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT 'foo' AS nAmE")
+            let rows = try Row.fetchCursor(db, sql: "SELECT 'foo' AS nAmE")
             while let row = try rows.next() {
                 rowFetched = true
                 XCTAssertEqual(row["name"] as DatabaseValue, "foo".databaseValue)
@@ -260,7 +258,7 @@ class RowFromStatementTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT 1 AS name, 2 AS NAME")
+            let rows = try Row.fetchCursor(db, sql: "SELECT 1 AS name, 2 AS NAME")
             while let row = try rows.next() {
                 rowFetched = true
                 XCTAssertEqual(row["name"] as DatabaseValue, 1.databaseValue)
@@ -278,7 +276,7 @@ class RowFromStatementTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT 'foo' AS name")
+            let rows = try Row.fetchCursor(db, sql: "SELECT 'foo' AS name")
             while let row = try rows.next() {
                 rowFetched = true
                 XCTAssertFalse(row.hasColumn("missing"))
@@ -293,7 +291,7 @@ class RowFromStatementTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT 'foo' AS nAmE, 1 AS foo")
+            let rows = try Row.fetchCursor(db, sql: "SELECT 'foo' AS nAmE, 1 AS foo")
             while let row = try rows.next() {
                 rowFetched = true
                 XCTAssertTrue(row.hasColumn("name"))
@@ -312,7 +310,7 @@ class RowFromStatementTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT 'foo' AS nAmE, 1 AS foo")
+            let rows = try Row.fetchCursor(db, sql: "SELECT 'foo' AS nAmE, 1 AS foo")
             while let row = try rows.next() {
                 rowFetched = true
                 XCTAssertTrue(row.scopes.isEmpty)
@@ -326,10 +324,10 @@ class RowFromStatementTests : RowTestCase {
     func testCopy() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(sql: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(sql: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
+            let rows = try Row.fetchCursor(db, sql: "SELECT * FROM ints")
             while let row = try rows.next() {
                 rowFetched = true
                 let copiedRow = row.copy()
@@ -345,10 +343,10 @@ class RowFromStatementTests : RowTestCase {
     func testEqualityWithCopy() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
-            try db.execute("INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
+            try db.execute(sql: "CREATE TABLE ints (a INTEGER, b INTEGER, c INTEGER)")
+            try db.execute(sql: "INSERT INTO ints (a,b,c) VALUES (0, 1, 2)")
             var rowFetched = false
-            let rows = try Row.fetchCursor(db, "SELECT * FROM ints")
+            let rows = try Row.fetchCursor(db, sql: "SELECT * FROM ints")
             while let row = try rows.next() {
                 rowFetched = true
                 let copiedRow = row.copy()
@@ -361,7 +359,7 @@ class RowFromStatementTests : RowTestCase {
     func testDatabaseCursorMap() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let cursor = try Row.fetchCursor(db, "SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3")
+            let cursor = try Row.fetchCursor(db, sql: "SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3")
             let values = cursor.map { $0[0] as Int }
             XCTAssertEqual(try values.next()!, 1)
             XCTAssertEqual(try values.next()!, 2)
@@ -373,7 +371,7 @@ class RowFromStatementTests : RowTestCase {
     func testDescription() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let rows = try Row.fetchCursor(db, "SELECT NULL AS \"null\", 1 AS \"int\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"data\"")
+            let rows = try Row.fetchCursor(db, sql: "SELECT NULL AS \"null\", 1 AS \"int\", 1.1 AS \"double\", 'foo' AS \"string\", x'53514C697465' AS \"data\"")
             var rowFetched = false
             while let row = try rows.next() {
                 rowFetched = true

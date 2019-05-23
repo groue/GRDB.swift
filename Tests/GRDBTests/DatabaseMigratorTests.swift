@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -14,14 +12,14 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE persons (
                     id INTEGER PRIMARY KEY,
                     name TEXT)
                 """)
         }
         migrator.registerMigration("createPets") { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE pets (
                     id INTEGER PRIMARY KEY,
                     masterID INTEGER NOT NULL
@@ -38,7 +36,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
         
         migrator.registerMigration("destroyPersons") { db in
-            try db.execute("DROP TABLE pets")
+            try db.execute(sql: "DROP TABLE pets")
         }
         
         try migrator.migrate(dbQueue)
@@ -53,14 +51,14 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE persons (
                     id INTEGER PRIMARY KEY,
                     name TEXT)
                 """)
         }
         migrator.registerMigration("createPets") { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE pets (
                     id INTEGER PRIMARY KEY,
                     masterID INTEGER NOT NULL
@@ -77,7 +75,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
         
         migrator.registerMigration("destroyPersons") { db in
-            try db.execute("DROP TABLE pets")
+            try db.execute(sql: "DROP TABLE pets")
         }
         
         try migrator.migrate(dbPool)
@@ -92,13 +90,13 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("a") { db in
-            try db.execute("CREATE TABLE a (id INTEGER PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE a (id INTEGER PRIMARY KEY)")
         }
         migrator.registerMigration("b") { db in
-            try db.execute("CREATE TABLE b (id INTEGER PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE b (id INTEGER PRIMARY KEY)")
         }
         migrator.registerMigration("c") { db in
-            try db.execute("CREATE TABLE c (id INTEGER PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE c (id INTEGER PRIMARY KEY)")
         }
         
         // one step
@@ -137,15 +135,15 @@ class DatabaseMigratorTests : GRDBTestCase {
     func testMigrationFailureTriggersRollback() throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT)")
-            try db.execute("CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
-            try db.execute("INSERT INTO persons (name) VALUES ('Arthur')")
+            try db.execute(sql: "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT)")
+            try db.execute(sql: "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
+            try db.execute(sql: "INSERT INTO persons (name) VALUES ('Arthur')")
         }
         migrator.registerMigration("foreignKeyError") { db in
-            try db.execute("INSERT INTO persons (name) VALUES ('Barbara')")
+            try db.execute(sql: "INSERT INTO persons (name) VALUES ('Barbara')")
             do {
                 // triggers immediate foreign key error:
-                try db.execute("INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [123, "Bobby"])
+                try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [123, "Bobby"])
                 XCTFail("Expected error")
             } catch {
                 throw error
@@ -169,7 +167,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [123, \"bobby\"]: foreign key constraint failed")
             
             let names = try dbQueue.inDatabase { db in
-                try String.fetchAll(db, "SELECT name FROM persons")
+                try String.fetchAll(db, sql: "SELECT name FROM persons")
             }
             XCTAssertEqual(names, ["Arthur"])
         }
@@ -183,25 +181,25 @@ class DatabaseMigratorTests : GRDBTestCase {
         #endif
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute("CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, tmp TEXT)")
-            try db.execute("CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
-            try db.execute("INSERT INTO persons (name) VALUES ('Arthur')")
+            try db.execute(sql: "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, tmp TEXT)")
+            try db.execute(sql: "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
+            try db.execute(sql: "INSERT INTO persons (name) VALUES ('Arthur')")
             let personId = db.lastInsertedRowID
-            try db.execute("INSERT INTO pets (masterId, name) VALUES (?, 'Bobby')", arguments:[personId])
+            try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, 'Bobby')", arguments:[personId])
         }
         migrator.registerMigrationWithDeferredForeignKeyCheck("removePersonTmpColumn") { db in
             // Test the technique described at https://www.sqlite.org/lang_altertable.html#otheralter
-            try db.execute("CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT)")
-            try db.execute("INSERT INTO new_persons SELECT id, name FROM persons")
-            try db.execute("DROP TABLE persons")
-            try db.execute("ALTER TABLE new_persons RENAME TO persons")
+            try db.execute(sql: "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT)")
+            try db.execute(sql: "INSERT INTO new_persons SELECT id, name FROM persons")
+            try db.execute(sql: "DROP TABLE persons")
+            try db.execute(sql: "ALTER TABLE new_persons RENAME TO persons")
         }
         migrator.registerMigrationWithDeferredForeignKeyCheck("foreignKeyError") { db in
             // Make sure foreign keys are checked at the end.
-            try db.execute("INSERT INTO persons (name) VALUES ('Barbara')")
+            try db.execute(sql: "INSERT INTO persons (name) VALUES ('Barbara')")
             do {
                 // triggers foreign key error, but not now.
-                try db.execute("INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [123, "Bobby"])
+                try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [123, "Bobby"])
             } catch {
                 XCTFail("Error not expected at this point")
             }
@@ -222,7 +220,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             
             try dbQueue.inDatabase { db in
                 // Arthur inserted (migration 1), Barbara (migration 3) not inserted.
-                var rows = try Row.fetchAll(db, "SELECT * FROM persons")
+                var rows = try Row.fetchAll(db, sql: "SELECT * FROM persons")
                 XCTAssertEqual(rows.count, 1)
                 var row = rows.first!
                 XCTAssertEqual(row["name"] as String, "Arthur")
@@ -231,7 +229,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 XCTAssertEqual(Array(row.columnNames), ["id", "name"])
                 
                 // Bobby inserted (migration 1), not deleted by migration 2.
-                rows = try Row.fetchAll(db, "SELECT * FROM pets")
+                rows = try Row.fetchAll(db, sql: "SELECT * FROM pets")
                 XCTAssertEqual(rows.count, 1)
                 row = rows.first!
                 XCTAssertEqual(row["name"] as String, "Bobby")
@@ -259,7 +257,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
         }
         migrator2.registerMigration("2") { db in
-            try db.execute("INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
+            try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
         }
         
         // Apply 1st migrator
@@ -288,7 +286,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         var witness = 1
         migrator.registerMigration("1") { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE t1(id INTEGER PRIMARY KEY);
                 INSERT INTO t1(id) VALUES (?)
                 """, arguments: [witness])
@@ -299,16 +297,16 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         // 1st migration
         try migrator.migrate(dbQueue)
-        try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, "SELECT id FROM t1") }, 1)
+        try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, sql: "SELECT id FROM t1") }, 1)
         
         // 2nd migration does not erase database
         migrator.registerMigration("2") { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE t2(id INTEGER PRIMARY KEY);
                 """)
         }
         try migrator.migrate(dbQueue)
-        try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, "SELECT id FROM t1") }, 1)
+        try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, sql: "SELECT id FROM t1") }, 1)
         try XCTAssertTrue(dbQueue.read { try $0.tableExists("t2") })
     }
 }

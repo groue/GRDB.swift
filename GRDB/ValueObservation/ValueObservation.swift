@@ -40,7 +40,7 @@ public enum ValueScheduling {
     ///
     /// An initial value is fetched and notified if `startImmediately`
     /// is true.
-    case onQueue(DispatchQueue, startImmediately: Bool)
+    case async(onQueue: DispatchQueue, startImmediately: Bool)
     
     /// Values are not all notified on the same dispatch queue.
     ///
@@ -88,12 +88,6 @@ public struct ValueObservation<Reducer> {
     /// Don't set this flag to true unless you really need it. A read/write
     /// observation is less efficient than a read-only observation.
     public var requiresWriteAccess: Bool = false
-    
-    /// The extent of the database observation. The default is
-    /// `.observerLifetime`: the observation lasts until the
-    /// observer returned by the `start(in:onError:onChange:)` method
-    /// is deallocated.
-    public var extent = Database.TransactionObservationExtent.observerLifetime
     
     /// `scheduling` controls how fresh values are notified. Default
     /// is `.mainQueue`.
@@ -157,7 +151,7 @@ public struct ValueObservation<Reducer> {
         switch scheduling {
         case .mainQueue:
             return DispatchQueue.main
-        case .onQueue(let queue, startImmediately: _):
+        case let .async(onQueue: queue, startImmediately: _):
             return queue
         case .unsafe:
             return nil
@@ -207,48 +201,6 @@ extension ValueObservation where Reducer: ValueReducer {
 extension ValueObservation {
     
     // MARK: - Creating ValueObservation from ValueReducer
-    
-    /// Returns a ValueObservation which observes *regions*, and notifies the
-    /// values returned by the *reducer* whenever one of the observed
-    /// regions is modified by a database transaction.
-    ///
-    /// This method is the most fundamental way to create a ValueObservation.
-    ///
-    /// For example, this observation counts the number of a times the player
-    /// table is modified:
-    ///
-    ///     var count = 0
-    ///     let reducer = AnyValueReducer(
-    ///         fetch: { _ in },
-    ///         value: { _ -> Int? in
-    ///             count += 1
-    ///             return count })
-    ///     let observation = ValueObservation.tracking(Player.all(), reducer: reducer)
-    ///     let observer = observation.start(in: dbQueue) { count: Int in
-    ///         print("Players have been modified \(count) times.")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(in:onError:onChange:)` method, a fresh
-    /// value is immediately notified on the main queue.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// - parameter regions: A list of observed regions.
-    /// - parameter reducer: A reducer that turns database changes in the
-    /// modified regions into fresh values. Currently only reducers that adopt
-    /// the ValueReducer protocol are supported.
-    @available(*, deprecated, message: "Provide the reducer in a (Database) -> Reducer closure")
-    public static func tracking(
-        _ regions: DatabaseRegionConvertible...,
-        reducer: Reducer)
-        -> ValueObservation
-    {
-        return ValueObservation.tracking(regions, reducer: { _ in reducer })
-    }
     
     /// Returns a ValueObservation which observes *regions*, and notifies the
     /// values returned by the *reducer* whenever one of the observed
@@ -405,41 +357,5 @@ extension ValueObservation where Reducer == Void {
         return ValueObservation<RawValueReducer<Value>>(
             tracking: DatabaseRegion.union(regions),
             reducer: { _ in RawValueReducer(fetch) })
-    }
-    
-    /// Creates a ValueObservation which observes *regions*, and notifies the
-    /// values returned by the *fetch* closure whenever one of the observed
-    /// regions is modified by a database transaction. Consecutive equal values
-    /// are filtered out.
-    ///
-    /// For example:
-    ///
-    ///     let observation = ValueObservation.tracking(
-    ///         Player.all(),
-    ///         fetchDistinct: { db in return try Player.fetchAll(db) })
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("Players have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(in:onError:onChange:)` method, a fresh
-    /// value is immediately notified on the main queue.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// - parameter regions: A list of observed regions.
-    /// - parameter fetch: A closure that fetches a value.
-    @available(*, deprecated, message: "Use distinctUntilChanged() instead")
-    public static func tracking<Value>(
-        _ regions: DatabaseRegionConvertible...,
-        fetchDistinct fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<DistinctUntilChangedValueReducer<RawValueReducer<Value>>>
-        where Value: Equatable
-    {
-        return ValueObservation.tracking(regions, fetch: fetch).distinctUntilChanged()
     }
 }

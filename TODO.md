@@ -24,7 +24,6 @@
 - [ ] Allow joining methods on DerivableRequest
 - [ ] DatabaseWriter.assertWriteAccess()
 - [ ] Configuration.crashOnError = true
-- [ ] Remove associated record from PersistenceError.recordNotFound. It should be possible, in userland, to write a method that throws this error without having a fully constructed record.
 - [ ] Support for "INSERT INTO ... SELECT ...". For example:
     
     ```swift
@@ -41,16 +40,21 @@
     ```
 - [ ] Consider renaming dbQueue.inDatabase, dbPool.writeWithoutTransaction -> dbQueue/Pool.exclusive
 - [ ] FetchedRecordsController diff algorithm: check https://github.com/RxSwiftCommunity/RxDataSources/issues/256
+- [ ] https://github.com/groue/GRDB.swift/issues/514
+- [ ] Look at the jazzy configuration of https://github.com/bignerdranch/Deferred
+- [ ] FTS: prefix queries
+- [ ] Test NOT TESTED methods
+- [ ] Update RxGRDB: https://github.com/RxSwiftCommunity/RxGRDB/pull/51
+- [ ] Update [GRDBObjc](https://github.com/groue/GRDBObjc)
+
+GRDB 4.0
+
+- [ ] Review @inlinable stuff
 
 Swift 4.2
 
-- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0210-key-path-offset.md
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0208-package-manager-system-library-targets.md
-- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0207-containsOnly.md
-- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0206-hashable-enhancements.md
-- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0202-random-unification.md
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0201-package-manager-local-dependencies.md
-- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0193-cross-module-inlining-and-specialization.md
 
 Not sure
 

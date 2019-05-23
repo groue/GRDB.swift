@@ -72,7 +72,7 @@ class FetchRecordStructTests: XCTestCase {
         
         measure {
             let items = try! dbQueue.inDatabase { db in
-                try ItemStruct.fetchAll(db, "SELECT * FROM items")
+                try ItemStruct.fetchAll(db, sql: "SELECT * FROM items")
             }
             XCTAssertEqual(items.count, expectedRowCount)
             XCTAssertEqual(items[0].i0, 0)
@@ -86,7 +86,7 @@ class FetchRecordStructTests: XCTestCase {
         // Here we test the loading of an array of Records.
         
         let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = FMDatabaseQueue(path: databasePath)
+        let dbQueue = FMDatabaseQueue(path: databasePath)!
         
         measure {
             var items = [ItemStruct]()

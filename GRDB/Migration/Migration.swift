@@ -17,7 +17,7 @@ struct Migration {
             self.migrate = migrate
         }
     
-        @available(iOS 8.2, OSX 10.10, *)
+        @available(OSX 10.10, *)
         // PRAGMA foreign_key_check was introduced in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
         // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         init(identifier: String, disabledForeignKeyChecks: Bool, migrate: @escaping (Database) throws -> Void) {
@@ -28,7 +28,7 @@ struct Migration {
     #endif
     
     func run(_ db: Database) throws {
-        if try disabledForeignKeyChecks && (Bool.fetchOne(db, "PRAGMA foreign_keys") ?? false) {
+        if try disabledForeignKeyChecks && (Bool.fetchOne(db, sql: "PRAGMA foreign_keys") ?? false) {
             try runWithDisabledForeignKeys(db)
         } else {
             try runWithoutDisabledForeignKeys(db)
@@ -50,7 +50,7 @@ struct Migration {
         //
         // > 1. If foreign key constraints are enabled, disable them using
         // > PRAGMA foreign_keys=OFF.
-        try db.execute("PRAGMA foreign_keys = OFF")
+        try db.execute(sql: "PRAGMA foreign_keys = OFF")
         
         // > 2. Start a transaction.
         try db.inTransaction(.immediate) {
@@ -60,7 +60,7 @@ struct Migration {
             // > 10. If foreign key constraints were originally enabled then run PRAGMA
             // > foreign_key_check to verify that the schema change did not break any foreign key
             // > constraints.
-            if try Row.fetchOne(db, "PRAGMA foreign_key_check") != nil {
+            if try Row.fetchOne(db, sql: "PRAGMA foreign_key_check") != nil {
                 // https://www.sqlite.org/pragma.html#pragma_foreign_key_check
                 //
                 // PRAGMA foreign_key_check does not return an error,
@@ -76,10 +76,10 @@ struct Migration {
         }
         
         // > 12. If foreign keys constraints were originally enabled, reenable them now.
-        try db.execute("PRAGMA foreign_keys = ON")
+        try db.execute(sql: "PRAGMA foreign_keys = ON")
     }
     
     private func insertAppliedIdentifier(_ db: Database) throws {
-        try db.execute("INSERT INTO grdb_migrations (identifier) VALUES (?)", arguments: [identifier])
+        try db.execute(sql: "INSERT INTO grdb_migrations (identifier) VALUES (?)", arguments: [identifier])
     }
 }

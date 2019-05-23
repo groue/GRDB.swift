@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -23,7 +21,7 @@ private class Person : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute("""
+        try db.execute(sql: """
             CREATE TABLE persons (
                 creationDate TEXT NOT NULL,
                 name TEXT NOT NULL,
@@ -89,7 +87,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             try record.insert(db)
             XCTAssertTrue(record.id != nil)
             
-            let row = try Row.fetchOne(db, "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -102,7 +100,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             try record.insert(db)
             XCTAssertTrue(record.id != nil)
             
-            let row = try Row.fetchOne(db, "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
             return .rollback
         }
@@ -116,7 +114,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             let record = Person(id: 123456, name: "Arthur")
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -154,7 +152,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             try record.delete(db)
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -169,8 +167,10 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "persons")
+                XCTAssertEqual(key, ["rowid": .null])
             }
         }
     }
@@ -182,8 +182,10 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "persons")
+                XCTAssertEqual(key, ["rowid": record.id.databaseValue])
             }
         }
     }
@@ -196,7 +198,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             record.age = record.age! + 1
             try record.update(db)
             
-            let row = try Row.fetchOne(db, "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -210,8 +212,10 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "persons")
+                XCTAssertEqual(key, ["rowid": record.id.databaseValue])
             }
         }
     }
@@ -227,7 +231,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             try record.save(db)
             XCTAssertTrue(record.id != nil)
             
-            let row = try Row.fetchOne(db, "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -238,7 +242,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             let record = Person(id: 123456, name: "Arthur")
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -253,7 +257,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             record.age = record.age! + 1
             try record.save(db)   // Actual update
             
-            let row = try Row.fetchOne(db, "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -266,7 +270,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             try record.delete(db)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT *, rowid FROM persons WHERE rowid = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -300,7 +304,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             let deleted = try record.delete(db)
             XCTAssertTrue(deleted)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM persons WHERE rowid = ?", arguments: [record.id])
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM persons WHERE rowid = ?", arguments: [record.id])
             XCTAssertTrue(row == nil)
         }
     }
@@ -387,6 +391,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             XCTAssertTrue(fetchedRecord.name == record.name)
             XCTAssertTrue(fetchedRecord.age == record.age)
             XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+            XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE (\"rowid\" = \(record.id!))")
         }
     }
 
@@ -460,6 +465,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             XCTAssertTrue(fetchedRecord.name == record.name)
             XCTAssertTrue(fetchedRecord.age == record.age)
             XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+            XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE (\"rowid\" = \(record.id!))")
         }
     }
     
@@ -543,6 +549,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertTrue(fetchedRecord.name == record.name)
                 XCTAssertTrue(fetchedRecord.age == record.age)
                 XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE (\"rowid\" = \(record.id!))")
             }
         }
     }
@@ -615,6 +622,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertTrue(fetchedRecord.name == record.name)
                 XCTAssertTrue(fetchedRecord.age == record.age)
                 XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE (\"rowid\" = \(record.id!))")
             }
         }
     }

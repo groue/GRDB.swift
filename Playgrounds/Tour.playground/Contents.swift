@@ -9,7 +9,7 @@
 //: Tour
 //: ======
 //:
-//: This playground is a tour of GRDB.
+//: This playground is a quick tour of GRDB.
 
 import GRDB
 import CoreLocation
@@ -26,44 +26,45 @@ let dbQueue = DatabaseQueue(configuration: configuration)
 //: Execute SQL queries
 
 try dbQueue.inDatabase { db in
-    try db.execute(
-        "CREATE TABLE pointOfInterests (" +
-            "id INTEGER PRIMARY KEY, " +
-            "title TEXT, " +
-            "favorite BOOLEAN NOT NULL, " +
-            "latitude DOUBLE NOT NULL, " +
-            "longitude DOUBLE NOT NULL" +
-        ")")
+    try db.execute(sql: """
+        CREATE TABLE place (
+            id INTEGER PRIMARY KEY,
+            title TEXT,
+            favorite BOOLEAN NOT NULL,
+            latitude DOUBLE NOT NULL,
+            longitude DOUBLE NOT NULL
+        )
+        """)
     
-    try db.execute(
-        "INSERT INTO pointOfInterests (title, favorite, latitude, longitude) " +
-        "VALUES (?, ?, ?, ?)",
-        arguments: ["Paris", true, 48.85341, 2.3488])
+    try db.execute(sql: """
+        INSERT INTO place (title, favorite, latitude, longitude)
+        VALUES (?, ?, ?, ?)
+        """, arguments: ["Paris", true, 48.85341, 2.3488])
     let parisId = db.lastInsertedRowID
 }
 
 
 //: Fetch database rows and values
 
-try dbQueue.inDatabase { db in
-    let rows = try Row.fetchCursor(db, "SELECT * FROM pointOfInterests")
+try! dbQueue.inDatabase { db in
+    let rows = try Row.fetchCursor(db, sql: "SELECT * FROM place")
     while let row = try rows.next() {
         let title: String = row["title"]
         let favorite: Bool = row["favorite"]
-        let coordinate = CLLocationCoordinate2DMake(
-            row["latitude"],
-            row["longitude"])
+        let coordinate = CLLocationCoordinate2D(
+            latitude: row["latitude"],
+            longitude: row["longitude"])
         print("Fetched", title, favorite, coordinate)
     }
     
-    let poiCount = try Int.fetchOne(db, "SELECT COUNT(*) FROM pointOfInterests")! // Int
-    let poiTitles = try String.fetchAll(db, "SELECT title FROM pointOfInterests") // [String]
+    let placeCount = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM place")! // Int
+    let placeTitles = try String.fetchAll(db, sql: "SELECT title FROM place") // [String]
 }
 
 
 //: Insert and fetch records
 
-struct PointOfInterest {
+struct Place {
     var id: Int64?
     var title: String?
     var favorite: Bool
@@ -71,7 +72,7 @@ struct PointOfInterest {
 }
 
 // Adopt FetchableRecord
-extension PointOfInterest : FetchableRecord {
+extension Place : FetchableRecord {
     init(row: Row) {
         id = row["id"]
         title = row["title"]
@@ -83,12 +84,12 @@ extension PointOfInterest : FetchableRecord {
 }
 
 // Adopt TableRecord
-extension PointOfInterest : TableRecord {
-    static let databaseTableName = "pointOfInterests"
+extension Place : TableRecord {
+    static let databaseTableName = "place"
 }
 
 // Adopt MutablePersistableRecord
-extension PointOfInterest : MutablePersistableRecord {
+extension Place : MutablePersistableRecord {
     func encode(to container: inout PersistenceContainer) {
         container["id"] = id
         container["title"] = title
@@ -103,7 +104,7 @@ extension PointOfInterest : MutablePersistableRecord {
 }
 
 try dbQueue.inDatabase { db in
-    var berlin = PointOfInterest(
+    var berlin = Place(
         id: nil,
         title: "Berlin",
         favorite: false,
@@ -116,7 +117,7 @@ try dbQueue.inDatabase { db in
     try berlin.update(db)
     
     // Fetch from SQL
-    let pois = try PointOfInterest.fetchAll(db, "SELECT * FROM pointOfInterests") // [PointOfInterest]
+    let places = try Place.fetchAll(db, sql: "SELECT * FROM place") // [Place]
     
     
     //: Avoid SQL with the query interface:
@@ -124,10 +125,10 @@ try dbQueue.inDatabase { db in
     let title = Column("title")
     let favorite = Column("favorite")
     
-    berlin = try PointOfInterest.filter(title == "Berlin").fetchOne(db)!   // PointOfInterest
-    let paris = try PointOfInterest.fetchOne(db, key: 1)                   // PointOfInterest?
-    let favoritePois = try PointOfInterest                                 // [PointOfInterest]
-        .filter(favorite)
+    berlin = try Place.filter(title == "Berlin").fetchOne(db)!   // Place
+    let paris = try Place.fetchOne(db, key: 1)                   // Place?
+    let favoritePlaces = try Place                               // [Place]
+        .filter(favorite == true)
         .order(title)
         .fetchAll(db)
 }

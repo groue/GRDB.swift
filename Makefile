@@ -14,11 +14,9 @@ default: test
 # ============
 #
 # Xcode >= 9.0, with iOS8.1 Simulator installed
-# CocoaPods ~> 1.2.0 - https://cocoapods.org
-# Carthage ~> 0.20.1 - https://github.com/carthage/carthage
+# CocoaPods ~> 1.6.0 - https://cocoapods.org
 # Jazzy ~> 0.7.4 - https://github.com/realm/jazzy
 
-CARTHAGE := $(shell command -v carthage)
 GIT := $(shell command -v git)
 JAZZY := $(shell command -v jazzy)
 POD := $(shell command -v pod)
@@ -51,25 +49,18 @@ endif
 TEST_ACTIONS = clean build build-for-testing test-without-building
 
 # When adding support for an Xcode version, look for available devices with `instruments -s devices`
-ifeq ($(XCODEVERSION),10.1)
-  MIN_SWIFT_VERSION = 4.0
+ifeq ($(XCODEVERSION),10.2)
+  MAX_SWIFT_VERSION = 5
+  MIN_SWIFT_VERSION = 4.2
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone XS,OS=12.2"
+  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
+else ifeq ($(XCODEVERSION),10.1)
   MAX_SWIFT_VERSION = 4.2
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone XS,OS=12.1"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
 else ifeq ($(XCODEVERSION),10.0)
-  MIN_SWIFT_VERSION = 4.0
   MAX_SWIFT_VERSION = 4.2
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=12.0"
-  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
-else ifeq ($(XCODEVERSION),9.4)
-  # MIN_SWIFT_VERSION undefined: only check MAX_SWIFT_VERSION
-  MAX_SWIFT_VERSION = 4.0
-  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.4"
-  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
-else ifeq ($(XCODEVERSION),9.3)
-  # MIN_SWIFT_VERSION undefined: only check MAX_SWIFT_VERSION
-  MAX_SWIFT_VERSION = 4.0
-  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=11.3"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
 else
   # Swift 4.1 required: Xcode < 9.3 is not supported
@@ -108,12 +99,12 @@ endif
 test: test_framework test_install
 
 test_framework: test_framework_darwin
-test_framework_darwin: test_framework_GRDB test_framework_GRDBCustom test_framework_GRDBCipher test_SPM
+test_framework_darwin: test_framework_GRDB test_framework_GRDBCustom test_framework_SQLCipher test_SPM
 test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_framework_GRDBiOS
 test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRDBCustomSQLiteiOS
-test_framework_GRDBCipher: test_framework_GRDBCipherOSX test_framework_GRDBCipheriOS
-test_install: test_install_manual test_install_GRDBCipher test_install_SPM test_install_GRDB_CocoaPods test_install_GRDBCipher_CocoaPods test_CocoaPodsLint
-test_CocoaPodsLint: test_CocoaPodsLint_GRDB test_CocoaPodsLint_GRDBCipher
+test_framework_SQLCipher: test_framework_SQLCipher3 test_framework_SQLCipher4
+test_install: test_install_manual test_install_SPM test_install_GRDB_CocoaPods test_CocoaPodsLint
+test_CocoaPodsLint: test_CocoaPodsLint_GRDB
 
 test_framework_GRDBOSX: test_framework_GRDBOSX_maxSwift test_framework_GRDBOSX_minSwift
 
@@ -224,33 +215,35 @@ test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
-test_framework_GRDBCipherOSX: SQLCipher
+test_framework_SQLCipher3:
+ifdef POD
+	cd Tests/CocoaPods/SQLCipher3 && \
+	$(POD) install && \
 	$(XCODEBUILD) \
-	  -project GRDBCipher.xcodeproj \
-	  -scheme GRDBCipherOSX \
+	  -workspace GRDBTests.xcworkspace \
+	  -scheme GRDBTests \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  $(TEST_ACTIONS) \
+	  build-for-testing test-without-building \
 	  $(XCPRETTY)
+else
+	@echo CocoaPods must be installed for test_framework_SQLCipher3
+	@exit 1
+endif
 
-test_framework_GRDBCipheriOS: test_framework_GRDBCipheriOS_maxTarget test_framework_GRDBCipheriOS_minTarget
-
-test_framework_GRDBCipheriOS_maxTarget: SQLCipher
+test_framework_SQLCipher4:
+ifdef POD
+	cd Tests/CocoaPods/SQLCipher4 && \
+	$(POD) install && \
 	$(XCODEBUILD) \
-	  -project GRDBCipher.xcodeproj \
-	  -scheme GRDBCipheriOS \
-	  -destination $(MAX_IOS_DESTINATION) \
+	  -workspace GRDBTests.xcworkspace \
+	  -scheme GRDBTests \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  $(TEST_ACTIONS) \
+	  build-for-testing test-without-building \
 	  $(XCPRETTY)
-
-test_framework_GRDBCipheriOS_minTarget: SQLCipher
-	$(XCODEBUILD) \
-	  -project GRDBCipher.xcodeproj \
-	  -scheme GRDBCipheriOS \
-	  -destination $(MIN_IOS_DESTINATION) \
-	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  $(TEST_ACTIONS) \
-	  $(XCPRETTY)
+else
+	@echo CocoaPods must be installed for test_framework_SQLCipher4
+	@exit 1
+endif
 
 test_SPM:
 	# Add sanitizers when available: https://twitter.com/simjp/status/929140877540278272
@@ -263,15 +256,6 @@ test_install_manual:
 	$(XCODEBUILD) \
 	  -project DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
 	  -scheme GRDBDemoiOS \
-	  -configuration Release \
-	  -destination $(MAX_IOS_DESTINATION) \
-	  clean build \
-	  $(XCPRETTY)
-
-test_install_GRDBCipher: SQLCipher
-	$(XCODEBUILD) \
-	  -project Tests/GRDBCipher/GRDBiOS/GRDBiOS.xcodeproj \
-	  -scheme GRDBiOS \
 	  -configuration Release \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  clean build \
@@ -291,9 +275,6 @@ test_install_SPM:
 test_install_GRDB_CocoaPods:
 ifdef POD
 	cd Tests/CocoaPods/GRDBiOS && \
-	rm -rf iOS.xcworkspace && \
-	rm -rf Pods && \
-	rm -rf Podfile.lock && \
 	$(POD) install && \
 	$(XCODEBUILD) \
 	  -workspace iOS.xcworkspace \
@@ -307,53 +288,11 @@ else
 	@exit 1
 endif
 
-test_install_GRDBCipher_CocoaPods:
-ifdef POD
-	cd Tests/CocoaPods/GRDBCipherMacOS && \
-	rm -rf GRDBCipherMacOS.xcworkspace && \
-	rm -rf Pods && \
-	rm -rf Podfile.lock && \
-	$(POD) install && \
-	$(XCODEBUILD) \
-	  -workspace GRDBCipherMacOS.xcworkspace \
-	  -scheme GRDBCipherMacOS \
-	  -configuration Release \
-	  clean build \
-	  $(XCPRETTY)
-else
-	@echo CocoaPods must be installed for test_install_GRDBCipher_CocoaPods
-	@exit 1
-endif
-
 test_CocoaPodsLint_GRDB:
 ifdef POD
 	$(POD) lib lint GRDB.swift.podspec --allow-warnings $(COCOAPODS_EXTRA_TIME)
 else
 	@echo CocoaPods must be installed for test_CocoaPodsLint_GRDB
-	@exit 1
-endif
-
-test_CocoaPodsLint_GRDBCipher:
-ifdef POD
-	$(POD) lib lint GRDBCipher.podspec --allow-warnings $(COCOAPODS_EXTRA_TIME)
-else
-	@echo CocoaPods must be installed for test_CocoaPodsLint_GRDBCipher
-	@exit 1
-endif
-
-test_CarthageBuild: SQLiteCustom SQLCipher
-ifdef CARTHAGE
-	rm -rf Carthage
-	$(CARTHAGE) build --no-skip-current
-	$(XCODEBUILD) \
-	  -project Tests/Carthage/GRDBiOS/iOS.xcodeproj \
-	  -scheme iOS \
-	  -configuration Release \
-	  -destination $(MAX_IOS_DESTINATION) \
-	  clean build \
-	  $(XCPRETTY)
-else
-	@echo Carthage must be installed for test_CarthageBuild
 	@exit 1
 endif
 
@@ -363,14 +302,14 @@ test_performance: Realm FMDB SQLite.swift
 	  -scheme GRDBOSXPerformanceComparisonTests \
 	  build-for-testing test-without-building
 
-Realm: Tests/Performance/Realm/build/osx/swift-4.2.1/RealmSwift.framework
+Realm: Tests/Performance/Realm/build/osx/swift-10.2.1/RealmSwift.framework
 
 # Makes sure the Tests/Performance/Realm submodule has been downloaded, and Realm framework has been built.
-Tests/Performance/Realm/build/osx/swift-4.2.1/RealmSwift.framework:
+Tests/Performance/Realm/build/osx/swift-10.2.1/RealmSwift.framework:
 	$(GIT) submodule update --init --recursive Tests/Performance/Realm
 	cd Tests/Performance/Realm && sh build.sh osx-swift
 
-FMDB: Tests/Performance/fmdb/FMDatabase.h
+FMDB: Tests/Performance/fmdb/src/fmdb/FMDatabase.h
 
 # Makes sure the Tests/Performance/fmdb submodule has been downloaded
 Tests/Performance/fmdb/FMDatabase.h:
@@ -397,13 +336,6 @@ SQLiteCustom: SQLiteCustom/src/sqlite3.h
 SQLiteCustom/src/sqlite3.h:
 	$(GIT) submodule update --init SQLiteCustom/src
 
-# Target that setups SQLCipher
-SQLCipher: SQLCipher/src/sqlite3.h
-
-# Makes sure the SQLCipher/src submodule has been downloaded
-SQLCipher/src/sqlite3.h:
-	$(GIT) submodule update --init SQLCipher/src
-
 
 # Documentation
 # =============
@@ -415,10 +347,10 @@ ifdef JAZZY
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
 	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v3.7.0 \
-	  --module-version 3.7 \
+	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v4.0.0 \
+	  --module-version 4.0 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/3.7/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/4.0/ \
 	  --output Documentation/Reference \
 	  --xcodebuild-arguments -project,GRDB.xcodeproj,-scheme,GRDBiOS
 else
@@ -436,15 +368,13 @@ distclean:
 	rm -rf Tests/Performance/fmdb && $(GIT) checkout -- Tests/Performance/fmdb
 	rm -rf Tests/Performance/SQLite.swift && $(GIT) checkout -- Tests/Performance/SQLite.swift
 	rm -rf Tests/Performance/Realm && $(GIT) checkout -- Tests/Performance/Realm
-	rm -rf SQLCipher/src && $(GIT) checkout -- SQLCipher/src
 	rm -rf SQLiteCustom/src && $(GIT) checkout -- SQLiteCustom/src
 
 clean:
 	$(SWIFT) package reset
 	cd Tests/SPM && $(SWIFT) package reset
 	rm -rf Documentation/Reference
-	if [ -d SQLCipher/src ]; then cd SQLCipher/src && $(GIT) clean -f; fi
 	if [ -a Tests/Performance/Realm/build.sh ]; then cd Tests/Performance/Realm && sh build.sh clean; fi
 	find . -name Package.resolved | xargs rm -f
 
-.PHONY: distclean clean doc test SQLCipher SQLiteCustom
+.PHONY: distclean clean doc test SQLiteCustom

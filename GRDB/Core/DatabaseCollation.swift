@@ -1,6 +1,8 @@
 import Foundation
 #if SWIFT_PACKAGE
     import CSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
     import SQLite3
 #endif
@@ -16,7 +18,7 @@ public final class DatabaseCollation {
     ///         return (string1 as NSString).localizedStandardCompare(string2)
     ///     }
     ///     db.add(collation: collation)
-    ///     try db.execute("CREATE TABLE file (name TEXT COLLATE localized_standard")
+    ///     try db.execute(sql: "CREATE TABLE file (name TEXT COLLATE localized_standard")
     ///
     /// - parameters:
     ///     - name: The function name.
@@ -39,17 +41,10 @@ extension DatabaseCollation: Hashable {
     // implies hash equality) is thus non trivial. But it's not that
     // important, since this hashValue is only used when one adds
     // or removes a collation from a database connection.
-    #if swift(>=4.2)
     /// :nodoc:
     public func hash(into hasher: inout Hasher) {
         hasher.combine(0)
     }
-    #else
-    /// :nodoc:
-    public var hashValue: Int {
-        return 0
-    }
-    #endif
     
     /// Two collations are equal if they share the same name (case insensitive)
     /// :nodoc:

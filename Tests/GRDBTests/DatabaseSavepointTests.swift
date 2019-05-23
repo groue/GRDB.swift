@@ -1,19 +1,17 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
 #endif
 
 func insertItem(_ db: Database, name: String) throws {
-    try db.execute("INSERT INTO items (name) VALUES (?)", arguments: [name])
+    try db.execute(sql: "INSERT INTO items (name) VALUES (?)", arguments: [name])
 }
 
 func fetchAllItemNames(_ dbReader: DatabaseReader) throws -> [String] {
     return try dbReader.read { db in
-        try String.fetchAll(db, "SELECT * FROM items ORDER BY name")
+        try String.fetchAll(db, sql: "SELECT * FROM items ORDER BY name")
     }
 }
 
@@ -53,7 +51,7 @@ class DatabaseSavepointTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
-            try db.execute("CREATE TABLE items (name TEXT)")
+            try db.execute(sql: "CREATE TABLE items (name TEXT)")
         }
     }
     
@@ -67,24 +65,24 @@ class DatabaseSavepointTests: GRDBTestCase {
             }
             XCTAssertFalse(db.isInsideTransaction)
             
-            try db.execute("BEGIN DEFERRED TRANSACTION")
+            try db.execute(sql: "BEGIN DEFERRED TRANSACTION")
             XCTAssertTrue(db.isInsideTransaction)
-            try db.execute("COMMIT")    // does not trigger sqlite3_commit_hook, because transaction was not open yet.
+            try db.execute(sql: "COMMIT")    // does not trigger sqlite3_commit_hook, because transaction was not open yet.
             XCTAssertFalse(db.isInsideTransaction)
             
-            try db.execute("BEGIN DEFERRED TRANSACTION")
+            try db.execute(sql: "BEGIN DEFERRED TRANSACTION")
             XCTAssertTrue(db.isInsideTransaction)
-            try db.execute("ROLLBACK")  // does trigger sqlite3_rollback_hook
+            try db.execute(sql: "ROLLBACK")  // does trigger sqlite3_rollback_hook
             XCTAssertFalse(db.isInsideTransaction)
             
-            try db.execute("BEGIN IMMEDIATE TRANSACTION")
+            try db.execute(sql: "BEGIN IMMEDIATE TRANSACTION")
             XCTAssertTrue(db.isInsideTransaction)
-            try db.execute("COMMIT")    // does trigger sqlite3_commit_hook
+            try db.execute(sql: "COMMIT")    // does trigger sqlite3_commit_hook
             XCTAssertFalse(db.isInsideTransaction)
             
-            try db.execute("BEGIN IMMEDIATE TRANSACTION")
+            try db.execute(sql: "BEGIN IMMEDIATE TRANSACTION")
             XCTAssertTrue(db.isInsideTransaction)
-            try db.execute("ROLLBACK")
+            try db.execute(sql: "ROLLBACK")
             XCTAssertFalse(db.isInsideTransaction)
         }
     }
@@ -95,13 +93,13 @@ class DatabaseSavepointTests: GRDBTestCase {
             try db.create(table: "test") { t in
                 t.column("value", .integer).unique()
             }
-            try db.execute("BEGIN TRANSACTION")
+            try db.execute(sql: "BEGIN TRANSACTION")
             XCTAssertTrue(db.isInsideTransaction)
-            try db.execute("INSERT INTO test (value) VALUES (?)", arguments: [1])
+            try db.execute(sql: "INSERT INTO test (value) VALUES (?)", arguments: [1])
             XCTAssertTrue(db.isInsideTransaction)
-            XCTAssertThrowsError(try db.execute("INSERT OR ROLLBACK INTO test (value) VALUES (?)", arguments: [1]))
+            XCTAssertThrowsError(try db.execute(sql: "INSERT OR ROLLBACK INTO test (value) VALUES (?)", arguments: [1]))
             XCTAssertFalse(db.isInsideTransaction)
-            XCTAssertThrowsError(try db.execute("COMMIT"))
+            XCTAssertThrowsError(try db.execute(sql: "COMMIT"))
         }
     }
 
@@ -205,7 +203,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 5)
         #endif
-        try dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
+        try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
         observer.reset()
         
         sqlQueries.removeAll()
@@ -242,7 +240,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 2)
         #endif
-        try dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
+        try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
         observer.reset()
         
         sqlQueries.removeAll()
@@ -280,7 +278,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 4)
         #endif
-        try dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
+        try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
         observer.reset()
         
         sqlQueries.removeAll()
@@ -318,7 +316,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 2)
         #endif
-        try dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
+        try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
         observer.reset()
     }
 
@@ -421,7 +419,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 5)
         #endif
-        try dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
+        try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
         observer.reset()
         
         sqlQueries.removeAll()
@@ -458,7 +456,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 5)
         #endif
-        try dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
+        try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
         observer.reset()
         
         sqlQueries.removeAll()
@@ -496,7 +494,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 4)
         #endif
-        try dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
+        try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
         observer.reset()
         
         sqlQueries.removeAll()
@@ -534,7 +532,7 @@ class DatabaseSavepointTests: GRDBTestCase {
         #if SQLITE_ENABLE_PREUPDATE_HOOK
             XCTAssertEqual(observer.allRecordedPreUpdateEvents.count, 4)
         #endif
-        try dbQueue.inDatabase { db in try db.execute("DELETE FROM items") }
+        try dbQueue.inDatabase { db in try db.execute(sql: "DELETE FROM items") }
         observer.reset()
     }
 

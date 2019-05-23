@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -99,7 +97,7 @@ private struct FlatModel: FetchableRecord {
     }
     
     static func all() -> AdaptedFetchRequest<SQLRequest<FlatModel>> {
-        return SQLRequest<FlatModel>(testedSQL).adapted { db in
+        return SQLRequest<FlatModel>(sql: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -115,7 +113,7 @@ private struct FlatModel: FetchableRecord {
     }
     
     static func hierarchicalAll() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
-        return SQLRequest<CodableFlatModel>(testedSQL).adapted { db in
+        return SQLRequest<CodableFlatModel>(sql: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -140,7 +138,7 @@ private struct CodableFlatModel: FetchableRecord, Codable {
     var t5count: Int
     
     static func all() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
-        return SQLRequest<CodableFlatModel>(testedSQL).adapted { db in
+        return SQLRequest<CodableFlatModel>(sql: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -155,7 +153,7 @@ private struct CodableFlatModel: FetchableRecord, Codable {
     }
     
     static func hierarchicalAll() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
-        return SQLRequest<CodableFlatModel>(testedSQL).adapted { db in
+        return SQLRequest<CodableFlatModel>(sql: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -183,7 +181,7 @@ private struct CodableNestedModel: FetchableRecord, Codable {
     var t5count: Int
     
     static func all() -> AdaptedFetchRequest<SQLRequest<CodableNestedModel>> {
-        return SQLRequest<CodableNestedModel>(testedSQL).adapted { db in
+        return SQLRequest<CodableNestedModel>(sql: testedSQL).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -235,7 +233,7 @@ class JoinSupportTests: GRDBTestCase {
             
             // Sample data
             
-            try db.execute("""
+            try db.execute(sql: """
                 INSERT INTO t1 (id, name) VALUES (1, 'A1');
                 INSERT INTO t1 (id, name) VALUES (2, 'A2');
                 INSERT INTO t1 (id, name) VALUES (3, 'A3');
@@ -259,7 +257,7 @@ class JoinSupportTests: GRDBTestCase {
     func testSampleData() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let rows = try Row.fetchAll(db, expectedSQL)
+            let rows = try Row.fetchAll(db, sql: expectedSQL)
             XCTAssertEqual(rows.count, 3)
             XCTAssertEqual(rows[0], [
                 // t1.*
@@ -304,7 +302,7 @@ class JoinSupportTests: GRDBTestCase {
     func testSplittingRowAdapters() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<Row>(testedSQL).adapted { db in
+            let request = SQLRequest<Row>(sql: testedSQL).adapted { db in
                 let adapters = try splittingRowAdapters(columnCounts: [
                     T1.numberOfSelectedColumns(db),
                     T2.numberOfSelectedColumns(db),

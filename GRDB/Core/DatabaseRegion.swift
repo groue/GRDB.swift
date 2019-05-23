@@ -3,8 +3,7 @@
 /// `observes(eventsOfKind:)` and `databaseDidChange(with:)` methods.
 ///
 /// A database region is the union of any number of "table regions", which can
-/// cover a full table, or the combination of columns and rows (identified by
-/// their rowids):
+/// cover a full table, or the combination of columns and rows:
 ///
 ///     |Table1 |   |Table2 |   |Table3 |   |Table4 |   |Table5 |
 ///     |-------|   |-------|   |-------|   |-------|   |-------|
@@ -13,32 +12,23 @@
 ///     |x|x|x|x|   |x| | | |   | | | | |   |x|x| |x|   | | | | |
 ///     |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | | | | |
 ///
-/// You don't create a database region directly. Instead, you use one of
-/// those methods:
+/// To create a database region, you use one of those methods:
+///
+/// - `DatabaseRegion.fullDatabase`: the region that covers all database tables.
+///
+/// - `DatabaseRegion()`: the empty region.
+///
+/// - `DatabaseRegion(table:)`: the region that covers one database table.
 ///
 /// - `SelectStatement.databaseRegion`:
 ///
-///         let statement = db.makeSelectStatement("SELECT name, score FROM player")
-///         print(statement.databaseRegion)
-///         // prints "player(name,score)"
+///         let statement = try db.makeSelectStatement(sql: "SELECT name, score FROM player")
+///         let region = statement.databaseRegion
 ///
 /// - `FetchRequest.databaseRegion(_:)`
 ///
 ///         let request = Player.filter(key: 1)
-///         try print(request.databaseRegion(db))
-///         // prints "player(*)[1]"
-///
-/// Database regions returned by requests can be more precise than regions
-/// returned by select statements. Especially, regions returned by statements
-/// don't know about rowids:
-///
-///     // A plain statement
-///     let statement = db.makeSelectStatement("SELECT * FROM player WHERE id = 1")
-///     statement.databaseRegion       // "player(*)"
-///
-///     // A query interface request that executes the same statement:
-///     let request = Player.filter(key: 1)
-///     try request.databaseRegion(db) // "player(*)[1]"
+///         let region = try request.databaseRegion(db)
 public struct DatabaseRegion: CustomStringConvertible, Equatable {
     private let tableRegions: [String: TableRegion]?
     private init(tableRegions: [String: TableRegion]?) {
@@ -58,13 +48,15 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
     /// from all tables.
     public static let fullDatabase = DatabaseRegion(tableRegions: nil)
     
-    /// The empty database region
+    /// Creates an empty database region.
     public init() {
         self.init(tableRegions: [:])
     }
     
-    /// A full table: (all columns in the table) × (all rows)
-    init(table: String) {
+    /// Creates a region that spans all rows and columns of a database table.
+    ///
+    /// - parameter table: A table name.
+    public init(table: String) {
         self.init(tableRegions: [table: TableRegion(columns: nil, rowIds: nil)])
     }
     
@@ -302,7 +294,6 @@ private struct TableRegion: Equatable {
         return TableRegion(columns: columnsUnion, rowIds: rowIdsUnion)
     }
     
-    @inline(__always)
     func contains(rowID: Int64) -> Bool {
         guard let rowIds = rowIds else {
             return true

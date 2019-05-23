@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -19,7 +17,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-            let row = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
             
             var columnNames = [String]()
             var ints = [Int]()
@@ -40,7 +38,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-            let row = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
             
             // Raw extraction
             assertRowRawValueEqual(row, index: 0, value: 0 as Int64)
@@ -68,7 +66,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-            let row = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
             
             // Raw extraction
             assertRowRawValueEqual(row, name: "a", value: 0 as Int64)
@@ -91,7 +89,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-            let row = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
             
             // Raw extraction
             assertRowRawValueEqual(row, column: Column("a"), value: 0 as Int64)
@@ -116,7 +114,7 @@ class AdapterRowTests : RowTestCase {
             let data = "foo".data(using: .utf8)!
             let emptyData = Data()
             let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-            let row = try Row.fetchOne(db, "SELECT ? AS basea, ? AS baseb, ? AS basec", arguments: [data, emptyData, nil], adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT ? AS basea, ? AS baseb, ? AS basec", arguments: [data, emptyData, nil], adapter: adapter)!
             
             XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
             XCTAssertEqual(row.dataNoCopy(named: "a"), data)
@@ -136,7 +134,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["null": "basenull", "int64": "baseint64", "double": "basedouble", "string": "basestring", "blob": "baseblob"])
-            let row = try Row.fetchOne(db, "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
             
             guard case .null = (row[0] as DatabaseValue).storage else { XCTFail(); return }
             guard case .int64(let int64) = (row[1] as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
@@ -150,7 +148,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["null": "basenull", "int64": "baseint64", "double": "basedouble", "string": "basestring", "blob": "baseblob"])
-            let row = try Row.fetchOne(db, "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
             
             guard case .null = (row["null"] as DatabaseValue).storage else { XCTFail(); return }
             guard case .int64(let int64) = (row["int64"] as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
@@ -164,7 +162,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-            let row = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
             
             XCTAssertEqual(row.count, 3)
         }
@@ -174,7 +172,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-            let row = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
             
             XCTAssertEqual(Array(row.columnNames), ["a", "b", "c"])
         }
@@ -184,7 +182,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
-            let row = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
             
             XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue, 2.databaseValue])
         }
@@ -194,7 +192,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["nAmE": "basenAmE"])
-            let row = try Row.fetchOne(db, "SELECT 'foo' AS basenAmE, 'XXX' AS extra", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 'foo' AS basenAmE, 'XXX' AS extra", adapter: adapter)!
             
             XCTAssertEqual(row["name"] as DatabaseValue, "foo".databaseValue)
             XCTAssertEqual(row["NAME"] as DatabaseValue, "foo".databaseValue)
@@ -209,7 +207,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["name": "basename", "NAME": "baseNAME"])
-            let row = try Row.fetchOne(db, "SELECT 1 AS basename, 'XXX' AS extra, 2 AS baseNAME", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 1 AS basename, 'XXX' AS extra, 2 AS baseNAME", adapter: adapter)!
             
             XCTAssertEqual(row["name"] as DatabaseValue, 1.databaseValue)
             XCTAssertEqual(row["NAME"] as DatabaseValue, 1.databaseValue)
@@ -224,7 +222,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["name": "baseNaMe"])
-            let row = try Row.fetchOne(db, "SELECT 1 AS basename, 2 AS baseNaMe, 3 AS BASENAME", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 1 AS basename, 2 AS baseNaMe, 3 AS BASENAME", adapter: adapter)!
             
             XCTAssertEqual(row["name"] as DatabaseValue, 1.databaseValue)
         }
@@ -234,7 +232,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["name": "name"])
-            let row = try Row.fetchOne(db, "SELECT 1 AS name, 'foo' AS missing", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 1 AS name, 'foo' AS missing", adapter: adapter)!
             
             XCTAssertFalse(row.hasColumn("missing"))
             XCTAssertFalse(row.hasColumn("missingInBaseRow"))
@@ -249,7 +247,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["nAmE": "basenAmE", "foo": "basefoo"])
-            let row = try Row.fetchOne(db, "SELECT 'foo' AS basenAmE, 'XXX' AS extra, 1 AS basefoo", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 'foo' AS basenAmE, 'XXX' AS extra, 1 AS basefoo", adapter: adapter)!
             
             XCTAssertTrue(row.hasColumn("name"))
             XCTAssertTrue(row.hasColumn("NAME"))
@@ -267,7 +265,7 @@ class AdapterRowTests : RowTestCase {
             let adapter = ScopeAdapter([
                 "sub1": ColumnMapping(["id": "id1", "val": "val1"]),
                 "sub2": ColumnMapping(["id": "id2", "val": "val2"])])
-            let row = try Row.fetchOne(db, "SELECT 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
             
             XCTAssertEqual(row.count, 4)
             XCTAssertEqual(row["id1"] as Int, 1)
@@ -312,7 +310,7 @@ class AdapterRowTests : RowTestCase {
                 .addingScopes([
                     "sub1": ColumnMapping(["id": "id1", "val": "val1"]),
                     "sub2": ColumnMapping(["id": "id2", "val": "val2"])])
-            let row = try Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
             
             XCTAssertEqual(row.count, 2)
             XCTAssertEqual(row["id"] as Int, 0)
@@ -361,7 +359,7 @@ class AdapterRowTests : RowTestCase {
             // - sub2 is defined in the the second scoped adapter
             let mainAdapter = ScopeAdapter(["sub0": adapter0, "sub1": adapter2])
             let adapter = mainAdapter.addingScopes(["sub1": adapter1, "sub2": adapter2])
-            let row = try Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
             
             XCTAssertEqual(Set(row.scopes.names), ["sub0", "sub1", "sub2"])
             XCTAssertEqual(row.scopes.count, 3)
@@ -401,7 +399,7 @@ class AdapterRowTests : RowTestCase {
                     "sub1": ColumnMapping(["id": "id1", "val": "val1"])
                         .addingScopes([
                             "sub2": ColumnMapping(["id": "id2", "val": "val2"])])])
-            let row = try Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
             
             XCTAssertEqual(row.count, 2)
             XCTAssertEqual(row["id"] as Int, 0)
@@ -447,22 +445,22 @@ class AdapterRowTests : RowTestCase {
         try dbQueue.inDatabase { db in
             let sql = "SELECT 0 AS a0, 1 AS a1, 2 AS a2, 3 AS a3"
             do {
-                let row = try Row.fetchOne(db, sql, adapter: SuffixRowAdapter(fromIndex:0))!
+                let row = try Row.fetchOne(db, sql: sql, adapter: SuffixRowAdapter(fromIndex:0))!
                 XCTAssertEqual(Array(row.columnNames), ["a0", "a1", "a2", "a3"])
                 XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue, 2.databaseValue, 3.databaseValue])
             }
             do {
-                let row = try Row.fetchOne(db, sql, adapter: SuffixRowAdapter(fromIndex:1))!
+                let row = try Row.fetchOne(db, sql: sql, adapter: SuffixRowAdapter(fromIndex:1))!
                 XCTAssertEqual(Array(row.columnNames), ["a1", "a2", "a3"])
                 XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, 2.databaseValue, 3.databaseValue])
             }
             do {
-                let row = try Row.fetchOne(db, sql, adapter: SuffixRowAdapter(fromIndex:3))!
+                let row = try Row.fetchOne(db, sql: sql, adapter: SuffixRowAdapter(fromIndex:3))!
                 XCTAssertEqual(Array(row.columnNames), ["a3"])
                 XCTAssertEqual(Array(row.databaseValues), [3.databaseValue])
             }
             do {
-                let row = try Row.fetchOne(db, sql, adapter: SuffixRowAdapter(fromIndex:4))!
+                let row = try Row.fetchOne(db, sql: sql, adapter: SuffixRowAdapter(fromIndex:4))!
                 XCTAssertEqual(Array(row.columnNames), [])
                 XCTAssertEqual(Array(row.databaseValues), [])
             }
@@ -476,7 +474,7 @@ class AdapterRowTests : RowTestCase {
                 "sub1": SuffixRowAdapter(fromIndex: 1)
                     .addingScopes([
                         "sub2": SuffixRowAdapter(fromIndex: 1)])])
-            let row = try Row.fetchOne(db, "SELECT 0 AS a0, 1 AS a1, 2 AS a2, 3 AS a3", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 0 AS a0, 1 AS a1, 2 AS a2, 3 AS a3", adapter: adapter)!
             
             XCTAssertEqual(Set(row.scopes.names), ["sub1"])
             XCTAssertEqual(row.scopes.count, 1)
@@ -519,27 +517,27 @@ class AdapterRowTests : RowTestCase {
         try dbQueue.inDatabase { db in
             let sql = "SELECT 0 AS a0, 1 AS a1, 2 AS a2, 3 AS a3"
             do {
-                let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(0..<0))!
+                let row = try Row.fetchOne(db, sql: sql, adapter: RangeRowAdapter(0..<0))!
                 XCTAssertEqual(Array(row.columnNames), [])
                 XCTAssertEqual(Array(row.databaseValues), [])
             }
             do {
-                let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(0..<1))!
+                let row = try Row.fetchOne(db, sql: sql, adapter: RangeRowAdapter(0..<1))!
                 XCTAssertEqual(Array(row.columnNames), ["a0"])
                 XCTAssertEqual(Array(row.databaseValues), [0.databaseValue])
             }
             do {
-                let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(1..<3))!
+                let row = try Row.fetchOne(db, sql: sql, adapter: RangeRowAdapter(1..<3))!
                 XCTAssertEqual(Array(row.columnNames), ["a1", "a2"])
                 XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, 2.databaseValue])
             }
             do {
-                let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(0..<4))!
+                let row = try Row.fetchOne(db, sql: sql, adapter: RangeRowAdapter(0..<4))!
                 XCTAssertEqual(Array(row.columnNames), ["a0", "a1", "a2", "a3"])
                 XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue, 2.databaseValue, 3.databaseValue])
             }
             do {
-                let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(4..<4))!
+                let row = try Row.fetchOne(db, sql: sql, adapter: RangeRowAdapter(4..<4))!
                 XCTAssertEqual(Array(row.columnNames), [])
                 XCTAssertEqual(Array(row.databaseValues), [])
             }
@@ -551,27 +549,27 @@ class AdapterRowTests : RowTestCase {
         try dbQueue.inDatabase { db in
             let sql = "SELECT 0 AS a0, 1 AS a1, 2 AS a2, 3 AS a3"
             do {
-                let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(0...0))!
+                let row = try Row.fetchOne(db, sql: sql, adapter: RangeRowAdapter(0...0))!
                 XCTAssertEqual(Array(row.columnNames), ["a0"])
                 XCTAssertEqual(Array(row.databaseValues), [0.databaseValue])
             }
             do {
-                let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(0...1))!
+                let row = try Row.fetchOne(db, sql: sql, adapter: RangeRowAdapter(0...1))!
                 XCTAssertEqual(Array(row.columnNames), ["a0", "a1"])
                 XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue])
             }
             do {
-                let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(1...2))!
+                let row = try Row.fetchOne(db, sql: sql, adapter: RangeRowAdapter(1...2))!
                 XCTAssertEqual(Array(row.columnNames), ["a1", "a2"])
                 XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, 2.databaseValue])
             }
             do {
-                let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(0...3))!
+                let row = try Row.fetchOne(db, sql: sql, adapter: RangeRowAdapter(0...3))!
                 XCTAssertEqual(Array(row.columnNames), ["a0", "a1", "a2", "a3"])
                 XCTAssertEqual(Array(row.databaseValues), [0.databaseValue, 1.databaseValue, 2.databaseValue, 3.databaseValue])
             }
             do {
-                let row = try Row.fetchOne(db, sql, adapter: RangeRowAdapter(3...3))!
+                let row = try Row.fetchOne(db, sql: sql, adapter: RangeRowAdapter(3...3))!
                 XCTAssertEqual(Array(row.columnNames), ["a3"])
                 XCTAssertEqual(Array(row.databaseValues), [3.databaseValue])
             }
@@ -585,7 +583,7 @@ class AdapterRowTests : RowTestCase {
                 "sub1": RangeRowAdapter(1..<3)
                     .addingScopes([
                         "sub2": RangeRowAdapter(1..<3)])])
-            let row = try Row.fetchOne(db, "SELECT 0 AS a0, 1 AS a1, 2 AS a2, 3 AS a3", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 0 AS a0, 1 AS a1, 2 AS a2, 3 AS a3", adapter: adapter)!
             
             XCTAssertEqual(Set(row.scopes.names), ["sub1"])
             XCTAssertEqual(row.scopes.count, 1)
@@ -629,7 +627,7 @@ class AdapterRowTests : RowTestCase {
             let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
                 .addingScopes(["sub": ColumnMapping(["a": "baseb"])])
             var copiedRow: Row? = nil
-            let baseRows = try Row.fetchCursor(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)
+            let baseRows = try Row.fetchCursor(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)
             while let baseRow = try baseRows.next() {
                 copiedRow = baseRow.copy()
             }
@@ -666,7 +664,7 @@ class AdapterRowTests : RowTestCase {
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
             var row: Row? = nil
-            let baseRows = try Row.fetchCursor(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)
+            let baseRows = try Row.fetchCursor(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)
             while let baseRow = try baseRows.next() {
                 row = baseRow.copy()
                 XCTAssertEqual(row, baseRow)
@@ -692,11 +690,11 @@ class AdapterRowTests : RowTestCase {
                 .addingScopes(["sub": ColumnMapping(["b": "baseb"]), "altSub": ColumnMapping(["a": "baseb2"])])
             let adapter5 = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
                 .addingScopes(["sub": ColumnMapping(["b": "baseb", "c": "basec"])])
-            let row1 = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter1)!
-            let row2 = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter2)!
-            let row3 = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter3)!
-            let row4 = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter4)!
-            let row5 = try Row.fetchOne(db, "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter5)!
+            let row1 = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter1)!
+            let row2 = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter2)!
+            let row3 = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter3)!
+            let row4 = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter4)!
+            let row5 = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 1 AS baseb2, 2 as basec", adapter: adapter5)!
             
             let tests = [
                 (row1, row2, false),
@@ -720,10 +718,10 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping(["id": "baseid", "val": "baseval"])
-            let mappedRow1 = try Row.fetchOne(db, "SELECT 1 AS baseid, 'XXX' AS extra, 'foo' AS baseval", adapter: adapter)!
-            let mappedRow2 = try Row.fetchOne(db, "SELECT 'foo' AS baseval, 'XXX' AS extra, 1 AS baseid", adapter: adapter)!
-            let nonMappedRow1 = try Row.fetchOne(db, "SELECT 1 AS id, 'foo' AS val")!
-            let nonMappedRow2 = try Row.fetchOne(db, "SELECT 'foo' AS val, 1 AS id")!
+            let mappedRow1 = try Row.fetchOne(db, sql: "SELECT 1 AS baseid, 'XXX' AS extra, 'foo' AS baseval", adapter: adapter)!
+            let mappedRow2 = try Row.fetchOne(db, sql: "SELECT 'foo' AS baseval, 'XXX' AS extra, 1 AS baseid", adapter: adapter)!
+            let nonMappedRow1 = try Row.fetchOne(db, sql: "SELECT 1 AS id, 'foo' AS val")!
+            let nonMappedRow2 = try Row.fetchOne(db, sql: "SELECT 'foo' AS val, 1 AS id")!
             
             // All rows contain the same values. But they differ by column ordering.
             XCTAssertEqual(Array(mappedRow1.columnNames), ["id", "val"])
@@ -744,7 +742,7 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let adapter = ColumnMapping([:])
-            let row = try Row.fetchOne(db, "SELECT 'foo' AS foo", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 'foo' AS foo", adapter: adapter)!
             
             XCTAssertTrue(row.isEmpty)
             XCTAssertEqual(row.count, 0)
@@ -758,34 +756,34 @@ class AdapterRowTests : RowTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {
-                let row = try SQLRequest<Row>("SELECT 0 AS a0, 1 AS a1, 2 AS a2", adapter: SuffixRowAdapter(fromIndex: 1))
+                let row = try SQLRequest<Row>(sql: "SELECT 0 AS a0, 1 AS a1, 2 AS a2", adapter: SuffixRowAdapter(fromIndex: 1))
                     .fetchOne(db)!
                 XCTAssertEqual(Array(row.columnNames), ["a1", "a2"])
                 XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, 2.databaseValue])
             }
             do {
-                let row = try SQLRequest<Row>("SELECT 0 AS a0, 1 AS a1, 2 AS a2")
+                let row = try SQLRequest<Row>(sql: "SELECT 0 AS a0, 1 AS a1, 2 AS a2")
                     .adapted { _ in SuffixRowAdapter(fromIndex: 1) }
                     .fetchOne(db)!
                 XCTAssertEqual(Array(row.columnNames), ["a1", "a2"])
                 XCTAssertEqual(Array(row.databaseValues), [1.databaseValue, 2.databaseValue])
             }
             do {
-                let row = try SQLRequest<Row>("SELECT 0 AS a0, 1 AS a1, 2 AS a2", adapter: SuffixRowAdapter(fromIndex: 1))
+                let row = try SQLRequest<Row>(sql: "SELECT 0 AS a0, 1 AS a1, 2 AS a2", adapter: SuffixRowAdapter(fromIndex: 1))
                     .adapted { _ in SuffixRowAdapter(fromIndex: 1) }
                     .fetchOne(db)!
                 XCTAssertEqual(Array(row.columnNames), ["a2"])
                 XCTAssertEqual(Array(row.databaseValues), [2.databaseValue])
             }
             do {
-                let row = try SQLRequest<Row>("SELECT 0 AS a0", adapter: ColumnMapping(["a1": "a0"]))
+                let row = try SQLRequest<Row>(sql: "SELECT 0 AS a0", adapter: ColumnMapping(["a1": "a0"]))
                     .adapted { _ in ColumnMapping(["a2": "a1"]) }
                     .fetchOne(db)!
                 XCTAssertEqual(Array(row.columnNames), ["a2"])
                 XCTAssertEqual(Array(row.databaseValues), [0.databaseValue])
             }
             do {
-                let row = try SQLRequest<Row>("SELECT 0 AS a0", adapter: ColumnMapping(["a1": "a0"]))
+                let row = try SQLRequest<Row>(sql: "SELECT 0 AS a0", adapter: ColumnMapping(["a1": "a0"]))
                     .adapted { _ in ColumnMapping(["a2": "a1"]) }
                     .adapted { _ in ColumnMapping(["a3": "a2"]) }
                     .fetchOne(db)!
@@ -809,7 +807,7 @@ class AdapterRowTests : RowTestCase {
                     "b": ColumnMapping(["id": "id1", "val": "val1"])
                         .addingScopes([
                             "ba": ColumnMapping(["id": "id2", "val": "val2"])])])
-            let row = try Row.fetchOne(db, "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
+            let row = try Row.fetchOne(db, sql: "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
             
             XCTAssertEqual(row.description, "[id:0 val:\"foo0\"]")
             XCTAssertEqual(row.debugDescription, """

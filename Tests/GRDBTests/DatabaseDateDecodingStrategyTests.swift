@@ -1,8 +1,6 @@
 import Foundation
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -69,7 +67,7 @@ class DatabaseDateDecodingStrategyTests: GRDBTestCase {
         databaseValue: DatabaseValueConvertible?,
         with test: (Date?) -> Void) throws
     {
-        let request = SQLRequest<Void>("SELECT ? AS date", arguments: [databaseValue])
+        let request = SQLRequest<Void>(sql: "SELECT ? AS date", arguments: [databaseValue])
         do {
             // test decoding straight from SQLite
             let record = try T.fetchOne(db, request)!

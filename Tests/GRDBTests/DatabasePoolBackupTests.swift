@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    @testable import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     @testable import GRDBCustomSQLite
 #else
     @testable import GRDB
@@ -10,23 +8,30 @@ import XCTest
 class DatabasePoolBackupTests: GRDBTestCase {
 
     func testBackup() throws {
+        #if GRDBCIPHER
+        // SQLCipher can't backup encrypted databases: skip this test
+        if dbConfiguration.passphrase != nil {
+            return
+        }
+        #endif
+        
         let source = try makeDatabasePool(filename: "source.sqlite")
         let destination = try makeDatabasePool(filename: "destination.sqlite")
         
         try source.write { db in
-            try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            try db.execute("INSERT INTO items (id) VALUES (NULL)")
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+            try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 1)
         }
         
         try source.backup(to: destination)
         
         try destination.read { db in
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 1)
         }
         
         try source.write { db in
-            try db.execute("DROP TABLE items")
+            try db.execute(sql: "DROP TABLE items")
         }
         
         try source.backup(to: destination)
@@ -43,9 +48,9 @@ class DatabasePoolBackupTests: GRDBTestCase {
 //        let destination = try makeDatabasePool(filename: "destination.sqlite")
 //        
 //        try source.write { db in
-//            try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-//            try db.execute("INSERT INTO items (id) VALUES (NULL)")
-//            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+//            try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+//            try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
+//            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 1)
 //        }
 //        
 //        let s1 = DispatchSemaphore(value: 0)
@@ -53,7 +58,7 @@ class DatabasePoolBackupTests: GRDBTestCase {
 //        DispatchQueue.global().async {
 //            _ = s1.wait(timeout: .distantFuture)
 //            try! source.writeInTransaction(.immediate) { db in
-//                try db.execute("INSERT INTO items (id) VALUES (NULL)")
+//                try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
 //                s2.signal()
 //                return .commit
 //            }
@@ -67,18 +72,18 @@ class DatabasePoolBackupTests: GRDBTestCase {
 //        },
 //            afterBackupStep: {
 //                try! source.write { db in
-//                    try db.execute("INSERT INTO items (id) VALUES (NULL)")
+//                    try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
 //                }
 //        })
 //        
 //        try source.read { db in
-//            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 3)
+//            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 3)
 //        }
 //        try destination.read { db in
 //            // TODO: understand why the fix for https://github.com/groue/GRDB.swift/issues/102
 //            // had this value change from 2 to 1.
 //            // TODO: Worse, this test is fragile. I've seen not 1 but 2 once.
-//            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, 1)
+//            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 1)
 //        }
 //    }
 }

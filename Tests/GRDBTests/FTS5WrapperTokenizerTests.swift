@@ -1,9 +1,7 @@
 #if SQLITE_ENABLE_FTS5
 import XCTest
 import Foundation
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -112,15 +110,15 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
                 t.column("content")
             }
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo baz"])
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["foo baz"])
             
             // foo is not ignored
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
             // bar is ignored
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
             // bar is ignored in queries too: the "foo bar baz" phrase matches the "foo baz" content
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
         }
     }
 
@@ -134,24 +132,24 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
                 t.column("content")
             }
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["foo baz"])
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["foo baz"])
             
             // foo is not ignored
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
             // bar is ignored
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
             // bar is ignored in queries too: the "foo bar baz" phrase matches the "foo baz" content
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
         }
         
         try dbPool.read { db in
             // foo is not ignored
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
             // bar is ignored
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
             // bar is ignored in queries too: the "foo bar baz" phrase matches the "foo baz" content
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
         }
     }
 
@@ -166,11 +164,11 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
                 t.column("content")
             }
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé \u{FB01}délité Encyclopædia Großmann Diyarbakır"])
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["aimé \u{FB01}délité Encyclopædia Großmann Diyarbakır"])
             
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé \u{FB01}délité Encyclopædia Großmann Diyarbakır"]), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime fidelite encyclopaedia grossmann diyarbakir"]), 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime\u{0301} \u{FB01}de\u{0301}lite\u{0301} Encyclopædia Großmann Diyarbakır"]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé \u{FB01}délité Encyclopædia Großmann Diyarbakır"]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime fidelite encyclopaedia grossmann diyarbakir"]), 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime\u{0301} \u{FB01}de\u{0301}lite\u{0301} Encyclopædia Großmann Diyarbakır"]), 1)
             
             try db.drop(table: "documents")
         }
@@ -182,11 +180,11 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
                 t.column("content")
             }
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["aimé \u{FB01}délité Encyclopædia Großmann Diyarbakır"]) // U+FB01: LATIN SMALL LIGATURE FI
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["aimé \u{FB01}délité Encyclopædia Großmann Diyarbakır"]) // U+FB01: LATIN SMALL LIGATURE FI
             
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé \u{FB01}délité Encyclopædia Großmann Diyarbakır"]), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime fidelite encyclopaedia grossmann diyarbakir"]), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime\u{0301} \u{FB01}de\u{0301}lite\u{0301} Encyclopædia Großmann Diyarbakır"]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aimé \u{FB01}délité Encyclopædia Großmann Diyarbakır"]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime fidelite encyclopaedia grossmann diyarbakir"]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["aime\u{0301} \u{FB01}de\u{0301}lite\u{0301} Encyclopædia Großmann Diyarbakır"]), 1)
             
             try db.drop(table: "documents")
         }
@@ -202,17 +200,17 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
                 t.column("content")
             }
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["first foo"])
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["1st bar"])
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["first foo"])
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["1st bar"])
             
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["first"]), 2)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["1st"]), 2)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"first foo\""]), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"1st foo\""]), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"first bar\""]), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"1st bar\""]), 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["fi*"]), 2)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["1s*"]), 2)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["first"]), 2)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["1st"]), 2)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"first foo\""]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"1st foo\""]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"first bar\""]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"1st bar\""]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["fi*"]), 2)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["1s*"]), 2)
         }
     }
 }

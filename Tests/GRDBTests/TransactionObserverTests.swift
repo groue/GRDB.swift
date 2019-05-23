@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -129,7 +127,7 @@ extension Artwork : FetchableRecord, PersistableRecord {
 class TransactionObserverTests: GRDBTestCase {
     private func setupArtistDatabase(in dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
-            try db.execute("""
+            try db.execute(sql: """
             CREATE TABLE artists (
                 id INTEGER PRIMARY KEY,
                 name TEXT);
@@ -225,8 +223,8 @@ class TransactionObserverTests: GRDBTestCase {
             let observer = Observer()
             dbQueue.add(transactionObserver: observer, extent: extent)
             try dbQueue.writeWithoutTransaction {  db in
-                try db.execute(startSQL)
-                try db.execute(endSQL)
+                try db.execute(sql: startSQL)
+                try db.execute(sql: endSQL)
             }
             switch expectedCompletion {
             case .commit:
@@ -247,9 +245,9 @@ class TransactionObserverTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue()
             let observer = Observer()
             try dbQueue.writeWithoutTransaction { db in
-                try db.execute(startSQL)
+                try db.execute(sql: startSQL)
                 db.add(transactionObserver: observer, extent: extent)
-                try db.execute(endSQL)
+                try db.execute(sql: endSQL)
             }
             switch expectedCompletion {
             case .commit:
@@ -272,8 +270,8 @@ class TransactionObserverTests: GRDBTestCase {
             weakObserver = observer
             dbQueue.add(transactionObserver: observer)
             try dbQueue.writeWithoutTransaction {  db in
-                try db.execute(startSQL)
-                try db.execute(endSQL)
+                try db.execute(sql: startSQL)
+                try db.execute(sql: endSQL)
             }
             switch expectedCompletion {
             case .commit:
@@ -286,7 +284,7 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
             }
             try dbQueue.inTransaction { db in
-                try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
+                try db.execute(sql: "DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
                 return .commit
             }
             switch expectedCompletion {
@@ -311,8 +309,8 @@ class TransactionObserverTests: GRDBTestCase {
             weakObserver = observer
             dbQueue.add(transactionObserver: observer, extent: .observerLifetime)
             try dbQueue.writeWithoutTransaction {  db in
-                try db.execute(startSQL)
-                try db.execute(endSQL)
+                try db.execute(sql: startSQL)
+                try db.execute(sql: endSQL)
             }
             switch expectedCompletion {
             case .commit:
@@ -325,7 +323,7 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
             }
             try dbQueue.inTransaction { db in
-                try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
+                try db.execute(sql: "DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
                 return .commit
             }
             switch expectedCompletion {
@@ -352,8 +350,8 @@ class TransactionObserverTests: GRDBTestCase {
         }
         if let observer = weakObserver {
             try dbQueue.writeWithoutTransaction {  db in
-                try db.execute(startSQL)
-                try db.execute(endSQL)
+                try db.execute(sql: startSQL)
+                try db.execute(sql: endSQL)
             }
             switch expectedCompletion {
             case .commit:
@@ -377,8 +375,8 @@ class TransactionObserverTests: GRDBTestCase {
         dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
         
         try dbQueue.writeWithoutTransaction {  db in
-            try db.execute(startSQL)
-            try db.execute(endSQL)
+            try db.execute(sql: startSQL)
+            try db.execute(sql: endSQL)
         }
         switch expectedCompletion {
         case .commit:
@@ -391,7 +389,7 @@ class TransactionObserverTests: GRDBTestCase {
             XCTAssertEqual(observer.didRollbackCount, 1, "\(startSQL); \(endSQL)")
         }
         try dbQueue.inTransaction { db in
-            try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
+            try db.execute(sql: "DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
             return .commit
         }
         switch expectedCompletion {
@@ -411,7 +409,7 @@ class TransactionObserverTests: GRDBTestCase {
         let witness = Observer()
         let observer = Observer(didCommitBlock: { db in
             try! db.inTransaction {
-                try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
+                try db.execute(sql: "DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
                 return .commit
             }
         })
@@ -419,8 +417,8 @@ class TransactionObserverTests: GRDBTestCase {
         dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
         
         try dbQueue.writeWithoutTransaction {  db in
-            try db.execute(startSQL)
-            try db.execute(endSQL)
+            try db.execute(sql: startSQL)
+            try db.execute(sql: endSQL)
         }
         switch expectedCompletion {
         case .commit:
@@ -440,7 +438,7 @@ class TransactionObserverTests: GRDBTestCase {
         }
 
         try dbQueue.inTransaction { db in
-            try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
+            try db.execute(sql: "DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
             return .commit
         }
         switch expectedCompletion {
@@ -485,8 +483,8 @@ class TransactionObserverTests: GRDBTestCase {
             
             if let observer = weakObserver {
                 try dbQueue.writeWithoutTransaction {  db in
-                    try db.execute(startSQL)
-                    try db.execute(endSQL)
+                    try db.execute(sql: startSQL)
+                    try db.execute(sql: endSQL)
                 }
                 switch expectedCompletion {
                 case .commit:
@@ -504,7 +502,7 @@ class TransactionObserverTests: GRDBTestCase {
             
             if let observer = weakObserver {
                 try dbQueue.inTransaction { db in
-                    try db.execute("DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
+                    try db.execute(sql: "DROP TABLE IF EXISTS t; CREATE TABLE t(a)")
                     return .commit
                 }
                 switch expectedCompletion {
@@ -547,8 +545,8 @@ class TransactionObserverTests: GRDBTestCase {
             
             do {
                 try dbQueue.writeWithoutTransaction {  db in
-                    try db.execute(startSQL)
-                    try db.execute(endSQL)
+                    try db.execute(sql: startSQL)
+                    try db.execute(sql: endSQL)
                 }
                 switch expectedCompletion {
                 case .commit:
@@ -1574,7 +1572,7 @@ class TransactionObserverTests: GRDBTestCase {
             
             // Delete from a and trigger b deletion
             try dbQueue.inTransaction { db in
-                try db.execute("""
+                try db.execute(sql: """
                 CREATE TABLE a(id INTEGER PRIMARY KEY);
                 CREATE TABLE b(id INTEGER PRIMARY KEY REFERENCES a(id) ON DELETE CASCADE);
                 INSERT INTO a (id) VALUES (42);
@@ -1606,7 +1604,7 @@ class TransactionObserverTests: GRDBTestCase {
             
             // Insert into c and trigger b deletion
             try dbQueue.inTransaction { db in
-                try db.execute("""
+                try db.execute(sql: """
                 CREATE TABLE a(id INTEGER PRIMARY KEY);
                 CREATE TABLE b(id INTEGER PRIMARY KEY);
                 CREATE TABLE c(id INTEGER);
@@ -1695,8 +1693,8 @@ class TransactionObserverTests: GRDBTestCase {
             do {
                 observer.resetCounts()
                 try db.inTransaction {
-                    try db.execute("INSERT INTO persons (name) VALUES ('a')")
-                    try db.execute("DELETE FROM persons")
+                    try db.execute(sql: "INSERT INTO persons (name) VALUES ('a')")
+                    try db.execute(sql: "DELETE FROM persons")
                     return .commit
                 }
                 
@@ -1713,9 +1711,9 @@ class TransactionObserverTests: GRDBTestCase {
             do {
                 observer.resetCounts()
                 try db.inTransaction {
-                    try db.execute("INSERT INTO ignore DEFAULT VALUES")
-                    try db.execute("INSERT INTO persons (name) VALUES ('a')")
-                    try db.execute("DELETE FROM persons")
+                    try db.execute(sql: "INSERT INTO ignore DEFAULT VALUES")
+                    try db.execute(sql: "INSERT INTO persons (name) VALUES ('a')")
+                    try db.execute(sql: "DELETE FROM persons")
                     return .commit
                 }
                 
@@ -1732,9 +1730,9 @@ class TransactionObserverTests: GRDBTestCase {
             do {
                 observer.resetCounts()
                 try db.inTransaction {
-                    try db.execute("INSERT INTO persons (name) VALUES ('a')")
-                    try db.execute("INSERT INTO ignore DEFAULT VALUES")
-                    try db.execute("DELETE FROM persons")
+                    try db.execute(sql: "INSERT INTO persons (name) VALUES ('a')")
+                    try db.execute(sql: "INSERT INTO ignore DEFAULT VALUES")
+                    try db.execute(sql: "DELETE FROM persons")
                     return .commit
                 }
                 
@@ -1751,9 +1749,9 @@ class TransactionObserverTests: GRDBTestCase {
             do {
                 observer.resetCounts()
                 try db.inTransaction {
-                    try db.execute("INSERT INTO persons (name) VALUES ('a')")
-                    try db.execute("DELETE FROM persons")
-                    try db.execute("INSERT INTO ignore DEFAULT VALUES")
+                    try db.execute(sql: "INSERT INTO persons (name) VALUES ('a')")
+                    try db.execute(sql: "DELETE FROM persons")
+                    try db.execute(sql: "INSERT INTO ignore DEFAULT VALUES")
                     return .commit
                 }
                 

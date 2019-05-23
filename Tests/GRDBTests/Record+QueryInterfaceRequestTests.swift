@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -47,7 +45,7 @@ class RecordQueryInterfaceRequestTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE readers (
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -84,7 +82,7 @@ class RecordQueryInterfaceRequestTests: GRDBTestCase {
             
             do {
                 let reader = try request.fetchOne(db)!
-                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" LIMIT 1")
                 XCTAssertEqual(reader.id!, arthur.id!)
                 XCTAssertEqual(reader.name, arthur.name)
                 XCTAssertEqual(reader.age, arthur.age)
@@ -93,10 +91,12 @@ class RecordQueryInterfaceRequestTests: GRDBTestCase {
             do {
                 let cursor = try request.fetchCursor(db)
                 let names = cursor.map { $0.name }
-                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
                 XCTAssertEqual(try names.next()!, arthur.name)
                 XCTAssertEqual(try names.next()!, barbara.name)
                 XCTAssertTrue(try names.next() == nil)
+                
+                // validate query *after* cursor has retrieved a record
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
             }
         }
     }

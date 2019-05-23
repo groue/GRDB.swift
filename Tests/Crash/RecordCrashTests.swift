@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -189,7 +187,7 @@ class RecordCrashTests: GRDBCrashTestCase {
     func testRecordWithEmptyPersistentDictionaryCanNotBeInserted() {
         assertCrash("RecordWithEmptyPersistentDictionary.persistentDictionary: invalid empty dictionary") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
+                try db.execute(sql: "CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 try RecordWithEmptyPersistentDictionary().insert(db)
             }
         }
@@ -198,7 +196,7 @@ class RecordCrashTests: GRDBCrashTestCase {
     func testRecordWithEmptyPersistentDictionaryCanNotBeUpdated() {
         assertCrash("RecordWithEmptyPersistentDictionary.persistentDictionary: invalid empty dictionary") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
+                try db.execute(sql: "CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 try RecordWithEmptyPersistentDictionary().update(db)
             }
         }
@@ -207,7 +205,7 @@ class RecordCrashTests: GRDBCrashTestCase {
     func testRecordWithEmptyPersistentDictionaryCanNotBeSaved() {
         assertCrash("RecordWithEmptyPersistentDictionary.persistentDictionary: invalid empty dictionary") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
+                try db.execute(sql: "CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 try RecordWithEmptyPersistentDictionary().save(db)
             }
         }
@@ -216,7 +214,7 @@ class RecordCrashTests: GRDBCrashTestCase {
     func testRecordWithEmptyPersistentDictionaryCanNotBeDeleted() {
         assertCrash("RecordWithEmptyPersistentDictionary.persistentDictionary: invalid empty dictionary") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
+                try db.execute(sql: "CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 try RecordWithEmptyPersistentDictionary().delete(db)
             }
         }
@@ -225,7 +223,7 @@ class RecordCrashTests: GRDBCrashTestCase {
     func testRecordWithEmptyPersistentDictionaryCanNotBeTestedForExistence() {
         assertCrash("RecordWithEmptyPersistentDictionary.persistentDictionary: invalid empty dictionary") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
+                try db.execute(sql: "CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 RecordWithEmptyPersistentDictionary().exists(db)
             }
         }
@@ -238,7 +236,7 @@ class RecordCrashTests: GRDBCrashTestCase {
     func testRecordWithNilPrimaryKeyCanNotBeUpdated() {
         assertCrash("invalid primary key in <RecordWithNilPrimaryKey id:nil>") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
+                try db.execute(sql: "CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 try RecordWithNilPrimaryKey().update(db)
             }
         }
@@ -247,7 +245,7 @@ class RecordCrashTests: GRDBCrashTestCase {
     func testRecordWithNilPrimaryKeyCanNotBeDeleted() {
         assertCrash("invalid primary key in <RecordWithNilPrimaryKey id:nil>") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
+                try db.execute(sql: "CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 try RecordWithNilPrimaryKey().delete(db)
             }
         }
@@ -256,7 +254,7 @@ class RecordCrashTests: GRDBCrashTestCase {
     func testRecordWithNilPrimaryKeyCanNotBeTestedForExistence() {
         assertCrash("invalid primary key in <RecordWithNilPrimaryKey id:nil>") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY)")
+                try db.execute(sql: "CREATE TABLE records (id INTEGER PRIMARY KEY)")
                 RecordWithNilPrimaryKey().exists(db)
             }
         }
@@ -269,7 +267,7 @@ class RecordCrashTests: GRDBCrashTestCase {
     func testRecordForTableWithoutPrimaryKeyCanNotBeFetchedByID() {
         assertCrash("expected single column primary key in table: records") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (name TEXT)")
+                try db.execute(sql: "CREATE TABLE records (name TEXT)")
                 _ = RecordForTableWithoutPrimaryKey.fetchOne(db, key: 1)
             }
         }
@@ -278,7 +276,7 @@ class RecordCrashTests: GRDBCrashTestCase {
     func testRecordForTableWithoutPrimaryKeyCanNotBeUpdated() {
         assertCrash("invalid primary key in <RecordForTableWithoutPrimaryKey name:\"foo\">") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (name TEXT)")
+                try db.execute(sql: "CREATE TABLE records (name TEXT)")
                 try RecordForTableWithoutPrimaryKey().update(db)
             }
         }
@@ -287,7 +285,7 @@ class RecordCrashTests: GRDBCrashTestCase {
     func testRecordForTableWithoutPrimaryKeyCanNotBeDeleted() {
         assertCrash("invalid primary key in <RecordForTableWithoutPrimaryKey name:\"foo\">") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (name TEXT)")
+                try db.execute(sql: "CREATE TABLE records (name TEXT)")
                 try RecordForTableWithoutPrimaryKey().delete(db)
             }
         }
@@ -296,7 +294,7 @@ class RecordCrashTests: GRDBCrashTestCase {
     func testRecordForTableWithoutPrimaryKeyCanNotBeTestedForExistence() {
         assertCrash("invalid primary key in <RecordForTableWithoutPrimaryKey name:\"foo\">") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (name TEXT)")
+                try db.execute(sql: "CREATE TABLE records (name TEXT)")
                 RecordForTableWithoutPrimaryKey().exists(db)
             }
         }
@@ -309,7 +307,7 @@ class RecordCrashTests: GRDBCrashTestCase {
     func testRecordForTableWithMultipleColumnsPrimaryKeyCanNotBeFetchedByID() {
         assertCrash("expected single column primary key in table: records") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (a TEXT, b TEXT, PRIMARY KEY(a,b))")
+                try db.execute(sql: "CREATE TABLE records (a TEXT, b TEXT, PRIMARY KEY(a,b))")
                 _ = RecordForTableWithMultipleColumnsPrimaryKey.fetchOne(db, key: 1)
             }
         }
@@ -322,7 +320,7 @@ class RecordCrashTests: GRDBCrashTestCase {
     func testRecordWithRowIDPrimaryKeyNotExposedInPersistentDictionaryCanNotBeInserted() {
         assertCrash("invalid primary key in <RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary name:\"foo\">") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE records (id INTEGER PRIMARY KEY, name TEXT)")
+                try db.execute(sql: "CREATE TABLE records (id INTEGER PRIMARY KEY, name TEXT)")
                 try RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary().update(db)
             }
         }

@@ -28,7 +28,7 @@ public class DatabaseSnapshot : DatabaseReader {
         
         try serializedDatabase.sync { db in
             // Assert WAL mode
-            let journalMode = try String.fetchOne(db, "PRAGMA journal_mode")
+            let journalMode = try String.fetchOne(db, sql: "PRAGMA journal_mode")
             guard journalMode == "wal" else {
                 throw DatabaseError(message: "WAL mode is not activated at path: \(path)")
             }
@@ -116,7 +116,7 @@ extension DatabaseSnapshot {
                     }
                 }
             }
-        case let .onQueue(queue, startImmediately: startImmediately):
+        case let .async(onQueue: queue, startImmediately: startImmediately):
             if startImmediately {
                 if let value = try unsafeReentrantRead(observation.initialValue) {
                     queue.async {

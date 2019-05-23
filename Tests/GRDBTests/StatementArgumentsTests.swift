@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -12,7 +10,7 @@ class StatementArgumentsTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE persons (
                     id INTEGER PRIMARY KEY,
                     firstName TEXT,
@@ -26,7 +24,7 @@ class StatementArgumentsTests: GRDBTestCase {
     func testPositionalStatementArgumentsValidation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let statement = try db.makeUpdateStatement("INSERT INTO persons (firstName, age) VALUES (?, ?)")
+            let statement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
             
             do {
                 // Correct number of arguments
@@ -89,11 +87,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments([name, age] as [DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement("INSERT INTO persons (firstName, age) VALUES (?, ?)")
+            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
             updateStatement.arguments = arguments
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement("SELECT * FROM persons WHERE firstName = ? AND age = ?")
+            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = ? AND age = ?")
             selectStatement.arguments = arguments
             let row = try Row.fetchOne(selectStatement)!
             
@@ -109,11 +107,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments([name, age] as [DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement("INSERT INTO persons (firstName, age) VALUES (?, ?)")
+            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
             updateStatement.unsafeSetArguments(arguments)
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement("SELECT * FROM persons WHERE firstName = ? AND age = ?")
+            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = ? AND age = ?")
             selectStatement.unsafeSetArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
@@ -125,7 +123,7 @@ class StatementArgumentsTests: GRDBTestCase {
     func testNamedStatementArgumentsValidation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let statement = try db.makeUpdateStatement("INSERT INTO persons (firstName, age) VALUES (:firstName, :age)")
+            let statement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:firstName, :age)")
             
             do {
                 // Correct number of arguments
@@ -202,11 +200,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement("INSERT INTO persons (firstName, age) VALUES (:name, :age)")
+            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:name, :age)")
             updateStatement.arguments = arguments
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement("SELECT * FROM persons WHERE firstName = :name AND age = :age")
+            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND age = :age")
             selectStatement.arguments = arguments
             let row = try Row.fetchOne(selectStatement)!
             
@@ -222,11 +220,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement("INSERT INTO persons (firstName, age) VALUES (:name, :age)")
+            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:name, :age)")
             updateStatement.unsafeSetArguments(arguments)
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement("SELECT * FROM persons WHERE firstName = :name AND age = :age")
+            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND age = :age")
             selectStatement.unsafeSetArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
@@ -238,11 +236,11 @@ class StatementArgumentsTests: GRDBTestCase {
     func testReusedNamedStatementArgumentsValidation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let statement = try db.makeUpdateStatement("INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
+            let statement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
             
             do {
                 try statement.execute(arguments: ["name": "foo", "age": 1])
-                let row = try Row.fetchOne(db, "SELECT * FROM persons")!
+                let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
                 XCTAssertEqual(row["firstName"] as String, "foo")
                 XCTAssertEqual(row["lastName"] as String, "foo")
                 XCTAssertEqual(row["age"] as Int, 1)
@@ -324,11 +322,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement("INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
+            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
             updateStatement.arguments = arguments
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement("SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
+            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
             selectStatement.arguments = arguments
             let row = try Row.fetchOne(selectStatement)!
             
@@ -344,11 +342,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement("INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
+            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
             updateStatement.unsafeSetArguments(arguments)
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement("SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
+            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
             selectStatement.unsafeSetArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
@@ -361,7 +359,7 @@ class StatementArgumentsTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let sql = "SELECT ?2 AS two, :foo AS foo, ?1 AS one, :foo AS foo2, :bar AS bar"
-            let row = try Row.fetchOne(db, sql, arguments: [1, 2, "bar"] + ["foo": "foo"])!
+            let row = try Row.fetchOne(db, sql: sql, arguments: [1, 2, "bar"] + ["foo": "foo"])!
             XCTAssertEqual(row, ["two": 2, "foo": "foo", "one": 1, "foo2": "foo", "bar": "bar"])
         }
     }
@@ -374,7 +372,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 let replacedValues = arguments.append(contentsOf: [3, 4])
                 XCTAssert(replacedValues.isEmpty)
                 
-                let row = try Row.fetchOne(db, "SELECT ?, ?, ?, ?", arguments: arguments)!
+                let row = try Row.fetchOne(db, sql: "SELECT ?, ?, ?, ?", arguments: arguments)!
                 XCTAssertEqual(row, ["?": 1, "?": 2, "?": 3, "?": 4])
             }
             
@@ -383,7 +381,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 let replacedValues = arguments.append(contentsOf: ["foo": "qux", "bar": "baz", "tata": "tutu"])
                 XCTAssertEqual(replacedValues, ["foo": "foo".databaseValue, "bar": "bar".databaseValue])
                 
-                let row = try Row.fetchOne(db, "SELECT :foo, :bar, :toto, :tata", arguments: arguments)!
+                let row = try Row.fetchOne(db, sql: "SELECT :foo, :bar, :toto, :tata", arguments: arguments)!
                 XCTAssertEqual(row, [":foo": "qux", ":bar": "baz", ":toto": "titi", ":tata": "tutu"])
             }
             
@@ -392,7 +390,7 @@ class StatementArgumentsTests: GRDBTestCase {
                 let replacedValues = arguments.append(contentsOf: ["foo": "qux", "bar": "baz", "tata": "tutu"])
                 XCTAssert(replacedValues.isEmpty)
                 
-                let row = try Row.fetchOne(db, "SELECT ?, :foo, :bar, ?, :tata", arguments: arguments)!
+                let row = try Row.fetchOne(db, sql: "SELECT ?, :foo, :bar, ?, :tata", arguments: arguments)!
                 XCTAssertEqual(row, ["?": 1, ":foo": "qux", ":bar": "baz", "?": 2, ":tata": "tutu"])
             }
         }
@@ -403,20 +401,20 @@ class StatementArgumentsTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             do {
                 let arguments: StatementArguments = [1, 2] + [3, 4]
-                let row = try Row.fetchOne(db, "SELECT ?, ?, ?, ?", arguments: arguments)!
+                let row = try Row.fetchOne(db, sql: "SELECT ?, ?, ?, ?", arguments: arguments)!
                 XCTAssertEqual(row, ["?": 1, "?": 2, "?": 3, "?": 4])
             }
             
             do {
                 // + does not allow overrides
                 let arguments: StatementArguments = ["foo": "foo", "bar": "bar", "toto": "titi"] + ["tata": "tutu"]
-                let row = try Row.fetchOne(db, "SELECT :foo, :bar, :toto, :tata", arguments: arguments)!
+                let row = try Row.fetchOne(db, sql: "SELECT :foo, :bar, :toto, :tata", arguments: arguments)!
                 XCTAssertEqual(row, [":foo": "foo", ":bar": "bar", ":toto": "titi", ":tata": "tutu"])
             }
             
             do {
                 let arguments: StatementArguments = [1, 2] + ["foo": "qux", "bar": "baz", "tata": "tutu"]
-                let row = try Row.fetchOne(db, "SELECT ?, :foo, :bar, ?, :tata", arguments: arguments)!
+                let row = try Row.fetchOne(db, sql: "SELECT ?, :foo, :bar, ?, :tata", arguments: arguments)!
                 XCTAssertEqual(row, ["?": 1, ":foo": "qux", ":bar": "baz", "?": 2, ":tata": "tutu"])
             }
         }
@@ -427,20 +425,20 @@ class StatementArgumentsTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             do {
                 let arguments: StatementArguments = [1, 2] &+ [3, 4]
-                let row = try Row.fetchOne(db, "SELECT ?, ?, ?, ?", arguments: arguments)!
+                let row = try Row.fetchOne(db, sql: "SELECT ?, ?, ?, ?", arguments: arguments)!
                 XCTAssertEqual(row, ["?": 1, "?": 2, "?": 3, "?": 4])
             }
             
             do {
                 // &+ does not allow overrides
                 let arguments: StatementArguments = ["foo": "foo", "bar": "bar", "toto": "titi"] &+ ["foo": "qux", "bar": "baz", "tata": "tutu"]
-                let row = try Row.fetchOne(db, "SELECT :foo, :bar, :toto, :tata", arguments: arguments)!
+                let row = try Row.fetchOne(db, sql: "SELECT :foo, :bar, :toto, :tata", arguments: arguments)!
                 XCTAssertEqual(row, [":foo": "qux", ":bar": "baz", ":toto": "titi", ":tata": "tutu"])
             }
             
             do {
                 let arguments: StatementArguments = [1, 2] &+ ["foo": "qux", "bar": "baz", "tata": "tutu"]
-                let row = try Row.fetchOne(db, "SELECT ?, :foo, :bar, ?, :tata", arguments: arguments)!
+                let row = try Row.fetchOne(db, sql: "SELECT ?, :foo, :bar, ?, :tata", arguments: arguments)!
                 XCTAssertEqual(row, ["?": 1, ":foo": "qux", ":bar": "baz", "?": 2, ":tata": "tutu"])
             }
         }
@@ -452,7 +450,7 @@ class StatementArgumentsTests: GRDBTestCase {
             do {
                 var arguments: StatementArguments = [1, 2]
                 arguments += [3, 4]
-                let row = try Row.fetchOne(db, "SELECT ?, ?, ?, ?", arguments: arguments)!
+                let row = try Row.fetchOne(db, sql: "SELECT ?, ?, ?, ?", arguments: arguments)!
                 XCTAssertEqual(row, ["?": 1, "?": 2, "?": 3, "?": 4])
             }
             
@@ -460,14 +458,14 @@ class StatementArgumentsTests: GRDBTestCase {
                 // += does not allow overrides
                 var arguments: StatementArguments = ["foo": "foo", "bar": "bar", "toto": "titi"]
                 arguments += ["tata": "tutu"]
-                let row = try Row.fetchOne(db, "SELECT :foo, :bar, :toto, :tata", arguments: arguments)!
+                let row = try Row.fetchOne(db, sql: "SELECT :foo, :bar, :toto, :tata", arguments: arguments)!
                 XCTAssertEqual(row, [":foo": "foo", ":bar": "bar", ":toto": "titi", ":tata": "tutu"])
             }
             
             do {
                 var arguments: StatementArguments = [1, 2]
                 arguments += ["foo": "qux", "bar": "baz", "tata": "tutu"]
-                let row = try Row.fetchOne(db, "SELECT ?, :foo, :bar, ?, :tata", arguments: arguments)!
+                let row = try Row.fetchOne(db, sql: "SELECT ?, :foo, :bar, ?, :tata", arguments: arguments)!
                 XCTAssertEqual(row, ["?": 1, ":foo": "qux", ":bar": "baz", "?": 2, ":tata": "tutu"])
             }
         }

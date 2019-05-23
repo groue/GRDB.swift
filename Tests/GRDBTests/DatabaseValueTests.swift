@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -12,21 +10,21 @@ class DatabaseValueTests: GRDBTestCase {
     func testDatabaseValueAsDatabaseValueConvertible() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, "SELECT 1")!.storage, DatabaseValue.Storage.int64(1))
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, "SELECT 1.0")!.storage, DatabaseValue.Storage.double(1))
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, "SELECT 'foo'")!.storage, DatabaseValue.Storage.string("foo"))
-            XCTAssertEqual(try DatabaseValue.fetchOne(db, "SELECT x'53514C697465'")!.storage, DatabaseValue.Storage.blob("SQLite".data(using: .utf8)!))
-            XCTAssertTrue(try DatabaseValue.fetchOne(db, "SELECT NULL")!.isNull)
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql: "SELECT 1")!.storage, DatabaseValue.Storage.int64(1))
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql: "SELECT 1.0")!.storage, DatabaseValue.Storage.double(1))
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql: "SELECT 'foo'")!.storage, DatabaseValue.Storage.string("foo"))
+            XCTAssertEqual(try DatabaseValue.fetchOne(db, sql: "SELECT x'53514C697465'")!.storage, DatabaseValue.Storage.blob("SQLite".data(using: .utf8)!))
+            XCTAssertTrue(try DatabaseValue.fetchOne(db, sql: "SELECT NULL")!.isNull)
         }
     }
 
     func testDatabaseValueCanBeUsedAsStatementArgument() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE integers (integer INTEGER)")
-            try db.execute("INSERT INTO integers (integer) VALUES (1)")
+            try db.execute(sql: "CREATE TABLE integers (integer INTEGER)")
+            try db.execute(sql: "INSERT INTO integers (integer) VALUES (1)")
             let dbValue: DatabaseValue = 1.databaseValue
-            let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM integers WHERE integer = ?", arguments: [dbValue])!
+            let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM integers WHERE integer = ?", arguments: [dbValue])!
             XCTAssertEqual(count, 1)
         }
     }

@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -115,7 +113,7 @@ class PersistableRecordTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("setUp") { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE persons (
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -140,7 +138,7 @@ class PersistableRecordTests: GRDBTestCase {
             let person = PersistableRecordPerson(name: "Arthur", age: 42)
             try person.insert(db)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM persons")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM persons")
             XCTAssertEqual(rows.count, 1)
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
         }
@@ -152,7 +150,7 @@ class PersistableRecordTests: GRDBTestCase {
             let person = PersistableRecordPerson(name: "Arthur", age: 42)
             try person.save(db)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM persons")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM persons")
             XCTAssertEqual(rows.count, 1)
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
         }
@@ -167,7 +165,7 @@ class PersistableRecordTests: GRDBTestCase {
             let person = PersistableRecordPersonClass(id: nil, name: "Arthur", age: 42)
             try person.insert(db)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM persons")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM persons")
             XCTAssertEqual(rows.count, 1)
             XCTAssertEqual(rows[0]["id"] as Int64, person.id!)
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
@@ -189,7 +187,7 @@ class PersistableRecordTests: GRDBTestCase {
                 "UPDATE \"persons\" SET \"name\"='Craig', \"age\"=42 WHERE \"id\"=1"
                 ].contains(self.lastSQLQuery))
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM persons ORDER BY id")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["id"] as Int64, person1.id!)
             XCTAssertEqual(rows[0]["name"] as String, "Craig")
@@ -211,7 +209,7 @@ class PersistableRecordTests: GRDBTestCase {
                 try person1.update(db, columns: [String]())
                 XCTAssertEqual(self.lastSQLQuery, "UPDATE \"persons\" SET \"id\"=1 WHERE \"id\"=1")
                 
-                let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                let rows = try Row.fetchAll(db, sql: "SELECT * FROM persons ORDER BY id")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0]["id"] as Int64, person1.id!)
                 XCTAssertEqual(rows[0]["name"] as String, "Arthur")
@@ -227,7 +225,7 @@ class PersistableRecordTests: GRDBTestCase {
                 try person1.update(db, columns: [Column("name")])
                 XCTAssertEqual(self.lastSQLQuery, "UPDATE \"persons\" SET \"name\"='Craig' WHERE \"id\"=1")
                 
-                let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                let rows = try Row.fetchAll(db, sql: "SELECT * FROM persons ORDER BY id")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0]["id"] as Int64, person1.id!)
                 XCTAssertEqual(rows[0]["name"] as String, "Craig")
@@ -242,7 +240,7 @@ class PersistableRecordTests: GRDBTestCase {
                 try person1.update(db, columns: ["AgE"])    // case insensitivity
                 XCTAssertEqual(self.lastSQLQuery, "UPDATE \"persons\" SET \"age\"=25 WHERE \"id\"=1")
                 
-                let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+                let rows = try Row.fetchAll(db, sql: "SELECT * FROM persons ORDER BY id")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0]["id"] as Int64, person1.id!)
                 XCTAssertEqual(rows[0]["name"] as String, "Craig")
@@ -260,7 +258,7 @@ class PersistableRecordTests: GRDBTestCase {
             let person1 = PersistableRecordPersonClass(id: nil, name: "Arthur", age: 42)
             try person1.save(db)
             
-            var rows = try Row.fetchAll(db, "SELECT * FROM persons")
+            var rows = try Row.fetchAll(db, sql: "SELECT * FROM persons")
             XCTAssertEqual(rows.count, 1)
             XCTAssertEqual(rows[0]["id"] as Int64, person1.id!)
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
@@ -271,7 +269,7 @@ class PersistableRecordTests: GRDBTestCase {
             person1.name = "Craig"
             try person1.save(db)
             
-            rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+            rows = try Row.fetchAll(db, sql: "SELECT * FROM persons ORDER BY id")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["id"] as Int64, person1.id!)
             XCTAssertEqual(rows[0]["name"] as String, "Craig")
@@ -281,7 +279,7 @@ class PersistableRecordTests: GRDBTestCase {
             try person1.delete(db)
             try person1.save(db)
             
-            rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+            rows = try Row.fetchAll(db, sql: "SELECT * FROM persons ORDER BY id")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["id"] as Int64, person1.id!)
             XCTAssertEqual(rows[0]["name"] as String, "Craig")
@@ -303,7 +301,7 @@ class PersistableRecordTests: GRDBTestCase {
             deleted = try person1.delete(db)
             XCTAssertFalse(deleted)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM persons ORDER BY id")
             XCTAssertEqual(rows.count, 1)
             XCTAssertEqual(rows[0]["id"] as Int64, person2.id!)
             XCTAssertEqual(rows[0]["name"] as String, "Barbara")
@@ -331,7 +329,7 @@ class PersistableRecordTests: GRDBTestCase {
             let country = PersistableRecordCountry(isoCode: "FR", name: "France")
             try country.insert(db)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM countries")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM countries")
             XCTAssertEqual(rows.count, 1)
             XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
             XCTAssertEqual(rows[0]["name"] as String, "France")
@@ -350,7 +348,7 @@ class PersistableRecordTests: GRDBTestCase {
             try country1.update(db)
             XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"name\"='France Métropolitaine' WHERE \"isoCode\"='FR'")
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
             XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
@@ -372,7 +370,7 @@ class PersistableRecordTests: GRDBTestCase {
                 try country1.update(db, columns: [String]())
                 XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"isoCode\"='FR' WHERE \"isoCode\"='FR'")
                 
-                let rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+                let rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
                 XCTAssertEqual(rows[0]["name"] as String, "France")
@@ -385,7 +383,7 @@ class PersistableRecordTests: GRDBTestCase {
                 try country1.update(db, columns: [Column("name")])
                 XCTAssertEqual(self.lastSQLQuery, "UPDATE \"countries\" SET \"name\"='France Métropolitaine' WHERE \"isoCode\"='FR'")
                 
-                let rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+                let rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
                 XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
@@ -401,7 +399,7 @@ class PersistableRecordTests: GRDBTestCase {
             var country1 = PersistableRecordCountry(isoCode: "FR", name: "France")
             try country1.save(db)
             
-            var rows = try Row.fetchAll(db, "SELECT * FROM countries")
+            var rows = try Row.fetchAll(db, sql: "SELECT * FROM countries")
             XCTAssertEqual(rows.count, 1)
             XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
             XCTAssertEqual(rows[0]["name"] as String, "France")
@@ -412,7 +410,7 @@ class PersistableRecordTests: GRDBTestCase {
             country1.name = "France Métropolitaine"
             try country1.save(db)
             
-            rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
             XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
@@ -422,7 +420,7 @@ class PersistableRecordTests: GRDBTestCase {
             try country1.delete(db)
             try country1.save(db)
             
-            rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
             XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
@@ -444,7 +442,7 @@ class PersistableRecordTests: GRDBTestCase {
             deleted = try country1.delete(db)
             XCTAssertFalse(deleted)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
             XCTAssertEqual(rows.count, 1)
             XCTAssertEqual(rows[0]["isoCode"] as String, "US")
             XCTAssertEqual(rows[0]["name"] as String, "United States")
@@ -490,7 +488,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(deleteCount, 0)
             XCTAssertEqual(existsCount, 0)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM countries")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM countries")
             XCTAssertEqual(rows.count, 1)
             XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
             XCTAssertEqual(rows[0]["name"] as String, "France")
@@ -534,7 +532,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(deleteCount, 0)
             XCTAssertEqual(existsCount, 0)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
             XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
@@ -580,7 +578,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(deleteCount, 0)
             XCTAssertEqual(existsCount, 0)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
             XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
@@ -613,7 +611,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(deleteCount, 0)
             XCTAssertEqual(existsCount, 0)
             
-            var rows = try Row.fetchAll(db, "SELECT * FROM countries")
+            var rows = try Row.fetchAll(db, sql: "SELECT * FROM countries")
             XCTAssertEqual(rows.count, 1)
             XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
             XCTAssertEqual(rows[0]["name"] as String, "France")
@@ -637,7 +635,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(deleteCount, 0)
             XCTAssertEqual(existsCount, 0)
             
-            rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
             XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
@@ -653,7 +651,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(deleteCount, 1)
             XCTAssertEqual(existsCount, 0)
             
-            rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["isoCode"] as String, "FR")
             XCTAssertEqual(rows[0]["name"] as String, "France Métropolitaine")
@@ -700,7 +698,7 @@ class PersistableRecordTests: GRDBTestCase {
             XCTAssertEqual(deleteCount, 2)
             XCTAssertEqual(existsCount, 0)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM countries ORDER BY isoCode")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM countries ORDER BY isoCode")
             XCTAssertEqual(rows.count, 1)
             XCTAssertEqual(rows[0]["isoCode"] as String, "US")
             XCTAssertEqual(rows[0]["name"] as String, "United States")
@@ -787,7 +785,7 @@ extension PersistableRecordTests {
             let value = StructWithNestedType(nested: nested)
             try value.insert(db)
             
-            let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
+            let dbValue = try DatabaseValue.fetchOne(db, sql: "SELECT nested FROM t1")!
             
             // Encodable has a default implementation which encodes a model to JSON as String.
             // We expect here JSON in the form of a String
@@ -827,7 +825,7 @@ extension PersistableRecordTests {
             let value = StructWithNestedType(nested: nil)
             try value.insert(db)
             
-            let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
+            let dbValue = try DatabaseValue.fetchOne(db, sql: "SELECT nested FROM t1")!
             
             // We expect here nil
             XCTAssertNil(dbValue.storage.value)
@@ -855,7 +853,7 @@ extension PersistableRecordTests {
             let value = StructWithNestedType(nested: [nested, nested])
             try value.insert(db)
             
-            let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
+            let dbValue = try DatabaseValue.fetchOne(db, sql: "SELECT nested FROM t1")!
             
             // Encodable has a default implementation which encodes a model to JSON as String.
             // We expect here JSON in the form of a String
@@ -898,7 +896,7 @@ extension PersistableRecordTests {
             let value = StructWithNestedType(nested: nil)
             try value.insert(db)
             
-            let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
+            let dbValue = try DatabaseValue.fetchOne(db, sql: "SELECT nested FROM t1")!
             
             // We expect here nil
             XCTAssertNil(dbValue.storage.value)
@@ -926,7 +924,7 @@ extension PersistableRecordTests {
             let value = StructWithNestedType(nested: nested)
             try value.insert(db)
             
-            let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
+            let dbValue = try DatabaseValue.fetchOne(db, sql: "SELECT nested FROM t1")!
 
             // Encodable has a default implementation which encodes a model to JSON as String.
             // We expect here JSON in the form of a String
@@ -967,7 +965,7 @@ extension PersistableRecordTests {
             let value = StructWithNestedType(nested: [nested])
             try value.insert(db)
             
-            let dbValue = try DatabaseValue.fetchOne(db, "SELECT nested FROM t1")!
+            let dbValue = try DatabaseValue.fetchOne(db, sql: "SELECT nested FROM t1")!
             
             // Encodable has a default implementation which encodes a model to JSON as String.
             // We expect here JSON in the form of a String

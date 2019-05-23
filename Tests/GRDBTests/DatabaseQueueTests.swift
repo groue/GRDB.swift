@@ -1,8 +1,6 @@
 import XCTest
 import Dispatch
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -27,10 +25,6 @@ class DatabaseQueueTests: GRDBTestCase {
             XCTAssert([
                 "file is encrypted or is not a database",
                 "file is not a database"].contains(error.message!))
-            XCTAssertTrue(error.sql == nil)
-            XCTAssert([
-                "SQLite error 26: file is encrypted or is not a database",
-                "SQLite error 26: file is not a database"].contains(error.description))
         }
     }
     #endif
@@ -46,12 +40,12 @@ class DatabaseQueueTests: GRDBTestCase {
         }
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT succ(1)"), 2) // 2
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT succ(1)"), 2) // 2
         }
         dbQueue.remove(function: fn)
         do {
             try dbQueue.inDatabase { db in
-                try db.execute("SELECT succ(1)")
+                try db.execute(sql: "SELECT succ(1)")
                 XCTFail("Expected Error")
             }
             XCTFail("Expected Error")
@@ -73,12 +67,12 @@ class DatabaseQueueTests: GRDBTestCase {
         }
         dbQueue.add(collation: collation)
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE files (name TEXT COLLATE TEST_COLLATION_FOO)")
+            try db.execute(sql: "CREATE TABLE files (name TEXT COLLATE TEST_COLLATION_FOO)")
         }
         dbQueue.remove(collation: collation)
         do {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE files_fail (name TEXT COLLATE TEST_COLLATION_FOO)")
+                try db.execute(sql: "CREATE TABLE files_fail (name TEXT COLLATE TEST_COLLATION_FOO)")
                 XCTFail("Expected Error")
             }
             XCTFail("Expected Error")

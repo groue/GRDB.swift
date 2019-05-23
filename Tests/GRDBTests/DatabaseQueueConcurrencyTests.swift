@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -29,11 +27,11 @@ class ConcurrencyTests: GRDBTestCase {
     func testWrappedReadWrite() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            try db.execute("INSERT INTO items (id) VALUES (NULL)")
+            try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
         }
         let id = try dbQueue.inDatabase { db in
-            try Int.fetchOne(db, "SELECT id FROM items")!
+            try Int.fetchOne(db, sql: "SELECT id FROM items")!
         }
         XCTAssertEqual(id, 1)
     }
@@ -45,7 +43,7 @@ class ConcurrencyTests: GRDBTestCase {
             // same empty database: make sure the database is not empty before
             // running this test
             try dbQueue1.inDatabase { db in
-                try db.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+                try db.execute(sql: "CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
             }
         #endif
         let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite")
@@ -63,7 +61,7 @@ class ConcurrencyTests: GRDBTestCase {
         // COMMIT
         
         try dbQueue1.inDatabase { db in
-            try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
         }
         
         let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
@@ -75,7 +73,7 @@ class ConcurrencyTests: GRDBTestCase {
                 try dbQueue1.inTransaction(.deferred) { db in
                     s1.signal()
                     _ = s2.wait(timeout: .distantFuture)
-                    try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
+                    try db.execute(sql: "INSERT INTO stuffs (id) VALUES (NULL)")
                     s3.signal()
                     _ = s4.wait(timeout: .distantFuture)
                     return .commit
@@ -94,7 +92,7 @@ class ConcurrencyTests: GRDBTestCase {
                 try dbQueue2.inTransaction(.deferred) { db in
                     s2.signal()
                     _ = s3.wait(timeout: .distantFuture)
-                    try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
+                    try db.execute(sql: "INSERT INTO stuffs (id) VALUES (NULL)")
                     return .commit
                 }
             }
@@ -236,7 +234,7 @@ class ConcurrencyTests: GRDBTestCase {
             // same empty database: make sure the database is not empty before
             // running this test
             try dbQueue1.inDatabase { db in
-                try db.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+                try db.execute(sql: "CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
             }
         #endif
         let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite")
@@ -299,7 +297,7 @@ class ConcurrencyTests: GRDBTestCase {
             // same empty database: make sure the database is not empty before
             // running this test
             try dbQueue1.inDatabase { db in
-                try db.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+                try db.execute(sql: "CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
             }
         #endif
         let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite")
@@ -317,7 +315,7 @@ class ConcurrencyTests: GRDBTestCase {
         //                                      SELECT * FROM stuffs <--- 1 result
         
         try dbQueue1.inDatabase { db in
-            try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
         }
         
         let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
@@ -327,7 +325,7 @@ class ConcurrencyTests: GRDBTestCase {
         queue.async(group: group) {
             do {
                 try dbQueue1.inTransaction { db in
-                    try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
+                    try db.execute(sql: "INSERT INTO stuffs (id) VALUES (NULL)")
                     s1.signal()
                     _ = s2.wait(timeout: .distantFuture)
                     return .commit
@@ -345,10 +343,10 @@ class ConcurrencyTests: GRDBTestCase {
         queue.async(group: group) {
             try! dbQueue2.writeWithoutTransaction { db in
                 _ = s1.wait(timeout: .distantFuture)
-                rows1 = try Row.fetchAll(db, "SELECT * FROM stuffs")
+                rows1 = try Row.fetchAll(db, sql: "SELECT * FROM stuffs")
                 s2.signal()
                 _ = s3.wait(timeout: .distantFuture)
-                rows2 = try Row.fetchAll(db, "SELECT * FROM stuffs")
+                rows2 = try Row.fetchAll(db, sql: "SELECT * FROM stuffs")
             }
         }
         
@@ -365,7 +363,7 @@ class ConcurrencyTests: GRDBTestCase {
             // same empty database: make sure the database is not empty before
             // running this test
             try dbQueue1.inDatabase { db in
-                try db.execute("CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+                try db.execute(sql: "CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
             }
         #endif
         let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite")
@@ -398,7 +396,7 @@ class ConcurrencyTests: GRDBTestCase {
         }
         
         try dbQueue1.inDatabase { db in
-            try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE stuffs (id INTEGER PRIMARY KEY)")
         }
         
         let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
@@ -408,7 +406,7 @@ class ConcurrencyTests: GRDBTestCase {
         queue.async(group: group) {
             do {
                 try dbQueue1.inTransaction { db in
-                    try db.execute("INSERT INTO stuffs (id) VALUES (NULL)")
+                    try db.execute(sql: "INSERT INTO stuffs (id) VALUES (NULL)")
                     s1.signal()
                     _ = s2.wait(timeout: .distantFuture)
                     return .commit
@@ -424,7 +422,7 @@ class ConcurrencyTests: GRDBTestCase {
             do {
                 _ = s1.wait(timeout: .distantFuture)
                 try dbQueue2.inTransaction(.deferred) { db in
-                    _ = try Row.fetchAll(db, "SELECT * FROM stuffs")
+                    _ = try Row.fetchAll(db, sql: "SELECT * FROM stuffs")
                     s2.signal()
                     _ = s3.wait(timeout: .distantFuture)
                     return .commit

@@ -1,5 +1,7 @@
 #if SWIFT_PACKAGE
     import CSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
     import SQLite3
 #endif
@@ -68,7 +70,7 @@ extension ValueConversionContext {
                 arguments: statement.arguments,
                 column: nil)
         } else if let sqliteStatement = row.sqliteStatement {
-            let sql = String(cString: sqlite3_sql(sqliteStatement)).trimmingCharacters(in: statementSeparatorCharacterSet)
+            let sql = String(cString: sqlite3_sql(sqliteStatement)).trimmingCharacters(in: .sqlStatementSeparators)
             self.init(
                 row: row.copy(),
                 sql: sql,
@@ -81,14 +83,6 @@ extension ValueConversionContext {
                 arguments: nil,
                 column: nil)
         }
-    }
-    
-    init(sql: String, arguments: StatementArguments?) {
-        self.init(
-            row: nil,
-            sql: sql,
-            arguments: arguments,
-            column: nil)
     }
 }
 
@@ -138,7 +132,16 @@ func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue?, conversio
     fatalError(conversionErrorMessage(to: T.self, from: dbValue, conversionContext: conversionContext), file: file, line: line)
 }
 
-func fatalConversionError<T>(to: T.Type, sqliteStatement: SQLiteStatement, index: Int32) -> Never {
+@usableFromInline
+func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue?, in row: Row, atColumn columnName: String, file: StaticString = #file, line: UInt = #line) -> Never {
+    fatalConversionError(
+        to: T.self,
+        from: dbValue,
+        conversionContext: ValueConversionContext(row).atColumn(columnName))
+}
+
+@usableFromInline
+func fatalConversionError<T>(to: T.Type, sqliteStatement: SQLiteStatement, index: Int32, file: StaticString = #file, line: UInt = #line) -> Never {
     let row = Row(sqliteStatement: sqliteStatement)
     fatalConversionError(
         to: T.self,
@@ -146,11 +149,29 @@ func fatalConversionError<T>(to: T.Type, sqliteStatement: SQLiteStatement, index
         conversionContext: ValueConversionContext(row).atColumn(Int(index)))
 }
 
+@usableFromInline
+func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue?, sqliteStatement: SQLiteStatement, index: Int32, file: StaticString = #file, line: UInt = #line) -> Never {
+    let row = Row(sqliteStatement: sqliteStatement)
+    fatalConversionError(
+        to: T.self,
+        from: dbValue,
+        conversionContext: ValueConversionContext(row).atColumn(Int(index)))
+}
+
 // MARK: - DatabaseValueConvertible
 
 /// Lossless conversions from database values and rows
 extension DatabaseValueConvertible {
-    @inline(__always)
+    @usableFromInline
+    static func decode(from sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self {
+        let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
+        if let value = fromDatabaseValue(dbValue) {
+            return value
+        } else {
+            fatalConversionError(to: Self.self, from: dbValue, sqliteStatement: sqliteStatement, index: index)
+        }
+    }
+    
     static func decode(from dbValue: DatabaseValue, conversionContext: @autoclosure () -> ValueConversionContext?) -> Self {
         if let value = fromDatabaseValue(dbValue) {
             return value
@@ -159,14 +180,25 @@ extension DatabaseValueConvertible {
         }
     }
     
-    @inline(__always)
+    @usableFromInline
     static func decode(from row: Row, atUncheckedIndex index: Int) -> Self {
         return decode(
             from: row.impl.databaseValue(atUncheckedIndex: index),
             conversionContext: ValueConversionContext(row).atColumn(index))
     }
     
-    @inline(__always)
+    @usableFromInline
+    static func decodeIfPresent(from sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self? {
+        let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
+        if let value = fromDatabaseValue(dbValue) {
+            return value
+        } else if dbValue.isNull {
+            return nil
+        } else {
+            fatalConversionError(to: Self.self, from: dbValue, sqliteStatement: sqliteStatement, index: index)
+        }
+    }
+
     static func decodeIfPresent(from dbValue: DatabaseValue, conversionContext: @autoclosure () -> ValueConversionContext?) -> Self? {
         // Use fromDatabaseValue before checking for null: this allows DatabaseValue to convert NULL to .null.
         if let value = fromDatabaseValue(dbValue) {
@@ -178,7 +210,7 @@ extension DatabaseValueConvertible {
         }
     }
     
-    @inline(__always)
+    @usableFromInline
     static func decodeIfPresent(from row: Row, atUncheckedIndex index: Int) -> Self? {
         return decodeIfPresent(
             from: row.impl.databaseValue(atUncheckedIndex: index),
@@ -190,26 +222,23 @@ extension DatabaseValueConvertible {
 
 /// Lossless conversions from database values and rows
 extension DatabaseValueConvertible where Self: StatementColumnConvertible {
-    @inline(__always)
-    static func fastDecode(from sqliteStatement: SQLiteStatement, index: Int32) -> Self {
+    @inlinable
+    static func fastDecode(from sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self {
         if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
-            fatalConversionError(
-                to: Self.self,
-                from: .null,
-                conversionContext: ValueConversionContext(Row(sqliteStatement: sqliteStatement)).atColumn(Int(index)))
+            fatalConversionError(to: Self.self, sqliteStatement: sqliteStatement, index: index)
         }
         return self.init(sqliteStatement: sqliteStatement, index: index)
     }
     
-    @inline(__always)
+    @inlinable
     static func fastDecode(from row: Row, atUncheckedIndex index: Int) -> Self {
         if let sqliteStatement = row.sqliteStatement {
-            return fastDecode(from: sqliteStatement, index: Int32(index))
+            return fastDecode(from: sqliteStatement, atUncheckedIndex: Int32(index))
         }
-        return row.impl.fastDecode(Self.self, atUncheckedIndex: index)
+        return row.fastDecode(Self.self, atUncheckedIndex: index)
     }
     
-    @inline(__always)
+    @inlinable
     static func fastDecodeIfPresent(from sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self? {
         if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
             return nil
@@ -217,11 +246,24 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         return self.init(sqliteStatement: sqliteStatement, index: index)
     }
     
-    @inline(__always)
+    @inlinable
     static func fastDecodeIfPresent(from row: Row, atUncheckedIndex index: Int) -> Self? {
         if let sqliteStatement = row.sqliteStatement {
             return fastDecodeIfPresent(from: sqliteStatement, atUncheckedIndex: Int32(index))
         }
-        return row.impl.fastDecodeIfPresent(Self.self, atUncheckedIndex: index)
+        return row.fastDecodeIfPresent(Self.self, atUncheckedIndex: index)
+    }
+}
+
+// Support for @inlinable decoding
+extension Row {
+    @usableFromInline
+    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int) -> Value {
+        return impl.fastDecode(type, atUncheckedIndex: index)
+    }
+    
+    @usableFromInline
+    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int) -> Value? {
+        return impl.fastDecodeIfPresent(type, atUncheckedIndex: index)
     }
 }

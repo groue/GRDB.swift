@@ -122,7 +122,7 @@ extension TableRecord {
     public static func selectionSQL(alias: String? = nil) -> String {
         let alias = TableAlias(tableName: databaseTableName, userName: alias)
         let selection = databaseSelection.map { $0.qualifiedSelectable(with: alias) }
-        var context = SQLGenerationContext.recordSelectionGenerationContext(alias: alias)
+        var context = SQLGenerationContext.recordSelectionGenerationContext()
         return selection
             .map { $0.resultColumnSQL(&context) }
             .joined(separator: ", ")

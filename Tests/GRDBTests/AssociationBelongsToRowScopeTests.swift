@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -47,7 +45,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = Player.joining(required: Player.defaultTeam)
-            let (_, adapter) = try request.prepare(db)
+            let (_, adapter) = try request.prepare(db, forSingleResult: false)
             XCTAssertNil(adapter)
         }
     }
@@ -55,30 +53,30 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
     func testDefaultScopeIncludingRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.including(required: Player.defaultTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
-        XCTAssertEqual(Set(rows[0].scopes.names), ["teams"])
-        XCTAssertEqual(rows[0].scopes["teams"]!, ["id":1, "name":"Reds"])
+        XCTAssertEqual(Set(rows[0].scopes.names), ["team"])
+        XCTAssertEqual(rows[0].scopes["team"]!, ["id":1, "name":"Reds"])
     }
     
     func testDefaultScopeIncludingOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.including(optional: Player.defaultTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 2)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
-        XCTAssertEqual(Set(rows[0].scopes.names), ["teams"])
-        XCTAssertEqual(rows[0].scopes["teams"]!, ["id":1, "name":"Reds"])
+        XCTAssertEqual(Set(rows[0].scopes.names), ["team"])
+        XCTAssertEqual(rows[0].scopes["team"]!, ["id":1, "name":"Reds"])
         XCTAssertEqual(rows[1].unscoped, ["id":2, "teamId":nil, "name":"Barbara"])
-        XCTAssertEqual(Set(rows[1].scopes.names), ["teams"])
-        XCTAssertEqual(rows[1].scopes["teams"]!, ["id":nil, "name":nil])
+        XCTAssertEqual(Set(rows[1].scopes.names), ["team"])
+        XCTAssertEqual(rows[1].scopes["team"]!, ["id":nil, "name":nil])
     }
     
     func testDefaultScopeJoiningRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.joining(required: Player.defaultTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
         XCTAssertTrue(rows[0].scopes.names.isEmpty)
@@ -87,18 +85,18 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
     func testDefaultScopeJoiningOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.joining(optional: Player.defaultTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 2)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
         XCTAssertTrue(rows[0].scopes.names.isEmpty)
         XCTAssertEqual(rows[1].unscoped, ["id":2, "teamId":nil, "name":"Barbara"])
         XCTAssertTrue(rows[0].scopes.names.isEmpty)
     }
-
+    
     func testCustomScopeIncludingRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.including(required: Player.customTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
         XCTAssertEqual(Set(rows[0].scopes.names), ["customTeam"])
@@ -108,7 +106,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
     func testCustomScopeIncludingOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.including(optional: Player.customTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 2)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
         XCTAssertEqual(Set(rows[0].scopes.names), ["customTeam"])
@@ -118,10 +116,58 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
         XCTAssertEqual(rows[1].scopes["customTeam"]!, ["id":nil, "name":nil])
     }
     
+    func testCustomPluralScopeIncludingRequired() throws {
+        // Make sure explicit plural keys are preserved
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            let request = Player.including(required: Player.belongsTo(Team.self, key: "teams"))
+            let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+            XCTAssertEqual(rows.count, 1)
+            XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
+            XCTAssertEqual(Set(rows[0].scopes.names), ["teams"])
+            XCTAssertEqual(rows[0].scopes["teams"]!, ["id":1, "name":"Reds"])
+        }
+        do {
+            let request = Player.including(required: Player.defaultTeam.forKey("teams"))
+            let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+            XCTAssertEqual(rows.count, 1)
+            XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
+            XCTAssertEqual(Set(rows[0].scopes.names), ["teams"])
+            XCTAssertEqual(rows[0].scopes["teams"]!, ["id":1, "name":"Reds"])
+        }
+    }
+    
+    func testCustomPluralScopeIncludingOptional() throws {
+        // Make sure explicit plural keys are preserved
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            let request = Player.including(optional: Player.belongsTo(Team.self, key: "teams"))
+            let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+            XCTAssertEqual(rows.count, 2)
+            XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
+            XCTAssertEqual(Set(rows[0].scopes.names), ["teams"])
+            XCTAssertEqual(rows[0].scopes["teams"]!, ["id":1, "name":"Reds"])
+            XCTAssertEqual(rows[1].unscoped, ["id":2, "teamId":nil, "name":"Barbara"])
+            XCTAssertEqual(Set(rows[1].scopes.names), ["teams"])
+            XCTAssertEqual(rows[1].scopes["teams"]!, ["id":nil, "name":nil])
+        }
+        do {
+            let request = Player.including(optional: Player.defaultTeam.forKey("teams"))
+            let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+            XCTAssertEqual(rows.count, 2)
+            XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
+            XCTAssertEqual(Set(rows[0].scopes.names), ["teams"])
+            XCTAssertEqual(rows[0].scopes["teams"]!, ["id":1, "name":"Reds"])
+            XCTAssertEqual(rows[1].unscoped, ["id":2, "teamId":nil, "name":"Barbara"])
+            XCTAssertEqual(Set(rows[1].scopes.names), ["teams"])
+            XCTAssertEqual(rows[1].scopes["teams"]!, ["id":nil, "name":nil])
+        }
+    }
+
     func testCustomScopeJoiningRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.joining(required: Player.customTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 1)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
         XCTAssertTrue(rows[0].scopes.names.isEmpty)
@@ -130,7 +176,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
     func testCustomScopeJoiningOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.joining(optional: Player.customTeam)
-        let rows = try dbQueue.inDatabase { try request.asRequest(of: Row.self).fetchAll($0) }
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
         XCTAssertEqual(rows.count, 2)
         XCTAssertEqual(rows[0].unscoped, ["id":1, "teamId":1, "name":"Arthur"])
         XCTAssertTrue(rows[0].scopes.names.isEmpty)

@@ -1,10 +1,10 @@
 import XCTest
-#if GRDBCIPHER
-    @testable import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     @testable import GRDBCustomSQLite
 #else
-    #if SWIFT_PACKAGE
+    #if GRDBCIPHER
+        import SQLCipher
+    #elseif SWIFT_PACKAGE
         import CSQLite
     #else
         import SQLite3
@@ -17,7 +17,7 @@ class ColumnInfoTests: GRDBTestCase {
     func testColumnInfo() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE t (
                     a INT,
                     b TEXT,

@@ -40,16 +40,14 @@ struct Player: Codable, FetchableRecord, MutablePersistableRecord {
     var id: Int64
     var name: String
     var score: Int
-
-    // Add ColumnExpression to Codable's CodingKeys so that we can use them
-    // as database columns.
-    //
-    // See https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
-    // for more information about CodingKeys.
-    private enum CodingKeys: String, CodingKey, ColumnExpression {
-        case id, name, score
+    
+    // Define database columns from CodingKeys
+    private enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
     }
-
+    
     // Update a player id after it has been inserted in the database.
     mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
@@ -58,7 +56,7 @@ struct Player: Codable, FetchableRecord, MutablePersistableRecord {
 
 extension Player {
     static func orderedById() -> QueryInterfaceRequest<Player> {
-        return order(CodingKeys.id)
+        return order(Columns.id)
     }
 }
 

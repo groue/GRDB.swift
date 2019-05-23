@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -123,10 +121,10 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         let authorId: Int64 = try dbQueue.inDatabase { db in
             let plato = Person(name: "Plato")
             try plato.insert(db)
-            try db.execute("INSERT INTO books (authorID, title) VALUES (?, ?)", arguments: [plato.id, "Symposium"])
+            try db.execute(sql: "INSERT INTO books (authorID, title) VALUES (?, ?)", arguments: [plato.id, "Symposium"])
             let cervantes = Person(name: "Cervantes")
             try cervantes.insert(db)
-            try db.execute("INSERT INTO books (authorID, title) VALUES (?, ?)", arguments: [cervantes.id, "Don Quixote"])
+            try db.execute(sql: "INSERT INTO books (authorID, title) VALUES (?, ?)", arguments: [cervantes.id, "Don Quixote"])
             return cervantes.id!
         }
         
@@ -141,10 +139,10 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         let authorId: Int64 = try dbQueue.inDatabase { db in
             let plato = Person(name: "Plato")
             try plato.insert(db)
-            try db.execute("INSERT INTO books (authorID, title) VALUES (?, ?)", arguments: [plato.id, "Symposium"])
+            try db.execute(sql: "INSERT INTO books (authorID, title) VALUES (?, ?)", arguments: [plato.id, "Symposium"])
             let cervantes = Person(name: "Cervantes")
             try cervantes.insert(db)
-            try db.execute("INSERT INTO books (authorID, title) VALUES (?, ?)", arguments: [cervantes.id, "Don Quixote"])
+            try db.execute(sql: "INSERT INTO books (authorID, title) VALUES (?, ?)", arguments: [cervantes.id, "Don Quixote"])
             return cervantes.id!
         }
         
@@ -288,7 +286,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         recorder.transactionExpectation = expectation(description: "expectation")
         // No change should be recorded
         try dbQueue.inTransaction { db in
-            try db.execute("UPDATE persons SET name = ? WHERE id = ?", arguments: ["Arthur", 1])
+            try db.execute(sql: "UPDATE persons SET name = ? WHERE id = ?", arguments: ["Arthur", 1])
             return .commit
         }
         // One change should be recorded
@@ -474,8 +472,8 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         // Insert
         recorder.transactionExpectation = expectation(description: "expectation")
         try dbQueue.inTransaction { db in
-            try db.execute("INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
-            try db.execute("INSERT INTO books (authorId, title) VALUES (?, ?)", arguments: [1, "Moby Dick"])
+            try db.execute(sql: "INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
+            try db.execute(sql: "INSERT INTO books (authorId, title) VALUES (?, ?)", arguments: [1, "Moby Dick"])
             return .commit
         }
         waitForExpectations(timeout: 1, handler: nil)
@@ -483,7 +481,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         // Change books
         recorder.transactionExpectation = expectation(description: "expectation")
         try dbQueue.inTransaction { db in
-            try db.execute("DELETE FROM books")
+            try db.execute(sql: "DELETE FROM books")
             return .commit
         }
         waitForExpectations(timeout: 1, handler: nil)
@@ -722,7 +720,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         
         recorder.transactionExpectation = expectation(description: "expectation")
         try dbQueue.inTransaction { db in
-            try db.execute("UPDATE persons SET email = ? WHERE name = ?", arguments: ["arthur@example.com", "Arthur"])
+            try db.execute(sql: "UPDATE persons SET email = ? WHERE name = ?", arguments: ["arthur@example.com", "Arthur"])
             return .commit
         }
         waitForExpectations(timeout: 1, handler: nil)
@@ -734,7 +732,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         
         recorder.transactionExpectation = expectation(description: "expectation")
         try dbQueue.inTransaction { db in
-            try db.execute("UPDATE PERSONS SET EMAIL = ? WHERE NAME = ?", arguments: ["barbara@example.com", "Barbara"])
+            try db.execute(sql: "UPDATE PERSONS SET EMAIL = ? WHERE NAME = ?", arguments: ["barbara@example.com", "Barbara"])
             return .commit
         }
         waitForExpectations(timeout: 1, handler: nil)
@@ -898,11 +896,11 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         try specificController.performFetch()
 
         try dbQueue.writeWithoutTransaction { db in
-            try db.execute("INSERT INTO persons (id, name) VALUES (?, ?)", arguments: [1, "Arthur"])
-            try db.execute("INSERT INTO persons (id, name) VALUES (?, ?)", arguments: [2, "Barbara"])
-            try db.execute("UPDATE persons SET name = ? WHERE id = ?", arguments: ["Craig", 1])
-            try db.execute("UPDATE persons SET name = ? WHERE id = ?", arguments: ["David", 2])
-            try db.execute("DELETE FROM persons")
+            try db.execute(sql: "INSERT INTO persons (id, name) VALUES (?, ?)", arguments: [1, "Arthur"])
+            try db.execute(sql: "INSERT INTO persons (id, name) VALUES (?, ?)", arguments: [2, "Barbara"])
+            try db.execute(sql: "UPDATE persons SET name = ? WHERE id = ?", arguments: ["Craig", 1])
+            try db.execute(sql: "UPDATE persons SET name = ? WHERE id = ?", arguments: ["David", 2])
+            try db.execute(sql: "DELETE FROM persons")
         }
         waitForExpectations(timeout: 1, handler: nil)
         XCTAssertEqual(generalChangeCount, 6)
@@ -915,7 +913,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
 private func synchronizePersons(_ db: Database, _ newPersons: [Person]) throws {
     // Sort new persons and database persons by id:
     let newPersons = newPersons.sorted { $0.id! < $1.id! }
-    let databasePersons = try Person.fetchAll(db, "SELECT * FROM persons ORDER BY id")
+    let databasePersons = try Person.fetchAll(db, sql: "SELECT * FROM persons ORDER BY id")
     
     // Now that both lists are sorted by id, we can compare them with
     // the sortedMerge() function.

@@ -18,7 +18,7 @@ class DateParsingTests: XCTestCase {
     func testParseDateComponents() {
         measure {
             try! DatabaseQueue().inDatabase { db in
-                let cursor = try DatabaseDateComponents.fetchCursor(db, request)
+                let cursor = try DatabaseDateComponents.fetchCursor(db, sql: request)
                 while try cursor.next() != nil { }
             }
         }
@@ -27,7 +27,7 @@ class DateParsingTests: XCTestCase {
     func testParseDate() {
         measure {
             try! DatabaseQueue().inDatabase { db in
-                let cursor = try Date.fetchCursor(db, request)
+                let cursor = try Date.fetchCursor(db, sql: request)
                 while try cursor.next() != nil { }
             }
         }

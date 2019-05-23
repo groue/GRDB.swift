@@ -16,9 +16,9 @@ class InsertPositionalValuesTests: XCTestCase {
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             try! dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, insertedRowCount)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, insertedRowCount)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT MIN(i0) FROM items")!, 0)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
             try! FileManager.default.removeItem(atPath: databasePath)
         }
@@ -62,9 +62,9 @@ class InsertPositionalValuesTests: XCTestCase {
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             try! dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, insertedRowCount)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, insertedRowCount)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT MIN(i0) FROM items")!, 0)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
             try! FileManager.default.removeItem(atPath: databasePath)
         }
@@ -73,11 +73,11 @@ class InsertPositionalValuesTests: XCTestCase {
             
             let dbQueue = try! DatabaseQueue(path: databasePath)
             try! dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
+                try db.execute(sql: "CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
             }
             
             try! dbQueue.inTransaction { db in
-                let statement = try! db.makeUpdateStatement("INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
+                let statement = try! db.makeUpdateStatement(sql: "INSERT INTO items (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
                 for i in 0..<insertedRowCount {
                     try statement.execute(arguments: [i, i, i, i, i, i, i, i, i, i])
                 }
@@ -93,16 +93,16 @@ class InsertPositionalValuesTests: XCTestCase {
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             try! dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, insertedRowCount)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, insertedRowCount)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT MIN(i0) FROM items")!, 0)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
             try! FileManager.default.removeItem(atPath: databasePath)
         }
         measure {
             _ = try? FileManager.default.removeItem(atPath: databasePath)
             
-            let dbQueue = FMDatabaseQueue(path: databasePath)
+            let dbQueue = FMDatabaseQueue(path: databasePath)!
             dbQueue.inDatabase { db in
                 db.executeStatements("CREATE TABLE items (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
             }
@@ -122,9 +122,9 @@ class InsertPositionalValuesTests: XCTestCase {
         defer {
             let dbQueue = try! DatabaseQueue(path: databasePath)
             try! dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM items")!, insertedRowCount)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT MIN(i0) FROM items")!, 0)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, insertedRowCount)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT MIN(i0) FROM items")!, 0)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT MAX(i9) FROM items")!, insertedRowCount - 1)
             }
             try! FileManager.default.removeItem(atPath: databasePath)
         }

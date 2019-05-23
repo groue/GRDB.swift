@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -19,7 +17,7 @@ class Pet : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute("""
+        try db.execute(sql: """
             CREATE TABLE pets (
                 UUID TEXT NOT NULL PRIMARY KEY,
                 name TEXT NOT NULL)
@@ -75,7 +73,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             let record = Pet(UUID: "BobbyUUID", name: "Bobby")
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -102,7 +100,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             try record.delete(db)
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -117,8 +115,10 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "pets")
+                XCTAssertEqual(key, ["UUID": .null])
             }
         }
     }
@@ -130,8 +130,10 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "pets")
+                XCTAssertEqual(key, ["UUID": "BobbyUUID".databaseValue])
             }
         }
     }
@@ -144,7 +146,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             record.name = "Carl"
             try record.update(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -158,8 +160,10 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "pets")
+                XCTAssertEqual(key, ["UUID": "BobbyUUID".databaseValue])
             }
         }
     }
@@ -187,7 +191,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             let record = Pet(UUID: "BobbyUUID", name: "Bobby")
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -201,7 +205,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             record.name = "Carl"
             try record.save(db)   // Actual update
             
-            let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -214,7 +218,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             try record.delete(db)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -248,7 +252,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             let deleted = try record.delete(db)
             XCTAssertTrue(deleted)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM pets WHERE UUID = ?", arguments: [record.UUID])
             XCTAssertTrue(row == nil)
         }
     }
@@ -333,6 +337,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             let fetchedRecord = try Pet.fetchOne(db, key: ["UUID": record.UUID])!
             XCTAssertTrue(fetchedRecord.UUID == record.UUID)
             XCTAssertTrue(fetchedRecord.name == record.name)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"pets\" WHERE (\"UUID\" = '\(record.UUID!)')")
         }
     }
 
@@ -404,6 +409,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
             let fetchedRecord = try Pet.filter(key: ["UUID": record.UUID]).fetchOne(db)!
             XCTAssertTrue(fetchedRecord.UUID == record.UUID)
             XCTAssertTrue(fetchedRecord.name == record.name)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"pets\" WHERE (\"UUID\" = '\(record.UUID!)')")
         }
     }
     
@@ -485,6 +491,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
                 let fetchedRecord = try Pet.fetchOne(db, key: record.UUID)!
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                 XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"pets\" WHERE (\"UUID\" = '\(record.UUID!)')")
             }
         }
     }
@@ -555,6 +562,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
                 let fetchedRecord = try Pet.filter(key: record.UUID).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                 XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"pets\" WHERE (\"UUID\" = '\(record.UUID!)')")
             }
         }
     }

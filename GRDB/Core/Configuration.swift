@@ -2,6 +2,8 @@ import Foundation
 import Dispatch
 #if SWIFT_PACKAGE
     import CSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
     import SQLite3
 #endif
@@ -82,21 +84,22 @@ public struct Configuration {
     /// Default: nil
     public var passphrase: String?
     
-    /// The cipher_page_size setting for the encrypted database.
-    ///
-    /// See https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_page_size
-    ///
-    /// Default: 1024 - this corresponds to the default used by SQLCipher 3
-    public var cipherPageSize: Int = 1024
-    
-    /// The kdf_iter setting for the encrypted database.
-    ///
-    /// See https://www.zetetic.net/sqlcipher/sqlcipher-api/#kdf_iter
-    ///
-    /// Default: 64000 - this corresponds to the default used by SQLCipher 3
-    public var kdfIterations: Int = 64000
     #endif
-    
+
+    /// If set, allows custom configuration to be run every time
+    /// a new connection is opened.
+    ///
+    /// This block is run after the Database's connection has opened, but
+    /// before that connection has been made available to any read/write
+    /// API's.
+    ///
+    /// For example:
+    ///
+    ///     var config = Configuration()
+    ///     config.prepareDatabase = { db in
+    ///         try db.execute(sql: "PRAGMA kdf_iter = 10000")
+    ///     }
+    public var prepareDatabase: ((Database) throws -> Void)?
     
     // MARK: - Transactions
     

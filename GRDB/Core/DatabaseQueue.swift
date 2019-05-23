@@ -94,13 +94,16 @@ extension DatabaseQueue {
     public func setupMemoryManagement(in application: UIApplication) {
         self.application = application
         let center = NotificationCenter.default
-        #if swift(>=4.2)
-        center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidReceiveMemoryWarning(_:)), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
-        center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidEnterBackground(_:)), name: UIApplication.didEnterBackgroundNotification, object: nil)
-        #else
-        center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidReceiveMemoryWarning(_:)), name: .UIApplicationDidReceiveMemoryWarning, object: nil)
-        center.addObserver(self, selector: #selector(DatabaseQueue.applicationDidEnterBackground(_:)), name: .UIApplicationDidEnterBackground, object: nil)
-        #endif
+        center.addObserver(
+            self,
+            selector: #selector(DatabaseQueue.applicationDidReceiveMemoryWarning(_:)),
+            name: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil)
+        center.addObserver(
+            self,
+            selector: #selector(DatabaseQueue.applicationDidEnterBackground(_:)),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil)
     }
     
     @objc private func applicationDidEnterBackground(_ notification: NSNotification) {
@@ -109,12 +112,7 @@ extension DatabaseQueue {
         }
         
         let task: UIBackgroundTaskIdentifier = application.beginBackgroundTask(expirationHandler: nil)
-        #if swift(>=4.2)
-        let taskIsInvalid = task == UIBackgroundTaskIdentifier.invalid
-        #else
-        let taskIsInvalid = task == UIBackgroundTaskInvalid
-        #endif
-        if taskIsInvalid {
+        if task == .invalid {
             // Perform releaseMemory() synchronously.
             releaseMemory()
         } else {
@@ -203,30 +201,10 @@ extension DatabaseQueue {
         return try writer.reentrantSync(block)
     }
     
-    /// This method is deprecated. Use concurrentRead instead.
-    ///
-    /// Synchronously executes *block*.
-    ///
-    /// This method must be called from the protected database dispatch queue,
-    /// outside of a transaction. You'll get a fatal error otherwise.
-    ///
-    /// Starting SQLite 3.8.0 (iOS 8.2+, OSX 10.10+, custom SQLite builds and
-    /// SQLCipher), attempts to write in the database from this meethod throw a
-    /// DatabaseError of resultCode `SQLITE_READONLY`.
-    @available(*, deprecated, message: "Use concurrentRead instead")
-    public func readFromCurrentState(_ block: @escaping (Database) -> Void) {
-        // Check that we're on the correct queue...
-        writer.execute { db in
-            // ... and that no transaction is opened.
-            GRDBPrecondition(!db.isInsideTransaction, "readFromCurrentState must not be called from inside a transaction.")
-            db.readOnly { block(db) }
-        }
-    }
-    
-    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
+    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
         // DatabaseQueue can't perform parallel reads.
         // Perform a blocking read instead.
-        return Future(Result {
+        return DatabaseFuture(Result {
             // Check that we're on the writer queue...
             try writer.execute { db in
                 // ... and that no transaction is opened.
@@ -354,7 +332,7 @@ extension DatabaseQueue {
     ///     }
     ///     dbQueue.add(function: fn)
     ///     try dbQueue.read { db in
-    ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
+    ///         try Int.fetchOne(db, sql: "SELECT succ(1)") // 2
     ///     }
     public func add(function: DatabaseFunction) {
         writer.sync { $0.add(function: function) }
@@ -374,7 +352,7 @@ extension DatabaseQueue {
     ///     }
     ///     dbQueue.add(collation: collation)
     ///     try dbQueue.write { db in
-    ///         try db.execute("CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///         try db.execute(sql: "CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {
         writer.sync { $0.add(collation: collation) }

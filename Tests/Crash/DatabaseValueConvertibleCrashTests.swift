@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -29,11 +27,11 @@ class DatabaseValueConvertibleCrashTests: GRDBCrashTestCase {
     func testCrashFetchDatabaseValueConvertibleFromStatement() {
         assertCrash("could not convert NULL to IntConvertible.") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                try db.execute(sql: "CREATE TABLE ints (int Int)")
+                try db.execute(sql: "INSERT INTO ints (int) VALUES (1)")
+                try db.execute(sql: "INSERT INTO ints (int) VALUES (NULL)")
                 
-                let statement = try db.makeSelectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.makeSelectStatement(sql: "SELECT int FROM ints ORDER BY int")
                 let sequence = IntConvertible.fetch(statement)
                 for _ in sequence { }
             }
@@ -43,11 +41,11 @@ class DatabaseValueConvertibleCrashTests: GRDBCrashTestCase {
     func testCrashFetchAllDatabaseValueConvertibleFromStatement() {
         assertCrash("could not convert NULL to IntConvertible.") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                try db.execute(sql: "CREATE TABLE ints (int Int)")
+                try db.execute(sql: "INSERT INTO ints (int) VALUES (1)")
+                try db.execute(sql: "INSERT INTO ints (int) VALUES (NULL)")
                 
-                let statement = try db.makeSelectStatement("SELECT int FROM ints ORDER BY int")
+                let statement = try db.makeSelectStatement(sql: "SELECT int FROM ints ORDER BY int")
                 _ = IntConvertible.fetchAll(statement)
             }
         }
@@ -56,9 +54,9 @@ class DatabaseValueConvertibleCrashTests: GRDBCrashTestCase {
     func testCrashFetchDatabaseValueConvertibleFromDatabase() {
         assertCrash("could not convert NULL to IntConvertible.") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                try db.execute(sql: "CREATE TABLE ints (int Int)")
+                try db.execute(sql: "INSERT INTO ints (int) VALUES (1)")
+                try db.execute(sql: "INSERT INTO ints (int) VALUES (NULL)")
                 
                 let sequence = IntConvertible.fetch(db, "SELECT int FROM ints ORDER BY int")
                 for _ in sequence { }
@@ -69,11 +67,11 @@ class DatabaseValueConvertibleCrashTests: GRDBCrashTestCase {
     func testCrashFetchAllDatabaseValueConvertibleFromDatabase() {
         assertCrash("could not convert NULL to IntConvertible.") {
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE ints (int Int)")
-                try db.execute("INSERT INTO ints (int) VALUES (1)")
-                try db.execute("INSERT INTO ints (int) VALUES (NULL)")
+                try db.execute(sql: "CREATE TABLE ints (int Int)")
+                try db.execute(sql: "INSERT INTO ints (int) VALUES (1)")
+                try db.execute(sql: "INSERT INTO ints (int) VALUES (NULL)")
                 
-                _ = IntConvertible.fetchAll(db, "SELECT int FROM ints ORDER BY int")
+                _ = IntConvertible.fetchAll(db, sql: "SELECT int FROM ints ORDER BY int")
             }
         }
     }

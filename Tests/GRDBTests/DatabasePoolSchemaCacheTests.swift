@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    @testable import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     @testable import GRDBCustomSQLite
 #else
     @testable import GRDB
@@ -13,8 +11,8 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         let dbPool = try makeDatabasePool()
         
         try dbPool.write { db in
-            try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY, email TEXT UNIQUE, foo INT, bar DOUBLE)")
-            try db.execute("CREATE INDEX foobar ON items(foo, bar)")
+            try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY, email TEXT UNIQUE, foo INT, bar DOUBLE)")
+            try db.execute(sql: "CREATE INDEX foobar ON items(foo, bar)")
         }
         
         try dbPool.write { db in
@@ -57,7 +55,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         
         try dbPool.write { db in
             // Empty cache after schema change
-            try db.execute("DROP TABLE items")
+            try db.execute(sql: "DROP TABLE items")
             
             // Assert that the writer cache is empty
             XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
@@ -94,8 +92,8 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         // correct thread.
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
-            try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            try db.execute("INSERT INTO items (id) VALUES (1)")
+            try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            try db.execute(sql: "INSERT INTO items (id) VALUES (1)")
         }
         
         // Block 1                              Block 2
@@ -106,7 +104,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         
         let block1 = { () in
             try! dbPool.read { db in
-                let stmt = try! db.cachedSelectStatement("SELECT * FROM items")
+                let stmt = try! db.cachedSelectStatement(sql: "SELECT * FROM items")
                 XCTAssertEqual(try Int.fetchOne(stmt)!, 1)
                 s1.signal()
             }
@@ -114,7 +112,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         let block2 = { () in
             try! dbPool.read { db in
                 _ = s1.wait(timeout: .distantFuture)
-                let stmt = try! db.cachedSelectStatement("SELECT * FROM items")
+                let stmt = try! db.cachedSelectStatement(sql: "SELECT * FROM items")
                 XCTAssertEqual(try Int.fetchOne(stmt)!, 1)
             }
         }
@@ -148,14 +146,14 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
 
         let block1 = { () in
             try! dbPool.writeWithoutTransaction { db in
-                try db.execute("CREATE TABLE foo(id INTEGER PRIMARY KEY)")
+                try db.execute(sql: "CREATE TABLE foo(id INTEGER PRIMARY KEY)")
                 // warm cache
                 _ = try db.primaryKey("foo")
                 // cache contains the primary key
                 XCTAssertNotNil(db.schemaCache.primaryKey("foo"))
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
-                try db.execute("DROP TABLE foo")
+                try db.execute(sql: "DROP TABLE foo")
                 // cache does not contain the primary key
                 XCTAssertNil(db.schemaCache.primaryKey("foo"))
                 s3.signal()
@@ -168,7 +166,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             _ = s1.wait(timeout: .distantFuture)
             try! dbPool.read { db in
                 // activate snapshot isolation so that foo table is visible during the whole read. Any read is enough.
-                try db.makeSelectStatement("SELECT * FROM sqlite_master").makeCursor().next()
+                try db.makeSelectStatement(sql: "SELECT * FROM sqlite_master").makeCursor().next()
                 // warm cache
                 _ = try db.primaryKey("foo")
                 // cache contains the primary key
@@ -192,8 +190,8 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         let dbPool = try makeDatabasePool()
         
         try dbPool.write { db in
-            try db.execute("CREATE TABLE items (id INTEGER PRIMARY KEY, email TEXT UNIQUE, foo INT, bar DOUBLE)")
-            try db.execute("CREATE INDEX foobar ON items(foo, bar)")
+            try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY, email TEXT UNIQUE, foo INT, bar DOUBLE)")
+            try db.execute(sql: "CREATE INDEX foobar ON items(foo, bar)")
         }
         
         try dbPool.unsafeRead { db in

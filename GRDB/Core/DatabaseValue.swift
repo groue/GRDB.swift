@@ -1,6 +1,8 @@
 import Foundation
 #if SWIFT_PACKAGE
     import CSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
     import SQLite3
 #endif
@@ -149,7 +151,6 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
 // Hashable
 extension DatabaseValue {
     
-    #if swift(>=4.2)
     /// :nodoc:
     public func hash(into hasher: inout Hasher) {
         switch storage {
@@ -166,24 +167,6 @@ extension DatabaseValue {
             hasher.combine(data)
         }
     }
-    #else
-    /// :nodoc:
-    public var hashValue: Int {
-        switch storage {
-        case .null:
-            return 0
-        case .int64(let int64):
-            // 1 == 1.0, hence 1 and 1.0 must have the same hash:
-            return Double(int64).hashValue
-        case .double(let double):
-            return double.hashValue
-        case .string(let string):
-            return string.hashValue
-        case .blob(let data):
-            return data.hashValue
-        }
-    }
-    #endif
     
     /// Returns whether two DatabaseValues are equal.
     ///
@@ -222,57 +205,6 @@ extension DatabaseValue {
     }
 }
 
-// MARK: - Lossless conversions
-
-extension DatabaseValue {
-    // TODO: deprecate and rename to DatabaseValue.decode(_:sql:arguments:)
-    /// Converts the database value to the type T.
-    ///
-    ///     let dbValue = "foo".databaseValue
-    ///     let string = dbValue.losslessConvert() as String // "foo"
-    ///
-    /// Conversion is successful if and only if T.fromDatabaseValue returns a
-    /// non-nil value.
-    ///
-    /// This method crashes with a fatal error when conversion fails.
-    ///
-    ///     let dbValue = "foo".databaseValue
-    ///     let int = dbValue.losslessConvert() as Int // fatalError
-    ///
-    /// - parameters:
-    ///     - sql: Optional SQL statement that enhances the eventual
-    ///       conversion error
-    ///     - arguments: Optional statement arguments that enhances the eventual
-    ///       conversion error
-    public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T where T : DatabaseValueConvertible {
-        return T.decode(from: self, conversionContext: sql.map { ValueConversionContext(sql: $0, arguments: arguments) })
-    }
-    
-    // TODO: deprecate and rename to DatabaseValue.decodeIfPresent(_:sql:arguments:)
-    /// Converts the database value to the type Optional<T>.
-    ///
-    ///     let dbValue = "foo".databaseValue
-    ///     let string = dbValue.losslessConvert() as String? // "foo"
-    ///     let null = DatabaseValue.null.losslessConvert() as String? // nil
-    ///
-    /// Conversion is successful if and only if T.fromDatabaseValue returns a
-    /// non-nil value.
-    ///
-    /// This method crashes with a fatal error when conversion fails.
-    ///
-    ///     let dbValue = "foo".databaseValue
-    ///     let int = dbValue.losslessConvert() as Int? // fatalError
-    ///
-    /// - parameters:
-    ///     - sql: Optional SQL statement that enhances the eventual
-    ///       conversion error
-    ///     - arguments: Optional statement arguments that enhances the eventual
-    ///       conversion error
-    public func losslessConvert<T>(sql: String? = nil, arguments: StatementArguments? = nil) -> T? where T : DatabaseValueConvertible {
-        return T.decodeIfPresent(from: self, conversionContext: sql.map { ValueConversionContext(sql: $0, arguments: arguments) })
-    }
-}
-
 // DatabaseValueConvertible
 extension DatabaseValue {
     /// Returns self
@@ -305,12 +237,12 @@ extension DatabaseValue {
             return "NULL"
         }
         
-        if context.appendArguments([self]) {
+        if context.append(arguments: [self]) {
             return "?"
         } else {
             // Correctness above all: use SQLite to quote the value.
             // Assume that the Quote function always succeeds
-            return DatabaseQueue().inDatabase { try! String.fetchOne($0, "SELECT QUOTE(?)", arguments: [self])! }
+            return DatabaseQueue().inDatabase { try! String.fetchOne($0, sql: "SELECT QUOTE(?)", arguments: [self])! }
         }
     }
     
@@ -345,12 +277,6 @@ extension DatabaseValue {
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return self
     }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func resolvedExpression(inContext context: [TableAlias: PersistenceContainer]) -> SQLExpression {
-        return self
-    }
 }
 
 // CustomStringConvertible
@@ -369,5 +295,47 @@ extension DatabaseValue {
         case .blob(let data):
             return "Data(\(data.description))"
         }
+    }
+}
+
+/// Compares DatabaseValue like SQLite.
+///
+/// See RxGRDB for tests.
+///
+/// This comparison is not public because it does not handle text collations,
+/// and may be dangerous when put in user hands.
+///
+/// So far, the only goal of this sorting method so far is aesthetic, and
+/// easier testing.
+func < (lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
+    switch (lhs.storage, rhs.storage) {
+    case (.int64(let lhs), .int64(let rhs)):
+        return lhs < rhs
+    case (.double(let lhs), .double(let rhs)):
+        return lhs < rhs
+    case (.int64(let lhs), .double(let rhs)):
+        return Double(lhs) < rhs
+    case (.double(let lhs), .int64(let rhs)):
+        return lhs < Double(rhs)
+    case (.string(let lhs), .string(let rhs)):
+        return lhs.utf8.lexicographicallyPrecedes(rhs.utf8)
+    case (.blob(let lhs), .blob(let rhs)):
+        return lhs.lexicographicallyPrecedes(rhs, by: <)
+    case (.blob, _):
+        return false
+    case (_, .blob):
+        return true
+    case (.string, _):
+        return false
+    case (_, .string):
+        return true
+    case (.int64, _), (.double, _):
+        return false
+    case (_, .int64), (_, .double):
+        return true
+    case (.null, _):
+        return false
+    case (_, .null):
+        return true
     }
 }

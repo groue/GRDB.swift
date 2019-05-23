@@ -110,7 +110,7 @@ public struct FTS4 : VirtualTableModule {
             
             let oldRowID = "old.\(rowIDColumn.quotedDatabaseIdentifier)"
             
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TRIGGER \("__\(tableName)_bu".quotedDatabaseIdentifier) BEFORE UPDATE ON \(content) BEGIN
                     DELETE FROM \(ftsTable) WHERE docid=\(oldRowID);
                 END;
@@ -127,7 +127,7 @@ public struct FTS4 : VirtualTableModule {
             
             // https://www.sqlite.org/fts3.html#*fts4rebuidcmd
             
-            try db.execute("INSERT INTO \(ftsTable)(\(ftsTable)) VALUES('rebuild')")
+            try db.execute(sql: "INSERT INTO \(ftsTable)(\(ftsTable)) VALUES('rebuild')")
         }
     }
 }
@@ -288,7 +288,7 @@ public final class FTS4ColumnDefinition {
     /// See https://www.sqlite.org/fts3.html#the_notindexed_option
     ///
     /// - returns: Self so that you can further refine the column definition.
-    @available(iOS 8.2, OSX 10.10, *)
+    @available(OSX 10.10, *)
     @discardableResult
     public func notIndexed() -> Self {
         // notindexed FTS4 option was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
@@ -318,7 +318,7 @@ public final class FTS4ColumnDefinition {
 extension Database {
     /// Deletes the synchronization triggers for a synchronized FTS4 table
     public func dropFTS4SynchronizationTriggers(forTable tableName: String) throws {
-        try execute("""
+        try execute(sql: """
             DROP TRIGGER IF EXISTS \("__\(tableName)_bu".quotedDatabaseIdentifier);
             DROP TRIGGER IF EXISTS \("__\(tableName)_bd".quotedDatabaseIdentifier);
             DROP TRIGGER IF EXISTS \("__\(tableName)_au".quotedDatabaseIdentifier);

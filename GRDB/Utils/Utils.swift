@@ -6,18 +6,20 @@ extension String {
     /// Returns the receiver, quoted for safe insertion as an identifier in an
     /// SQL query.
     ///
-    ///     db.execute("SELECT * FROM \(tableName.quotedDatabaseIdentifier)")
+    ///     db.execute(sql: "SELECT * FROM \(tableName.quotedDatabaseIdentifier)")
+    @inlinable
     public var quotedDatabaseIdentifier: String {
         // See https://www.sqlite.org/lang_keywords.html
-        return "\"" + self + "\""
+        return "\"\(self)\""
     }
 }
 
 /// Return as many question marks separated with commas as the *count* argument.
 ///
 ///     databaseQuestionMarks(count: 3) // "?,?,?"
+@inlinable
 public func databaseQuestionMarks(count: Int) -> String {
-    return Array(repeating: "?", count: count).joined(separator: ",")
+    return repeatElement("?", count: count).joined(separator: ",")
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -46,13 +48,13 @@ extension Optional : _OptionalProtocol {
 // MARK: - Internal
 
 /// Reserved for GRDB: do not use.
-@inline(__always)
+@inlinable
 func GRDBPrecondition(_ condition: @autoclosure() -> Bool, _ message: @autoclosure() -> String = "", file: StaticString = #file, line: UInt = #line) {
     /// Custom precondition function which aims at solving
     /// https://bugs.swift.org/browse/SR-905 and
     /// https://github.com/groue/GRDB.swift/issues/37
     if !condition() {
-        fatalError(message, file: file, line: line)
+        fatalError(message(), file: file, line: line)
     }
 }
 
@@ -61,10 +63,19 @@ func cast<T, U>(_ value: T) -> U? {
     return value as? U
 }
 
-extension Array {
+extension RangeReplaceableCollection {
     /// Removes the first object that matches *predicate*.
-    mutating func removeFirst(_ predicate: (Element) throws -> Bool) rethrows {
-        if let index = try index(where: predicate) {
+    mutating func removeFirst(where predicate: (Element) throws -> Bool) rethrows {
+        if let index = try firstIndex(where: predicate) {
+            remove(at: index)
+        }
+    }
+}
+
+extension Dictionary {
+    /// Removes the first object that matches *predicate*.
+    mutating func removeFirst(where predicate: (Element) throws -> Bool) rethrows {
+        if let index = try firstIndex(where: predicate) {
             remove(at: index)
         }
     }
@@ -81,3 +92,29 @@ extension DispatchQueue {
         return DispatchQueue.getSpecific(key: mainKey) != nil
     }
 }
+
+// Has SE-0220 been removed in Xcode 10.2 beta 4?
+// #if compiler(<5.0)
+extension Sequence {
+    @inlinable
+    func count(where predicate: (Element) throws -> Bool) rethrows -> Int {
+        var count = 0
+        for e in self where try predicate(e) {
+            count += 1
+        }
+        return count
+    }
+}
+// #endif
+
+#if !compiler(>=5.0)
+extension Character {
+    func uppercased() -> String {
+        return String(self).uppercased()
+    }
+    
+    func lowercased() -> String {
+        return String(self).lowercased()
+    }
+}
+#endif

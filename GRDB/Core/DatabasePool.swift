@@ -2,6 +2,8 @@ import Foundation
 import Dispatch
 #if SWIFT_PACKAGE
     import CSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
     import SQLite3
 #endif
@@ -58,14 +60,14 @@ public final class DatabasePool: DatabaseWriter {
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
             try writer.sync { db in
-                let journalMode = try String.fetchOne(db, "PRAGMA journal_mode = WAL")
+                let journalMode = try String.fetchOne(db, sql: "PRAGMA journal_mode = WAL")
                 guard journalMode == "wal" else {
                     throw DatabaseError(message: "could not activate WAL Mode at path: \(path)")
                 }
                 
                 // https://www.sqlite.org/pragma.html#pragma_synchronous
                 // > Many applications choose NORMAL when in WAL mode
-                try db.execute("PRAGMA synchronous = NORMAL")
+                try db.execute(sql: "PRAGMA synchronous = NORMAL")
                 
                 if !FileManager.default.fileExists(atPath: path + "-wal") {
                     // Create the -wal file if it does not exist yet. This
@@ -73,7 +75,7 @@ public final class DatabasePool: DatabaseWriter {
                     // opens a pool to an existing non-WAL database, and
                     // attempts to read from it.
                     // See https://github.com/groue/GRDB.swift/issues/102
-                    try db.execute("CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY); DROP TABLE grdb_issue_102;")
+                    try db.execute(sql: "CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY); DROP TABLE grdb_issue_102;")
                 }
             }
         }
@@ -177,13 +179,16 @@ extension DatabasePool {
     public func setupMemoryManagement(in application: UIApplication) {
         self.application = application
         let center = NotificationCenter.default
-        #if swift(>=4.2)
-        center.addObserver(self, selector: #selector(DatabasePool.applicationDidReceiveMemoryWarning(_:)), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
-        center.addObserver(self, selector: #selector(DatabasePool.applicationDidEnterBackground(_:)), name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
-        #else
-        center.addObserver(self, selector: #selector(DatabasePool.applicationDidReceiveMemoryWarning(_:)), name: .UIApplicationDidReceiveMemoryWarning, object: nil)
-        center.addObserver(self, selector: #selector(DatabasePool.applicationDidEnterBackground(_:)), name: .UIApplicationDidEnterBackground, object: nil)
-        #endif
+        center.addObserver(
+            self,
+            selector: #selector(DatabasePool.applicationDidReceiveMemoryWarning(_:)),
+            name: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil)
+        center.addObserver(
+            self,
+            selector: #selector(DatabasePool.applicationDidEnterBackground(_:)),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil)
     }
     
     @objc private func applicationDidEnterBackground(_ notification: NSNotification) {
@@ -192,12 +197,7 @@ extension DatabasePool {
         }
         
         let task: UIBackgroundTaskIdentifier = application.beginBackgroundTask(expirationHandler: nil)
-        #if swift(>=4.2)
-        let taskIsInvalid = task == UIBackgroundTaskIdentifier.invalid
-        #else
-        let taskIsInvalid = task == UIBackgroundTaskInvalid
-        #endif
-        if taskIsInvalid {
+        if task == .invalid {
             // Perform releaseMemory() synchronously.
             releaseMemory()
         } else {
@@ -249,13 +249,13 @@ extension DatabasePool : DatabaseReader {
     ///     try dbPool.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
     ///         // `wine` table is modified between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count1 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     ///     try dbPool.read { db in
     ///         // Now this value may be different:
-    ///         let count = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// This method is *not* reentrant.
@@ -290,15 +290,15 @@ extension DatabasePool : DatabaseReader {
     ///     try dbPool.unsafeRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count1 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Cursor iteration is safe, though:
     ///
     ///     try dbPool.unsafeRead { db in
     ///         // No concurrent update can mess with this iteration:
-    ///         let rows = try Row.fetchCursor(db, "SELECT ...")
+    ///         let rows = try Row.fetchCursor(db, sql: "SELECT ...")
     ///         while let row = try rows.next() { ... }
     ///     }
     ///
@@ -327,15 +327,15 @@ extension DatabasePool : DatabaseReader {
     ///     try dbPool.unsafeReentrantRead { db in
     ///         // Those two values may be different because some other thread
     ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, "SELECT COUNT(*) FROM wine")!
+    ///         let count1 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
+    ///         let count2 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
     ///     }
     ///
     /// Cursor iteration is safe, though:
     ///
     ///     try dbPool.unsafeReentrantRead { db in
     ///         // No concurrent update can mess with this iteration:
-    ///         let rows = try Row.fetchCursor(db, "SELECT ...")
+    ///         let rows = try Row.fetchCursor(db, sql: "SELECT ...")
     ///         while let row = try rows.next() { ... }
     ///     }
     ///
@@ -359,80 +359,7 @@ extension DatabasePool : DatabaseReader {
         }
     }
     
-    /// This method is deprecated. Use concurrentRead instead.
-    ///
-    /// Asynchronously executes a read-only block in a protected dispatch queue,
-    /// wrapped in a deferred transaction.
-    ///
-    /// This method must be called from the writing dispatch queue, outside of a
-    /// transaction. You'll get a fatal error otherwise.
-    ///
-    /// The *block* argument is guaranteed to see the database in the last
-    /// committed state at the moment this method is called. Eventual concurrent
-    /// database updates are *not visible* inside the block.
-    ///
-    ///     try dbPool.write { db in
-    ///         try db.execute("DELETE FROM player")
-    ///         try dbPool.readFromCurrentState { db in
-    ///             // Guaranteed to be zero
-    ///             try Int.fetchOne(db, "SELECT COUNT(*) FROM player")!
-    ///         }
-    ///         try db.execute("INSERT INTO player ...")
-    ///     }
-    ///
-    /// This method blocks the current thread until the isolation guarantee has
-    /// been established, and before the block argument has run.
-    ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block, or any DatabaseError that would
-    ///   happen while establishing the read access to the database.
-    @available(*, deprecated, message: "Use concurrentRead instead")
-    public func readFromCurrentState(_ block: @escaping (Database) -> Void) throws {
-        // Check that we're on the writer queue...
-        writer.execute { db in
-            // ... and that no transaction is opened.
-            GRDBPrecondition(!db.isInsideTransaction, """
-                readFromCurrentState must not be called from inside a transaction. \
-                If this error is raised from a DatabasePool.write block, use \
-                DatabasePool.writeWithoutTransaction instead (and use \
-                transactions when needed).
-                """)
-        }
-        
-        // The semaphore that blocks the writing dispatch queue until snapshot
-        // isolation has been established:
-        let semaphore = DispatchSemaphore(value: 0)
-        
-        var snapshotIsolationError: Error? = nil
-        let (reader, releaseReader) = try readerPool.get()
-        reader.async { db in
-            defer {
-                _ = try? db.commit() // Ignore commit error
-                releaseReader()
-            }
-            do {
-                try db.beginSnapshotIsolation()
-            } catch {
-                snapshotIsolationError = error
-                semaphore.signal() // Release the writer queue and rethrow error
-                return
-            }
-            semaphore.signal() // We can release the writer queue now that we are isolated for good
-            
-            // Reset the schema cache before running user code in snapshot isolation
-            db.schemaCache = SimpleDatabaseSchemaCache()
-            block(db)
-        }
-        
-        _ = semaphore.wait(timeout: .distantFuture)
-        
-        if let error = snapshotIsolationError {
-            // TODO: write a test for this
-            throw error
-        }
-    }
-    
-    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> Future<T> {
+    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
@@ -479,16 +406,16 @@ extension DatabasePool : DatabaseReader {
                 futureSemaphore.signal()
             }
         } catch {
-            return Future { throw error }
+            return DatabaseFuture { throw error }
         }
         
         // Block the writer queue until snapshot isolation success or error
         _ = isolationSemaphore.wait(timeout: .distantFuture)
         
-        return Future {
+        return DatabaseFuture {
             // Block the future until results are fetched
             _ = futureSemaphore.wait(timeout: .distantFuture)
-            return try futureResult!.unwrap()
+            return try futureResult!.get()
         }
     }
     
@@ -632,7 +559,7 @@ extension DatabasePool : DatabaseReader {
     ///     }
     ///     dbPool.add(function: fn)
     ///     try dbPool.read { db in
-    ///         try Int.fetchOne(db, "SELECT succ(1)") // 2
+    ///         try Int.fetchOne(db, sql: "SELECT succ(1)") // 2
     ///     }
     public func add(function: DatabaseFunction) {
         functions.update(with: function)
@@ -654,7 +581,7 @@ extension DatabasePool : DatabaseReader {
     ///     }
     ///     dbPool.add(collation: collation)
     ///     try dbPool.write { db in
-    ///         try db.execute("CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
+    ///         try db.execute(sql: "CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
     public func add(collation: DatabaseCollation) {
         collations.update(with: collation)

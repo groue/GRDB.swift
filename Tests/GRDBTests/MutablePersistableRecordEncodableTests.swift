@@ -1,8 +1,6 @@
 import XCTest
 import Foundation
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -30,7 +28,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["value": "foo"])
             
             try value.insert(db)
-            let string = try String.fetchOne(db, "SELECT value FROM t1")!
+            let string = try String.fetchOne(db, sql: "SELECT value FROM t1")!
             XCTAssertEqual(string, "foo")
         }
     }
@@ -60,7 +58,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["someColumn": "foo (Encodable)"])
             
             try value.insert(db)
-            let string = try String.fetchOne(db, "SELECT someColumn FROM t1")!
+            let string = try String.fetchOne(db, sql: "SELECT someColumn FROM t1")!
             XCTAssertEqual(string, "foo (Encodable)")
         }
     }
@@ -85,7 +83,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["value": "foo (MutablePersistableRecord)"])
             
             try value.insert(db)
-            let string = try String.fetchOne(db, "SELECT value FROM t1")!
+            let string = try String.fetchOne(db, sql: "SELECT value FROM t1")!
             XCTAssertEqual(string, "foo (MutablePersistableRecord)")
         }
     }
@@ -115,7 +113,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["int64": 123, "optionalInt64": 456])
             
             try value.insert(db)
-            let row = try Row.fetchOne(db, "SELECT * FROM t1")!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
             XCTAssertEqual(row, ["int64": 123, "optionalInt64": 456])
             return .rollback
         }
@@ -125,7 +123,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["int64": 123, "optionalInt64": nil])
             
             try value.insert(db)
-            let row = try Row.fetchOne(db, "SELECT * FROM t1")!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
             XCTAssertEqual(row, ["int64": 123, "optionalInt64": nil])
             return .rollback
         }
@@ -160,7 +158,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["value": "foo", "optionalValue": "bar"])
             
             try value.insert(db)
-            let row = try Row.fetchOne(db, "SELECT * FROM t1")!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo", "optionalValue": "bar"])
             return .rollback
         }
@@ -170,7 +168,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["value": "foo", "optionalValue": nil])
             
             try value.insert(db)
-            let row = try Row.fetchOne(db, "SELECT * FROM t1")!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo", "optionalValue": nil])
             return .rollback
         }
@@ -214,7 +212,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["value": "foo", "optionalValue": "bar"])
             
             try value.insert(db)
-            let row = try Row.fetchOne(db, "SELECT * FROM t1")!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo", "optionalValue": "bar"])
             return .rollback
         }
@@ -224,7 +222,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["value": "foo", "optionalValue": nil])
             
             try value.insert(db)
-            let row = try Row.fetchOne(db, "SELECT * FROM t1")!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo", "optionalValue": nil])
             return .rollback
         }
@@ -259,7 +257,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["value": "foo", "optionalValue": "bar"])
             
             try value.insert(db)
-            let row = try Row.fetchOne(db, "SELECT * FROM t1")!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo", "optionalValue": "bar"])
             return .rollback
         }
@@ -269,7 +267,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["value": "foo", "optionalValue": nil])
             
             try value.insert(db)
-            let row = try Row.fetchOne(db, "SELECT * FROM t1")!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo", "optionalValue": nil])
             return .rollback
         }
@@ -322,7 +320,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["value": "foo (DatabaseValueConvertible)", "optionalValue": "bar (DatabaseValueConvertible)"])
             
             try value.insert(db)
-            let row = try Row.fetchOne(db, "SELECT * FROM t1")!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo (DatabaseValueConvertible)", "optionalValue": "bar (DatabaseValueConvertible)"])
             return .rollback
         }
@@ -332,7 +330,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["value": "foo (DatabaseValueConvertible)", "optionalValue": nil])
             
             try value.insert(db)
-            let row = try Row.fetchOne(db, "SELECT * FROM t1")!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM t1")!
             XCTAssertEqual(row, ["value": "foo (DatabaseValueConvertible)", "optionalValue": nil])
             return .rollback
         }
@@ -358,7 +356,7 @@ extension MutablePersistableRecordEncodableTests {
             let value = StructWithDate(date: Date())
             try value.insert(db)
             
-            let dbValue = try DatabaseValue.fetchOne(db, "SELECT date FROM t1")!
+            let dbValue = try DatabaseValue.fetchOne(db, sql: "SELECT date FROM t1")!
             
             // Date has a default Encodable implementation which encodes a Double.
             // We expect here a String, because DatabaseValueConvertible has
@@ -386,7 +384,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["url": value.url])
             
             try value.insert(db)
-            let dbValue = try DatabaseValue.fetchOne(db, "SELECT url FROM t1")!
+            let dbValue = try DatabaseValue.fetchOne(db, sql: "SELECT url FROM t1")!
             XCTAssert(dbValue.storage.value is String)
             let fetchedURL = URL.fromDatabaseValue(dbValue)!
             XCTAssertEqual(fetchedURL, value.url)
@@ -409,7 +407,7 @@ extension MutablePersistableRecordEncodableTests {
             assert(value, isEncodedIn: ["uuid": value.uuid])
             
             try value.insert(db)
-            let dbValue = try DatabaseValue.fetchOne(db, "SELECT uuid FROM t1")!
+            let dbValue = try DatabaseValue.fetchOne(db, sql: "SELECT uuid FROM t1")!
             XCTAssert(dbValue.storage.value is Data)
             let fetchedUUID = UUID.fromDatabaseValue(dbValue)!
             XCTAssertEqual(fetchedUUID, value.uuid)
@@ -432,7 +430,7 @@ extension MutablePersistableRecordEncodableTests {
             try Record(array: ["foo"]).insert(db)
             try Record(array: ["foo", "bar"]).insert(db)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM record ORDER BY id")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM record ORDER BY id")
             XCTAssertEqual(rows.count, 3)
             XCTAssertEqual(rows[0]["array"], "[]")
             XCTAssertEqual(rows[1]["array"], "[\"foo\"]")
@@ -457,7 +455,7 @@ extension MutablePersistableRecordEncodableTests {
             try Record(array: ["foo"]).insert(db)
             try Record(array: ["foo", "bar"]).insert(db)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM record ORDER BY id")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM record ORDER BY id")
             XCTAssertEqual(rows.count, 4)
             XCTAssertTrue(rows[0]["array"] == nil)
             XCTAssertEqual(rows[1]["array"], "[]")
@@ -481,7 +479,7 @@ extension MutablePersistableRecordEncodableTests {
             try Record(dictionary: [:]).insert(db)
             try Record(dictionary: ["foo": 1]).insert(db)
 
-            let rows = try Row.fetchAll(db, "SELECT * FROM record ORDER BY id")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM record ORDER BY id")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["dictionary"], "{}")
             XCTAssertEqual(rows[1]["dictionary"], "{\"foo\":1}")
@@ -504,7 +502,7 @@ extension MutablePersistableRecordEncodableTests {
             try Record(dictionary: [:]).insert(db)
             try Record(dictionary: ["foo": 1]).insert(db)
             
-            let rows = try Row.fetchAll(db, "SELECT * FROM record ORDER BY id")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM record ORDER BY id")
             XCTAssertEqual(rows.count, 3)
             XCTAssertTrue(rows[0]["dictionary"] == nil)
             XCTAssertEqual(rows[1]["dictionary"], "{}")

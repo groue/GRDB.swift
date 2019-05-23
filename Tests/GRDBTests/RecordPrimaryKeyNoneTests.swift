@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -21,7 +19,7 @@ private class Item : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute("""
+        try db.execute(sql: """
             CREATE TABLE items (
                 name TEXT,
                 email TEXT UNIQUE)
@@ -69,7 +67,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             XCTAssertTrue(record.insertedRowIDColumn == nil)
             try record.insert(db)
             
-            let names = try String.fetchAll(db, "SELECT name FROM items")
+            let names = try String.fetchAll(db, sql: "SELECT name FROM items")
             XCTAssertEqual(names, ["Table", "Table"])
         }
     }
@@ -84,7 +82,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             try record.save(db)
             try record.save(db)
             
-            let names = try String.fetchAll(db, "SELECT name FROM items")
+            let names = try String.fetchAll(db, sql: "SELECT name FROM items")
             XCTAssertEqual(names, ["Table", "Table"])
         }
     }
@@ -100,6 +98,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             
             let fetchedRecord = try Item.fetchOne(db, key: ["email": record.email])!
             XCTAssertTrue(fetchedRecord.email == record.email)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"items\" WHERE (\"email\" = 'item@example.com')")
         }
     }
 
@@ -114,6 +113,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             
             let fetchedRecord = try Item.filter(key: ["email": record.email]).fetchOne(db)!
             XCTAssertTrue(fetchedRecord.email == record.email)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"items\" WHERE (\"email\" = 'item@example.com')")
         }
     }
     
@@ -152,7 +152,9 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
                 let ids = [id1, id2]
                 let cursor = try Item.fetchCursor(db, keys: ids)
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
+                let fetchedNames = Set(fetchedRecords.map { $0.name! })
+                let expectedNames = Set([record1, record2].map { $0.name! })
+                XCTAssertEqual(fetchedNames, expectedNames)
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
         }
@@ -178,7 +180,9 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
                 let ids = [id1, id2]
                 let fetchedRecords = try Item.fetchAll(db, keys: ids)
                 XCTAssertEqual(fetchedRecords.count, 2)
-                XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
+                let fetchedNames = Set(fetchedRecords.map { $0.name! })
+                let expectedNames = Set([record1, record2].map { $0.name! })
+                XCTAssertEqual(fetchedNames, expectedNames)
             }
         }
     }
@@ -199,6 +203,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             do {
                 let fetchedRecord = try Item.fetchOne(db, key: id)!
                 XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"items\" WHERE (\"rowid\" = \(id))")
             }
         }
     }
@@ -226,7 +231,9 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
                 let ids = [id1, id2]
                 let cursor = try Item.filter(keys: ids).fetchCursor(db)
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
+                let fetchedNames = Set(fetchedRecords.map { $0.name! })
+                let expectedNames = Set([record1, record2].map { $0.name! })
+                XCTAssertEqual(fetchedNames, expectedNames)
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
         }
@@ -252,7 +259,9 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
                 let ids = [id1, id2]
                 let fetchedRecords = try Item.filter(keys: ids).fetchAll(db)
                 XCTAssertEqual(fetchedRecords.count, 2)
-                XCTAssertEqual(Set(fetchedRecords.map { $0.name! }), Set([record1, record2].map { $0.name! }))
+                let fetchedNames = Set(fetchedRecords.map { $0.name! })
+                let expectedNames = Set([record1, record2].map { $0.name! })
+                XCTAssertEqual(fetchedNames, expectedNames)
             }
         }
     }
@@ -273,6 +282,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             do {
                 let fetchedRecord = try Item.filter(key: id).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.name == record.name)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"items\" WHERE (\"rowid\" = \(id))")
             }
         }
     }

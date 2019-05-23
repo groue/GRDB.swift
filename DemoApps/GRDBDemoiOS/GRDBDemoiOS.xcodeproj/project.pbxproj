@@ -361,7 +361,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 0930;
+				LastUpgradeCheck = 1020;
 				ORGANIZATIONNAME = "Gwendal Roué";
 				TargetAttributes = {
 					568E5FBE1E926430002582E0 = {
@@ -383,7 +383,7 @@
 			};
 			buildConfigurationList = 56B035FE1E8D9EBE003B6DA4 /* Build configuration list for PBXProject "GRDBDemoiOS" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
@@ -589,7 +589,7 @@
 				DEVELOPMENT_TEAM = AMD8W895CT;
 				INFOPLIST_FILE = "GRDBDemoWatchOS Extension/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp.watchkitextension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS2.watchkitapp.watchkitextension;
 				PRODUCT_NAME = "${TARGET_NAME}";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -606,7 +606,7 @@
 				DEVELOPMENT_TEAM = AMD8W895CT;
 				INFOPLIST_FILE = "GRDBDemoWatchOS Extension/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp.watchkitextension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS2.watchkitapp.watchkitextension;
 				PRODUCT_NAME = "${TARGET_NAME}";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -624,7 +624,7 @@
 				DEVELOPMENT_TEAM = AMD8W895CT;
 				IBSC_MODULE = GRDBDemoWatchOS_Extension;
 				INFOPLIST_FILE = GRDBDemoWatchOS/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS2.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -642,7 +642,7 @@
 				DEVELOPMENT_TEAM = AMD8W895CT;
 				IBSC_MODULE = GRDBDemoWatchOS_Extension;
 				INFOPLIST_FILE = GRDBDemoWatchOS/Info.plist;
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS.watchkitapp;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS2.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
@@ -655,6 +655,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
@@ -713,6 +714,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
@@ -769,7 +771,7 @@
 				DEVELOPMENT_TEAM = AMD8W895CT;
 				INFOPLIST_FILE = GRDBDemoiOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -783,7 +785,7 @@
 				DEVELOPMENT_TEAM = AMD8W895CT;
 				INFOPLIST_FILE = GRDBDemoiOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBDemoiOS2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

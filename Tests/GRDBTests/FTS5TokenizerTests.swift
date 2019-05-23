@@ -1,8 +1,6 @@
 #if SQLITE_ENABLE_FTS5
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -11,11 +9,11 @@ import XCTest
 class FTS5TokenizerTests: GRDBTestCase {
     
     private func match(_ db: Database, _ content: String, _ query: String) -> Bool {
-        try! db.execute("INSERT INTO documents VALUES (?)", arguments: [content])
+        try! db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: [content])
         defer {
-            try! db.execute("DELETE FROM documents")
+            try! db.execute(sql: "DELETE FROM documents")
         }
-        return try! Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: [query])! > 0
+        return try! Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: [query])! > 0
     }
     
     func testAsciiTokenizer() throws {
@@ -128,11 +126,11 @@ class FTS5TokenizerTests: GRDBTestCase {
         }
     }
 
-    func testUnicode61TokenizerRemoveDiacritics() throws {
+    func testUnicode61TokenizerDiacriticsKeep() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS5()) { t in
-                t.tokenizer = .unicode61(removeDiacritics: false)
+                t.tokenizer = .unicode61(diacritics: .keep)
                 t.column("content")
             }
             
@@ -149,6 +147,30 @@ class FTS5TokenizerTests: GRDBTestCase {
             XCTAssertTrue(match(db, "jérôme", "JÉRÔME"))
         }
     }
+    
+    #if GRDBCUSTOMSQLITE
+    func testUnicode61TokenizerDiacriticsRemove() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = .unicode61(diacritics: .remove)
+                t.column("content")
+            }
+            
+            // simple match
+            XCTAssertTrue(match(db, "abcDÉF", "abcDÉF"))
+            
+            // English stemming
+            XCTAssertFalse(match(db, "database", "databases"))
+            
+            // diacritics in latin characters
+            XCTAssertTrue(match(db, "eéÉ", "Èèe"))
+            
+            // unicode case
+            XCTAssertTrue(match(db, "jérôme", "JÉRÔME"))
+        }
+    }
+    #endif
 
     func testUnicode61TokenizerSeparators() throws {
         let dbQueue = try makeDatabaseQueue()

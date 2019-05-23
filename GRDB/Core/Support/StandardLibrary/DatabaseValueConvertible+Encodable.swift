@@ -89,7 +89,7 @@ private struct DatabaseValueEncoder : Encoder {
     }
 }
 
-public extension DatabaseValueConvertible where Self: Encodable {
+extension DatabaseValueConvertible where Self: Encodable {
     public var databaseValue: DatabaseValue {
         var dbValue: DatabaseValue! = nil
         let encoder = DatabaseValueEncoder(encode: { dbValue = $0 })
@@ -98,7 +98,7 @@ public extension DatabaseValueConvertible where Self: Encodable {
     }
 }
 
-public extension DatabaseValueConvertible where Self: Encodable & RawRepresentable, Self.RawValue: DatabaseValueConvertible {
+extension DatabaseValueConvertible where Self: Encodable & RawRepresentable, Self.RawValue: DatabaseValueConvertible {
     public var databaseValue: DatabaseValue {
         // Preserve custom database encoding
         return rawValue.databaseValue

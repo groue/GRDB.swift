@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    @testable import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     @testable import GRDBCustomSQLite
 #else
     @testable import GRDB
@@ -21,12 +19,12 @@ class ForeignKeyInfoTests: GRDBTestCase {
     func testForeignKeys() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE parents1 (id PRIMARY KEY)")
-            try db.execute("CREATE TABLE parents2 (a, b, PRIMARY KEY (a,b))")
-            try db.execute("CREATE TABLE children1 (parentId REFERENCES parents1)")
-            try db.execute("CREATE TABLE children2 (parentId1 REFERENCES parents1, parentId2 REFERENCES parents1)")
-            try db.execute("CREATE TABLE children3 (parentA, parentB, FOREIGN KEY (parentA, parentB) REFERENCES parents2)")
-            try db.execute("CREATE TABLE children4 (parentA1, parentB1, parentA2, parentB2, FOREIGN KEY (parentA1, parentB1) REFERENCES parents2, FOREIGN KEY (parentA2, parentB2) REFERENCES parents2(b, a))")
+            try db.execute(sql: "CREATE TABLE parents1 (id PRIMARY KEY)")
+            try db.execute(sql: "CREATE TABLE parents2 (a, b, PRIMARY KEY (a,b))")
+            try db.execute(sql: "CREATE TABLE children1 (parentId REFERENCES parents1)")
+            try db.execute(sql: "CREATE TABLE children2 (parentId1 REFERENCES parents1, parentId2 REFERENCES parents1)")
+            try db.execute(sql: "CREATE TABLE children3 (parentA, parentB, FOREIGN KEY (parentA, parentB) REFERENCES parents2)")
+            try db.execute(sql: "CREATE TABLE children4 (parentA1, parentB1, parentA2, parentB2, FOREIGN KEY (parentA1, parentB1) REFERENCES parents2, FOREIGN KEY (parentA2, parentB2) REFERENCES parents2(b, a))")
             
             do {
                 _ = try db.foreignKeys(on: "missing")

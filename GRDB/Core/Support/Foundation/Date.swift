@@ -1,6 +1,8 @@
 import Foundation
 #if SWIFT_PACKAGE
     import CSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
     import SQLite3
 #endif
@@ -63,7 +65,8 @@ extension Date : DatabaseValueConvertible {
         return nil
     }
     
-    private init?(databaseDateComponents: DatabaseDateComponents) {
+    @usableFromInline
+    init?(databaseDateComponents: DatabaseDateComponents) {
         guard databaseDateComponents.format.hasYMDComponents else {
             // Refuse to turn hours without any date information into Date:
             return nil
@@ -122,6 +125,7 @@ extension Date: StatementColumnConvertible {
     /// - parameters:
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
+    @inlinable
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_INTEGER, SQLITE_FLOAT:

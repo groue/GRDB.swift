@@ -8,9 +8,10 @@
 ///     dict["bar"] // 2
 ///     dict["qux"] // nil
 ///     dict.map { $0.key } // ["foo", "bar"], in this order.
+@usableFromInline
 struct OrderedDictionary<Key: Hashable, Value> {
-    private(set) var keys: [Key]
-    private(set) var dictionary: [Key: Value]
+    @usableFromInline /* private(set) */ var keys: [Key]
+    @usableFromInline /* private(set) */ var dictionary: [Key: Value]
     
     var values: [Value] {
         return keys.map { dictionary[$0]! }
@@ -28,8 +29,9 @@ struct OrderedDictionary<Key: Hashable, Value> {
         keys.reserveCapacity(minimumCapacity)
         dictionary = Dictionary(minimumCapacity: minimumCapacity)
     }
-    
+
     /// Returns the value associated with key, or nil.
+    @usableFromInline
     subscript(_ key: Key) -> Value? {
         get { return dictionary[key] }
         set {
@@ -40,7 +42,14 @@ struct OrderedDictionary<Key: Hashable, Value> {
             }
         }
     }
-    
+
+    /// Returns the value associated with key, or the default value.
+    @inlinable
+    subscript(_ key: Key, default defaultValue: Value) -> Value {
+        get { return dictionary[key] ?? defaultValue }
+        set { self[key] = newValue }
+    }
+
     /// Appends the given value for the given key.
     ///
     /// - precondition: There is no value associated with key yet.
@@ -59,6 +68,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     /// original value. If the given key is not present in the dictionary, this
     /// method appends the key-value pair and returns nil.
     @discardableResult
+    @usableFromInline
     mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
         if let oldValue = dictionary.updateValue(value, forKey: key) {
             return oldValue
@@ -69,11 +79,12 @@ struct OrderedDictionary<Key: Hashable, Value> {
     
     /// Removes the value associated with key.
     @discardableResult
+    @inlinable
     mutating func removeValue(forKey key: Key) -> Value? {
         guard let value = dictionary.removeValue(forKey: key) else {
             return nil
         }
-        let index = keys.index { $0 == key }!
+        let index = keys.firstIndex { $0 == key }!
         keys.remove(at: index)
         return value
     }
@@ -81,37 +92,56 @@ struct OrderedDictionary<Key: Hashable, Value> {
     /// Returns a new ordered dictionary containing the keys of this dictionary
     /// with the values transformed by the given closure.
     func mapValues<T>(_ transform: (Value) throws -> T) rethrows -> OrderedDictionary<Key, T> {
-        return try reduce(into: OrderedDictionary<Key, T>()) { dict, pair in
-            dict.appendValue(try transform(pair.value), forKey: pair.key)
+        return try reduce(into: .init()) { dict, pair in
+            let value = try transform(pair.value)
+            dict.appendValue(value, forKey: pair.key)
+        }
+    }
+    
+    /// Returns a new ordered dictionary containing only the key-value pairs
+    /// that have non-nil values as the result of transformation by the
+    /// given closure.
+    func compactMapValues<T>(_ transform: (Value) throws -> T?) rethrows -> OrderedDictionary<Key, T> {
+        return try reduce(into: .init()) { dict, pair in
+            if let value = try transform(pair.value) {
+                dict.appendValue(value, forKey: pair.key)
+            }
         }
     }
 }
 
 extension OrderedDictionary: Collection {
-    typealias Index = Int
+    @usableFromInline typealias Index = Int
     
-    var startIndex: Int {
+    @usableFromInline var startIndex: Int {
         return 0
     }
     
-    var endIndex: Int {
+    @usableFromInline var endIndex: Int {
         return keys.count
     }
     
-    func index(after i: Int) -> Int {
+    @usableFromInline func index(after i: Int) -> Int {
         return i + 1
     }
     
-     subscript(position: Int) -> (key: Key, value: Value) {
+    @usableFromInline  subscript(position: Int) -> (key: Key, value: Value) {
         let key = keys[position]
         return (key: key, value: dictionary[key]!)
     }
 }
 
 extension OrderedDictionary: ExpressibleByDictionaryLiteral {
-    init(dictionaryLiteral elements: (Key, Value)...) {
+    @usableFromInline init(dictionaryLiteral elements: (Key, Value)...) {
         self.keys = elements.map { $0.0 }
         self.dictionary = Dictionary(uniqueKeysWithValues: elements)
+    }
+}
+
+extension OrderedDictionary: Equatable where Value: Equatable {
+    @usableFromInline
+    static func == (lhs: OrderedDictionary, rhs: OrderedDictionary) -> Bool {
+        return (lhs.keys == rhs.keys) && (lhs.dictionary == rhs.dictionary)
     }
 }
 

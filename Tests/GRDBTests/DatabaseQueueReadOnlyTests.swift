@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -19,7 +17,7 @@ class DatabaseQueueReadOnlyTests : GRDBTestCase {
         dbConfiguration.readonly = true
         let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
         let statement = try dbQueue.inDatabase { db in
-            try db.makeUpdateStatement("CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            try db.makeUpdateStatement(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
         }
         do {
             try dbQueue.inDatabase { db in

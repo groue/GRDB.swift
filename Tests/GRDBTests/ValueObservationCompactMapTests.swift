@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     #if SWIFT_PACKAGE
@@ -16,7 +14,7 @@ class ValueObservationCompactMapTests: GRDBTestCase {
     func testCompactMap() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [String] = []
             let notificationExpectation = expectation(description: "notification")
@@ -33,27 +31,27 @@ class ValueObservationCompactMapTests: GRDBTestCase {
             })
             
             // Create an observation
-            var observation = ValueObservation
+            let observation = ValueObservation
                 .tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
                 .compactMap { count -> String? in
                     if count % 2 == 0 { return nil }
                     return "\(count)"
             }
-            observation.extent = .databaseLifetime
             
             // Start observation
-            _ = try observation.start(in: dbWriter) { count in
+            let observer = try observation.start(in: dbWriter) { count in
                 counts.append(count)
                 notificationExpectation.fulfill()
             }
-            
-            try dbWriter.writeWithoutTransaction { db in
-                try db.execute("INSERT INTO t DEFAULT VALUES")
-                try db.execute("INSERT INTO t DEFAULT VALUES")
+            try withExtendedLifetime(observer) {
+                try dbWriter.writeWithoutTransaction { db in
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                }
+                
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(counts, ["1", "3"])
             }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(counts, ["1", "3"])
         }
         
         try test(makeDatabaseQueue())
@@ -62,12 +60,10 @@ class ValueObservationCompactMapTests: GRDBTestCase {
     
     func testCompactMapPreservesConfiguration() {
         var observation = ValueObservation.tracking(DatabaseRegion(), fetch: { _ in })
-        observation.extent = .nextTransaction
         observation.requiresWriteAccess = true
         observation.scheduling = .unsafe(startImmediately: true)
         
         let mappedObservation = observation.compactMap { _ in }
-        XCTAssertEqual(mappedObservation.extent, observation.extent)
         XCTAssertEqual(mappedObservation.requiresWriteAccess, observation.requiresWriteAccess)
         switch mappedObservation.scheduling {
         case .unsafe:

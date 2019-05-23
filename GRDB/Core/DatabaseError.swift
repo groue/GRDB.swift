@@ -1,6 +1,8 @@
 import Foundation
 #if SWIFT_PACKAGE
     import CSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
     import SQLite3
 #endif
@@ -147,7 +149,7 @@ extension ResultCode {
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
             return String(cString: sqlite3_errstr(rawValue))
         #else
-            if #available(iOS 8.2, OSX 10.10, OSXApplicationExtension 10.10, iOSApplicationExtension 8.2, *) {
+            if #available(OSX 10.10, OSXApplicationExtension 10.10, *) {
                 return String(cString: sqlite3_errstr(rawValue))
             } else {
                 return nil

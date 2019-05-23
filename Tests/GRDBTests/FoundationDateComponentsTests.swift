@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -12,7 +10,7 @@ class FoundationDateComponentsTests : GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createDates") { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE dates (
                     ID INTEGER PRIMARY KEY,
                     creationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)
@@ -33,12 +31,12 @@ class FoundationDateComponentsTests : GRDBTestCase {
             dateComponents.minute = 11
             dateComponents.second = 12
             dateComponents.nanosecond = 123_456_789
-            try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .HM)])
+            try db.execute(sql: "INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .HM)])
             
-            let string = try String.fetchOne(db, "SELECT creationDate from dates")!
+            let string = try String.fetchOne(db, sql: "SELECT creationDate from dates")!
             XCTAssertEqual(string, "10:11")
             
-            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, "SELECT creationDate FROM dates")!
+            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, sql: "SELECT creationDate FROM dates")!
             XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.HM)
             XCTAssertTrue(databaseDateComponents.dateComponents.year == nil)
             XCTAssertTrue(databaseDateComponents.dateComponents.month == nil)
@@ -62,12 +60,12 @@ class FoundationDateComponentsTests : GRDBTestCase {
             dateComponents.minute = 11
             dateComponents.second = 12
             dateComponents.nanosecond = 123_456_789
-            try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .HMS)])
+            try db.execute(sql: "INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .HMS)])
             
-            let string = try String.fetchOne(db, "SELECT creationDate from dates")!
+            let string = try String.fetchOne(db, sql: "SELECT creationDate from dates")!
             XCTAssertEqual(string, "10:11:12")
             
-            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, "SELECT creationDate FROM dates")!
+            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, sql: "SELECT creationDate FROM dates")!
             XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.HMS)
             XCTAssertTrue(databaseDateComponents.dateComponents.year == nil)
             XCTAssertTrue(databaseDateComponents.dateComponents.month == nil)
@@ -91,12 +89,12 @@ class FoundationDateComponentsTests : GRDBTestCase {
             dateComponents.minute = 11
             dateComponents.second = 12
             dateComponents.nanosecond = 123_456_789
-            try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .HMSS)])
+            try db.execute(sql: "INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .HMSS)])
             
-            let string = try String.fetchOne(db, "SELECT creationDate from dates")!
+            let string = try String.fetchOne(db, sql: "SELECT creationDate from dates")!
             XCTAssertEqual(string, "10:11:12.123")
             
-            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, "SELECT creationDate FROM dates")!
+            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, sql: "SELECT creationDate FROM dates")!
             XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.HMSS)
             XCTAssertTrue(databaseDateComponents.dateComponents.year == nil)
             XCTAssertTrue(databaseDateComponents.dateComponents.month == nil)
@@ -120,12 +118,12 @@ class FoundationDateComponentsTests : GRDBTestCase {
             dateComponents.minute = 11
             dateComponents.second = 12
             dateComponents.nanosecond = 123_456_789
-            try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .YMD)])
+            try db.execute(sql: "INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .YMD)])
             
-            let string = try String.fetchOne(db, "SELECT creationDate from dates")!
+            let string = try String.fetchOne(db, sql: "SELECT creationDate from dates")!
             XCTAssertEqual(string, "1973-09-18")
             
-            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, "SELECT creationDate FROM dates")!
+            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, sql: "SELECT creationDate FROM dates")!
             XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.YMD)
             XCTAssertEqual(databaseDateComponents.dateComponents.year, dateComponents.year)
             XCTAssertEqual(databaseDateComponents.dateComponents.month, dateComponents.month)
@@ -149,12 +147,12 @@ class FoundationDateComponentsTests : GRDBTestCase {
             dateComponents.minute = 11
             dateComponents.second = 12
             dateComponents.nanosecond = 123_456_789
-            try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .YMD_HM)])
+            try db.execute(sql: "INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .YMD_HM)])
             
-            let string = try String.fetchOne(db, "SELECT creationDate from dates")!
+            let string = try String.fetchOne(db, sql: "SELECT creationDate from dates")!
             XCTAssertEqual(string, "1973-09-18 10:11")
             
-            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, "SELECT creationDate FROM dates")!
+            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, sql: "SELECT creationDate FROM dates")!
             XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.YMD_HM)
             XCTAssertEqual(databaseDateComponents.dateComponents.year, dateComponents.year)
             XCTAssertEqual(databaseDateComponents.dateComponents.month, dateComponents.month)
@@ -178,12 +176,12 @@ class FoundationDateComponentsTests : GRDBTestCase {
             dateComponents.minute = 11
             dateComponents.second = 12
             dateComponents.nanosecond = 123_456_789
-            try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .YMD_HMS)])
+            try db.execute(sql: "INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .YMD_HMS)])
             
-            let string = try String.fetchOne(db, "SELECT creationDate from dates")!
+            let string = try String.fetchOne(db, sql: "SELECT creationDate from dates")!
             XCTAssertEqual(string, "1973-09-18 10:11:12")
             
-            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, "SELECT creationDate FROM dates")!
+            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, sql: "SELECT creationDate FROM dates")!
             XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.YMD_HMS)
             XCTAssertEqual(databaseDateComponents.dateComponents.year, dateComponents.year)
             XCTAssertEqual(databaseDateComponents.dateComponents.month, dateComponents.month)
@@ -207,12 +205,12 @@ class FoundationDateComponentsTests : GRDBTestCase {
             dateComponents.minute = 11
             dateComponents.second = 12
             dateComponents.nanosecond = 123_456_789
-            try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .YMD_HMSS)])
+            try db.execute(sql: "INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .YMD_HMSS)])
             
-            let string = try String.fetchOne(db, "SELECT creationDate from dates")!
+            let string = try String.fetchOne(db, sql: "SELECT creationDate from dates")!
             XCTAssertEqual(string, "1973-09-18 10:11:12.123")
             
-            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, "SELECT creationDate FROM dates")!
+            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, sql: "SELECT creationDate FROM dates")!
             XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.YMD_HMSS)
             XCTAssertEqual(databaseDateComponents.dateComponents.year, dateComponents.year)
             XCTAssertEqual(databaseDateComponents.dateComponents.month, dateComponents.month)
@@ -229,12 +227,12 @@ class FoundationDateComponentsTests : GRDBTestCase {
         try dbQueue.inDatabase { db in
             
             let dateComponents = DateComponents()
-            try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .YMD_HMSS)])
+            try db.execute(sql: "INSERT INTO dates (creationDate) VALUES (?)", arguments: [DatabaseDateComponents(dateComponents, format: .YMD_HMSS)])
             
-            let string = try String.fetchOne(db, "SELECT creationDate from dates")!
+            let string = try String.fetchOne(db, sql: "SELECT creationDate from dates")!
             XCTAssertEqual(string, "0000-01-01 00:00:00.000")
             
-            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, "SELECT creationDate FROM dates")!
+            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, sql: "SELECT creationDate FROM dates")!
             XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.YMD_HMSS)
             XCTAssertEqual(databaseDateComponents.dateComponents.year, 0)
             XCTAssertEqual(databaseDateComponents.dateComponents.month, 1)
@@ -258,9 +256,9 @@ class FoundationDateComponentsTests : GRDBTestCase {
             dateComponents.minute = 11
             dateComponents.second = 12
             dateComponents.nanosecond = 123_456_789
-            try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: ["1973-09-18T10:11"])
+            try db.execute(sql: "INSERT INTO dates (creationDate) VALUES (?)", arguments: ["1973-09-18T10:11"])
             
-            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, "SELECT creationDate FROM dates")!
+            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, sql: "SELECT creationDate FROM dates")!
             XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.YMD_HM)
             XCTAssertEqual(databaseDateComponents.dateComponents.year, dateComponents.year)
             XCTAssertEqual(databaseDateComponents.dateComponents.month, dateComponents.month)
@@ -284,9 +282,9 @@ class FoundationDateComponentsTests : GRDBTestCase {
             dateComponents.minute = 11
             dateComponents.second = 12
             dateComponents.nanosecond = 123_456_789
-            try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: ["1973-09-18T10:11:12"])
+            try db.execute(sql: "INSERT INTO dates (creationDate) VALUES (?)", arguments: ["1973-09-18T10:11:12"])
             
-            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, "SELECT creationDate FROM dates")!
+            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, sql: "SELECT creationDate FROM dates")!
             XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.YMD_HMS)
             XCTAssertEqual(databaseDateComponents.dateComponents.year, dateComponents.year)
             XCTAssertEqual(databaseDateComponents.dateComponents.month, dateComponents.month)
@@ -310,9 +308,9 @@ class FoundationDateComponentsTests : GRDBTestCase {
             dateComponents.minute = 11
             dateComponents.second = 12
             dateComponents.nanosecond = 123_456_789
-            try db.execute("INSERT INTO dates (creationDate) VALUES (?)", arguments: ["1973-09-18T10:11:12.123"])
+            try db.execute(sql: "INSERT INTO dates (creationDate) VALUES (?)", arguments: ["1973-09-18T10:11:12.123"])
             
-            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, "SELECT creationDate FROM dates")!
+            let databaseDateComponents = try DatabaseDateComponents.fetchOne(db, sql: "SELECT creationDate FROM dates")!
             XCTAssertEqual(databaseDateComponents.format, DatabaseDateComponents.Format.YMD_HMSS)
             XCTAssertEqual(databaseDateComponents.dateComponents.year, dateComponents.year)
             XCTAssertEqual(databaseDateComponents.dateComponents.month, dateComponents.month)
@@ -333,23 +331,23 @@ class FoundationDateComponentsTests : GRDBTestCase {
                 let date = Date().addingTimeInterval(-1)
                 let dateComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
                 try db.execute(
-                    "INSERT INTO dates (id, creationDate) VALUES (?,?)",
+                    sql: "INSERT INTO dates (id, creationDate) VALUES (?,?)",
                     arguments: [1, DatabaseDateComponents(dateComponents, format: .YMD_HMS)])
             }
             do {
                 try db.execute(
-                    "INSERT INTO dates (id) VALUES (?)",
+                    sql: "INSERT INTO dates (id) VALUES (?)",
                     arguments: [2])
             }
             do {
                 let date = Date().addingTimeInterval(1)
                 let dateComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
                 try db.execute(
-                    "INSERT INTO dates (id, creationDate) VALUES (?,?)",
+                    sql: "INSERT INTO dates (id, creationDate) VALUES (?,?)",
                     arguments: [3, DatabaseDateComponents(dateComponents, format: .YMD_HMS)])
             }
             
-            let ids = try Int.fetchAll(db, "SELECT id FROM dates ORDER BY creationDate")
+            let ids = try Int.fetchAll(db, sql: "SELECT id FROM dates ORDER BY creationDate")
             XCTAssertEqual(ids, [1,2,3])
         }
     }
@@ -365,7 +363,7 @@ class FoundationDateComponentsTests : GRDBTestCase {
             do {
                 // Test StatementColumnConvertible adoption
                 let parsed = DatabaseQueue().inDatabase {
-                    try! DatabaseDateComponents.fetchOne($0, "SELECT ?", arguments: [string])!
+                    try! DatabaseDateComponents.fetchOne($0, sql: "SELECT ?", arguments: [string])!
                 }
                 XCTAssertEqual(parsed.format, dateComponent.format, file: file, line: line)
                 XCTAssertEqual(parsed.dateComponents, dateComponent.dateComponents, file: file, line: line)

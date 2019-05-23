@@ -28,7 +28,6 @@ extension ValueObservation where Reducer == Void {
     public static func trackingCount<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<DistinctUntilChangedValueReducer<RawValueReducer<Int>>>
     {
-        // TODO: Remove distinctUntilChanged in GRDB 4
         return ValueObservation.tracking(request, fetch: request.fetchCount).distinctUntilChanged()
     }
 }

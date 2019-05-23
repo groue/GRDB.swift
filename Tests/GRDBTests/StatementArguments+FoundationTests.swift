@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -15,7 +13,7 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
-            try db.execute("""
+            try db.execute(sql: """
                 CREATE TABLE persons (
                     id INTEGER PRIMARY KEY,
                     creationDate TEXT,
@@ -31,7 +29,7 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
         
         try dbQueue.inTransaction { db in
             
-            let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (?, ?)")
+            let statement = try db.makeUpdateStatement(sql: "INSERT INTO persons (name, age) VALUES (?, ?)")
             let persons: [[Any]] = [
                 ["Arthur", 41],
                 ["Barbara", 38],
@@ -44,7 +42,7 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM persons ORDER BY name")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
             XCTAssertEqual(rows[0]["age"] as Int, 41)
@@ -69,7 +67,7 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
         
         try dbQueue.inTransaction { db in
             
-            let statement = try db.makeUpdateStatement("INSERT INTO persons (name, age) VALUES (:name, :age)")
+            let statement = try db.makeUpdateStatement(sql: "INSERT INTO persons (name, age) VALUES (:name, :age)")
             let persons: [[AnyHashable: Any]] = [
                 ["name": "Arthur", "age": 41],
                 ["name": "Barbara", "age": 38],
@@ -82,7 +80,7 @@ class StatementArgumentsFoundationTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            let rows = try Row.fetchAll(db, "SELECT * FROM persons ORDER BY name")
+            let rows = try Row.fetchAll(db, sql: "SELECT * FROM persons ORDER BY name")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0]["name"] as String, "Arthur")
             XCTAssertEqual(rows[0]["age"] as Int, 41)

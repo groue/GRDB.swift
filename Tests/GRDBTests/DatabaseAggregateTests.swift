@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -34,7 +32,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 0, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertTrue(try DatabaseValue.fetchOne(db, "SELECT f()")!.isNull)
+            XCTAssertTrue(try DatabaseValue.fetchOne(db, sql: "SELECT f()")!.isNull)
         }
     }
 
@@ -49,7 +47,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 0, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertEqual(try Int64.fetchOne(db, "SELECT f()")!, Int64(1))
+            XCTAssertEqual(try Int64.fetchOne(db, sql: "SELECT f()")!, Int64(1))
         }
     }
 
@@ -64,7 +62,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 0, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertEqual(try Double.fetchOne(db, "SELECT f()")!, 1e100)
+            XCTAssertEqual(try Double.fetchOne(db, sql: "SELECT f()")!, 1e100)
         }
     }
 
@@ -79,7 +77,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 0, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertEqual(try String.fetchOne(db, "SELECT f()")!, "foo")
+            XCTAssertEqual(try String.fetchOne(db, sql: "SELECT f()")!, "foo")
         }
     }
 
@@ -94,7 +92,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 0, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertEqual(try Data.fetchOne(db, "SELECT f()")!, "foo".data(using: .utf8))
+            XCTAssertEqual(try Data.fetchOne(db, sql: "SELECT f()")!, "foo".data(using: .utf8))
         }
     }
 
@@ -109,7 +107,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 0, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertTrue(try CustomValueType.fetchOne(db, "SELECT f()") != nil)
+            XCTAssertTrue(try CustomValueType.fetchOne(db, sql: "SELECT f()") != nil)
         }
     }
 
@@ -129,12 +127,12 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 1, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertTrue(try Bool.fetchOne(db, "SELECT f(NULL)")!)
-            XCTAssertFalse(try Bool.fetchOne(db, "SELECT f(1)")!)
-            XCTAssertFalse(try Bool.fetchOne(db, "SELECT f(1.1)")!)
-            XCTAssertFalse(try Bool.fetchOne(db, "SELECT f('foo')")!)
-            XCTAssertFalse(try Bool.fetchOne(db, "SELECT f(?)", arguments: ["foo".data(using: .utf8)])!)
-            XCTAssertFalse(try Bool.fetchOne(db, "SELECT f(?)", arguments: [Data()])!)
+            XCTAssertTrue(try Bool.fetchOne(db, sql: "SELECT f(NULL)")!)
+            XCTAssertFalse(try Bool.fetchOne(db, sql: "SELECT f(1)")!)
+            XCTAssertFalse(try Bool.fetchOne(db, sql: "SELECT f(1.1)")!)
+            XCTAssertFalse(try Bool.fetchOne(db, sql: "SELECT f('foo')")!)
+            XCTAssertFalse(try Bool.fetchOne(db, sql: "SELECT f(?)", arguments: ["foo".data(using: .utf8)])!)
+            XCTAssertFalse(try Bool.fetchOne(db, sql: "SELECT f(?)", arguments: [Data()])!)
         }
     }
 
@@ -152,9 +150,9 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 1, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertTrue(try Int64.fetchOne(db, "SELECT f(NULL)") == nil)
-            XCTAssertEqual(try Int64.fetchOne(db, "SELECT f(1)")!, 1)
-            XCTAssertEqual(try Int64.fetchOne(db, "SELECT f(1.1)")!, 1)
+            XCTAssertTrue(try Int64.fetchOne(db, sql: "SELECT f(NULL)") == nil)
+            XCTAssertEqual(try Int64.fetchOne(db, sql: "SELECT f(1)")!, 1)
+            XCTAssertEqual(try Int64.fetchOne(db, sql: "SELECT f(1.1)")!, 1)
         }
     }
 
@@ -172,9 +170,9 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 1, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertTrue(try Double.fetchOne(db, "SELECT f(NULL)") == nil)
-            XCTAssertEqual(try Double.fetchOne(db, "SELECT f(1)")!, 1.0)
-            XCTAssertEqual(try Double.fetchOne(db, "SELECT f(1.1)")!, 1.1)
+            XCTAssertTrue(try Double.fetchOne(db, sql: "SELECT f(NULL)") == nil)
+            XCTAssertEqual(try Double.fetchOne(db, sql: "SELECT f(1)")!, 1.0)
+            XCTAssertEqual(try Double.fetchOne(db, sql: "SELECT f(1.1)")!, 1.1)
         }
     }
 
@@ -192,8 +190,8 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 1, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertTrue(try String.fetchOne(db, "SELECT f(NULL)") == nil)
-            XCTAssertEqual(try String.fetchOne(db, "SELECT f('foo')")!, "foo")
+            XCTAssertTrue(try String.fetchOne(db, sql: "SELECT f(NULL)") == nil)
+            XCTAssertEqual(try String.fetchOne(db, sql: "SELECT f('foo')")!, "foo")
         }
     }
 
@@ -211,9 +209,9 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 1, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertTrue(try Data.fetchOne(db, "SELECT f(NULL)") == nil)
-            XCTAssertEqual(try Data.fetchOne(db, "SELECT f(?)", arguments: ["foo".data(using: .utf8)])!, "foo".data(using: .utf8))
-            XCTAssertEqual(try Data.fetchOne(db, "SELECT f(?)", arguments: [Data()])!, Data())
+            XCTAssertTrue(try Data.fetchOne(db, sql: "SELECT f(NULL)") == nil)
+            XCTAssertEqual(try Data.fetchOne(db, sql: "SELECT f(?)", arguments: ["foo".data(using: .utf8)])!, "foo".data(using: .utf8))
+            XCTAssertEqual(try Data.fetchOne(db, sql: "SELECT f(?)", arguments: [Data()])!, Data())
         }
     }
 
@@ -231,8 +229,8 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 1, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertTrue(try CustomValueType.fetchOne(db, "SELECT f(NULL)") == nil)
-            XCTAssertTrue(try CustomValueType.fetchOne(db, "SELECT f('CustomValueType')") != nil)
+            XCTAssertTrue(try CustomValueType.fetchOne(db, sql: "SELECT f(NULL)") == nil)
+            XCTAssertTrue(try CustomValueType.fetchOne(db, sql: "SELECT f('CustomValueType')") != nil)
         }
     }
 
@@ -249,9 +247,9 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 0, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertEqual(try String.fetchOne(db, "SELECT f()")!, "foo")
+            XCTAssertEqual(try String.fetchOne(db, sql: "SELECT f()")!, "foo")
             do {
-                try db.execute("SELECT f(1)")
+                try db.execute(sql: "SELECT f(1)")
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
@@ -276,11 +274,11 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 1, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertEqual(try String.fetchOne(db, "SELECT upper(?)", arguments: ["Roué"])!, "ROUé")
-            XCTAssertEqual(try String.fetchOne(db, "SELECT f(?)", arguments: ["Roué"])!, "ROUÉ")
-            XCTAssertTrue(try String.fetchOne(db, "SELECT f(NULL)") == nil)
+            XCTAssertEqual(try String.fetchOne(db, sql: "SELECT upper(?)", arguments: ["Roué"])!, "ROUé")
+            XCTAssertEqual(try String.fetchOne(db, sql: "SELECT f(?)", arguments: ["Roué"])!, "ROUÉ")
+            XCTAssertTrue(try String.fetchOne(db, sql: "SELECT f(NULL)") == nil)
             do {
-                try db.execute("SELECT f()")
+                try db.execute(sql: "SELECT f()")
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
@@ -306,9 +304,9 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 2, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT f(1, 2)")!, 3)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT f(1, 2)")!, 3)
             do {
-                try db.execute("SELECT f()")
+                try db.execute(sql: "SELECT f()")
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
@@ -333,9 +331,9 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT f()")!, 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT f(1)")!, 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT f(1, 1)")!, 2)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT f()")!, 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT f(1)")!, 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT f(1, 1)")!, 2)
         }
     }
 
@@ -355,7 +353,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             do {
-                try db.execute("SELECT f()")
+                try db.execute(sql: "SELECT f()")
                 XCTFail("Expected DatabaseError")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
@@ -378,7 +376,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             do {
-                try db.execute("SELECT f()")
+                try db.execute(sql: "SELECT f()")
                 XCTFail("Expected DatabaseError")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode.rawValue, 123)
@@ -401,7 +399,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             do {
-                try db.execute("SELECT f()")
+                try db.execute(sql: "SELECT f()")
                 XCTFail("Expected DatabaseError")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode.rawValue, 123)
@@ -424,7 +422,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             do {
-                try db.execute("SELECT f()")
+                try db.execute(sql: "SELECT f()")
                 XCTFail("Expected DatabaseError")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
@@ -449,7 +447,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             do {
-                try db.execute("SELECT f()")
+                try db.execute(sql: "SELECT f()")
                 XCTFail("Expected DatabaseError")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
@@ -470,7 +468,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             do {
-                try db.execute("SELECT f()")
+                try db.execute(sql: "SELECT f()")
                 XCTFail("Expected DatabaseError")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode.rawValue, 123)
@@ -491,7 +489,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             do {
-                try db.execute("SELECT f()")
+                try db.execute(sql: "SELECT f()")
                 XCTFail("Expected DatabaseError")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode.rawValue, 123)
@@ -512,7 +510,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
             do {
-                try db.execute("SELECT f()")
+                try db.execute(sql: "SELECT f()")
                 XCTFail("Expected DatabaseError")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
@@ -541,7 +539,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 1, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT f(a) FROM (SELECT 1 AS a UNION ALL SELECT 2 UNION ALL SELECT 3)")!, 6)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT f(a) FROM (SELECT 1 AS a UNION ALL SELECT 2 UNION ALL SELECT 3)")!, 6)
         }
     }
     
@@ -561,7 +559,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         let fn = DatabaseFunction("f", argumentCount: 1, aggregate: Aggregate.self)
         dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
-            let row = try Row.fetchOne(db, "SELECT f(a), f(b) FROM (SELECT 1 AS a, 2 AS b UNION ALL SELECT 2, 4 UNION ALL SELECT 3, 6)")!
+            let row = try Row.fetchOne(db, sql: "SELECT f(a), f(b) FROM (SELECT 1 AS a, 2 AS b UNION ALL SELECT 2, 4 UNION ALL SELECT 3, 6)")!
             XCTAssertEqual(row[0], 6)
             XCTAssertEqual(row[1], 12)
         }
@@ -596,7 +594,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             XCTAssertEqual(allocationCount, 0)
             XCTAssertEqual(aliveCount, 0)
-            try db.execute("SELECT f()")
+            try db.execute(sql: "SELECT f()")
             XCTAssertEqual(allocationCount, 1)
             XCTAssertEqual(aliveCount, 0)
         }
@@ -631,7 +629,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         dbQueue.inDatabase { db in
             XCTAssertEqual(allocationCount, 0)
             XCTAssertEqual(aliveCount, 0)
-            _ = try? db.execute("SELECT f()")
+            _ = try? db.execute(sql: "SELECT f()")
             XCTAssertEqual(allocationCount, 1)
             XCTAssertEqual(aliveCount, 0)
         }
@@ -665,7 +663,7 @@ class DatabaseAggregateTests: GRDBTestCase {
         dbQueue.inDatabase { db in
             XCTAssertEqual(allocationCount, 0)
             XCTAssertEqual(aliveCount, 0)
-            _ = try? db.execute("SELECT f()")
+            _ = try? db.execute(sql: "SELECT f()")
             XCTAssertEqual(allocationCount, 1)
             XCTAssertEqual(aliveCount, 0)
         }

@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    @testable import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     @testable import GRDBCustomSQLite
 #else
     @testable import GRDB
@@ -23,7 +21,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // conversion error
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT ? AS name")
+            let statement = try db.makeSelectStatement(sql: "SELECT ? AS name")
             statement.arguments = [nil]
             let row = try Row.fetchOne(statement)!
             
@@ -49,7 +47,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // missing column
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT ? AS unused")
+            let statement = try db.makeSelectStatement(sql: "SELECT ? AS unused")
             statement.arguments = ["ignored"]
             let row = try Row.fetchOne(statement)!
             
@@ -90,7 +88,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // conversion error
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT 1, ? AS value")
+            let statement = try db.makeSelectStatement(sql: "SELECT 1, ? AS value")
             statement.arguments = ["invalid"]
             let row = try Row.fetchOne(statement)!
             
@@ -115,7 +113,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // missing column
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT ? AS unused")
+            let statement = try db.makeSelectStatement(sql: "SELECT ? AS unused")
             statement.arguments = ["ignored"]
             let row = try Row.fetchOne(statement)!
             
@@ -149,7 +147,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // conversion error
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT NULL AS name, ? AS team")
+            let statement = try db.makeSelectStatement(sql: "SELECT NULL AS name, ? AS team")
             statement.arguments = ["invalid"]
             let row = try Row.fetchOne(statement)!
             
@@ -175,7 +173,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // missing column
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT ? AS unused")
+            let statement = try db.makeSelectStatement(sql: "SELECT ? AS unused")
             statement.arguments = ["ignored"]
             let row = try Row.fetchOne(statement)!
 
@@ -212,7 +210,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // conversion error
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT NULL AS name, ? AS value")
+            let statement = try db.makeSelectStatement(sql: "SELECT NULL AS name, ? AS value")
             statement.arguments = ["invalid"]
             let row = try Row.fetchOne(statement)!
             
@@ -237,7 +235,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // missing column
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT ? AS unused")
+            let statement = try db.makeSelectStatement(sql: "SELECT ? AS unused")
             statement.arguments = ["ignored"]
             let row = try Row.fetchOne(statement)!
 
@@ -274,7 +272,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // conversion error
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT NULL AS name, ? AS value")
+            let statement = try db.makeSelectStatement(sql: "SELECT NULL AS name, ? AS value")
             statement.arguments = ["invalid"]
             let row = try Row.fetchOne(statement)!
             
@@ -301,7 +299,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // missing column
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT ? AS unused")
+            let statement = try db.makeSelectStatement(sql: "SELECT ? AS unused")
             statement.arguments = ["ignored"]
             let row = try Row.fetchOne(statement)!
 
@@ -330,7 +328,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         // Each test comes with one or several commented crashing code snippets that trigger it.
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT NULL AS name, ? AS team")
+            let statement = try db.makeSelectStatement(sql: "SELECT NULL AS name, ? AS team")
             statement.arguments = ["invalid"]
             let row = try Row.fetchOne(statement)!
             
@@ -368,7 +366,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         // Each test comes with one or several commented crashing code snippets that trigger it.
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT ? AS foo")
+            let statement = try db.makeSelectStatement(sql: "SELECT ? AS foo")
             statement.arguments = [1000]
             let row = try Row.fetchOne(statement)!
             
@@ -420,7 +418,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         // Each test comes with one or several commented crashing code snippets that trigger it.
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement("SELECT NULL AS name, ? AS team")
+            let statement = try db.makeSelectStatement(sql: "SELECT NULL AS name, ? AS team")
             statement.arguments = ["invalid"]
             let row = try Row.fetchOne(statement)!
             

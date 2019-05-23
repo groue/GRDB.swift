@@ -100,7 +100,7 @@ public struct DatabaseMigrator {
         ///             t.autoIncrementedPrimaryKey("id")
         ///             t.column("name", .text).notNull()
         ///         }
-        ///         try db.execute("INSERT INTO new_player SELECT * FROM player")
+        ///         try db.execute(sql: "INSERT INTO new_player SELECT * FROM player")
         ///         try db.drop(table: "player")
         ///         try db.rename(table: "new_player", to: "player")
         ///     }
@@ -119,7 +119,7 @@ public struct DatabaseMigrator {
             registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: true, migrate: migrate))
         }
     #else
-        @available(iOS 8.2, OSX 10.10, *)
+        @available(OSX 10.10, *)
         /// Registers an advanced migration, as described at https://www.sqlite.org/lang_altertable.html#otheralter
         ///
         ///     // Add a NOT NULL constraint on players.name:
@@ -128,7 +128,7 @@ public struct DatabaseMigrator {
         ///             t.autoIncrementedPrimaryKey("id")
         ///             t.column("name", .text).notNull()
         ///         }
-        ///         try db.execute("INSERT INTO new_player SELECT * FROM player")
+        ///         try db.execute(sql: "INSERT INTO new_player SELECT * FROM player")
         ///         try db.drop(table: "player")
         ///         try db.rename(table: "new_player", to: "player")
         ///     }
@@ -237,11 +237,11 @@ public struct DatabaseMigrator {
     }
     
     private func setupMigrations(_ db: Database) throws {
-        try db.execute("CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
+        try db.execute(sql: "CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
     }
     
     private func appliedIdentifiers(_ db: Database) throws -> Set<String> {
-        return try Set(String.fetchAll(db, "SELECT identifier FROM grdb_migrations"))
+        return try Set(String.fetchAll(db, sql: "SELECT identifier FROM grdb_migrations"))
     }
     
     private func runMigrations(_ db: Database, upTo targetIdentifier: String) throws {

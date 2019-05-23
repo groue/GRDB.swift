@@ -1,6 +1,8 @@
 import Foundation
 #if SWIFT_PACKAGE
     import CSQLite
+#elseif GRDBCIPHER
+    import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
     import SQLite3
 #endif
@@ -19,19 +21,15 @@ extension NSUUID: DatabaseValueConvertible {
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
         switch dbValue.storage {
         case .blob(let data) where data.count == 16:
-            // The code below works in debug configuration, but crashes in
-            // release configuration (Xcode 9.4.1)
-            
-//            return data.withUnsafeBytes {
-//                self.init(uuidBytes: $0)
-//            }
-            
-            // Workaround (involves a useless copy)
-            let buffer = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: 16)
-            _ = data.copyBytes(to: buffer)
-            let uuid = self.init(uuidBytes: UnsafePointer(buffer.baseAddress!))
-            buffer.deallocate()
-            return uuid
+            #if swift(>=5.0)
+            return data.withUnsafeBytes {
+                self.init(uuidBytes: $0.bindMemory(to: UInt8.self).baseAddress)
+            }
+            #else
+            return data.withUnsafeBytes {
+                self.init(uuidBytes: $0)
+            }
+            #endif
         case .string(let string):
             return self.init(uuidString: string)
         default:
@@ -44,8 +42,7 @@ extension NSUUID: DatabaseValueConvertible {
 /// UUID adopts DatabaseValueConvertible
 extension UUID: DatabaseValueConvertible {
     public var databaseValue: DatabaseValue {
-        var uuid_t = uuid
-        return withUnsafeBytes(of: &uuid_t) {
+        return withUnsafeBytes(of: uuid) {
             Data(bytes: $0.baseAddress!, count: $0.count).databaseValue
         }
     }
@@ -53,9 +50,15 @@ extension UUID: DatabaseValueConvertible {
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UUID? {
         switch dbValue.storage {
         case .blob(let data) where data.count == 16:
+            #if swift(>=5.0)
+            return data.withUnsafeBytes {
+                UUID(uuid: $0.bindMemory(to: uuid_t.self).first!)
+            }
+            #else
             return data.withUnsafeBytes {
                 UUID(uuid: $0.pointee)
             }
+            #endif
         case .string(let string):
             return UUID(uuidString: string)
         default:
@@ -65,6 +68,7 @@ extension UUID: DatabaseValueConvertible {
 }
 
 extension UUID: StatementColumnConvertible {
+    @inlinable
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_TEXT:

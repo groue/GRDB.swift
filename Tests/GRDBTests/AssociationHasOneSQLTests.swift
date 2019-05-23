@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -15,7 +13,7 @@ class AssociationHasOneSQLTests: GRDBTestCase {
             static let databaseTableName = "children"
         }
         
-        struct Parent : TableRecord, MutablePersistableRecord {
+        struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
             func encode(to container: inout PersistenceContainer) {
                 container["id"] = 1
@@ -90,7 +88,7 @@ class AssociationHasOneSQLTests: GRDBTestCase {
             static let databaseTableName = "children"
         }
         
-        struct Parent : TableRecord, MutablePersistableRecord {
+        struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
             func encode(to container: inout PersistenceContainer) {
                 container["id"] = 1
@@ -164,7 +162,7 @@ class AssociationHasOneSQLTests: GRDBTestCase {
             static let databaseTableName = "children"
         }
         
-        struct Parent : TableRecord, MutablePersistableRecord {
+        struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
             func encode(to container: inout PersistenceContainer) {
                 container["id"] = 1
@@ -262,7 +260,7 @@ class AssociationHasOneSQLTests: GRDBTestCase {
             static let databaseTableName = "children"
         }
         
-        struct Parent : TableRecord, MutablePersistableRecord {
+        struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
             func encode(to container: inout PersistenceContainer) {
                 container["id"] = 1
@@ -385,7 +383,7 @@ class AssociationHasOneSQLTests: GRDBTestCase {
             static let databaseTableName = "children"
         }
         
-        struct Parent : TableRecord, MutablePersistableRecord {
+        struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
             func encode(to container: inout PersistenceContainer) {
                 container["a"] = 1
@@ -438,7 +436,7 @@ class AssociationHasOneSQLTests: GRDBTestCase {
             static let databaseTableName = "children"
         }
         
-        struct Parent : TableRecord, MutablePersistableRecord {
+        struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
             func encode(to container: inout PersistenceContainer) {
                 container["a"] = 1
@@ -516,7 +514,7 @@ class AssociationHasOneSQLTests: GRDBTestCase {
             static let databaseTableName = "children"
         }
         
-        struct Parent : TableRecord, MutablePersistableRecord {
+        struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
             func encode(to container: inout PersistenceContainer) {
                 container["a"] = 1
@@ -619,7 +617,7 @@ class AssociationHasOneSQLTests: GRDBTestCase {
             static let databaseTableName = "children"
         }
         
-        struct Parent : TableRecord, MutablePersistableRecord {
+        struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
             func encode(to container: inout PersistenceContainer) {
                 container["a"] = 1

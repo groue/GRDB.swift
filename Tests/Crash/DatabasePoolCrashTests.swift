@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -12,7 +10,7 @@ class DatabasePoolCrashTests: GRDBCrashTestCase {
     func testReaderCanNotStartTransaction() {
         assertCrash("DatabasePool readers can not start transactions or savepoints.") {
             try dbPool.read { db in
-                let statement = try db.makeUpdateStatement("BEGIN TRANSACTION")
+                let statement = try db.makeUpdateStatement(sql: "BEGIN TRANSACTION")
             }
         }
     }
@@ -20,7 +18,7 @@ class DatabasePoolCrashTests: GRDBCrashTestCase {
     func testReaderCanNotStartSavepoint() {
         assertCrash("DatabasePool readers can not start transactions or savepoints.") {
             try dbPool.read { db in
-                let statement = try db.makeUpdateStatement("SAVEPOINT foo")
+                let statement = try db.makeUpdateStatement(sql: "SAVEPOINT foo")
             }
         }
     }

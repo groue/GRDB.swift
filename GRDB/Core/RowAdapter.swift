@@ -13,7 +13,7 @@ import Foundation
 ///         "b": adapters[1],
 ///         "c": adapters[2],
 ///         "d": adapters[3]])
-///     let row = try Row.fetchOne(db, sql, adapter: adapter)
+///     let row = try Row.fetchOne(db, sql: sql, adapter: adapter)
 ///     row.scopes["a"] // [1]
 ///     row.scopes["b"] // [2, 3, 4]
 ///     row.scopes["c"] // [5, 6]
@@ -78,7 +78,7 @@ public struct LayoutedColumnMapping {
     ///     }
     ///
     ///     // [foo:"foo" bar: "bar"]
-    ///     try Row.fetchOne(db, "SELECT NULL, 'foo', 'bar'", adapter: FooBarAdapter())
+    ///     try Row.fetchOne(db, sql: "SELECT NULL, 'foo', 'bar'", adapter: FooBarAdapter())
     public init<S: Sequence>(layoutColumns: S) where S.Iterator.Element == (Int, String) {
         self.layoutColumns = Array(layoutColumns)
         self.lowercaseColumnIndexes = Dictionary(
@@ -201,7 +201,7 @@ extension SelectStatement : RowLayout {
 ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
 ///
 ///     // [baz:3]
-///     try Row.fetchOne(db, sql, adapter: adapter)
+///     try Row.fetchOne(db, sql: sql, adapter: adapter)
 public protocol RowAdapter {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -224,7 +224,7 @@ public protocol RowAdapter {
     ///     }
     ///
     ///     // [foo:1]
-    ///     try Row.fetchOne(db, "SELECT 1, 2, 3", adapter: FirstColumnAdapter())
+    ///     try Row.fetchOne(db, sql: "SELECT 1, 2, 3", adapter: FirstColumnAdapter())
     func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter
 }
 
@@ -269,7 +269,7 @@ public struct EmptyRowAdapter: RowAdapter {
 ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar, 'baz' AS baz"
 ///
 ///     // [foo:"bar"]
-///     try Row.fetchOne(db, sql, adapter: adapter)
+///     try Row.fetchOne(db, sql: sql, adapter: adapter)
 public struct ColumnMapping : RowAdapter {
     /// A dictionary from mapped column names to column names in a base row.
     let mapping: [String: String]
@@ -303,7 +303,7 @@ public struct ColumnMapping : RowAdapter {
 ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz"
 ///
 ///     // [baz:3]
-///     try Row.fetchOne(db, sql, adapter: adapter)
+///     try Row.fetchOne(db, sql: sql, adapter: adapter)
 public struct SuffixRowAdapter : RowAdapter {
     /// The suffix index
     let index: Int
@@ -330,7 +330,7 @@ public struct SuffixRowAdapter : RowAdapter {
 ///     let sql = "SELECT 1 AS foo, 2 AS bar, 3 AS baz, 4 as qux"
 ///
 ///     // [bar:2 baz:3]
-///     try Row.fetchOne(db, sql, adapter: adapter)
+///     try Row.fetchOne(db, sql: sql, adapter: adapter)
 public struct RangeRowAdapter : RowAdapter {
     /// The range
     let range: CountableRange<Int>
@@ -367,7 +367,7 @@ public struct RangeRowAdapter : RowAdapter {
 ///
 ///     // Fetch
 ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar"
-///     let row = try Row.fetchOne(db, sql, adapter: adapter)!
+///     let row = try Row.fetchOne(db, sql: sql, adapter: adapter)!
 ///
 ///     // Scoped rows:
 ///     if let fooRow = row.scopes["foo"] {
@@ -389,7 +389,7 @@ public struct ScopeAdapter : RowAdapter {
     /// For example:
     ///
     ///     let adapter = ScopeAdapter(["suffix": SuffixRowAdapter(fromIndex: 1)])
-    ///     let row = try Row.fetchOne(db, "SELECT 1, 2, 3", adapter: adapter)!
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 1, 2, 3", adapter: adapter)!
     ///     row                  // [1, 2, 3]
     ///     row.scopes["suffix"] // [2, 3]
     ///
@@ -406,7 +406,7 @@ public struct ScopeAdapter : RowAdapter {
     ///
     ///     let baseAdapter = RangeRowAdapter(0..<1)
     ///     let adapter = ScopeAdapter(base: baseAdapter, scopes: ["suffix": SuffixRowAdapter(fromIndex: 1)])
-    ///     let row = try Row.fetchOne(db, "SELECT 1, 2, 3", adapter: adapter)!
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 1, 2, 3", adapter: adapter)!
     ///     row                   // [1]
     ///     row.scopes["initial"] // [2, 3]
     ///
@@ -487,8 +487,8 @@ struct AdaptedRowImpl : RowImpl {
         return base.isFetched
     }
     
-    var scopes: Row.ScopesView {
-        return Row.ScopesView(row: base, scopes: adapter.scopes)
+    func scopes(prefetchedRows: Row.PrefetchedRowsView) -> Row.ScopesView {
+        return Row.ScopesView(row: base, scopes: adapter.scopes, prefetchedRows: prefetchedRows)
     }
     
     func hasNull(atUncheckedIndex index: Int) -> Bool {

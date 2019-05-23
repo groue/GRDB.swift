@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -53,10 +51,10 @@ class DatabaseTimestampTests: GRDBTestCase {
     func testDatabaseTimestamp() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute("CREATE TABLE dates (date DATETIME)")
+            try db.execute(sql: "CREATE TABLE dates (date DATETIME)")
             let storedDate = Date()
-            try db.execute("INSERT INTO dates (date) VALUES (?)", arguments: [DatabaseTimestamp(storedDate)])
-            let fetchedDate = try DatabaseTimestamp.fetchOne(db, "SELECT date FROM dates")!.date
+            try db.execute(sql: "INSERT INTO dates (date) VALUES (?)", arguments: [DatabaseTimestamp(storedDate)])
+            let fetchedDate = try DatabaseTimestamp.fetchOne(db, sql: "SELECT date FROM dates")!.date
             let delta = storedDate.timeIntervalSince(fetchedDate)
             XCTAssertTrue(abs(delta) < 0.1)
         }

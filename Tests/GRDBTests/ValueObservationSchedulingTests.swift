@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     #if SWIFT_PACKAGE
@@ -16,7 +14,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testMainQueueObservationStartedFromMainQueue() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -26,12 +24,10 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             let key = DispatchSpecificKey<()>()
             DispatchQueue.main.setSpecific(key: key, value: ())
             
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
-            observation.extent = .databaseLifetime
-            
-            _ = try observation.start(in: dbWriter) { count in
+            let observer = try observation.start(in: dbWriter) { count in
                 XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
                 counts.append(count)
                 notificationExpectation.fulfill()
@@ -40,12 +36,14 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             // dispatched when observation is started from the main queue
             XCTAssertEqual(counts, [0])
             
-            try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+            try withExtendedLifetime(observer) {
+                try dbWriter.write {
+                    try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                }
+                
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(counts, [0, 1])
             }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(counts, [0, 1])
         }
         
         try test(makeDatabaseQueue())
@@ -56,7 +54,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testMainQueueObservationStartedFromAnotherQueue() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -66,25 +64,25 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             let key = DispatchSpecificKey<()>()
             DispatchQueue.main.setSpecific(key: key, value: ())
             
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
-            observation.extent = .databaseLifetime
-            
+            var observer: TransactionObserver?
             DispatchQueue.global(qos: .default).async {
-                _ = try! observation.start(in: dbWriter) { count in
+                observer = try! observation.start(in: dbWriter) { count in
                     XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
                     counts.append(count)
                     notificationExpectation.fulfill()
                 }
-                
                 try! dbWriter.write {
-                    try $0.execute("INSERT INTO t DEFAULT VALUES")
+                    try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
                 }
             }
             
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(counts, [0, 1])
+            withExtendedLifetime(observer) {
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(counts, [0, 1])
+            }
         }
         
         try test(makeDatabaseQueue())
@@ -94,7 +92,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testMainQueueError() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var errorCount = 0
             let notificationExpectation = expectation(description: "notification")
@@ -113,10 +111,9 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                     }
             },
                 value: { $0 })
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
-            observation.extent = .databaseLifetime
+            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             
-            _ = try observation.start(
+            let observer = try observation.start(
                 in: dbWriter,
                 onError: { error in
                     XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
@@ -127,15 +124,16 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                     XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
                     notificationExpectation.fulfill()
             })
-            
-            struct TestError: Error { }
-            nextError = TestError()
-            try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+            try withExtendedLifetime(observer) {
+                struct TestError: Error { }
+                nextError = TestError()
+                try dbWriter.write {
+                    try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                }
+                
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(errorCount, 1)
             }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(errorCount, 1)
         }
         
         try test(makeDatabaseQueue())
@@ -145,7 +143,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testCustomQueueStartImmediately() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -157,23 +155,23 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             queue.setSpecific(key: key, value: ())
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
-            observation.extent = .databaseLifetime
-            observation.scheduling = .onQueue(queue, startImmediately: true)
+            observation.scheduling = .async(onQueue: queue, startImmediately: true)
             
-            _ = try observation.start(in: dbWriter) { count in
+            let observer = try observation.start(in: dbWriter) { count in
                 XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
                 counts.append(count)
                 notificationExpectation.fulfill()
             }
-            
-            try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+            try withExtendedLifetime(observer) {
+                try dbWriter.write {
+                    try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                }
+                
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(counts, [0, 1])
             }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(counts, [0, 1])
         }
         
         try test(makeDatabaseQueue())
@@ -183,7 +181,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testCustomQueueDontStartImmediately() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -195,23 +193,23 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             queue.setSpecific(key: key, value: ())
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
-            observation.extent = .databaseLifetime
-            observation.scheduling = .onQueue(queue, startImmediately: false)
+            observation.scheduling = .async(onQueue: queue, startImmediately: false)
             
-            _ = try observation.start(in: dbWriter) { count in
+            let observer = try observation.start(in: dbWriter) { count in
                 XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
                 counts.append(count)
                 notificationExpectation.fulfill()
             }
-            
-            try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+            try withExtendedLifetime(observer) {
+                try dbWriter.write {
+                    try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                }
+                
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(counts, [1])
             }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(counts, [1])
         }
         
         try test(makeDatabaseQueue())
@@ -221,7 +219,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testCustomQueueError() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var errorCount = 0
             let notificationExpectation = expectation(description: "notification")
@@ -237,10 +235,9 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                 fetch: { _ in throw TestError() },
                 value: { $0 })
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
-            observation.extent = .databaseLifetime
-            observation.scheduling = .onQueue(queue, startImmediately: false)
+            observation.scheduling = .async(onQueue: queue, startImmediately: false)
             
-            _ = try observation.start(
+            let observer = try observation.start(
                 in: dbWriter,
                 onError: { error in
                     XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
@@ -248,13 +245,14 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                     notificationExpectation.fulfill()
             },
                 onChange: { _ in fatalError() })
-            
-            try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+            try withExtendedLifetime(observer) {
+                try dbWriter.write {
+                    try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                }
+                
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(errorCount, 1)
             }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(errorCount, 1)
         }
         
         try test(makeDatabaseQueue())
@@ -264,7 +262,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testUnsafeStartImmediatelyFromMainQueue() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -275,12 +273,11 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             DispatchQueue.main.setSpecific(key: key, value: ())
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
-            observation.extent = .databaseLifetime
             observation.scheduling = .unsafe(startImmediately: true)
             
-            _ = try observation.start(in: dbWriter) { count in
+            let observer = try observation.start(in: dbWriter) { count in
                 if counts.isEmpty {
                     // require main queue on first element
                     XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
@@ -288,13 +285,14 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                 counts.append(count)
                 notificationExpectation.fulfill()
             }
-            
-            try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+            try withExtendedLifetime(observer) {
+                try dbWriter.write {
+                    try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                }
+                
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(counts, [0, 1])
             }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(counts, [0, 1])
         }
         
         try test(makeDatabaseQueue())
@@ -304,7 +302,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testUnsafeStartImmediatelyFromCustomQueue() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -316,13 +314,12 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             queue.setSpecific(key: key, value: ())
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
-            observation.extent = .databaseLifetime
             observation.scheduling = .unsafe(startImmediately: true)
-            
+            var observer: TransactionObserver?
             queue.async {
-                _ = try! observation.start(in: dbWriter) { count in
+                observer = try! observation.start(in: dbWriter) { count in
                     if counts.isEmpty {
                         // require custom queue on first notification
                         XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
@@ -330,14 +327,15 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                     counts.append(count)
                     notificationExpectation.fulfill()
                 }
-                
                 try! dbWriter.write {
-                    try $0.execute("INSERT INTO t DEFAULT VALUES")
+                    try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
                 }
             }
             
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(counts, [0, 1])
+            withExtendedLifetime(observer) {
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(counts, [0, 1])
+            }
         }
         
         try test(makeDatabaseQueue())
@@ -347,7 +345,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testUnsafeDontStartImmediately() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
@@ -355,22 +353,22 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 1
             
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, "SELECT COUNT(*) FROM t")!
+                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
-            observation.extent = .databaseLifetime
             observation.scheduling = .unsafe(startImmediately: false)
             
-            _ = try observation.start(in: dbWriter) { count in
+            let observer = try observation.start(in: dbWriter) { count in
                 counts.append(count)
                 notificationExpectation.fulfill()
             }
-            
-            try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+            try withExtendedLifetime(observer) {
+                try dbWriter.write {
+                    try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                }
+                
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(counts, [1])
             }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(counts, [1])
         }
         
         try test(makeDatabaseQueue())
@@ -380,7 +378,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
     func testUnsafeError() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute("CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             var errorCount = 0
             let notificationExpectation = expectation(description: "notification")
@@ -392,23 +390,23 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                 fetch: { _ in throw TestError() },
                 value: { $0 })
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
-            observation.extent = .databaseLifetime
             observation.scheduling = .unsafe(startImmediately: false)
             
-            _ = try observation.start(
+            let observer = try observation.start(
                 in: dbWriter,
                 onError: { error in
                     errorCount += 1
                     notificationExpectation.fulfill()
             },
                 onChange: { _ in fatalError() })
-            
-            try dbWriter.write {
-                try $0.execute("INSERT INTO t DEFAULT VALUES")
+            try withExtendedLifetime(observer) {
+                try dbWriter.write {
+                    try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                }
+                
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(errorCount, 1)
             }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(errorCount, 1)
         }
         
         try test(makeDatabaseQueue())

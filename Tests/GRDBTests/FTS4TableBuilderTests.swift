@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -26,8 +24,8 @@ class FTS4TableBuilderTests: GRDBTestCase {
             try db.create(virtualTable: "documents", using: FTS4())
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts4")
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["abc"])
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["abc"])
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
         }
     }
 
@@ -37,8 +35,8 @@ class FTS4TableBuilderTests: GRDBTestCase {
             try db.create(virtualTable: "documents", ifNotExists: true, using: FTS4())
             assertDidExecute(sql: "CREATE VIRTUAL TABLE IF NOT EXISTS \"documents\" USING fts4")
             
-            try db.execute("INSERT INTO documents VALUES (?)", arguments: ["abc"])
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["abc"])
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"])!, 1)
         }
     }
 
@@ -78,7 +76,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
         }
     }
 
-    func testUnicode61TokenizerRemoveDiacritics() throws {
+    func testUnicode61TokenizerDiacriticsKeep() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
             guard #available(iOS 8.2, OSX 10.10, *) else {
                 return
@@ -88,11 +86,23 @@ class FTS4TableBuilderTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS4()) { t in
-                t.tokenizer = .unicode61(removeDiacritics: false)
+                t.tokenizer = .unicode61(diacritics: .keep)
             }
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=unicode61 \"remove_diacritics=0\")")
         }
     }
+    
+    #if GRDBCUSTOMSQLITE
+    func testUnicode61TokenizerDiacriticsRemove() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS4()) { t in
+                t.tokenizer = .unicode61(diacritics: .remove)
+            }
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts4(tokenize=unicode61 \"remove_diacritics=2\")")
+        }
+    }
+    #endif
 
     func testUnicode61TokenizerSeparators() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
@@ -136,12 +146,12 @@ class FTS4TableBuilderTests: GRDBTestCase {
             }
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"books\" USING fts4(author, title, body)")
             
-            try db.execute("INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Melville"])!, 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["title:Melville"])!, 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE title MATCH ?", arguments: ["Melville"])!, 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["author:Melville"])!, 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE author MATCH ?", arguments: ["Melville"])!, 1)
+            try db.execute(sql: "INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Melville"])!, 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["title:Melville"])!, 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE title MATCH ?", arguments: ["Melville"])!, 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["author:Melville"])!, 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE author MATCH ?", arguments: ["Melville"])!, 1)
         }
     }
 
@@ -161,17 +171,17 @@ class FTS4TableBuilderTests: GRDBTestCase {
             }
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"books\" USING fts4(author, notindexed=author, title, body, notindexed=body)")
             
-            try db.execute("INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Dick"])!, 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["title:Dick"])!, 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE title MATCH ?", arguments: ["Dick"])!, 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["author:Dick"])!, 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE author MATCH ?", arguments: ["Dick"])!, 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Melville"])!, 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["title:Melville"])!, 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE title MATCH ?", arguments: ["Melville"])!, 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["author:Melville"])!, 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM books WHERE author MATCH ?", arguments: ["Melville"])!, 0)
+            try db.execute(sql: "INSERT INTO books VALUES (?, ?, ?)", arguments: ["Melville", "Moby Dick", "Call me Ishmael."])
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Dick"])!, 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["title:Dick"])!, 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE title MATCH ?", arguments: ["Dick"])!, 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["author:Dick"])!, 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE author MATCH ?", arguments: ["Dick"])!, 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["Melville"])!, 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["title:Melville"])!, 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE title MATCH ?", arguments: ["Melville"])!, 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: ["author:Melville"])!, 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE author MATCH ?", arguments: ["Melville"])!, 0)
         }
     }
 
@@ -189,9 +199,9 @@ class FTS4TableBuilderTests: GRDBTestCase {
             }
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts4(content, languageid=\"lid\", content=\"\", compress=\"zip\", uncompress=\"unzip\", matchinfo=\"fts3\", prefix=\"2,4\")")
             
-            try db.execute("INSERT INTO documents (docid, content, lid) VALUES (?, ?, ?)", arguments: [1, "abc", 0])
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ? AND lid=0", arguments: ["abc"])!, 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM documents WHERE documents MATCH ? AND lid=1", arguments: ["abc"])!, 0)
+            try db.execute(sql: "INSERT INTO documents (docid, content, lid) VALUES (?, ?, ?)", arguments: [1, "abc", 0])
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ? AND lid=0", arguments: ["abc"])!, 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ? AND lid=1", arguments: ["abc"])!, 0)
         }
     }
 
@@ -202,30 +212,30 @@ class FTS4TableBuilderTests: GRDBTestCase {
                 t.column("id", .integer).primaryKey()
                 t.column("content", .text)
             }
-            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.execute(sql: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
             try db.create(virtualTable: "ft_documents", using: FTS4()) { t in
                 t.synchronize(withTable: "documents")
                 t.column("content")
             }
             
             // Prepopulated
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 0)
             
             // Synchronized on update
-            try db.execute("UPDATE documents SET content = ?", arguments: ["bar"])
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
+            try db.execute(sql: "UPDATE documents SET content = ?", arguments: ["bar"])
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
             
             // Synchronized on insert
-            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 1)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
+            try db.execute(sql: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
             
             // Synchronized on delete
-            try db.execute("DELETE FROM documents WHERE content = ?", arguments: ["foo"])
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 0)
-            XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
+            try db.execute(sql: "DELETE FROM documents WHERE content = ?", arguments: ["foo"])
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["foo"])!, 0)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM ft_documents WHERE ft_documents MATCH ?", arguments: ["bar"])!, 1)
         }
     }
 
@@ -236,7 +246,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
                 t.column("id", .integer).primaryKey()
                 t.column("content", .text)
             }
-            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.execute(sql: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
             try db.create(virtualTable: "ft_documents", using: FTS4()) { t in
                 t.synchronize(withTable: "documents")
                 t.column("content")
@@ -246,9 +256,9 @@ class FTS4TableBuilderTests: GRDBTestCase {
             try db.dropFTS4SynchronizationTriggers(forTable: "ft_documents")
             
             // It is possible to modify the content table
-            try db.execute("UPDATE documents SET content = ?", arguments: ["bar"])
-            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
-            try db.execute("DELETE FROM documents WHERE content = ?", arguments: ["foo"])
+            try db.execute(sql: "UPDATE documents SET content = ?", arguments: ["bar"])
+            try db.execute(sql: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.execute(sql: "DELETE FROM documents WHERE content = ?", arguments: ["foo"])
             
             // It is possible to recreate the FT table
             try db.create(virtualTable: "ft_documents", using: FTS4()) { t in
@@ -265,7 +275,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
                 t.column("id", .integer).primaryKey()
                 t.column("content", .text)
             }
-            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.execute(sql: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
             try db.create(virtualTable: "ft_documents", using: FTS4()) { t in
                 t.synchronize(withTable: "documents")
                 t.column("content")
@@ -276,9 +286,9 @@ class FTS4TableBuilderTests: GRDBTestCase {
             try db.dropFTS4SynchronizationTriggers(forTable: "ft_documents")
             
             // It is possible to modify the content table
-            try db.execute("UPDATE documents SET content = ?", arguments: ["bar"])
-            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
-            try db.execute("DELETE FROM documents WHERE content = ?", arguments: ["foo"])
+            try db.execute(sql: "UPDATE documents SET content = ?", arguments: ["bar"])
+            try db.execute(sql: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            try db.execute(sql: "DELETE FROM documents WHERE content = ?", arguments: ["foo"])
             
             // It is possible to recreate the FT table
             try db.create(virtualTable: "ft_documents", using: FTS4()) { t in
@@ -311,12 +321,12 @@ class FTS4TableBuilderTests: GRDBTestCase {
             }
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts4(content, compress=\"zipit\", uncompress=\"unzipit\")")
             
-            try db.execute("INSERT INTO documents (content) VALUES (?)", arguments: ["abc"])
+            try db.execute(sql: "INSERT INTO documents (content) VALUES (?)", arguments: ["abc"])
             XCTAssertTrue(compressCalled)
         }
         
         try dbPool.read { db in
-            _ = try Row.fetchOne(db, "SELECT * FROM documents")
+            _ = try Row.fetchOne(db, sql: "SELECT * FROM documents")
             XCTAssertTrue(uncompressCalled)
         }
     }

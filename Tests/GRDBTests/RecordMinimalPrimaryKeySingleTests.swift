@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -18,8 +16,7 @@ class MinimalSingle: Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute(
-            "CREATE TABLE minimalSingles (UUID TEXT NOT NULL PRIMARY KEY)")
+        try db.execute(sql: "CREATE TABLE minimalSingles (UUID TEXT NOT NULL PRIMARY KEY)")
     }
     
     // Record
@@ -70,7 +67,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             record.UUID = "theUUID"
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -99,7 +96,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.delete(db)
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -115,8 +112,10 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "minimalSingles")
+                XCTAssertEqual(key, ["UUID": "theUUID".databaseValue])
             }
         }
     }
@@ -129,7 +128,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.insert(db)
             try record.update(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -144,8 +143,10 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "minimalSingles")
+                XCTAssertEqual(key, ["UUID": "theUUID".databaseValue])
             }
         }
     }
@@ -174,7 +175,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             record.UUID = "theUUID"
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -187,7 +188,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.insert(db)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -201,7 +202,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             try record.delete(db)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -228,7 +229,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             let deleted = try record.delete(db)
             XCTAssertTrue(deleted)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalSingles WHERE UUID = ?", arguments: [record.UUID])
             XCTAssertTrue(row == nil)
         }
     }
@@ -318,6 +319,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             
             let fetchedRecord = try MinimalSingle.fetchOne(db, key: ["UUID": record.UUID])!
             XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE (\"UUID\" = '\(record.UUID!)')")
         }
     }
 
@@ -393,6 +395,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             
             let fetchedRecord = try MinimalSingle.filter(key: ["UUID": record.UUID]).fetchOne(db)!
             XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE (\"UUID\" = '\(record.UUID!)')")
         }
     }
     
@@ -478,6 +481,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             do {
                 let fetchedRecord = try MinimalSingle.fetchOne(db, key: record.UUID)!
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE (\"UUID\" = '\(record.UUID!)')")
             }
         }
     }
@@ -552,6 +556,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             do {
                 let fetchedRecord = try MinimalSingle.filter(key: record.UUID).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE (\"UUID\" = '\(record.UUID!)')")
             }
         }
     }

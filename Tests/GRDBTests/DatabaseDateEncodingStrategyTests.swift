@@ -1,8 +1,6 @@
 import XCTest
 import Foundation
-#if GRDBCIPHER
-    @testable import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     @testable import GRDBCustomSQLite
 #else
     @testable import GRDB
@@ -170,7 +168,6 @@ extension DatabaseDateEncodingStrategyTests {
 
 // MARK: - iso8601(ISO8601DateFormatter)
 
-@available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
 extension DatabaseDateEncodingStrategyTests {
     func testIso8601() {
         // check ISO8601DateFormatter availabiliity

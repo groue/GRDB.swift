@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -18,8 +16,7 @@ class MinimalRowID : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute(
-            "CREATE TABLE minimalRowIDs (id INTEGER PRIMARY KEY)")
+        try db.execute(sql: "CREATE TABLE minimalRowIDs (id INTEGER PRIMARY KEY)")
     }
     
     // Record
@@ -61,7 +58,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try record.insert(db)
             XCTAssertTrue(record.id != nil)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -73,7 +70,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             record.id = 123456
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -100,7 +97,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try record.delete(db)
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -116,8 +113,10 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "minimalRowIDs")
+                XCTAssertEqual(key, ["id": record.id.databaseValue])
             }
         }
     }
@@ -129,7 +128,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try record.insert(db)
             try record.update(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -143,8 +142,10 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "minimalRowIDs")
+                XCTAssertEqual(key, ["id": record.id.databaseValue])
             }
         }
     }
@@ -160,7 +161,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try record.save(db)
             XCTAssertTrue(record.id != nil)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -172,7 +173,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             record.id = 123456
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -184,7 +185,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try record.insert(db)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -197,7 +198,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             try record.delete(db)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -223,7 +224,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             let deleted = try record.delete(db)
             XCTAssertTrue(deleted)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM minimalRowIDs WHERE id = ?", arguments: [record.id])
             XCTAssertTrue(row == nil)
         }
     }
@@ -307,6 +308,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             
             let fetchedRecord = try MinimalRowID.fetchOne(db, key: ["id": record.id])!
             XCTAssertTrue(fetchedRecord.id == record.id)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalRowIDs\" WHERE (\"id\" = \(record.id!))")
         }
     }
 
@@ -377,6 +379,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             
             let fetchedRecord = try MinimalRowID.filter(key: ["id": record.id]).fetchOne(db)!
             XCTAssertTrue(fetchedRecord.id == record.id)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalRowIDs\" WHERE (\"id\" = \(record.id!))")
         }
     }
     
@@ -457,6 +460,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             do {
                 let fetchedRecord = try MinimalRowID.fetchOne(db, key: record.id)!
                 XCTAssertTrue(fetchedRecord.id == record.id)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalRowIDs\" WHERE (\"id\" = \(record.id!))")
             }
         }
     }
@@ -526,6 +530,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             do {
                 let fetchedRecord = try MinimalRowID.filter(key: record.id).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.id == record.id)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalRowIDs\" WHERE (\"id\" = \(record.id!))")
             }
         }
     }

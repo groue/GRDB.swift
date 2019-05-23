@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -20,7 +18,7 @@ class BadlyMangledStuff : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute("CREATE TABLE stuffs (id INTEGER PRIMARY KEY, name TEXT)")
+        try db.execute(sql: "CREATE TABLE stuffs (id INTEGER PRIMARY KEY, name TEXT)")
     }
     
     // Record
@@ -69,7 +67,7 @@ class RecordWithColumnNameManglingTests: GRDBTestCase {
                 XCTAssertFalse(record.hasDatabaseChanges)
             }
             do {
-                let record = try BadlyMangledStuff.fetchOne(db, "SELECT id AS mangled_id, name AS mangled_name FROM stuffs")!
+                let record = try BadlyMangledStuff.fetchOne(db, sql: "SELECT id AS mangled_id, name AS mangled_name FROM stuffs")!
                 // OK we could extract values.
                 XCTAssertEqual(record.id, 1)
                 XCTAssertEqual(record.name, "foo")

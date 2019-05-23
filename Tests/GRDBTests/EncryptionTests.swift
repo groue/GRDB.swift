@@ -1,6 +1,6 @@
 #if SQLITE_HAS_CODEC
 import XCTest
-import GRDBCipher
+import GRDB
 
 class EncryptionTests: GRDBTestCase {
     
@@ -9,8 +9,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -18,7 +18,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
             }
         }
     }
@@ -28,8 +28,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -41,8 +41,6 @@ class EncryptionTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
-                XCTAssertTrue(error.sql == nil)
-                XCTAssertEqual(error.description, "SQLite error 26: file is not a database")
             }
         }
     }
@@ -52,8 +50,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -65,8 +63,6 @@ class EncryptionTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
-                XCTAssertTrue(error.sql == nil)
-                XCTAssertEqual(error.description, "SQLite error 26: file is not a database")
             }
         }
     }
@@ -76,8 +72,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -86,10 +82,10 @@ class EncryptionTests: GRDBTestCase {
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.change(passphrase: "newSecret")
             try dbQueue.inDatabase { db in
-                try db.execute("INSERT INTO data (value) VALUES (2)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
             }
             try dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
             }
         }
         
@@ -97,7 +93,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "newSecret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
             }
         }
     }
@@ -107,8 +103,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -116,7 +112,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.read { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
             }
         }
     }
@@ -126,8 +122,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -139,8 +135,6 @@ class EncryptionTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
-                XCTAssertTrue(error.sql == nil)
-                XCTAssertEqual(error.description, "SQLite error 26: file is not a database")
             }
         }
     }
@@ -150,8 +144,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -163,8 +157,6 @@ class EncryptionTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
-                XCTAssertTrue(error.sql == nil)
-                XCTAssertEqual(error.description, "SQLite error 26: file is not a database")
             }
         }
     }
@@ -174,8 +166,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -184,8 +176,8 @@ class EncryptionTests: GRDBTestCase {
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.change(passphrase: "newSecret")
             try dbPool.write { db in
-                try db.execute("INSERT INTO data (value) VALUES (2)")
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
+                try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
             }
         }
         
@@ -193,7 +185,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "newSecret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.read { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
             }
         }
     }
@@ -203,8 +195,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.write { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -212,7 +204,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.read { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
             }
         }
     }
@@ -222,8 +214,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.write { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -235,8 +227,6 @@ class EncryptionTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
-                XCTAssertTrue(error.sql == nil)
-                XCTAssertEqual(error.description, "SQLite error 26: file is not a database")
             }
         }
     }
@@ -246,8 +236,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.write { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -259,8 +249,6 @@ class EncryptionTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
-                XCTAssertTrue(error.sql == nil)
-                XCTAssertEqual(error.description, "SQLite error 26: file is not a database")
             }
         }
     }
@@ -271,8 +259,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.write { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -281,8 +269,8 @@ class EncryptionTests: GRDBTestCase {
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.change(passphrase: "newSecret")
             try dbPool.write { db in
-                try db.execute("INSERT INTO data (value) VALUES (2)")
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
+                try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
             }
         }
         
@@ -290,7 +278,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "newSecret"
             let dbPool = try makeDatabasePool(filename: "test.sqlite")
             try dbPool.read { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 2)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
             }
         }
     }
@@ -300,9 +288,9 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = nil
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("PRAGMA key = 'secret'")
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "PRAGMA key = 'secret'")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -310,7 +298,7 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
             }
         }
     }
@@ -320,9 +308,9 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = nil
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                try db.execute("PRAGMA key = 'secret'")
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "PRAGMA key = 'secret'")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
         
@@ -334,8 +322,6 @@ class EncryptionTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
-                XCTAssertTrue(error.sql == nil)
-                XCTAssertEqual(error.description, "SQLite error 26: file is not a database")
             }
         }
     }
@@ -343,26 +329,31 @@ class EncryptionTests: GRDBTestCase {
     func testCipherPageSize() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            dbConfiguration.cipherPageSize = 8192
+            dbConfiguration.prepareDatabase = { db in
+                try db.execute(sql: "PRAGMA cipher_page_size = 8192")
+            }
             
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase({ db in
-                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA cipher_page_size")!, 8192)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "PRAGMA cipher_page_size")!, 8192)
             })
         }
         
         do {
-            dbConfiguration.cipherPageSize = 4096
+            dbConfiguration.passphrase = "secret"
+            dbConfiguration.prepareDatabase = { db in
+                try db.execute(sql: "PRAGMA cipher_page_size = 4096")
+            }
             
             let dbPool = try makeDatabasePool(filename: "testpool.sqlite")
             try dbPool.write({ db in
-                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA cipher_page_size")!, 4096)
-                try db.execute("CREATE TABLE data(value INTEGER)")
-                try db.execute("INSERT INTO data(value) VALUES(1)")
+                XCTAssertEqual(try Int.fetchOne(db, sql: "PRAGMA cipher_page_size")!, 4096)
+                try db.execute(sql: "CREATE TABLE data(value INTEGER)")
+                try db.execute(sql: "INSERT INTO data(value) VALUES(1)")
             })
             try dbPool.read({ db in
-                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA cipher_page_size")!, 4096)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT value FROM data"), 1)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "PRAGMA cipher_page_size")!, 4096)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT value FROM data"), 1)
             })
             
         }
@@ -371,27 +362,73 @@ class EncryptionTests: GRDBTestCase {
     func testCipherKDFIterations() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            dbConfiguration.kdfIterations = 128000
+            dbConfiguration.prepareDatabase = { db in
+                try db.execute(sql: "PRAGMA kdf_iter = 128000")
+            }
             
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite")
             try dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA kdf_iter"), 128000)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "PRAGMA kdf_iter"), 128000)
             }
         }
 
         do {
-            dbConfiguration.kdfIterations = 128000
-            
+            dbConfiguration.passphrase = "secret"
+            dbConfiguration.prepareDatabase = { db in
+                try db.execute(sql: "PRAGMA kdf_iter = 128000")
+            }
+
             let dbPool = try makeDatabasePool(filename: "testpool.sqlite")
             try dbPool.write { db in
-                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA kdf_iter"), 128000)
-                try db.execute("CREATE TABLE data(value INTEGER)")
-                try db.execute("INSERT INTO data(value) VALUES(1)")
+                XCTAssertEqual(try Int.fetchOne(db, sql: "PRAGMA kdf_iter"), 128000)
+                try db.execute(sql: "CREATE TABLE data(value INTEGER)")
+                try db.execute(sql: "INSERT INTO data(value) VALUES(1)")
             }
             
             try dbPool.read { db in
-                XCTAssertEqual(try Int.fetchOne(db, "PRAGMA kdf_iter"), 128000)
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT value FROM data"), 1)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "PRAGMA kdf_iter"), 128000)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT value FROM data"), 1)
+            }
+        }
+    }
+
+    func testCipherWithMismatchedKDFIterations() throws {
+        do {
+            dbConfiguration.passphrase = "secret"
+            dbConfiguration.prepareDatabase = { db in
+                try db.execute(sql: "PRAGMA kdf_iter = 128000")
+            }
+
+            let dbPool = try makeDatabasePool(filename: "testpool.sqlite")
+            try dbPool.write { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "PRAGMA kdf_iter"), 128000)
+                try db.execute(sql: "CREATE TABLE data(value INTEGER)")
+                try db.execute(sql: "INSERT INTO data(value) VALUES(1)")
+            }
+
+            try dbPool.read { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "PRAGMA kdf_iter"), 128000)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT value FROM data"), 1)
+            }
+        }
+
+        do {
+            dbConfiguration.passphrase = "secret"
+            dbConfiguration.prepareDatabase = { db in
+                try db.execute(sql: "PRAGMA kdf_iter = 64000")
+            }
+
+            do {
+                let dbPool = try makeDatabasePool(filename: "testpool.sqlite")
+
+                try dbPool.read { db in
+                    XCTAssertEqual(try Int.fetchOne(db, sql: "PRAGMA kdf_iter"), 64000)
+                    XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT value FROM data"), 1)
+                }
+                XCTFail("Expected error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
+                XCTAssertEqual(error.message!, "file is not a database")
             }
         }
     }
@@ -408,8 +445,8 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = nil
             let plainTextDBQueue = try makeDatabaseQueue(filename: "plaintext.sqlite")
             try plainTextDBQueue.inDatabase { db in
-                try db.execute("CREATE TABLE data (value INTEGER)")
-                try db.execute("INSERT INTO data (value) VALUES (1)")
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
             
             dbConfiguration.passphrase = "secret"
@@ -419,16 +456,14 @@ class EncryptionTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
-                XCTAssertTrue(error.sql == nil)
-                XCTAssertEqual(error.description, "SQLite error 26: file is not a database")
             }
             
             let encryptedDBQueue = try makeDatabaseQueue(filename: "encrypted.sqlite")
             
             try plainTextDBQueue.inDatabase { db in
-                try db.execute("ATTACH DATABASE ? AS encrypted KEY ?", arguments: [encryptedDBQueue.path, "secret"])
-                try db.execute("SELECT sqlcipher_export('encrypted')")
-                try db.execute("DETACH DATABASE encrypted")
+                try db.execute(sql: "ATTACH DATABASE ? AS encrypted KEY ?", arguments: [encryptedDBQueue.path, "secret"])
+                try db.execute(sql: "SELECT sqlcipher_export('encrypted')")
+                try db.execute(sql: "DETACH DATABASE encrypted")
             }
         }
         
@@ -436,7 +471,37 @@ class EncryptionTests: GRDBTestCase {
             dbConfiguration.passphrase = "secret"
             let dbQueue = try makeDatabaseQueue(filename: "encrypted.sqlite")
             try dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, "SELECT COUNT(*) FROM data")!, 1)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
+            }
+        }
+    }
+    
+    func testSQLCipher3Compatibility() throws {
+        guard let cipherMajorVersion = try DatabaseQueue()
+            .read({ try String.fetchOne($0, sql: "PRAGMA cipher_version") })
+            .flatMap({ $0.split(separator: ".").first })
+            .flatMap({ Int($0 )})
+            else { XCTFail("Unknown SQLCipher version"); return }
+        
+        if cipherMajorVersion >= 4 {
+            let testBundle = Bundle(for: type(of: self))
+            let path = testBundle.url(forResource: "db", withExtension: "SQLCipher3")!.path
+            var configuration = Configuration()
+            configuration.passphrase = "secret"
+            configuration.prepareDatabase = { db in
+                try db.execute(sql: "PRAGMA cipher_compatibility = 3")
+            }
+            
+            do {
+                let dbQueue = try DatabaseQueue(path: path, configuration: configuration)
+                let success = try dbQueue.read { try String.fetchOne($0, sql: "SELECT a FROM t") }
+                XCTAssertEqual(success, "success")
+            }
+            
+            do {
+                let dbPool = try DatabasePool(path: path, configuration: configuration)
+                let success = try dbPool.read { try String.fetchOne($0, sql: "SELECT a FROM t") }
+                XCTAssertEqual(success, "success")
             }
         }
     }

@@ -1,8 +1,6 @@
 import XCTest
 import Foundation
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -12,10 +10,10 @@ class FoundationUUIDTests: GRDBTestCase {
     private func assert(_ value: DatabaseValueConvertible?, isDecodedAs expectedUUID: UUID?) throws {
         try makeDatabaseQueue().read { db in
             if let expectedUUID = expectedUUID {
-                let decodedUUID = try UUID.fetchOne(db, "SELECT ?", arguments: [value])
+                let decodedUUID = try UUID.fetchOne(db, sql: "SELECT ?", arguments: [value])
                 XCTAssertEqual(decodedUUID, expectedUUID)
             } else if value == nil {
-                let decodedUUID = try Optional<UUID>.fetchAll(db, "SELECT NULL")[0]
+                let decodedUUID = try Optional<UUID>.fetchAll(db, sql: "SELECT NULL")[0]
                 XCTAssertNil(decodedUUID)
             }
         }

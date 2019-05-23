@@ -1,12 +1,12 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
-    #if SWIFT_PACKAGE
+    #if GRDBCIPHER
+        import SQLCipher
+    #elseif SWIFT_PACKAGE
         import CSQLite
-        #else
+    #else
         import SQLite3
     #endif
     import GRDB
@@ -32,23 +32,35 @@ class RowFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
-                let statement = try db.makeSelectStatement(sql)
-                try test(Row.fetchCursor(db, sql))
+                let statement = try db.makeSelectStatement(sql: sql)
+                try test(Row.fetchCursor(db, sql: sql))
                 try test(Row.fetchCursor(statement))
-                try test(Row.fetchCursor(db, SQLRequest<Void>(sql)))
-                try test(SQLRequest<Row>(sql).fetchCursor(db))
+                try test(Row.fetchCursor(db, SQLRequest<Void>(sql: sql)))
+                try test(SQLRequest<Row>(sql: sql).fetchCursor(db))
             }
             do {
                 let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, 'Barbara', 'Gourde'"
-                let statement = try db.makeSelectStatement(sql)
+                let statement = try db.makeSelectStatement(sql: sql)
                 let adapter = SuffixRowAdapter(fromIndex: 1)
-                try test(Row.fetchCursor(db, sql, adapter: adapter))
+                try test(Row.fetchCursor(db, sql: sql, adapter: adapter))
                 try test(Row.fetchCursor(statement, adapter: adapter))
-                try test(Row.fetchCursor(db, SQLRequest<Void>(sql, adapter: adapter)))
-                try test(SQLRequest<Row>(sql, adapter: adapter).fetchCursor(db))
+                try test(Row.fetchCursor(db, SQLRequest<Void>(sql: sql, adapter: adapter)))
+                try test(SQLRequest<Row>(sql: sql, adapter: adapter).fetchCursor(db))
             }
         }
     }
+    
+    #if swift(>=5.0)
+    func testFetchCursorWithInterpolation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request: SQLRequest<Row> = "SELECT \("O'Brien")"
+            let cursor = try request.fetchCursor(db)
+            let row = try cursor.next()!
+            XCTAssertEqual(row[0], "O'Brien")
+        }
+    }
+    #endif
     
     func testFetchCursorStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -68,27 +80,25 @@ class RowFetchTests: GRDBTestCase {
                 do {
                     _ = try cursor.next()
                     XCTFail()
-                } catch let error as DatabaseError {
-                    XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
-                    XCTAssertEqual(error.message, "\(customError)")
-                    XCTAssertEqual(error.sql!, sql)
-                    XCTAssertEqual(error.description, "SQLite error 21 with statement `\(sql)`: \(customError)")
+                } catch is DatabaseError {
+                    // Various SQLite and SQLCipher versions don't emit the same
+                    // error. What we care about is that there is an error.
                 }
             }
             do {
                 let sql = "SELECT throw(), NULL"
-                try test(Row.fetchCursor(db, sql), sql: sql)
-                try test(Row.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
-                try test(Row.fetchCursor(db, SQLRequest<Void>(sql)), sql: sql)
-                try test(SQLRequest<Row>(sql).fetchCursor(db), sql: sql)
+                try test(Row.fetchCursor(db, sql: sql), sql: sql)
+                try test(Row.fetchCursor(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Row.fetchCursor(db, SQLRequest<Void>(sql: sql)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql).fetchCursor(db), sql: sql)
             }
             do {
                 let sql = "SELECT 0, throw(), NULL"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
-                try test(Row.fetchCursor(db, sql, adapter: adapter), sql: sql)
-                try test(Row.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
-                try test(Row.fetchCursor(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest<Row>(sql, adapter: adapter).fetchCursor(db), sql: sql)
+                try test(Row.fetchCursor(db, sql: sql, adapter: adapter), sql: sql)
+                try test(Row.fetchCursor(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Row.fetchCursor(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql, adapter: adapter).fetchCursor(db), sql: sql)
             }
         }
     }
@@ -109,18 +119,18 @@ class RowFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT * FROM nonExistingTable"
-                try test(Row.fetchCursor(db, sql), sql: sql)
-                try test(Row.fetchCursor(db.makeSelectStatement(sql)), sql: sql)
-                try test(Row.fetchCursor(db, SQLRequest<Void>(sql)), sql: sql)
-                try test(SQLRequest<Row>(sql).fetchCursor(db), sql: sql)
+                try test(Row.fetchCursor(db, sql: sql), sql: sql)
+                try test(Row.fetchCursor(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Row.fetchCursor(db, SQLRequest<Void>(sql: sql)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql).fetchCursor(db), sql: sql)
             }
             do {
                 let sql = "SELECT * FROM nonExistingTable"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
-                try test(Row.fetchCursor(db, sql, adapter: adapter), sql: sql)
-                try test(Row.fetchCursor(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
-                try test(Row.fetchCursor(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest<Row>(sql, adapter: adapter).fetchCursor(db), sql: sql)
+                try test(Row.fetchCursor(db, sql: sql, adapter: adapter), sql: sql)
+                try test(Row.fetchCursor(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Row.fetchCursor(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql, adapter: adapter).fetchCursor(db), sql: sql)
             }
         }
     }
@@ -134,23 +144,34 @@ class RowFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
-                let statement = try db.makeSelectStatement(sql)
-                try test(Row.fetchAll(db, sql))
+                let statement = try db.makeSelectStatement(sql: sql)
+                try test(Row.fetchAll(db, sql: sql))
                 try test(Row.fetchAll(statement))
-                try test(Row.fetchAll(db, SQLRequest<Void>(sql)))
-                try test(SQLRequest<Row>(sql).fetchAll(db))
+                try test(Row.fetchAll(db, SQLRequest<Void>(sql: sql)))
+                try test(SQLRequest<Row>(sql: sql).fetchAll(db))
             }
             do {
                 let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, 'Barbara', 'Gourde'"
-                let statement = try db.makeSelectStatement(sql)
+                let statement = try db.makeSelectStatement(sql: sql)
                 let adapter = SuffixRowAdapter(fromIndex: 1)
-                try test(Row.fetchAll(db, sql, adapter: adapter))
+                try test(Row.fetchAll(db, sql: sql, adapter: adapter))
                 try test(Row.fetchAll(statement, adapter: adapter))
-                try test(Row.fetchAll(db, SQLRequest<Void>(sql, adapter: adapter)))
-                try test(SQLRequest<Row>(sql, adapter: adapter).fetchAll(db))
+                try test(Row.fetchAll(db, SQLRequest<Void>(sql: sql, adapter: adapter)))
+                try test(SQLRequest<Row>(sql: sql, adapter: adapter).fetchAll(db))
             }
         }
     }
+    
+    #if swift(>=5.0)
+    func testFetchAllWithInterpolation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request: SQLRequest<Row> = "SELECT \("O'Brien")"
+            let rows = try request.fetchAll(db)
+            XCTAssertEqual(rows[0][0], "O'Brien")
+        }
+    }
+    #endif
 
     func testFetchAllStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -170,18 +191,18 @@ class RowFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT throw()"
-                try test(Row.fetchAll(db, sql), sql: sql)
-                try test(Row.fetchAll(db.makeSelectStatement(sql)), sql: sql)
-                try test(Row.fetchAll(db, SQLRequest<Void>(sql)), sql: sql)
-                try test(SQLRequest<Row>(sql).fetchAll(db), sql: sql)
+                try test(Row.fetchAll(db, sql: sql), sql: sql)
+                try test(Row.fetchAll(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Row.fetchAll(db, SQLRequest<Void>(sql: sql)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql).fetchAll(db), sql: sql)
             }
             do {
                 let sql = "SELECT 0, throw()"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
-                try test(Row.fetchAll(db, sql, adapter: adapter), sql: sql)
-                try test(Row.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
-                try test(Row.fetchAll(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest<Row>(sql, adapter: adapter).fetchAll(db), sql: sql)
+                try test(Row.fetchAll(db, sql: sql, adapter: adapter), sql: sql)
+                try test(Row.fetchAll(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Row.fetchAll(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql, adapter: adapter).fetchAll(db), sql: sql)
             }
         }
     }
@@ -202,18 +223,18 @@ class RowFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT * FROM nonExistingTable"
-                try test(Row.fetchAll(db, sql), sql: sql)
-                try test(Row.fetchAll(db.makeSelectStatement(sql)), sql: sql)
-                try test(Row.fetchAll(db, SQLRequest<Void>(sql)), sql: sql)
-                try test(SQLRequest<Row>(sql).fetchAll(db), sql: sql)
+                try test(Row.fetchAll(db, sql: sql), sql: sql)
+                try test(Row.fetchAll(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Row.fetchAll(db, SQLRequest<Void>(sql: sql)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql).fetchAll(db), sql: sql)
             }
             do {
                 let sql = "SELECT * FROM nonExistingTable"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
-                try test(Row.fetchAll(db, sql, adapter: adapter), sql: sql)
-                try test(Row.fetchAll(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
-                try test(Row.fetchAll(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest<Row>(sql, adapter: adapter).fetchAll(db), sql: sql)
+                try test(Row.fetchAll(db, sql: sql, adapter: adapter), sql: sql)
+                try test(Row.fetchAll(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Row.fetchAll(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql, adapter: adapter).fetchAll(db), sql: sql)
             }
         }
     }
@@ -227,20 +248,20 @@ class RowFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT 1 WHERE 0"
-                    let statement = try db.makeSelectStatement(sql)
-                    try test(Row.fetchOne(db, sql))
+                    let statement = try db.makeSelectStatement(sql: sql)
+                    try test(Row.fetchOne(db, sql: sql))
                     try test(Row.fetchOne(statement))
-                    try test(Row.fetchOne(db, SQLRequest<Void>(sql)))
-                    try test(SQLRequest<Row>(sql).fetchOne(db))
+                    try test(Row.fetchOne(db, SQLRequest<Void>(sql: sql)))
+                    try test(SQLRequest<Row>(sql: sql).fetchOne(db))
                 }
                 do {
                     let sql = "SELECT 0, 1 WHERE 0"
-                    let statement = try db.makeSelectStatement(sql)
+                    let statement = try db.makeSelectStatement(sql: sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
-                    try test(Row.fetchOne(db, sql, adapter: adapter))
+                    try test(Row.fetchOne(db, sql: sql, adapter: adapter))
                     try test(Row.fetchOne(statement, adapter: adapter))
-                    try test(Row.fetchOne(db, SQLRequest<Void>(sql, adapter: adapter)))
-                    try test(SQLRequest<Row>(sql, adapter: adapter).fetchOne(db))
+                    try test(Row.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)))
+                    try test(SQLRequest<Row>(sql: sql, adapter: adapter).fetchOne(db))
                 }
             }
             do {
@@ -250,24 +271,35 @@ class RowFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName"
-                    let statement = try db.makeSelectStatement(sql)
-                    try test(Row.fetchOne(db, sql))
+                    let statement = try db.makeSelectStatement(sql: sql)
+                    try test(Row.fetchOne(db, sql: sql))
                     try test(Row.fetchOne(statement))
-                    try test(Row.fetchOne(db, SQLRequest<Void>(sql)))
-                    try test(SQLRequest<Row>(sql).fetchOne(db))
+                    try test(Row.fetchOne(db, SQLRequest<Void>(sql: sql)))
+                    try test(SQLRequest<Row>(sql: sql).fetchOne(db))
                 }
                 do {
                     let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName"
-                    let statement = try db.makeSelectStatement(sql)
+                    let statement = try db.makeSelectStatement(sql: sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
-                    try test(Row.fetchOne(db, sql, adapter: adapter))
+                    try test(Row.fetchOne(db, sql: sql, adapter: adapter))
                     try test(Row.fetchOne(statement, adapter: adapter))
-                    try test(Row.fetchOne(db, SQLRequest<Void>(sql, adapter: adapter)))
-                    try test(SQLRequest<Row>(sql, adapter: adapter).fetchOne(db))
+                    try test(Row.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)))
+                    try test(SQLRequest<Row>(sql: sql, adapter: adapter).fetchOne(db))
                 }
             }
         }
     }
+    
+    #if swift(>=5.0)
+    func testFetchOneWithInterpolation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request: SQLRequest<Row> = "SELECT \("O'Brien")"
+            let row = try request.fetchOne(db)
+            XCTAssertEqual(row![0], "O'Brien")
+        }
+    }
+    #endif
 
     func testFetchOneStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -287,18 +319,18 @@ class RowFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT throw()"
-                try test(Row.fetchOne(db, sql), sql: sql)
-                try test(Row.fetchOne(db.makeSelectStatement(sql)), sql: sql)
-                try test(Row.fetchOne(db, SQLRequest<Void>(sql)), sql: sql)
-                try test(SQLRequest<Row>(sql).fetchOne(db), sql: sql)
+                try test(Row.fetchOne(db, sql: sql), sql: sql)
+                try test(Row.fetchOne(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Row.fetchOne(db, SQLRequest<Void>(sql: sql)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql).fetchOne(db), sql: sql)
             }
             do {
                 let sql = "SELECT 0, throw()"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
-                try test(Row.fetchOne(db, sql, adapter: adapter), sql: sql)
-                try test(Row.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
-                try test(Row.fetchOne(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest<Row>(sql, adapter: adapter).fetchOne(db), sql: sql)
+                try test(Row.fetchOne(db, sql: sql, adapter: adapter), sql: sql)
+                try test(Row.fetchOne(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Row.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql, adapter: adapter).fetchOne(db), sql: sql)
             }
         }
     }
@@ -319,18 +351,18 @@ class RowFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT * FROM nonExistingTable"
-                try test(Row.fetchOne(db, sql), sql: sql)
-                try test(Row.fetchOne(db.makeSelectStatement(sql)), sql: sql)
-                try test(Row.fetchOne(db, SQLRequest<Void>(sql)), sql: sql)
-                try test(SQLRequest<Row>(sql).fetchOne(db), sql: sql)
+                try test(Row.fetchOne(db, sql: sql), sql: sql)
+                try test(Row.fetchOne(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Row.fetchOne(db, SQLRequest<Void>(sql: sql)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql).fetchOne(db), sql: sql)
             }
             do {
                 let sql = "SELECT * FROM nonExistingTable"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
-                try test(Row.fetchOne(db, sql, adapter: adapter), sql: sql)
-                try test(Row.fetchOne(db.makeSelectStatement(sql), adapter: adapter), sql: sql)
-                try test(Row.fetchOne(db, SQLRequest<Void>(sql, adapter: adapter)), sql: sql)
-                try test(SQLRequest<Row>(sql, adapter: adapter).fetchOne(db), sql: sql)
+                try test(Row.fetchOne(db, sql: sql, adapter: adapter), sql: sql)
+                try test(Row.fetchOne(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Row.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql, adapter: adapter).fetchOne(db), sql: sql)
             }
         }
     }

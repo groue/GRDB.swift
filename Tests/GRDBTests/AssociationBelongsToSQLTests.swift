@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -11,7 +9,7 @@ import XCTest
 class AssociationBelongsToSQLTests: GRDBTestCase {
     
     func testSingleColumnNoForeignKeyNoPrimaryKey() throws {
-        struct Child : TableRecord, MutablePersistableRecord {
+        struct Child : TableRecord, EncodableRecord {
             static let databaseTableName = "children"
             func encode(to container: inout PersistenceContainer) {
                 container["parentId"] = 1
@@ -95,7 +93,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
     }
     
     func testSingleColumnNoForeignKey() throws {
-        struct Child : TableRecord, MutablePersistableRecord {
+        struct Child : TableRecord, EncodableRecord {
             static let databaseTableName = "children"
             func encode(to container: inout PersistenceContainer) {
                 container["parentId"] = 1
@@ -179,7 +177,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
     }
     
     func testSingleColumnSingleForeignKey() throws {
-        struct Child : TableRecord, MutablePersistableRecord {
+        struct Child : TableRecord, EncodableRecord {
             static let databaseTableName = "children"
             func encode(to container: inout PersistenceContainer) {
                 container["parentId"] = 1
@@ -292,7 +290,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
     }
     
     func testSingleColumnSeveralForeignKeys() throws {
-        struct Child : TableRecord, MutablePersistableRecord {
+        struct Child : TableRecord, EncodableRecord {
             static let databaseTableName = "children"
             func encode(to container: inout PersistenceContainer) {
                 container["parent1Id"] = 1
@@ -436,7 +434,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
     }
     
     func testCompoundColumnNoForeignKeyNoPrimaryKey() throws {
-        struct Child : TableRecord, MutablePersistableRecord {
+        struct Child : TableRecord, EncodableRecord {
             static let databaseTableName = "children"
             func encode(to container: inout PersistenceContainer) {
                 container["parentA"] = 1
@@ -494,7 +492,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
     }
     
     func testCompoundColumnNoForeignKey() throws {
-        struct Child : TableRecord, MutablePersistableRecord {
+        struct Child : TableRecord, EncodableRecord {
             static let databaseTableName = "children"
             func encode(to container: inout PersistenceContainer) {
                 container["parentA"] = 1
@@ -582,7 +580,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
     }
     
     func testCompoundColumnSingleForeignKey() throws {
-        struct Child : TableRecord, MutablePersistableRecord {
+        struct Child : TableRecord, EncodableRecord {
             static let databaseTableName = "children"
             func encode(to container: inout PersistenceContainer) {
                 container["parentA"] = 1
@@ -700,7 +698,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
     }
     
     func testCompoundColumnSeveralForeignKeys() throws {
-        struct Child : TableRecord, MutablePersistableRecord {
+        struct Child : TableRecord, EncodableRecord {
             static let databaseTableName = "children"
             func encode(to container: inout PersistenceContainer) {
                 container["parent1A"] = 1

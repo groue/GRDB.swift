@@ -1,7 +1,5 @@
 import XCTest
-#if GRDBCIPHER
-    import GRDBCipher
-#elseif GRDBCUSTOMSQLITE
+#if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
     import GRDB
@@ -18,7 +16,7 @@ class Email : Record {
     }
     
     static func setup(inDatabase db: Database) throws {
-        try db.execute("""
+        try db.execute(sql: """
             CREATE TABLE emails (
                 email TEXT NOT NULL PRIMARY KEY ON CONFLICT REPLACE,
                 label TEXT)
@@ -76,7 +74,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             record.label = "Home"
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -91,7 +89,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             record.label = "Work"
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -105,7 +103,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             try record.delete(db)
             try record.insert(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -121,8 +119,10 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "emails")
+                XCTAssertEqual(key, ["email": record.email.databaseValue])
             }
         }
     }
@@ -135,7 +135,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             try record.insert(db)
             try record.update(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -150,8 +150,10 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             do {
                 try record.update(db)
                 XCTFail("Expected PersistenceError.recordNotFound")
-            } catch PersistenceError.recordNotFound {
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "emails")
+                XCTAssertEqual(key, ["email": record.email.databaseValue])
             }
         }
     }
@@ -180,7 +182,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             record.email = "me@domain.com"
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -193,7 +195,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             try record.insert(db)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -207,7 +209,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             try record.delete(db)
             try record.save(db)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM emails WHERE email = ?", arguments: [record.email])!
             assert(record, isEncodedIn: row)
         }
     }
@@ -234,7 +236,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             let deleted = try record.delete(db)
             XCTAssertTrue(deleted)
             
-            let row = try Row.fetchOne(db, "SELECT * FROM emails WHERE email = ?", arguments: [record.email])
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM emails WHERE email = ?", arguments: [record.email])
             XCTAssertTrue(row == nil)
         }
     }
@@ -324,6 +326,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             
             let fetchedRecord = try Email.fetchOne(db, key: ["email": record.email])!
             XCTAssertTrue(fetchedRecord.email == record.email)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"emails\" WHERE (\"email\" = '\(record.email!)')")
         }
     }
 
@@ -399,6 +402,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             
             let fetchedRecord = try Email.filter(key: ["email": record.email]).fetchOne(db)!
             XCTAssertTrue(fetchedRecord.email == record.email)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"emails\" WHERE (\"email\" = '\(record.email!)')")
         }
     }
     
@@ -484,6 +488,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             do {
                 let fetchedRecord = try Email.fetchOne(db, key: record.email)!
                 XCTAssertTrue(fetchedRecord.email == record.email)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"emails\" WHERE (\"email\" = '\(record.email!)')")
             }
         }
     }
@@ -558,6 +563,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             do {
                 let fetchedRecord = try Email.filter(key: record.email).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.email == record.email)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"emails\" WHERE (\"email\" = '\(record.email!)')")
             }
         }
     }
