@@ -309,7 +309,7 @@ Tests/Performance/Realm/build/osx/swift-10.2.1/RealmSwift.framework:
 	$(GIT) submodule update --init --recursive Tests/Performance/Realm
 	cd Tests/Performance/Realm && sh build.sh osx-swift
 
-FMDB: Tests/Performance/fmdb/FMDatabase.h
+FMDB: Tests/Performance/fmdb/src/fmdb/FMDatabase.h
 
 # Makes sure the Tests/Performance/fmdb submodule has been downloaded
 Tests/Performance/fmdb/FMDatabase.h:
