@@ -160,7 +160,6 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
         return try RecordCursor(statement: statement, arguments: arguments, adapter: adapter)
     }
@@ -176,7 +175,6 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self] {
         return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
@@ -192,7 +190,6 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
         return try fetchCursor(statement, arguments: arguments, adapter: adapter).next()
     }
@@ -221,7 +218,6 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
         return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
@@ -237,7 +233,6 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Self] {
         return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
@@ -253,7 +248,6 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Self? {
         return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
@@ -281,7 +275,6 @@ extension FetchableRecord {
     ///     - sql: a FetchRequest.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> RecordCursor<Self> {
         let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         return try fetchCursor(statement, adapter: adapter)
@@ -297,7 +290,6 @@ extension FetchableRecord {
     ///     - sql: a FetchRequest.
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchAll<R: FetchRequest>(_ db: Database, _ request: R) throws -> [Self] {
         let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         return try fetchAll(statement, adapter: adapter)
@@ -313,7 +305,6 @@ extension FetchableRecord {
     ///     - sql: a FetchRequest.
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> Self? {
         let (statement, adapter) = try request.prepare(db, forSingleResult: true)
         return try fetchOne(statement, adapter: adapter)
@@ -342,7 +333,6 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder> {
         return try RowDecoder.fetchCursor(db, self)
     }
@@ -355,7 +345,6 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// - parameter db: A database connection.
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public func fetchAll(_ db: Database) throws -> [RowDecoder] {
         return try RowDecoder.fetchAll(db, self)
     }
@@ -368,7 +357,6 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// - parameter db: A database connection.
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
         return try RowDecoder.fetchOne(db, self)
     }
@@ -388,7 +376,6 @@ public final class RecordCursor<Record: FetchableRecord> : Cursor {
     @usableFromInline let _sqliteStatement: SQLiteStatement
     @usableFromInline var _done = false
     
-    @inlinable
     init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         _statement = statement
         _row = try Row(statement: statement).adapted(with: adapter, layout: statement)

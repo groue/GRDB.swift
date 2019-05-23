@@ -31,7 +31,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     }
 
     /// Returns the value associated with key, or nil.
-    @inlinable
+    @usableFromInline
     subscript(_ key: Key) -> Value? {
         get { return dictionary[key] }
         set {
@@ -68,7 +68,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     /// original value. If the given key is not present in the dictionary, this
     /// method appends the key-value pair and returns nil.
     @discardableResult
-    @inlinable
+    @usableFromInline
     mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
         if let oldValue = dictionary.updateValue(value, forKey: key) {
             return oldValue
@@ -79,7 +79,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     
     /// Removes the value associated with key.
     @discardableResult
-    @usableFromInline
+    @inlinable
     mutating func removeValue(forKey key: Key) -> Value? {
         guard let value = dictionary.removeValue(forKey: key) else {
             return nil

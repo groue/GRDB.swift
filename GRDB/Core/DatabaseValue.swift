@@ -98,7 +98,6 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
     }
     
     // SQLite function argument
-    @usableFromInline
     init(sqliteValue: SQLiteValue) {
         switch sqlite3_value_type(sqliteValue) {
         case SQLITE_NULL:
@@ -123,7 +122,6 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
     }
 
     /// Returns a DatabaseValue initialized from a raw SQLite statement pointer.
-    @usableFromInline
     init(sqliteStatement: SQLiteStatement, index: Int32) {
         switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_NULL:

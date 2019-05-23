@@ -103,7 +103,6 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     /// The row is implemented on top of StatementRowImpl, which grants *direct*
     /// access to the SQLite statement. Iteration of the statement does modify
     /// the row.
-    @usableFromInline
     init(statement: SelectStatement) {
         let statementRef = Unmanaged.passRetained(statement) // released in deinit
         self.statementRef = statementRef
@@ -768,7 +767,6 @@ public final class RowCursor : Cursor {
     @usableFromInline let _row: Row // Reused for performance
     @usableFromInline var _done = false
     
-    @inlinable
     init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         self.statement = statement
         self._row = try Row(statement: statement).adapted(with: adapter, layout: statement)
@@ -835,7 +833,6 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RowCursor {
         return try RowCursor(statement: statement, arguments: arguments, adapter: adapter)
     }
@@ -851,7 +848,6 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
         // The cursor reuses a single mutable row. Return immutable copies.
         return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() })
@@ -868,7 +864,6 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row? {
         let cursor = try fetchCursor(statement, arguments: arguments, adapter: adapter)
         // Keep cursor alive until we can copy the fetched row
@@ -910,7 +905,6 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RowCursor {
         return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
@@ -930,7 +924,6 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Row] {
         return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
@@ -950,7 +943,6 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Row? {
         return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
@@ -987,7 +979,6 @@ extension Row {
     ///     - request: A FetchRequest.
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> RowCursor {
         let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         return try fetchCursor(statement, adapter: adapter)
@@ -1003,7 +994,6 @@ extension Row {
     ///     - request: A FetchRequest.
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchAll<R: FetchRequest>(_ db: Database, _ request: R) throws -> [Row] {
         let (statement, adapter) = try request.prepare(db, forSingleResult: false)
         return try fetchAll(statement, adapter: adapter)
@@ -1019,7 +1009,6 @@ extension Row {
     ///     - request: A FetchRequest.
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> Row? {
         let (statement, adapter) = try request.prepare(db, forSingleResult: true)
         return try fetchOne(statement, adapter: adapter)
@@ -1055,7 +1044,6 @@ extension FetchRequest where RowDecoder == Row {
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public func fetchCursor(_ db: Database) throws -> RowCursor {
         return try Row.fetchCursor(db, self)
     }
@@ -1068,7 +1056,6 @@ extension FetchRequest where RowDecoder == Row {
     /// - parameter db: A database connection.
     /// - returns: An array of fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public func fetchAll(_ db: Database) throws -> [Row] {
         return try Row.fetchAll(db, self)
     }
@@ -1081,7 +1068,6 @@ extension FetchRequest where RowDecoder == Row {
     /// - parameter db: A database connection.
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public func fetchOne(_ db: Database) throws -> Row? {
         return try Row.fetchOne(db, self)
     }

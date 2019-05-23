@@ -339,7 +339,6 @@ public final class SelectStatement : Statement {
     }
     
     /// Utility function for cursors
-    @usableFromInline
     func reset(withArguments arguments: StatementArguments? = nil) {
         prepare(withArguments: arguments)
         try! reset()
@@ -369,12 +368,11 @@ public final class SelectStatement : Statement {
 ///         try cursor.next()
 ///     }
 final class StatementCursor: Cursor {
-    @usableFromInline let _statement: SelectStatement
-    @usableFromInline let _sqliteStatement: SQLiteStatement
-    @usableFromInline var _done = false
+    let _statement: SelectStatement
+    let _sqliteStatement: SQLiteStatement
+    var _done = false
     
     // Use SelectStatement.makeCursor() instead
-    @inlinable
     init(statement: SelectStatement, arguments: StatementArguments? = nil) {
         _statement = statement
         _sqliteStatement = statement.sqliteStatement
