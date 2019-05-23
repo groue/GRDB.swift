@@ -328,6 +328,10 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 +    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
 +}
 +
++extension EncodableRecord where Self: Encodable {
++    func encode(to container: inout PersistenceContainer)
++}
++
 +extension EncodableRecord {
 +    var databaseDictionary: [String: DatabaseValue] { get }
 +    func databaseEquals(_ record: Self) -> Bool
