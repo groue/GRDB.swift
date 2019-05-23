@@ -37,7 +37,7 @@ puts <<-REPORT
 
 Below are performance benchmarks made on for [GRDB #{grdb_version}](https://github.com/groue/GRDB.swift), [FMDB #{fmdb_version}](https://github.com/ccgus/fmdb), and [SQLite.swift #{sqlite_swift_version}](https://github.com/stephencelis/SQLite.swift). They are compared to Core Data, [Realm #{realm_version}](https://realm.io) and the raw use of the SQLite C API from Swift.
 
-This report was generated on a MacBook Pro (15-inch, Late 2016), with Xcode 9.4.1, by running the following command:
+This report was generated on a MacBook Pro (15-inch, Late 2016), with Xcode 10.2.1, by running the following command:
 
 ```sh
 make test_performance | Tests/parsePerformanceTests.rb | Tests/generatePerformanceReport.rb
