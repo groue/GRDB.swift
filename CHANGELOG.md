@@ -352,9 +352,8 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 +    init()
 +    mutating func plural(_ pattern: String, options: NSRegularExpression.Options = [.caseInsensitive], _ template: String)
 +    mutating func singular(_ pattern: String, options: NSRegularExpression.Options = [.caseInsensitive], _ template: String)
-+    mutating func uncountable(_ words: [String])
-+    mutating func uncountable(_ word: String)
-+    mutating func irregular(_ singular: String, _ plural: String)
++    mutating func uncountableWords(_ words: [String])
++    mutating func irregularSuffix(_ singular: String, _ plural: String)
 +    func pluralize(_ string: String) -> String
 +    func singularize(_ string: String) -> String
 +}

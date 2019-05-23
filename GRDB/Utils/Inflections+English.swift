@@ -106,7 +106,7 @@ extension Inflections {
         inflections.singular("(database)s$", "$1")
         inflections.singular("(canvas)(es)?$", "$1")
         
-        inflections.uncountable([
+        inflections.uncountableWords([
             "advice",
             "corps",
             "dice",
@@ -123,15 +123,15 @@ extension Inflections {
             "species",
             ])
         
-        inflections.irregular("child", "children")
-        inflections.irregular("foot", "feet")
-        inflections.irregular("leaf", "leaves")
-        inflections.irregular("man", "men")
-        inflections.irregular("move", "moves")
-        inflections.irregular("person", "people")
-        inflections.irregular("sex", "sexes")
-        inflections.irregular("specimen", "specimens")
-        inflections.irregular("zombie", "zombies")
+        inflections.irregularSuffix("child", "children")
+        inflections.irregularSuffix("foot", "feet")
+        inflections.irregularSuffix("leaf", "leaves")
+        inflections.irregularSuffix("man", "men")
+        inflections.irregularSuffix("move", "moves")
+        inflections.irregularSuffix("person", "people")
+        inflections.irregularSuffix("sex", "sexes")
+        inflections.irregularSuffix("specimen", "specimens")
+        inflections.irregularSuffix("zombie", "zombies")
         
         return inflections
     }()

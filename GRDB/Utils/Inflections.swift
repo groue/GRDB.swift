@@ -84,39 +84,27 @@ public struct Inflections {
     ///
     ///     var inflections = Inflections()
     ///     inflections.plural("$", "s")
-    ///     inflections.uncountable(["foo"])
+    ///     inflections.uncountableWords(["foo"])
     ///     inflections.pluralize("foo") // "foo"
     ///     inflections.pluralize("bar") // "bars"
-    public mutating func uncountable(_ words: [String]) {
+    public mutating func uncountableWords(_ words: [String]) {
         for word in words {
-            uncountable(word)
+            uncountableWord(word)
         }
     }
     
-    /// Appends an uncountable word.
-    ///
-    ///     var inflections = Inflections()
-    ///     inflections.plural("$", "s")
-    ///     inflections.uncountable("foo")
-    ///     inflections.pluralize("foo") // "foo"
-    ///     inflections.pluralize("bar") // "bars"
-    public mutating func uncountable(_ word: String) {
-        let escWord = NSRegularExpression.escapedPattern(for: word)
-        uncountablesRegularExpressions[word] = try! NSRegularExpression(pattern: "\\b\(escWord)\\Z", options: [.caseInsensitive])
-    }
-
     /// Appends an irregular singular/plural pair.
     ///
     ///     var inflections = Inflections()
     ///     inflections.plural("$", "s")
-    ///     inflections.irregular("man", "men")
+    ///     inflections.irregularSuffix("man", "men")
     ///     inflections.pluralize("man")      // "men"
     ///     inflections.singularizes("women") // "woman"
     ///
     /// - parameters:
     ///     - singular: The singular form.
     ///     - plural: The plural form.
-    public mutating func irregular(_ singular: String, _ plural: String) {
+    public mutating func irregularSuffix(_ singular: String, _ plural: String) {
         let s0 = singular.first!
         let srest = singular.dropFirst()
         
@@ -157,6 +145,18 @@ public struct Inflections {
     }
     
     // MARK: - Utils
+    
+    /// Appends an uncountable word.
+    ///
+    ///     var inflections = Inflections()
+    ///     inflections.plural("$", "s")
+    ///     inflections.uncountableWord("foo")
+    ///     inflections.pluralize("foo") // "foo"
+    ///     inflections.pluralize("bar") // "bars"
+    private mutating func uncountableWord(_ word: String) {
+        let escWord = NSRegularExpression.escapedPattern(for: word)
+        uncountablesRegularExpressions[word] = try! NSRegularExpression(pattern: "\\b\(escWord)\\Z", options: [.caseInsensitive])
+    }
     
     private func isUncountable(_ string: String) -> Bool {
         let range = NSRange(location: 0, length: string.utf16.count)

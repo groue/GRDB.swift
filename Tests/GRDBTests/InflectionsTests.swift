@@ -109,7 +109,7 @@ class InflectionsTests: GRDBTestCase {
     
     func testUncountabilityOfASCIIWord() {
         let word = "HTTP"
-        Inflections.default.uncountable(word)
+        Inflections.default.uncountableWords([word])
         XCTAssertEqual(word.pluralized, word)
         XCTAssertEqual(word.singularized, word)
         XCTAssertEqual(word.pluralized, word.singularized)
@@ -117,7 +117,7 @@ class InflectionsTests: GRDBTestCase {
     
     func testUncountabilityOfNonASCIIWord() {
         let word = "猫"
-        Inflections.default.uncountable(word)
+        Inflections.default.uncountableWords([word])
         XCTAssertEqual(word.pluralized, word)
         XCTAssertEqual(word.singularized, word)
         XCTAssertEqual(word.pluralized, word.singularized)
@@ -151,7 +151,7 @@ class InflectionsTests: GRDBTestCase {
         let uncountableWord = "ors"
         let countableWord = "sponsor"
         
-        Inflections.default.uncountable(uncountableWord)
+        Inflections.default.uncountableWords([uncountableWord])
         
         XCTAssertEqual(uncountableWord.singularized, uncountableWord)
         XCTAssertEqual(uncountableWord.pluralized, uncountableWord)
@@ -234,7 +234,7 @@ class InflectionsTests: GRDBTestCase {
     #if !SWIFT_PACKAGE
     func testIrregularityBetweenSingularAndPlural() {
         for (singular, plural) in inflectionTestCases.testCases["Irregularities"]! {
-            Inflections.default.irregular(singular, plural)
+            Inflections.default.irregularSuffix(singular, plural)
             XCTAssertEqual(plural.singularized, singular)
             XCTAssertEqual(singular.pluralized, plural)
             XCTAssertEqual(singular.singularized, singular)
