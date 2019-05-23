@@ -157,9 +157,14 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
     <summary>SQL Interpolation</summary>
 
 ```diff
+ extension SQLRequest: ExpressibleByStringInterpolation {
++    init(stringInterpolation sqlInterpolation: SQLInterpolation)
+ }
+ 
 +struct SQLLiteral: ExpressibleByStringInterpolation {
 +    var sql: String { get }
 +    var arguments: StatementArguments { get }
++    init(stringInterpolation sqlInterpolation: SQLInterpolation)
 +    init(sql: String, arguments: StatementArguments = StatementArguments())
 +    func mapSQL(_ transform: (String) throws -> String) rethrows -> SQLLiteral
 +    mutating func append(sql: String, arguments: StatementArguments = StatementArguments())
