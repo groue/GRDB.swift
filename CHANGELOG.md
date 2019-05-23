@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 #### 4.x Releases
 
-- `4.0.0` Development - [GRDB-4.0 Branch](#grdb-40-branch)
+- `4.0.x` Releases - [4.0.0](#400)
 
 #### 3.x Releases
 
@@ -47,7 +47,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [0.110.0](#01100), ...
 
 
-## GRDB-4.0 Branch
+## 4.0.0
+
+Released May 23, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.7.0...v4.0.0)
 
 GRDB 4 is a release focused on **Swift 5**, and **enhancements on associations between record types**.
 
@@ -79,7 +81,7 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 - Swift 4.0 and Swift 4.1 are no longer supported. Minimum Swift version is now Swift 4.2.
 - iOS 8 is no longer supported. Minimum deployment target is now iOS 9.0.
 - Deprecated APIs are no longer available.
-- See the [Migration Guide](Documentation/GRDB3MigrationGuide.md) for other changes.
+- See the [Migration Guide](Documentation/GRDB3MigrationGuide.md) and the API diff below for other changes.
 
 ### Documentation Diff
 
