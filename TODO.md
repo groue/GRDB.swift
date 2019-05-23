@@ -41,11 +41,15 @@
 - [ ] Consider renaming dbQueue.inDatabase, dbPool.writeWithoutTransaction -> dbQueue/Pool.exclusive
 - [ ] FetchedRecordsController diff algorithm: check https://github.com/RxSwiftCommunity/RxDataSources/issues/256
 - [ ] https://github.com/groue/GRDB.swift/issues/514
+- [ ] Look at the jazzy configuration of https://github.com/bignerdranch/Deferred
+- [ ] FTS: prefix queries
+- [ ] Test NOT TESTED methods
+- [ ] Update RxGRDB: https://github.com/RxSwiftCommunity/RxGRDB/pull/51
+- [ ] Update [GRDBObjc](https://github.com/groue/GRDBObjc)
 
 GRDB 4.0
 
-- [ ] FTS: prefix queries
-- [ ] Test NOT TESTED methods
+- [ ] Review @inlinable stuff
 
 Swift 4.2
 
