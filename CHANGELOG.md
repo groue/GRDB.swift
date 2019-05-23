@@ -97,9 +97,9 @@ It comes with new features, but also a few breaking changes. The [GRDB 4 Migrati
 <details>
     <summary>Associations: indirect associations and eager loading of HasMany associations</summary>
 
-New AssociationToOne and AssociationToMany protocols
+**New AssociationToOne and AssociationToMany protocols**
 
-```diff 
+```diff
 +protocol AssociationToOne: Association { }
 +protocol AssociationToMany: Association { }
 +extension AssociationToMany {
@@ -116,9 +116,9 @@ New AssociationToOne and AssociationToMany protocols
 +extension HasOneAssociation: AssociationToOne { }
 ```
 
-New HasManyThroughAssociation and HasOneThroughAssociation
+**New HasManyThroughAssociation and HasOneThroughAssociation**
 
-```diff 
+```diff
 +struct HasManyThroughAssociation<Origin, Destination>: AssociationToMany { }
 +extension HasManyThroughAssociation: TableRequest where Destination: TableRecord { }
 +struct HasOneThroughAssociation<Origin, Destination>: AssociationToOne { }
@@ -130,9 +130,9 @@ New HasManyThroughAssociation and HasOneThroughAssociation
  }
 ```
 
-Eager loading of HasMany associations
+**Eager loading of HasMany associations**
 
-```diff 
+```diff
  extension TableRecord {
 +    static func including<A: AssociationToMany>(all association: A) -> QueryInterfaceRequest<Self> where A.OriginRowDecoder == Self
  }
@@ -146,9 +146,9 @@ Eager loading of HasMany associations
  }
 ```
 
-Accessing eager loaded rows
+**Accessing eager loaded rows**
 
-```diff 
+```diff
  class Row {
 +    var prefetchedRows: Row.PrefetchedRowsView { get }
 +    subscript<Collection>(_ key: String) -> Collection where Collection: RangeReplaceableCollection, Collection.Element: FetchableRecord { get }
@@ -443,7 +443,7 @@ Accessing eager loaded rows
 <details>
     <summary>Miscellaneous additions</summary>
 
-Column initializer from CodingKey
+**Column initializer from CodingKey**
 
 ```diff
  struct Column {
@@ -451,23 +451,23 @@ Column initializer from CodingKey
  }
 ```
 
-Association aggregates: support for the IFNULL sql operator
+**Association aggregates: support for the IFNULL sql operator**
 
-```diff 
+```diff
 +func ?? <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: SQLExpressible) -> AssociationAggregate<RowDecoder>
 ```
 
-Remove all orderings from a request
+**Remove all orderings from a request**
 
-```diff 
+```diff
  protocol OrderedRequest {
 +    func unordered()
  }
 ```
 
-Annotate requests with any value, not only association aggregates
+**Annotate requests with any value, not only association aggregates**
 
-```diff 
+```diff
  protocol SelectionRequest {
 +    annotated(with selection: [SQLSelectable]) -> Self
  }
@@ -482,9 +482,9 @@ Annotate requests with any value, not only association aggregates
  }
 ```
 
-Build a DatabaseRegion from a table name
+**Build a DatabaseRegion from a table name**
 
-```diff 
+```diff
  struct DatabaseRegion {
 +    init(table: String)
  }
@@ -515,9 +515,11 @@ Build a DatabaseRegion from a table name
  }
  
 -final class StatementCursor: Cursor { }
+```
 
- // Discarded deprecated methods
- 
+**Discarded deprecated methods**
+
+```diff
  extension Cursor {
 -    func flatMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult>
  }
