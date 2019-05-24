@@ -311,8 +311,13 @@ extension SQLRelation {
     /// as HasManyThrough, which have any number of pivot relations between the
     /// origin and the destination.
     func appending(_ association: SQLAssociation, kind: SQLRelation.Child.Kind) -> SQLRelation {
-        let destinationChildKey = association.destination.key.name(for: kind.cardinality)
-        let destinationChild = SQLRelation.Child(
+        let childCardinality = (kind == .allNotPrefetched)
+            // preserve association cardinality in intermediate steps of including(all:)
+            ? association.destination.cardinality
+            // force desired cardinality otherwize
+            : kind.cardinality
+        let childKey = association.destination.key.name(for: childCardinality)
+        let child = SQLRelation.Child(
             kind: kind,
             condition: association.destination.condition,
             relation: association.destination.relation)
@@ -328,7 +333,7 @@ extension SQLRelation {
             //
             // let association = Origin.belongsTo(Destination.self)
             // Origin.including(required: association)
-            return appendingChild(destinationChild, forKey: destinationChildKey)
+            return appendingChild(child, forKey: childKey)
         }
         
         // This is an indirect join from origin to destination, through
@@ -351,7 +356,7 @@ extension SQLRelation {
         
         reducedAssociation.destination.relation = reducedAssociation.destination.relation
             .select([]) // Intermediate steps are not prefetched
-            .appendingChild(destinationChild, forKey: destinationChildKey)
+            .appendingChild(child, forKey: childKey)
         
         switch kind {
         case .oneRequired, .oneOptional, .allNotPrefetched:
