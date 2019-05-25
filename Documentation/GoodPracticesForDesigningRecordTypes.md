@@ -19,9 +19,9 @@ To support this guide, we'll design a simply library application that lets the u
 
 It is important to put things in the right order. An SQLite database stored on one of your user's device is more important than the Swift code that accesses it. When a user installs a new version of your application, all the code may change, but the database remains the same.
 
-This is we recommend defining a **robust database schema** even before playing with record types.
+This is why we recommend defining a **robust database schema** even before playing with record types.
 
-SQLite is a robust database. Even if you don't know it well, and aren't familiar with the SQL language, you are able to take profit from its solid foundation. It is very difficult to corrupt an SQLite database file. And it can make sure that only valid information is persisted on disk.
+SQLite is a battle-tested database. Even if you don't know it well, and aren't familiar with the SQL language, you are able to take profit from its solid foundation. It is very difficult to corrupt an SQLite database file. And it can make sure that only valid information is persisted on disk.
 
 This is important because we developers write bugs, and some of them will ship in the wild, affecting the users of our applications. But SQLite will prevent many of those bugs from corrupting our precious users' data.
 
