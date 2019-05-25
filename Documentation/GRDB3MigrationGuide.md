@@ -7,6 +7,7 @@ GRDB 4 comes with new features, but also a few breaking changes. This guide aims
 - [Raw SQL](#raw-sql)
 - [ValueObservation](#valueobservation)
 - [Associations](#associations)
+- [Good Practices for Designing Record Types](GoodPracticesForDesigningRecordTypes.md)
 - [SQLCipher](#sqlcipher)
 - [PersistenceError.recordNotFound](#persistenceerrorrecordnotfound)
 

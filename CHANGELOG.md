@@ -49,9 +49,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 ## Next Release
 
-### Fixed
-
 - [#533](https://github.com/groue/GRDB.swift/pull/533): Fix eager loading of HasManyThrough associations
+- [#535](https://github.com/groue/GRDB.swift/pull/535): Update the Good Practices for Designing Record Types
+
+### Documentation Diff
+
+The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) have been enhanced and completed with a whole new section about "database managers".
 
 
 ## 4.0.0
