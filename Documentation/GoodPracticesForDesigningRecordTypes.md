@@ -403,10 +403,10 @@ Those properties provide an alternative way to feed our application:
 
 ## How to Design Database Managers
 
-Many developpers want to hide GRDB database queues and pools inside "database managers" that hide implementation details:
+Many developpers want to hide GRDB database queues and pools inside "database managers":
 
 ```swift
-// This object accesses the library database.
+// LibraryManager grants access to the library database.
 class LibraryManager {
     private let dbQueue: DatabaseQueue
     init(dbQueue: DatabaseQueue) {
