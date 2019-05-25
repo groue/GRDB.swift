@@ -380,7 +380,6 @@
 		564A214B226B8E18001F64F1 /* MapCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A1FB8226B89DD001F64F1 /* MapCursorTests.swift */; };
 		564A214C226B8E18001F64F1 /* NumericOverflowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A1F2E226B89CF001F64F1 /* NumericOverflowTests.swift */; };
 		564A214D226B8E18001F64F1 /* RecordMinimalPrimaryKeySingleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A1FAB226B89DC001F64F1 /* RecordMinimalPrimaryKeySingleTests.swift */; };
-		564A214F226B8E18001F64F1 /* Pods_GRDBTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BEFDC53B1F7A33C242013A38 /* Pods_GRDBTests.framework */; };
 		564A2151226B8E18001F64F1 /* Betty.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 564A1F6F226B89D6001F64F1 /* Betty.jpeg */; };
 		564A2159226C8F25001F64F1 /* db.SQLCipher3 in Resources */ = {isa = PBXBuildFile; fileRef = 564A2158226C8F24001F64F1 /* db.SQLCipher3 */; };
 		564A215A226C8F25001F64F1 /* db.SQLCipher3 in Resources */ = {isa = PBXBuildFile; fileRef = 564A2158226C8F24001F64F1 /* db.SQLCipher3 */; };
@@ -392,7 +391,8 @@
 		56DF0022228DDFF000D611F3 /* AssociationPrefetchingRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DF001F228DDFF000D611F3 /* AssociationPrefetchingRowTests.swift */; };
 		56DF0023228DDFF000D611F3 /* AssociationPrefetchingCodableRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DF0020228DDFF000D611F3 /* AssociationPrefetchingCodableRecordTests.swift */; };
 		56DF0024228DDFF000D611F3 /* AssociationPrefetchingCodableRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DF0020228DDFF000D611F3 /* AssociationPrefetchingCodableRecordTests.swift */; };
-		5B33E6E34F941B4C839A714F /* Pods_GRDBTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BEFDC53B1F7A33C242013A38 /* Pods_GRDBTests.framework */; };
+		5B33E6E34F941B4C839A714F /* BuildFile in Frameworks */ = {isa = PBXBuildFile; };
+		E158370AAEED49ECD53CE24A /* Pods_GRDBTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67377FE4CDAD675809F93AD4 /* Pods_GRDBTests.framework */; };
 		F2B3C4250D67969FF3948955 /* Pods_GRDBTestsEncrypted.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7D5C7999E7D9CE7145687F5D /* Pods_GRDBTestsEncrypted.framework */; };
 /* End PBXBuildFile section */
 
@@ -595,10 +595,10 @@
 		569BBA2D228DF90200478429 /* AssociationPrefetchingFetchableRecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingFetchableRecordTests.swift; sourceTree = "<group>"; };
 		56DF001F228DDFF000D611F3 /* AssociationPrefetchingRowTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingRowTests.swift; sourceTree = "<group>"; };
 		56DF0020228DDFF000D611F3 /* AssociationPrefetchingCodableRecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingCodableRecordTests.swift; sourceTree = "<group>"; };
+		67377FE4CDAD675809F93AD4 /* Pods_GRDBTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6A4788C0F815F6C5E4EBDE12 /* Pods-GRDBTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTests.debug.xcconfig"; path = "Target Support Files/Pods-GRDBTests/Pods-GRDBTests.debug.xcconfig"; sourceTree = "<group>"; };
 		7D5C7999E7D9CE7145687F5D /* Pods_GRDBTestsEncrypted.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBTestsEncrypted.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		83BFB5733A86DAA3D0BEE684 /* Pods-GRDBTestsEncrypted.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTestsEncrypted.debug.xcconfig"; path = "Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted.debug.xcconfig"; sourceTree = "<group>"; };
-		BEFDC53B1F7A33C242013A38 /* Pods_GRDBTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -606,7 +606,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5B33E6E34F941B4C839A714F /* Pods_GRDBTests.framework in Frameworks */,
+				5B33E6E34F941B4C839A714F /* BuildFile in Frameworks */,
+				E158370AAEED49ECD53CE24A /* Pods_GRDBTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -614,7 +615,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				564A214F226B8E18001F64F1 /* Pods_GRDBTests.framework in Frameworks */,
 				F2B3C4250D67969FF3948955 /* Pods_GRDBTestsEncrypted.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -857,8 +857,8 @@
 		EAA416B3A072FCB835929FD9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				BEFDC53B1F7A33C242013A38 /* Pods_GRDBTests.framework */,
 				7D5C7999E7D9CE7145687F5D /* Pods_GRDBTestsEncrypted.framework */,
+				67377FE4CDAD675809F93AD4 /* Pods_GRDBTests.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -965,18 +965,11 @@
 			files = (
 			);
 			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-GRDBTests/Pods-GRDBTests-frameworks.sh",
-				"${BUILT_PRODUCTS_DIR}/GRDB.swift/GRDB.framework",
-				"${BUILT_PRODUCTS_DIR}/SQLCipher/SQLCipher.framework",
+				"${PODS_ROOT}/Target Support Files/Pods-GRDBTests/Pods-GRDBTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
-			);
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GRDB.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SQLCipher.framework",
+				"${PODS_ROOT}/Target Support Files/Pods-GRDBTests/Pods-GRDBTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1011,18 +1004,11 @@
 			files = (
 			);
 			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted-frameworks.sh",
-				"${BUILT_PRODUCTS_DIR}/GRDB.swift/GRDB.framework",
-				"${BUILT_PRODUCTS_DIR}/SQLCipher/SQLCipher.framework",
+				"${PODS_ROOT}/Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
-			);
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GRDB.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SQLCipher.framework",
+				"${PODS_ROOT}/Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted-frameworks-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;

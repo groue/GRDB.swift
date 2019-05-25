@@ -50,6 +50,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 ## Next Release
 
 - [#533](https://github.com/groue/GRDB.swift/pull/533): Fix eager loading of HasManyThrough associations
+- [#534](https://github.com/groue/GRDB.swift/pull/534): Support for CocoaPods 1.7.0
 - [#535](https://github.com/groue/GRDB.swift/pull/535): Update the Good Practices for Designing Record Types
 
 ### Documentation Diff
