@@ -581,6 +581,320 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
         }
     }
     
+    func testIncludingAllHasManyThroughBelongsToUsingHasMany() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            // Plain request
+            do {
+                let request = B
+                    .including(all: B.hasMany(C.self, through: B.belongsTo(A.self), using: A.hasMany(C.self))
+                        .orderByPrimaryKey())
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "b" ORDER BY "colb1"
+                    """,
+                    """
+                    SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
+                    FROM "c" JOIN "a" ON (("a"."cola1" = "c"."colc2") AND ("a"."cola1" IN (1, 2))) \
+                    ORDER BY "c"."colc1"
+                    """])
+            }
+            
+            // Request with filters
+            do {
+                // This request is an example of what users are unlikely to
+                // want, because of the shared key between the two different
+                // pivot associations.
+                let request = B
+                    .including(all: B
+                        .hasMany(
+                            C.self,
+                            through: B.belongsTo(A.self).filter(Column("cola2") == "a1"),
+                            using: A.hasMany(C.self))
+                        .orderByPrimaryKey())
+                    .including(all: B
+                        .hasMany(
+                            C.self,
+                            through: B.belongsTo(A.self).filter(Column("cola2") != "a1"),
+                            using: A.hasMany(C.self))
+                        .orderByPrimaryKey())
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "b" ORDER BY "colb1"
+                    """,
+                    """
+                    SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
+                    FROM "c" \
+                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND ((("a"."cola2" = 'a1') AND ("a"."cola2" <> 'a1')) AND ("a"."cola1" IN (1, 2)))) \
+                    ORDER BY "c"."colc1"
+                    """])
+            }
+            
+            // Request with filters
+            do {
+                // Another example of what users are unlikely to want, still
+                // because of the shared key between the two different pivot
+                // associations, and despite the distinct hasMany keys.
+                let request = B
+                    .including(all: B
+                        .hasMany(
+                            C.self,
+                            through: B.belongsTo(A.self).filter(Column("cola2") == "a1"),
+                            using: A.hasMany(C.self))
+                        .forKey("a1")
+                        .orderByPrimaryKey())
+                    .including(all: B
+                        .hasMany(
+                            C.self,
+                            through: B.belongsTo(A.self).filter(Column("cola2") != "a1"),
+                            using: A.hasMany(C.self))
+                        .forKey("nota1")
+                        .orderByPrimaryKey())
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "b" ORDER BY "colb1"
+                    """,
+                    """
+                    SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
+                    FROM "c" \
+                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND ((("a"."cola2" = 'a1') AND ("a"."cola2" <> 'a1')) AND ("a"."cola1" IN (1, 2)))) \
+                    ORDER BY "c"."colc1"
+                    """,
+                    """
+                    SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
+                    FROM "c" \
+                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND ((("a"."cola2" = 'a1') AND ("a"."cola2" <> 'a1')) AND ("a"."cola1" IN (1, 2)))) \
+                    ORDER BY "c"."colc1"
+                    """])
+            }
+
+            // Request with filters
+            do {
+                // This request is a "fixed" version of the previous request,
+                // where the two different pivot associations do not share the
+                // same key.
+                let request = B
+                    .including(all: B
+                        .hasMany(
+                            C.self,
+                            through: B.belongsTo(A.self).filter(Column("cola2") == "a1").forKey("a1"),
+                            using: A.hasMany(C.self))
+                        .orderByPrimaryKey())
+                    .including(all: B
+                        .hasMany(
+                            C.self,
+                            through: B.belongsTo(A.self).filter(Column("cola2") != "a1").forKey("nota1"),
+                            using: A.hasMany(C.self))
+                        .orderByPrimaryKey())
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "b" ORDER BY "colb1"
+                    """,
+                    """
+                    SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
+                    FROM "c" \
+                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola2" = 'a1') AND ("a"."cola1" IN (1, 2)))) \
+                    ORDER BY "c"."colc1"
+                    """,
+                    """
+                    SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
+                    FROM "c" \
+                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola2" <> 'a1') AND ("a"."cola1" IN (1, 2)))) \
+                    ORDER BY "c"."colc1"
+                    """])
+            }
+        }
+    }
+    
+    func testIncludingAllHasManyThroughHasOneUsingHasMany() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            // Plain request
+            do {
+                let request = A
+                    .including(all: A.hasMany(D.self, through: A.hasOne(C.self), using: C.hasMany(D.self))
+                        .orderByPrimaryKey())
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2, 3))) \
+                    ORDER BY "d"."cold1"
+                    """])
+            }
+            
+            // Request with filters
+            do {
+                // This request is an example of what users are unlikely to
+                // want, because of the shared key between the two different
+                // pivot associations.
+                // However, A.hasMany(C.self) does not conflict. Thos is an
+                // indirect proof that it feeds an association kt, "as", which
+                // is distinc from "a" (A.hasOne(C.self)).
+                let request = A
+                    .including(all: A
+                        .hasMany(
+                            D.self,
+                            through: A.hasOne(C.self).filter(Column("colc1") == 7),
+                            using: C.hasMany(D.self))
+                        .orderByPrimaryKey())
+                    .including(all: A
+                        .hasMany(
+                            D.self,
+                            through: A.hasOne(C.self).filter(Column("colc1") != 7),
+                            using: C.hasMany(D.self))
+                        .orderByPrimaryKey())
+                    .including(all: A.hasMany(C.self))
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ((("c"."colc1" = 7) AND ("c"."colc1" <> 7)) AND ("c"."colc2" IN (1, 2, 3)))) \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT *, "colc2" AS "grdb_colc2" FROM "c" WHERE ("colc2" IN (1, 2, 3))
+                    """])
+            }
+            
+            // Request with filters
+            do {
+                // Another example of what users are unlikely to want, still
+                // because of the shared key between the two different pivot
+                // associations, and despite the distinct hasMany keys.
+                let request = A
+                    .including(all: A
+                        .hasMany(
+                            D.self,
+                            through: A.hasOne(C.self).filter(Column("colc1") == 7),
+                            using: C.hasMany(D.self))
+                        .forKey("c7")
+                        .orderByPrimaryKey())
+                    .including(all: A
+                        .hasMany(
+                            D.self,
+                            through: A.hasOne(C.self).filter(Column("colc1") != 7),
+                            using: C.hasMany(D.self))
+                        .forKey("notc7")
+                        .orderByPrimaryKey())
+                    .including(all: A.hasMany(C.self))
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ((("c"."colc1" = 7) AND ("c"."colc1" <> 7)) AND ("c"."colc2" IN (1, 2, 3)))) \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ((("c"."colc1" = 7) AND ("c"."colc1" <> 7)) AND ("c"."colc2" IN (1, 2, 3)))) \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT *, "colc2" AS "grdb_colc2" FROM "c" WHERE ("colc2" IN (1, 2, 3))
+                    """])
+            }
+
+            // Request with filters
+            do {
+                // This request is a "fixed" version of the previous request,
+                // where the two different pivot associations do not share the
+                // same key.
+                let request = A
+                    .including(all: A
+                        .hasMany(
+                            D.self,
+                            through: A.hasOne(C.self).filter(Column("colc1") == 7).forKey("c7"),
+                            using: C.hasMany(D.self))
+                        .orderByPrimaryKey())
+                    .including(all: A
+                        .hasMany(
+                            D.self,
+                            through: A.hasOne(C.self).filter(Column("colc1") != 7).forKey("notc7"),
+                            using: C.hasMany(D.self))
+                        .orderByPrimaryKey())
+                    .including(all: A.hasMany(C.self))
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND (("c"."colc1" = 7) AND ("c"."colc2" IN (1, 2, 3)))) \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND (("c"."colc1" <> 7) AND ("c"."colc2" IN (1, 2, 3)))) \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT *, "colc2" AS "grdb_colc2" FROM "c" WHERE ("colc2" IN (1, 2, 3))
+                    """])
+            }
+        }
+    }
+
     // TODO: make a variant with joining(optional:)
     func testIncludingOptionalBelongsToIncludingAllHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
