@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 #### 4.x Releases
 
-- `4.0.x` Releases - [4.0.0](#400)
+- `4.0.x` Releases - [4.0.0](#400) | [4.0.1](#401)
 
 #### 3.x Releases
 
@@ -47,7 +47,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [0.110.0](#01100), ...
 
 
-## Next Release
+## 4.0.1
+
+Released May 25, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.0.0...v4.0.1)
 
 - [#533](https://github.com/groue/GRDB.swift/pull/533): Fix eager loading of HasManyThrough associations
 - [#534](https://github.com/groue/GRDB.swift/pull/534): Support for CocoaPods 1.7.0
