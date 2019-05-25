@@ -50,7 +50,7 @@ migrator.registerMigration("createLibrary") { db in
 try migrator.migrate(dbQueue)
 ```
 
-1. Our database table names follow the GRDB 3 recommendation: generally speaking they should be singular, and camelCased. Make them look like Swift identifiers: `author`, `book`, `postalAddress`, `httpRequest`.
+1. Our database table names follow the [recommended convention]: they are English, singular, and camelCased. They look like Swift identifiers: `author`, `book`, `postalAddress`, `httpRequest`.
 2. Each author has a unique id.
 3. An author must have a name.
 4. The country of an author is not always known.
@@ -687,3 +687,4 @@ Instead, have a look at [Database Observation]:
 [data protection]: ../README.md#data-protection
 [Embrace Errors]: #embrace-errors
 [Thread-Safety is also an Application Concern]: #thread-safety-is-also-an-application-concern
+[recommended convention]: AssociationsBasics.md#associations-and-the-database-schema
