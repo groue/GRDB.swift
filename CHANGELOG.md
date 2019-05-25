@@ -47,6 +47,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [0.110.0](#01100), ...
 
 
+## Next Release
+
+### Fixed
+
+- [#533](https://github.com/groue/GRDB.swift/pull/533): Fix eager loading of HasManyThrough associations
+
+
 ## 4.0.0
 
 Released May 23, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v3.7.0...v4.0.0)
