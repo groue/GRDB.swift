@@ -17,7 +17,7 @@ To support this guide, we'll design a simply library application that lets the u
 
 ## Trust SQLite More Than Yourself
 
-It is important to put things in the right order. An SQLite database stored on one of your user's device is more important than the Swift code that accesses it. When you ship a new version of your application, all the code can change, but the database remains the same. You may even use another SQLite library than GRDB one day :wink:
+It is important to put things in the right order. An SQLite database stored on one of your user's device is more important than the Swift code that accesses it. When a user installs a new version of your application, all the code may change, but the database remains the same.
 
 This is we recommend defining a **robust database schema** even before playing with record types.
 
