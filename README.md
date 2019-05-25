@@ -2213,7 +2213,7 @@ if let player = try Player.fetchOne(db, key: 1)
 It is possible to [avoid useless updates](#record-comparison):
 
 ```swift
-if let player = try Player.fetchOne(db, key: 1) {
+if var player = try Player.fetchOne(db, key: 1) {
     // does not hit the database if score has not changed
     try player.updateChanges(db) {
         $0.score = 1000
@@ -3060,7 +3060,7 @@ if newPlayer.databaseEquals(oldPlayer) == false {
 }
 ```
 
-> :point_up: **Note**: The comparison is performed on the database representation of records. As long as your record type adopts a PersistableRecord protocol, you don't need to care about Equatable.
+> :point_up: **Note**: The comparison is performed on the database representation of records. As long as your record type adopts the EncodableRecord protocol, you don't need to care about Equatable.
 
 
 ### The `databaseChanges` and `hasDatabaseChanges` Methods
