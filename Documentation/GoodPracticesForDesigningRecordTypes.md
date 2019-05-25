@@ -626,7 +626,7 @@ When a new screen is added to your application, and you want to make sure it dis
 
 This may sound unusual. Aren't view controllers (or view models, or presenters, depending on your application architecture) supposed to freely pick and compose the pieces of data they need from a general-purpose database manager which stands passively in front of the database?
 
-Well, not quite with GRDB. It is an unmanaged ORM, so some amount of management must be imported into your application (the database manager).
+Well, not quite with GRDB. It is an unmanaged ORM, so some amount of management must be imported into your application.
 
 If you happen to connect to HTTP apis sometimes, here is a way to look at it: have your database manager behave like a web server! Each method of the database manager behaves like a GET, PUT, POST or DELETE endpoint, that performs its job, only its job, and performs it well. Do you like it when a screen of your app has to feed from several HTTP requests? I personally do not, because it is more difficult, error management is tricky, etc. Well, it is the same with your database managers: don't force your screens to feed from multiple endpoints.
 
