@@ -557,7 +557,7 @@ class LibraryManager {
 
 // Feeds the list of authors
 extension LibraryManager {
-    struct AuthorListItem: Decodable, FetchableRecord{
+    struct AuthorListItem: Decodable, FetchableRecord {
         let author: Author
         let bookCount: Int
     }
@@ -610,6 +610,14 @@ extension LibraryManager {
     }
 }
 ```
+
+The `AuthorListItem`, `BookInfo`, `AuthorInfo` types returned by the manager are designed to feed your view controllers.
+
+When a new screen is added to your application, and you want to make sure it displays **consistent data** free from any data race, make sure you update the manager if needed. The rule is very simple: consumed data must come from a **single database access** (`dbQueue.read`, `write`, etc.)
+
+This may sound unusual. Aren't view controllers (or view models, or presenters, depending on your application architecture) supposed to freely pick and compose the pieces of data they need from a general-purpose database manager which stands passively in front of the database?
+
+Well, not quite with GRDB. It is an unmanaged ORM, so some amount of management must be imported in your application. There is no free lunch!
 
 > :question: **Note**: Wrapping several fetches in a single `read` method may look like an inconvenience to you. After all, other ORMs don't require that much ceremony:
 > 
