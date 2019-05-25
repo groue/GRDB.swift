@@ -617,7 +617,7 @@ When a new screen is added to your application, and you want to make sure it dis
 
 This may sound unusual. Aren't view controllers (or view models, or presenters, depending on your application architecture) supposed to freely pick and compose the pieces of data they need from a general-purpose database manager which stands passively in front of the database?
 
-Well, not quite with GRDB. It is an unmanaged ORM, so some amount of management must be imported in your application. There is no free lunch!
+Well, not quite with GRDB. It is an unmanaged ORM, so some amount of management must be imported into your application (the database manager). There is no free lunch!
 
 > :question: **Note**: Wrapping several fetches in a single `read` method may look like an inconvenience to you. After all, other ORMs don't require that much ceremony:
 > 
