@@ -148,7 +148,9 @@ Applying the **[Single Responsibility Principle]** has a consequence: don't even
 
 Now that we have record types that are able to read and write in the database, we'd like to put them to good use.
 
-Define requests which make sense for your application in your record types:
+> :bulb: **Tip**: Define requests which make sense for your application in your record types.
+
+This may give:
 
 ```swift
 extension Author {
@@ -173,7 +175,7 @@ extension Author {
 }
 ```
 
-Those requests will hide gory database details like database columns inside the record types, and make your application code crystal clear:
+Those requests will hide intimate database details like database columns inside the record types, and make your application code crystal clear:
 
 ```swift
 let sortedAuthors = try dbQueue.read { db in
@@ -191,7 +193,7 @@ try ValueObservation
     }
 ```
 
-### Composable Requests
+### Make Requests Able to Compose Together
 
 When requests should be composed together, don't define them as static methods of your record type. Instead, define them in a constrained extension of the `DerivableRequest` protocol:
 
@@ -237,7 +239,14 @@ try dbQueue.read { db in
 }
 ```
 
-We'll see below that extensions on `DerivableRequest` also plays nicely with record [associations].
+Extensions on `DerivableRequest` also play nicely with record [associations]:
+
+```swift
+let englishBooks = try dbQueue.read { db in
+    // Only keep books that can be joined to an English author
+    try Book.joining(required: Book.author.filter(country: "United Kingdom"))
+}
+```
 
 
 ## Compose Records
