@@ -94,7 +94,7 @@ class AssociationAggregateTests: GRDBTestCase {
             try assertEqualSQL(db, request, """
                 SELECT "team".*, COUNT(DISTINCT "custom"."rowid") AS "playerCount" \
                 FROM "team" \
-                JOIN "player" "custom" ON (("custom"."teamId" = "team"."id") AND (custom.score < 500)) \
+                JOIN "player" "custom" ON ("custom"."teamId" = "team"."id") AND (custom.score < 500) \
                 GROUP BY "team"."id"
                 """)
         }
@@ -717,8 +717,8 @@ class AssociationAggregateTests: GRDBTestCase {
                 COUNT(DISTINCT "player1"."rowid") AS "lowPlayerCount", \
                 COUNT(DISTINCT "player2"."rowid") AS "highPlayerCount" \
                 FROM "team" \
-                LEFT JOIN "player" "player1" ON (("player1"."teamId" = "team"."id") AND ("player1"."score" < 500)) \
-                LEFT JOIN "player" "player2" ON (("player2"."teamId" = "team"."id") AND ("player2"."score" >= 500)) \
+                LEFT JOIN "player" "player1" ON ("player1"."teamId" = "team"."id") AND ("player1"."score" < 500) \
+                LEFT JOIN "player" "player2" ON ("player2"."teamId" = "team"."id") AND ("player2"."score" >= 500) \
                 GROUP BY "team"."id" \
                 ORDER BY "team"."id"
                 """)

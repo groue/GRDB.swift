@@ -142,13 +142,13 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT *, "colb2" AS "grdb_colb2" \
                     FROM "b" \
-                    WHERE (("colb1" = 4) AND ("colb2" IN (1, 2))) \
+                    WHERE ("colb1" = 4) AND ("colb2" IN (1, 2)) \
                     ORDER BY "colb1"
                     """,
                     """
                     SELECT *, "colb2" AS "grdb_colb2" \
                     FROM "b" \
-                    WHERE (("colb1" <> 4) AND ("colb2" IN (1, 2))) \
+                    WHERE ("colb1" <> 4) AND ("colb2" IN (1, 2)) \
                     ORDER BY "colb1"
                     """])
             }
@@ -281,7 +281,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT *, "colc2" AS "grdb_colc2" \
                     FROM "c" \
-                    WHERE (0 AND ("colc2" IN (1, 2, 3))) \
+                    WHERE 0 AND ("colc2" IN (1, 2, 3)) \
                     ORDER BY "colc1"
                     """])
             }
@@ -336,37 +336,37 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT *, "colc2" AS "grdb_colc2" \
                     FROM "c" \
-                    WHERE (("colc1" > 7) AND ("colc2" IN (1, 2))) \
+                    WHERE ("colc1" > 7) AND ("colc2" IN (1, 2)) \
                     ORDER BY "colc1"
                     """,
                     """
                     SELECT *, "cold2" AS "grdb_cold2" \
                     FROM "d" \
-                    WHERE (("cold1" = 11) AND ("cold2" IN (8, 9))) \
+                    WHERE ("cold1" = 11) AND ("cold2" IN (8, 9)) \
                     ORDER BY "cold1"
                     """,
                     """
                     SELECT *, "cold2" AS "grdb_cold2" \
                     FROM "d" \
-                    WHERE (("cold1" <> 11) AND ("cold2" IN (8, 9))) \
+                    WHERE ("cold1" <> 11) AND ("cold2" IN (8, 9)) \
                     ORDER BY "cold1"
                     """,
                     """
                     SELECT *, "colc2" AS "grdb_colc2" \
                     FROM "c" \
-                    WHERE (("colc1" < 9) AND ("colc2" IN (1, 2))) \
+                    WHERE ("colc1" < 9) AND ("colc2" IN (1, 2)) \
                     ORDER BY "colc1"
                     """,
                     """
                     SELECT *, "cold2" AS "grdb_cold2" \
                     FROM "d" \
-                    WHERE (("cold1" = 11) AND ("cold2" IN (7, 8))) \
+                    WHERE ("cold1" = 11) AND ("cold2" IN (7, 8)) \
                     ORDER BY "cold1"
                     """,
                     """
                     SELECT *, "cold2" AS "grdb_cold2" \
                     FROM "d" \
-                    WHERE (("cold1" <> 11) AND ("cold2" IN (7, 8))) \
+                    WHERE ("cold1" <> 11) AND ("cold2" IN (7, 8)) \
                     ORDER BY "cold1"
                     """])
             }
@@ -428,7 +428,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     SELECT "c".*, "c"."colc2" AS "grdb_colc2", "d".* \
                     FROM "c" \
                     JOIN "d" ON ("d"."cold2" = "c"."colc1") \
-                    WHERE (0 AND ("c"."colc2" IN (1, 2, 3))) \
+                    WHERE 0 AND ("c"."colc2" IN (1, 2, 3)) \
                     ORDER BY "c"."colc1", "d"."cold1"
                     """])
             }
@@ -483,17 +483,17 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "c".*, "c"."colc2" AS "grdb_colc2", "d1".*, "d2".* \
                     FROM "c" \
-                    LEFT JOIN "d" "d1" ON (("d1"."cold2" = "c"."colc1") AND ("d1"."cold1" = 11)) \
-                    JOIN "d" "d2" ON (("d2"."cold2" = "c"."colc1") AND ("d2"."cold1" <> 11)) \
-                    WHERE (("c"."colc1" > 7) AND ("c"."colc2" IN (1, 2))) \
+                    LEFT JOIN "d" "d1" ON ("d1"."cold2" = "c"."colc1") AND ("d1"."cold1" = 11) \
+                    JOIN "d" "d2" ON ("d2"."cold2" = "c"."colc1") AND ("d2"."cold1" <> 11) \
+                    WHERE ("c"."colc1" > 7) AND ("c"."colc2" IN (1, 2)) \
                     ORDER BY "c"."colc1", "d1"."cold1", "d2"."cold1"
                     """,
                     """
                     SELECT "c".*, "c"."colc2" AS "grdb_colc2", "d1".*, "d2".* \
                     FROM "c" \
-                    LEFT JOIN "d" "d1" ON (("d1"."cold2" = "c"."colc1") AND ("d1"."cold1" = 11)) \
-                    JOIN "d" "d2" ON (("d2"."cold2" = "c"."colc1") AND ("d2"."cold1" <> 11)) \
-                    WHERE (("c"."colc1" < 9) AND ("c"."colc2" IN (1, 2))) \
+                    LEFT JOIN "d" "d1" ON ("d1"."cold2" = "c"."colc1") AND ("d1"."cold1" = 11) \
+                    JOIN "d" "d2" ON ("d2"."cold2" = "c"."colc1") AND ("d2"."cold1" <> 11) \
+                    WHERE ("c"."colc1" < 9) AND ("c"."colc2" IN (1, 2)) \
                     ORDER BY "c"."colc1", "d1"."cold1", "d2"."cold1"
                     """])
             }
@@ -522,7 +522,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                     FROM "d" \
-                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2, 3))) \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2, 3)) \
                     ORDER BY "d"."cold1"
                     """])
             }
@@ -560,20 +560,20 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                     FROM "d" \
-                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND (("c"."colc1" = 8) AND ("c"."colc2" IN (1, 2)))) \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" = 8) AND ("c"."colc2" IN (1, 2)) \
                     ORDER BY "d"."cold1"
                     """,
                     """
                     SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                     FROM "d" \
-                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2))) \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2)) \
                     WHERE ("d"."cold1" <> 11) \
                     ORDER BY "d"."cold1"
                     """,
                     """
                     SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                     FROM "d" \
-                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2))) \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2)) \
                     WHERE ("d"."cold1" = 11) \
                     ORDER BY "d"."cold1"
                     """])
@@ -601,7 +601,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """,
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
-                    FROM "c" JOIN "a" ON (("a"."cola1" = "c"."colc2") AND ("a"."cola1" IN (1, 2))) \
+                    FROM "c" JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola1" IN (1, 2)) \
                     ORDER BY "c"."colc1"
                     """])
             }
@@ -637,7 +637,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
-                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND ((("a"."cola2" = 'a1') AND ("a"."cola2" <> 'a1')) AND ("a"."cola1" IN (1, 2)))) \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a1') AND ("a"."cola2" <> 'a1') AND ("a"."cola1" IN (1, 2)) \
                     ORDER BY "c"."colc1"
                     """])
             }
@@ -675,13 +675,13 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
-                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND ((("a"."cola2" = 'a1') AND ("a"."cola2" <> 'a1')) AND ("a"."cola1" IN (1, 2)))) \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a1') AND ("a"."cola2" <> 'a1') AND ("a"."cola1" IN (1, 2)) \
                     ORDER BY "c"."colc1"
                     """,
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
-                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND ((("a"."cola2" = 'a1') AND ("a"."cola2" <> 'a1')) AND ("a"."cola1" IN (1, 2)))) \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a1') AND ("a"."cola2" <> 'a1') AND ("a"."cola1" IN (1, 2)) \
                     ORDER BY "c"."colc1"
                     """])
             }
@@ -717,13 +717,13 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
-                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola2" = 'a1') AND ("a"."cola1" IN (1, 2)))) \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a1') AND ("a"."cola1" IN (1, 2)) \
                     ORDER BY "c"."colc1"
                     """,
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
-                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola2" <> 'a1') AND ("a"."cola1" IN (1, 2)))) \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" <> 'a1') AND ("a"."cola1" IN (1, 2)) \
                     ORDER BY "c"."colc1"
                     """])
             }
@@ -751,7 +751,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                     FROM "d" \
-                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2, 3))) \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2, 3)) \
                     ORDER BY "d"."cold1"
                     """])
             }
@@ -791,7 +791,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                     FROM "d" \
-                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ((("c"."colc1" = 7) AND ("c"."colc1" <> 7)) AND ("c"."colc2" IN (1, 2, 3)))) \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" = 7) AND ("c"."colc1" <> 7) AND ("c"."colc2" IN (1, 2, 3)) \
                     ORDER BY "d"."cold1"
                     """,
                     """
@@ -833,13 +833,13 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                     FROM "d" \
-                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ((("c"."colc1" = 7) AND ("c"."colc1" <> 7)) AND ("c"."colc2" IN (1, 2, 3)))) \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" = 7) AND ("c"."colc1" <> 7) AND ("c"."colc2" IN (1, 2, 3)) \
                     ORDER BY "d"."cold1"
                     """,
                     """
                     SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                     FROM "d" \
-                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND ((("c"."colc1" = 7) AND ("c"."colc1" <> 7)) AND ("c"."colc2" IN (1, 2, 3)))) \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" = 7) AND ("c"."colc1" <> 7) AND ("c"."colc2" IN (1, 2, 3)) \
                     ORDER BY "d"."cold1"
                     """,
                     """
@@ -879,13 +879,13 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                     FROM "d" \
-                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND (("c"."colc1" = 7) AND ("c"."colc2" IN (1, 2, 3)))) \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" = 7) AND ("c"."colc2" IN (1, 2, 3)) \
                     ORDER BY "d"."cold1"
                     """,
                     """
                     SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                     FROM "d" \
-                    JOIN "c" ON (("c"."colc1" = "d"."cold2") AND (("c"."colc1" <> 7) AND ("c"."colc2" IN (1, 2, 3)))) \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" <> 7) AND ("c"."colc2" IN (1, 2, 3)) \
                     ORDER BY "d"."cold1"
                     """,
                     """
@@ -924,7 +924,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
-                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND ("a"."cola1" IN (1, 2))) \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola1" IN (1, 2)) \
                     ORDER BY "c"."colc1"
                     """])
             }
@@ -970,35 +970,35 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "b".*, "a1".*, "a2".* \
                     FROM "b" \
-                    LEFT JOIN "a" "a1" ON (("a1"."cola1" = "b"."colb2") AND ("a1"."cola2" = 'a1')) \
-                    LEFT JOIN "a" "a2" ON (("a2"."cola1" = "b"."colb2") AND ("a2"."cola2" = 'a2')) \
+                    LEFT JOIN "a" "a1" ON ("a1"."cola1" = "b"."colb2") AND ("a1"."cola2" = 'a1') \
+                    LEFT JOIN "a" "a2" ON ("a2"."cola1" = "b"."colb2") AND ("a2"."cola2" = 'a2') \
                     ORDER BY "b"."colb1"
                     """,
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
-                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola2" = 'a1') AND ("a"."cola1" IN (1, 2)))) \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a1') AND ("a"."cola1" IN (1, 2)) \
                     WHERE ("c"."colc1" = 9) \
                     ORDER BY "c"."colc1"
                     """,
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
-                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola2" = 'a1') AND ("a"."cola1" IN (1, 2)))) \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a1') AND ("a"."cola1" IN (1, 2)) \
                     WHERE ("c"."colc1" <> 9) \
                     ORDER BY "c"."colc1"
                     """,
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
-                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola2" = 'a2') AND ("a"."cola1" IN (1, 2)))) \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a2') AND ("a"."cola1" IN (1, 2)) \
                     WHERE ("c"."colc1" = 9) \
                     ORDER BY "c"."colc1"
                     """,
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
-                    JOIN "a" ON (("a"."cola1" = "c"."colc2") AND (("a"."cola2" = 'a2') AND ("a"."cola1" IN (1, 2)))) \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a2') AND ("a"."cola1" IN (1, 2)) \
                     WHERE ("c"."colc1" <> 9) \
                     ORDER BY "c"."colc1"
                     """])

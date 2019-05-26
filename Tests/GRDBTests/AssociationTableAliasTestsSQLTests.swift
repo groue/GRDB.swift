@@ -53,7 +53,7 @@ class AssociationTableAliasTestsSQLTests : GRDBTestCase {
                 let expectedSQL = """
                     SELECT "name" \
                     FROM "a" \
-                    WHERE (("id" = 1) AND (("name" IS NOT NULL) AND ("name" = 'foo'))) \
+                    WHERE ("id" = 1) AND (("name" IS NOT NULL) AND ("name" = 'foo')) \
                     GROUP BY "name" \
                     HAVING "name" \
                     ORDER BY "name"
@@ -90,7 +90,7 @@ class AssociationTableAliasTestsSQLTests : GRDBTestCase {
                 let expectedSQL = """
                     SELECT "customA"."name" \
                     FROM "a" "customA" \
-                    WHERE (("customA"."id" = 1) AND (("customA"."name" IS NOT NULL) AND ("customA"."name" = 'foo'))) \
+                    WHERE ("customA"."id" = 1) AND (("customA"."name" IS NOT NULL) AND ("customA"."name" = 'foo')) \
                     GROUP BY "customA"."name" \
                     HAVING "customA"."name" \
                     ORDER BY "customA"."name"

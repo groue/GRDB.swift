@@ -516,7 +516,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON (("b"."id" = "a"."bid") AND ("b"."id" > 1))
+                JOIN "b" ON ("b"."id" = "a"."bid") AND ("b"."id" > 1)
                 """)
             }
             do {
@@ -526,7 +526,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON (("b"."id" = "a"."bid") AND ("b"."id" < 3))
+                JOIN "b" ON ("b"."id" = "a"."bid") AND ("b"."id" < 3)
                 """)
             }
             do {
@@ -536,7 +536,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON (("b"."id" = "a"."bid") AND (("b"."id" > 1) AND ("b"."id" < 3)))
+                JOIN "b" ON ("b"."id" = "a"."bid") AND ("b"."id" > 1) AND ("b"."id" < 3)
                 """)
             }
         }

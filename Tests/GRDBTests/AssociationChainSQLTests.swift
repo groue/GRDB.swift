@@ -92,13 +92,13 @@ class AssociationChainSQLTests: GRDBTestCase {
                 SELECT "c".*, "d".* \
                 FROM "c" \
                 JOIN "d" ON ("d"."id" = "c"."did") \
-                JOIN "b" ON (("b"."id" = "c"."bid") AND ("b"."id" = 1))
+                JOIN "b" ON ("b"."id" = "c"."bid") AND ("b"."id" = 1)
                 """)
             try assertEqualSQL(db, A().request(for: A.c.including(optional: C.d)), """
                 SELECT "c".*, "d".* \
                 FROM "c" \
                 LEFT JOIN "d" ON ("d"."id" = "c"."did") \
-                JOIN "b" ON (("b"."id" = "c"."bid") AND ("b"."id" = 1))
+                JOIN "b" ON ("b"."id" = "c"."bid") AND ("b"."id" = 1)
                 """)
         }
     }
@@ -335,13 +335,13 @@ class AssociationChainSQLTests: GRDBTestCase {
                 SELECT "c".* \
                 FROM "c" \
                 JOIN "d" ON ("d"."id" = "c"."did") \
-                JOIN "b" ON (("b"."id" = "c"."bid") AND ("b"."id" = 1))
+                JOIN "b" ON ("b"."id" = "c"."bid") AND ("b"."id" = 1)
                 """)
             try assertEqualSQL(db, A().request(for: A.c.joining(optional: C.d)), """
                 SELECT "c".* \
                 FROM "c" \
                 LEFT JOIN "d" ON ("d"."id" = "c"."did") \
-                JOIN "b" ON (("b"."id" = "c"."bid") AND ("b"."id" = 1))
+                JOIN "b" ON ("b"."id" = "c"."bid") AND ("b"."id" = 1)
                 """)
         }
     }

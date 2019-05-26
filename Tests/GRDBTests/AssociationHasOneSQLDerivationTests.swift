@@ -113,7 +113,7 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "b".* \
                     FROM "a" \
-                    JOIN "b" ON (("b"."aid" = "a"."id") AND ("b"."name" IS NOT NULL))
+                    JOIN "b" ON ("b"."aid" = "a"."id") AND ("b"."name" IS NOT NULL)
                     """)
             }
             do {
@@ -121,7 +121,7 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "b".* \
                     FROM "a" \
-                    JOIN "b" ON (("b"."aid" = "a"."id") AND ("b"."id" = 1))
+                    JOIN "b" ON ("b"."aid" = "a"."id") AND ("b"."id" = 1)
                     """)
             }
             do {
@@ -129,7 +129,7 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "b".* \
                     FROM "a" \
-                    JOIN "b" ON (("b"."aid" = "a"."id") AND ("b"."id" IN (1, 2, 3)))
+                    JOIN "b" ON ("b"."aid" = "a"."id") AND ("b"."id" IN (1, 2, 3))
                     """)
             }
             do {
@@ -137,7 +137,7 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "b".* \
                     FROM "a" \
-                    JOIN "b" ON (("b"."aid" = "a"."id") AND ("b"."id" = 1))
+                    JOIN "b" ON ("b"."aid" = "a"."id") AND ("b"."id" = 1)
                     """)
             }
             do {
@@ -145,7 +145,7 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "b".* \
                     FROM "a" \
-                    JOIN "b" ON (("b"."aid" = "a"."id") AND (("b"."id" = 1) OR ("b"."id" = 2)))
+                    JOIN "b" ON ("b"."aid" = "a"."id") AND (("b"."id" = 1) OR ("b"."id" = 2))
                     """)
             }
             do {
@@ -156,7 +156,7 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "customB".* \
                     FROM "a" \
-                    JOIN "b" "customB" ON (("customB"."aid" = "a"."id") AND (customB.name = 'foo'))
+                    JOIN "b" "customB" ON ("customB"."aid" = "a"."id") AND (customB.name = 'foo')
                     """)
             }
         }

@@ -6,7 +6,10 @@ struct SQLQuery {
     var isDistinct: Bool
     var expectsSingleResult: Bool
     var groupPromise: DatabasePromise<[SQLExpression]>?
-    var havingExpression: SQLExpression?
+    // Having clause is an array of expressions that we'll join with
+    // SQLExpressionAnd. This gives nicer output in generated SQL:
+    // `(a AND b AND c)` instead of `((a AND b) AND c)`.
+    var havingExpressions: [SQLExpression]
     var limit: SQLLimit?
 
     init(
@@ -14,14 +17,14 @@ struct SQLQuery {
         isDistinct: Bool = false,
         expectsSingleResult: Bool = false,
         groupPromise: DatabasePromise<[SQLExpression]>? = nil,
-        havingExpression: SQLExpression? = nil,
+        havingExpressions: [SQLExpression] = [],
         limit: SQLLimit? = nil)
     {
         self.relation = relation
         self.isDistinct = isDistinct
         self.expectsSingleResult = expectsSingleResult
         self.groupPromise = groupPromise
-        self.havingExpression = havingExpression
+        self.havingExpressions = havingExpressions
         self.limit = limit
     }
 }
@@ -59,11 +62,7 @@ extension SQLQuery: SelectionRequest, FilteredRequest, OrderedRequest {
     
     func having(_ predicate: SQLExpressible) -> SQLQuery {
         var query = self
-        if let havingExpression = query.havingExpression {
-            query.havingExpression = (havingExpression && predicate).sqlExpression
-        } else {
-            query.havingExpression = predicate.sqlExpression
-        }
+        query.havingExpressions.append(predicate.sqlExpression)
         return query
     }
 

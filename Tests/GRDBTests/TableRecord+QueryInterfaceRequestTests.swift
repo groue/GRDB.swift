@@ -214,7 +214,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, Reader.filter(true).filter(false)),
-            "SELECT * FROM \"readers\" WHERE (1 AND 0)")
+            "SELECT * FROM \"readers\" WHERE 1 AND 0")
     }
     
     

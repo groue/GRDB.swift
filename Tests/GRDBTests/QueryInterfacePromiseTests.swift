@@ -42,7 +42,7 @@ class QueryInterfacePromiseTests: GRDBTestCase {
                 let sql = """
                     SELECT "node1".* \
                     FROM "node" "node1" \
-                    LEFT JOIN "node" "node2" ON (("node2"."id" = "node1"."parentId") AND ("node2"."id" = 2)) \
+                    LEFT JOIN "node" "node2" ON ("node2"."id" = "node1"."parentId") AND ("node2"."id" = 2) \
                     WHERE ("node1"."id" = 1)
                     """
                 try assertEqualSQL(db, request, sql)
@@ -55,7 +55,7 @@ class QueryInterfacePromiseTests: GRDBTestCase {
                 let sql = """
                     SELECT "node1".* \
                     FROM "node" "node1" \
-                    LEFT JOIN "node" "node2" ON (("node2"."id" = "node1"."parentId") AND ("node2"."id" = 2)) \
+                    LEFT JOIN "node" "node2" ON ("node2"."id" = "node1"."parentId") AND ("node2"."id" = 2) \
                     WHERE ("node1"."id" = 1)
                     """
                 try assertEqualSQL(db, request, sql)
@@ -122,7 +122,7 @@ class QueryInterfacePromiseTests: GRDBTestCase {
                 let sql = """
                     SELECT "node1".* \
                     FROM "node" "node1" \
-                    LEFT JOIN "node" "node2" ON (("node2"."id" = "node1"."parentId") AND ("node2"."id" = 2)) \
+                    LEFT JOIN "node" "node2" ON ("node2"."id" = "node1"."parentId") AND ("node2"."id" = 2) \
                     WHERE ("node1"."id" = 1)
                     """
                 try assertEqualSQL(db, request, sql)

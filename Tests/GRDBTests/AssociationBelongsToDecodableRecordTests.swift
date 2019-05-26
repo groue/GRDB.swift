@@ -130,7 +130,7 @@ class AssociationBelongsToDecodableRecordTests: GRDBTestCase {
         XCTAssertEqual(lastSQLQuery, """
             SELECT "players".*, "teams"."name", "teams"."id" \
             FROM "players" \
-            JOIN "teams" ON (("teams"."id" = "players"."teamId") AND ("teams"."name" = 'Reds')) \
+            JOIN "teams" ON ("teams"."id" = "players"."teamId") AND ("teams"."name" = 'Reds') \
             ORDER BY "teams"."name", "players"."name"
             """)
         XCTAssertEqual(records.count, 1)

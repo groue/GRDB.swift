@@ -275,6 +275,10 @@ struct SQLExpressionAnd : SQLExpression {
     }
     
     func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+        return expressionSQL(&context, wrappedInParenthesis: true)
+    }
+    
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
         guard let first = expressions.first else {
             // Ruby [].all? # => true
             return true.sqlExpression.expressionSQL(&context)
@@ -283,7 +287,11 @@ struct SQLExpressionAnd : SQLExpression {
             return first.expressionSQL(&context)
         }
         let expressionSQLs = expressions.map { $0.expressionSQL(&context) }
-        return "(" + expressionSQLs.joined(separator: " AND ") + ")"
+        if wrappedInParenthesis {
+            return "(" + expressionSQLs.joined(separator: " AND ") + ")"
+        } else {
+            return expressionSQLs.joined(separator: " AND ")
+        }
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {

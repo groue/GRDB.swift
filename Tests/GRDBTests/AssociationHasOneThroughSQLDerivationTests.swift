@@ -127,7 +127,7 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                     SELECT "a".*, "c".* \
                     FROM "a" \
                     JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON (("c"."id" = "b"."cId") AND ("c"."name" IS NOT NULL))
+                    JOIN "c" ON ("c"."id" = "b"."cId") AND ("c"."name" IS NOT NULL)
                     """)
             }
             do {
@@ -136,7 +136,7 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                     SELECT "a".*, "c".* \
                     FROM "a" \
                     JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON (("c"."id" = "b"."cId") AND ("c"."id" = 1))
+                    JOIN "c" ON ("c"."id" = "b"."cId") AND ("c"."id" = 1)
                     """)
             }
             do {
@@ -145,7 +145,7 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                     SELECT "a".*, "c".* \
                     FROM "a" \
                     JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON (("c"."id" = "b"."cId") AND ("c"."id" IN (1, 2, 3)))
+                    JOIN "c" ON ("c"."id" = "b"."cId") AND ("c"."id" IN (1, 2, 3))
                     """)
             }
             do {
@@ -154,7 +154,7 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                     SELECT "a".*, "c".* \
                     FROM "a" \
                     JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON (("c"."id" = "b"."cId") AND ("c"."id" = 1))
+                    JOIN "c" ON ("c"."id" = "b"."cId") AND ("c"."id" = 1)
                     """)
             }
             do {
@@ -163,7 +163,7 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                     SELECT "a".*, "c".* \
                     FROM "a" \
                     JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON (("c"."id" = "b"."cId") AND (("c"."id" = 1) OR ("c"."id" = 2)))
+                    JOIN "c" ON ("c"."id" = "b"."cId") AND (("c"."id" = 1) OR ("c"."id" = 2))
                     """)
             }
             do {
@@ -175,7 +175,7 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                     SELECT "a".*, "customC".* \
                     FROM "a" \
                     JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" "customC" ON (("customC"."id" = "b"."cId") AND (customC.name = 'foo'))
+                    JOIN "c" "customC" ON ("customC"."id" = "b"."cId") AND (customC.name = 'foo')
                     """)
             }
         }

@@ -510,12 +510,12 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, tableRequest
                 .filter(sql: "age > :age", arguments: ["age": 20])
                 .filter(sql: "name = ?", arguments: ["arthur"])),
-            "SELECT * FROM \"readers\" WHERE ((age > 20) AND (name = 'arthur'))")
+            "SELECT * FROM \"readers\" WHERE (age > 20) AND (name = 'arthur')")
         XCTAssertEqual(
             sql(dbQueue, tableRequest
                 .filter(sql: "age > ?", arguments: [20])
                 .filter(sql: "name = :name", arguments: ["name": "arthur"])),
-            "SELECT * FROM \"readers\" WHERE ((age > 20) AND (name = 'arthur'))")
+            "SELECT * FROM \"readers\" WHERE (age > 20) AND (name = 'arthur')")
     }
 
     func testFilter() throws {
@@ -529,7 +529,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(true).filter(false)),
-            "SELECT * FROM \"readers\" WHERE (1 AND 0)")
+            "SELECT * FROM \"readers\" WHERE 1 AND 0")
     }
     
     
@@ -608,7 +608,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Col.name).having(min(Col.age) > 18).having(max(Col.age) < 50)),
-                "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((MIN(\"age\") > 18) AND (MAX(\"age\") < 50))")
+                "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING (MIN(\"age\") > 18) AND (MAX(\"age\") < 50)")
     }
     
     
