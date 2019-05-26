@@ -280,9 +280,6 @@ struct SQLExpressionAnd : SQLExpression {
     }
     
     func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
-        }
         guard let first = expressions.first else {
             // Ruby [].all? # => true
             return true.sqlExpression.expressionSQL(&context, wrappedInParenthesis: wrappedInParenthesis)
@@ -291,7 +288,11 @@ struct SQLExpressionAnd : SQLExpression {
             return first.expressionSQL(&context, wrappedInParenthesis: wrappedInParenthesis)
         }
         let expressionSQLs = expressions.map { $0.expressionSQL(&context, wrappedInParenthesis: true) }
-        return expressionSQLs.joined(separator: " AND ")
+        if wrappedInParenthesis {
+            return "(\(expressionSQLs.joined(separator: " AND ")))"
+        } else {
+            return expressionSQLs.joined(separator: " AND ")
+        }
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
@@ -319,9 +320,6 @@ struct SQLExpressionOr : SQLExpression {
     }
     
     func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
-        }
         guard let first = expressions.first else {
             // Ruby [].any? # => false
             return false.sqlExpression.expressionSQL(&context, wrappedInParenthesis: wrappedInParenthesis)
@@ -330,7 +328,11 @@ struct SQLExpressionOr : SQLExpression {
             return first.expressionSQL(&context, wrappedInParenthesis: wrappedInParenthesis)
         }
         let expressionSQLs = expressions.map { $0.expressionSQL(&context, wrappedInParenthesis: true) }
-        return expressionSQLs.joined(separator: " OR ")
+        if wrappedInParenthesis {
+            return "(\(expressionSQLs.joined(separator: " OR ")))"
+        } else {
+            return expressionSQLs.joined(separator: " OR ")
+        }
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
