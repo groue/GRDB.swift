@@ -264,8 +264,8 @@ Documentation
 
 #### Records and the Query Interface
 
-- [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
-- [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [table creation](#database-schema) &bull; [requests](#requests)
+- [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies
+- [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [table creation](#database-schema) &bull; [requests](#requests) • [associations](Documentation/AssociationsBasics.md) between record types
 
 #### Application Tools
 
@@ -3658,6 +3658,8 @@ try dbQueue.write { db in
 ```
 
 So don't miss the [SQL API](#sqlite-api).
+
+> :point_up: **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
 
 - [Database Schema](#database-schema)
 - [Requests](#requests)
@@ -8585,6 +8587,8 @@ try dbQueue.read { db in
     // Prints SELECT * FROM wine WHERE origin = 'Burgundy' ORDER BY price
 }
 ```
+
+> :point_up: **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
 
 
 ### Generic parameter 'T' could not be inferred
