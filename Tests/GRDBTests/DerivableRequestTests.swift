@@ -148,7 +148,7 @@ class DerivableRequestTests: GRDBTestCase {
             XCTAssertEqual(bookTitles, ["Du côté de chez Swann", "Moby-Dick"])
             XCTAssertEqual(lastSQLQuery, """
                 SELECT "book".* FROM "book" \
-                JOIN "author" ON ("author"."id" = "book"."authorId") \
+                JOIN "author" ON "author"."id" = "book"."authorId" \
                 ORDER BY \
                 "book"."title" COLLATE swiftLocalizedCaseInsensitiveCompare, \
                 "author"."lastName" COLLATE swiftLocalizedCaseInsensitiveCompare, \
@@ -165,7 +165,7 @@ class DerivableRequestTests: GRDBTestCase {
             XCTAssertEqual(reversedBookTitles, ["Moby-Dick", "Du côté de chez Swann"])
             XCTAssertEqual(lastSQLQuery, """
                 SELECT "book".* FROM "book" \
-                JOIN "author" ON ("author"."id" = "book"."authorId") \
+                JOIN "author" ON "author"."id" = "book"."authorId" \
                 ORDER BY \
                 "book"."title" COLLATE swiftLocalizedCaseInsensitiveCompare DESC, \
                 "author"."lastName" COLLATE swiftLocalizedCaseInsensitiveCompare DESC, \
@@ -180,7 +180,7 @@ class DerivableRequestTests: GRDBTestCase {
                 .fetchAll(db)
             XCTAssertEqual(lastSQLQuery, """
                 SELECT "book".* FROM "book" \
-                JOIN "author" ON ("author"."id" = "book"."authorId")
+                JOIN "author" ON "author"."id" = "book"."authorId"
                 """)
         }
     }

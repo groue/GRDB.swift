@@ -35,7 +35,7 @@ extension SQLInterpolation {
     ///         SELECT \(Column("name")) FROM player
     ///         """
     public mutating func appendInterpolation(_ expressible: SQLExpressible & SQLSelectable & SQLOrderingTerm) {
-        sql += expressible.sqlExpression.expressionSQL(&context)
+        sql += expressible.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
     }
     
     /// Appends the name of the coding key.
@@ -45,7 +45,7 @@ extension SQLInterpolation {
     ///         SELECT \(CodingKey.name) FROM player
     ///         """
     public mutating func appendInterpolation(_ codingKey: SQLExpressible & SQLSelectable & SQLOrderingTerm & CodingKey) {
-        sql += codingKey.sqlExpression.expressionSQL(&context)
+        sql += codingKey.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
     }
     
     /// Appends the expression SQL, or NULL if it is nil.
@@ -57,7 +57,7 @@ extension SQLInterpolation {
     ///         """
     public mutating func appendInterpolation<T: SQLExpressible>(_ expressible: T?) {
         if let expressible = expressible {
-            sql += expressible.sqlExpression.expressionSQL(&context)
+            sql += expressible.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
         } else {
             sql += "NULL"
         }

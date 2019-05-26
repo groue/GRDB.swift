@@ -27,7 +27,7 @@ public protocol ColumnExpression: SQLExpression {
 extension ColumnExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
         return name.quotedDatabaseIdentifier
     }
     
@@ -73,7 +73,7 @@ struct QualifiedColumn: ColumnExpression {
         self.alias = alias
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
         if let qualifier = context.qualifier(for: alias) {
             return qualifier.quotedDatabaseIdentifier + "." + name.quotedDatabaseIdentifier
         }

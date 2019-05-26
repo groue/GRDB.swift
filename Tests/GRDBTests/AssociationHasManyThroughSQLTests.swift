@@ -39,8 +39,8 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             
             try testHasManyWithTwoSteps(
                 db, ab: A.b, ac: A.c,
-                bCondition: "(\"b\".\"id\" = \"a\".\"bId\")",
-                cCondition: "(\"c\".\"bId\" = \"b\".\"id\")")
+                bCondition: "\"b\".\"id\" = \"a\".\"bId\"",
+                cCondition: "\"c\".\"bId\" = \"b\".\"id\"")
             
             try assertEqualSQL(db, A().request(for: A.c), """
                 SELECT "c".* FROM "c" \
@@ -79,8 +79,8 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             
             try testHasManyWithTwoSteps(
                 db, ab: A.b, ac: A.c,
-                bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
-                cCondition: "(\"c\".\"bId\" = \"b\".\"id\")")
+                bCondition: "\"b\".\"aId\" = \"a\".\"id\"",
+                cCondition: "\"c\".\"bId\" = \"b\".\"id\"")
             
             try assertEqualSQL(db, A().request(for: A.c), """
                 SELECT "c".* FROM "c" \
@@ -119,8 +119,8 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             
             try testHasManyWithTwoSteps(
                 db, ab: A.b, ac: A.c,
-                bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
-                cCondition: "(\"c\".\"id\" = \"b\".\"cId\")")
+                bCondition: "\"b\".\"aId\" = \"a\".\"id\"",
+                cCondition: "\"c\".\"id\" = \"b\".\"cId\"")
             
             try assertEqualSQL(db, A().request(for: A.c), """
                 SELECT "c".* FROM "c" \
@@ -159,8 +159,8 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             
             try testHasManyWithTwoSteps(
                 db, ab: A.b, ac: A.c,
-                bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
-                cCondition: "(\"c\".\"bId\" = \"b\".\"id\")")
+                bCondition: "\"b\".\"aId\" = \"a\".\"id\"",
+                cCondition: "\"c\".\"bId\" = \"b\".\"id\"")
             
             try assertEqualSQL(db, A().request(for: A.c), """
                 SELECT "c".* FROM "c" \

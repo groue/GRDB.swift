@@ -363,15 +363,7 @@ extension AggregatingRequest {
     /// Creates a request with a new grouping.
     public func group(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        // This "expression" is not a real expression. We support raw sql which
-        // actually contains several expressions:
-        //
-        //   request = Player.group(sql: "teamId, level")
-        //
-        // This is why we use the "unsafeLiteral" initializer, so that the
-        // SQLExpressionLiteral does not wrap input in parentheses, and
-        // generates invalid SQL `GROUP BY (teamId, level)`.
-        return group(SQLExpressionLiteral(unsafeLiteral: sqlLiteral))
+        return group(SQLExpressionLiteral(literal: sqlLiteral))
     }
 
     /// Creates a request with the provided *sql* added to the
@@ -498,15 +490,7 @@ extension OrderedRequest {
     ///         .order(sql: "name")
     public func order(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        // This "expression" is not a real expression. We support raw sql which
-        // actually contains several expressions:
-        //
-        //   request = Player.order(sql: "teamId, level")
-        //
-        // This is why we use the "unsafeLiteral" initializer, so that the
-        // SQLExpressionLiteral does not wrap input in parentheses, and
-        // generates invalid SQL `ORDER BY (teamId, level)`.
-        return order(SQLExpressionLiteral(unsafeLiteral: sqlLiteral))
+        return order(SQLExpressionLiteral(literal: sqlLiteral))
     }
 }
 

@@ -50,17 +50,17 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
             try assertEqualSQL(db, A.including(required: A.b), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.including(required: A.restrictedB), """
                 SELECT "a".*, "b"."name" \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.including(required: A.extendedB), """
                 SELECT "a".*, "b".*, "b"."rowid" \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
         }
     }
@@ -74,7 +74,7 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "b"."name" \
                     FROM "a" \
-                    JOIN "b" ON ("b"."id" = "a"."bid")
+                    JOIN "b" ON "b"."id" = "a"."bid"
                     """)
             }
             do {
@@ -85,7 +85,7 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "b".*, "b"."rowid" \
                     FROM "a" \
-                    JOIN "b" ON ("b"."id" = "a"."bid")
+                    JOIN "b" ON "b"."id" = "a"."bid"
                     """)
             }
             do {
@@ -97,9 +97,9 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                         Column("name"),
                         (Column("id") + aAlias[Column("id")]).aliased("foo")))
                 try assertEqualSQL(db, request, """
-                    SELECT "a".*, "b"."name", ("b"."id" + "a"."id") AS "foo" \
+                    SELECT "a".*, "b"."name", "b"."id" + "a"."id" AS "foo" \
                     FROM "a" \
-                    JOIN "b" ON ("b"."id" = "a"."bid")
+                    JOIN "b" ON "b"."id" = "a"."bid"
                     """)
             }
         }
@@ -172,8 +172,8 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
             try assertEqualSQL(db, request, """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid") \
-                WHERE ("b"."name" IS NOT NULL)
+                JOIN "b" ON "b"."id" = "a"."bid" \
+                WHERE "b"."name" IS NOT NULL
                 """)
         }
     }
@@ -219,8 +219,8 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
             let prefix = """
                 SELECT "a".*, "ab".*, "aba".* \
                 FROM "a" \
-                JOIN "b" "ab" ON ("ab"."id" = "a"."bid") \
-                JOIN "a" "aba" ON ("aba"."bid" = "ab"."id")
+                JOIN "b" "ab" ON "ab"."id" = "a"."bid" \
+                JOIN "a" "aba" ON "aba"."bid" = "ab"."id"
                 """
             let orderClauses = sqls.map { sql -> String in
                 let prefixEndIndex = sql.index(sql.startIndex, offsetBy: prefix.count)

@@ -66,7 +66,7 @@ struct SQLQueryGenerator {
         }
         
         if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
-            sql += " GROUP BY " + groupExpressions.map { $0.expressionSQL(&context) }.joined(separator: ", ")
+            sql += " GROUP BY " + groupExpressions.map { $0.expressionSQL(&context, wrappedInParenthesis: false) }.joined(separator: ", ")
         }
         
         if havingExpressions.isEmpty == false {

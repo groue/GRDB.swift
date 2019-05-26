@@ -89,7 +89,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT *, "colb2" AS "grdb_colb2" \
                     FROM "b" \
-                    WHERE ("colb2" IN (1, 2, 3)) \
+                    WHERE "colb2" IN (1, 2, 3) \
                     ORDER BY "colb1"
                     """])
             }
@@ -136,7 +136,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT * FROM "a" \
-                    WHERE ("cola1" <> 3) \
+                    WHERE "cola1" <> 3 \
                     ORDER BY "cola1"
                     """,
                     """
@@ -198,7 +198,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT *, "parentA" AS "grdb_parentA", "parentB" AS "grdb_parentB" \
                     FROM "child" \
-                    WHERE ((("parentA" = 'baz') AND ("parentB" = 'qux')) OR (("parentA" = 'foo') AND ("parentB" = 'bar')))
+                    WHERE (("parentA" = 'baz') AND ("parentB" = 'qux')) OR (("parentA" = 'foo') AND ("parentB" = 'bar'))
                     """])
             }
             
@@ -247,13 +247,13 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT *, "colc2" AS "grdb_colc2" \
                     FROM "c" \
-                    WHERE ("colc2" IN (1, 2, 3)) \
+                    WHERE "colc2" IN (1, 2, 3) \
                     ORDER BY "colc1"
                     """,
                     """
                     SELECT *, "cold2" AS "grdb_cold2" \
                     FROM "d" \
-                    WHERE ("cold2" IN (7, 8, 9)) \
+                    WHERE "cold2" IN (7, 8, 9) \
                     ORDER BY "cold1"
                     """])
             }
@@ -330,7 +330,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT * \
                     FROM "a" \
-                    WHERE ("cola1" <> 3) \
+                    WHERE "cola1" <> 3 \
                     ORDER BY "cola1"
                     """,
                     """
@@ -398,8 +398,8 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "c".*, "c"."colc2" AS "grdb_colc2", "d".* \
                     FROM "c" \
-                    JOIN "d" ON ("d"."cold2" = "c"."colc1") \
-                    WHERE ("c"."colc2" IN (1, 2, 3)) \
+                    JOIN "d" ON "d"."cold2" = "c"."colc1" \
+                    WHERE "c"."colc2" IN (1, 2, 3) \
                     ORDER BY "c"."colc1", "d"."cold1"
                     """])
             }
@@ -427,7 +427,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "c".*, "c"."colc2" AS "grdb_colc2", "d".* \
                     FROM "c" \
-                    JOIN "d" ON ("d"."cold2" = "c"."colc1") \
+                    JOIN "d" ON "d"."cold2" = "c"."colc1" \
                     WHERE 0 AND ("c"."colc2" IN (1, 2, 3)) \
                     ORDER BY "c"."colc1", "d"."cold1"
                     """])
@@ -477,7 +477,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT * \
                     FROM "a" \
-                    WHERE ("cola1" <> 3) \
+                    WHERE "cola1" <> 3 \
                     ORDER BY "cola1"
                     """,
                     """
@@ -554,7 +554,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT * FROM "a" \
-                    WHERE ("cola1" <> 3) \
+                    WHERE "cola1" <> 3 \
                     ORDER BY "cola1"
                     """,
                     """
@@ -567,14 +567,14 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                     FROM "d" \
                     JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2)) \
-                    WHERE ("d"."cold1" <> 11) \
+                    WHERE "d"."cold1" <> 11 \
                     ORDER BY "d"."cold1"
                     """,
                     """
                     SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
                     FROM "d" \
                     JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2)) \
-                    WHERE ("d"."cold1" = 11) \
+                    WHERE "d"."cold1" = 11 \
                     ORDER BY "d"."cold1"
                     """])
             }
@@ -795,7 +795,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     ORDER BY "d"."cold1"
                     """,
                     """
-                    SELECT *, "colc2" AS "grdb_colc2" FROM "c" WHERE ("colc2" IN (1, 2, 3))
+                    SELECT *, "colc2" AS "grdb_colc2" FROM "c" WHERE "colc2" IN (1, 2, 3)
                     """])
             }
             
@@ -843,7 +843,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     ORDER BY "d"."cold1"
                     """,
                     """
-                    SELECT *, "colc2" AS "grdb_colc2" FROM "c" WHERE ("colc2" IN (1, 2, 3))
+                    SELECT *, "colc2" AS "grdb_colc2" FROM "c" WHERE "colc2" IN (1, 2, 3)
                     """])
             }
 
@@ -889,7 +889,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     ORDER BY "d"."cold1"
                     """,
                     """
-                    SELECT *, "colc2" AS "grdb_colc2" FROM "c" WHERE ("colc2" IN (1, 2, 3))
+                    SELECT *, "colc2" AS "grdb_colc2" FROM "c" WHERE "colc2" IN (1, 2, 3)
                     """])
             }
         }
@@ -918,7 +918,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     SELECT "b".*, "a".* \
                     FROM "b" \
-                    LEFT JOIN "a" ON ("a"."cola1" = "b"."colb2") \
+                    LEFT JOIN "a" ON "a"."cola1" = "b"."colb2" \
                     ORDER BY "b"."colb1"
                     """,
                     """
@@ -978,28 +978,28 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
                     JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a1') AND ("a"."cola1" IN (1, 2)) \
-                    WHERE ("c"."colc1" = 9) \
+                    WHERE "c"."colc1" = 9 \
                     ORDER BY "c"."colc1"
                     """,
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
                     JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a1') AND ("a"."cola1" IN (1, 2)) \
-                    WHERE ("c"."colc1" <> 9) \
+                    WHERE "c"."colc1" <> 9 \
                     ORDER BY "c"."colc1"
                     """,
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
                     JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a2') AND ("a"."cola1" IN (1, 2)) \
-                    WHERE ("c"."colc1" = 9) \
+                    WHERE "c"."colc1" = 9 \
                     ORDER BY "c"."colc1"
                     """,
                     """
                     SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
                     FROM "c" \
                     JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a2') AND ("a"."cola1" IN (1, 2)) \
-                    WHERE ("c"."colc1" <> 9) \
+                    WHERE "c"."colc1" <> 9 \
                     ORDER BY "c"."colc1"
                     """])
             }
