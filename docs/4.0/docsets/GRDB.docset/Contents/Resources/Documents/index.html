@@ -972,12 +972,12 @@
         <section>
           <section class="section">
             
-            <h1 id='grdb-4-a-href-https-developer-apple-com-swift-img-src-https-img-shields-io-badge-swift-4-2-orange-svg-style-flat-alt-swift-a-a-href-https-developer-apple-com-swift-img-src-https-img-shields-io-badge-swift-5-orange-svg-style-flat-alt-swift-a-a-href-https-developer-apple-com-swift-img-src-https-img-shields-io-cocoapods-p-grdb-swift-svg-alt-platforms-a-a-href-license-img-src-https-img-shields-io-github-license-groue-grdb-swift-svg-maxage-2592000-alt-license-a-a-href-https-travis-ci-org-groue-grdb-swift-img-src-https-travis-ci-org-groue-grdb-swift-svg-branch-master-alt-build-status-a' class='heading'>GRDB 4 <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/swift-4.2-orange.svg?style=flat" alt="Swift"></a> <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/swift-5-orange.svg?style=flat" alt="Swift"></a> <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/cocoapods/p/GRDB.swift.svg" alt="Platforms"></a> <a href="/LICENSE"><img src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000" alt="License"></a> <a href="https://travis-ci.org/groue/GRDB.swift"><img src="https://travis-ci.org/groue/GRDB.swift.svg?branch=master" alt="Build Status"></a></h1>
+            <h1 id='grdb-4-a-href-https-developer-apple-com-swift-img-src-https-img-shields-io-badge-swift-4-2-orange-svg-style-flat-alt-swift-4-2-a-a-href-https-developer-apple-com-swift-img-src-https-img-shields-io-badge-swift-5-orange-svg-style-flat-alt-swift-5-a-a-href-https-developer-apple-com-swift-img-src-https-img-shields-io-cocoapods-p-grdb-swift-svg-alt-platforms-a-a-href-license-img-src-https-img-shields-io-github-license-groue-grdb-swift-svg-maxage-2592000-alt-license-a-a-href-https-travis-ci-org-groue-grdb-swift-img-src-https-travis-ci-org-groue-grdb-swift-svg-branch-master-alt-build-status-a' class='heading'>GRDB 4 <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/swift-4.2-orange.svg?style=flat" alt="Swift 4.2"></a> <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/swift-5-orange.svg?style=flat" alt="Swift 5"></a> <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/cocoapods/p/GRDB.swift.svg" alt="Platforms"></a> <a href="/LICENSE"><img src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000" alt="License"></a> <a href="https://travis-ci.org/groue/GRDB.swift"><img src="https://travis-ci.org/groue/GRDB.swift.svg?branch=master" alt="Build Status"></a></h1>
 <h3 id='a-toolkit-for-sqlite-databases-with-a-focus-on-application-development' class='heading'>A toolkit for SQLite databases, with a focus on application development</h3>
 
 <hr>
 
-<p><strong>Latest release</strong>: May 23, 2019 • version 4.0.0 • <a href="CHANGELOG.md">CHANGELOG</a> • <a href="Documentation/GRDB3MigrationGuide.md">Migrating From GRDB 3 to GRDB 4</a></p>
+<p><strong>Latest release</strong>: May 25, 2019 • version 4.0.1 • <a href="CHANGELOG.md">CHANGELOG</a> • <a href="Documentation/GRDB3MigrationGuide.md">Migrating From GRDB 3 to GRDB 4</a></p>
 
 <p><strong>Requirements</strong>: iOS 9.0+ / macOS 10.9+ / watchOS 2.0+ &bull; Swift 4.2+ / Xcode 10.0+</p>
 
@@ -989,11 +989,11 @@
 </thead><tbody>
 <tr>
 <td><strong>Swift 5</strong></td>
-<td><strong>v4.0.0</strong></td>
+<td><strong>v4.0.1</strong></td>
 </tr>
 <tr>
 <td><strong>Swift 4.2</strong></td>
-<td><strong>v4.0.0</strong></td>
+<td><strong>v4.0.1</strong></td>
 </tr>
 <tr>
 <td>Swift 4.1</td>
@@ -1327,7 +1327,7 @@ See [Database Changes Observation](#database-changes-observation)
 <p>The <a href="https://swift.org/package-manager/">Swift Package Manager</a> automates the distribution of Swift code. To use GRDB with SPM, add a dependency to your <code>Package.swift</code> file:</p>
 <pre class="highlight swift"><code><span class="k">let</span> <span class="nv">package</span> <span class="o">=</span> <span class="nf">Package</span><span class="p">(</span>
     <span class="nv">dependencies</span><span class="p">:</span> <span class="p">[</span>
-        <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/groue/GRDB.swift.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"4.0.0"</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">package</span><span class="p">(</span><span class="nv">url</span><span class="p">:</span> <span class="s">"https://github.com/groue/GRDB.swift.git"</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="s">"4.0.1"</span><span class="p">)</span>
     <span class="p">]</span>
 <span class="p">)</span>
 </code></pre>
@@ -1339,7 +1339,7 @@ See [Database Changes Observation](#database-changes-observation)
 <h2 id='manually' class='heading'>Manually</h2>
 
 <ol>
-<li><p><a href="https://github.com/groue/GRDB.swift/releases/tag/v4.0.0">Download</a> a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the <code>git checkout v4.0.0</code> command.</p></li>
+<li><p><a href="https://github.com/groue/GRDB.swift/releases/tag/v4.0.1">Download</a> a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the <code>git checkout v4.0.1</code> command.</p></li>
 <li><p>Embed the <code>GRDB.xcodeproj</code> project in your own project.</p></li>
 <li><p>Add the <code>GRDBOSX</code>, <code>GRDBiOS</code>, or <code>GRDBWatchOS</code> target in the <strong>Target Dependencies</strong> section of the <strong>Build Phases</strong> tab of your application target (extension target for WatchOS).</p></li>
 <li><p>Add the <code>GRDB.framework</code> from the targetted platform to the <strong>Embedded Binaries</strong> section of the <strong>General</strong>  tab of your application target (extension target for WatchOS).</p></li>
@@ -2985,7 +2985,7 @@ See [Database Changes Observation](#database-changes-observation)
 </code></pre>
 
 <p>It is possible to <a href="#record-comparison">avoid useless updates</a>:</p>
-<pre class="highlight swift"><code><span class="k">if</span> <span class="k">let</span> <span class="nv">player</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">key</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="k">if</span> <span class="k">var</span> <span class="nv">player</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">key</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
     <span class="c1">// does not hit the database if score has not changed</span>
     <span class="k">try</span> <span class="n">player</span><span class="o">.</span><span class="nf">updateChanges</span><span class="p">(</span><span class="n">db</span><span class="p">)</span> <span class="p">{</span>
         <span class="nv">$0</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="mi">1000</span>
@@ -3729,7 +3729,7 @@ See [Database Changes Observation](#database-changes-observation)
 </code></pre>
 
 <blockquote>
-<p>:point_up: <strong>Note</strong>: The comparison is performed on the database representation of records. As long as your record type adopts a PersistableRecord protocol, you don&rsquo;t need to care about Equatable.</p>
+<p>:point_up: <strong>Note</strong>: The comparison is performed on the database representation of records. As long as your record type adopts the EncodableRecord protocol, you don&rsquo;t need to care about Equatable.</p>
 </blockquote>
 <h3 id='the-code-databasechanges-code-and-code-hasdatabasechanges-code-methods' class='heading'>The <code>databaseChanges</code> and <code>hasDatabaseChanges</code> Methods</h3>
 
@@ -9055,7 +9055,7 @@ dbQueue.setupMemoryManagement(in: UIApplication.shared)
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-05-23)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-05-25)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.9.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
