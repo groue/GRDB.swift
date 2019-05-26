@@ -153,7 +153,7 @@ struct SQLRelation {
     
     var source: SQLSource
     var selection: [SQLSelectable]
-    // Filter is an array of expressions that we'll join with SQLExpressionAnd.
+    // Filter is an array of expressions that we'll join with the AND operator.
     // This gives nicer output in generated SQL: `(a AND b AND c)` instead of
     // `((a AND b) AND c)`.
     var filtersPromise: DatabasePromise<[SQLExpression]>
@@ -567,7 +567,7 @@ struct SQLAssociationCondition: Equatable {
         }
     }
     
-    /// Resolves the condition into an SQL expression which involves both left
+    /// Resolves the condition into SQL expressions which involve both left
     /// and right tables.
     ///
     ///     SELECT * FROM left JOIN right ON (right.a = left.b)
@@ -578,11 +578,12 @@ struct SQLAssociationCondition: Equatable {
     ///   JOIN operator.
     /// - parameter rightAlias: A TableAlias for the table on the right of the
     ///   JOIN operator.
-    /// - Returns: An SQL expression.
-    func joinExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLExpression {
-        return try columnMappings(db)
-            .map { QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias) }
-            .joined(operator: .and)
+    /// - Returns: An array of SQL expression that should be joined with
+    ///   the AND operator.
+    func expressions(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> [SQLExpression] {
+        return try columnMappings(db).map {
+            QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias)
+        }
     }
     
     /// Resolves the condition into an SQL expression which involves only the

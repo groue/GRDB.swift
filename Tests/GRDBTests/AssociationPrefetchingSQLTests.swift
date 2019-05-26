@@ -219,6 +219,29 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     SELECT * FROM "parent" WHERE 0 ORDER BY "parentA", "parentB"
                     """])
             }
+            
+            // Request with filters
+            do {
+                let request = Parent
+                    .including(all: Parent
+                        .hasMany(Child.self)
+                        .filter(Column("name") == "foo"))
+                    .filter(Column("parentA") == "foo")
+                    .orderByPrimaryKey()
+
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "parent" WHERE "parentA" = 'foo' ORDER BY "parentA", "parentB"
+                    """,
+                    """
+                    SELECT *, "parentA" AS "grdb_parentA", "parentB" AS "grdb_parentB" \
+                    FROM "child" WHERE ("name" = 'foo') AND (("parentA" = 'foo') AND ("parentB" = 'bar'))
+                    """])
+            }
         }
     }
 

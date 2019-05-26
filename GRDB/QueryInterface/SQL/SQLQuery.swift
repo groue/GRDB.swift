@@ -7,7 +7,7 @@ struct SQLQuery {
     var expectsSingleResult: Bool
     var groupPromise: DatabasePromise<[SQLExpression]>?
     // Having clause is an array of expressions that we'll join with
-    // SQLExpressionAnd. This gives nicer output in generated SQL:
+    // the AND operator. This gives nicer output in generated SQL:
     // `(a AND b AND c)` instead of `((a AND b) AND c)`.
     var havingExpressions: [SQLExpression]
     var limit: SQLLimit?

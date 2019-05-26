@@ -458,18 +458,17 @@ private struct SQLQualifiedJoin {
         case .leftJoin:
             allowsInnerJoin = false
         }
-        sql += kind.rawValue
-        sql += try " " + relation.source.sql(db, &context)
+        sql += try "\(kind.rawValue) \(relation.source.sql(db, &context))"
         
         let rightAlias = relation.alias
-        var filters = try [condition.joinExpression(db, leftAlias: leftAlias, rightAlias: rightAlias)]
-        try filters.append(contentsOf: relation.filtersPromise.resolve(db))
+        let filters = try condition.expressions(db, leftAlias: leftAlias, rightAlias: rightAlias)
+            + relation.filtersPromise.resolve(db)
         if filters.isEmpty == false {
-            sql += " ON " + SQLExpressionAnd(filters).expressionSQL(&context, wrappedInParenthesis: false)
+            sql += " ON \(SQLExpressionAnd(filters).expressionSQL(&context, wrappedInParenthesis: false))"
         }
         
         for (_, join) in relation.joins {
-            sql += try " " + join.sql(db, &context, leftAlias: rightAlias, allowingInnerJoin: allowsInnerJoin)
+            sql += try " \(join.sql(db, &context, leftAlias: rightAlias, allowingInnerJoin: allowsInnerJoin))"
         }
         
         return sql
