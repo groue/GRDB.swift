@@ -5,7 +5,7 @@ This guide aims at helping you leverage the best of GRDB [records] and [associat
 
 Since GRDB sits right between low-level libraries like SQLite itself or [FMDB], and high-level ORM like [Core Data] or [Realm], you may face questions when designing the model layer of your application.
 
-To support this guide, we'll design a simply library application that lets the user crawl through books and their authors.
+To support this guide, we'll design a simple library application that lets the user crawl through books and their authors.
 
 - [Trust SQLite More Than Yourself]
 - [Persistable Record Types are Responsible for Their Tables]
