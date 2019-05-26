@@ -461,9 +461,7 @@ class NaiveLibraryManager {
     func books(writtenBy author: Author) -> [Book] {
         do {
             return try dbQueue.read { db in
-                try Book
-                    .filter(Book.Columns.authorId == author.id)
-                    .fetchAll(db)
+                try author.books.fetchAll(db)
             }
         } catch {
             return []
@@ -514,7 +512,7 @@ class ImprovedLibraryManager {
     
     func books(writtenBy author: Author) throws -> [Book] {
         return try dbQueue.read { db in
-            try Book.filter(Book.Columns.authorId == author.id).fetchAll(db)
+            try author.books.fetchAll(db)
         }
     }
 }
