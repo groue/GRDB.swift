@@ -518,14 +518,6 @@ class ImprovedLibraryManager {
 }
 ```
 
-On OSX, applications should be ready to handle database errors, because the user can mess with the file system. However, on iOS, most applications just can not possibly recover from database errors. In this case, just give yourself a break and use `try!`:
-
-```swift
-// What could we possibly tell the user when SQLite gets corrupted?
-// Our app will have so many more bugs than SQLite anyway.
-let author = try! libraryManager.author(id: 123)
-```
-
 
 ### Thread-Safety is also an Application Concern
 
