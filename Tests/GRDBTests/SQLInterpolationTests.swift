@@ -67,12 +67,12 @@ class SQLInterpolationTests: GRDBTestCase {
         
         XCTAssertEqual(sql.sql, """
             "a"
-            ("a" + ?)
-            ("a" < "b")
+            "a" + ?
+            "a" < "b"
             ?
             ?
             NULL
-            ("a" IS NULL)
+            "a" IS NULL
             """)
         XCTAssertEqual(sql.arguments, [1, 1, 2])
     }
@@ -132,7 +132,7 @@ class SQLInterpolationTests: GRDBTestCase {
         XCTAssertEqual(sql.sql, """
             (?)
             (?,?,?)
-            ("a",("b" + ?))
+            ("a","b" + ?)
             (SELECT NULL WHERE NULL)
             """)
         XCTAssertEqual(sql.arguments, [1, "foo", "bar", "baz", 2])
