@@ -153,7 +153,10 @@ struct SQLRelation {
     
     var source: SQLSource
     var selection: [SQLSelectable]
-    var filterPromise: DatabasePromise<SQLExpression?>
+    // Filter is an array of expressions that we'll join with the AND operator.
+    // This gives nicer output in generated SQL: `(a AND b AND c)` instead of
+    // `((a AND b) AND c)`.
+    var filtersPromise: DatabasePromise<[SQLExpression]>
     var ordering: SQLRelation.Ordering
     var children: OrderedDictionary<String, Child>
     
@@ -173,13 +176,13 @@ struct SQLRelation {
     init(
         source: SQLSource,
         selection: [SQLSelectable] = [],
-        filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil),
+        filtersPromise: DatabasePromise<[SQLExpression]> = DatabasePromise(value: []),
         ordering: SQLRelation.Ordering = SQLRelation.Ordering(),
         children: OrderedDictionary<String, Child> = [:])
     {
         self.source = source
         self.selection = selection
-        self.filterPromise = filterPromise
+        self.filtersPromise = filtersPromise
         self.ordering = ordering
         self.children = children
     }
@@ -200,12 +203,8 @@ extension SQLRelation {
 
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLRelation {
         var relation = self
-        relation.filterPromise = relation.filterPromise.flatMap { filter in
-            if let filter = filter {
-                return DatabasePromise { try filter && predicate($0) }
-            } else {
-                return DatabasePromise { try predicate($0).sqlExpression }
-            }
+        relation.filtersPromise = relation.filtersPromise.flatMap { filters in
+            DatabasePromise { try filters + [predicate($0).sqlExpression] }
         }
         return relation
     }
@@ -568,7 +567,7 @@ struct SQLAssociationCondition: Equatable {
         }
     }
     
-    /// Resolves the condition into an SQL expression which involves both left
+    /// Resolves the condition into SQL expressions which involve both left
     /// and right tables.
     ///
     ///     SELECT * FROM left JOIN right ON (right.a = left.b)
@@ -579,11 +578,12 @@ struct SQLAssociationCondition: Equatable {
     ///   JOIN operator.
     /// - parameter rightAlias: A TableAlias for the table on the right of the
     ///   JOIN operator.
-    /// - Returns: An SQL expression.
-    func joinExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLExpression {
-        return try columnMappings(db)
-            .map { QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias) }
-            .joined(operator: .and)
+    /// - Returns: An array of SQL expression that should be joined with
+    ///   the AND operator.
+    func expressions(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> [SQLExpression] {
+        return try columnMappings(db).map {
+            QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias)
+        }
     }
     
     /// Resolves the condition into an SQL expression which involves only the
@@ -661,16 +661,8 @@ extension SQLRelation {
             return nil
         }
         
-        let mergedFilterPromise: DatabasePromise<SQLExpression?> = filterPromise.flatMap { expression in
-            return DatabasePromise { db in
-                let otherExpression = try other.filterPromise.resolve(db)
-                let expressions = [expression, otherExpression].compactMap { $0 }
-                if expressions.isEmpty {
-                    return nil
-                } else {
-                    return expressions.joined(operator: .and)
-                }
-            }
+        let mergedFiltersPromise: DatabasePromise<[SQLExpression]> = filtersPromise.flatMap { filters in
+            DatabasePromise { try filters + other.filtersPromise.resolve($0) }
         }
         
         var mergedChildren: OrderedDictionary<String, SQLRelation.Child> = [:]
@@ -698,7 +690,7 @@ extension SQLRelation {
         return SQLRelation(
             source: mergedSource,
             selection: mergedSelection,
-            filterPromise: mergedFilterPromise,
+            filtersPromise: mergedFiltersPromise,
             ordering: mergedOrdering,
             children: mergedChildren)
     }

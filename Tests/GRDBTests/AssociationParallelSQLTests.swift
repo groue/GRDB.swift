@@ -58,50 +58,50 @@ class AssociationParallelSQLTests: GRDBTestCase {
             try assertEqualSQL(db, A.including(required: A.b).including(required: A.d), """
                 SELECT "a".*, "b".*, "d".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid") \
-                JOIN "d" ON ("d"."id" = "a"."did")
+                JOIN "b" ON "b"."id" = "a"."bid" \
+                JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, A.including(required: A.b).including(optional: A.d), """
                 SELECT "a".*, "b".*, "d".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid") \
-                LEFT JOIN "d" ON ("d"."id" = "a"."did")
+                JOIN "b" ON "b"."id" = "a"."bid" \
+                LEFT JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, A.including(optional: A.b).including(required: A.d), """
                 SELECT "a".*, "b".*, "d".* \
                 FROM "a" \
-                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
-                JOIN "d" ON ("d"."id" = "a"."did")
+                LEFT JOIN "b" ON "b"."id" = "a"."bid" \
+                JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, A.including(optional: A.b).including(optional: A.d), """
                 SELECT "a".*, "b".*, "d".* \
                 FROM "a" \
-                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
-                LEFT JOIN "d" ON ("d"."id" = "a"."did")
+                LEFT JOIN "b" ON "b"."id" = "a"."bid" \
+                LEFT JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, B.including(required: B.a).including(required: B.c), """
                 SELECT "b".*, "a".*, "c".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id") \
-                JOIN "c" ON ("c"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id" \
+                JOIN "c" ON "c"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(required: B.a).including(optional: B.c), """
                 SELECT "b".*, "a".*, "c".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id") \
-                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id" \
+                LEFT JOIN "c" ON "c"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(optional: B.a).including(required: B.c), """
                 SELECT "b".*, "a".*, "c".* \
                 FROM "b" \
-                LEFT JOIN "a" ON ("a"."bid" = "b"."id") \
-                JOIN "c" ON ("c"."bid" = "b"."id")
+                LEFT JOIN "a" ON "a"."bid" = "b"."id" \
+                JOIN "c" ON "c"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(optional: B.a).including(optional: B.c), """
                 SELECT "b".*, "a".*, "c".* \
                 FROM "b" \
-                LEFT JOIN "a" ON ("a"."bid" = "b"."id") \
-                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                LEFT JOIN "a" ON "a"."bid" = "b"."id" \
+                LEFT JOIN "c" ON "c"."bid" = "b"."id"
                 """)
         }
     }
@@ -112,50 +112,50 @@ class AssociationParallelSQLTests: GRDBTestCase {
             try assertEqualSQL(db, A.including(required: A.b).including(required: A.b.forKey("customB")), """
                 SELECT "a".*, "b1".*, "b2".* \
                 FROM "a" \
-                JOIN "b" "b1" ON ("b1"."id" = "a"."bid") \
-                JOIN "b" "b2" ON ("b2"."id" = "a"."bid")
+                JOIN "b" "b1" ON "b1"."id" = "a"."bid" \
+                JOIN "b" "b2" ON "b2"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.including(required: A.b).including(optional: A.b.forKey("customB")), """
                 SELECT "a".*, "b1".*, "b2".* \
                 FROM "a" \
-                JOIN "b" "b1" ON ("b1"."id" = "a"."bid") \
-                LEFT JOIN "b" "b2" ON ("b2"."id" = "a"."bid")
+                JOIN "b" "b1" ON "b1"."id" = "a"."bid" \
+                LEFT JOIN "b" "b2" ON "b2"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.including(optional: A.b).including(required: A.b.forKey("customB")), """
                 SELECT "a".*, "b1".*, "b2".* \
                 FROM "a" \
-                LEFT JOIN "b" "b1" ON ("b1"."id" = "a"."bid") \
-                JOIN "b" "b2" ON ("b2"."id" = "a"."bid")
+                LEFT JOIN "b" "b1" ON "b1"."id" = "a"."bid" \
+                JOIN "b" "b2" ON "b2"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.including(optional: A.b).including(optional: A.b.forKey("customB")), """
                 SELECT "a".*, "b1".*, "b2".* \
                 FROM "a" \
-                LEFT JOIN "b" "b1" ON ("b1"."id" = "a"."bid") \
-                LEFT JOIN "b" "b2" ON ("b2"."id" = "a"."bid")
+                LEFT JOIN "b" "b1" ON "b1"."id" = "a"."bid" \
+                LEFT JOIN "b" "b2" ON "b2"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, B.including(required: B.a).including(required: B.a.forKey("customA")), """
                 SELECT "b".*, "a1".*, "a2".* \
                 FROM "b" \
-                JOIN "a" "a1" ON ("a1"."bid" = "b"."id") \
-                JOIN "a" "a2" ON ("a2"."bid" = "b"."id")
+                JOIN "a" "a1" ON "a1"."bid" = "b"."id" \
+                JOIN "a" "a2" ON "a2"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(required: B.a).including(optional: B.a.forKey("customA")), """
                 SELECT "b".*, "a1".*, "a2".* \
                 FROM "b" \
-                JOIN "a" "a1" ON ("a1"."bid" = "b"."id") \
-                LEFT JOIN "a" "a2" ON ("a2"."bid" = "b"."id")
+                JOIN "a" "a1" ON "a1"."bid" = "b"."id" \
+                LEFT JOIN "a" "a2" ON "a2"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(optional: B.a).including(required: B.a.forKey("customA")), """
                 SELECT "b".*, "a1".*, "a2".* \
                 FROM "b" \
-                LEFT JOIN "a" "a1" ON ("a1"."bid" = "b"."id") \
-                JOIN "a" "a2" ON ("a2"."bid" = "b"."id")
+                LEFT JOIN "a" "a1" ON "a1"."bid" = "b"."id" \
+                JOIN "a" "a2" ON "a2"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(optional: B.a).including(optional: B.a.forKey("customA")), """
                 SELECT "b".*, "a1".*, "a2".* \
                 FROM "b" \
-                LEFT JOIN "a" "a1" ON ("a1"."bid" = "b"."id") \
-                LEFT JOIN "a" "a2" ON ("a2"."bid" = "b"."id")
+                LEFT JOIN "a" "a1" ON "a1"."bid" = "b"."id" \
+                LEFT JOIN "a" "a2" ON "a2"."bid" = "b"."id"
                 """)
         }
     }
@@ -166,42 +166,42 @@ class AssociationParallelSQLTests: GRDBTestCase {
             try assertEqualSQL(db, A.including(required: A.b).including(required: A.b), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.including(required: A.b).including(optional: A.b), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.including(optional: A.b).including(required: A.b), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.including(optional: A.b).including(optional: A.b), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                LEFT JOIN "b" ON ("b"."id" = "a"."bid")
+                LEFT JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, B.including(required: B.a).including(required: B.a), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(required: B.a).including(optional: B.a), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(optional: B.a).including(required: B.a), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(optional: B.a).including(optional: B.a), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                LEFT JOIN "a" ON ("a"."bid" = "b"."id")
+                LEFT JOIN "a" ON "a"."bid" = "b"."id"
                 """)
         }
     }
@@ -212,50 +212,50 @@ class AssociationParallelSQLTests: GRDBTestCase {
             try assertEqualSQL(db, A.including(required: A.b).joining(required: A.d), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid") \
-                JOIN "d" ON ("d"."id" = "a"."did")
+                JOIN "b" ON "b"."id" = "a"."bid" \
+                JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, A.including(required: A.b).joining(optional: A.d), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid") \
-                LEFT JOIN "d" ON ("d"."id" = "a"."did")
+                JOIN "b" ON "b"."id" = "a"."bid" \
+                LEFT JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, A.including(optional: A.b).joining(required: A.d), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
-                JOIN "d" ON ("d"."id" = "a"."did")
+                LEFT JOIN "b" ON "b"."id" = "a"."bid" \
+                JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, A.including(optional: A.b).joining(optional: A.d), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
-                LEFT JOIN "d" ON ("d"."id" = "a"."did")
+                LEFT JOIN "b" ON "b"."id" = "a"."bid" \
+                LEFT JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, B.including(required: B.a).joining(required: B.c), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id") \
-                JOIN "c" ON ("c"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id" \
+                JOIN "c" ON "c"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(required: B.a).joining(optional: B.c), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id") \
-                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id" \
+                LEFT JOIN "c" ON "c"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(optional: B.a).joining(required: B.c), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                LEFT JOIN "a" ON ("a"."bid" = "b"."id") \
-                JOIN "c" ON ("c"."bid" = "b"."id")
+                LEFT JOIN "a" ON "a"."bid" = "b"."id" \
+                JOIN "c" ON "c"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(optional: B.a).joining(optional: B.c), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                LEFT JOIN "a" ON ("a"."bid" = "b"."id") \
-                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                LEFT JOIN "a" ON "a"."bid" = "b"."id" \
+                LEFT JOIN "c" ON "c"."bid" = "b"."id"
                 """)
         }
     }
@@ -266,42 +266,42 @@ class AssociationParallelSQLTests: GRDBTestCase {
             try assertEqualSQL(db, A.including(required: A.b).joining(required: A.b), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.including(required: A.b).joining(optional: A.b), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.including(optional: A.b).joining(required: A.b), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.including(optional: A.b).joining(optional: A.b), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                LEFT JOIN "b" ON ("b"."id" = "a"."bid")
+                LEFT JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, B.including(required: B.a).joining(required: B.a), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(required: B.a).joining(optional: B.a), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(optional: B.a).joining(required: B.a), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.including(optional: B.a).joining(optional: B.a), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                LEFT JOIN "a" ON ("a"."bid" = "b"."id")
+                LEFT JOIN "a" ON "a"."bid" = "b"."id"
                 """)
         }
     }
@@ -312,50 +312,50 @@ class AssociationParallelSQLTests: GRDBTestCase {
             try assertEqualSQL(db, A.joining(required: A.b).including(required: A.d), """
                 SELECT "a".*, "d".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid") \
-                JOIN "d" ON ("d"."id" = "a"."did")
+                JOIN "b" ON "b"."id" = "a"."bid" \
+                JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, A.joining(required: A.b).including(optional: A.d), """
                 SELECT "a".*, "d".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid") \
-                LEFT JOIN "d" ON ("d"."id" = "a"."did")
+                JOIN "b" ON "b"."id" = "a"."bid" \
+                LEFT JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, A.joining(optional: A.b).including(required: A.d), """
                 SELECT "a".*, "d".* \
                 FROM "a" \
-                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
-                JOIN "d" ON ("d"."id" = "a"."did")
+                LEFT JOIN "b" ON "b"."id" = "a"."bid" \
+                JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, A.joining(optional: A.b).including(optional: A.d), """
                 SELECT "a".*, "d".* \
                 FROM "a" \
-                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
-                LEFT JOIN "d" ON ("d"."id" = "a"."did")
+                LEFT JOIN "b" ON "b"."id" = "a"."bid" \
+                LEFT JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, B.joining(required: B.a).including(required: B.c), """
                 SELECT "b".*, "c".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id") \
-                JOIN "c" ON ("c"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id" \
+                JOIN "c" ON "c"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.joining(required: B.a).including(optional: B.c), """
                 SELECT "b".*, "c".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id") \
-                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id" \
+                LEFT JOIN "c" ON "c"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.joining(optional: B.a).including(required: B.c), """
                 SELECT "b".*, "c".* \
                 FROM "b" \
-                LEFT JOIN "a" ON ("a"."bid" = "b"."id") \
-                JOIN "c" ON ("c"."bid" = "b"."id")
+                LEFT JOIN "a" ON "a"."bid" = "b"."id" \
+                JOIN "c" ON "c"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.joining(optional: B.a).including(optional: B.c), """
                 SELECT "b".*, "c".* \
                 FROM "b" \
-                LEFT JOIN "a" ON ("a"."bid" = "b"."id") \
-                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                LEFT JOIN "a" ON "a"."bid" = "b"."id" \
+                LEFT JOIN "c" ON "c"."bid" = "b"."id"
                 """)
         }
     }
@@ -366,42 +366,42 @@ class AssociationParallelSQLTests: GRDBTestCase {
             try assertEqualSQL(db, A.joining(required: A.b).including(required: A.b), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.joining(required: A.b).including(optional: A.b), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.joining(optional: A.b).including(required: A.b), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.joining(optional: A.b).including(optional: A.b), """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                LEFT JOIN "b" ON ("b"."id" = "a"."bid")
+                LEFT JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, B.joining(required: B.a).including(required: B.a), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.joining(required: B.a).including(optional: B.a), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.joining(optional: B.a).including(required: B.a), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.joining(optional: B.a).including(optional: B.a), """
                 SELECT "b".*, "a".* \
                 FROM "b" \
-                LEFT JOIN "a" ON ("a"."bid" = "b"."id")
+                LEFT JOIN "a" ON "a"."bid" = "b"."id"
                 """)
         }
     }
@@ -412,50 +412,50 @@ class AssociationParallelSQLTests: GRDBTestCase {
             try assertEqualSQL(db, A.joining(required: A.b).joining(required: A.d), """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid") \
-                JOIN "d" ON ("d"."id" = "a"."did")
+                JOIN "b" ON "b"."id" = "a"."bid" \
+                JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, A.joining(required: A.b).joining(optional: A.d), """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid") \
-                LEFT JOIN "d" ON ("d"."id" = "a"."did")
+                JOIN "b" ON "b"."id" = "a"."bid" \
+                LEFT JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, A.joining(optional: A.b).joining(required: A.d), """
                 SELECT "a".* \
                 FROM "a" \
-                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
-                JOIN "d" ON ("d"."id" = "a"."did")
+                LEFT JOIN "b" ON "b"."id" = "a"."bid" \
+                JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, A.joining(optional: A.b).joining(optional: A.d), """
                 SELECT "a".* \
                 FROM "a" \
-                LEFT JOIN "b" ON ("b"."id" = "a"."bid") \
-                LEFT JOIN "d" ON ("d"."id" = "a"."did")
+                LEFT JOIN "b" ON "b"."id" = "a"."bid" \
+                LEFT JOIN "d" ON "d"."id" = "a"."did"
                 """)
             try assertEqualSQL(db, B.joining(required: B.a).joining(required: B.c), """
                 SELECT "b".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id") \
-                JOIN "c" ON ("c"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id" \
+                JOIN "c" ON "c"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.joining(required: B.a).joining(optional: B.c), """
                 SELECT "b".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id") \
-                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id" \
+                LEFT JOIN "c" ON "c"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.joining(optional: B.a).joining(required: B.c), """
                 SELECT "b".* \
                 FROM "b" \
-                LEFT JOIN "a" ON ("a"."bid" = "b"."id") \
-                JOIN "c" ON ("c"."bid" = "b"."id")
+                LEFT JOIN "a" ON "a"."bid" = "b"."id" \
+                JOIN "c" ON "c"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.joining(optional: B.a).joining(optional: B.c), """
                 SELECT "b".* \
                 FROM "b" \
-                LEFT JOIN "a" ON ("a"."bid" = "b"."id") \
-                LEFT JOIN "c" ON ("c"."bid" = "b"."id")
+                LEFT JOIN "a" ON "a"."bid" = "b"."id" \
+                LEFT JOIN "c" ON "c"."bid" = "b"."id"
                 """)
         }
     }
@@ -466,42 +466,42 @@ class AssociationParallelSQLTests: GRDBTestCase {
             try assertEqualSQL(db, A.joining(required: A.b).joining(required: A.b), """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.joining(required: A.b).joining(optional: A.b), """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.joining(optional: A.b).joining(required: A.b), """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, A.joining(optional: A.b).joining(optional: A.b), """
                 SELECT "a".* \
                 FROM "a" \
-                LEFT JOIN "b" ON ("b"."id" = "a"."bid")
+                LEFT JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             try assertEqualSQL(db, B.joining(required: B.a).joining(required: B.a), """
                 SELECT "b".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.joining(required: B.a).joining(optional: B.a), """
                 SELECT "b".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.joining(optional: B.a).joining(required: B.a), """
                 SELECT "b".* \
                 FROM "b" \
-                JOIN "a" ON ("a"."bid" = "b"."id")
+                JOIN "a" ON "a"."bid" = "b"."id"
                 """)
             try assertEqualSQL(db, B.joining(optional: B.a).joining(optional: B.a), """
                 SELECT "b".* \
                 FROM "b" \
-                LEFT JOIN "a" ON ("a"."bid" = "b"."id")
+                LEFT JOIN "a" ON "a"."bid" = "b"."id"
                 """)
         }
     }
@@ -516,7 +516,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON (("b"."id" = "a"."bid") AND ("b"."id" > 1))
+                JOIN "b" ON ("b"."id" = "a"."bid") AND ("b"."id" > 1)
                 """)
             }
             do {
@@ -526,7 +526,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON (("b"."id" = "a"."bid") AND ("b"."id" < 3))
+                JOIN "b" ON ("b"."id" = "a"."bid") AND ("b"."id" < 3)
                 """)
             }
             do {
@@ -536,7 +536,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON (("b"."id" = "a"."bid") AND (("b"."id" > 1) AND ("b"."id" < 3)))
+                JOIN "b" ON ("b"."id" = "a"."bid") AND ("b"."id" > 1) AND ("b"."id" < 3)
                 """)
             }
         }
@@ -552,7 +552,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "b" ON "b"."id" = "a"."bid" \
                 ORDER BY "b"."id"
                 """)
             }
@@ -563,7 +563,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "b" ON "b"."id" = "a"."bid" \
                 ORDER BY "b"."id" DESC
                 """)
             }
@@ -574,7 +574,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid") \
+                JOIN "b" ON "b"."id" = "a"."bid" \
                 ORDER BY "b"."id" DESC
                 """)
             }
@@ -592,7 +592,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             }
             do {
@@ -602,7 +602,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             }
             do {
@@ -612,7 +612,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             }
             
@@ -624,7 +624,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             }
             do {
@@ -634,7 +634,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".*, "b"."id", 2 \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             }
             do {
@@ -644,7 +644,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".*, "b"."id", 2 \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             }
             
@@ -656,7 +656,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".*, "b"."id", 1 \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             }
             do {
@@ -666,7 +666,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             }
             do {
@@ -676,7 +676,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".*, "b"."id", 1 \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             }
             
@@ -688,7 +688,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".*, "b".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             }
             do {
@@ -698,7 +698,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".*, "b"."id", 2 \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             }
             do {
@@ -708,7 +708,7 @@ class AssociationParallelSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                 SELECT "a".*, "b"."id", 2 \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bid")
+                JOIN "b" ON "b"."id" = "a"."bid"
                 """)
             }
         }

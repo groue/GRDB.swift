@@ -24,6 +24,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { t in
                 t.column("id", .integer)
+                t.column("name", .text)
             }
             try db.create(table: "children") { t in
                 t.column("parentId", .integer)
@@ -36,28 +37,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."rowid" = "children"."parentId")
+                    JOIN "parents" ON "parents"."rowid" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."rowid" = "children"."parentId")
+                    LEFT JOIN "parents" ON "parents"."rowid" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."rowid" = "children"."parentId")
+                    JOIN "parents" ON "parents"."rowid" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."rowid" = "children"."parentId")
+                    LEFT JOIN "parents" ON "parents"."rowid" = "children"."parentId"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."rowid" = "children"."parentId") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE (\"rowid\" = 1)
+                    SELECT * FROM "parents" WHERE "rowid" = 1
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE (\"custom\".\"rowid\" = 1)
+                    SELECT "custom".* FROM "parents" "custom" WHERE "custom"."rowid" = 1
                     """)
             }
             do {
@@ -65,28 +71,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
-                try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE (\"id\" = 1)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId") AND ("parents"."name" = 'foo')
+                    """)
+               try assertEqualSQL(db, Child().request(for: association), """
+                    SELECT * FROM "parents" WHERE "id" = 1
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE (\"custom\".\"id\" = 1)
+                    SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 1
                     """)
             }
         }
@@ -108,6 +119,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { t in
                 t.column("id", .integer).primaryKey()
+                t.column("name", .text)
             }
             try db.create(table: "children") { t in
                 t.column("parentId", .integer)
@@ -120,28 +132,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parentId"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE (\"id\" = 1)
+                    SELECT * FROM "parents" WHERE "id" = 1
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE (\"custom\".\"id\" = 1)
+                    SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 1
                     """)
             }
             do {
@@ -149,28 +166,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parentId"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE (\"id\" = 1)
+                    SELECT * FROM "parents" WHERE "id" = 1
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE (\"custom\".\"id\" = 1)
+                    SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 1
                     """)
             }
         }
@@ -192,6 +214,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { t in
                 t.column("id", .integer).primaryKey()
+                t.column("name", .text)
             }
             try db.create(table: "children") { t in
                 t.column("parentId", .integer).references("parents")
@@ -204,28 +227,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parentId"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE (\"id\" = 1)
+                    SELECT * FROM "parents" WHERE "id" = 1
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE (\"custom\".\"id\" = 1)
+                    SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 1
                     """)
             }
             do {
@@ -233,28 +261,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parentId"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE (\"id\" = 1)
+                    SELECT * FROM "parents" WHERE "id" = 1
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE (\"custom\".\"id\" = 1)
+                    SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 1
                     """)
             }
             do {
@@ -262,28 +295,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    JOIN "parents" ON "parents"."id" = "children"."parentId"
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parentId"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE (\"id\" = 1)
+                    SELECT * FROM "parents" WHERE "id" = 1
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE (\"custom\".\"id\" = 1)
+                    SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 1
                     """)
             }
         }
@@ -306,6 +344,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             try db.create(table: "parents") { t in
                 t.column("id", .integer).primaryKey()
+                t.column("name", .text)
             }
             try db.create(table: "children") { t in
                 t.column("parent1Id", .integer).references("parents")
@@ -319,28 +358,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parent1Id")
+                    JOIN "parents" ON "parents"."id" = "children"."parent1Id"
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parent1Id")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parent1Id"
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parent1Id")
+                    JOIN "parents" ON "parents"."id" = "children"."parent1Id"
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parent1Id")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parent1Id"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parent1Id") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE (\"id\" = 1)
+                    SELECT * FROM "parents" WHERE "id" = 1
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE (\"custom\".\"id\" = 1)
+                    SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 1
                     """)
             }
             do {
@@ -348,28 +392,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parent1Id")
+                    JOIN "parents" ON "parents"."id" = "children"."parent1Id"
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parent1Id")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parent1Id"
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parent1Id")
+                    JOIN "parents" ON "parents"."id" = "children"."parent1Id"
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parent1Id")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parent1Id"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parent1Id") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE (\"id\" = 1)
+                    SELECT * FROM "parents" WHERE "id" = 1
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE (\"custom\".\"id\" = 1)
+                    SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 1
                     """)
             }
             do {
@@ -377,28 +426,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parent2Id")
+                    JOIN "parents" ON "parents"."id" = "children"."parent2Id"
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parent2Id")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parent2Id"
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parent2Id")
+                    JOIN "parents" ON "parents"."id" = "children"."parent2Id"
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parent2Id")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parent2Id"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parent2Id") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE (\"id\" = 2)
+                    SELECT * FROM "parents" WHERE "id" = 2
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE (\"custom\".\"id\" = 2)
+                    SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 2
                     """)
             }
             do {
@@ -406,28 +460,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parent2Id")
+                    JOIN "parents" ON "parents"."id" = "children"."parent2Id"
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parent2Id")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parent2Id"
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON ("parents"."id" = "children"."parent2Id")
+                    JOIN "parents" ON "parents"."id" = "children"."parent2Id"
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parent2Id")
+                    LEFT JOIN "parents" ON "parents"."id" = "children"."parent2Id"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."id" = "children"."parent2Id") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE (\"id\" = 2)
+                    SELECT * FROM "parents" WHERE "id" = 2
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE (\"custom\".\"id\" = 2)
+                    SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 2
                     """)
             }
         }
@@ -451,6 +510,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
             try db.create(table: "parents") { t in
                 t.column("a", .integer)
                 t.column("b", .integer)
+                t.column("name", .text)
             }
             try db.create(table: "children") { t in
                 t.column("parentA", .integer)
@@ -464,28 +524,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE ((\"a\" = 1) AND (\"b\" = 2))
+                    SELECT * FROM "parents" WHERE ("a" = 1) AND ("b" = 2)
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE ((\"custom\".\"a\" = 1) AND (\"custom\".\"b\" = 2))
+                    SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 1) AND ("custom"."b" = 2)
                     """)
             }
         }
@@ -509,6 +574,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
             try db.create(table: "parents") { t in
                 t.column("a", .integer)
                 t.column("b", .integer)
+                t.column("name", .text)
                 t.primaryKey(["a", "b"])
             }
             try db.create(table: "children") { t in
@@ -523,28 +589,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children\".\"parentB\"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children\".\"parentB\"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE ((\"a\" = 1) AND (\"b\" = 2))
+                    SELECT * FROM "parents" WHERE ("a" = 1) AND ("b" = 2)
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE ((\"custom\".\"a\" = 1) AND (\"custom\".\"b\" = 2))
+                    SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 1) AND ("custom"."b" = 2)
                     """)
             }
             do {
@@ -552,28 +623,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE ((\"a\" = 1) AND (\"b\" = 2))
+                    SELECT * FROM "parents" WHERE ("a" = 1) AND ("b" = 2)
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE ((\"custom\".\"a\" = 1) AND (\"custom\".\"b\" = 2))
+                    SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 1) AND ("custom"."b" = 2)
                     """)
             }
         }
@@ -597,6 +673,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
             try db.create(table: "parents") { t in
                 t.column("a", .integer)
                 t.column("b", .integer)
+                t.column("name", .text)
                 t.primaryKey(["a", "b"])
             }
             try db.create(table: "children") { t in
@@ -612,28 +689,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE ((\"a\" = 1) AND (\"b\" = 2))
+                    SELECT * FROM "parents" WHERE ("a" = 1) AND ("b" = 2)
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE ((\"custom\".\"a\" = 1) AND (\"custom\".\"b\" = 2))
+                    SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 1) AND ("custom"."b" = 2)
                     """)
             }
             do {
@@ -641,28 +723,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE ((\"a\" = 1) AND (\"b\" = 2))
+                    SELECT * FROM "parents" WHERE ("a" = 1) AND ("b" = 2)
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE ((\"custom\".\"a\" = 1) AND (\"custom\".\"b\" = 2))
+                    SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 1) AND ("custom"."b" = 2)
                     """)
             }
             do {
@@ -670,28 +757,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB")
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parentA") AND ("parents"."b" = "children"."parentB") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE ((\"a\" = 1) AND (\"b\" = 2))
+                    SELECT * FROM "parents" WHERE ("a" = 1) AND ("b" = 2)
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE ((\"custom\".\"a\" = 1) AND (\"custom\".\"b\" = 2))
+                    SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 1) AND ("custom"."b" = 2)
                     """)
             }
         }
@@ -717,6 +809,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
             try db.create(table: "parents") { t in
                 t.column("a", .integer)
                 t.column("b", .integer)
+                t.column("name", .text)
                 t.primaryKey(["a", "b"])
             }
             try db.create(table: "children") { t in
@@ -735,28 +828,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B")
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B")
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B")
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B")
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE ((\"a\" = 1) AND (\"b\" = 2))
+                    SELECT * FROM "parents" WHERE ("a" = 1) AND ("b" = 2)
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE ((\"custom\".\"a\" = 1) AND (\"custom\".\"b\" = 2))
+                    SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 1) AND ("custom"."b" = 2)
                     """)
             }
             do {
@@ -764,28 +862,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B")
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B")
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B")
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B")
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parent1A") AND ("parents"."b" = "children"."parent1B") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE ((\"a\" = 1) AND (\"b\" = 2))
+                    SELECT * FROM "parents" WHERE ("a" = 1) AND ("b" = 2)
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE ((\"custom\".\"a\" = 1) AND (\"custom\".\"b\" = 2))
+                    SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 1) AND ("custom"."b" = 2)
                     """)
             }
             do {
@@ -793,28 +896,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B")
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B")
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B")
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B")
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE ((\"a\" = 3) AND (\"b\" = 4))
+                    SELECT * FROM "parents" WHERE ("a" = 3) AND ("b" = 4)
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE ((\"custom\".\"a\" = 3) AND (\"custom\".\"b\" = 4))
+                    SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 3) AND ("custom"."b" = 4)
                     """)
             }
             do {
@@ -822,28 +930,33 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B")
                     """)
                 try assertEqualSQL(db, Child.including(optional: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B")
                     """)
                 try assertEqualSQL(db, Child.joining(required: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    JOIN "parents" ON (("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B"))
+                    JOIN "parents" ON ("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B")
                     """)
                 try assertEqualSQL(db, Child.joining(optional: association), """
                     SELECT "children".* \
                     FROM "children" \
-                    LEFT JOIN "parents" ON (("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B"))
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B")
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "children".* \
+                    FROM "children" \
+                    LEFT JOIN "parents" ON ("parents"."a" = "children"."parent2A") AND ("parents"."b" = "children"."parent2B") AND ("parents"."name" = 'foo')
                     """)
                 try assertEqualSQL(db, Child().request(for: association), """
-                    SELECT * FROM \"parents\" WHERE ((\"a\" = 3) AND (\"b\" = 4))
+                    SELECT * FROM "parents" WHERE ("a" = 3) AND ("b" = 4)
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
-                    SELECT \"custom\".* FROM \"parents\" \"custom\" WHERE ((\"custom\".\"a\" = 3) AND (\"custom\".\"b\" = 4))
+                    SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 3) AND ("custom"."b" = 4)
                     """)
             }
         }

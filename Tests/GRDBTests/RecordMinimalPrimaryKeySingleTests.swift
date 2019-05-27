@@ -319,7 +319,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             
             let fetchedRecord = try MinimalSingle.fetchOne(db, key: ["UUID": record.UUID])!
             XCTAssertTrue(fetchedRecord.UUID == record.UUID)
-            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE (\"UUID\" = '\(record.UUID!)')")
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
         }
     }
 
@@ -395,7 +395,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             
             let fetchedRecord = try MinimalSingle.filter(key: ["UUID": record.UUID]).fetchOne(db)!
             XCTAssertTrue(fetchedRecord.UUID == record.UUID)
-            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE (\"UUID\" = '\(record.UUID!)')")
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
         }
     }
     
@@ -481,7 +481,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             do {
                 let fetchedRecord = try MinimalSingle.fetchOne(db, key: record.UUID)!
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
-                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE (\"UUID\" = '\(record.UUID!)')")
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
             }
         }
     }
@@ -556,7 +556,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             do {
                 let fetchedRecord = try MinimalSingle.filter(key: record.UUID).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
-                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE (\"UUID\" = '\(record.UUID!)')")
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
             }
         }
     }

@@ -1,5 +1,5 @@
 PODS:
-  - GRDB.swift/SQLCipher (4.0.0):
+  - GRDB.swift/SQLCipher (4.0.1):
     - SQLCipher (>= 3.4.0)
   - SQLCipher (4.1.0):
     - SQLCipher/standard (= 4.1.0)
@@ -20,7 +20,7 @@ EXTERNAL SOURCES:
     :path: "../../.."
 
 SPEC CHECKSUMS:
-  GRDB.swift: 28cd703910fece722090ca801f6e6f3317424628
+  GRDB.swift: ceaaa49a1655250b024a8f4f77fdfdb2dca49aec
   SQLCipher: efbdb52cdbe340bcd892b1b14297df4e07241b7f
 
 PODFILE CHECKSUM: 5ab9c3045c2a97c4e89f0fadd6eab1455e79e2de

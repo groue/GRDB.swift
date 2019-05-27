@@ -198,12 +198,12 @@ extension SQLLiteralTests {
         XCTAssertEqual(query.sql, """
             SELECT
               "a",
-              ("a" + ?),
-              ("a" < "b"),
+              "a" + ?,
+              "a" < "b",
               ?,
               ?,
               NULL,
-              ("a" IS NULL)
+              "a" IS NULL
             """)
         XCTAssertEqual(query.arguments, [1, 1, 2])
     }
@@ -265,7 +265,7 @@ extension SQLLiteralTests {
             SELECT * FROM player
             WHERE teamId IN (?)
               AND name IN (?,?,?)
-              AND c IN ("a",("b" + ?))
+              AND c IN ("a","b" + ?)
               AND d IN (SELECT NULL WHERE NULL)
             """)
         XCTAssertEqual(query.arguments, [1, "foo", "bar", "baz", 2])

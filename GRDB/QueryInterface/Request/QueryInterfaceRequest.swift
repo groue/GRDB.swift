@@ -373,7 +373,7 @@ extension QueryInterfaceRequest {
         // Prevent information loss
         GRDBPrecondition(!query.isDistinct, "Not implemented: join distinct queries")
         GRDBPrecondition(query.groupPromise == nil, "Can't join aggregated queries")
-        GRDBPrecondition(query.havingExpression == nil, "Can't join aggregated queries")
+        GRDBPrecondition(query.havingExpressions.isEmpty, "Can't join aggregated queries")
         GRDBPrecondition(query.limit == nil, "Can't join limited queries")
         
         return query.relation
