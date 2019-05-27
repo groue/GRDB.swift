@@ -7471,26 +7471,6 @@ try dbQueue.write { db in
 ```
 
 
-## ? as a parameter
-
-SQLite only understands `?` as a parameter when it is a placeholder for a whole value (int, double, string, blob, null).
-On the other side, the `?` in `'%?%'` is just a character in the `'%?%'` string value: it is not a query parameter, and is not processed in any way.
-You need to take this into consideration for queries like:
-
-```sql
-SELECT * FROM students where name like '%Robert%';
-```
-
-To provide the parameter, you can let SQLite build the like pattern using the string concatenation operator `||`:
-
-```swift
-let name = textField.text
-try dbQueue.read { db in
-    try db.execute(sql: "SELECT * FROM students where name like '%' || ? || '%'", arguments: [name])
-}
-```
-
-
 ## Error Handling
 
 GRDB can throw [DatabaseError](#databaseerror), [PersistenceError](#persistenceerror), or crash your program with a [fatal error](#fatal-errors).
@@ -8527,6 +8507,7 @@ FAQ
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
 - [What Are Experimental Features?](#what-are-experimental-features)
+- [SQLite error 21 "wrong number of statement arguments" with LIKE queries](#sqlite-error-21-wrong-number-of-statement-arguments-with-like-queries)
 
 
 ### How do I create a database in my application?
@@ -8664,6 +8645,29 @@ Since GRDB 1.0, all backwards compatibility guarantees of [semantic versioning](
 There is an exception, though: *experimental features*, marked with the "**:fire: EXPERIMENTAL**" badge. Those are advanced features that are too young, or lack user feedback. They are not stabilized yet.
 
 Those experimental features are not protected by semantic versioning, and may break between two minor releases of the library. To help them becoming stable, [your feedback](https://github.com/groue/GRDB.swift/issues) is greatly appreciated.
+
+
+### SQLite error 21 "wrong number of statement arguments" with LIKE queries
+
+You may get the error "wrong number of statement arguments" when executing a LIKE query similar to:
+
+```swift
+let name = textField.text
+try dbQueue.read { db in
+    try db.execute(sql: "SELECT * FROM students where title like '%?%'", arguments: [name])
+}
+```
+
+What is important to understand here is that SQLite only interprets `?` as a parameter when it is a placeholder for a whole value (int, double, string, blob, null). In this incorrect query, `?` is just a character in the `'%?%'` string value: it is not a query parameter, and is not processed in any way. See [https://www.sqlite.org/lang_expr.html#varparam](https://www.sqlite.org/lang_expr.html#varparam) for more information about SQLite parameters.
+
+To provide the parameter, one option is to let SQLite build the like pattern using the string concatenation operator `||`:
+
+```swift
+let name = textField.text
+try dbQueue.read { db in
+    try db.execute(sql: "SELECT * FROM students where name like '%' || ? || '%'", arguments: [name])
+}
+```
 
 
 Sample Code
