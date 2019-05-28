@@ -8652,8 +8652,8 @@ You may get the error "wrong number of statement arguments" when executing a LIK
 
 ```swift
 let name = textField.text
-try dbQueue.read { db in
-    try db.execute(sql: "SELECT * FROM students where title like '%?%'", arguments: [name])
+let players = try dbQueue.read { db in
+    try Player.fetchAll(db, sql: "SELECT * FROM player WHERE name LIKE '%?%'", arguments: [name])
 }
 ```
 
