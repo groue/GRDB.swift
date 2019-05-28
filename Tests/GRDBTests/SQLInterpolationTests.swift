@@ -59,6 +59,7 @@ class SQLInterpolationTests: GRDBTestCase {
         let nilInteger: Int? = nil
         sql.appendInterpolation(a); sql.appendLiteral("\n")
         sql.appendInterpolation(a + 1); sql.appendLiteral("\n")
+        sql.appendInterpolation(2 * (a + 1)); sql.appendLiteral("\n")
         sql.appendInterpolation(a < b); sql.appendLiteral("\n")
         sql.appendInterpolation(integer); sql.appendLiteral("\n")
         sql.appendInterpolation(optionalInteger); sql.appendLiteral("\n")
@@ -68,13 +69,14 @@ class SQLInterpolationTests: GRDBTestCase {
         XCTAssertEqual(sql.sql, """
             "a"
             "a" + ?
+            ? * ("a" + ?)
             "a" < "b"
             ?
             ?
             NULL
             "a" IS NULL
             """)
-        XCTAssertEqual(sql.arguments, [1, 1, 2])
+        XCTAssertEqual(sql.arguments, [1, 2, 1, 1, 2])
     }
     
     func testQualifiedExpressionInterpolation() {

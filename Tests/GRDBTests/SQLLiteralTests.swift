@@ -189,6 +189,7 @@ extension SQLLiteralTests {
             SELECT
               \(a),
               \(a + 1),
+              \(2 * (a + 1)),
               \(a < b),
               \(integer),
               \(optionalInteger),
@@ -199,13 +200,14 @@ extension SQLLiteralTests {
             SELECT
               "a",
               "a" + ?,
+              ? * ("a" + ?),
               "a" < "b",
               ?,
               ?,
               NULL,
               "a" IS NULL
             """)
-        XCTAssertEqual(query.arguments, [1, 1, 2])
+        XCTAssertEqual(query.arguments, [1, 2, 1, 1, 2])
     }
     
     func testQualifiedExpressionInterpolation() {
