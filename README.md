@@ -3532,7 +3532,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.databaseTableName` | [TableRecord] | |
 | `Type.databaseSelection` | [TableRecord] | [*](#columns-selected-by-a-request) |
 | `Type.persistenceConflictPolicy` | [PersistableRecord] | [*](#conflict-resolution) |
-| `record.encode(to:)` | [PersistableRecord] | |
+| `record.encode(to:)` | [EncodableRecord] | |
 | `record.didInsert(with:for:)` | [PersistableRecord] | |
 | **Insert and Update Records** | | |
 | `record.insert(db)` | [PersistableRecord] | |
@@ -3575,10 +3575,10 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.filter(...).fetchOne(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **[Codable Records]** | | |
 | `Type.databaseDecodingUserInfo` | [FetchableRecord] | [*](#the-userinfo-dictionary) |
-| `Type.databaseEncodingUserInfo` | [EncodableRecord] | [*](#the-userinfo-dictionary) |
 | `Type.databaseJSONDecoder(for:)` | [FetchableRecord] | [*](#json-columns) |
-| `Type.databaseJSONEncoder(for:)` | [EncodableRecord] | [*](#json-columns) |
 | `Type.databaseDateDecodingStrategy` | [FetchableRecord] | [*](#date-and-uuid-coding-strategies) |
+| `Type.databaseEncodingUserInfo` | [EncodableRecord] | [*](#the-userinfo-dictionary) |
+| `Type.databaseJSONEncoder(for:)` | [EncodableRecord] | [*](#json-columns) |
 | `Type.databaseDateEncodingStrategy` | [EncodableRecord] | [*](#date-and-uuid-coding-strategies) |
 | `Type.databaseUUIDEncodingStrategy` | [EncodableRecord] | [*](#date-and-uuid-coding-strategies) |
 | **Define [Associations]** | | |
