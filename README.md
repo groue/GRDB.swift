@@ -289,7 +289,6 @@ Documentation
 #### Good to Know
 
 - [Avoiding SQL Injection](#avoiding-sql-injection)
-- [? as a parameter](#-as-a-parameter)
 - [Error Handling](#error-handling)
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
