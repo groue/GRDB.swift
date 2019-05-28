@@ -3592,6 +3592,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.all()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.none()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.select(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.select(..., as:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.annotated(with:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.filter(_:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.filter(key:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
