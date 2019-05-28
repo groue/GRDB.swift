@@ -3594,12 +3594,8 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.select(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.select(..., as:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.annotated(with:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.filter(_:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.filter(key:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.filter(keys:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.filter(sql:arguments:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.filter(literal:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.matching(_:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.filter(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.matching(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.including(all:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.including(optional:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.including(required:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
