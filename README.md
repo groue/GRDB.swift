@@ -3587,7 +3587,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.hasOne(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
 | `Type.hasManyThrough(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
 | `Type.hasOneThrough(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
-| **Building Query Interface [Requests]** | | |
+| **Building Query Interface [Requests](#requests)** | | |
 | `record.request(for:...)` | [TableRecord] & [EncodableRecord] | [*](Documentation/AssociationsBasics.md) |
 | `Type.all()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.none()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
