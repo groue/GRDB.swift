@@ -76,8 +76,6 @@ extension DerivableRequest where RowDecoder == Author {
             Column("lastName").collating(.localizedCaseInsensitiveCompare),
             Column("firstName").collating(.localizedCaseInsensitiveCompare))
     }
-    
-    // TODO: aggregate annotation with SelectionRequest & JoinableRequest
 }
 
 extension DerivableRequest where RowDecoder == Book {

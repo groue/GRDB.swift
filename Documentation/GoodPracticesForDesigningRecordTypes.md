@@ -150,52 +150,7 @@ Now that we have record types that are able to read and write in the database, w
 
 > :bulb: **Tip**: Define requests which make sense for your application in your record types.
 
-This may give:
-
-```swift
-extension Author {
-    // Define database columns from CodingKeys
-    private enum Columns {
-        static let id = Column(CodingKeys.id)
-        static let name = Column(CodingKeys.name)
-        static let country = Column(CodingKeys.country)
-    }
-    
-    /// Returns a request for all authors ordered by name, in a localized
-    /// case-insensitive fashion.
-    static func orderByName() -> QueryInterfaceRequest<Author> {
-        let name = Author.Columns.name
-        return Author.order(name.collating(.localizedCaseInsensitiveCompare))
-    }
-    
-    /// Returns a request for all authors from a country.
-    static func filter(country: String) -> QueryInterfaceRequest<Author> {
-        return Author.filter(Author.Columns.country == country)
-    }
-}
-```
-
-Those requests will hide intimate database details like database columns inside the record types, and make your application code crystal clear:
-
-```swift
-let sortedAuthors = try dbQueue.read { db in
-    try Author.orderByName().fetchAll(db)
-}
-```
-
-You can also use those requests to [observe database changes] in order to, say, reload a table view:
-
-```swift
-try ValueObservation
-    .trackingAll(Author.orderByName())
-    .start(in: dbQueue) { (authors: [Author]) in
-        print("fresh authors: \(authors)")
-    }
-```
-
-### Make Requests Able to Compose Together
-
-When requests should be composed together, don't define them as static methods of your record type. Instead, define them in a constrained extension of the `DerivableRequest` protocol:
+A good place to define those requests is in a constrained extension of the `DerivableRequest` protocol:
 
 ```swift
 extension Author {
@@ -209,20 +164,38 @@ extension Author {
 
 extension DerivableRequest where RowDecoder == Author {
     /// Returns a request for all authors ordered by name, in a localized
-    /// case-insensitive fashion.
+    /// case-insensitive fashion
     func orderByName() -> Self {
         let name = Author.Columns.name
         return order(name.collating(.localizedCaseInsensitiveCompare))
     }
     
-    /// Returns a request for all authors from a country.
+    /// Returns a request for all authors from a country
     func filter(country: String) -> Self {
         return filter(Author.Columns.country == country)
     }
 }
 ```
 
-This extension lets you compose complex requests from small building blocks:
+Those requests will hide intimate database details like database columns inside the record types, and make your application code crystal clear:
+
+```swift
+let sortedAuthors = try dbQueue.read { db in
+    try Author.all().orderByName().fetchAll(db)
+}
+```
+
+You can also use those requests to [observe database changes] in order to, say, reload a table view:
+
+```swift
+try ValueObservation
+    .trackingAll(Author.all().orderByName())
+    .start(in: dbQueue) { (authors: [Author]) in
+        print("fresh authors: \(authors)")
+    }
+```
+
+Extensions on `DerivableRequest` can be composed:
 
 ```swift
 try dbQueue.read { db in
@@ -239,14 +212,58 @@ try dbQueue.read { db in
 }
 ```
 
-Extensions on `DerivableRequest` also play nicely with record [associations]:
+Extensions on `DerivableRequest` are also available on record [associations]:
 
 ```swift
-let englishBooks = try dbQueue.read { db in
-    // Only keep books that can be joined to an English author
-    try Book.joining(required: Book.author.filter(country: "United Kingdom"))
+extension DerivableRequest where RowDecoder == Book {
+    /// Returns a request for all books from a country
+    func filter(country: String) -> Self {
+        // A book is from a country if it can be
+        // joined with an author from that country:
+        return joining(required: Book.author.filter(country: country))
+        //                                  ^ here!
+    }
+    
+    /// Returns a request for all books ordered by title, in a localized
+    /// case-insensitive fashion
+    func orderByTitle() -> Self {
+        let title = Book.Columns.title
+        return order(title.collating(.localizedCaseInsensitiveCompare))
+    }
+}
+
+try dbQueue.read { db in
+    let sortedItalianBooks = try Book.all()
+        .filter(country: "Italy")
+        .orderByTitle()
+        .fetchAll(db)
 }
 ```
+
+For more information about associations, see [Compose Records] below.
+
+> :point_up: **Note**: not all requests can be defined in an extension of `DerivableRequest`, because not everything can be expressed on both requests and associations. For example, [Association Aggregates] are only available on requests. When this happens, define your requests in a constrained extension to `QueryInterfaceRequest`:
+>
+> ```swift
+> extension QueryInterfaceRequest where RowDecoder == Author {
+>     /// Returns a request for all authors with at least one book
+>     func havingBooks() -> QueryInterfaceRequest<Author> {
+>         return having(Author.books.isEmpty == false)
+>     }
+> }
+> ````
+>
+> Those requests still compose nicely:
+>
+> ```swift
+> try dbQueue.read { db in
+>     let sortedFrenchAuthorsHavingBooks = try Author.all()
+>         .filter(country: "France")
+>         .havingBooks()
+>         .orderByName()
+>         .fetchAll(db)
+> }
+> ```
 
 
 ## Compose Records
@@ -697,3 +714,4 @@ Instead, have a look at [Database Observation]:
 [Embrace Errors]: #embrace-errors
 [Thread-Safety is also an Application Concern]: #thread-safety-is-also-an-application-concern
 [recommended convention]: AssociationsBasics.md#associations-and-the-database-schema
+[Association Aggregates]: AssociationsBasics.md#association-aggregates
