@@ -111,12 +111,14 @@ struct Book: Codable {
 // Add Database access
 
 extension Author: FetchableRecord, MutablePersistableRecord {
+    // Update auto-incremented id upon successful insertion
     mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
 }
 
 extension Book: FetchableRecord, MutablePersistableRecord {
+    // Update auto-incremented id upon successful insertion
     mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
