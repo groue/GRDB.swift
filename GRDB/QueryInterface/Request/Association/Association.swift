@@ -20,16 +20,6 @@ public protocol Association: DerivableRequest {
     ///     }
     associatedtype OriginRowDecoder
     
-    /// The associated record type.
-    ///
-    /// In the `belongsTo` association below, it is Author:
-    ///
-    ///     struct Book: TableRecord {
-    ///         // BelongsToAssociation<Book, Author>
-    ///         static let author = belongsTo(Author.self)
-    ///     }
-    associatedtype RowDecoder
-    
     /// :nodoc:
     var sqlAssociation: SQLAssociation { get }
     
@@ -51,6 +41,33 @@ public protocol Association: DerivableRequest {
     
     /// :nodoc:
     init(sqlAssociation: SQLAssociation)
+}
+
+extension Association {
+    /// :nodoc:
+    public func _including(all association: SQLAssociation) -> Self {
+        return mapDestinationRelation { $0._including(all: association) }
+    }
+    
+    /// :nodoc:
+    public func _including(optional association: SQLAssociation) -> Self {
+        return mapDestinationRelation { $0._including(optional: association) }
+    }
+    
+    /// :nodoc:
+    public func _including(required association: SQLAssociation) -> Self {
+        return mapDestinationRelation { $0._including(required: association) }
+    }
+    
+    /// :nodoc:
+    public func _joining(optional association: SQLAssociation) -> Self {
+        return mapDestinationRelation { $0._joining(optional: association) }
+    }
+    
+    /// :nodoc:
+    public func _joining(required association: SQLAssociation) -> Self {
+        return mapDestinationRelation { $0._joining(required: association) }
+    }
 }
 
 extension Association {
@@ -270,51 +287,6 @@ extension Association {
     ///         .filter(sql: "custom.color = ?", arguments: ["red"])
     public func aliased(_ alias: TableAlias) -> Self {
         return mapDestinationRelation { $0.qualified(with: alias) }
-    }
-}
-
-extension Association {
-    /// Creates an association that prefetches another one.
-    public func including<A: AssociationToMany>(all association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapDestinationRelation {
-            $0.including(all: association.sqlAssociation)
-        }
-    }
-    
-    /// Creates an association that includes another one. The columns of the
-    /// associated record are selected. The returned association does not
-    /// require that the associated database table contains a matching row.
-    public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapDestinationRelation {
-            $0.including(optional: association.sqlAssociation)
-        }
-    }
-    
-    /// Creates an association that includes another one. The columns of the
-    /// associated record are selected. The returned association requires
-    /// that the associated database table contains a matching row.
-    public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapDestinationRelation {
-            $0.including(required: association.sqlAssociation)
-        }
-    }
-    
-    /// Creates an association that joins another one. The columns of the
-    /// associated record are not selected. The returned association does not
-    /// require that the associated database table contains a matching row.
-    public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapDestinationRelation {
-            $0.joining(optional: association.sqlAssociation)
-        }
-    }
-    
-    /// Creates an association that joins another one. The columns of the
-    /// associated record are not selected. The returned association requires
-    /// that the associated database table contains a matching row.
-    public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return mapDestinationRelation {
-            $0.joining(required: association.sqlAssociation)
-        }
     }
 }
 
