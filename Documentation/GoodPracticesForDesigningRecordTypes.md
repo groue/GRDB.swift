@@ -223,7 +223,7 @@ try dbQueue.read { db in
 }
 ```
 
-Those methods are also available on record associations, because associations also conform to the `DerivableRequest` protocol (see [Compose Records] below):
+Those methods are also available on record associations, because associations also conform to the `DerivableRequest` protocol:
 
 ```swift
 // Some requests of Book
