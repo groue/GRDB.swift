@@ -75,27 +75,30 @@ public struct FTS5 : VirtualTableModule {
         }
         
         if let tokenizer = definition.tokenizer {
-            arguments.append("tokenize=\(tokenizer.components.joined(separator: " ").sqlExpression.quotedSQL())")
+            arguments.append("tokenize=\(tokenizer.components.joined(separator: " ").sqlExpression.quotedSQL(wrappedInParenthesis: false))")
         }
         
         switch definition.contentMode {
         case .raw(let content, let contentRowID):
             if let content = content {
-                arguments.append("content=\(content.sqlExpression.quotedSQL())")
+                let quotedContent = content.sqlExpression.quotedSQL(wrappedInParenthesis: false)
+                arguments.append("content=\(quotedContent)")
             }
             if let contentRowID = contentRowID {
-                arguments.append("content_rowid=\(contentRowID.sqlExpression.quotedSQL())")
+                let quotedContentRowID = contentRowID.sqlExpression.quotedSQL(wrappedInParenthesis: false)
+                arguments.append("content_rowid=\(quotedContentRowID)")
             }
         case .synchronized(let contentTable):
-            arguments.append("content=\(contentTable.sqlExpression.quotedSQL())")
+            arguments.append("content=\(contentTable.sqlExpression.quotedSQL(wrappedInParenthesis: false))")
             if let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn {
-                arguments.append("content_rowid=\(rowIDColumn.sqlExpression.quotedSQL())")
+                let quotedRowID = rowIDColumn.sqlExpression.quotedSQL(wrappedInParenthesis: false)
+                arguments.append("content_rowid=\(quotedRowID)")
             }
         }
         
         
         if let prefixes = definition.prefixes {
-            arguments.append("prefix=\(prefixes.sorted().map { "\($0)" }.joined(separator: " ").sqlExpression.quotedSQL())")
+            arguments.append("prefix=\(prefixes.sorted().map { "\($0)" }.joined(separator: " ").sqlExpression.quotedSQL(wrappedInParenthesis: false))")
         }
         
         if let columnSize = definition.columnSize {

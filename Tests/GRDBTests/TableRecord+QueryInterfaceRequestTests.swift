@@ -51,7 +51,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT * FROM \"readers\" LIMIT 10)")
             
             XCTAssertEqual(try Reader.filter(Col.age == 42).fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE (\"age\" = 42)")
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE \"age\" = 42")
             
             XCTAssertEqual(try Reader.all().distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT * FROM \"readers\")")
@@ -63,10 +63,10 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
             
             XCTAssertEqual(try Reader.select(Col.age * 2).distinct().fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
             
             XCTAssertEqual(try Reader.select((Col.age * 2).aliased("ignored")).distinct().fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
             
             XCTAssertEqual(try Reader.select(Col.name, Col.age).fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
@@ -163,7 +163,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             
             let request = Reader.select(Col.name, Col.id - 1)
             let rows = try Row.fetchAll(db, request)
-            XCTAssertEqual(lastSQLQuery, "SELECT \"name\", (\"id\" - 1) FROM \"readers\"")
+            XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0][0] as String, "Arthur")
             XCTAssertEqual(rows[0][1] as Int64, 0)
@@ -186,21 +186,21 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, Reader.filter(sql: "id <> 1")),
-            "SELECT * FROM \"readers\" WHERE (id <> 1)")
+            "SELECT * FROM \"readers\" WHERE id <> 1")
     }
     
     func testFilterLiteralWithPositionalArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, Reader.filter(sql: "id <> ?", arguments: [1])),
-            "SELECT * FROM \"readers\" WHERE (id <> 1)")
+            "SELECT * FROM \"readers\" WHERE id <> 1")
     }
     
     func testFilterLiteralWithNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, Reader.filter(sql: "id <> :id", arguments: ["id": 1])),
-            "SELECT * FROM \"readers\" WHERE (id <> 1)")
+            "SELECT * FROM \"readers\" WHERE id <> 1")
     }
     
     func testFilter() throws {
@@ -214,7 +214,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, Reader.filter(true).filter(false)),
-            "SELECT * FROM \"readers\" WHERE (1 AND 0)")
+            "SELECT * FROM \"readers\" WHERE 1 AND 0")
     }
     
     

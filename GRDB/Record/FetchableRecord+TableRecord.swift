@@ -24,7 +24,6 @@ extension FetchableRecord where Self: TableRecord {
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchCursor(_ db: Database) throws -> RecordCursor<Self> {
         return try all().fetchCursor(db)
     }
@@ -40,7 +39,6 @@ extension FetchableRecord where Self: TableRecord {
     ///
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchAll(_ db: Database) throws -> [Self] {
         return try all().fetchAll(db)
     }
@@ -56,7 +54,6 @@ extension FetchableRecord where Self: TableRecord {
     ///
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchOne(_ db: Database) throws -> Self? {
         return try all().fetchOne(db)
     }
@@ -80,7 +77,6 @@ extension FetchableRecord where Self: TableRecord {
     ///     - keys: A sequence of primary keys.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> RecordCursor<Self> where Sequence.Element: DatabaseValueConvertible {
         return try filter(keys: keys).fetchCursor(db)
     }
@@ -96,7 +92,6 @@ extension FetchableRecord where Self: TableRecord {
     ///     - keys: A sequence of primary keys.
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> [Self] where Sequence.Element: DatabaseValueConvertible {
         let keys = Array(keys)
         if keys.isEmpty {
@@ -115,7 +110,6 @@ extension FetchableRecord where Self: TableRecord {
     ///     - key: A primary key value.
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) throws -> Self? {
         guard let key = key else {
             // Avoid hitting the database
@@ -144,7 +138,6 @@ extension FetchableRecord where Self: TableRecord {
     ///     - keys: An array of key dictionaries.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> RecordCursor<Self> {
         return try filter(keys: keys).fetchCursor(db)
     }
@@ -161,7 +154,6 @@ extension FetchableRecord where Self: TableRecord {
     ///     - keys: An array of key dictionaries.
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> [Self] {
         if keys.isEmpty {
             // Avoid hitting the database
@@ -180,7 +172,6 @@ extension FetchableRecord where Self: TableRecord {
     ///     - key: A dictionary of values.
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @inlinable
     public static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]?) throws -> Self? {
         guard let key = key else {
             // Avoid hitting the database

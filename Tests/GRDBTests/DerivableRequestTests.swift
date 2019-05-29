@@ -58,7 +58,7 @@ private var libraryMigrator: DatabaseMigrator = {
     return migrator
 }()
 
-// One extension...
+// Define DerivableRequest extensions
 extension DerivableRequest where RowDecoder == Author {
     func filter(country: String) -> Self {
         return filter(Column("country") == country)
@@ -68,6 +68,12 @@ extension DerivableRequest where RowDecoder == Author {
         return order(
             Column("lastName").collating(.localizedCaseInsensitiveCompare),
             Column("firstName").collating(.localizedCaseInsensitiveCompare))
+    }
+}
+
+extension DerivableRequest where RowDecoder == Book {
+    func orderByTitle() -> Self {
+        return order(Column("title").collating(.localizedCaseInsensitiveCompare))
     }
 }
 
@@ -98,32 +104,84 @@ class DerivableRequestTests: GRDBTestCase {
         try libraryMigrator.migrate(dbQueue)
         try dbQueue.inDatabase { db in
             // ... for two requests (1)
+            sqlQueries.removeAll()
             let authorNames = try Author.all()
                 .orderByFullName()
                 .fetchAll(db)
                 .map { $0.fullName }
             XCTAssertEqual(authorNames, ["Herman Melville", "Marcel Proust"])
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT * FROM "author" \
+                ORDER BY "lastName" COLLATE swiftLocalizedCaseInsensitiveCompare, \
+                "firstName" COLLATE swiftLocalizedCaseInsensitiveCompare
+                """)
             
+            sqlQueries.removeAll()
             let reversedAuthorNames = try Author.all()
                 .orderByFullName()
                 .reversed()
                 .fetchAll(db)
                 .map { $0.fullName }
             XCTAssertEqual(reversedAuthorNames, ["Marcel Proust", "Herman Melville"])
-
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT * FROM "author" \
+                ORDER BY "lastName" COLLATE swiftLocalizedCaseInsensitiveCompare DESC, \
+                "firstName" COLLATE swiftLocalizedCaseInsensitiveCompare DESC
+                """)
+            
+            sqlQueries.removeAll()
+            _ /* unorderedAuthors */ = try Author.all()
+                .orderByFullName()
+                .unordered()
+                .fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT * FROM "author"
+                """)
+            
             // ... for two requests (2)
+            sqlQueries.removeAll()
             let bookTitles = try Book
                 .joining(required: Book.author.orderByFullName())
+                .orderByTitle()
                 .fetchAll(db)
                 .map { $0.title }
-            XCTAssertEqual(bookTitles, ["Moby-Dick", "Du côté de chez Swann"])
+            XCTAssertEqual(bookTitles, ["Du côté de chez Swann", "Moby-Dick"])
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT "book".* FROM "book" \
+                JOIN "author" ON "author"."id" = "book"."authorId" \
+                ORDER BY \
+                "book"."title" COLLATE swiftLocalizedCaseInsensitiveCompare, \
+                "author"."lastName" COLLATE swiftLocalizedCaseInsensitiveCompare, \
+                "author"."firstName" COLLATE swiftLocalizedCaseInsensitiveCompare
+                """)
             
+            sqlQueries.removeAll()
             let reversedBookTitles = try Book
                 .joining(required: Book.author.orderByFullName())
+                .orderByTitle()
                 .reversed()
                 .fetchAll(db)
                 .map { $0.title }
-            XCTAssertEqual(reversedBookTitles, ["Du côté de chez Swann", "Moby-Dick"])
+            XCTAssertEqual(reversedBookTitles, ["Moby-Dick", "Du côté de chez Swann"])
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT "book".* FROM "book" \
+                JOIN "author" ON "author"."id" = "book"."authorId" \
+                ORDER BY \
+                "book"."title" COLLATE swiftLocalizedCaseInsensitiveCompare DESC, \
+                "author"."lastName" COLLATE swiftLocalizedCaseInsensitiveCompare DESC, \
+                "author"."firstName" COLLATE swiftLocalizedCaseInsensitiveCompare DESC
+                """)
+            
+            sqlQueries.removeAll()
+            _ /* unorderedBooks */ = try Book
+                .joining(required: Book.author.orderByFullName())
+                .orderByTitle()
+                .unordered()
+                .fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT "book".* FROM "book" \
+                JOIN "author" ON "author"."id" = "book"."authorId"
+                """)
         }
     }
 }

@@ -162,7 +162,7 @@ func fatalConversionError<T>(to: T.Type, from dbValue: DatabaseValue?, sqliteSta
 
 /// Lossless conversions from database values and rows
 extension DatabaseValueConvertible {
-    @inlinable
+    @usableFromInline
     static func decode(from sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self {
         let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
         if let value = fromDatabaseValue(dbValue) {
@@ -187,7 +187,7 @@ extension DatabaseValueConvertible {
             conversionContext: ValueConversionContext(row).atColumn(index))
     }
     
-    @inlinable
+    @usableFromInline
     static func decodeIfPresent(from sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self? {
         let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
         if let value = fromDatabaseValue(dbValue) {

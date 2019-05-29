@@ -11,7 +11,7 @@ import Foundation
 public typealias SQLiteConnection = OpaquePointer
 
 /// A raw SQLite function argument.
-@usableFromInline typealias SQLiteValue = OpaquePointer
+typealias SQLiteValue = OpaquePointer
 
 let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_destructor_type.self)
 

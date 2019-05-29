@@ -391,7 +391,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             XCTAssertTrue(fetchedRecord.name == record.name)
             XCTAssertTrue(fetchedRecord.age == record.age)
             XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
-            XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE (\"rowid\" = \(record.id!))")
+            XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
         }
     }
 
@@ -465,7 +465,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             XCTAssertTrue(fetchedRecord.name == record.name)
             XCTAssertTrue(fetchedRecord.age == record.age)
             XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
-            XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE (\"rowid\" = \(record.id!))")
+            XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
         }
     }
     
@@ -549,7 +549,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertTrue(fetchedRecord.name == record.name)
                 XCTAssertTrue(fetchedRecord.age == record.age)
                 XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
-                XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE (\"rowid\" = \(record.id!))")
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
             }
         }
     }
@@ -622,7 +622,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 XCTAssertTrue(fetchedRecord.name == record.name)
                 XCTAssertTrue(fetchedRecord.age == record.age)
                 XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
-                XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE (\"rowid\" = \(record.id!))")
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
             }
         }
     }

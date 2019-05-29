@@ -60,7 +60,7 @@ public struct FTS5TokenizerDescriptor {
         if separators.isEmpty {
             return FTS5TokenizerDescriptor(components: ["ascii"])
         } else {
-            return FTS5TokenizerDescriptor(components: ["ascii", "separators", separators.map { String($0) }.joined(separator: "").sqlExpression.quotedSQL()])
+            return FTS5TokenizerDescriptor(components: ["ascii", "separators", separators.map { String($0) }.joined(separator: "").sqlExpression.quotedSQL(wrappedInParenthesis: false)])
         }
     }
     
@@ -119,7 +119,7 @@ public struct FTS5TokenizerDescriptor {
                     .map { String($0) }
                     .joined(separator: "")
                     .sqlExpression
-                    .quotedSQL()])
+                    .quotedSQL(wrappedInParenthesis: false)])
         }
         if !tokenCharacters.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
@@ -130,7 +130,7 @@ public struct FTS5TokenizerDescriptor {
                     .map { String($0) }
                     .joined(separator: "")
                     .sqlExpression
-                    .quotedSQL()])
+                    .quotedSQL(wrappedInParenthesis: false)])
         }
         return FTS5TokenizerDescriptor(components: components)
     }

@@ -90,6 +90,8 @@ For your convenience, those record protocols can be derived from the [Decodable 
 
 Being a protocol-oriented library that welcomes immutable types, GRDB records are unlike records in other ORM libraries. Particularly, records do not auto-update, and records are not uniqued. We'll see below that the lack of those features can be replaced with **database change notifications**, with many advantages.
 
+See [Good Practices for Designing Record Types](GoodPracticesForDesigningRecordTypes.md) for some practical advice.
+
 
 ### Allow database records to cross threads
 
@@ -170,7 +172,9 @@ We can see that the threat of conflicts is *always* left to the application. Cor
 
 Finally, raw FMDatabase, SQLite.swift, and Core Data are the hardest tools, and you'd better be a very skilled developer in order to use them properly.
 
-For further information about GRDB concurrency, check its detailed [Concurrency Guide].
+For detailed information about GRDB concurrency, check the [Concurrency Guide].
+
+For practical advice on designing the database access layer of your application, see the [Good Practices for Designing Record Types](GoodPracticesForDesigningRecordTypes.md).
 
 
 ### Never pay for using raw SQL

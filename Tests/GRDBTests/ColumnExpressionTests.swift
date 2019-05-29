@@ -69,7 +69,7 @@ class ColumnExpressionTests: GRDBTestCase {
             // Test FTS3 match expression
             let expression = try Player.Columns.name.match(FTS3Pattern(rawPattern: "foo"))
             let sqlLiteral = expression.sqlLiteral
-            XCTAssertEqual(sqlLiteral.sql, "(\"name\" MATCH ?)")
+            XCTAssertEqual(sqlLiteral.sql, "\"name\" MATCH ?")
             XCTAssertEqual(sqlLiteral.arguments, ["foo"])
         }
     }
@@ -130,11 +130,66 @@ class ColumnExpressionTests: GRDBTestCase {
             // Test FTS3 match expression
             let expression = try Player.Columns.name.match(FTS3Pattern(rawPattern: "foo"))
             let sqlLiteral = expression.sqlLiteral
-            XCTAssertEqual(sqlLiteral.sql, "(\"name\" MATCH ?)")
+            XCTAssertEqual(sqlLiteral.sql, "\"name\" MATCH ?")
             XCTAssertEqual(sqlLiteral.arguments, ["foo"])
         }
     }
     
+    func testColumnsDerivedFromCodingKeys() throws {
+        struct Player: Codable, TableRecord, FetchableRecord, PersistableRecord {
+            var id: Int64
+            var name: String
+            var score: Int
+            
+            enum CodingKeys: String, CodingKey {
+                case id
+                case name = "full_name"
+                case score
+            }
+            
+            enum Columns {
+                static let id = Column(CodingKeys.id)
+                static let name = Column(CodingKeys.name)
+                static let score = Column(CodingKeys.score)
+            }
+            
+            // Test databaseSelection
+            static let databaseSelection: [SQLSelectable] = [Columns.id, Columns.name, Columns.score]
+            
+            static var testRequest: QueryInterfaceRequest<Player> {
+                // Test expression derivation
+                return filter(Columns.name != nil).order(Columns.score.desc)
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("full_name")
+                t.column("score")
+            }
+            
+            // Test rowId column identification
+            try XCTAssertEqual(Player.filter(key: 1).databaseRegion(db).description, "player(full_name,id,score)[1]")
+            try XCTAssertEqual(Player.filter(Player.Columns.id == 1).databaseRegion(db).description, "player(full_name,id,score)[1]")
+            try XCTAssertEqual(Player.filter(1 == Player.Columns.id).databaseRegion(db).description, "player(full_name,id,score)[1]")
+            try XCTAssertEqual(Player.filter(Player.Columns.id == 1 || Player.Columns.id == 2).databaseRegion(db).description, "player(full_name,id,score)[1,2]")
+            try XCTAssertEqual(Player.filter([1, 2, 3].contains(Player.Columns.id)).databaseRegion(db).description, "player(full_name,id,score)[1,2,3]")
+            
+            // Test specific column updates
+            let player = Player(row: ["id": 1, "full_name": "Arthur", "score": 1000])
+            try? player.update(db, columns: [Player.Columns.name, Player.Columns.score])
+            XCTAssertEqual(lastSQLQuery, "UPDATE \"player\" SET \"full_name\"=\'Arthur\', \"score\"=1000 WHERE \"id\"=1")
+            
+            // Test FTS3 match expression
+            let expression = try Player.Columns.name.match(FTS3Pattern(rawPattern: "foo"))
+            let sqlLiteral = expression.sqlLiteral
+            XCTAssertEqual(sqlLiteral.sql, "\"full_name\" MATCH ?")
+            XCTAssertEqual(sqlLiteral.arguments, ["foo"])
+        }
+    }
+
     func testCodingKeysAsColumnExpression() throws {
         struct Player: Codable, TableRecord, FetchableRecord, PersistableRecord {
             var id: Int64
@@ -179,7 +234,7 @@ class ColumnExpressionTests: GRDBTestCase {
             // Test FTS3 match expression
             let expression = try Player.CodingKeys.name.match(FTS3Pattern(rawPattern: "foo"))
             let sqlLiteral = expression.sqlLiteral
-            XCTAssertEqual(sqlLiteral.sql, "(\"full_name\" MATCH ?)")
+            XCTAssertEqual(sqlLiteral.sql, "\"full_name\" MATCH ?")
             XCTAssertEqual(sqlLiteral.arguments, ["foo"])
         }
     }

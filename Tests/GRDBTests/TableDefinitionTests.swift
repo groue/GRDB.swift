@@ -188,9 +188,9 @@ class TableDefinitionTests: GRDBTestCase {
             assertEqualSQL(
                 lastSQLQuery,
                 ("CREATE TABLE \"test\" (" +
-                    "\"a\" INTEGER CHECK ((\"a\" > 0)), " +
+                    "\"a\" INTEGER CHECK (\"a\" > 0), " +
                     "\"b\" INTEGER CHECK (b <> 2), " +
-                    "\"c\" INTEGER CHECK ((\"c\" > 0)) CHECK ((\"c\" < 10))" +
+                    "\"c\" INTEGER CHECK (\"c\" > 0) CHECK (\"c\" < 10)" +
                     ")") as String)
             
             // Sanity check
@@ -383,7 +383,7 @@ class TableDefinitionTests: GRDBTestCase {
                 ("CREATE TABLE \"test\" (" +
                     "\"a\" INTEGER, " +
                     "\"b\" INTEGER, " +
-                    "CHECK (((\"a\" + \"b\") < 10)), " +
+                    "CHECK ((\"a\" + \"b\") < 10), " +
                     "CHECK (a + b < 10)" +
                     ")") as String)
             
@@ -548,7 +548,7 @@ class TableDefinitionTests: GRDBTestCase {
             }
             
             try db.create(index: "test_on_a_b", on: "test", columns: ["a", "b"], unique: true, ifNotExists: true, condition: Column("a") == 1)
-            assertEqualSQL(lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\") WHERE (\"a\" = 1)")
+            assertEqualSQL(lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\") WHERE \"a\" = 1")
             
             // Sanity check
             XCTAssertEqual(try Set(db.indexes(on: "test").map { $0.name }), ["test_on_a_b"])
