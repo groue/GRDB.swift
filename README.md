@@ -8534,6 +8534,7 @@ FAQ
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
 - [What Are Experimental Features?](#what-are-experimental-features)
+- [SQLite error 21 "wrong number of statement arguments" with LIKE queries](#sqlite-error-21-wrong-number-of-statement-arguments-with-like-queries)
 
 
 ### How do I create a database in my application?
@@ -8675,6 +8676,32 @@ There is an exception, though: *experimental features*, marked with the "**:fire
 Those experimental features are not protected by semantic versioning, and may break between two minor releases of the library. To help them becoming stable, [your feedback](https://github.com/groue/GRDB.swift/issues) is greatly appreciated.
 
 
+### SQLite error 21 "wrong number of statement arguments" with LIKE queries
+
+You may get the error "wrong number of statement arguments" when executing a LIKE query similar to:
+
+```swift
+let name = textField.text
+let players = try dbQueue.read { db in
+    try Player.fetchAll(db, sql: "SELECT * FROM player WHERE name LIKE '%?%'", arguments: [name])
+}
+```
+
+The problem lies in the `'%?%'` pattern.
+
+SQLite only interprets `?` as a parameter when it is a placeholder for a whole value (int, double, string, blob, null). In this incorrect query, `?` is just a character in the `'%?%'` string: it is not a query parameter, and is not processed in any way. See [https://www.sqlite.org/lang_expr.html#varparam](https://www.sqlite.org/lang_expr.html#varparam) for more information about SQLite parameters.
+
+To fix the error, you can feed the request with the pattern itself, instead of the name:
+
+```swift
+let name = textField.text
+let players: [Player] = try dbQueue.read { db in
+    let pattern = "%\(name)%"
+    return try Player.fetchAll(db, sql: "SELECT * FROM player WHERE name LIKE ?", arguments: [pattern])
+}
+```
+
+
 Sample Code
 ===========
 
@@ -8690,7 +8717,7 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [@alextrob](https://github.com/alextrob), [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@charlesmchen-signal](https://github.com/charlesmchen-signal), [@Chiliec](https://github.com/Chiliec), [@darrenclark](https://github.com/darrenclark), [@davidkraus](https://github.com/davidkraus), [@fpillet](http://github.com/fpillet), [@gusrota](https://github.com/gusrota), [@hartbit](https://github.com/hartbit), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@KyleLeneau](https://github.com/KyleLeneau), [@Marus](https://github.com/Marus), [@michaelkirk-signal](https://github.com/michaelkirk-signal), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@swiftlyfalling](https://github.com/swiftlyfalling), [@valexa](https://github.com/valexa), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
+- [@alextrob](https://github.com/alextrob), [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@charlesmchen-signal](https://github.com/charlesmchen-signal), [@Chiliec](https://github.com/Chiliec), [@darrenclark](https://github.com/darrenclark), [@davidkraus](https://github.com/davidkraus), [@fpillet](http://github.com/fpillet), [@gusrota](https://github.com/gusrota), [@hartbit](https://github.com/hartbit), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@KyleLeneau](https://github.com/KyleLeneau), [@Marus](https://github.com/Marus), [@michaelkirk-signal](https://github.com/michaelkirk-signal), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@swiftlyfalling](https://github.com/swiftlyfalling), [@Timac](https://github.com/Timac), [@valexa](https://github.com/valexa), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [@kali](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
 
