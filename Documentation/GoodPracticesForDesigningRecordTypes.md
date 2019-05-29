@@ -272,7 +272,7 @@ For more information about associations, see [Compose Records] below.
 > ```swift
 > extension SingletonRecord {
 >     /// The one any only record stored in the database
->     static var shared: QueryInterfaceRecord<SingletonRecord> = all().limit(1)
+>     static let shared = all().limit(1)
 > }
 >
 > let singleton = try dbQueue.read { db
