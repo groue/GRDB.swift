@@ -266,6 +266,19 @@ For more information about associations, see [Compose Records] below.
 >         .fetchAll(db)
 > }
 > ```
+>
+> :point_up: **Note**: Sometime requests only make sense when defined on the Record type itself. When this happens, just go ahead and define a static method on your Record type:
+>
+> ```swift
+> extension SingletonRecord {
+>     /// The one any only record stored in the database
+>     static var shared: QueryInterfaceRecord<SingletonRecord> = all().limit(1)
+> }
+>
+> let singleton = try dbQueue.read { db
+>     try SingletonRecord.shared.fetchOne(db)
+> }
+> ```
 
 
 ## Compose Records
