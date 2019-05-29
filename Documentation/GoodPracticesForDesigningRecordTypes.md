@@ -179,106 +179,108 @@ extension DerivableRequest where RowDecoder == Author {
 }
 ```
 
-Those requests will hide intimate database details like database columns inside the record types, and make your application code crystal clear:
+Requests defined in an extension of the `DerivableRequest` protocol are nice in many ways:
 
-```swift
-let sortedAuthors = try dbQueue.read { db in
-    try Author.all().orderByName().fetchAll(db)
-}
-```
+1. They hide intimate database details like database columns inside the record types, and make your application code crystal clear:
 
-You can also use those requests to [observe database changes] in order to, say, reload a table view:
-
-```swift
-try ValueObservation
-    .trackingAll(Author.all().orderByName())
-    .start(in: dbQueue) { (authors: [Author]) in
-        print("fresh authors: \(authors)")
+    ```swift
+    let sortedAuthors = try dbQueue.read { db in
+        try Author.all().orderByName().fetchAll(db)
     }
-```
+    ```
 
-Extensions on `DerivableRequest` can be composed:
+2. You can use those requests to [observe database changes] in order to, say, reload a table view:
 
-```swift
-try dbQueue.read { db in
-    let sortedAuthors = try Author.all()
-        .orderByName()
-        .fetchAll(db)
-    let frenchAuthors = try Author.all()
-        .filter(country: "France")
-        .fetchAll(db)
-    let sortedSpanishAuthors = try Author.all()
-        .filter(country: "Spain")
-        .orderByName()
-        .fetchAll(db)
-}
-```
+    ```swift
+    try ValueObservation
+        .trackingAll(Author.all().orderByName())
+        .start(in: dbQueue) { (authors: [Author]) in
+            print("fresh authors: \(authors)")
+        }
+    ```
 
-Extensions on `DerivableRequest` are also available on record [associations]:
+3. Extensions on `DerivableRequest` can be composed:
 
-```swift
-extension DerivableRequest where RowDecoder == Book {
-    /// Returns a request for all books from a country
-    func filter(authorCountry: String) -> Self {
-        // A book is from a country if it can be
-        // joined with an author from that country:
-        return joining(required: Book.author.filter(country: authorCountry))
-        //                                  ^ here!
+    ```swift
+    try dbQueue.read { db in
+        let sortedAuthors = try Author.all()
+            .orderByName()
+            .fetchAll(db)
+        let frenchAuthors = try Author.all()
+            .filter(country: "France")
+            .fetchAll(db)
+        let sortedSpanishAuthors = try Author.all()
+            .filter(country: "Spain")
+            .orderByName()
+            .fetchAll(db)
     }
+    ```
+
+4. Extensions on `DerivableRequest` are also available on record [associations]:
+
+    ```swift
+    extension DerivableRequest where RowDecoder == Book {
+        /// Returns a request for all books from a country
+        func filter(authorCountry: String) -> Self {
+            // A book is from a country if it can be
+            // joined with an author from that country:
+            return joining(required: Book.author.filter(country: authorCountry))
+            //                                  ^ here!
+        }
     
-    /// Returns a request for all books ordered by title, in a localized
-    /// case-insensitive fashion
-    func orderByTitle() -> Self {
-        let title = Book.Columns.title
-        return order(title.collating(.localizedCaseInsensitiveCompare))
+        /// Returns a request for all books ordered by title, in a localized
+        /// case-insensitive fashion
+        func orderByTitle() -> Self {
+            let title = Book.Columns.title
+            return order(title.collating(.localizedCaseInsensitiveCompare))
+        }
+    }
+
+    try dbQueue.read { db in
+        let sortedItalianBooks = try Book.all()
+            .filter(authorCountry: "Italy")
+            .orderByTitle()
+            .fetchAll(db)
+    }
+    ```
+
+    For more information about associations, see [Compose Records] below.
+
+Not all requests can be defined in an extension of `DerivableRequest`, though. That is because not everything can be expressed on both requests and associations. For example, [Association Aggregates] are only available on requests. When this happens, define your requests in a constrained extension to `QueryInterfaceRequest`:
+
+```swift
+extension QueryInterfaceRequest where RowDecoder == Author {
+    /// Returns a request for all authors with at least one book
+    func havingBooks() -> QueryInterfaceRequest<Author> {
+        return having(Author.books.isEmpty == false)
     }
 }
+````
 
+Those requests still compose nicely:
+
+```swift
 try dbQueue.read { db in
-    let sortedItalianBooks = try Book.all()
-        .filter(authorCountry: "Italy")
-        .orderByTitle()
+    let sortedFrenchAuthorsHavingBooks = try Author.all()
+        .filter(country: "France")
+        .havingBooks()
+        .orderByName()
         .fetchAll(db)
 }
 ```
 
-For more information about associations, see [Compose Records] below.
+Finally, when it happens that a request only makes sense when defined on the Record type itself, just go ahead and define a static method on your Record type:
 
-> :point_up: **Note**: not all requests can be defined in an extension of `DerivableRequest`, because not everything can be expressed on both requests and associations. For example, [Association Aggregates] are only available on requests. When this happens, define your requests in a constrained extension to `QueryInterfaceRequest`:
->
-> ```swift
-> extension QueryInterfaceRequest where RowDecoder == Author {
->     /// Returns a request for all authors with at least one book
->     func havingBooks() -> QueryInterfaceRequest<Author> {
->         return having(Author.books.isEmpty == false)
->     }
-> }
-> ````
->
-> Those requests still compose nicely:
->
-> ```swift
-> try dbQueue.read { db in
->     let sortedFrenchAuthorsHavingBooks = try Author.all()
->         .filter(country: "France")
->         .havingBooks()
->         .orderByName()
->         .fetchAll(db)
-> }
-> ```
->
-> :point_up: **Note**: Sometime requests only make sense when defined on the Record type itself. When this happens, just go ahead and define a static method on your Record type:
->
-> ```swift
-> extension SingletonRecord {
->     /// The one any only record stored in the database
->     static let shared = all().limit(1)
-> }
->
-> let singleton = try dbQueue.read { db
->     try SingletonRecord.shared.fetchOne(db)
-> }
-> ```
+```swift
+extension MySingletonRecord {
+    /// The one any only record stored in the database
+    static let shared = all().limit(1)
+}
+
+let singleton = try dbQueue.read { db
+    try MySingletonRecord.shared.fetchOne(db)
+}
+```
 
 
 ## Compose Records
