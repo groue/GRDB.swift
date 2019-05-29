@@ -2778,7 +2778,7 @@ protocol FetchableRecord {
     static func databaseJSONDecoder(for column: String) -> JSONDecoder
 }
 
-protocol MutablePersistableRecord {
+protocol EncodableRecord {
     static func databaseJSONEncoder(for column: String) -> JSONEncoder
 }
 ```
@@ -2799,7 +2799,7 @@ protocol FetchableRecord {
     static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
 }
 
-protocol MutablePersistableRecord {
+protocol EncodableRecord {
     static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { get }
     static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
 }
@@ -2821,7 +2821,7 @@ protocol FetchableRecord {
     static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] { get }
 }
 
-protocol MutablePersistableRecord {
+protocol EncodableRecord {
     static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] { get }
 }
 ```
@@ -3532,7 +3532,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.databaseTableName` | [TableRecord] | |
 | `Type.databaseSelection` | [TableRecord] | [*](#columns-selected-by-a-request) |
 | `Type.persistenceConflictPolicy` | [PersistableRecord] | [*](#conflict-resolution) |
-| `record.encode(to:)` | [PersistableRecord] | |
+| `record.encode(to:)` | [EncodableRecord] | |
 | `record.didInsert(with:for:)` | [PersistableRecord] | |
 | **Insert and Update Records** | | |
 | `record.insert(db)` | [PersistableRecord] | |
@@ -3551,7 +3551,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | **Check Record Existence** | | |
 | `record.exists(db)` | [PersistableRecord] | |
 | **Convert Record to Dictionary** | | |
-| `record.databaseDictionary` | [PersistableRecord] | |
+| `record.databaseDictionary` | [EncodableRecord] | |
 | **Count Records** | | |
 | `Type.fetchCount(db)` | [TableRecord] | |
 | `Type.filter(...).fetchCount(db)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
@@ -3573,9 +3573,41 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchOne(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchOne(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| **[Codable Records]** | | |
+| `Type.databaseDecodingUserInfo` | [FetchableRecord] | [*](#the-userinfo-dictionary) |
+| `Type.databaseJSONDecoder(for:)` | [FetchableRecord] | [*](#json-columns) |
+| `Type.databaseDateDecodingStrategy` | [FetchableRecord] | [*](#date-and-uuid-coding-strategies) |
+| `Type.databaseEncodingUserInfo` | [EncodableRecord] | [*](#the-userinfo-dictionary) |
+| `Type.databaseJSONEncoder(for:)` | [EncodableRecord] | [*](#json-columns) |
+| `Type.databaseDateEncodingStrategy` | [EncodableRecord] | [*](#date-and-uuid-coding-strategies) |
+| `Type.databaseUUIDEncodingStrategy` | [EncodableRecord] | [*](#date-and-uuid-coding-strategies) |
+| **Define [Associations]** | | |
+| `Type.belongsTo(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
+| `Type.hasMany(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
+| `Type.hasOne(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
+| `Type.hasManyThrough(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
+| `Type.hasOneThrough(...)` | [TableRecord] | [*](Documentation/AssociationsBasics.md) |
+| **Building Query Interface [Requests](#requests)** | | |
+| `record.request(for:...)` | [TableRecord] & [EncodableRecord] | [*](Documentation/AssociationsBasics.md) |
+| `Type.all()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.none()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.select(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.select(..., as:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.annotated(with:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.filter(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.matching(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.including(all:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.including(optional:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.including(required:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.joining(optional:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.joining(required:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.order(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.orderByPrimaryKey()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.having(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.limit(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **[Record Comparison]** | | |
-| `record.databaseEquals(...)` | [PersistableRecord] | |
-| `record.databaseChanges(from:...)` | [PersistableRecord] | |
+| `record.databaseEquals(...)` | [EncodableRecord] | |
+| `record.databaseChanges(from:...)` | [EncodableRecord] | |
 | `record.updateChanges(db, from:...)` | [PersistableRecord] | |
 | `record.updateChanges(db) { ... }` | [PersistableRecord] | |
 | `record.hasDatabaseChanges` | [Record](#record-class) | |
