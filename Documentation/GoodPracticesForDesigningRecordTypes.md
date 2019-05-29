@@ -732,4 +732,4 @@ Instead, have a look at [Database Observation]:
 [recommended convention]: AssociationsBasics.md#associations-and-the-database-schema
 [Association Aggregates]: AssociationsBasics.md#association-aggregates
 [Codable Record]: ../README.md#codable-records
-[CodingKeys]: (https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
+[CodingKeys]: https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
