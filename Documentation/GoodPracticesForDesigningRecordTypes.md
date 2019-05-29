@@ -150,11 +150,12 @@ Applying the **[Single Responsibility Principle]** has a consequence: don't even
 
 Now that we have record types that are able to read and write in the database, we'd like to put them to good use.
 
-> :bulb: **Tip**: Define requests which make sense for your application in your record types.
+> :bulb: **Tip**: Define an enumeration of columns that you will use in order to filter, sort, etc.
 
-A good place to define those requests is in a constrained extension of the `DerivableRequest` protocol:
+When your record type is a [Codable Record], derive columns from the [CodingKeys] enum:
 
 ```swift
+// For a codable record
 extension Author {
     // Define database columns from CodingKeys
     fileprivate enum Columns {
@@ -163,8 +164,32 @@ extension Author {
         static let country = Column(CodingKeys.country)
     }
 }
+```
 
+Otherwise, declare a plain String enum that conforms to the ColumnExpression protocol:
+
+```swift
+// For a non-codable record
+extension Author {
+    // Define database columns as an enum
+    fileprivate enum Columns: String, ColumnExpression {
+        case id, name, country
+    }
+}
+```
+
+Note that those Columns enum are declared `fileprivate`, because we prefer hiding them as much as possible from the rest of the application.
+
+> :bulb: **Tip**: Define commonly used requests in a constrained extension of the `DerivableRequest` protocol.
+
+The `DerivableRequest` protocol generally lets you filter, sort, and join or include associations (we'll talk about associations in the [Compose Records] chapter below).
+
+Here is how you define those requests:
+
+```swift
+// Some requests of Author --------------------v
 extension DerivableRequest where RowDecoder == Author {
+	
     /// Returns a request for all authors ordered by name, in a localized
     /// case-insensitive fashion
     func orderByName() -> Self {
@@ -179,91 +204,65 @@ extension DerivableRequest where RowDecoder == Author {
 }
 ```
 
-Requests defined in an extension of the `DerivableRequest` protocol are nice in many ways:
-
-1. They hide intimate database details like database columns inside the record types, and make your application code crystal clear:
-
-    ```swift
-    let sortedAuthors = try dbQueue.read { db in
-        try Author.all().orderByName().fetchAll(db)
-    }
-    ```
-
-2. You can use those requests to [observe database changes] in order to, say, reload a table view:
-
-    ```swift
-    try ValueObservation
-        .trackingAll(Author.all().orderByName())
-        .start(in: dbQueue) { (authors: [Author]) in
-            print("fresh authors: \(authors)")
-        }
-    ```
-
-3. Extensions on `DerivableRequest` can be composed:
-
-    ```swift
-    try dbQueue.read { db in
-        let sortedAuthors = try Author.all()
-            .orderByName()
-            .fetchAll(db)
-        let frenchAuthors = try Author.all()
-            .filter(country: "France")
-            .fetchAll(db)
-        let sortedSpanishAuthors = try Author.all()
-            .filter(country: "Spain")
-            .orderByName()
-            .fetchAll(db)
-    }
-    ```
-
-4. Extensions on `DerivableRequest` are also available on record [associations]:
-
-    ```swift
-    extension DerivableRequest where RowDecoder == Book {
-        /// Returns a request for all books from a country
-        func filter(authorCountry: String) -> Self {
-            // A book is from a country if it can be
-            // joined with an author from that country:
-            return joining(required: Book.author.filter(country: authorCountry))
-            //                                  ^ here!
-        }
-    
-        /// Returns a request for all books ordered by title, in a localized
-        /// case-insensitive fashion
-        func orderByTitle() -> Self {
-            let title = Book.Columns.title
-            return order(title.collating(.localizedCaseInsensitiveCompare))
-        }
-    }
-
-    try dbQueue.read { db in
-        let sortedItalianBooks = try Book.all()
-            .filter(authorCountry: "Italy")
-            .orderByTitle()
-            .fetchAll(db)
-    }
-    ```
-
-    For more information about associations, see [Compose Records] below.
-
-Not all requests can be defined in an extension of `DerivableRequest`, though. That is because not everything can be expressed on both requests and associations. For example, [Association Aggregates] are only available on requests. When this happens, define your requests in a constrained extension to `QueryInterfaceRequest`:
+Those methods defined on the `DerivableRequest` protocol hide intimate database details. They allow you to compose database requests in a fluent style:
 
 ```swift
+try dbQueue.read { db in
+    let sortedAuthors: [Author] = try Author.all()
+        .orderByName()
+        .fetchAll(db)
+        
+    let frenchAuthors: [Author] = try Author.all()
+        .filter(country: "France")
+        .fetchAll(db)
+        
+    let sortedSpanishAuthors: [Author] = try Author.all()
+        .filter(country: "Spain")
+        .orderByName()
+        .fetchAll(db)
+}
+```
+
+Those methods are also available on record associations, because associations also conform to the `DerivableRequest` protocol (see [Compose Records] below):
+
+```swift
+// Some requests of Book
+extension DerivableRequest where RowDecoder == Book {
+    /// Returns a request for all books from a country
+    func filter(authorCountry: String) -> Self {
+        // A book is from a country if it can be
+        // joined with an author from that country:
+        // ---------------------------------v
+        return joining(required: Book.author.filter(country: authorCountry))
+    }
+}
+
+try dbQueue.read { db in
+    let italianBooks = try Book.all()
+        .filter(authorCountry: "Italy")
+        .fetchAll(db)
+}
+```
+
+Not *every requests* can be expressed on `DerivableRequest`. For example, [Association Aggregates] are out of scope. When this happens, define your requests in a constrained extension to `QueryInterfaceRequest`:
+
+```swift
+// More requests of Author -------------------------v
 extension QueryInterfaceRequest where RowDecoder == Author {
     /// Returns a request for all authors with at least one book
     func havingBooks() -> QueryInterfaceRequest<Author> {
         return having(Author.books.isEmpty == false)
     }
 }
-````
+```
 
-Those requests still compose nicely:
+Those requests defined on `QueryInterfaceRequest` still compose fluently:
 
 ```swift
 try dbQueue.read { db in
     let sortedFrenchAuthorsHavingBooks = try Author.all()
         .filter(country: "France")
-        .havingBooks()
+        .havingBooks() // <-
         .orderByName()
         .fetchAll(db)
 }
@@ -732,3 +731,5 @@ Instead, have a look at [Database Observation]:
 [Thread-Safety is also an Application Concern]: #thread-safety-is-also-an-application-concern
 [recommended convention]: AssociationsBasics.md#associations-and-the-database-schema
 [Association Aggregates]: AssociationsBasics.md#association-aggregates
+[Codable Record]: ../README.md#codable-records
+[CodingKeys]: (https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
