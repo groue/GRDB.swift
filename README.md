@@ -8657,34 +8657,17 @@ let players = try dbQueue.read { db in
 }
 ```
 
-What is important to understand here is that SQLite only interprets `?` as a parameter when it is a placeholder for a whole value (int, double, string, blob, null). In this incorrect query, `?` is just a character in the `'%?%'` string value: it is not a query parameter, and is not processed in any way. See [https://www.sqlite.org/lang_expr.html#varparam](https://www.sqlite.org/lang_expr.html#varparam) for more information about SQLite parameters.
+The problem lies in the `'%?%'` pattern.
 
-To provide the parameter, one option is to let Swift build the pattern:
+SQLite only interprets `?` as a parameter when it is a placeholder for a whole value (int, double, string, blob, null). In this incorrect query, `?` is just a character in the `'%?%'` string: it is not a query parameter, and is not processed in any way. See [https://www.sqlite.org/lang_expr.html#varparam](https://www.sqlite.org/lang_expr.html#varparam) for more information about SQLite parameters.
+
+To fix the error, you can feed the request with the pattern itself, instead of the name:
 
 ```swift
 let name = textField.text
 let players: [Player] = try dbQueue.read { db in
     let pattern = "%\(name)%"
     return try Player.fetchAll(db, sql: "SELECT * FROM player WHERE name LIKE ?", arguments: [pattern])
-}
-```
-
-This solution could also be used with the query interface:
-
-```swift
-let name = textField.text
-let players: [Player] = try dbQueue.read { db in
-    let pattern = "%\(name)%"
-    return try Player.filter(Column("name").like(pattern)).fetchAll(db)
-}
-```
-
-Another option is to let SQLite build the like pattern using the string concatenation operator `||`:
-
-```swift
-let name = textField.text
-let players = try dbQueue.read { db in
-	try Player.fetchAll(db, sql: "SELECT * FROM player WHERE name LIKE '%' || ? || '%'", arguments: [name])
 }
 ```
 
