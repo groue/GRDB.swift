@@ -219,10 +219,10 @@ Extensions on `DerivableRequest` are also available on record [associations]:
 ```swift
 extension DerivableRequest where RowDecoder == Book {
     /// Returns a request for all books from a country
-    func filter(country: String) -> Self {
+    func filter(authorCountry: String) -> Self {
         // A book is from a country if it can be
         // joined with an author from that country:
-        return joining(required: Book.author.filter(country: country))
+        return joining(required: Book.author.filter(country: authorCountry))
         //                                  ^ here!
     }
     
@@ -236,7 +236,7 @@ extension DerivableRequest where RowDecoder == Book {
 
 try dbQueue.read { db in
     let sortedItalianBooks = try Book.all()
-        .filter(country: "Italy")
+        .filter(authorCountry: "Italy")
         .orderByTitle()
         .fetchAll(db)
 }
