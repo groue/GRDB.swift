@@ -14,6 +14,21 @@ public protocol ValueReducer {
     /// Transforms a fetched value into an eventual observed value. Returns nil
     /// when observer should not be notified.
     ///
+    /// The returned value MUST NOT be nil on the first invocation of the
+    /// reducer. This means that the following assert must always pass:
+    ///
+    ///     // 1st fetch and reduce
+    ///     var reducer = /* some newly initialized ValueReducer */
+    ///     let fetched = try reducer.fetch(db)
+    ///     let value = reducer.value(fetched)
+    ///     assert(value != nil)
+    ///
+    /// Subsequent values may be nil:
+    ///
+    ///     // subsequent fetches and reduce
+    ///     let fetched = try reducer.fetch(db)
+    ///     let value = reducer.value(fetched) // can be nil
+    ///
     /// This method runs inside a private dispatch queue.
     mutating func value(_ fetched: Fetched) -> Value?
 }
