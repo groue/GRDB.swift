@@ -140,4 +140,39 @@ class ValueObservationFetchTests: GRDBTestCase {
             }
         }
     }
+    
+    func testFetchMap() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = SQLRequest<Row>(sql: "SELECT * FROM player ORDER BY id")
+                let observation = ValueObservation.trackingAll(request).map { rows in
+                    rows.map { row in row["id"] as Int64 }
+                }
+                let ids: [Int64] = try observation.fetch(db)
+                XCTAssertEqual(ids, [1, 2, 3])
+            }
+        }
+    }
+    
+    func testFetchCombine() throws {
+        dbConfiguration.trace = { print($0) }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            struct Player: FetchableRecord, TableRecord, Equatable, Codable {
+                var id: Int64
+                var name: String?
+            }
+            do {
+                let request1 = Player.filter(key: 1)
+                let request2 = Player.filter(key: 2)
+                let observation1 = ValueObservation.trackingOne(request1)
+                let observation2 = ValueObservation.trackingOne(request2)
+                let observation = ValueObservation.combine(observation1, observation2)
+                let players = try observation.fetch(db)
+                XCTAssertEqual(players.0, Player(id: 1, name: "Arthur"))
+                XCTAssertEqual(players.1, Player(id: 2, name: "Barbara"))
+            }
+        }
+    }
 }
