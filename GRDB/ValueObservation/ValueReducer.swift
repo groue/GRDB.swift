@@ -33,6 +33,28 @@ public protocol ValueReducer {
     mutating func value(_ fetched: Fetched) -> Value?
 }
 
+extension ValueReducer {
+    mutating func fetchInitialValue(_ db: Database, requiringWriteAccess: Bool) throws -> Value {
+        var fetchedValue: Fetched!
+        if requiringWriteAccess {
+            try db.inSavepoint {
+                fetchedValue = try fetch(db)
+                return .commit
+            }
+        } else {
+            fetchedValue = try db.readOnly {
+                try fetch(db)
+            }
+        }
+        
+        guard let value = value(fetchedValue) else {
+            fatalError("Broken contract: reducer must return a non-nil initial value: \(self)")
+        }
+        
+        return value
+    }
+}
+
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// A type-erased ValueReducer.

@@ -196,6 +196,14 @@ extension ValueObservation where Reducer: ValueReducer {
     {
         return try reader.add(observation: self, onError: onError, onChange: onChange)
     }
+    
+    // MARK: - Fetching Values
+    
+    /// Returns newly fetched values
+    public func fetch(_ db: Database) throws -> Reducer.Value {
+        var reducer = try makeReducer(db)
+        return try reducer.fetchInitialValue(db, requiringWriteAccess: requiresWriteAccess)
+    }
 }
 
 extension ValueObservation {

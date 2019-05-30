@@ -203,22 +203,20 @@ extension DatabaseWriter {
             // any future transaction can trigger a change.
             switch observation.scheduling {
             case .mainQueue:
-                if let value = try reducer.initialValue(db, requiresWriteAccess: observation.requiresWriteAccess) {
-                    if calledOnMainQueue {
-                        startValue = value
-                    } else {
-                        DispatchQueue.main.async { onChange(value) }
-                    }
+                let value = try reducer.fetchInitialValue(db, requiringWriteAccess: observation.requiresWriteAccess)
+                if calledOnMainQueue {
+                    startValue = value
+                } else {
+                    DispatchQueue.main.async { onChange(value) }
                 }
             case let .async(onQueue: queue, startImmediately: startImmediately):
                 if startImmediately {
-                    if let value = try reducer.initialValue(db, requiresWriteAccess: observation.requiresWriteAccess) {
-                        queue.async { onChange(value) }
-                    }
+                    let value = try reducer.fetchInitialValue(db, requiringWriteAccess: observation.requiresWriteAccess)
+                    queue.async { onChange(value) }
                 }
             case let .unsafe(startImmediately: startImmediately):
                 if startImmediately {
-                    startValue = try reducer.initialValue(db, requiresWriteAccess: observation.requiresWriteAccess)
+                    startValue = try reducer.fetchInitialValue(db, requiringWriteAccess: observation.requiresWriteAccess)
                 }
             }
             
@@ -234,22 +232,6 @@ extension DatabaseWriter {
             db.add(transactionObserver: valueObserver, extent: .observerLifetime)
             
             return valueObserver
-        }
-    }
-}
-
-extension ValueReducer {
-    /// Helper method for DatabaseWriter.add(observation:onError:onChange:)
-    fileprivate mutating func initialValue(_ db: Database, requiresWriteAccess: Bool) throws -> Value? {
-        if requiresWriteAccess {
-            var fetchedValue: Fetched!
-            try db.inSavepoint {
-                fetchedValue = try fetch(db)
-                return .commit
-            }
-            return value(fetchedValue)
-        } else {
-            return try value(db.readOnly { try fetch(db) })
         }
     }
 }

@@ -107,28 +107,25 @@ extension DatabaseSnapshot {
         // Deal with initial value
         switch observation.scheduling {
         case .mainQueue:
-            if let value = try unsafeReentrantRead(observation.initialValue) {
-                if DispatchQueue.isMain {
+            let value = try unsafeReentrantRead(observation.fetch)
+            if DispatchQueue.isMain {
+                onChange(value)
+            } else {
+                DispatchQueue.main.async {
                     onChange(value)
-                } else {
-                    DispatchQueue.main.async {
-                        onChange(value)
-                    }
                 }
             }
         case let .async(onQueue: queue, startImmediately: startImmediately):
             if startImmediately {
-                if let value = try unsafeReentrantRead(observation.initialValue) {
-                    queue.async {
-                        onChange(value)
-                    }
+                let value = try unsafeReentrantRead(observation.fetch)
+                queue.async {
+                    onChange(value)
                 }
             }
         case let .unsafe(startImmediately: startImmediately):
             if startImmediately {
-                if let value = try unsafeReentrantRead(observation.initialValue) {
-                    onChange(value)
-                }
+                let value = try unsafeReentrantRead(observation.fetch)
+                onChange(value)
             }
         }
         
@@ -138,15 +135,6 @@ extension DatabaseSnapshot {
     
     public func remove(transactionObserver: TransactionObserver) {
         // Can't remove an observer which could not be added :-)
-    }
-}
-
-extension ValueObservation where Reducer: ValueReducer {
-    /// Helper method for DatabaseSnapshot.add(observation:onError:onChange:)
-    fileprivate func initialValue(_ db: Database) throws -> Reducer.Value? {
-        var reducer = try makeReducer(db)
-        let fetched = try reducer.fetch(db)
-        return reducer.value(fetched)
     }
 }
 
