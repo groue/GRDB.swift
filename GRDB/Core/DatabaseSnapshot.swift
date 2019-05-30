@@ -107,25 +107,28 @@ extension DatabaseSnapshot {
         // Deal with initial value
         switch observation.scheduling {
         case .mainQueue:
-            let value = try unsafeReentrantRead(observation.fetch)
-            if DispatchQueue.isMain {
-                onChange(value)
-            } else {
-                DispatchQueue.main.async {
+            if let value = try unsafeReentrantRead(observation.fetch) {
+                if DispatchQueue.isMain {
                     onChange(value)
+                } else {
+                    DispatchQueue.main.async {
+                        onChange(value)
+                    }
                 }
             }
         case let .async(onQueue: queue, startImmediately: startImmediately):
             if startImmediately {
-                let value = try unsafeReentrantRead(observation.fetch)
-                queue.async {
-                    onChange(value)
+                if let value = try unsafeReentrantRead(observation.fetch) {
+                    queue.async {
+                        onChange(value)
+                    }
                 }
             }
         case let .unsafe(startImmediately: startImmediately):
             if startImmediately {
-                let value = try unsafeReentrantRead(observation.fetch)
-                onChange(value)
+                if let value = try unsafeReentrantRead(observation.fetch) {
+                    onChange(value)
+                }
             }
         }
         

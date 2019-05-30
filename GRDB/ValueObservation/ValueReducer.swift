@@ -34,7 +34,7 @@ public protocol ValueReducer {
 }
 
 extension ValueReducer {
-    mutating func fetchInitialValue(_ db: Database, requiringWriteAccess: Bool) throws -> Value {
+    mutating func fetchInitialValue(_ db: Database, requiringWriteAccess: Bool) throws -> Value? {
         var fetchedValue: Fetched!
         if requiringWriteAccess {
             try db.inSavepoint {
@@ -47,11 +47,7 @@ extension ValueReducer {
             }
         }
         
-        guard let value = value(fetchedValue) else {
-            fatalError("Broken contract: reducer must return a non-nil initial value: \(self)")
-        }
-        
-        return value
+        return value(fetchedValue)
     }
 }
 

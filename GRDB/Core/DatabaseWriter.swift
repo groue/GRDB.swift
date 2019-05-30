@@ -203,16 +203,18 @@ extension DatabaseWriter {
             // any future transaction can trigger a change.
             switch observation.scheduling {
             case .mainQueue:
-                let value = try reducer.fetchInitialValue(db, requiringWriteAccess: observation.requiresWriteAccess)
-                if calledOnMainQueue {
-                    startValue = value
-                } else {
-                    DispatchQueue.main.async { onChange(value) }
+                if let value = try reducer.fetchInitialValue(db, requiringWriteAccess: observation.requiresWriteAccess) {
+                    if calledOnMainQueue {
+                        startValue = value
+                    } else {
+                        DispatchQueue.main.async { onChange(value) }
+                    }
                 }
             case let .async(onQueue: queue, startImmediately: startImmediately):
                 if startImmediately {
-                    let value = try reducer.fetchInitialValue(db, requiringWriteAccess: observation.requiresWriteAccess)
-                    queue.async { onChange(value) }
+                    if let value = try reducer.fetchInitialValue(db, requiringWriteAccess: observation.requiresWriteAccess) {
+                        queue.async { onChange(value) }
+                    }
                 }
             case let .unsafe(startImmediately: startImmediately):
                 if startImmediately {

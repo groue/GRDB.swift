@@ -199,8 +199,8 @@ extension ValueObservation where Reducer: ValueReducer {
     
     // MARK: - Fetching Values
     
-    /// Returns newly fetched values
-    public func fetch(_ db: Database) throws -> Reducer.Value {
+    /// Returns newly fetched value, if any
+    public func fetch(_ db: Database) throws -> Reducer.Value? {
         var reducer = try makeReducer(db)
         return try reducer.fetchInitialValue(db, requiringWriteAccess: requiresWriteAccess)
     }
