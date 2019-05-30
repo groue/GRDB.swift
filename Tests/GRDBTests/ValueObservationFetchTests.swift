@@ -146,7 +146,9 @@ class ValueObservationFetchTests: GRDBTestCase {
         try dbQueue.read { db in
             do {
                 let request = SQLRequest<Row>(sql: "SELECT * FROM player ORDER BY id")
-                let observation = ValueObservation.trackingAll(request).map { rows in
+                let observation = ValueObservation
+                    .trackingAll(request)
+                    .map { rows in
                     rows.map { row in row["id"] as Int64 }
                 }
                 let ids: [Int64] = try observation.fetch(db)
@@ -172,6 +174,20 @@ class ValueObservationFetchTests: GRDBTestCase {
                 let players = try observation.fetch(db)
                 XCTAssertEqual(players.0, Player(id: 1, name: "Arthur"))
                 XCTAssertEqual(players.1, Player(id: 2, name: "Barbara"))
+            }
+        }
+    }
+    
+    func testFetchCompactMap() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = SQLRequest<Row>(sql: "SELECT * FROM player ORDER BY id")
+                let observation = ValueObservation
+                    .trackingOne(request)
+                    .compactMap { row -> Row? in nil }
+                // FIXME: Crasher!!
+                _ = try observation.fetch(db)
             }
         }
     }
