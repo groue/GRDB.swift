@@ -201,6 +201,8 @@ extension ValueObservation where Reducer: ValueReducer {
     
     /// Returns the observed value.
     ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
     /// This method returns nil if observation would not notify any
     /// initial value.
     ///
@@ -228,6 +230,8 @@ extension ValueObservation where Reducer: ImmediateValueReducer {
     // MARK: - Fetching Values
     
     /// Returns the observed value.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// For example:
     ///
