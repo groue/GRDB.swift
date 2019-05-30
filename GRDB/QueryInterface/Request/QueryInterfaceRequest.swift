@@ -28,7 +28,7 @@
 ///     }
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public struct QueryInterfaceRequest<T> {
+public struct QueryInterfaceRequest<T>: DerivableRequest {
     var query: SQLQuery
     
     init(query: SQLQuery) {
@@ -44,7 +44,7 @@ public struct QueryInterfaceRequest<T> {
     }
 }
 
-extension QueryInterfaceRequest : FetchRequest {
+extension QueryInterfaceRequest: FetchRequest {
     public typealias RowDecoder = T
     
     /// Returns a tuple that contains a prepared statement that is ready to be
@@ -108,10 +108,9 @@ extension QueryInterfaceRequest : FetchRequest {
     }
 }
 
-extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
-    
+extension QueryInterfaceRequest: SelectionRequest {
     // MARK: Request Derivation
-
+    
     /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM player
@@ -214,20 +213,11 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
         // From raw rows? From copied rows?
         return mapQuery { $0.annotated(with: selection) }
     }
+}
 
-    /// Creates a request which returns distinct rows.
-    ///
-    ///     // SELECT DISTINCT * FROM player
-    ///     var request = Player.all()
-    ///     request = request.distinct()
-    ///
-    ///     // SELECT DISTINCT name FROM player
-    ///     var request = Player.select(Column("name"))
-    ///     request = request.distinct()
-    public func distinct() -> QueryInterfaceRequest {
-        return mapQuery { $0.distinct() }
-    }
-    
+extension QueryInterfaceRequest: FilteredRequest {
+    // MARK: Request Derivation
+
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
     ///
@@ -237,28 +227,11 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
         return mapQuery { $0.filter(predicate) }
     }
-    
-    /// Creates a request which expects a single result.
-    ///
-    /// It is unlikely you need to call this method. Its net effect is that
-    /// QueryInterfaceRequest does not use any `LIMIT 1` sql clause when you
-    /// call a `fetchOne` method.
-    ///
-    /// :nodoc:
-    public func expectingSingleResult() -> QueryInterfaceRequest {
-        return mapQuery { $0.expectingSingleResult() }
-    }
-    
-    /// Creates a request grouped according to *expressions promise*.
-    public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceRequest {
-        return mapQuery { $0.group(expressions) }
-    }
-    
-    /// Creates a request with the provided *predicate* added to the
-    /// eventual set of already applied predicates.
-    public func having(_ predicate: SQLExpressible) -> QueryInterfaceRequest {
-        return mapQuery { $0.having(predicate) }
-    }
+
+}
+
+extension QueryInterfaceRequest: OrderedRequest {
+    // MARK: Request Derivation
     
     /// Creates a request with the provided *orderings promise*.
     ///
@@ -300,6 +273,78 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     public func unordered() -> QueryInterfaceRequest {
         return mapQuery { $0.unordered() }
     }
+}
+
+extension QueryInterfaceRequest: AggregatingRequest {
+    // MARK: Request Derivation
+    
+    /// Creates a request grouped according to *expressions promise*.
+    public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceRequest {
+        return mapQuery { $0.group(expressions) }
+    }
+    
+    /// Creates a request with the provided *predicate* added to the
+    /// eventual set of already applied predicates.
+    public func having(_ predicate: SQLExpressible) -> QueryInterfaceRequest {
+        return mapQuery { $0.having(predicate) }
+    }
+}
+
+extension QueryInterfaceRequest: JoinableRequest {
+    /// :nodoc:
+    public func _including(all association: SQLAssociation) -> QueryInterfaceRequest {
+        return mapQuery { $0._including(all: association) }
+    }
+    
+    /// :nodoc:
+    public func _including(optional association: SQLAssociation) -> QueryInterfaceRequest {
+        return mapQuery { $0._including(optional: association) }
+    }
+    
+    /// :nodoc:
+    public func _including(required association: SQLAssociation) -> QueryInterfaceRequest {
+        return mapQuery { $0._including(required: association) }
+    }
+    
+    /// :nodoc:
+    public func _joining(optional association: SQLAssociation) -> QueryInterfaceRequest {
+        return mapQuery { $0._joining(optional: association) }
+    }
+    
+    /// :nodoc:
+    public func _joining(required association: SQLAssociation) -> QueryInterfaceRequest {
+        return mapQuery { $0._joining(required: association) }
+    }
+}
+
+extension QueryInterfaceRequest {
+    
+    // MARK: Request Derivation
+
+    /// Creates a request which returns distinct rows.
+    ///
+    ///     // SELECT DISTINCT * FROM player
+    ///     var request = Player.all()
+    ///     request = request.distinct()
+    ///
+    ///     // SELECT DISTINCT name FROM player
+    ///     var request = Player.select(Column("name"))
+    ///     request = request.distinct()
+    public func distinct() -> QueryInterfaceRequest {
+        return mapQuery { $0.distinct() }
+    }
+    
+    /// Creates a request which expects a single result.
+    ///
+    /// It is unlikely you need to call this method. Its net effect is that
+    /// QueryInterfaceRequest does not use any `LIMIT 1` sql clause when you
+    /// call a `fetchOne` method.
+    ///
+    /// :nodoc:
+    public func expectingSingleResult() -> QueryInterfaceRequest {
+        return mapQuery { $0.expectingSingleResult() }
+    }
+    
     
     /// Creates a request which fetches *limit* rows, starting at *offset*.
     ///

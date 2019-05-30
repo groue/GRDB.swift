@@ -2566,7 +2566,7 @@ extension Place : MutablePersistableRecord {
         container["longitude"] = coordinate.longitude
     }
     
-    // Update id upon successful insertion:
+    // Update auto-incremented id upon successful insertion
     mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
@@ -2607,6 +2607,7 @@ struct Player: Encodable, MutablePersistableRecord {
     var name: String
     var score: Int
     
+    // Update auto-incremented id upon successful insertion
     mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
@@ -3305,6 +3306,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
             container["date"] = date
         }
         
+        // Update auto-incremented id upon successful insertion
         mutating func didInsert(with rowID: Int64, for column: String?) {
             id = rowID
         }
@@ -3398,7 +3400,7 @@ extension Place: FetchableRecord { }
 
 // Persistence methods
 extension Place: MutablePersistableRecord {
-    /// Update record ID after a successful insertion
+    // Update auto-incremented id upon successful insertion
     mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
@@ -3452,7 +3454,7 @@ extension Place: MutablePersistableRecord {
         container[Columns.longitude] = coordinate.longitude
     }
     
-    /// Update record ID after a successful insertion
+    // Update auto-incremented id upon successful insertion
     mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
@@ -3511,7 +3513,7 @@ class Place: Record {
         container[Columns.longitude] = coordinate.longitude
     }
     
-    /// Update record ID after a successful insertion
+    // Update auto-incremented id upon successful insertion
     override func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }

@@ -208,7 +208,7 @@ public /* TODO: internal */ struct SQLAssociation {
         reversedAssociation = reversedAssociation.mapDestinationRelation { _ in
             filteredPivotRelation.select([]).deletingChildren()
         }
-        return destination.relation.appending(reversedAssociation, kind: .oneRequired)
+        return destination.relation.appendingChild(for: reversedAssociation, kind: .oneRequired)
     }
 }
 
