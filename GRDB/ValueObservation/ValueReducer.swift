@@ -14,27 +14,12 @@ public protocol ValueReducer {
     /// Transforms a fetched value into an eventual observed value. Returns nil
     /// when observer should not be notified.
     ///
-    /// The returned value MUST NOT be nil on the first invocation of the
-    /// reducer. This means that the following assert must always pass:
-    ///
-    ///     // 1st fetch and reduce
-    ///     var reducer = /* some newly initialized ValueReducer */
-    ///     let fetched = try reducer.fetch(db)
-    ///     let value = reducer.value(fetched)
-    ///     assert(value != nil)
-    ///
-    /// Subsequent values may be nil:
-    ///
-    ///     // subsequent fetches and reduce
-    ///     let fetched = try reducer.fetch(db)
-    ///     let value = reducer.value(fetched) // can be nil
-    ///
     /// This method runs inside a private dispatch queue.
     mutating func value(_ fetched: Fetched) -> Value?
 }
 
 extension ValueReducer {
-    mutating func fetchInitialValue(_ db: Database, requiringWriteAccess: Bool) throws -> Value? {
+    mutating func fetchNext(_ db: Database, requiringWriteAccess: Bool) throws -> Value? {
         var fetchedValue: Fetched!
         if requiringWriteAccess {
             try db.inSavepoint {
@@ -50,6 +35,26 @@ extension ValueReducer {
         return value(fetchedValue)
     }
 }
+
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// ImmediateValueReducer is a ValueReducer which guarantees a non-nil
+/// initial value.
+///
+/// The following assert must always pass:
+///
+///     // 1st fetch and reduce
+///     var reducer = /* some newly initialized ImmediateValueReducer */
+///     let fetched = try reducer.fetch(db)
+///     let value = reducer.value(fetched)
+///     assert(value != nil)
+///
+/// Subsequent values may be nil:
+///
+///     // subsequent fetches and reduce
+///     let fetched = try reducer.fetch(db)
+///     let value = reducer.value(fetched) // can be nil
+public protocol ImmediateValueReducer: ValueReducer { }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
@@ -107,7 +112,7 @@ public struct AnyValueReducer<Fetched, Value>: ValueReducer {
 /// A reducer which outputs raw values.
 ///
 /// :nodoc:
-public struct RawValueReducer<Value>: ValueReducer {
+public struct RawValueReducer<Value>: ImmediateValueReducer {
     private let _fetch: (Database) throws -> Value
     
     public init(_ fetch: @escaping (Database) throws -> Value) {

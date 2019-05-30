@@ -30,7 +30,7 @@ class ValueObservationFetchTests: GRDBTestCase {
         try dbQueue.read { db in
             let request = SQLRequest<Row>(sql: "SELECT * FROM player")
             let observation = ValueObservation.trackingCount(request)
-            let count: Int = try observation.fetch(db)!
+            let count: Int = try observation.fetch(db)
             XCTAssertEqual(count, 3)
         }
     }
@@ -41,7 +41,7 @@ class ValueObservationFetchTests: GRDBTestCase {
             do {
                 let request = SQLRequest<Row>(sql: "SELECT * FROM player WHERE NULL")
                 let observation = ValueObservation.trackingOne(request)
-                let row: Row? = try observation.fetch(db)!
+                let row: Row? = try observation.fetch(db)
                 XCTAssertNil(row)
             }
             do {
@@ -53,7 +53,7 @@ class ValueObservationFetchTests: GRDBTestCase {
             do {
                 let request = SQLRequest<Row>(sql: "SELECT * FROM player ORDER BY id")
                 let observation = ValueObservation.trackingAll(request)
-                let rows: [Row] = try observation.fetch(db)!
+                let rows: [Row] = try observation.fetch(db)
                 XCTAssertEqual(rows, [
                     ["id": 1, "name": "Arthur"],
                     ["id": 2, "name": "Barbara"],
@@ -69,31 +69,31 @@ class ValueObservationFetchTests: GRDBTestCase {
             do {
                 let request = SQLRequest<String>(sql: "SELECT name FROM player WHERE NULL")
                 let observation = ValueObservation.trackingOne(request)
-                let name: String? = try observation.fetch(db)!
+                let name: String? = try observation.fetch(db)
                 XCTAssertNil(name)
             }
             do {
                 let request = SQLRequest<String>(sql: "SELECT name FROM player WHERE name IS NULL")
                 let observation = ValueObservation.trackingOne(request)
-                let name: String? = try observation.fetch(db)!
+                let name: String? = try observation.fetch(db)
                 XCTAssertNil(name)
             }
             do {
                 let request = SQLRequest<String>(sql: "SELECT name FROM player WHERE name IS NOT NULL ORDER BY id")
                 let observation = ValueObservation.trackingOne(request)
-                let name: String? = try observation.fetch(db)!
+                let name: String? = try observation.fetch(db)
                 XCTAssertEqual(name, "Arthur")
             }
             do {
                 let request = SQLRequest<String>(sql: "SELECT name FROM player WHERE name IS NOT NULL ORDER BY id")
                 let observation = ValueObservation.trackingAll(request)
-                let names: [String] = try observation.fetch(db)!
+                let names: [String] = try observation.fetch(db)
                 XCTAssertEqual(names, ["Arthur", "Barbara"])
             }
             do {
                 let request = SQLRequest<String?>(sql: "SELECT name FROM player ORDER BY id")
                 let observation = ValueObservation.trackingAll(request)
-                let names: [String?] = try observation.fetch(db)!
+                let names: [String?] = try observation.fetch(db)
                 XCTAssertEqual(names, ["Arthur", "Barbara", nil])
             }
         }
@@ -119,19 +119,19 @@ class ValueObservationFetchTests: GRDBTestCase {
             do {
                 let request = Player.none()
                 let observation = ValueObservation.trackingOne(request)
-                let player: Player? = try observation.fetch(db)!
+                let player: Player? = try observation.fetch(db)
                 XCTAssertNil(player)
             }
             do {
                 let request = Player.orderByPrimaryKey()
                 let observation = ValueObservation.trackingOne(request)
-                let player: Player? = try observation.fetch(db)!
+                let player: Player? = try observation.fetch(db)
                 XCTAssertEqual(player, Player(id: 1, name: "Arthur"))
             }
             do {
                 let request = Player.orderByPrimaryKey()
                 let observation = ValueObservation.trackingAll(request)
-                let players: [Player] = try observation.fetch(db)!
+                let players: [Player] = try observation.fetch(db)
                 XCTAssertEqual(players, [
                     Player(id: 1, name: "Arthur"),
                     Player(id: 2, name: "Barbara"),
@@ -151,7 +151,7 @@ class ValueObservationFetchTests: GRDBTestCase {
                     .map { rows in
                     rows.map { row in row["id"] as Int64 }
                 }
-                let ids: [Int64] = try observation.fetch(db)!
+                let ids: [Int64] = try observation.fetch(db)
                 XCTAssertEqual(ids, [1, 2, 3])
             }
         }
@@ -171,7 +171,7 @@ class ValueObservationFetchTests: GRDBTestCase {
                 let observation1 = ValueObservation.trackingOne(request1)
                 let observation2 = ValueObservation.trackingOne(request2)
                 let observation = ValueObservation.combine(observation1, observation2)
-                let players = try observation.fetch(db)!
+                let players = try observation.fetch(db)
                 XCTAssertEqual(players.0, Player(id: 1, name: "Arthur"))
                 XCTAssertEqual(players.1, Player(id: 2, name: "Barbara"))
             }
@@ -186,7 +186,7 @@ class ValueObservationFetchTests: GRDBTestCase {
                 let observation = ValueObservation
                     .trackingOne(request)
                     .compactMap { row -> Row? in nil }
-                let row = try observation.fetch(db)
+                let row = try observation.fetchFirst(db)
                 XCTAssertNil(row)
             }
         }

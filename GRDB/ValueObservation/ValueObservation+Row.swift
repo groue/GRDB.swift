@@ -135,7 +135,7 @@ extension ValueObservation where Reducer == Void {
 /// consecutive identical arrays.
 ///
 /// :nodoc:
-public struct RowsReducer: ValueReducer {
+public struct RowsReducer: ImmediateValueReducer {
     private let _fetch: (Database) throws -> [Row]
     private var previousRows: [Row]?
     
@@ -163,7 +163,7 @@ public struct RowsReducer: ValueReducer {
 /// identical database rows.
 ///
 /// :nodoc:
-public struct RowReducer: ValueReducer {
+public struct RowReducer: ImmediateValueReducer {
     private let _fetch: (Database) throws -> Row?
     private var previousRow: Row??
     

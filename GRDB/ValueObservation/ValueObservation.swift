@@ -199,10 +199,53 @@ extension ValueObservation where Reducer: ValueReducer {
     
     // MARK: - Fetching Values
     
-    /// Returns newly fetched value, if any
-    public func fetch(_ db: Database) throws -> Reducer.Value? {
+    /// Returns the observed value.
+    ///
+    /// This method returns nil if observation would not notify any
+    /// initial value.
+    ///
+    /// For example, the observation below notifies changes to a player if and
+    /// only if it exists:
+    ///
+    ///     let request = Player.filter(key: 42)
+    ///     let observation = ValueObservation
+    ///         .trackingOne(request)
+    ///         .compactMap { $0 } // filters out missing player
+    ///
+    /// The `fetchFirst` method thus returns nil if player does not exist:
+    ///
+    ///     let player: Player? = try dbQueue.read { db in
+    ///         try observation.fetchFirst(db)
+    ///     }
+    public func fetchFirst(_ db: Database) throws -> Reducer.Value? {
         var reducer = try makeReducer(db)
-        return try reducer.fetchInitialValue(db, requiringWriteAccess: requiresWriteAccess)
+        return try reducer.fetchNext(db, requiringWriteAccess: requiresWriteAccess)
+    }
+}
+
+extension ValueObservation where Reducer: ImmediateValueReducer {
+    
+    // MARK: - Fetching Values
+    
+    /// Returns the observed value.
+    ///
+    /// For example:
+    ///
+    ///     let request = Player.all()
+    ///     let observation = ValueObservation.trackingAll(request)
+    ///
+    ///     let players: [Player] = try dbQueue.read { db in
+    ///         try observation.fetch(db)
+    ///     }
+    public func fetch(_ db: Database) throws -> Reducer.Value {
+        var reducer = try makeReducer(db)
+        guard let value = try reducer.fetchNext(db, requiringWriteAccess: requiresWriteAccess) else {
+            fatalError("""
+                Broken contract: reducer conforming to ImmediateValueReducer \
+                must return a non-nil initial value: \(reducer)
+                """)
+        }
+        return value
     }
 }
 

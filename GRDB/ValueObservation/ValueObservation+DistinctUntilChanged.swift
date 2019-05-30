@@ -45,3 +45,5 @@ public struct DistinctUntilChangedValueReducer<Base: ValueReducer>: ValueReducer
         return value
     }
 }
+
+extension DistinctUntilChangedValueReducer: ImmediateValueReducer where Base: ImmediateValueReducer { }
