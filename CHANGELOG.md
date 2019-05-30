@@ -54,6 +54,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#537](https://github.com/groue/GRDB.swift/pull/537): Remove useless parenthesis from generated SQL
 - [#538](https://github.com/groue/GRDB.swift/pull/538) by [@Timac](https://github.com/Timac): Add FAQ to clarify "Wrong number of statement arguments" error with "like '%?%'"
 - [#539](https://github.com/groue/GRDB.swift/pull/539): Expose joining methods of both requests and associations
+- [#541](https://github.com/groue/GRDB.swift/pull/541): ValueObservation.fetch
 
 ### Documentation Diff
 
