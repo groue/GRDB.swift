@@ -2,6 +2,11 @@ import XCTest
 #if GRDBCUSTOMSQLITE
     @testable import GRDBCustomSQLite
 #else
+    #if SWIFT_PACKAGE
+        import CSQLite
+    #else
+        import SQLite3
+    #endif
     @testable import GRDB
 #endif
 
