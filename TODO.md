@@ -45,6 +45,7 @@
 - [ ] FTS: prefix queries
 - [ ] Test NOT TESTED methods
 - [ ] A way to stop a ValueObservation observer without waiting for deinit
+- [ ] Expose prefetchedAssociations on FetchRequest (remove the QueryInterface special case)
 
 Swift 4.2
 
