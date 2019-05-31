@@ -3355,7 +3355,7 @@ try dbQueue.write { db in
     try db.create(table: "place") { t in
         t.autoIncrementedPrimaryKey("id")
         t.column("title", .text).notNull()
-        t.column("favorite", .boolean).notNull().defaults(to: false)
+        t.column("isFavorite", .boolean).notNull().defaults(to: false)
         t.column("longitude", .double).notNull()
         t.column("latitude", .double).notNull()
     }
@@ -3375,9 +3375,9 @@ See the [Record Protocols Overview](#record-protocols-overview), and [Codable Re
 struct Place: Codable {
     var id: Int64?
     var title: String
-    var favorite: Bool
-    var latitude: CLLocationDegrees
-    var longitude: CLLocationDegrees
+    var isFavorite: Bool
+    private var latitude: CLLocationDegrees
+    private var longitude: CLLocationDegrees
     
     var coordinate: CLLocationCoordinate2D {
         get {
@@ -3393,7 +3393,16 @@ struct Place: Codable {
 }
 
 // SQL generation
-extension Place: TableRecord { }
+extension Place: TableRecord {
+    /// The table columns
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let title = Column(CodingKeys.title)
+        static let isFavorite = Column(CodingKeys.isFavorite)
+        static let latitude = Column(CodingKeys.latitude)
+        static let longitude = Column(CodingKeys.longitude)
+    }
+}
 
 // Fetching methods
 extension Place: FetchableRecord { }
@@ -3426,7 +3435,7 @@ struct Place {
 extension Place: TableRecord {
     /// The table columns
     enum Columns: String, ColumnExpression {
-        case id, title, favorite, latitude, longitude
+        case id, title, isFavorite, latitude, longitude
     }
 }
 
@@ -3436,7 +3445,7 @@ extension Place: FetchableRecord {
     init(row: Row) {
         id = row[Columns.id]
         title = row[Columns.title]
-        isFavorite = row[Columns.favorite]
+        isFavorite = row[Columns.isFavorite]
         coordinate = CLLocationCoordinate2D(
             latitude: row[Columns.latitude],
             longitude: row[Columns.longitude])
@@ -3449,7 +3458,7 @@ extension Place: MutablePersistableRecord {
     func encode(to container: inout PersistenceContainer) {
         container[Columns.id] = id
         container[Columns.title] = title
-        container[Columns.favorite] = isFavorite
+        container[Columns.isFavorite] = isFavorite
         container[Columns.latitude] = coordinate.latitude
         container[Columns.longitude] = coordinate.longitude
     }
@@ -3490,14 +3499,14 @@ class Place: Record {
     
     /// The table columns
     enum Columns: String, ColumnExpression {
-        case id, title, favorite, latitude, longitude
+        case id, title, isFavorite, latitude, longitude
     }
     
     /// Creates a record from a database row
     required init(row: Row) {
         id = row[Columns.id]
         title = row[Columns.title]
-        isFavorite = row[Columns.favorite]
+        isFavorite = row[Columns.isFavorite]
         coordinate = CLLocationCoordinate2D(
             latitude: row[Columns.latitude],
             longitude: row[Columns.longitude])
@@ -3508,13 +3517,87 @@ class Place: Record {
     override func encode(to container: inout PersistenceContainer) {
         container[Columns.id] = id
         container[Columns.title] = title
-        container[Columns.favorite] = isFavorite
+        container[Columns.isFavorite] = isFavorite
         container[Columns.latitude] = coordinate.latitude
         container[Columns.longitude] = coordinate.longitude
     }
     
     // Update auto-incremented id upon successful insertion
     override func didInsert(with rowID: Int64, for column: String?) {
+        id = rowID
+    }
+}
+```
+
+</details>
+
+<details>
+  <summary>Define a struct optimized for fetching performance</summary>
+
+This struct derives is persistence methpds from the standard Encodable protocol (see [Codable Records]), but performs optimized row decoding by accessing database columns with numeric indexes.
+
+See the [Record Protocols Overview](#record-protocols-overview) for more information.
+    
+```swift
+struct Place: Encodable {
+    var id: Int64?
+    var title: String
+    var isFavorite: Bool
+    private var latitude: CLLocationDegrees
+    private var longitude: CLLocationDegrees
+    
+    var coordinate: CLLocationCoordinate2D {
+        get {
+            return CLLocationCoordinate2D(
+                latitude: latitude,
+                longitude: longitude)
+        }
+        set {
+            latitude = newValue.latitude
+            longitude = newValue.longitude
+        }
+    }
+}
+
+// SQL generation
+extension Place: TableRecord {
+    /// The table columns
+    enum Columns {
+        static let id = Column(CodingKeys.id)
+        static let title = Column(CodingKeys.title)
+        static let isFavorite = Column(CodingKeys.isFavorite)
+        static let latitude = Column(CodingKeys.latitude)
+        static let longitude = Column(CodingKeys.longitude)
+    }
+    
+    /// Arrange the selected columns and lock their order
+    static let databaseSelection: [SQLSelectable] = [
+        Columns.id,
+        Columns.title,
+        Columns.favorite,
+        Columns.latitude,
+        Columns.longitude]
+}
+
+// Fetching methods
+extension Place: FetchableRecord {
+    /// Creates a record from a database row
+    init(row: Row) {
+        // For high performance, use numeric indexes that match the
+        // order of Place.databaseSelection
+        id = row[0]
+        title = row[1]
+        isFavorite = row[2]
+        coordinate = CLLocationCoordinate2D(
+            latitude: row[3],
+            longitude: row[4])
+    }
+}
+
+// Persistence methods
+extension Place: MutablePersistableRecord {
+    // Update auto-incremented id upon successful insertion
+    mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
 }

@@ -59,6 +59,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 The [Define Record Requests](Documentation/GoodPracticesForDesigningRecordTypes.md#define-record-requests) chapter of the The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) has been rewritten. Yes, good practices evolve.
 
+The [Examples of Record Definitions](README.md#examples-of-record-definitions) has been extended with a sample record optimized for fetching performance.
+
 
 ## 4.0.1
 
