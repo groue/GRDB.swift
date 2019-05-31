@@ -3473,66 +3473,7 @@ extension Place: MutablePersistableRecord {
 </details>
 
 <details>
-  <summary>Subclass the <code>Record</code> class</summary>
-
-See the [Record class](#record-class) for more information.
-    
-```swift
-class Place: Record {
-    var id: Int64?
-    var title: String
-    var isFavorite: Bool
-    var coordinate: CLLocationCoordinate2D
-    
-    init(id: Int64?, title: String, isFavorite: Bool, coordinate: CLLocationCoordinate2D) {
-        self.id = id
-        self.title = title
-        self.isFavorite = isFavorite
-        self.coordinate = coordinate
-        super.init()
-    }
-    
-    /// The table name
-    override class var databaseTableName: String {
-        return "place"
-    }
-    
-    /// The table columns
-    enum Columns: String, ColumnExpression {
-        case id, title, isFavorite, latitude, longitude
-    }
-    
-    /// Creates a record from a database row
-    required init(row: Row) {
-        id = row[Columns.id]
-        title = row[Columns.title]
-        isFavorite = row[Columns.isFavorite]
-        coordinate = CLLocationCoordinate2D(
-            latitude: row[Columns.latitude],
-            longitude: row[Columns.longitude])
-        super.init(row: row)
-    }
-    
-    /// The values persisted in the database
-    override func encode(to container: inout PersistenceContainer) {
-        container[Columns.id] = id
-        container[Columns.title] = title
-        container[Columns.isFavorite] = isFavorite
-        container[Columns.latitude] = coordinate.latitude
-        container[Columns.longitude] = coordinate.longitude
-    }
-    
-    // Update auto-incremented id upon successful insertion
-    override func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
-    }
-}
-```
-
-</details>
-
-<details>
-  <summary>Define a struct optimized for fetching performance</summary>
+  <summary>Define a plain struct optimized for fetching performance</summary>
 
 This struct derives is persistence methpds from the standard Encodable protocol (see [Codable Records]), but performs optimized row decoding by accessing database columns with numeric indexes.
 
@@ -3598,6 +3539,65 @@ extension Place: FetchableRecord {
 extension Place: MutablePersistableRecord {
     // Update auto-incremented id upon successful insertion
     mutating func didInsert(with rowID: Int64, for column: String?) {
+        id = rowID
+    }
+}
+```
+
+</details>
+
+<details>
+  <summary>Subclass the <code>Record</code> class</summary>
+
+See the [Record class](#record-class) for more information.
+    
+```swift
+class Place: Record {
+    var id: Int64?
+    var title: String
+    var isFavorite: Bool
+    var coordinate: CLLocationCoordinate2D
+    
+    init(id: Int64?, title: String, isFavorite: Bool, coordinate: CLLocationCoordinate2D) {
+        self.id = id
+        self.title = title
+        self.isFavorite = isFavorite
+        self.coordinate = coordinate
+        super.init()
+    }
+    
+    /// The table name
+    override class var databaseTableName: String {
+        return "place"
+    }
+    
+    /// The table columns
+    enum Columns: String, ColumnExpression {
+        case id, title, isFavorite, latitude, longitude
+    }
+    
+    /// Creates a record from a database row
+    required init(row: Row) {
+        id = row[Columns.id]
+        title = row[Columns.title]
+        isFavorite = row[Columns.isFavorite]
+        coordinate = CLLocationCoordinate2D(
+            latitude: row[Columns.latitude],
+            longitude: row[Columns.longitude])
+        super.init(row: row)
+    }
+    
+    /// The values persisted in the database
+    override func encode(to container: inout PersistenceContainer) {
+        container[Columns.id] = id
+        container[Columns.title] = title
+        container[Columns.isFavorite] = isFavorite
+        container[Columns.latitude] = coordinate.latitude
+        container[Columns.longitude] = coordinate.longitude
+    }
+    
+    // Update auto-incremented id upon successful insertion
+    override func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
 }
