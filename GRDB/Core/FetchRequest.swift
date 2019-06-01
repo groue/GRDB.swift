@@ -37,8 +37,8 @@ public struct PreparedRequest {
 
 // MARK: - FetchRequest
 
-/// The protocol for all requests that run from a single select statement, and
-/// tell how fetched rows should be interpreted.
+/// The protocol for all requests that fetch database rows, and tell how those
+/// rows should be interpreted.
 ///
 ///     struct Player: FetchableRecord { ... }
 ///     let request: ... // Some FetchRequest that fetches Player
@@ -51,7 +51,7 @@ public protocol FetchRequest: DatabaseRegionConvertible {
     
     // TODO: remove when we remove the deprecated prepare(_:forSingleResult:) method
     /// This method is deprecated. Use
-    /// preparedRequest(_:forSingleResult:) instead.
+    /// `preparedRequest(_:forSingleResult:)` instead.
     ///
     /// Returns a tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
