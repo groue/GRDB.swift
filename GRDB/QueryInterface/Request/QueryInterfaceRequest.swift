@@ -38,10 +38,6 @@ public struct QueryInterfaceRequest<T>: DerivableRequest {
     init(relation: SQLRelation) {
         self.init(query: SQLQuery(relation: relation))
     }
-    
-    var prefetchedAssociations: [SQLAssociation] {
-        return query.relation.prefetchedAssociations
-    }
 }
 
 extension QueryInterfaceRequest: FetchRequest {
@@ -54,15 +50,26 @@ extension QueryInterfaceRequest: FetchRequest {
     /// - parameter singleResult: A hint as to whether the query should be optimized for a single result.
     /// - returns: A prepared statement and an eventual row adapter.
     /// :nodoc:
-    public func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
+    public func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
         var query = self.query
         
         // Optimize query by setting a limit of 1 when appropriate
         if singleResult && !query.expectsSingleResult {
             query.limit = SQLLimit(limit: 1, offset: query.limit?.offset)
         }
-
-        return try SQLQueryGenerator(query).prepare(db)
+        
+        let (statement, adapter) = try SQLQueryGenerator(query).prepare(db)
+        let associations = query.relation.prefetchedAssociations
+        if associations.isEmpty {
+            return PreparedRequest(statement: statement, adapter: adapter)
+        } else {
+            return PreparedRequest(
+                statement: statement,
+                adapter: adapter,
+                supplementaryFetch: { rows in
+                    try prefetch(db, associations: associations, in: rows)
+            })
+        }
     }
     
     /// Returns the number of rows fetched by the request.
@@ -86,7 +93,7 @@ extension QueryInterfaceRequest: FetchRequest {
             let association = fifo.removeFirst()
             
             // Build the query for prefetched rows.
-            // CAUTION: Keep this code in sync with Row.prefetch(_:associations:in:)
+            // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
             let pivotMappings = try association.pivot.condition.columnMappings(db)
             let pivotColumns = pivotMappings.map { $0.right }
             let pivotAlias = TableAlias()
@@ -465,5 +472,88 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
     public func deleteAll(_ db: Database) throws -> Int {
         try SQLQueryGenerator(query).makeDeleteStatement(db).execute()
         return db.changesCount
+    }
+}
+
+// MARK: - Eager loading of hasMany associations
+
+/// Append rows from prefetched associations into the argument rows.
+fileprivate func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [Row]) throws {
+    guard let firstRow = rows.first else {
+        // No rows -> no prefetch
+        return
+    }
+    
+    // CAUTION: Keep this code in sync with QueryInterfaceRequest.databaseRegion(_:)
+    for association in associations {
+        let pivotMappings = try association.pivot.condition.columnMappings(db)
+        
+        let prefetchedRows: [[DatabaseValue] : [Row]]
+        do {
+            // Annotate prefetched rows with pivot columns, so that we can
+            // group them.
+            //
+            // Those pivot columns are necessary when we prefetch
+            // indirect associations:
+            //
+            //      // SELECT country.*, passport.citizenId AS grdb_citizenId
+            //      // --                ^ the necessary pivot column
+            //      // FROM country
+            //      // JOIN passport ON passport.countryCode = country.code
+            //      //               AND passport.citizenId IN (1, 2, 3)
+            //      Citizen.including(all: Citizen.countries)
+            //
+            // Those pivot columns are redundant when we prefetch direct
+            // associations (maybe we'll remove this redundancy later):
+            //
+            //      // SELECT *, authorId AS grdb_authorId
+            //      // --        ^ the redundant pivot column
+            //      // FROM book
+            //      // WHERE authorId IN (1, 2, 3)
+            //      Author.including(all: Author.books)
+            let pivotColumns = pivotMappings.map { $0.right }
+            let pivotAlias = TableAlias()
+            let prefetchedRelation = association
+                .mapPivotRelation { $0.qualified(with: pivotAlias) }
+                .destinationRelation(fromOriginRows: { _ in rows })
+                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].aliased("grdb_\($0)") })
+            prefetchedRows = try QueryInterfaceRequest(relation: prefetchedRelation)
+                .fetchAll(db)
+                .grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
+            // TODO: can we remove those grdb_ columns now that grouping has been done?
+        }
+        
+        let groupingIndexes = firstRow.indexes(ofColumns: pivotMappings.map { $0.left })
+        for row in rows {
+            let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
+            let prefetchedRows = prefetchedRows[groupingKey, default: []]
+            row.prefetchedRows.setRows(prefetchedRows, forKeyPath: association.keyPath)
+        }
+    }
+}
+
+extension Array where Element == Row {
+    /// - precondition: Columns all exist in all rows. All rows have the same
+    ///   columnns, in the same order.
+    fileprivate func grouped(byDatabaseValuesOnColumns columns: [String]) -> [[DatabaseValue]: [Row]] {
+        guard let firstRow = first else {
+            return [:]
+        }
+        let indexes = firstRow.indexes(ofColumns: columns)
+        return Dictionary(grouping: self, by: { row in
+            indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
+        })
+    }
+}
+
+extension Row {
+    /// - precondition: Columns all exist in the row.
+    fileprivate func indexes(ofColumns columns: [String]) -> [Int] {
+        return columns.map { column -> Int in
+            guard let index = index(ofColumn: column) else {
+                fatalError("Column \(column) is not selected")
+            }
+            return index
+        }
     }
 }
