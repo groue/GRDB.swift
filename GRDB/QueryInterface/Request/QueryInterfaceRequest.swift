@@ -63,6 +63,7 @@ extension QueryInterfaceRequest: FetchRequest {
         if associations.isEmpty {
             return PreparedRequest(statement: statement, adapter: adapter)
         } else {
+            // Eager loading of prefetched associations
             return PreparedRequest(
                 statement: statement,
                 adapter: adapter,

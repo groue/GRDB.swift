@@ -277,7 +277,7 @@ extension FetchableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> RecordCursor<Self> {
         let request = try request.preparedRequest(db, forSingleResult: false)
-        precondition(request.supplementaryFetch == nil, "Not implemented: fetchCursor with prefetched associations")
+        precondition(request.supplementaryFetch == nil, "Not implemented: fetchCursor with supplementary fetch")
         return try fetchCursor(request.statement, adapter: request.adapter)
     }
     

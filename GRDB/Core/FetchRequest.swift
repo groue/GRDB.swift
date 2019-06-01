@@ -116,12 +116,16 @@ extension FetchRequest {
         return request.statement.databaseRegion
     }
     
+    // Support for legacy requests which only define prepare(_:forSingleResult:)
+    // TODO: remove when we remove the deprecated prepare(_:forSingleResult:) method
+    /// :nodoc:
     public func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
         let (statement, adapter) = try prepare(db, forSingleResult: singleResult)
         return PreparedRequest(statement: statement, adapter: adapter)
     }
     
     // TODO: remove when we remove the deprecated prepare(_:forSingleResult:) method
+    /// :nodoc:
     public func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
         let request = try preparedRequest(db, forSingleResult: singleResult)
         return (request.statement, request.adapter)
