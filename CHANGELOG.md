@@ -54,12 +54,29 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#537](https://github.com/groue/GRDB.swift/pull/537): Remove useless parenthesis from generated SQL
 - [#538](https://github.com/groue/GRDB.swift/pull/538) by [@Timac](https://github.com/Timac): Add FAQ to clarify "Wrong number of statement arguments" error with "like '%?%'"
 - [#539](https://github.com/groue/GRDB.swift/pull/539): Expose joining methods of both requests and associations
+- [#542](https://github.com/groue/GRDB.swift/pull/542): Move eager loading of hasMany associations to FetchRequest
 
 ### Documentation Diff
 
 The [Define Record Requests](Documentation/GoodPracticesForDesigningRecordTypes.md#define-record-requests) chapter of the The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) has been rewritten. Yes, good practices evolve.
 
 The [Examples of Record Definitions](README.md#examples-of-record-definitions) has been extended with a sample record optimized for fetching performance.
+
+### API Diff
+
+```diff
++struct PreparedRequest {
++    var statement: SelectStatement
++    var adapter: RowAdapter?
++    init(statement: SelectStatement, adapter: RowAdapter? = nil)
++}
+ 
+ protocol FetchRequest {
++    // deprecated
+     func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
++    func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
+ }
+```
 
 
 ## 4.0.1
