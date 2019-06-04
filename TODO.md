@@ -44,12 +44,7 @@
 - [ ] Look at the jazzy configuration of https://github.com/bignerdranch/Deferred
 - [ ] FTS: prefix queries
 - [ ] Test NOT TESTED methods
-- [ ] Update RxGRDB: https://github.com/RxSwiftCommunity/RxGRDB/pull/51
-- [ ] Update [GRDBObjc](https://github.com/groue/GRDBObjc)
-
-GRDB 4.0
-
-- [ ] Review @inlinable stuff
+- [ ] A way to stop a ValueObservation observer without waiting for deinit
 
 Swift 4.2
 
