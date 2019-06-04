@@ -4725,8 +4725,9 @@ protocol FetchRequest: DatabaseRegionConvertible {
     /// The type that tells how fetched rows should be decoded
     associatedtype RowDecoder
     
-    /// A tuple that contains a prepared statement, and an eventual row adapter.
-    func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
+    /// Returns a PreparedRequest made of a prepared statement that is ready to
+    /// be executed, and an eventual row adapter.
+    func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
     
     /// The number of rows fetched by the request.
     func fetchCount(_ db: Database) throws -> Int
@@ -4735,7 +4736,7 @@ protocol FetchRequest: DatabaseRegionConvertible {
 
 When the `RowDecoder` associated type is [Row](#fetching-rows), or a [value](#value-queries), or a type that conforms to [FetchableRecord], the request can fetch: see [Fetching From Custom Requests](#fetching-from-custom-requests) below.
 
-The `prepare(_:forSingleResult:)` method accepts a database connection, a `singleResult` hint, and returns a prepared statement and an optional row adapter. Conforming types can use the `singleResult` hint as an optimization opportunity, and return a [prepared statement](#prepared-statements) that fetches at most one row, with a `LIMIT` SQL clause, when possible. The optional row adapter helps presenting the fetched rows in the way expected by the row decoders (see [row adapters](#row-adapters)).
+The `preparedRequest(_:forSingleResult:)` method accepts a database connection, a `singleResult` hint, and returns a "prepared request" made of a [prepared statement](#prepared-statements) and an optional [row adapter](#row-adapters). Conforming types can use the `singleResult` hint as an optimization opportunity, and return a statement that fetches at most one row, with a `LIMIT` SQL clause, when possible.
 
 The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
 
