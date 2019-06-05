@@ -6536,7 +6536,7 @@ let observer = observation.start(in: dbQueue) { (team: Team?, players: [Player])
 
 Combining observations provides the guarantee that notified values are [**consistent**](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
 
-> :point_up: **Note**: you can combine up to five observations together. Please submit a pull request if you need more.
+> :point_up: **Note**: you can combine up to eight observations together. If you need more, combine several combined observations, or please submit a pull request.
 >
 > :point_up: **Note**: readers who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the `ValueObservation.combine` method. The reactive operator does not care about data consistency, though: if you use a Reactive layer such as [RxGRDB], compose observations with `ValueObservation.combine`, not with the CombineLatest operator.
 
