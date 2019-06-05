@@ -312,7 +312,6 @@ extension ValueObservation where Reducer == Void {
 
 // MARK: - Combine 6 Reducers
 
-// TODO: test
 public struct CombinedValueReducer6<
     R1: ValueReducer,
     R2: ValueReducer,
@@ -421,7 +420,6 @@ extension ValueObservation where Reducer == Void {
 
 // MARK: - Combine 7 Reducers
 
-// TODO: test
 public struct CombinedValueReducer7<
     R1: ValueReducer,
     R2: ValueReducer,
@@ -542,7 +540,6 @@ extension ValueObservation where Reducer == Void {
 
 // MARK: - Combine 8 Reducers
 
-// TODO: test
 public struct CombinedValueReducer8<
     R1: ValueReducer,
     R2: ValueReducer,
