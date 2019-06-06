@@ -30,8 +30,8 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation1 = ValueObservation.trackingCount(T1.all())
         let observation2 = ValueObservation.trackingCount(T2.all())
         let observation = ValueObservation.combine(observation1, observation2)
-        let observer = try observation.start(in: dbQueue) { v in
-            values.append([v.0, v.1])
+        let observer = try observation.start(in: dbQueue) { v0, v1 in
+            values.append([v0, v1])
             notificationExpectation.fulfill()
         }
         try withExtendedLifetime(observer) {
@@ -90,8 +90,8 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation2 = ValueObservation.trackingCount(T2.all())
         let observation3 = ValueObservation.trackingCount(T3.all())
         let observation = ValueObservation.combine(observation1, observation2, observation3)
-        let observer = try observation.start(in: dbQueue) { v in
-            values.append([v.0, v.1, v.2])
+        let observer = try observation.start(in: dbQueue) { v0, v1, v2 in
+            values.append([v0, v1, v2])
             notificationExpectation.fulfill()
         }
         try withExtendedLifetime(observer) {
@@ -164,8 +164,8 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation3 = ValueObservation.trackingCount(T3.all())
         let observation4 = ValueObservation.trackingCount(T4.all())
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4)
-        let observer = try observation.start(in: dbQueue) { v in
-            values.append([v.0, v.1, v.2, v.3])
+        let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3 in
+            values.append([v0, v1, v2, v3])
             notificationExpectation.fulfill()
         }
         try withExtendedLifetime(observer) {
@@ -252,8 +252,8 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation4 = ValueObservation.trackingCount(T4.all())
         let observation5 = ValueObservation.trackingCount(T5.all())
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5)
-        let observer = try observation.start(in: dbQueue) { v in
-            values.append([v.0, v.1, v.2, v.3, v.4])
+        let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3, v4 in
+            values.append([v0, v1, v2, v3, v4])
             notificationExpectation.fulfill()
         }
         try withExtendedLifetime(observer) {
@@ -354,8 +354,8 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation5 = ValueObservation.trackingCount(T5.all())
         let observation6 = ValueObservation.trackingCount(T6.all())
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6)
-        let observer = try observation.start(in: dbQueue) { v in
-            values.append([v.0, v.1, v.2, v.3, v.4, v.5])
+        let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3, v4, v5 in
+            values.append([v0, v1, v2, v3, v4, v5])
             notificationExpectation.fulfill()
         }
         try withExtendedLifetime(observer) {
@@ -470,8 +470,8 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation6 = ValueObservation.trackingCount(T6.all())
         let observation7 = ValueObservation.trackingCount(T7.all())
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7)
-        let observer = try observation.start(in: dbQueue) { v in
-            values.append([v.0, v.1, v.2, v.3, v.4, v.5, v.6])
+        let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3, v4, v5, v6 in
+            values.append([v0, v1, v2, v3, v4, v5, v6])
             notificationExpectation.fulfill()
         }
         try withExtendedLifetime(observer) {
@@ -600,8 +600,8 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation7 = ValueObservation.trackingCount(T7.all())
         let observation8 = ValueObservation.trackingCount(T8.all())
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7, observation8)
-        let observer = try observation.start(in: dbQueue) { v in
-            values.append([v.0, v.1, v.2, v.3, v.4, v.5, v.6, v.7])
+        let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3, v4, v5, v6, v7 in
+            values.append([v0, v1, v2, v3, v4, v5, v6, v7])
             notificationExpectation.fulfill()
         }
         try withExtendedLifetime(observer) {
