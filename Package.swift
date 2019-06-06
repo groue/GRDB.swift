@@ -6,9 +6,9 @@ import PackageDescription
 let package = Package(
     name: "GRDB",
     platforms: [
-        .macOS(.v10_9),
-        .iOS(.v9_0),
-        .watchOS(.v2_0),
+        .macOS("10.9"),
+        .iOS(.v9),
+        .watchOS(.v2),
     ],
     products: [
         .library(name: "GRDB", targets: ["GRDB"]),
