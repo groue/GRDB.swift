@@ -18,6 +18,43 @@ public protocol ValueReducer {
     mutating func value(_ fetched: Fetched) -> Value?
 }
 
+extension ValueReducer {
+    /// Synchronous fetch
+    func fetch(_ db: Database, requiringWriteAccess: Bool) throws -> Fetched {
+        if requiringWriteAccess {
+            var fetchedValue: Fetched?
+            try db.inSavepoint {
+                fetchedValue = try fetch(db)
+                return .commit
+            }
+            return fetchedValue!
+        } else {
+            return try db.readOnly {
+                try fetch(db)
+            }
+        }
+    }
+    
+    /// Synchronous or asynchronous fetch
+    /// Support for ValueObserver
+    func fetchFuture(_ db: Database, writer: DatabaseWriter, requiringWriteAccess: Bool) -> DatabaseFuture<Fetched> {
+        if requiringWriteAccess {
+            // Synchronous fetch
+            return DatabaseFuture(Result {
+                var fetchedValue: Fetched!
+                try db.inTransaction {
+                    fetchedValue = try fetch(db)
+                    return .commit
+                }
+                return fetchedValue
+            })
+        } else {
+            // Concurrent fetch
+            return writer.concurrentRead(fetch)
+        }
+    }
+}
+
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// A type-erased ValueReducer.

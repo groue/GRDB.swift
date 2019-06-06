@@ -196,6 +196,31 @@ extension ValueObservation where Reducer: ValueReducer {
     {
         return try reader.add(observation: self, onError: onError, onChange: onChange)
     }
+    
+    // MARK: - Fetching Values
+    
+    /// Returns the observed value.
+    ///
+    /// This method returns nil if observation would not notify any
+    /// initial value.
+    ///
+    /// For example, the observation below notifies changes to a player if and
+    /// only if it exists:
+    ///
+    ///     let request = Player.filter(key: 42)
+    ///     let observation = ValueObservation
+    ///         .trackingOne(request)
+    ///         .compactMap { $0 } // filters out missing player
+    ///
+    /// The `fetchFirst` method thus returns nil if player does not exist:
+    ///
+    ///     let player: Player? = try dbQueue.read { db in
+    ///         try observation.fetchFirst(db)
+    ///     }
+    func fetchFirst(_ db: Database) throws -> Reducer.Value? {
+        var reducer = try makeReducer(db)
+        return try reducer.value(reducer.fetch(db, requiringWriteAccess: requiresWriteAccess))
+    }
 }
 
 extension ValueObservation {

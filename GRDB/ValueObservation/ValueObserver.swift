@@ -5,29 +5,32 @@ import Foundation
 class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
     /* private */ let region: DatabaseRegion // Internal for testability
     private var reducer: Reducer
-    private let fetch: (Database, Reducer) -> DatabaseFuture<Reducer.Fetched>
+    private var requiresWriteAccess: Bool
+    unowned private var writer: DatabaseWriter
     private let notificationQueue: DispatchQueue?
+    private let reduceQueue: DispatchQueue
     private let onError: ((Error) -> Void)?
     private let onChange: (Reducer.Value) -> Void
-    private let reduceQueue: DispatchQueue
     private var isChanged = false
     
     init(
         region: DatabaseRegion,
         reducer: Reducer,
-        configuration: Configuration,
-        fetch: @escaping (Database, Reducer) -> DatabaseFuture<Reducer.Fetched>,
+        requiresWriteAccess: Bool,
+        writer: DatabaseWriter,
         notificationQueue: DispatchQueue?,
+        reduceQueue: DispatchQueue,
         onError: ((Error) -> Void)?,
         onChange: @escaping (Reducer.Value) -> Void)
     {
+        self.writer = writer
         self.region = region
         self.reducer = reducer
-        self.fetch = fetch
+        self.requiresWriteAccess = requiresWriteAccess
         self.notificationQueue = notificationQueue
-        self.onChange = onChange
+        self.reduceQueue = reduceQueue
         self.onError = onError
-        self.reduceQueue = configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer")
+        self.onChange = onChange
     }
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
@@ -45,10 +48,10 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
         guard isChanged else { return }
         isChanged = false
         
-        // Grab future fetched values from the database writer queue
-        let future = fetch(db, reducer)
+        // Grab future fetched value
+        let future = reducer.fetchFuture(db, writer: writer, requiringWriteAccess: requiresWriteAccess)
         
-        // Wait for future fetched values in reduceQueue. This guarantees:
+        // Wait for future fetched value in reduceQueue. This guarantees:
         // - that notifications have the same ordering as transactions.
         // - that expensive reduce operations are computed without blocking
         // any database dispatch queue.
