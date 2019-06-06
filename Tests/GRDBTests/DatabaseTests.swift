@@ -1,8 +1,13 @@
 import XCTest
 #if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
+    @testable import GRDBCustomSQLite
 #else
-    import GRDB
+    #if SWIFT_PACKAGE
+        import CSQLite
+    #else
+        import SQLite3
+    #endif
+    @testable import GRDB
 #endif
 
 class DatabaseTests : GRDBTestCase {
@@ -309,6 +314,52 @@ class DatabaseTests : GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "BEGIN IMMEDIATE TRANSACTION")
             try db.commit()
             XCTAssertEqual(lastSQLQuery, "COMMIT TRANSACTION")
+        }
+    }
+    
+    // Test an internal API
+    func testReadOnly() throws {
+        // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
+        guard sqlite3_libversion_number() >= 3008000 else {
+            return
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+            
+            // Write access OK
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            
+            try db.readOnly {
+                do {
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                    XCTFail()
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.resultCode, .SQLITE_READONLY)
+                }
+                
+                // Reentrancy
+                try db.readOnly {
+                    do {
+                        try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                        XCTFail()
+                    } catch let error as DatabaseError {
+                        XCTAssertEqual(error.resultCode, .SQLITE_READONLY)
+                    }
+                }
+                
+                // Still read-only
+                do {
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                    XCTFail()
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.resultCode, .SQLITE_READONLY)
+                }
+            }
+            
+            // Write access OK
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
     }
 }

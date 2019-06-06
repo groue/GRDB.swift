@@ -162,7 +162,20 @@ public final class Database {
     
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
-    
+    private var readOnlyDepth = 0 {
+        didSet {
+            // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
+            // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+            // Assume those pragmas never fail
+            switch (oldValue, readOnlyDepth) {
+            case (1, 0):
+                try! internalCachedUpdateStatement(sql: "PRAGMA query_only = 0").execute()
+            case (0, 1):
+                try! internalCachedUpdateStatement(sql: "PRAGMA query_only = 1").execute()
+            default: break
+            }
+        }
+    }
     private var isClosed: Bool = false
 
     // MARK: - Initializer
@@ -541,11 +554,8 @@ extension Database {
             return try block()
         }
         
-        // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        // Assume those pragmas never fail
-        try! internalCachedUpdateStatement(sql: "PRAGMA query_only = 1").execute()
-        defer { try! internalCachedUpdateStatement(sql: "PRAGMA query_only = 0").execute() }
+        readOnlyDepth += 1
+        defer { readOnlyDepth -= 1 }
         return try block()
     }
 }
