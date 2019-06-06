@@ -137,7 +137,7 @@ extension ValueObservation where Reducer == Void {
 /// identical database rows.
 ///
 /// :nodoc:
-public struct FetchableRecordsReducer<RowDecoder>: ValueReducer
+public struct FetchableRecordsReducer<RowDecoder>: ImmediateValueReducer
     where RowDecoder: FetchableRecord
 {
     private let _fetch: (Database) throws -> [Row]
@@ -167,7 +167,7 @@ public struct FetchableRecordsReducer<RowDecoder>: ValueReducer
 /// identical database rows.
 ///
 /// :nodoc:
-public struct FetchableRecordReducer<RowDecoder>: ValueReducer
+public struct FetchableRecordReducer<RowDecoder>: ImmediateValueReducer
     where RowDecoder: FetchableRecord
 {
     private let _fetch: (Database) throws -> Row?

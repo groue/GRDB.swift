@@ -107,7 +107,7 @@ extension ValueObservation where Reducer == Void {
 /// identical database values.
 ///
 /// :nodoc:
-public struct DatabaseValuesReducer<Request: FetchRequest>: ValueReducer
+public struct DatabaseValuesReducer<Request: FetchRequest>: ImmediateValueReducer
     where Request.RowDecoder: DatabaseValueConvertible
 {
     public let request: Request
@@ -139,7 +139,7 @@ public struct DatabaseValuesReducer<Request: FetchRequest>: ValueReducer
 /// identical database values.
 ///
 /// :nodoc:
-public struct DatabaseValueReducer<Request: FetchRequest>: ValueReducer
+public struct DatabaseValueReducer<Request: FetchRequest>: ImmediateValueReducer
     where Request.RowDecoder: DatabaseValueConvertible
 {
     public let request: Request
@@ -181,7 +181,7 @@ public struct DatabaseValueReducer<Request: FetchRequest>: ValueReducer
 /// identical database values.
 ///
 /// :nodoc:
-public struct OptionalDatabaseValuesReducer<Request: FetchRequest>: ValueReducer
+public struct OptionalDatabaseValuesReducer<Request: FetchRequest>: ImmediateValueReducer
     where
     Request.RowDecoder: _OptionalProtocol,
     Request.RowDecoder._Wrapped: DatabaseValueConvertible
