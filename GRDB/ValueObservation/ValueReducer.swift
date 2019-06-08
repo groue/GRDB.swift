@@ -131,7 +131,7 @@ public struct AnyValueReducer<Fetched, Value>: ValueReducer {
 /// A reducer which outputs raw values.
 ///
 /// :nodoc:
-public struct RawValueReducer<Value>: ValueReducer {
+public struct RawValueReducer<Value>: ImmediateValueReducer {
     private let _fetch: (Database) throws -> Value
     
     public init(_ fetch: @escaping (Database) throws -> Value) {
