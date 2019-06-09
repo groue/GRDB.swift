@@ -344,7 +344,7 @@ extension ValueObservation where Reducer == Void {
     public static func tracking<Value>(
         _ regions: DatabaseRegionConvertible...,
         fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<RawValueReducer<Value>>
+        -> ValueObservation<ValueReducers.Passthrough<Value>>
     {
         return ValueObservation.tracking(regions, fetch: fetch)
     }
@@ -377,10 +377,10 @@ extension ValueObservation where Reducer == Void {
     public static func tracking<Value>(
         _ regions: [DatabaseRegionConvertible],
         fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<RawValueReducer<Value>>
+        -> ValueObservation<ValueReducers.Passthrough<Value>>
     {
-        return ValueObservation<RawValueReducer<Value>>(
+        return ValueObservation<ValueReducers.Passthrough<Value>>(
             tracking: DatabaseRegion.union(regions),
-            reducer: { _ in RawValueReducer(fetch) })
+            reducer: { _ in ValueReducers.Passthrough(fetch) })
     }
 }

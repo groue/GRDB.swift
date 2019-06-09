@@ -106,24 +106,5 @@ public struct AnyValueReducer<Fetched, Value>: ValueReducer {
     }
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// A reducer which outputs raw values.
-///
-/// :nodoc:
-public struct RawValueReducer<Value>: ValueReducer {
-    private let _fetch: (Database) throws -> Value
-    
-    public init(_ fetch: @escaping (Database) throws -> Value) {
-        self._fetch = fetch
-    }
-    
-    public func fetch(_ db: Database) throws -> Value {
-        return try _fetch(db)
-    }
-    
-    public func value(_ fetched: Value) -> Value? {
-        return fetched
-    }
-}
-
+/// A namespace for types related to the ValueReducer protocol.
+public enum ValueReducers { }
