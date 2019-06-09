@@ -40,11 +40,6 @@ public struct CombinedValueReducer2<
     }
 }
 
-extension CombinedValueReducer2: ImmediateValueReducer where
-    R1: ImmediateValueReducer,
-    R2: ImmediateValueReducer
-{ }
-
 extension ValueObservation where Reducer == Void {
     public static func combine<
         R1: ValueReducer,
@@ -112,12 +107,6 @@ public struct CombinedValueReducer3<
         }
     }
 }
-
-extension CombinedValueReducer3: ImmediateValueReducer where
-    R1: ImmediateValueReducer,
-    R2: ImmediateValueReducer,
-    R3: ImmediateValueReducer
-{ }
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
@@ -198,13 +187,6 @@ public struct CombinedValueReducer4<
         }
     }
 }
-
-extension CombinedValueReducer4: ImmediateValueReducer where
-    R1: ImmediateValueReducer,
-    R2: ImmediateValueReducer,
-    R3: ImmediateValueReducer,
-    R4: ImmediateValueReducer
-{ }
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
@@ -297,14 +279,6 @@ public struct CombinedValueReducer5<
         }
     }
 }
-
-extension CombinedValueReducer5: ImmediateValueReducer where
-    R1: ImmediateValueReducer,
-    R2: ImmediateValueReducer,
-    R3: ImmediateValueReducer,
-    R4: ImmediateValueReducer,
-    R5: ImmediateValueReducer
-{ }
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
@@ -409,15 +383,6 @@ public struct CombinedValueReducer6<
         }
     }
 }
-
-extension CombinedValueReducer6: ImmediateValueReducer where
-    R1: ImmediateValueReducer,
-    R2: ImmediateValueReducer,
-    R3: ImmediateValueReducer,
-    R4: ImmediateValueReducer,
-    R5: ImmediateValueReducer,
-    R6: ImmediateValueReducer
-{ }
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
@@ -534,16 +499,6 @@ public struct CombinedValueReducer7<
         }
     }
 }
-
-extension CombinedValueReducer7: ImmediateValueReducer where
-    R1: ImmediateValueReducer,
-    R2: ImmediateValueReducer,
-    R3: ImmediateValueReducer,
-    R4: ImmediateValueReducer,
-    R5: ImmediateValueReducer,
-    R6: ImmediateValueReducer,
-    R7: ImmediateValueReducer
-{ }
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
@@ -672,17 +627,6 @@ public struct CombinedValueReducer8<
         }
     }
 }
-
-extension CombinedValueReducer8: ImmediateValueReducer where
-    R1: ImmediateValueReducer,
-    R2: ImmediateValueReducer,
-    R3: ImmediateValueReducer,
-    R4: ImmediateValueReducer,
-    R5: ImmediateValueReducer,
-    R6: ImmediateValueReducer,
-    R7: ImmediateValueReducer,
-    R8: ImmediateValueReducer
-{ }
 
 extension ValueObservation where Reducer == Void {
     public static func combine<

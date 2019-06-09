@@ -45,5 +45,3 @@ public struct MapValueReducer<Base: ValueReducer, T>: ValueReducer {
         return transform(value)
     }
 }
-
-extension MapValueReducer: ImmediateValueReducer where Base: ImmediateValueReducer { }
