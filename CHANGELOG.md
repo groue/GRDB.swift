@@ -56,7 +56,6 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#539](https://github.com/groue/GRDB.swift/pull/539): Expose joining methods of both requests and associations
 - [#542](https://github.com/groue/GRDB.swift/pull/542): Move eager loading of hasMany associations to FetchRequest
 - You can now [combine](README.md#valueobservationcombine) up to eight ValueObservations in a single shot.
-- **Breaking Change**: the Swift Package now requires Swift 5, in order to declare the supported platforms required by Xcode 11 beta.
 
 ### Documentation Diff
 

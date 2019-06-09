@@ -337,9 +337,7 @@ let package = Package(
 )
 ```
 
-Swift 5 is required.
-
-Linux is not currently supported.
+Note that Linux is not currently supported.
 
 
 ## Carthage

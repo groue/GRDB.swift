@@ -188,6 +188,13 @@ jobs:
         - TID=GRDBiOS (Swift 4.2, iOS <MIN>)
       script: make test_framework_GRDBiOS_minTarget
     
+    - stage: Test GRDB Xcode 10.1
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode10.1
+      env:
+        - TID=GRDB [SPM] (macOS)
+      script: make test_SPM
+    
     # ###########################################
     # ## Test GRDBCustom Xcode 10.1
     # 
@@ -242,6 +249,13 @@ jobs:
       env:
         - TID=GRDBiOS (Swift 4.2, iOS <MIN>)
       script: make test_framework_GRDBiOS_minTarget
+    
+    - stage: Test GRDB Xcode 10
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode10
+      env:
+        - TID=GRDB [SPM] (macOS)
+      script: make test_SPM
     
     # ###########################################
     # ## Test GRDBCustom Xcode 10

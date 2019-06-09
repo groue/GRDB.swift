@@ -1,15 +1,10 @@
-// swift-tools-version:5.0
+// swift-tools-version:4.2
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
 
 let package = Package(
     name: "GRDB",
-    platforms: [
-        .macOS("10.9"),
-        .iOS(.v9),
-        .watchOS(.v2),
-    ],
     products: [
         .library(name: "GRDB", targets: ["GRDB"]),
     ],
@@ -29,5 +24,5 @@ let package = Package(
                 "SPM"
             ])
     ],
-    swiftLanguageVersions: [.v4_2, .v5]
+    swiftLanguageVersions: [.v4_2, .version("5")]
 )
