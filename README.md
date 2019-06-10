@@ -231,8 +231,7 @@ See the [Query Interface](#the-query-interface)
 
 ```swift
 let request = Place.order(Column("title"))
-try ValueObservation
-    .trackingAll(request)
+try request.observationForAll()
     .start(in: dbQueue) { (places: [Place]) in
         print("Places have changed.")
     }
@@ -4510,8 +4509,7 @@ When you also want to use database observation tools such as [ValueObservation],
     }
     
     // Observe with ValueObservation
-    try ValueObservation
-        .trackingAll(request)
+    try request.observationForAll()
         .start(in: dbQueue) { (bookInfos: [BookInfo]) in
             print("Books have changed")
         }
@@ -4704,8 +4702,7 @@ try Player.customRequest().fetchAll(db) // [Player]
 Custom requests can also feed [ValueObservation]:
 
 ```swift
-try ValueObservation.
-    .trackingAll(Player.customRequest(...))
+try Player.customRequest(...).observationForAll()
     .start(in: dbQueue) { (players: [Player]) in
         print("Players have changed")
     }
@@ -6119,7 +6116,7 @@ let request = Player.all()
 [ValueObservation] notifies your application with **fresh values** (this is what most applications need :+1:):
 
 ```swift
-let observation = ValueObservation.trackingAll(request)
+let observation = request.observationForAll()
 let observer = observation.start(in: dbQueue) { (players: [Player]) in
     let names = players.map { $0.name }.joined(separator: ", ")
     print("Fresh players: \(names)")
@@ -6157,7 +6154,7 @@ Changes are only notified after they have been committed in the database. No ins
 
 
 - **[ValueObservation Usage](#valueobservation-usage)**
-- [ValueObservation.trackingCount, trackingOne, trackingAll](#valueobservationtrackingcount-trackingone-trackingall)
+- [observationForCount, observationForAll, observationForFirst](#observationforcount-observationforall-observationforfirst)
 - [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
 - [ValueObservation Transformations](#valueobservation-transformations): [map](#valueobservationmap), [compactMap](#valueobservationcompactmap), ...
 - [ValueObservation Error Handling](#valueobservation-error-handling)
@@ -6237,68 +6234,63 @@ The observer returned by the `start` method is stored in a property of the view 
 >
 > See [ValueObservation.scheduling](#valueobservationscheduling) for more information.
 
-### ValueObservation.trackingCount, trackingOne, trackingAll
+### observationForCount, observationForAll, observationForFirst
 
-Given a [request](#requests), you can track its number of results, the first one, or all of them:
+Given a [request](#requests), you can observe its number of results, all results, or the first one:
 
 ```swift
-ValueObservation.trackingCount(request)
-ValueObservation.trackingOne(request)
-ValueObservation.trackingAll(request)
+request.observationForCount()
+request.observationForAll()
+request.observationForFirst()
 ```
 
-Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request methods:
+Those observations match the `fetchCount`, `fetchAll`, and `fetchOne` request methods:
 
-- `trackingCount` notifies counts:
+- `observationForCount` notifies counts:
 
     ```swift
     // Observe number of players
-    let observer = ValueObservation
-        .trackingCount(Player.all())
+    let observer = Player.observationForCount()
         .start(in: dbQueue) { (count: Int) in
             print("Number of players have changed: \(count)")
         }
     ```
 
-- `trackingOne` notifies optional values, built from a single database row (if any):
+- `observationForAll` notifies arrays:
+
+    ```swift
+    // Observe all players
+    let observer = Player.observationForAll()
+        .start(in: dbQueue) { (players: [Player]) in
+            print("Players have changed: \(players)")
+        }
+
+    // Observe all player names
+    let request = SQLRequest<String>(sql: "SELECT name FROM player")
+    let observer = request.observationForAll()
+        .start(in: dbQueue) { (names: [String]) in
+            print("Player names have changed: \(names)")
+        }
+    ```
+
+- `observationForFirst` notifies optional values, built from a single database row (if any):
 
     ```swift
     // Observe a single player
-    let observer = ValueObservation
-        .trackingOne(Player.filter(key: 1))
+    let observer = Player.filter(key: 1).observationForFirst()
         .start(in: dbQueue) { (player: Player?) in
             print("Player has changed: \(player)")
         }
     
     // Observe the maximum score
     let request = Player.select(max(Column("score")), as: Int.self)
-    let observer = ValueObservation
-        .trackingOne(request)
+    let observer = request.observationForFirst()
         .start(in: dbQueue) { (maximumScore: Int?) in
             print("Maximum score has changed: \(maximumScore)")
         }
     ```
 
-- `trackingAll` notifies arrays:
-
-    ```swift
-    // Observe all players
-    let observer = ValueObservation
-        .trackingAll(Player.all())
-        .start(in: dbQueue) { (players: [Player]) in
-            print("Players have changed: \(players)")
-        }
-    
-    // Observe all player names
-    let request = SQLRequest<String>(sql: "SELECT name FROM player")
-    let observer = ValueObservation
-        .trackingAll(request)
-        .start(in: dbQueue) { (names: [String]) in
-            print("Player names have changed: \(names)")
-        }
-    ```
-
-> :point_up: **Note**: the observations returned by the [ValueObservation.trackingCount, trackingOne, and trackingAll](#valueobservationtrackingcount-trackingone-trackingall) methods perform a filtering of consecutive identical values, based on raw database values.
+> :point_up: **Note**: observations returned by those methods perform a filtering of consecutive identical values, based on raw database values.
 
 
 ### ValueObservation.tracking(_:fetch:)
@@ -6507,7 +6499,7 @@ let observer = observation.start(in: dbQueue) { (exists: Bool) in
 }
 ```
 
-> :point_up: **Note**: the observations returned by the [ValueObservation.trackingCount, trackingOne, and trackingAll](#valueobservationtrackingcount-trackingone-trackingall) methods already perform a similar filtering, based on raw database values.
+> :point_up: **Note**: the observations returned by the [observationForCount, observationForAll, observationForFirst](#observationforcount-observationforall-observationforfirst) methods already perform a similar filtering, based on raw database values.
 
 
 #### ValueObservation.combine(...)
@@ -6522,8 +6514,8 @@ let teamRequest = Team.filter(key: 1)
 let playersRequest = Player.filter(Column("teamId") == 1)
 
 // Two observations
-let teamObservation = ValueObservation.trackingOne(teamRequest)
-let playersObservation = ValueObservation.trackingAll(playersRequest)
+let teamObservation = teamRequest.observationForFirst()
+let playersObservation = playersRequest.observationForAll()
 
 // The combined observation
 let observation = ValueObservation.combine(teamObservation, playersObservation)
@@ -6575,8 +6567,7 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // On main queue
-    let observer = ValueObservation
-        .trackingAll(Player.all())
+    let observer = Player.observationForAll()
         .start(in: dbQueue) { (players: [Player]) in
             // On main queue
             print("fresh players: \(players)")
@@ -6588,8 +6579,7 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // Not on the main queue
-    let observer = ValueObservation
-        .trackingAll(Player.all())
+    let observer = Player.observationForAll()
         .start(in: dbQueue) { (players: [Player]) in
             // On main queue
             print("fresh players: \(players)")
@@ -6613,7 +6603,7 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // On main queue
-    var observation = ValueObservation.trackingAll(Player.all())
+    var observation = Player.observationForAll()
     observation.scheduling = .async(onQueue: .main, startImmediately: true)
     let observer = try observation.start(in: dbQueue) { (players: [Player]) in
         // On main queue
@@ -6628,7 +6618,7 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // On any queue
-    var observation = ValueObservation.trackingAll(Player.all())
+    var observation = Player.observationForAll()
     observation.scheduling = .unsafe(startImmediately: true)
     let observer = try observation.start(in: dbQueue) { (players: [Player]) in
         print("fresh players: \(players)")
