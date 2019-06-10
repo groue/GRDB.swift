@@ -25,9 +25,9 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     /// `start` is deallocated.
     ///
     /// - returns: a ValueObservation.
-    public func observationForAll() -> ValueObservation<DatabaseValuesReducer<RowDecoder>> {
+    public func observationForAll() -> ValueObservation<ValueReducers.AllValues<RowDecoder>> {
         return ValueObservation.tracking(self, reducer: { _ in
-            DatabaseValuesReducer { try DatabaseValue.fetchAll($0, self) }
+            ValueReducers.AllValues { try DatabaseValue.fetchAll($0, self) }
         })
     }
     
@@ -54,9 +54,9 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     ///
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
-    public func observationForFirst() -> ValueObservation<DatabaseValueReducer<RowDecoder>> {
+    public func observationForFirst() -> ValueObservation<ValueReducers.OneValue<RowDecoder>> {
         return ValueObservation.tracking(self, reducer: { _ in
-            DatabaseValueReducer { try DatabaseValue.fetchOne($0, self) }
+            ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) }
         })
     }
 }
@@ -90,9 +90,9 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     /// `start` is deallocated.
     ///
     /// - returns: a ValueObservation.
-    public func observationForAll() -> ValueObservation<OptionalDatabaseValuesReducer<RowDecoder._Wrapped>> {
+    public func observationForAll() -> ValueObservation<ValueReducers.AllOptionalValues<RowDecoder._Wrapped>> {
         return ValueObservation.tracking(self, reducer: { _ in
-            OptionalDatabaseValuesReducer { try DatabaseValue.fetchAll($0, self) }
+            ValueReducers.AllOptionalValues { try DatabaseValue.fetchAll($0, self) }
         })
     }
     
@@ -119,9 +119,9 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     /// `start` is deallocated.
     ///
     /// - returns: a ValueObservation.
-    public func observationForFirst() -> ValueObservation<DatabaseValueReducer<RowDecoder._Wrapped>> {
+    public func observationForFirst() -> ValueObservation<ValueReducers.OneValue<RowDecoder._Wrapped>> {
         return ValueObservation.tracking(self, reducer: { _ in
-            DatabaseValueReducer { try DatabaseValue.fetchOne($0, self) }
+            ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) }
         })
     }
 }
@@ -227,108 +227,122 @@ extension ValueObservation where Reducer == Void {
     }
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// A reducer which outputs arrays of values, filtering out consecutive
-/// identical database values.
-///
-/// :nodoc:
-public struct DatabaseValuesReducer<RowDecoder>: ValueReducer
-    where RowDecoder: DatabaseValueConvertible
-{
-    private let _fetch: (Database) throws -> [DatabaseValue]
-    private var previousDbValues: [DatabaseValue]?
-    
-    init(fetch: @escaping (Database) throws -> [DatabaseValue]) {
-        self._fetch = fetch
-    }
-    
-    public func fetch(_ db: Database) throws -> [DatabaseValue] {
-        return try _fetch(db)
-    }
-    
-    public mutating func value(_ dbValues: [DatabaseValue]) -> [RowDecoder]? {
-        if let previousDbValues = previousDbValues, previousDbValues == dbValues {
-            // Don't notify consecutive identical dbValue arrays
-            return nil
+extension ValueReducers {
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// A reducer which outputs arrays of values, filtering out consecutive
+    /// identical database values.
+    ///
+    /// :nodoc:
+    public struct AllValues<RowDecoder>: ValueReducer
+        where RowDecoder: DatabaseValueConvertible
+    {
+        private let _fetch: (Database) throws -> [DatabaseValue]
+        private var previousDbValues: [DatabaseValue]?
+        
+        init(fetch: @escaping (Database) throws -> [DatabaseValue]) {
+            self._fetch = fetch
         }
-        self.previousDbValues = dbValues
-        return dbValues.map {
-            RowDecoder.decode(from: $0, conversionContext: nil)
+        
+        public func fetch(_ db: Database) throws -> [DatabaseValue] {
+            return try _fetch(db)
+        }
+        
+        public mutating func value(_ dbValues: [DatabaseValue]) -> [RowDecoder]? {
+            if let previousDbValues = previousDbValues, previousDbValues == dbValues {
+                // Don't notify consecutive identical dbValue arrays
+                return nil
+            }
+            self.previousDbValues = dbValues
+            return dbValues.map {
+                RowDecoder.decode(from: $0, conversionContext: nil)
+            }
+        }
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// A reducer which outputs optional values, filtering out consecutive
+    /// identical database values.
+    ///
+    /// :nodoc:
+    public struct OneValue<RowDecoder>: ValueReducer
+        where RowDecoder: DatabaseValueConvertible
+    {
+        private let _fetch: (Database) throws -> DatabaseValue?
+        private var previousDbValue: DatabaseValue??
+        private var previousValueWasNil = false
+        
+        init(fetch: @escaping (Database) throws -> DatabaseValue?) {
+            self._fetch = fetch
+        }
+        
+        public func fetch(_ db: Database) throws -> DatabaseValue? {
+            return try _fetch(db)
+        }
+        
+        public mutating func value(_ dbValue: DatabaseValue?) -> RowDecoder?? {
+            if let previousDbValue = previousDbValue, previousDbValue == dbValue {
+                // Don't notify consecutive identical dbValue
+                return nil
+            }
+            self.previousDbValue = dbValue
+            if let dbValue = dbValue,
+                let value = RowDecoder.decodeIfPresent(from: dbValue, conversionContext: nil)
+            {
+                previousValueWasNil = false
+                return .some(value)
+            } else if previousValueWasNil {
+                // Don't notify consecutive nil values
+                return nil
+            } else {
+                previousValueWasNil = true
+                return .some(nil)
+            }
+        }
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// A reducer which outputs arrays of optional values, filtering out consecutive
+    /// identical database values.
+    ///
+    /// :nodoc:
+    public struct AllOptionalValues<RowDecoder>: ValueReducer
+        where RowDecoder: DatabaseValueConvertible
+    {
+        private let _fetch: (Database) throws -> [DatabaseValue]
+        private var previousDbValues: [DatabaseValue]?
+        
+        init(fetch: @escaping (Database) throws -> [DatabaseValue]) {
+            self._fetch = fetch
+        }
+        
+        public func fetch(_ db: Database) throws -> [DatabaseValue] {
+            return try _fetch(db)
+        }
+        
+        public mutating func value(_ dbValues: [DatabaseValue]) -> [RowDecoder?]? {
+            if let previousDbValues = previousDbValues, previousDbValues == dbValues {
+                // Don't notify consecutive identical dbValue arrays
+                return nil
+            }
+            self.previousDbValues = dbValues
+            return dbValues.map {
+                RowDecoder.decodeIfPresent(from: $0, conversionContext: nil)
+            }
         }
     }
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// A reducer which outputs optional values, filtering out consecutive
-/// identical database values.
-///
 /// :nodoc:
-public struct DatabaseValueReducer<RowDecoder>: ValueReducer
-    where RowDecoder: DatabaseValueConvertible
-{
-    private let _fetch: (Database) throws -> DatabaseValue?
-    private var previousDbValue: DatabaseValue??
-    private var previousValueWasNil = false
-    
-    init(fetch: @escaping (Database) throws -> DatabaseValue?) {
-        self._fetch = fetch
-    }
-    
-    public func fetch(_ db: Database) throws -> DatabaseValue? {
-        return try _fetch(db)
-    }
+@available(*, deprecated, renamed: "ValueReducers.AllValues")
+public typealias DatabaseValuesReducer<RowDecoder> = ValueReducers.AllValues<RowDecoder> where RowDecoder: DatabaseValueConvertible
 
-    public mutating func value(_ dbValue: DatabaseValue?) -> RowDecoder?? {
-        if let previousDbValue = previousDbValue, previousDbValue == dbValue {
-            // Don't notify consecutive identical dbValue
-            return nil
-        }
-        self.previousDbValue = dbValue
-        if let dbValue = dbValue,
-            let value = RowDecoder.decodeIfPresent(from: dbValue, conversionContext: nil)
-        {
-            previousValueWasNil = false
-            return .some(value)
-        } else if previousValueWasNil {
-            // Don't notify consecutive nil values
-            return nil
-        } else {
-            previousValueWasNil = true
-            return .some(nil)
-        }
-    }
-}
-
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// A reducer which outputs arrays of optional values, filtering out consecutive
-/// identical database values.
-///
 /// :nodoc:
-public struct OptionalDatabaseValuesReducer<RowDecoder>: ValueReducer
-    where RowDecoder: DatabaseValueConvertible
-{
-    private let _fetch: (Database) throws -> [DatabaseValue]
-    private var previousDbValues: [DatabaseValue]?
-    
-    init(fetch: @escaping (Database) throws -> [DatabaseValue]) {
-        self._fetch = fetch
-    }
-    
-    public func fetch(_ db: Database) throws -> [DatabaseValue] {
-        return try _fetch(db)
-    }
+@available(*, deprecated, renamed: "ValueReducers.OneValue")
+public typealias DatabaseValueReducer<RowDecoder> = ValueReducers.OneValue<RowDecoder> where RowDecoder: DatabaseValueConvertible
 
-    public mutating func value(_ dbValues: [DatabaseValue]) -> [RowDecoder?]? {
-        if let previousDbValues = previousDbValues, previousDbValues == dbValues {
-            // Don't notify consecutive identical dbValue arrays
-            return nil
-        }
-        self.previousDbValues = dbValues
-        return dbValues.map {
-            RowDecoder.decodeIfPresent(from: $0, conversionContext: nil)
-        }
-    }
-}
+/// :nodoc:
+@available(*, deprecated, renamed: "ValueReducers.AllOptionalValues")
+public typealias OptionalDatabaseValuesReducer<RowDecoder> = ValueReducers.AllOptionalValues<RowDecoder> where RowDecoder: DatabaseValueConvertible

@@ -25,7 +25,7 @@ extension FetchRequest {
     ///
     /// - returns: a ValueObservation.
     public func observationForCount() ->
-        ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Passthrough<Int>>>
+        ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Fetch<Int>>>
     {
         return ValueObservation
             .tracking(self, fetch: fetchCount)
@@ -59,7 +59,7 @@ extension TableRecord {
     ///
     /// - returns: a ValueObservation.
     public static func observationForCount() ->
-        ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Passthrough<Int>>>
+        ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Fetch<Int>>>
     {
         return all().observationForCount()
     }
@@ -94,7 +94,7 @@ extension ValueObservation where Reducer == Void {
     /// - returns: a ValueObservation.
     @available(*, deprecated, message: "Use request.observationForCount() instead")
     public static func trackingCount<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Passthrough<Int>>>
+        -> ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Fetch<Int>>>
     {
         return request.observationForCount()
     }

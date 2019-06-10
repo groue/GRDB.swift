@@ -333,7 +333,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
             results.append(names)
             notificationExpectation.fulfill()
         }
-        let valueObserver = observer as! ValueObserver<DatabaseValuesReducer<Name>>
+        let valueObserver = observer as! ValueObserver<ValueReducers.AllValues<Name>>
         XCTAssertEqual(valueObserver.region.description, "t(id,name)") // view is not tracked
         try withExtendedLifetime(observer) {
             // Test view observation

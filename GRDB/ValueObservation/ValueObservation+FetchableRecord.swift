@@ -25,9 +25,9 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// `start` is deallocated.
     ///
     /// - returns: a ValueObservation.
-    public func observationForAll() -> ValueObservation<FetchableRecordsReducer<RowDecoder>> {
+    public func observationForAll() -> ValueObservation<ValueReducers.AllRecords<RowDecoder>> {
         return ValueObservation.tracking(self, reducer: { _ in
-            FetchableRecordsReducer { try Row.fetchAll($0, self) }
+            ValueReducers.AllRecords { try Row.fetchAll($0, self) }
         })
     }
     
@@ -53,9 +53,9 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// `start` is deallocated.
     ///
     /// - returns: a ValueObservation.
-    public func observationForFirst() -> ValueObservation<FetchableRecordReducer<RowDecoder>> {
+    public func observationForFirst() -> ValueObservation<ValueReducers.OneRecord<RowDecoder>> {
         return ValueObservation.tracking(self, reducer: { _ in
-            FetchableRecordReducer { try Row.fetchOne($0, self) }
+            ValueReducers.OneRecord { try Row.fetchOne($0, self) }
         })
     }
 }
@@ -86,7 +86,7 @@ extension TableRecord where Self: FetchableRecord {
     /// `start` is deallocated.
     ///
     /// - returns: a ValueObservation.
-    public static func observationForAll() -> ValueObservation<FetchableRecordsReducer<Self>> {
+    public static func observationForAll() -> ValueObservation<ValueReducers.AllRecords<Self>> {
         return all().observationForAll()
     }
     
@@ -112,7 +112,7 @@ extension TableRecord where Self: FetchableRecord {
     /// `start` is deallocated.
     ///
     /// - returns: a ValueObservation.
-    public static func observationForFirst() -> ValueObservation<FetchableRecordReducer<Self>> {
+    public static func observationForFirst() -> ValueObservation<ValueReducers.OneRecord<Self>> {
         // TODO: check that limit(1) has no impact on requests like filter(key:)
         return limit(1).observationForFirst()
     }
@@ -186,63 +186,72 @@ extension ValueObservation where Reducer == Void {
     }
 }
 
-// TODO: namespace
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// A reducer which outputs arrays of records, filtering out consecutive
-/// identical database rows.
-///
-/// :nodoc:
-public struct FetchableRecordsReducer<RowDecoder>: ValueReducer
-    where RowDecoder: FetchableRecord
-{
-    private let _fetch: (Database) throws -> [Row]
-    private var previousRows: [Row]?
-    
-    init(fetch: @escaping (Database) throws -> [Row]) {
-        self._fetch = fetch
-    }
-
-    public func fetch(_ db: Database) throws -> [Row] {
-        return try _fetch(db)
-    }
-    
-    public mutating func value(_ rows: [Row]) -> [RowDecoder]? {
-        if let previousRows = previousRows, previousRows == rows {
-            // Don't notify consecutive identical row arrays
-            return nil
+extension ValueReducers {
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// A reducer which outputs arrays of records, filtering out consecutive
+    /// identical database rows.
+    ///
+    /// :nodoc:
+    public struct AllRecords<RowDecoder>: ValueReducer
+        where RowDecoder: FetchableRecord
+    {
+        private let _fetch: (Database) throws -> [Row]
+        private var previousRows: [Row]?
+        
+        init(fetch: @escaping (Database) throws -> [Row]) {
+            self._fetch = fetch
         }
-        self.previousRows = rows
-        return rows.map(RowDecoder.init(row:))
+        
+        public func fetch(_ db: Database) throws -> [Row] {
+            return try _fetch(db)
+        }
+        
+        public mutating func value(_ rows: [Row]) -> [RowDecoder]? {
+            if let previousRows = previousRows, previousRows == rows {
+                // Don't notify consecutive identical row arrays
+                return nil
+            }
+            self.previousRows = rows
+            return rows.map(RowDecoder.init(row:))
+        }
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// A reducer which outputs optional records, filtering out consecutive
+    /// identical database rows.
+    ///
+    /// :nodoc:
+    public struct OneRecord<RowDecoder>: ValueReducer
+        where RowDecoder: FetchableRecord
+    {
+        private let _fetch: (Database) throws -> Row?
+        private var previousRow: Row??
+        
+        init(fetch: @escaping (Database) throws -> Row?) {
+            self._fetch = fetch
+        }
+        
+        public func fetch(_ db: Database) throws -> Row? {
+            return try _fetch(db)
+        }
+        
+        public mutating func value(_ row: Row?) -> RowDecoder?? {
+            if let previousRow = previousRow, previousRow == row {
+                // Don't notify consecutive identical rows
+                return nil
+            }
+            self.previousRow = row
+            return .some(row.map(RowDecoder.init(row:)))
+        }
     }
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// A reducer which outputs optional records, filtering out consecutive
-/// identical database rows.
-///
 /// :nodoc:
-public struct FetchableRecordReducer<RowDecoder>: ValueReducer
-    where RowDecoder: FetchableRecord
-{
-    private let _fetch: (Database) throws -> Row?
-    private var previousRow: Row??
-    
-    init(fetch: @escaping (Database) throws -> Row?) {
-        self._fetch = fetch
-    }
+@available(*, deprecated, renamed: "ValueReducers.AllRecords")
+public typealias FetchableRecordsReducer<RowDecoder> = ValueReducers.AllRecords<RowDecoder> where RowDecoder: FetchableRecord
 
-    public func fetch(_ db: Database) throws -> Row? {
-        return try _fetch(db)
-    }
-    
-    public mutating func value(_ row: Row?) -> RowDecoder?? {
-        if let previousRow = previousRow, previousRow == row {
-            // Don't notify consecutive identical rows
-            return nil
-        }
-        self.previousRow = row
-        return .some(row.map(RowDecoder.init(row:)))
-    }
-}
+/// :nodoc:
+@available(*, deprecated, renamed: "ValueReducers.OneRecord")
+public typealias FetchableRecordReducer<RowDecoder> = ValueReducers.OneRecord<RowDecoder> where RowDecoder: FetchableRecord
