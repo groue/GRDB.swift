@@ -27,8 +27,8 @@ class ValueObservationCombineTests: GRDBTestCase {
         
         struct T1: TableRecord { }
         struct T2: TableRecord { }
-        let observation1 = ValueObservation.trackingCount(T1.all())
-        let observation2 = ValueObservation.trackingCount(T2.all())
+        let observation1 = T1.observationForCount()
+        let observation2 = T2.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2)
         let observer = try observation.start(in: dbQueue) { v0, v1 in
             values.append([v0, v1])
@@ -86,9 +86,9 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct T1: TableRecord { }
         struct T2: TableRecord { }
         struct T3: TableRecord { }
-        let observation1 = ValueObservation.trackingCount(T1.all())
-        let observation2 = ValueObservation.trackingCount(T2.all())
-        let observation3 = ValueObservation.trackingCount(T3.all())
+        let observation1 = T1.observationForCount()
+        let observation2 = T2.observationForCount()
+        let observation3 = T3.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3)
         let observer = try observation.start(in: dbQueue) { v0, v1, v2 in
             values.append([v0, v1, v2])
@@ -159,10 +159,10 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct T2: TableRecord { }
         struct T3: TableRecord { }
         struct T4: TableRecord { }
-        let observation1 = ValueObservation.trackingCount(T1.all())
-        let observation2 = ValueObservation.trackingCount(T2.all())
-        let observation3 = ValueObservation.trackingCount(T3.all())
-        let observation4 = ValueObservation.trackingCount(T4.all())
+        let observation1 = T1.observationForCount()
+        let observation2 = T2.observationForCount()
+        let observation3 = T3.observationForCount()
+        let observation4 = T4.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4)
         let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3 in
             values.append([v0, v1, v2, v3])
@@ -246,11 +246,11 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct T3: TableRecord { }
         struct T4: TableRecord { }
         struct T5: TableRecord { }
-        let observation1 = ValueObservation.trackingCount(T1.all())
-        let observation2 = ValueObservation.trackingCount(T2.all())
-        let observation3 = ValueObservation.trackingCount(T3.all())
-        let observation4 = ValueObservation.trackingCount(T4.all())
-        let observation5 = ValueObservation.trackingCount(T5.all())
+        let observation1 = T1.observationForCount()
+        let observation2 = T2.observationForCount()
+        let observation3 = T3.observationForCount()
+        let observation4 = T4.observationForCount()
+        let observation5 = T5.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5)
         let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3, v4 in
             values.append([v0, v1, v2, v3, v4])
@@ -347,12 +347,12 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct T4: TableRecord { }
         struct T5: TableRecord { }
         struct T6: TableRecord { }
-        let observation1 = ValueObservation.trackingCount(T1.all())
-        let observation2 = ValueObservation.trackingCount(T2.all())
-        let observation3 = ValueObservation.trackingCount(T3.all())
-        let observation4 = ValueObservation.trackingCount(T4.all())
-        let observation5 = ValueObservation.trackingCount(T5.all())
-        let observation6 = ValueObservation.trackingCount(T6.all())
+        let observation1 = T1.observationForCount()
+        let observation2 = T2.observationForCount()
+        let observation3 = T3.observationForCount()
+        let observation4 = T4.observationForCount()
+        let observation5 = T5.observationForCount()
+        let observation6 = T6.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6)
         let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3, v4, v5 in
             values.append([v0, v1, v2, v3, v4, v5])
@@ -462,13 +462,13 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct T5: TableRecord { }
         struct T6: TableRecord { }
         struct T7: TableRecord { }
-        let observation1 = ValueObservation.trackingCount(T1.all())
-        let observation2 = ValueObservation.trackingCount(T2.all())
-        let observation3 = ValueObservation.trackingCount(T3.all())
-        let observation4 = ValueObservation.trackingCount(T4.all())
-        let observation5 = ValueObservation.trackingCount(T5.all())
-        let observation6 = ValueObservation.trackingCount(T6.all())
-        let observation7 = ValueObservation.trackingCount(T7.all())
+        let observation1 = T1.observationForCount()
+        let observation2 = T2.observationForCount()
+        let observation3 = T3.observationForCount()
+        let observation4 = T4.observationForCount()
+        let observation5 = T5.observationForCount()
+        let observation6 = T6.observationForCount()
+        let observation7 = T7.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7)
         let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3, v4, v5, v6 in
             values.append([v0, v1, v2, v3, v4, v5, v6])
@@ -591,14 +591,14 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct T6: TableRecord { }
         struct T7: TableRecord { }
         struct T8: TableRecord { }
-        let observation1 = ValueObservation.trackingCount(T1.all())
-        let observation2 = ValueObservation.trackingCount(T2.all())
-        let observation3 = ValueObservation.trackingCount(T3.all())
-        let observation4 = ValueObservation.trackingCount(T4.all())
-        let observation5 = ValueObservation.trackingCount(T5.all())
-        let observation6 = ValueObservation.trackingCount(T6.all())
-        let observation7 = ValueObservation.trackingCount(T7.all())
-        let observation8 = ValueObservation.trackingCount(T8.all())
+        let observation1 = T1.observationForCount()
+        let observation2 = T2.observationForCount()
+        let observation3 = T3.observationForCount()
+        let observation4 = T4.observationForCount()
+        let observation5 = T5.observationForCount()
+        let observation6 = T6.observationForCount()
+        let observation7 = T7.observationForCount()
+        let observation8 = T8.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7, observation8)
         let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3, v4, v5, v6, v7 in
             values.append([v0, v1, v2, v3, v4, v5, v6, v7])
