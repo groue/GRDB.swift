@@ -2916,8 +2916,7 @@ try dbQueue.read { db in
 
 ```swift
 // Observe changes
-try ValueObservation
-    .trackingOne(Player.maximumScore)
+try Player.maximumScore.observationForFirst()
     .start(in: dbQueue) { (maxScore: Int?) in
         print("The maximum score has changed")
     }
@@ -4483,8 +4482,7 @@ When you also want to use database observation tools such as [ValueObservation],
     }
     
     // Observe with ValueObservation
-    try ValueObservation
-        .trackingOne(request)
+    try request.observationForFirst()
         .start(in: dbQueue) { (maxScore: Int?) in
             print("The maximum score has changed")
         }
@@ -4582,8 +4580,7 @@ let player = try request.fetchOne(db)    // Player?
 Those requests can feed [ValueObservation]:
 
 ```swift
-try ValueObservation.
-    .trackingOne(Player.filter(key: 1))
+try Player.filter(key: 1).observationForFirst()
     .start(in: dbQueue) { (player: Player?) in
         print("Player 1 has changed")
     }
@@ -6176,7 +6173,7 @@ class PlayerViewController: UIViewController {
         
         // Define a ValueObservation which tracks a player
         let request = Player.filter(key: 42)
-        let observation = ValueObservation.trackingOne(request)
+        let observation = request.observationForFirst()
         
         // Start observing the database
         observer = try! observation.start(
@@ -6212,7 +6209,7 @@ The observer returned by the `start` method is stored in a property of the view 
 >     
 >     // Define a ValueObservation which tracks a player
 >     let request = Player.filter(key: 42)
->     var observation = ValueObservation.trackingOne(request)
+>     var observation = request.observationForFirst()
 >
 >     // Observation is asynchronous
 >     observation.scheduling = .async(onQueue: .main, startImmediately: true)
@@ -6246,7 +6243,7 @@ request.observationForFirst()
 
 Those observations match the `fetchCount`, `fetchAll`, and `fetchOne` request methods:
 
-- `observationForCount` notifies counts:
+- `observationForCount()` notifies counts:
 
     ```swift
     // Observe number of players
@@ -6256,7 +6253,7 @@ Those observations match the `fetchCount`, `fetchAll`, and `fetchOne` request me
         }
     ```
 
-- `observationForAll` notifies arrays:
+- `observationForAll()` notifies arrays:
 
     ```swift
     // Observe all players
@@ -6273,7 +6270,7 @@ Those observations match the `fetchCount`, `fetchAll`, and `fetchOne` request me
         }
     ```
 
-- `observationForFirst` notifies optional values, built from a single database row (if any):
+- `observationForFirst()` notifies optional values, built from a single database row (if any):
 
     ```swift
     // Observe a single player
@@ -6446,9 +6443,8 @@ For example:
 
 ```swift
 // Observe a player's profile image
-let observation = ValueObservation
-    .trackingOne(Player.filter(key: 42))
-    .map { player in player?.loadBigProfileImage() }
+let observation = Player.filter(key: 42).observationForFirst()
+    .map { player in player?.image }
 
 let observer = observation.start(in: dbQueue) { (image: UIImage?) in
     print("Player picture has changed")
@@ -6466,8 +6462,7 @@ For example:
 
 ```swift
 // Observe a player
-let observation = ValueObservation
-    .trackingOne(Player.filter(key: 42))
+let observation = Player.filter(key: 42).observationForFirst()
     .compactMap { $0 }
     
 let observer = observation.start(in: dbQueue) { (player: Player) in
@@ -6485,8 +6480,7 @@ The `distinctUntilChanged` method filters out the consecutive equal values notif
 For example:
 
 ```swift
-let observation = ValueObservation
-    .trackingOne(Player.filter(key: 42))
+let observation = Player.filter(key: 42).observationForFirst()
     .map { player in player != nil } // existence test
     .distinctUntilChanged()
 
@@ -6504,33 +6498,50 @@ let observer = observation.start(in: dbQueue) { (exists: Bool) in
 
 #### ValueObservation.combine(...)
 
-Sometimes you need to observe several requests at the same time. For example, you need to observe changes in both a team and its players.
+Sometimes you need to observe several requests at the same time.
 
 When this happens, **combine** several observations together with the `ValueObservation.combine(...)` method:
 
 ```swift
-// The two observed requests (the team and its players)
-let teamRequest = Team.filter(key: 1)
-let playersRequest = Player.filter(Column("teamId") == 1)
+struct HallOfFame {
+    /// Total number of players
+    var playerCount: Int
+    
+    /// The best ones
+    var bestPlayers: [Player]
+}
 
-// Two observations
-let teamObservation = teamRequest.observationForFirst()
-let playersObservation = playersRequest.observationForAll()
+// The two base observations
+let playerCountObservation = Player.observationForCount()
+let bestPlayersObservation = Player
+    .limit(10)
+    .order(Column("score").desc)
+    .observationForAll()
 
 // The combined observation
-let observation = ValueObservation.combine(teamObservation, playersObservation)
+let observation = ValueObservation
+    .combine(playerCountObservation, bestPlayersObservation)
+    .map { HallOfFame(playerCount: $0, bestPlayers: $1) }
 
-// Start tracking players and teams
-let observer = observation.start(in: dbQueue) { (team: Team?, players: [Player]) in
-    print("Team or players have changed.")
+// Start tracking the hall of fame
+let observer = observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
+    print("The hall of fame has changed.")
 }
 ```
 
+`combine` also exists as an instance method:
+
+```swift
+let observation = playerCountObservation.combine(bestPlayersObservation) {
+    HallOfFame(playerCount: $0, bestPlayers: $1)
+}
+```
+
+You can combine up to eight observations together. They can feed from as many database tables as needed.
+
 Combining observations provides the guarantee that notified values are [**consistent**](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
 
-> :point_up: **Note**: you can combine up to eight observations together. If you need more, combine several combined observations, or please submit a pull request.
->
-> :point_up: **Note**: readers who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the `ValueObservation.combine` method. The reactive operator does not care about data consistency, though: if you use a Reactive layer such as [RxGRDB], compose observations with `ValueObservation.combine`, not with the CombineLatest operator.
+> :point_up: **Note**: readers who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the ValueObservation `combine` method. The reactive operator does not care about data consistency, though: if you use a Reactive layer such as [RxGRDB] or [Combine], make sure you compose observations with `ValueObservation.combine`, not with the CombineLatest operator.
 
 
 ### ValueObservation Error Handling
@@ -8846,3 +8857,4 @@ This chapter has been renamed [Beyond FetchableRecord].
 [DatabaseRegion]: #databaseregion
 [SQL Interpolation]: Documentation/SQLInterpolation.md
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
+[Combine]: https://developer.apple.com/documentation/combine

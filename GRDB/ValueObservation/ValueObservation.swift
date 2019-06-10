@@ -11,7 +11,7 @@ public enum ValueScheduling {
     /// notified right upon subscription, synchronously:
     ///
     ///     // On main queue
-    ///     let observation = ValueObservation.trackingAll(Player.all())
+    ///     let observation = Player.observationForAll()
     ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///         print("fresh players: \(players)")
     ///     }
@@ -22,7 +22,7 @@ public enum ValueScheduling {
     ///
     ///     // Not on the main queue: "fresh players" is eventually printed
     ///     // on the main queue.
-    ///     let observation = ValueObservation.trackingAll(Player.all())
+    ///     let observation = Player.observationForAll()
     ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///         print("fresh players: \(players)")
     ///     }
@@ -49,7 +49,7 @@ public enum ValueScheduling {
     /// the observation.
     ///
     ///     // On any queue
-    ///     var observation = ValueObservation.trackingAll(Player.all())
+    ///     var observation = Player.observationForAll()
     ///     observation.scheduling = .unsafe(startImmediately: true)
     ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///         print("fresh players: \(players)")
@@ -68,7 +68,7 @@ public enum ValueScheduling {
 ///
 /// For example:
 ///
-///     let observation = ValueObservation.trackingAll(Player.all)
+///     let observation = Player.observationForAll()
 ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
 ///         print("Players have changed.")
 ///     }
@@ -98,7 +98,7 @@ public struct ValueObservation<Reducer> {
     ///     notified right upon subscription, synchronously::
     ///
     ///         // On main queue
-    ///         let observation = ValueObservation.trackingAll(Player.all())
+    ///         let observation = Player.observationForAll()
     ///         let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///             print("fresh players: \(players)")
     ///         }
@@ -109,7 +109,7 @@ public struct ValueObservation<Reducer> {
     ///
     ///         // Not on the main queue: "fresh players" is eventually printed
     ///         // on the main queue.
-    ///         let observation = ValueObservation.trackingAll(Player.all())
+    ///         let observation = Player.observationForAll()
     ///         let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///             print("fresh players: \(players)")
     ///         }
@@ -135,7 +135,7 @@ public struct ValueObservation<Reducer> {
     ///     the observation.
     ///
     ///         // On any queue
-    ///         var observation = ValueObservation.trackingAll(Player.all())
+    ///         var observation = Player.observationForAll()
     ///         observation.scheduling = .unsafe(startImmediately: true)
     ///         let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///             print("fresh players: \(players)")
@@ -207,9 +207,8 @@ extension ValueObservation where Reducer: ValueReducer {
     /// For example, the observation below notifies changes to a player if and
     /// only if it exists:
     ///
-    ///     let request = Player.filter(key: 42)
-    ///     let observation = ValueObservation
-    ///         .trackingOne(request)
+    ///     let observation = Player.filter(key: 42)
+    ///         .observationForFirst()
     ///         .compactMap { $0 } // filters out missing player
     ///
     /// The `fetchFirst` method thus returns nil if player does not exist:

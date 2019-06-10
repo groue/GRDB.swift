@@ -65,8 +65,6 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     
     // MARK: - Observation
     
-    // TODO: add support for trackingOne as well
-    
     /// Creates a ValueObservation which observes *request*, and notifies
     /// fresh values whenever the request is modified by a
     /// database transaction.

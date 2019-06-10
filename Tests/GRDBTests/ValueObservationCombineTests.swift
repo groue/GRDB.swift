@@ -822,4 +822,64 @@ class ValueObservationCombineTests: GRDBTestCase {
         _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
         XCTAssertNotNil(value)
     }
+    
+    func testHeterogeneusCombined2() throws {
+        struct V1 { }
+        struct V2 { }
+        struct Combined { }
+        let observation1 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V1() })
+        let observation2 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V2() })
+        let observation = observation1.combine(observation2) { (v1: V1, v2: V2) -> Combined in Combined() }
+        var value: Combined?
+        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        XCTAssertNotNil(value)
+    }
+    
+    func testHeterogeneusCombined3() throws {
+        struct V1 { }
+        struct V2 { }
+        struct V3 { }
+        struct Combined { }
+        let observation1 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V1() })
+        let observation2 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V2() })
+        let observation3 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V3() })
+        let observation = observation1.combine(observation2, observation3) { (v1: V1, v2: V2, v3: V3) -> Combined in Combined() }
+        var value: Combined?
+        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        XCTAssertNotNil(value)
+    }
+    
+    func testHeterogeneusCombined4() throws {
+        struct V1 { }
+        struct V2 { }
+        struct V3 { }
+        struct V4 { }
+        struct Combined { }
+        let observation1 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V1() })
+        let observation2 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V2() })
+        let observation3 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V3() })
+        let observation4 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V4() })
+        let observation = observation1.combine(observation2, observation3, observation4) { (v1: V1, v2: V2, v3: V3, v4: V4) -> Combined in Combined() }
+        var value: Combined?
+        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        XCTAssertNotNil(value)
+    }
+    
+    func testHeterogeneusCombined5() throws {
+        struct V1 { }
+        struct V2 { }
+        struct V3 { }
+        struct V4 { }
+        struct V5 { }
+        struct Combined { }
+        let observation1 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V1() })
+        let observation2 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V2() })
+        let observation3 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V3() })
+        let observation4 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V4() })
+        let observation5 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V5() })
+        let observation = observation1.combine(observation2, observation3, observation4, observation5) { (v1: V1, v2: V2, v3: V3, v4: V4, v5: V5) -> Combined in Combined() }
+        var value: Combined?
+        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        XCTAssertNotNil(value)
+    }
 }
