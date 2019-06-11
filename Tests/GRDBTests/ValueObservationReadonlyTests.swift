@@ -38,7 +38,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         }
     }
     
-    func testWriteObservationFailsByDefault() throws {
+    func testWriteObservationFailsByDefaultWithoutErrorHandling() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
         
@@ -46,11 +46,10 @@ class ValueObservationReadonlyTests: GRDBTestCase {
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             return 0
         })
-
+        
         do {
             _ = try observation.start(
                 in: dbQueue,
-                onError: { _ in fatalError() },
                 onChange: { _ in fatalError() })
             XCTFail("Expected error")
         } catch let error as DatabaseError {
@@ -61,6 +60,27 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         }
     }
 
+    func testWriteObservationFailsByDefaultWithErrorHandling() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        
+        let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db -> Int in
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            return 0
+        })
+        
+        var error: DatabaseError!
+        _ = observation.start(
+            in: dbQueue,
+            onError: { error = $0 as? DatabaseError },
+            onChange: { _ in fatalError() })
+        
+        XCTAssertEqual(error.resultCode, .SQLITE_READONLY)
+        XCTAssertEqual(error.message, "attempt to write a readonly database")
+        XCTAssertEqual(error.sql!, "INSERT INTO t DEFAULT VALUES")
+        XCTAssertEqual(error.description, "SQLite error 8 with statement `INSERT INTO t DEFAULT VALUES`: attempt to write a readonly database")
+    }
+    
     func testWriteObservation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -92,7 +112,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         }
     }
 
-    func testWriteObservationIsWrappedInSavepoint() throws {
+    func testWriteObservationIsWrappedInSavepointWithoutErrorHandling() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
             try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
@@ -104,14 +124,40 @@ class ValueObservationReadonlyTests: GRDBTestCase {
             throw TestError()
         })
         observation.requiresWriteAccess = true
-
+        
         do {
             _ = try observation.start(
                 in: dbQueue,
-                onError: { _ in fatalError() },
                 onChange: { _ in fatalError() })
             XCTFail("Expected error")
         } catch is TestError {
+        }
+        
+        let count = try dbQueue.read { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
+        XCTAssertEqual(count, 0)
+    }
+
+    func testWriteObservationIsWrappedInSavepointWithErrorHandling() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write {
+            try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
+        }
+        
+        struct TestError: Error { }
+        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db in
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            throw TestError()
+        })
+        observation.requiresWriteAccess = true
+        
+        var error: Error?
+        _ = observation.start(
+            in: dbQueue,
+            onError: { error = $0 },
+            onChange: { _ in fatalError() })
+        guard error is TestError else {
+            XCTFail("Expected TestError")
+            return
         }
         
         let count = try dbQueue.read { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }

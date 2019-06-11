@@ -113,7 +113,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                 value: { $0 })
             let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             
-            let observer = try observation.start(
+            let observer = observation.start(
                 in: dbWriter,
                 onError: { error in
                     XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
@@ -237,7 +237,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             observation.scheduling = .async(onQueue: queue, startImmediately: false)
             
-            let observer = try observation.start(
+            let observer = observation.start(
                 in: dbWriter,
                 onError: { error in
                     XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
@@ -392,7 +392,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             observation.scheduling = .unsafe(startImmediately: false)
             
-            let observer = try observation.start(
+            let observer = observation.start(
                 in: dbWriter,
                 onError: { error in
                     errorCount += 1

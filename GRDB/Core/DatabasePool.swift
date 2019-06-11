@@ -34,6 +34,10 @@ public final class DatabasePool: DatabaseWriter {
         return writer.path
     }
     
+    public var configuration: Configuration {
+        return writer.configuration
+    }
+    
     // MARK: - Initializer
     
     /// Opens the SQLite database at path *path*.
@@ -545,6 +549,14 @@ extension DatabasePool : DatabaseReader {
     /// concurrency practices.
     public func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try writer.reentrantSync(block)
+    }
+    
+    /// Asynchronously executes an update block in a protected dispatch queue.
+    ///
+    /// Eventual concurrent reads may see changes performed in the block before
+    /// the block completes.
+    public func unsafeAsyncWrite(_ block: @escaping (Database) -> Void) {
+        writer.async(block)
     }
     
     // MARK: - Functions

@@ -146,18 +146,6 @@ public struct ValueObservation<Reducer> {
     ///     unspecified queues.
     public var scheduling: ValueScheduling = .mainQueue
     
-    /// The dispatch queue where change callbacks are called.
-    var notificationQueue: DispatchQueue? {
-        switch scheduling {
-        case .mainQueue:
-            return DispatchQueue.main
-        case let .async(onQueue: queue, startImmediately: _):
-            return queue
-        case .unsafe:
-            return nil
-        }
-    }
-    
     // Not public because we foster DatabaseRegionConvertible.
     // See ValueObservation.tracking(_:reducer:)
     init(
@@ -185,18 +173,42 @@ extension ValueObservation where Reducer: ValueReducer {
     /// a database queue or database pool), and returns a transaction observer.
     ///
     /// - parameter reader: A DatabaseReader.
+    /// - parameter onChange: A closure that is provided fresh values
+    /// - returns: a TransactionObserver
+    public func start(
+        in reader: DatabaseReader,
+        onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
+    {
+        // ErrorCatcher is a workaround this aging API.
+        // We catch the eventual error synchronously sent to the onError
+        // handler and rethrow it.
+        let errorCatcher = ErrorCatcher()
+        let observer = reader.add(
+            observation: self,
+            onError: { [weak errorCatcher] in errorCatcher?.error = $0 },
+            onChange: onChange)
+        if let error = errorCatcher.error {
+            throw error
+        }
+        return observer
+    }
+    
+    /// Starts the value observation in the provided database reader (such as
+    /// a database queue or database pool), and returns a transaction observer.
+    ///
+    /// - parameter reader: A DatabaseReader.
     /// - parameter onError: A closure that is provided eventual errors that
     /// happen during observation
     /// - parameter onChange: A closure that is provided fresh values
     /// - returns: a TransactionObserver
     public func start(
         in reader: DatabaseReader,
-        onError: ((Error) -> Void)? = nil,
-        onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
+        onError: @escaping (Error) -> Void,
+        onChange: @escaping (Reducer.Value) -> Void) -> TransactionObserver
     {
-        return try reader.add(observation: self, onError: onError, onChange: onChange)
+        return reader.add(observation: self, onError: onError, onChange: onChange)
     }
-    
+
     // MARK: - Fetching Values
     
     /// Returns the observed value.
@@ -220,6 +232,11 @@ extension ValueObservation where Reducer: ValueReducer {
         var reducer = try makeReducer(db)
         return try reducer.value(reducer.fetch(db, requiringWriteAccess: requiresWriteAccess))
     }
+}
+
+// TODO: remove when not needed any longer
+private class ErrorCatcher {
+    var error: Error?
 }
 
 extension ValueObservation {

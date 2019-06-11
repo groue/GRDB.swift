@@ -100,36 +100,41 @@ extension DatabaseSnapshot {
     
     public func add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        onError: ((Error) -> Void)?,
+        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        throws -> TransactionObserver
+        -> TransactionObserver
     {
-        // Deal with initial value
-        switch observation.scheduling {
-        case .mainQueue:
-            if let value = try unsafeReentrantRead(observation.fetchFirst) {
-                if DispatchQueue.isMain {
-                    onChange(value)
-                } else {
-                    DispatchQueue.main.async {
+        // TODO: fetch asynchronously when possible
+        do {
+            // Deal with initial value
+            switch observation.scheduling {
+            case .mainQueue:
+                if let value = try unsafeReentrantRead(observation.fetchFirst) {
+                    if DispatchQueue.isMain {
+                        onChange(value)
+                    } else {
+                        DispatchQueue.main.async {
+                            onChange(value)
+                        }
+                    }
+                }
+            case let .async(onQueue: queue, startImmediately: startImmediately):
+                if startImmediately {
+                    if let value = try unsafeReentrantRead(observation.fetchFirst) {
+                        queue.async {
+                            onChange(value)
+                        }
+                    }
+                }
+            case let .unsafe(startImmediately: startImmediately):
+                if startImmediately {
+                    if let value = try unsafeReentrantRead(observation.fetchFirst) {
                         onChange(value)
                     }
                 }
             }
-        case let .async(onQueue: queue, startImmediately: startImmediately):
-            if startImmediately {
-                if let value = try unsafeReentrantRead(observation.fetchFirst) {
-                    queue.async {
-                        onChange(value)
-                    }
-                }
-            }
-        case let .unsafe(startImmediately: startImmediately):
-            if startImmediately {
-                if let value = try unsafeReentrantRead(observation.fetchFirst) {
-                    onChange(value)
-                }
-            }
+        } catch {
+            onError(error)
         }
         
         // Return a dummy observer, because snapshots never change

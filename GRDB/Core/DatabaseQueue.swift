@@ -320,6 +320,10 @@ extension DatabaseQueue {
         return try writer.reentrantSync(block)
     }
     
+    public func unsafeAsyncWrite(_ block: @escaping (Database) -> Void) {
+        writer.async(block)
+    }
+    
     // MARK: - Functions
     
     /// Add or redefine an SQL function.

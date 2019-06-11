@@ -17,6 +17,9 @@ import Dispatch
 /// [busy handler](https://www.sqlite.org/c3ref/busy_handler.html).
 public protocol DatabaseWriter : DatabaseReader {
     
+    /// The database configuration
+    var configuration: Configuration { get }
+    
     // MARK: - Writing in Database
     
     /// Synchronously executes a block that takes a database connection, and
@@ -60,6 +63,13 @@ public protocol DatabaseWriter : DatabaseReader {
     /// dangerous concurrency practices.
     func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T
     
+    /// Asynchronously executes a block that takes a database connection, and
+    /// returns its result.
+    ///
+    /// Eventual concurrent reads may see changes performed in the block before
+    /// the block completes.
+    func unsafeAsyncWrite(_ block: @escaping (Database) -> Void)
+
     // MARK: - Reading from Database
     
     /// Concurrently executes a read-only block that takes a
@@ -181,61 +191,179 @@ extension DatabaseWriter {
     /// :nodoc:
     public func add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        onError: ((Error) -> Void)?,
+        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        throws -> TransactionObserver
+        -> TransactionObserver
     {
-        let calledOnMainQueue = DispatchQueue.isMain
-        var startValue: Reducer.Value? = nil
-        defer {
-            if let startValue = startValue {
-                onChange(startValue)
+        let requiresWriteAccess = observation.requiresWriteAccess
+        let observer = ValueObserver<Reducer>(
+            requiresWriteAccess: requiresWriteAccess,
+            writer: self,
+            reduceQueue: configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer"),
+            onError: onError,
+            onChange: onChange)
+        
+        switch observation.scheduling {
+        case .mainQueue:
+            if DispatchQueue.isMain {
+                // Use case: observation starts on the main queue and wants
+                // a synchronous initial fetch. Typically, this helps avoiding
+                // flashes of missing content.
+                var startValue: Reducer.Value? = nil
+                defer {
+                    if let startValue = startValue {
+                        onChange(startValue)
+                    }
+                }
+                
+                do {
+                    try unsafeReentrantWrite { db in
+                        let region = try observation.observedRegion(db)
+                        var reducer = try observation.makeReducer(db)
+                        
+                        // Fetch initial value
+                        if let value = try reducer.value(reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)) {
+                            startValue = value
+                        }
+                        
+                        // Start observing the database
+                        observer.region = region
+                        observer.reducer = reducer
+                        observer.notificationQueue = DispatchQueue.main
+                        db.add(transactionObserver: observer, extent: .observerLifetime)
+                    }
+                } catch {
+                    onError(error)
+                }
+            } else {
+                // Use case: observation does not start on the main queue, but
+                // has the default scheduling .mainQueue
+                unsafeAsyncWrite { db in
+                    do {
+                        let region = try observation.observedRegion(db)
+                        var reducer = try observation.makeReducer(db)
+                        
+                        // Fetch initial value
+                        if let value = try reducer.value(reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)) {
+                            DispatchQueue.main.async {
+                                onChange(value)
+                            }
+                        }
+                        
+                        // Start observing the database
+                        observer.region = region
+                        observer.reducer = reducer
+                        observer.notificationQueue = DispatchQueue.main
+                        db.add(transactionObserver: observer, extent: .observerLifetime)
+                    } catch {
+                        DispatchQueue.main.async {
+                            onError(error)
+                        }
+                    }
+                }
+            }
+            
+        case let .async(onQueue: queue, startImmediately: startImmediately):
+            // Use case: observation must not block the target queue
+            unsafeAsyncWrite { db in
+                do {
+                    let region = try observation.observedRegion(db)
+                    var reducer = try observation.makeReducer(db)
+                    
+                    // Fetch initial value
+                    if startImmediately,
+                        let value = try reducer.value(reducer.fetch(db, requiringWriteAccess: requiresWriteAccess))
+                    {
+                        queue.async {
+                            onChange(value)
+                        }
+                    }
+                    
+                    // Start observing the database
+                    observer.region = region
+                    observer.reducer = reducer
+                    observer.notificationQueue = queue
+                    db.add(transactionObserver: observer, extent: .observerLifetime)
+                } catch {
+                    queue.async {
+                        onError(error)
+                    }
+                }
+            }
+            
+        case let .unsafe(startImmediately: startImmediately):
+            if startImmediately {
+                // Use case: third-party integration (RxSwift, Combine, ...) that
+                // need a synchronous initial fetch.
+                //
+                // This is really super extra unsafe.
+                //
+                // If the observation is started on one dispatch queue, then
+                // the onChange and onError callbacks must be asynchronously
+                // dispatched on the *same* queue.
+                //
+                // A failure to follow this rule may mess with the ordering of
+                // initial values.
+                var startValue: Reducer.Value? = nil
+                defer {
+                    if let startValue = startValue {
+                        onChange(startValue)
+                    }
+                }
+                
+                do {
+                    try unsafeReentrantWrite { db in
+                        let region = try observation.observedRegion(db)
+                        var reducer = try observation.makeReducer(db)
+                        
+                        // Fetch initial value
+                        if startImmediately,
+                            let value = try reducer.value(reducer.fetch(db, requiringWriteAccess: requiresWriteAccess))
+                        {
+                            startValue = value
+                        }
+                        
+                        // Start observing the database
+                        observer.region = region
+                        observer.reducer = reducer
+                        observer.notificationQueue = nil
+                        db.add(transactionObserver: observer, extent: .observerLifetime)
+                    }
+                } catch {
+                    onError(error)
+                }
+            } else {
+                // Use case: ?
+                //
+                // This is unsafe because no promise is made on the dispatch
+                // queue on which the onChange and onError callbacks are called.
+                unsafeAsyncWrite { db in
+                    do {
+                        let region = try observation.observedRegion(db)
+                        let reducer = try observation.makeReducer(db)
+                        
+                        // Start observing the database
+                        observer.region = region
+                        observer.reducer = reducer
+                        observer.notificationQueue = nil
+                        db.add(transactionObserver: observer, extent: .observerLifetime)
+                    } catch {
+                        onError(error)
+                    }
+                }
             }
         }
         
-        // Use unsafeReentrantWrite so that observation can start from any
-        // dispatch queue.
-        return try unsafeReentrantWrite { db in
-            // Create the reducer
-            var reducer = try observation.makeReducer(db)
-            
-            // Take care of initial value. Make sure it is dispatched before
-            // any future transaction can trigger a change.
-            switch observation.scheduling {
-            case .mainQueue:
-                if let value = try reducer.value(reducer.fetch(db, requiringWriteAccess: observation.requiresWriteAccess)) {
-                    if calledOnMainQueue {
-                        startValue = value
-                    } else {
-                        DispatchQueue.main.async { onChange(value) }
-                    }
-                }
-            case let .async(onQueue: queue, startImmediately: startImmediately):
-                if startImmediately {
-                    if let value = try reducer.value(reducer.fetch(db, requiringWriteAccess: observation.requiresWriteAccess)) {
-                        queue.async { onChange(value) }
-                    }
-                }
-            case let .unsafe(startImmediately: startImmediately):
-                if startImmediately {
-                    startValue = try reducer.value(reducer.fetch(db, requiringWriteAccess: observation.requiresWriteAccess))
-                }
-            }
-            
-            // Start observing the database
-            let valueObserver = try ValueObserver(
-                region: observation.observedRegion(db),
-                reducer: reducer,
-                requiresWriteAccess: observation.requiresWriteAccess,
-                writer: self,
-                notificationQueue: observation.notificationQueue,
-                reduceQueue: db.configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer"),
-                onError: onError,
-                onChange: onChange)
-            db.add(transactionObserver: valueObserver, extent: .observerLifetime)
-            
-            return valueObserver
-        }
+        // TODO
+        //
+        // We promise that observation stops when the returned observer is
+        // deallocated. But the real observer may have not started observing
+        // the database, because some observations start asynchronously.
+        // Well... This forces us to return a "token" that cancels any
+        // observation started asynchronously.
+        //
+        // We'll eventually return a proper Cancellable. In GRDB 5?
+        return ValueObserverToken(writer: self, observer: observer)
     }
 }
 
@@ -290,6 +418,10 @@ public final class AnyDatabaseWriter : DatabaseWriter {
         self.base = base
     }
     
+    public var configuration: Configuration {
+        return base.configuration
+    }
+    
     // MARK: - Reading from Database
     
     /// :nodoc:
@@ -329,6 +461,11 @@ public final class AnyDatabaseWriter : DatabaseWriter {
         return try base.unsafeReentrantWrite(block)
     }
     
+    /// :nodoc:
+    public func unsafeAsyncWrite(_ block: @escaping (Database) -> Void) {
+        base.unsafeAsyncWrite(block)
+    }
+
     // MARK: - Functions
     
     /// :nodoc:

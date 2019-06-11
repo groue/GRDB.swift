@@ -166,9 +166,9 @@ public protocol DatabaseReader : class {
     /// - returns: a TransactionObserver
     func add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        onError: ((Error) -> Void)?,
+        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        throws -> TransactionObserver
+        -> TransactionObserver
     
     /// Remove a transaction observer.
     func remove(transactionObserver: TransactionObserver)
@@ -257,11 +257,11 @@ public final class AnyDatabaseReader : DatabaseReader {
     /// :nodoc:
     public func add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        onError: ((Error) -> Void)?,
+        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        throws -> TransactionObserver
+        -> TransactionObserver
     {
-        return try base.add(observation: observation, onError: onError, onChange: onChange)
+        return base.add(observation: observation, onError: onError, onChange: onChange)
     }
     
     /// :nodoc:
