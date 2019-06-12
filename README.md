@@ -6348,14 +6348,14 @@ It may happen that a database change does not modify the observed values. The Ha
 
 When such a database change happens, `ValueObservation.tracking(_:fetch:)` is triggered, just in case the best players would be modified, and ends up notifying identical consecutive values.
 
-You can filter out those duplicates with the [ValueObservation.distinctUntilChanged](#valueobservationdistinctuntilchanged) method. It requires the observed value to adopt the Equatable protocol:
+You can filter out those duplicates with the [ValueObservation.removeDuplicates](#valueobservationremoveduplicates) method. It requires the observed value to adopt the Equatable protocol:
 
 ```swift
 extension HallOfFame: Equatable { ... }
 
 let observation = ValueObservation
     .tracking(Player.all(), fetch: HallOfFame.fetch)
-    .distinctUntilChanged()
+    .removeDuplicates()
 
 let observer = observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
     print("""
@@ -6431,7 +6431,7 @@ let observer = ValueObservation
 
 - [ValueObservation.map](#valueobservationmap)
 - [ValueObservation.compactMap](#valueobservationcompactmap)
-- [ValueObservation.distinctUntilChanged](#valueobservationdistinctuntilchanged)
+- [ValueObservation.removeDuplicates](#valueobservationremoveduplicates)
 - [ValueObservation.combine(...)](#valueobservationcombine)
 
 
@@ -6473,16 +6473,16 @@ let observer = observation.start(in: dbQueue) { (player: Player) in
 The transformation closure does not run on the main queue, and is suitable for heavy computations.
 
 
-#### ValueObservation.distinctUntilChanged
+#### ValueObservation.removeDuplicates
 
-The `distinctUntilChanged` method filters out the consecutive equal values notified by a ValueObservation. The observed values must adopt the standard Equatable protocol.
+The `removeDuplicates` method filters out the consecutive equal values notified by a ValueObservation. The observed values must adopt the standard Equatable protocol.
 
 For example:
 
 ```swift
 let observation = Player.filter(key: 42).observationForFirst()
     .map { player in player != nil } // existence test
-    .distinctUntilChanged()
+    .removeDuplicates()
 
 let observer = observation.start(in: dbQueue) { (exists: Bool) in
     if exists {

@@ -35,7 +35,7 @@ extension ValueReducer where Value: Equatable {
 extension ValueReducers {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
-    /// See ValueReducer.distinctUntilChanged()
+    /// See ValueReducer.removeDuplicates()
     ///
     /// :nodoc:
     public struct RemoveDuplicates<Base: ValueReducer>: ValueReducer where Base.Value: Equatable {
