@@ -27,12 +27,12 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<DatabaseValuesReducer<Request>>
+        -> ValueObservation<DatabaseValuesReducer<Request.RowDecoder>>
         where Request.RowDecoder: DatabaseValueConvertible
     {
-        return ValueObservation<DatabaseValuesReducer<Request>>.tracking(request, reducer: { _ in
-            DatabaseValuesReducer(request: request) }
-        )
+        return ValueObservation<DatabaseValuesReducer<Request.RowDecoder>>.tracking(request, reducer: { _ in
+            DatabaseValuesReducer { try DatabaseValue.fetchAll($0, request) }
+        })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -59,10 +59,11 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingOne<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<DatabaseValueReducer<Request>>
+        -> ValueObservation<DatabaseValueReducer<Request.RowDecoder>>
         where Request.RowDecoder: DatabaseValueConvertible
     {
-        return ValueObservation<DatabaseValueReducer<Request>>.tracking(request, reducer: { _ in DatabaseValueReducer(request: request)
+        return ValueObservation<DatabaseValueReducer<Request.RowDecoder>>.tracking(request, reducer: { _ in
+            DatabaseValueReducer { try DatabaseValue.fetchOne($0, request) }
         })
     }
     
@@ -91,12 +92,12 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<OptionalDatabaseValuesReducer<Request>>
+        -> ValueObservation<OptionalDatabaseValuesReducer<Request.RowDecoder._Wrapped>>
         where Request.RowDecoder: _OptionalProtocol,
         Request.RowDecoder._Wrapped: DatabaseValueConvertible
     {
-        return ValueObservation<OptionalDatabaseValuesReducer<Request>>.tracking(request, reducer: { _ in
-            OptionalDatabaseValuesReducer(request: request)
+        return ValueObservation<OptionalDatabaseValuesReducer<Request.RowDecoder._Wrapped>>.tracking(request, reducer: { _ in
+            OptionalDatabaseValuesReducer { try DatabaseValue.fetchAll($0, request) }
         })
     }
 }
@@ -107,28 +108,28 @@ extension ValueObservation where Reducer == Void {
 /// identical database values.
 ///
 /// :nodoc:
-public struct DatabaseValuesReducer<Request: FetchRequest>: ValueReducer
-    where Request.RowDecoder: DatabaseValueConvertible
+public struct DatabaseValuesReducer<RowDecoder>: ValueReducer
+    where RowDecoder: DatabaseValueConvertible
 {
-    public let request: Request
+    private let _fetch: (Database) throws -> [DatabaseValue]
     private var previousDbValues: [DatabaseValue]?
     
-    init(request: Request) {
-        self.request = request
+    init(fetch: @escaping (Database) throws -> [DatabaseValue]) {
+        self._fetch = fetch
     }
     
     public func fetch(_ db: Database) throws -> [DatabaseValue] {
-        return try DatabaseValue.fetchAll(db, request)
+        return try _fetch(db)
     }
     
-    public mutating func value(_ dbValues: [DatabaseValue]) -> [Request.RowDecoder]? {
+    public mutating func value(_ dbValues: [DatabaseValue]) -> [RowDecoder]? {
         if let previousDbValues = previousDbValues, previousDbValues == dbValues {
             // Don't notify consecutive identical dbValue arrays
             return nil
         }
         self.previousDbValues = dbValues
         return dbValues.map {
-            Request.RowDecoder.decode(from: $0, conversionContext: nil)
+            RowDecoder.decode(from: $0, conversionContext: nil)
         }
     }
 }
@@ -139,29 +140,29 @@ public struct DatabaseValuesReducer<Request: FetchRequest>: ValueReducer
 /// identical database values.
 ///
 /// :nodoc:
-public struct DatabaseValueReducer<Request: FetchRequest>: ValueReducer
-    where Request.RowDecoder: DatabaseValueConvertible
+public struct DatabaseValueReducer<RowDecoder>: ValueReducer
+    where RowDecoder: DatabaseValueConvertible
 {
-    public let request: Request
+    private let _fetch: (Database) throws -> DatabaseValue?
     private var previousDbValue: DatabaseValue??
     private var previousValueWasNil = false
     
-    init(request: Request) {
-        self.request = request
+    init(fetch: @escaping (Database) throws -> DatabaseValue?) {
+        self._fetch = fetch
     }
     
     public func fetch(_ db: Database) throws -> DatabaseValue? {
-        return try DatabaseValue.fetchOne(db, request)
+        return try _fetch(db)
     }
-    
-    public mutating func value(_ dbValue: DatabaseValue?) -> Request.RowDecoder?? {
+
+    public mutating func value(_ dbValue: DatabaseValue?) -> RowDecoder?? {
         if let previousDbValue = previousDbValue, previousDbValue == dbValue {
             // Don't notify consecutive identical dbValue
             return nil
         }
         self.previousDbValue = dbValue
         if let dbValue = dbValue,
-            let value = Request.RowDecoder.decodeIfPresent(from: dbValue, conversionContext: nil)
+            let value = RowDecoder.decodeIfPresent(from: dbValue, conversionContext: nil)
         {
             previousValueWasNil = false
             return .some(value)
@@ -181,30 +182,28 @@ public struct DatabaseValueReducer<Request: FetchRequest>: ValueReducer
 /// identical database values.
 ///
 /// :nodoc:
-public struct OptionalDatabaseValuesReducer<Request: FetchRequest>: ValueReducer
-    where
-    Request.RowDecoder: _OptionalProtocol,
-    Request.RowDecoder._Wrapped: DatabaseValueConvertible
+public struct OptionalDatabaseValuesReducer<RowDecoder>: ValueReducer
+    where RowDecoder: DatabaseValueConvertible
 {
-    public let request: Request
+    private let _fetch: (Database) throws -> [DatabaseValue]
     private var previousDbValues: [DatabaseValue]?
     
-    init(request: Request) {
-        self.request = request
+    init(fetch: @escaping (Database) throws -> [DatabaseValue]) {
+        self._fetch = fetch
     }
     
     public func fetch(_ db: Database) throws -> [DatabaseValue] {
-        return try DatabaseValue.fetchAll(db, request)
+        return try _fetch(db)
     }
-    
-    public mutating func value(_ dbValues: [DatabaseValue]) -> [Request.RowDecoder._Wrapped?]? {
+
+    public mutating func value(_ dbValues: [DatabaseValue]) -> [RowDecoder?]? {
         if let previousDbValues = previousDbValues, previousDbValues == dbValues {
             // Don't notify consecutive identical dbValue arrays
             return nil
         }
         self.previousDbValues = dbValues
         return dbValues.map {
-            Request.RowDecoder._Wrapped.decodeIfPresent(from: $0, conversionContext: nil)
+            RowDecoder.decodeIfPresent(from: $0, conversionContext: nil)
         }
     }
 }

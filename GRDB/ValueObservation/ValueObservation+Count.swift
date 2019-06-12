@@ -26,8 +26,8 @@ extension ValueObservation where Reducer == Void {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public static func trackingCount<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<DistinctUntilChangedValueReducer<RawValueReducer<Int>>>
+        -> ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Passthrough<Int>>>
     {
-        return ValueObservation.tracking(request, fetch: request.fetchCount).distinctUntilChanged()
+        return ValueObservation.tracking(request, fetch: request.fetchCount).removeDuplicates()
     }
 }

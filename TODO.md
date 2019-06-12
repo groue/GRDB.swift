@@ -45,6 +45,7 @@
 - [ ] FTS: prefix queries
 - [ ] Test NOT TESTED methods
 - [ ] A way to stop a ValueObservation observer without waiting for deinit
+- [ ] Renamed distinctUntilChanged to removeDuplicates
 
 Swift 4.2
 

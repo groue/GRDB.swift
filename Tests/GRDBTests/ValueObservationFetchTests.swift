@@ -63,7 +63,7 @@ class ValueObservationFetchTests: GRDBTestCase {
             
             let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
-            }).distinctUntilChanged()
+            }).removeDuplicates()
             let observer = try observation.start(in: dbWriter) { count in
                 counts.append(count)
                 notificationExpectation.fulfill()

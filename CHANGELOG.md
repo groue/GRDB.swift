@@ -56,6 +56,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#539](https://github.com/groue/GRDB.swift/pull/539): Expose joining methods of both requests and associations
 - [#540](https://github.com/groue/GRDB.swift/pull/540): Update SQLite to 3.28.0 (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib))
 - [#542](https://github.com/groue/GRDB.swift/pull/542): Move eager loading of hasMany associations to FetchRequest
+- [#546](https://github.com/groue/GRDB.swift/pull/546) by [@robcas3](https://github.com/robcas3): Fix SPM errors with Xcode 11 beta
+- You can now [combine](README.md#valueobservationcombine) up to eight ValueObservations in a single shot.
 
 ### Documentation Diff
 

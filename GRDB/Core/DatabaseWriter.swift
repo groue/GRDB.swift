@@ -203,7 +203,7 @@ extension DatabaseWriter {
             // any future transaction can trigger a change.
             switch observation.scheduling {
             case .mainQueue:
-                if let value = try reducer.initialValue(db, requiresWriteAccess: observation.requiresWriteAccess) {
+                if let value = try reducer.value(reducer.fetch(db, requiringWriteAccess: observation.requiresWriteAccess)) {
                     if calledOnMainQueue {
                         startValue = value
                     } else {
@@ -212,13 +212,13 @@ extension DatabaseWriter {
                 }
             case let .async(onQueue: queue, startImmediately: startImmediately):
                 if startImmediately {
-                    if let value = try reducer.initialValue(db, requiresWriteAccess: observation.requiresWriteAccess) {
+                    if let value = try reducer.value(reducer.fetch(db, requiringWriteAccess: observation.requiresWriteAccess)) {
                         queue.async { onChange(value) }
                     }
                 }
             case let .unsafe(startImmediately: startImmediately):
                 if startImmediately {
-                    startValue = try reducer.initialValue(db, requiresWriteAccess: observation.requiresWriteAccess)
+                    startValue = try reducer.value(reducer.fetch(db, requiringWriteAccess: observation.requiresWriteAccess))
                 }
             }
             
@@ -226,56 +226,15 @@ extension DatabaseWriter {
             let valueObserver = try ValueObserver(
                 region: observation.observedRegion(db),
                 reducer: reducer,
-                configuration: db.configuration,
-                fetch: observation.fetchAfterChange(in: self),
+                requiresWriteAccess: observation.requiresWriteAccess,
+                writer: self,
                 notificationQueue: observation.notificationQueue,
+                reduceQueue: db.configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer"),
                 onError: onError,
                 onChange: onChange)
             db.add(transactionObserver: valueObserver, extent: .observerLifetime)
             
             return valueObserver
-        }
-    }
-}
-
-extension ValueReducer {
-    /// Helper method for DatabaseWriter.add(observation:onError:onChange:)
-    fileprivate mutating func initialValue(_ db: Database, requiresWriteAccess: Bool) throws -> Value? {
-        if requiresWriteAccess {
-            var fetchedValue: Fetched!
-            try db.inSavepoint {
-                fetchedValue = try fetch(db)
-                return .commit
-            }
-            return value(fetchedValue)
-        } else {
-            return try value(db.readOnly { try fetch(db) })
-        }
-    }
-}
-
-extension ValueObservation where Reducer: ValueReducer {
-    /// Helper method for DatabaseWriter.add(observation:onError:onChange:)
-    fileprivate func fetchAfterChange(in writer: DatabaseWriter) -> (Database, Reducer) -> DatabaseFuture<Reducer.Fetched> {
-        // The technique to return a future value after database has changed
-        // depends on the requiresWriteAccess flag:
-        if requiresWriteAccess {
-            // Synchronous fetch
-            return { (db, reducer) in
-                DatabaseFuture(Result {
-                    var fetchedValue: Reducer.Fetched!
-                    try db.inTransaction {
-                        fetchedValue = try reducer.fetch(db)
-                        return .commit
-                    }
-                    return fetchedValue
-                })
-            }
-        } else {
-            // Concurrent fetch
-            return { [unowned writer] (_, reducer) in
-                writer.concurrentRead(reducer.fetch)
-            }
         }
     }
 }
