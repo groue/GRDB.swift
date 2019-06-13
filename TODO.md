@@ -45,7 +45,7 @@
 - [ ] FTS: prefix queries
 - [ ] Test NOT TESTED methods
 - [ ] A way to stop a ValueObservation observer without waiting for deinit
-- [ ] Renamed distinctUntilChanged to removeDuplicates
+- [ ] Add async read and writes. Useful for GRDBCombine+RxGRDB.
 
 Swift 4.2
 
