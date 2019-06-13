@@ -2921,10 +2921,12 @@ try dbQueue.read { db in
 
 ```swift
 // Observe changes
-try Player.maximumScore.observationForFirst()
-    .start(in: dbQueue) { (maxScore: Int?) in
+Player.maximumScore.observationForFirst().start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange: { (maxScore: Int?) in
         print("The maximum score has changed")
-    }
+    })
 ```
 
 
@@ -4487,10 +4489,12 @@ When you also want to use database observation tools such as [ValueObservation],
     }
     
     // Observe with ValueObservation
-    try request.observationForFirst()
-        .start(in: dbQueue) { (maxScore: Int?) in
+    request.observationForFirst().start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { (maxScore: Int?) in
             print("The maximum score has changed")
-        }
+        })
     ```
 
 - Otherwise, use `asRequest(of:)`. Here is an example that uses [Associations]:
@@ -4512,10 +4516,12 @@ When you also want to use database observation tools such as [ValueObservation],
     }
     
     // Observe with ValueObservation
-    try request.observationForAll()
-        .start(in: dbQueue) { (bookInfos: [BookInfo]) in
+    request.observationForAll().start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { (bookInfos: [BookInfo]) in
             print("Books have changed")
-        }
+        })
     ```
 
 
@@ -4585,10 +4591,12 @@ let player = try request.fetchOne(db)    // Player?
 Those requests can feed [ValueObservation]:
 
 ```swift
-try Player.filter(key: 1).observationForFirst()
-    .start(in: dbQueue) { (player: Player?) in
+Player.filter(key: 1).observationForFirst().start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange: { (player: Player?) in
         print("Player 1 has changed")
-    }
+    })
 ```
 
 
@@ -4704,10 +4712,12 @@ try Player.customRequest().fetchAll(db) // [Player]
 Custom requests can also feed [ValueObservation]:
 
 ```swift
-try Player.customRequest(...).observationForAll()
-    .start(in: dbQueue) { (players: [Player]) in
+Player.customRequest(...).observationForAll().start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange: { (players: [Player]) in
         print("Players have changed")
-    }
+    })
 ```
 
 - [FetchRequest Protocol](#fetchrequest-protocol)
@@ -6120,10 +6130,15 @@ let request = Player.all()
 
 ```swift
 let observation = request.observationForAll()
-let observer = try observation.start(in: dbQueue) { (players: [Player]) in
-    let names = players.map { $0.name }.joined(separator: ", ")
-    print("Fresh players: \(names)")
-}
+let observer = observation.start(
+    in: dbQueue,
+    onError: { error in
+        print("fresh players could not be fetched")
+    },
+    onChange: { (players: [Player]) in
+        let names = players.map { $0.name }.joined(separator: ", ")
+        print("Fresh players: \(names)")
+    })
 
 try dbQueue.write { db in
     try Player(name: "Arthur").insert(db)
@@ -6182,8 +6197,11 @@ class PlayerViewController: UIViewController {
         let observation = request.observationForFirst()
         
         // Start observing the database
-        observer = try! observation.start(
+        observer = observation.start(
             in: dbQueue,
+            onError: { error in
+                print("player could not be fetched")
+            },
             onChange: { [unowned self] (player: Player?) in
                 // Player has been refreshed: update view
                 self.nameLabel.text = player?.name
@@ -6199,7 +6217,7 @@ class PlayerViewController: UIViewController {
 }
 ```
 
-By default, all values are notified on the main queue. Views can be updated right from the `onChange` callback.
+By default, all values and errors are notified on the main queue. Views can be updated right from the `onChange` callback.
 
 By default, an initial fetch is performed as soon as the observation starts: the view is set up and ready when the `viewWillAppear` method returns.
 
@@ -6221,8 +6239,11 @@ The observer returned by the `start` method is stored in a property of the view 
 >     observation.scheduling = .async(onQueue: .main, startImmediately: true)
 >
 >     // Start observing the database
->     observer = try! observation.start(
+>     observer = observation.start(
 >         in: dbQueue,
+>         onError: { error in
+>             print("player could not be fetched")
+>         },
 >         onChange: { [unowned self] (player: Player?) in
 >             // Player has been refreshed: update view
 >             self.activityIndicator.stopAnimating()
@@ -6253,44 +6274,54 @@ Those observations match the `fetchCount`, `fetchAll`, and `fetchOne` request me
 
     ```swift
     // Observe number of players
-    let observer = try Player.observationForCount()
-        .start(in: dbQueue) { (count: Int) in
+    let observer = Player.observationForCount().start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { (count: Int) in
             print("Number of players have changed: \(count)")
-        }
+        })
     ```
 
 - `observationForAll()` notifies arrays:
 
     ```swift
     // Observe all players
-    let observer = try Player.observationForAll()
-        .start(in: dbQueue) { (players: [Player]) in
+    let observer = Player.observationForAll().start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { (players: [Player]) in
             print("Players have changed: \(players)")
-        }
+        })
 
     // Observe all player names
     let request = SQLRequest<String>(sql: "SELECT name FROM player")
-    let observer = try request.observationForAll()
-        .start(in: dbQueue) { (names: [String]) in
+    let observer = request.observationForAll().start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { (names: [String]) in
             print("Player names have changed: \(names)")
-        }
+        })
     ```
 
 - `observationForFirst()` notifies optional values, built from a single database row (if any):
 
     ```swift
     // Observe a single player
-    let observer = try Player.filter(key: 1).observationForFirst()
-        .start(in: dbQueue) { (player: Player?) in
+    let observer = Player.filter(key: 1).observationForFirst().start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { (player: Player?) in
             print("Player has changed: \(player)")
-        }
+        })
     
     // Observe the maximum score
     let request = Player.select(max(Column("score")), as: Int.self)
-    let observer = try request.observationForFirst()
-        .start(in: dbQueue) { (maximumScore: Int?) in
+    let observer = request.observationForFirst().start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { (maximumScore: Int?) in
             print("Maximum score has changed: \(maximumScore)")
-        }
+        })
     ```
 
 > :point_up: **Note**: observations returned by those methods perform a filtering of consecutive identical values, based on raw database values.
@@ -6339,12 +6370,15 @@ let observation = ValueObservation.tracking(Player.all(), fetch: { db in
     try HallOfFame.fetch(db)
 })
 
-let observer = try observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
-    print("""
-        Best players out of \(hallOfFame.totalPlayerCount):
-        \(hallOfFame.bestPlayers)
-        """)
-}
+let observer = observation.start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange:{ (hallOfFame: HallOfFame) in
+        print("""
+            Best players out of \(hallOfFame.totalPlayerCount):
+            \(hallOfFame.bestPlayers)
+            """)
+    })
 ```
 
 
@@ -6363,12 +6397,15 @@ let observation = ValueObservation
     .tracking(Player.all(), fetch: HallOfFame.fetch)
     .removeDuplicates()
 
-let observer = try observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
-    print("""
-        Best players out of \(hallOfFame.totalPlayerCount):
-        \(hallOfFame.bestPlayers)
-        """)
-}
+let observer = observation.start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange: { (hallOfFame: HallOfFame) in
+        print("""
+            Best players out of \(hallOfFame.totalPlayerCount):
+            \(hallOfFame.bestPlayers)
+            """)
+    })
 ```
 
 
@@ -6425,11 +6462,14 @@ let request = TeamInfoRequest(teamId: 1)
 let teamInfo: TeamInfo? = try dbQueue.read(request.fetch)
 
 // Observation
-let observer = try ValueObservation
+let observer = ValueObservation
     .tracking(request, fetch: request.fetch)
-    .start(in: dbQueue) { (teamInfo: TeamInfo?) in
-        print("Team and its players have hanged.")
-    }
+    .start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { (teamInfo: TeamInfo?) in
+            print("Team and its players have hanged.")
+        })
 ```
 
 
@@ -6452,9 +6492,12 @@ For example:
 let observation = Player.filter(key: 42).observationForFirst()
     .map { player in player?.image }
 
-let observer = try observation.start(in: dbQueue) { (image: UIImage?) in
-    print("Player picture has changed")
-}
+let observer = observation.start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange: { (image: UIImage?) in
+        print("Player picture has changed")
+    })
 ```
 
 The transformation closure does not run on the main queue, and is suitable for heavy computations.
@@ -6471,9 +6514,12 @@ For example:
 let observation = Player.filter(key: 42).observationForFirst()
     .compactMap { $0 }
     
-let observer = try observation.start(in: dbQueue) { (player: Player) in
-    print("Player name: \(player.name)")
-}
+let observer = observation.start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange: { (player: Player) in
+        print("Player name: \(player.name)")
+    })
 ```
 
 The transformation closure does not run on the main queue, and is suitable for heavy computations.
@@ -6490,13 +6536,16 @@ let observation = Player.filter(key: 42).observationForFirst()
     .map { player in player != nil } // existence test
     .removeDuplicates()
 
-let observer = try observation.start(in: dbQueue) { (exists: Bool) in
-    if exists {
-        print("Player 42 exists.")
-    } else {
-        print("Player 42 does not exist.")
-    }
-}
+let observer = observation.start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange: { (exists: Bool) in
+        if exists {
+            print("Player 42 exists.")
+        } else {
+            print("Player 42 does not exist.")
+        }
+    })
 ```
 
 > :point_up: **Note**: the observations returned by the [observationForCount, observationForAll, observationForFirst](#observationforcount-observationforall-observationforfirst) methods already perform a similar filtering, based on raw database values.
@@ -6530,9 +6579,12 @@ let observation = ValueObservation
     .map { HallOfFame(playerCount: $0, bestPlayers: $1) }
 
 // Start tracking the hall of fame
-let observer = try observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
-    print("The hall of fame has changed.")
-}
+let observer = observation.start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange: { (hallOfFame: HallOfFame) in
+        print("The hall of fame has changed.")
+    })
 ```
 
 `combine` also exists as an instance method:
@@ -6552,7 +6604,7 @@ Combining observations provides the guarantee that notified values are [**consis
 
 ### ValueObservation Error Handling
 
-When you start an observation, you can provide an `onError` callback. This callback is called whenever fresh values could not be fetched. It is scheduled just like values (see [ValueObservation.scheduling](#valueobservationscheduling)):
+When you start an observation, the `onError` callback is called whenever fresh values could not be fetched. It is scheduled just like values (see [ValueObservation.scheduling](#valueobservationscheduling)):
 
 ```swift
 let observer = observation.start(
@@ -6563,6 +6615,19 @@ let observer = observation.start(
     onChange: { value in
         print("fresh value: \(value)")
     })
+```
+
+An error does not stop the observation. After an error has been received, subsequent transactions may succeed in notifying fresh values. You may witness such temporary errors when the database becomes temporarily unreachable, for example due to [data protection](#data-protection).
+
+Depending on the way your application wants to deal with such errors, you may want to tighten your control on the scheduling of database accesses with [DatabaseRegionObservation]. See also the reactive companion libraries [GRDBCombine] and [RxGRDB], which stop observation whenever a ValueObservation error happens.
+
+The `onError` callback can be omitted, but this is **not recommended**:
+
+```swift
+// Not recommended: omitting the onError callback
+let observer = try observation.start(in: dbQueue) { value in
+    print("fresh value: \(value)")
+}
 ```
 
 
@@ -6584,11 +6649,13 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // On main queue
-    let observer = try Player.observationForAll()
-        .start(in: dbQueue) { (players: [Player]) in
+    let observer = Player.observationForAll().start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { (players: [Player]) in
             // On main queue
             print("fresh players: \(players)")
-        }
+        })
     // <- here "fresh players" is already printed.
     ```
     
@@ -6596,11 +6663,13 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // Not on the main queue
-    let observer = try Player.observationForAll()
-        .start(in: dbQueue) { (players: [Player]) in
+    let observer = Player.observationForAll().start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { (players: [Player]) in
             // On main queue
             print("fresh players: \(players)")
-        }
+        })
     ```
     
     When the database changes, fresh values are asynchronously notified:
@@ -6622,10 +6691,13 @@ The `scheduling` property lets you control how fresh values are notified:
     // On main queue
     var observation = Player.observationForAll()
     observation.scheduling = .async(onQueue: .main, startImmediately: true)
-    let observer = try observation.start(in: dbQueue) { (players: [Player]) in
-        // On main queue
-        print("fresh players: \(players)")s
-    }
+    let observer = observation.start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { (players: [Player]) in
+            // On main queue
+            print("fresh players: \(players)")s
+        })
     // <- here "fresh players" is not printed yet.
     ```
 
@@ -6637,9 +6709,12 @@ The `scheduling` property lets you control how fresh values are notified:
     // On any queue
     var observation = Player.observationForAll()
     observation.scheduling = .unsafe(startImmediately: true)
-    let observer = try observation.start(in: dbQueue) { (players: [Player]) in
-        print("fresh players: \(players)")
-    }
+    let observer = observation.start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { (players: [Player]) in
+            print("fresh players: \(players)")
+        })
     // <- here "fresh players" is already printed.
     ```
     
@@ -6693,9 +6768,12 @@ let reducer = AnyValueReducer(
         defer { count += 1 }
         return count })
 let observation = ValueObservation.tracking(Player.all(), reducer: { _ in reducer })
-let observer = try observation.start(in: dbQueue) { (count: Int) in
-    print("Number of transactions that have modified players: \(count)")
-}
+let observer = observation.start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange: { (count: Int) in
+        print("Number of transactions that have modified players: \(count)")
+    })
 // Prints "Number of transactions that have modified players: 0"
 
 try dbQueue.write { db in
