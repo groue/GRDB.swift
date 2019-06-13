@@ -70,6 +70,7 @@ GRDB ships with:
 
 Companion libraries that enhance and extend GRDB:
 
+- [GRDBCombine]: track database changes in a reactive way, with [Combine](https://developer.apple.com/documentation/combine).
 - [RxGRDB]: track database changes in a reactive way, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 - [GRDBObjc](https://github.com/groue/GRDBObjc): FMDB-compatible bindings to GRDB.
 
@@ -6041,6 +6042,7 @@ GRDB puts this SQLite feature to some good use, and lets you observe the databas
 - [ValueObservation and DatabaseRegionObservation]: Automated tracking of database requests.
 - [FetchedRecordsController]: Animate table views according to database changes.
 - [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
+- [GRDBCombine]: Automated tracking of database changes, with [Combine](https://developer.apple.com/documentation/combine).
 - [RxGRDB]: Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 
 Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
@@ -6545,7 +6547,7 @@ You can combine up to eight observations together. They can feed from as many da
 
 Combining observations provides the guarantee that notified values are [**consistent**](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
 
-> :point_up: **Note**: readers who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the ValueObservation `combine` method. The reactive operator does not care about data consistency, though: if you use a Reactive layer such as [RxGRDB] or [Combine], make sure you compose observations with `ValueObservation.combine`, not with the CombineLatest operator.
+> :point_up: **Note**: readers who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the ValueObservation `combine` method. The reactive operator does not care about data consistency, though: if you use a Reactive layer such as [GRDBCombine] or [RxGRDB], make sure you compose observations with `ValueObservation.combine`, not with the CombineLatest operator.
 
 
 ### ValueObservation Error Handling
@@ -6800,7 +6802,7 @@ It looks and behaves very much like [Core Data's NSFetchedResultsController](htt
 
 Given a fetch request, and a type that adopts the [FetchableRecord] protocol, such as a subclass of the [Record](#record-class) class, a FetchedRecordsController is able to track changes in the results of the fetch request, notify of those changes, and return the results of the request in a form that is suitable for a table view or a collection view, with one cell per fetched record.
 
-> :point_up: **Note**: when you don't need to animate a table or a collection view, use [ValueObservation] or [RxGRDB] instead.
+> :point_up: **Note**: when you don't need to animate a table or a collection view, use [ValueObservation], [GRDBCombine], or [RxGRDB] instead.
 >
 > :bulb: **Tip**: see the [Demo Application](DemoApps/GRDBDemoiOS/README.md) for a sample app that uses FetchedRecordsController.
 
@@ -7256,7 +7258,7 @@ do {
 > :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
 
-[DatabaseRegionObservation], [ValueObservation], [FetchedRecordsController], and [RxGRDB] are based on the TransactionObserver protocol.
+[DatabaseRegionObservation], [ValueObservation], [FetchedRecordsController], [GRDBCombine], and [RxGRDB] are all based on the TransactionObserver protocol.
 
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
 
@@ -8263,6 +8265,7 @@ These protocols provide a unified API that let you write generic code that targe
 - [DatabaseRegionObservation]
 - [ValueObservation]
 - [FetchedRecordsController]
+- [GRDBCombine]
 - [RxGRDB]
 
 Only five types adopt those protocols: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. Expanding this set is not supported: any future GRDB release may break your custom writers and readers, without notice.
@@ -8856,6 +8859,7 @@ This chapter has been renamed [Beyond FetchableRecord].
 [DatabaseRegionObservation]: #databaseregionobservation
 [FetchedRecordsController]: #fetchedrecordscontroller
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
+[GRDBCombine]: http://github.com/groue/GRDBCombine
 [DatabaseRegionConvertible]: #the-databaseregionconvertible-protocol
 [ValueObservation and DatabaseRegionObservation]: #valueobservation-and-databaseregionobservation
 [DatabaseRegion]: #databaseregion

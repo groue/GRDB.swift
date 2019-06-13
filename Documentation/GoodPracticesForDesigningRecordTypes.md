@@ -683,6 +683,8 @@ Instead, have a look at [Database Observation]:
 >
 > :bulb: **Tip**: [FetchedRecordsController] performs automated tracking of database changes, and can animate the cells of a table or collection view.
 >
+> :bulb: **Tip**: [GRDBCombine] performs automated tracking of database changes, in the [Combine](https://developer.apple.com/documentation/combine) way.
+>
 > :bulb: **Tip**: [RxGRDB] performs automated tracking of database changes, in the [RxSwift](https://github.com/ReactiveX/RxSwift) way.
 >
 > :bulb: **Tip**: [TransactionObserver] provides low-level database observation, for your most advanced needs.
@@ -713,6 +715,7 @@ Instead, have a look at [Database Observation]:
 [ValueObservation]: ../README.md#valueobservation
 [FetchedRecordsController]: ../README.md#fetchedrecordscontroller
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
+[GRDBCombine]: http://github.com/groue/GRDBCombine
 [TransactionObserver]: ../README.md#transactionobserver-protocol
 [Trust SQLite More Than Yourself]: #trust-sqlite-more-than-yourself
 [Persistable Record Types are Responsible for Their Tables]: #persistable-record-types-are-responsible-for-their-tables
