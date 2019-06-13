@@ -93,6 +93,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    #if compiler(>=5.0)
     func testAsyncWriteSuccess() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             let expectation = self.expectation(description: "updates")
@@ -101,8 +102,11 @@ class DatabaseWriterTests : GRDBTestCase {
                 // Make sure this block executes asynchronously
                 semaphore.wait()
                 try db.execute(sql: "CREATE TABLE testAsyncWrite (a)")
-            }, completion: { error in
-                if let error = error {
+            }, completion: { result in
+                switch result {
+                case .success:
+                    break
+                case let .failure(error):
                     XCTFail("Unexpected error: \(error)")
                 }
                 expectation.fulfill()
@@ -117,7 +121,9 @@ class DatabaseWriterTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
     }
+    #endif
     
+    #if compiler(>=5.0)
     func testAsyncWriteError() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             let expectation = self.expectation(description: "updates")
@@ -126,12 +132,17 @@ class DatabaseWriterTests : GRDBTestCase {
                 // Make sure this block executes asynchronously
                 semaphore.wait()
                 try db.execute(sql: "This is not SQL")
-            }, completion: { error in
-                guard let error = error as? DatabaseError else {
-                    XCTFail("Unexpected error")
-                    return
+            }, completion: { result in
+                switch result {
+                case .success:
+                    XCTFail("Expected error")
+                case let .failure(error):
+                    if let error = error as? DatabaseError {
+                        XCTAssertEqual(error.sql, "This is not SQL")
+                    } else {
+                        XCTFail("Unexpected error: \(error)")
+                    }
                 }
-                XCTAssertEqual(error.sql, "This is not SQL")
                 expectation.fulfill()
             })
             semaphore.signal()
@@ -141,6 +152,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
     }
+    #endif
 
     func testAnyDatabaseWriter() {
         // This test passes if this code compiles.
