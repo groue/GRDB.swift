@@ -231,10 +231,14 @@ See the [Query Interface](#the-query-interface)
 
 ```swift
 let request = Place.order(Column("title"))
-try request.observationForAll()
-    .start(in: dbQueue) { (places: [Place]) in
-        print("Places have changed.")
+request.observationForAll().start(
+    in: dbQueue,
+    onError: { error in
+        print("fresh places could not be fetched")
     }
+    onChange: { (places: [Place]) in
+        print("Places have changed.")
+    })
 ```
 
 See [Database Changes Observation](#database-changes-observation)
@@ -6114,7 +6118,7 @@ let request = Player.all()
 
 ```swift
 let observation = request.observationForAll()
-let observer = observation.start(in: dbQueue) { (players: [Player]) in
+let observer = try observation.start(in: dbQueue) { (players: [Player]) in
     let names = players.map { $0.name }.joined(separator: ", ")
     print("Fresh players: \(names)")
 }
@@ -6129,7 +6133,7 @@ try dbQueue.write { db in
 
 ```swift
 let observation = DatabaseRegionObservation(tracking: request)
-let observer = observation.start(in: dbQueue) { (db: Database) in
+let observer = try observation.start(in: dbQueue) { (db: Database) in
     print("Players have changed.")
 }
 
@@ -6247,7 +6251,7 @@ Those observations match the `fetchCount`, `fetchAll`, and `fetchOne` request me
 
     ```swift
     // Observe number of players
-    let observer = Player.observationForCount()
+    let observer = try Player.observationForCount()
         .start(in: dbQueue) { (count: Int) in
             print("Number of players have changed: \(count)")
         }
@@ -6257,14 +6261,14 @@ Those observations match the `fetchCount`, `fetchAll`, and `fetchOne` request me
 
     ```swift
     // Observe all players
-    let observer = Player.observationForAll()
+    let observer = try Player.observationForAll()
         .start(in: dbQueue) { (players: [Player]) in
             print("Players have changed: \(players)")
         }
 
     // Observe all player names
     let request = SQLRequest<String>(sql: "SELECT name FROM player")
-    let observer = request.observationForAll()
+    let observer = try request.observationForAll()
         .start(in: dbQueue) { (names: [String]) in
             print("Player names have changed: \(names)")
         }
@@ -6274,14 +6278,14 @@ Those observations match the `fetchCount`, `fetchAll`, and `fetchOne` request me
 
     ```swift
     // Observe a single player
-    let observer = Player.filter(key: 1).observationForFirst()
+    let observer = try Player.filter(key: 1).observationForFirst()
         .start(in: dbQueue) { (player: Player?) in
             print("Player has changed: \(player)")
         }
     
     // Observe the maximum score
     let request = Player.select(max(Column("score")), as: Int.self)
-    let observer = request.observationForFirst()
+    let observer = try request.observationForFirst()
         .start(in: dbQueue) { (maximumScore: Int?) in
             print("Maximum score has changed: \(maximumScore)")
         }
@@ -6333,7 +6337,7 @@ let observation = ValueObservation.tracking(Player.all(), fetch: { db in
     try HallOfFame.fetch(db)
 })
 
-let observer = observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
+let observer = try observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
     print("""
         Best players out of \(hallOfFame.totalPlayerCount):
         \(hallOfFame.bestPlayers)
@@ -6357,7 +6361,7 @@ let observation = ValueObservation
     .tracking(Player.all(), fetch: HallOfFame.fetch)
     .removeDuplicates()
 
-let observer = observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
+let observer = try observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
     print("""
         Best players out of \(hallOfFame.totalPlayerCount):
         \(hallOfFame.bestPlayers)
@@ -6419,7 +6423,7 @@ let request = TeamInfoRequest(teamId: 1)
 let teamInfo: TeamInfo? = try dbQueue.read(request.fetch)
 
 // Observation
-let observer = ValueObservation
+let observer = try ValueObservation
     .tracking(request, fetch: request.fetch)
     .start(in: dbQueue) { (teamInfo: TeamInfo?) in
         print("Team and its players have hanged.")
@@ -6446,7 +6450,7 @@ For example:
 let observation = Player.filter(key: 42).observationForFirst()
     .map { player in player?.image }
 
-let observer = observation.start(in: dbQueue) { (image: UIImage?) in
+let observer = try observation.start(in: dbQueue) { (image: UIImage?) in
     print("Player picture has changed")
 }
 ```
@@ -6465,7 +6469,7 @@ For example:
 let observation = Player.filter(key: 42).observationForFirst()
     .compactMap { $0 }
     
-let observer = observation.start(in: dbQueue) { (player: Player) in
+let observer = try observation.start(in: dbQueue) { (player: Player) in
     print("Player name: \(player.name)")
 }
 ```
@@ -6484,7 +6488,7 @@ let observation = Player.filter(key: 42).observationForFirst()
     .map { player in player != nil } // existence test
     .removeDuplicates()
 
-let observer = observation.start(in: dbQueue) { (exists: Bool) in
+let observer = try observation.start(in: dbQueue) { (exists: Bool) in
     if exists {
         print("Player 42 exists.")
     } else {
@@ -6524,7 +6528,7 @@ let observation = ValueObservation
     .map { HallOfFame(playerCount: $0, bestPlayers: $1) }
 
 // Start tracking the hall of fame
-let observer = observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
+let observer = try observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
     print("The hall of fame has changed.")
 }
 ```
@@ -6546,10 +6550,10 @@ Combining observations provides the guarantee that notified values are [**consis
 
 ### ValueObservation Error Handling
 
-When you start an observation, you can provide an `onError` callback. This callback is called whenever an error happens when a fresh value is fetched after a database change. It is scheduled just like values (see [ValueObservation.scheduling](#valueobservationscheduling)):
+When you start an observation, you can provide an `onError` callback. This callback is called whenever fresh values could not be fetched. It is scheduled just like values (see [ValueObservation.scheduling](#valueobservationscheduling)):
 
 ```swift
-let observer = try observation.start(
+let observer = observation.start(
     in: dbQueue,
     onError: { error in
         print("fresh value could not be fetched")
@@ -6578,7 +6582,7 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // On main queue
-    let observer = Player.observationForAll()
+    let observer = try Player.observationForAll()
         .start(in: dbQueue) { (players: [Player]) in
             // On main queue
             print("fresh players: \(players)")
@@ -6590,7 +6594,7 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // Not on the main queue
-    let observer = Player.observationForAll()
+    let observer = try Player.observationForAll()
         .start(in: dbQueue) { (players: [Player]) in
             // On main queue
             print("fresh players: \(players)")
@@ -6687,7 +6691,7 @@ let reducer = AnyValueReducer(
         defer { count += 1 }
         return count })
 let observation = ValueObservation.tracking(Player.all(), reducer: { _ in reducer })
-let observer = observation.start(in: dbQueue) { (count: Int) in
+let observer = try observation.start(in: dbQueue) { (count: Int) in
     print("Number of transactions that have modified players: \(count)")
 }
 // Prints "Number of transactions that have modified players: 0"
@@ -6720,7 +6724,7 @@ let observation = DatabaseRegionObservation(tracking: Player.all())
 Then start the observation from a [database queue](#database-queues) or [pool](#database-pools):
 
 ```swift
-let observer = observation.start(in: dbQueue) { (db: Database) in
+let observer = try observation.start(in: dbQueue) { (db: Database) in
     print("Players were changed")
 }
 ```
@@ -6741,7 +6745,7 @@ You can also feed DatabaseRegionObservation with [DatabaseRegion], or any type w
 ```swift
 // Observe the full database
 let observation = DatabaseRegionObservation(tracking: DatabaseRegion.fullDatabase)
-let observer = observation.start(in: dbQueue) { (db: Database) in
+let observer = try observation.start(in: dbQueue) { (db: Database) in
     print("Database was changed")
 }
 ```
@@ -6772,7 +6776,7 @@ The `extent` property lets you specify the duration of the observation. See [Obs
 // This observation lasts until the database connection is closed
 var observation = DatabaseRegionObservation...
 observation.extent = .databaseLifetime
-_ = observation.start(in: dbQueue) { db in ... }
+_ = try observation.start(in: dbQueue) { db in ... }
 ```
 
 The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deallocated.
@@ -6781,7 +6785,7 @@ Regardless of the extent of an observation, you can always stop observation with
 
 ```swift
 // Start
-let observer = observation.start(in: dbQueue) { db in ... }
+let observer = try observation.start(in: dbQueue) { db in ... }
 
 // Stop
 dbQueue.remove(transactionObserver: observer)
