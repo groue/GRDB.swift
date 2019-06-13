@@ -240,80 +240,55 @@ extension DatabaseQueue {
     
     // MARK: - Writing in Database
     
-    /// Synchronously executes a block in a protected dispatch queue, wrapped
-    /// inside a transaction.
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// wrapped inside a transaction, and returns the result.
     ///
-    /// If the block throws an error, the transaction is rollbacked and the
-    /// error is rethrown.
-    ///
-    ///     try dbQueue.write { db in
-    ///         try Player(...).insert(db)
-    ///     }
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// - parameter block: A block that executes SQL statements.
-    /// - throws: An eventual database error, or the error thrown by the block.
-    public func write<T>(_ block: (Database) throws -> T) throws -> T {
-        return try writer.sync { db in
-            var result: T? = nil
-            try db.inTransaction {
-                result = try block(db)
-                return .commit
-            }
-            return result!
-        }
-    }
-    
-    /// Synchronously executes a block in a protected dispatch queue, wrapped
-    /// inside a transaction.
-    ///
-    /// If the block throws an error, the transaction is rollbacked and the
-    /// error is rethrown. If the block returns .rollback, the transaction is
+    /// If the updates throws an error, the transaction is rollbacked and the
+    /// error is rethrown. If the updates return .rollback, the transaction is
     /// also rollbacked, but no error is thrown.
     ///
-    ///     try dbQueue.inTransaction { db in
-    ///         try Player(...).insert(db)
-    ///         return .commit
-    ///     }
+    /// Eventual concurrent database accesses are postponed until the
+    /// transaction has completed.
     ///
     /// This method is *not* reentrant.
+    ///
+    ///     try dbQueue.writeInTransaction { db in
+    ///         db.execute(...)
+    ///         return .commit
+    ///     }
     ///
     /// - parameters:
     ///     - kind: The transaction type (default nil). If nil, the transaction
     ///       type is configuration.defaultTransactionKind, which itself
     ///       defaults to .deferred. See https://www.sqlite.org/lang_transaction.html
     ///       for more information.
-    ///     - block: A block that executes SQL statements and return either
-    ///       .commit or .rollback.
-    /// - throws: The error thrown by the block.
-    public func inTransaction(_ kind: Database.TransactionKind? = nil, _ block: (Database) throws -> Database.TransactionCompletion) throws {
+    ///     - updates: The updates to the database.
+    /// - throws: The error thrown by the updates, or by the
+    ///   wrapping transaction.
+    public func inTransaction(_ kind: Database.TransactionKind? = nil, _ updates: (Database) throws -> Database.TransactionCompletion) throws {
         try writer.sync { db in
             try db.inTransaction(kind) {
-                try block(db)
+                try updates(db)
             }
         }
     }
     
-    /// Synchronously executes a block in a protected dispatch queue, and
-    /// returns its result.
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
     ///
-    ///     let players = try dbQueue.writeWithoutTransaction { db in
-    ///         try Player(...).insert(db)
-    ///     }
+    /// Eventual concurrent database accesses are postponed until the updates
+    /// are completed.
     ///
     /// This method is *not* reentrant.
     ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
-    ///
-    /// :nodoc:
-    public func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try writer.sync(block)
+    /// - parameter updates: The updates to the database.
+    /// - throws: The error thrown by the updates.
+    public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
+        return try writer.sync(updates)
     }
 
-    /// Synchronously executes a block in a protected dispatch queue, and
-    /// returns its result.
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
     ///
     ///     // INSERT INTO player ...
     ///     let players = try dbQueue.inDatabase { db in
@@ -324,12 +299,12 @@ extension DatabaseQueue {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func inDatabase<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try writer.sync(block)
+    public func inDatabase<T>(_ updates: (Database) throws -> T) rethrows -> T {
+        return try writer.sync(updates)
     }
     
-    /// Synchronously executes a block in a protected dispatch queue, and
-    /// returns its result.
+    /// Synchronously executes database updates in a protected dispatch queue, and
+    /// returns the result.
     ///
     ///     // INSERT INTO player ...
     ///     try dbQueue.unsafeReentrantWrite { db in
@@ -338,12 +313,14 @@ extension DatabaseQueue {
     ///
     /// This method is reentrant. It is unsafe because it fosters dangerous
     /// concurrency practices.
-    public func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try writer.reentrantSync(block)
+    public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
+        return try writer.reentrantSync(updates)
     }
     
-    public func asyncWriteWithoutTransaction(_ block: @escaping (Database) -> Void) {
-        writer.async(block)
+    /// Asynchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction.
+    public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+        writer.async(updates)
     }
     
     // MARK: - Functions

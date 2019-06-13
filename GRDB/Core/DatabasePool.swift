@@ -499,116 +499,81 @@ extension DatabasePool : DatabaseReader {
     
     // MARK: - Writing in Database
     
-    /// Synchronously executes an update block in a protected dispatch queue,
-    /// wrapped inside a transaction, and returns the result of the block.
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
     ///
-    /// Eventual concurrent database updates are postponed until the block
-    /// has executed.
+    /// Eventual concurrent database updates are postponed until the updates
+    /// are completed.
     ///
-    ///     try dbPool.write { db in
-    ///         try db.execute(...)
-    ///     }
-    ///
-    /// Eventual concurrent reads are guaranteed not to see any changes
-    /// performed in the block until they are all saved in the database.
+    /// Eventual concurrent reads may see partial updates unless you wrap them
+    /// in a transaction.
     ///
     /// This method is *not* reentrant.
     ///
-    /// - parameters block: A block that executes SQL statements.
-    /// - throws: The error thrown by the block, or by the wrapping transaction.
-    public func write<T>(_ block: (Database) throws -> T) throws -> T {
-        return try writer.sync { db in
-            var result: T? = nil
-            try db.inTransaction {
-                result = try block(db)
-                return .commit
-            }
-            return result!
-        }
+    /// - parameter updates: The updates to the database.
+    /// - throws: The error thrown by the updates.
+    public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
+        return try writer.sync(updates)
     }
     
-    /// Synchronously executes a block that takes a database connection, and
-    /// returns its result.
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// wrapped inside a transaction, and returns the result.
     ///
-    /// Eventual concurrent database updates are postponed until the block
-    /// has executed.
-    ///
-    /// Eventual concurrent reads may see changes performed in the block before
-    /// the block completes.
-    ///
-    /// The block is guaranteed to be executed outside of a transaction.
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// - parameters block: A block that executes SQL statements and return
-    ///   either .commit or .rollback.
-    /// - throws: The error thrown by the block.
-    public func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try writer.sync(block)
-    }
-    
-    /// Synchronously executes a block in a protected dispatch queue, wrapped
-    /// inside a transaction.
-    ///
-    /// Eventual concurrent database updates are postponed until the block
-    /// has executed.
-    ///
-    /// If the block throws an error, the transaction is rollbacked and the
-    /// error is rethrown. If the block returns .rollback, the transaction is
+    /// If the updates throws an error, the transaction is rollbacked and the
+    /// error is rethrown. If the updates return .rollback, the transaction is
     /// also rollbacked, but no error is thrown.
+    ///
+    /// Eventual concurrent database updates are postponed until the transaction
+    /// has completed.
+    ///
+    /// Eventual concurrent reads are guaranteed to not see any partial updates
+    /// of the database until the transaction has completed.
+    ///
+    /// This method is *not* reentrant.
     ///
     ///     try dbPool.writeInTransaction { db in
     ///         db.execute(...)
     ///         return .commit
     ///     }
     ///
-    /// Eventual concurrent reads are guaranteed not to see any changes
-    /// performed in the block until they are all saved in the database.
-    ///
-    /// This method is *not* reentrant.
-    ///
     /// - parameters:
     ///     - kind: The transaction type (default nil). If nil, the transaction
     ///       type is configuration.defaultTransactionKind, which itself
     ///       defaults to .deferred. See https://www.sqlite.org/lang_transaction.html
     ///       for more information.
-    ///     - block: A block that executes SQL statements and return either
-    ///       .commit or .rollback.
-    /// - throws: The error thrown by the block, or any error establishing the
-    ///   transaction.
-    public func writeInTransaction(_ kind: Database.TransactionKind? = nil, _ block: (Database) throws -> Database.TransactionCompletion) throws {
+    ///     - updates: The updates to the database.
+    /// - throws: The error thrown by the updates, or by the
+    ///   wrapping transaction.
+    public func writeInTransaction(_ kind: Database.TransactionKind? = nil, _ updates: (Database) throws -> Database.TransactionCompletion) throws {
         try writer.sync { db in
             try db.inTransaction(kind) {
-                try block(db)
+                try updates(db)
             }
         }
     }
     
-    /// Synchronously executes an update block in a protected dispatch queue,
-    /// and returns its result.
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
     ///
-    /// Eventual concurrent database updates are postponed until the block
-    /// has executed.
+    /// Eventual concurrent database updates are postponed until the updates
+    /// are completed.
     ///
-    ///     try dbPool.unsafeReentrantWrite { db in
-    ///         try db.execute(...)
-    ///     }
+    /// Eventual concurrent reads may see partial updates unless you wrap them
+    /// in a transaction.
     ///
-    /// Eventual concurrent reads may see changes performed in the block before
-    /// the block completes.
-    ///
-    /// This method is reentrant. It is unsafe because it fosters dangerous
-    /// concurrency practices.
-    public func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try writer.reentrantSync(block)
+    /// This method is reentrant. It should be avoided because it fosters
+    /// dangerous concurrency practices.
+    public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
+        return try writer.reentrantSync(updates)
     }
     
-    /// Asynchronously executes an update block in a protected dispatch queue.
+    /// Asynchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction.
     ///
-    /// Eventual concurrent reads may see changes performed in the block before
-    /// the block completes.
-    public func asyncWriteWithoutTransaction(_ block: @escaping (Database) -> Void) {
-        writer.async(block)
+    /// Eventual concurrent reads may see partial updates unless you wrap them
+    /// in a transaction.
+    public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+        writer.async(updates)
     }
     
     // MARK: - Functions
