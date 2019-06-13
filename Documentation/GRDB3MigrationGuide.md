@@ -44,7 +44,7 @@ To guarantee asynchronous notifications, and never ever block your main thread, 
 
 ```swift
 // On main queue
-var observation = ValueObservation.trackingAll(Player.all())
+var observation = Player.observationForAll()
 observation.scheduling = .async(onQueue: .main, startImmediately: true)
 let observer = try observation.start(in: dbQueue) { (players: [Player]) in
     // On main queue

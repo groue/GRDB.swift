@@ -4,7 +4,7 @@ extension ValueReducers {
     /// A reducer which pass raw fetched values through.
     ///
     /// :nodoc:
-    public struct Passthrough<Value>: ValueReducer {
+    public struct Fetch<Value>: ValueReducer {
         private let _fetch: (Database) throws -> Value
         
         public init(_ fetch: @escaping (Database) throws -> Value) {
@@ -22,5 +22,5 @@ extension ValueReducers {
 }
 
 /// :nodoc:
-@available(*, deprecated, renamed: "ValueReducers.Passthrough")
-public typealias RawValueReducer<Value> = ValueReducers.Passthrough<Value>
+@available(*, deprecated, renamed: "ValueReducers.Fetch")
+public typealias RawValueReducer<Value> = ValueReducers.Fetch<Value>

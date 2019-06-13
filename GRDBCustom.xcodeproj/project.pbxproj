@@ -405,8 +405,8 @@
 		56BB6EAE1D3009B100A1CA52 /* SchedulingWatchdog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BB6EA81D3009B100A1CA52 /* SchedulingWatchdog.swift */; };
 		56C0539122ACEECD0029D27D /* CompactMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C0538922ACEECD0029D27D /* CompactMap.swift */; };
 		56C0539222ACEECD0029D27D /* CompactMap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C0538922ACEECD0029D27D /* CompactMap.swift */; };
-		56C0539322ACEECD0029D27D /* Passthrough.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C0538A22ACEECD0029D27D /* Passthrough.swift */; };
-		56C0539422ACEECD0029D27D /* Passthrough.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C0538A22ACEECD0029D27D /* Passthrough.swift */; };
+		56C0539322ACEECD0029D27D /* Fetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C0538A22ACEECD0029D27D /* Fetch.swift */; };
+		56C0539422ACEECD0029D27D /* Fetch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C0538A22ACEECD0029D27D /* Fetch.swift */; };
 		56C0539522ACEECD0029D27D /* ValueObservation+Row.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C0538B22ACEECD0029D27D /* ValueObservation+Row.swift */; };
 		56C0539622ACEECD0029D27D /* ValueObservation+Row.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C0538B22ACEECD0029D27D /* ValueObservation+Row.swift */; };
 		56C0539722ACEECD0029D27D /* ValueReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C0538C22ACEECD0029D27D /* ValueReducer.swift */; };
@@ -983,7 +983,7 @@
 		56B964C21DA521450002DA19 /* FTS5TableBuilderTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5TableBuilderTests.swift; sourceTree = "<group>"; };
 		56BB6EA81D3009B100A1CA52 /* SchedulingWatchdog.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SchedulingWatchdog.swift; sourceTree = "<group>"; };
 		56C0538922ACEECD0029D27D /* CompactMap.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CompactMap.swift; sourceTree = "<group>"; };
-		56C0538A22ACEECD0029D27D /* Passthrough.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Passthrough.swift; sourceTree = "<group>"; };
+		56C0538A22ACEECD0029D27D /* Fetch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fetch.swift; sourceTree = "<group>"; };
 		56C0538B22ACEECD0029D27D /* ValueObservation+Row.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ValueObservation+Row.swift"; sourceTree = "<group>"; };
 		56C0538C22ACEECD0029D27D /* ValueReducer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueReducer.swift; sourceTree = "<group>"; };
 		56C0538D22ACEECD0029D27D /* Combine.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Combine.swift; sourceTree = "<group>"; };
@@ -1682,12 +1682,12 @@
 		56C0538822ACEECD0029D27D /* ValueReducer */ = {
 			isa = PBXGroup;
 			children = (
-				56C0538922ACEECD0029D27D /* CompactMap.swift */,
-				56C0538A22ACEECD0029D27D /* Passthrough.swift */,
-				56C0538C22ACEECD0029D27D /* ValueReducer.swift */,
 				56C0538D22ACEECD0029D27D /* Combine.swift */,
+				56C0538922ACEECD0029D27D /* CompactMap.swift */,
+				56C0538A22ACEECD0029D27D /* Fetch.swift */,
 				56C0538E22ACEECD0029D27D /* Map.swift */,
 				56C0538F22ACEECD0029D27D /* RemoveDuplicates.swift */,
+				56C0538C22ACEECD0029D27D /* ValueReducer.swift */,
 			);
 			path = ValueReducer;
 			sourceTree = "<group>";
@@ -2118,7 +2118,7 @@
 				5656A87C2295BD56001FF3FF /* QueryInterfaceRequest+Association.swift in Sources */,
 				F3BA800B1CFB286D003DC1BA /* Database.swift in Sources */,
 				F3BA80341CFB28A4003DC1BA /* Record.swift in Sources */,
-				56C0539422ACEECD0029D27D /* Passthrough.swift in Sources */,
+				56C0539422ACEECD0029D27D /* Fetch.swift in Sources */,
 				56E9FAC52210468500C703A8 /* SQLInterpolation.swift in Sources */,
 				563EF421215F8A76007DAACD /* OrderedDictionary.swift in Sources */,
 				F3BA80161CFB2876003DC1BA /* Row.swift in Sources */,
@@ -2449,7 +2449,7 @@
 				5656A87B2295BD56001FF3FF /* QueryInterfaceRequest+Association.swift in Sources */,
 				F3BA80671CFB2E55003DC1BA /* Database.swift in Sources */,
 				F3BA80901CFB2E7A003DC1BA /* Record.swift in Sources */,
-				56C0539322ACEECD0029D27D /* Passthrough.swift in Sources */,
+				56C0539322ACEECD0029D27D /* Fetch.swift in Sources */,
 				56E9FAC42210468500C703A8 /* SQLInterpolation.swift in Sources */,
 				563EF420215F8A76007DAACD /* OrderedDictionary.swift in Sources */,
 				F3BA80721CFB2E55003DC1BA /* Row.swift in Sources */,

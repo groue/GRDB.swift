@@ -60,6 +60,18 @@ extension ValueObservation where Reducer == Void {
     }
 }
 
+extension ValueObservation where Reducer: ValueReducer {
+    public func combine<
+        R1: ValueReducer,
+        Combined>(
+        _ other: ValueObservation<R1>,
+        _ transform: @escaping (Reducer.Value, R1.Value) -> Combined)
+        -> ValueObservation<ValueReducers.Map<ValueReducers.Combine2<Reducer, R1>, Combined>>
+    {
+        return ValueObservation<Void>.combine(self, other).map(transform)
+    }
+}
+
 // MARK: - Combine 3 Reducers
 
 extension ValueReducers {
@@ -131,6 +143,25 @@ extension ValueObservation where Reducer == Void {
                 o1.makeReducer($0),
                 o2.makeReducer($0),
                 o3.makeReducer($0)) })
+    }
+}
+
+extension ValueObservation where Reducer: ValueReducer {
+    public func combine<
+        R1: ValueReducer,
+        R2: ValueReducer,
+        Combined>(
+        _ observation1: ValueObservation<R1>,
+        _ observation2: ValueObservation<R2>,
+        _ transform: @escaping (Reducer.Value, R1.Value, R2.Value) -> Combined)
+        -> ValueObservation<ValueReducers.Map<ValueReducers.Combine3<Reducer, R1, R2>, Combined>>
+    {
+        return ValueObservation<Void>
+            .combine(
+                self,
+                observation1,
+                observation2)
+            .map(transform)
     }
 }
 
@@ -217,6 +248,28 @@ extension ValueObservation where Reducer == Void {
                 o2.makeReducer($0),
                 o3.makeReducer($0),
                 o4.makeReducer($0)) })
+    }
+}
+
+extension ValueObservation where Reducer: ValueReducer {
+    public func combine<
+        R1: ValueReducer,
+        R2: ValueReducer,
+        R3: ValueReducer,
+        Combined>(
+        _ observation1: ValueObservation<R1>,
+        _ observation2: ValueObservation<R2>,
+        _ observation3: ValueObservation<R3>,
+        _ transform: @escaping (Reducer.Value, R1.Value, R2.Value, R3.Value) -> Combined)
+        -> ValueObservation<ValueReducers.Map<ValueReducers.Combine4<Reducer, R1, R2, R3>, Combined>>
+    {
+        return ValueObservation<Void>
+            .combine(
+                self,
+                observation1,
+                observation2,
+                observation3)
+            .map(transform)
     }
 }
 
@@ -315,6 +368,31 @@ extension ValueObservation where Reducer == Void {
                 o3.makeReducer($0),
                 o4.makeReducer($0),
                 o5.makeReducer($0)) })
+    }
+}
+
+extension ValueObservation where Reducer: ValueReducer {
+    public func combine<
+        R1: ValueReducer,
+        R2: ValueReducer,
+        R3: ValueReducer,
+        R4: ValueReducer,
+        Combined>(
+        _ observation1: ValueObservation<R1>,
+        _ observation2: ValueObservation<R2>,
+        _ observation3: ValueObservation<R3>,
+        _ observation4: ValueObservation<R4>,
+        _ transform: @escaping (Reducer.Value, R1.Value, R2.Value, R3.Value, R4.Value) -> Combined)
+        -> ValueObservation<ValueReducers.Map<ValueReducers.Combine5<Reducer, R1, R2, R3, R4>, Combined>>
+    {
+        return ValueObservation<Void>
+            .combine(
+                self,
+                observation1,
+                observation2,
+                observation3,
+                observation4)
+            .map(transform)
     }
 }
 

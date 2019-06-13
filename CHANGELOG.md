@@ -57,13 +57,16 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#540](https://github.com/groue/GRDB.swift/pull/540): Update SQLite to 3.28.0 (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib))
 - [#542](https://github.com/groue/GRDB.swift/pull/542): Move eager loading of hasMany associations to FetchRequest
 - [#546](https://github.com/groue/GRDB.swift/pull/546) by [@robcas3](https://github.com/robcas3): Fix SPM errors with Xcode 11 beta
-- You can now [combine](README.md#valueobservationcombine) up to eight ValueObservations in a single shot.
+- [#549](https://github.com/groue/GRDB.swift/pull/549) Support for Combine
 
 ### Documentation Diff
 
 The [Define Record Requests](Documentation/GoodPracticesForDesigningRecordTypes.md#define-record-requests) chapter of the The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) has been rewritten. Yes, good practices evolve.
 
 The [Examples of Record Definitions](README.md#examples-of-record-definitions) has been extended with a sample record optimized for fetching performance.
+
+The [ValueObservation](README.md#valueobservation) chapter has been updated with the new APIs.
+
 
 ### API Diff
 

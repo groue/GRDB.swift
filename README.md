@@ -231,8 +231,7 @@ See the [Query Interface](#the-query-interface)
 
 ```swift
 let request = Place.order(Column("title"))
-try ValueObservation
-    .trackingAll(request)
+try request.observationForAll()
     .start(in: dbQueue) { (places: [Place]) in
         print("Places have changed.")
     }
@@ -2917,8 +2916,7 @@ try dbQueue.read { db in
 
 ```swift
 // Observe changes
-try ValueObservation
-    .trackingOne(Player.maximumScore)
+try Player.maximumScore.observationForFirst()
     .start(in: dbQueue) { (maxScore: Int?) in
         print("The maximum score has changed")
     }
@@ -4484,8 +4482,7 @@ When you also want to use database observation tools such as [ValueObservation],
     }
     
     // Observe with ValueObservation
-    try ValueObservation
-        .trackingOne(request)
+    try request.observationForFirst()
         .start(in: dbQueue) { (maxScore: Int?) in
             print("The maximum score has changed")
         }
@@ -4510,8 +4507,7 @@ When you also want to use database observation tools such as [ValueObservation],
     }
     
     // Observe with ValueObservation
-    try ValueObservation
-        .trackingAll(request)
+    try request.observationForAll()
         .start(in: dbQueue) { (bookInfos: [BookInfo]) in
             print("Books have changed")
         }
@@ -4584,8 +4580,7 @@ let player = try request.fetchOne(db)    // Player?
 Those requests can feed [ValueObservation]:
 
 ```swift
-try ValueObservation.
-    .trackingOne(Player.filter(key: 1))
+try Player.filter(key: 1).observationForFirst()
     .start(in: dbQueue) { (player: Player?) in
         print("Player 1 has changed")
     }
@@ -4704,8 +4699,7 @@ try Player.customRequest().fetchAll(db) // [Player]
 Custom requests can also feed [ValueObservation]:
 
 ```swift
-try ValueObservation.
-    .trackingAll(Player.customRequest(...))
+try Player.customRequest(...).observationForAll()
     .start(in: dbQueue) { (players: [Player]) in
         print("Players have changed")
     }
@@ -6119,7 +6113,7 @@ let request = Player.all()
 [ValueObservation] notifies your application with **fresh values** (this is what most applications need :+1:):
 
 ```swift
-let observation = ValueObservation.trackingAll(request)
+let observation = request.observationForAll()
 let observer = observation.start(in: dbQueue) { (players: [Player]) in
     let names = players.map { $0.name }.joined(separator: ", ")
     print("Fresh players: \(names)")
@@ -6157,7 +6151,7 @@ Changes are only notified after they have been committed in the database. No ins
 
 
 - **[ValueObservation Usage](#valueobservation-usage)**
-- [ValueObservation.trackingCount, trackingOne, trackingAll](#valueobservationtrackingcount-trackingone-trackingall)
+- [observationForCount, observationForAll, observationForFirst](#observationforcount-observationforall-observationforfirst)
 - [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
 - [ValueObservation Transformations](#valueobservation-transformations): [map](#valueobservationmap), [compactMap](#valueobservationcompactmap), ...
 - [ValueObservation Error Handling](#valueobservation-error-handling)
@@ -6179,7 +6173,7 @@ class PlayerViewController: UIViewController {
         
         // Define a ValueObservation which tracks a player
         let request = Player.filter(key: 42)
-        let observation = ValueObservation.trackingOne(request)
+        let observation = request.observationForFirst()
         
         // Start observing the database
         observer = try! observation.start(
@@ -6215,7 +6209,7 @@ The observer returned by the `start` method is stored in a property of the view 
 >     
 >     // Define a ValueObservation which tracks a player
 >     let request = Player.filter(key: 42)
->     var observation = ValueObservation.trackingOne(request)
+>     var observation = request.observationForFirst()
 >
 >     // Observation is asynchronous
 >     observation.scheduling = .async(onQueue: .main, startImmediately: true)
@@ -6237,68 +6231,63 @@ The observer returned by the `start` method is stored in a property of the view 
 >
 > See [ValueObservation.scheduling](#valueobservationscheduling) for more information.
 
-### ValueObservation.trackingCount, trackingOne, trackingAll
+### observationForCount, observationForAll, observationForFirst
 
-Given a [request](#requests), you can track its number of results, the first one, or all of them:
+Given a [request](#requests), you can observe its number of results, all results, or the first one:
 
 ```swift
-ValueObservation.trackingCount(request)
-ValueObservation.trackingOne(request)
-ValueObservation.trackingAll(request)
+request.observationForCount()
+request.observationForAll()
+request.observationForFirst()
 ```
 
-Those observations match the `fetchCount`, `fetchOne`, and `fetchAll` request methods:
+Those observations match the `fetchCount`, `fetchAll`, and `fetchOne` request methods:
 
-- `trackingCount` notifies counts:
+- `observationForCount()` notifies counts:
 
     ```swift
     // Observe number of players
-    let observer = ValueObservation
-        .trackingCount(Player.all())
+    let observer = Player.observationForCount()
         .start(in: dbQueue) { (count: Int) in
             print("Number of players have changed: \(count)")
         }
     ```
 
-- `trackingOne` notifies optional values, built from a single database row (if any):
+- `observationForAll()` notifies arrays:
+
+    ```swift
+    // Observe all players
+    let observer = Player.observationForAll()
+        .start(in: dbQueue) { (players: [Player]) in
+            print("Players have changed: \(players)")
+        }
+
+    // Observe all player names
+    let request = SQLRequest<String>(sql: "SELECT name FROM player")
+    let observer = request.observationForAll()
+        .start(in: dbQueue) { (names: [String]) in
+            print("Player names have changed: \(names)")
+        }
+    ```
+
+- `observationForFirst()` notifies optional values, built from a single database row (if any):
 
     ```swift
     // Observe a single player
-    let observer = ValueObservation
-        .trackingOne(Player.filter(key: 1))
+    let observer = Player.filter(key: 1).observationForFirst()
         .start(in: dbQueue) { (player: Player?) in
             print("Player has changed: \(player)")
         }
     
     // Observe the maximum score
     let request = Player.select(max(Column("score")), as: Int.self)
-    let observer = ValueObservation
-        .trackingOne(request)
+    let observer = request.observationForFirst()
         .start(in: dbQueue) { (maximumScore: Int?) in
             print("Maximum score has changed: \(maximumScore)")
         }
     ```
 
-- `trackingAll` notifies arrays:
-
-    ```swift
-    // Observe all players
-    let observer = ValueObservation
-        .trackingAll(Player.all())
-        .start(in: dbQueue) { (players: [Player]) in
-            print("Players have changed: \(players)")
-        }
-    
-    // Observe all player names
-    let request = SQLRequest<String>(sql: "SELECT name FROM player")
-    let observer = ValueObservation
-        .trackingAll(request)
-        .start(in: dbQueue) { (names: [String]) in
-            print("Player names have changed: \(names)")
-        }
-    ```
-
-> :point_up: **Note**: the observations returned by the [ValueObservation.trackingCount, trackingOne, and trackingAll](#valueobservationtrackingcount-trackingone-trackingall) methods perform a filtering of consecutive identical values, based on raw database values.
+> :point_up: **Note**: observations returned by those methods perform a filtering of consecutive identical values, based on raw database values.
 
 
 ### ValueObservation.tracking(_:fetch:)
@@ -6359,14 +6348,14 @@ It may happen that a database change does not modify the observed values. The Ha
 
 When such a database change happens, `ValueObservation.tracking(_:fetch:)` is triggered, just in case the best players would be modified, and ends up notifying identical consecutive values.
 
-You can filter out those duplicates with the [ValueObservation.distinctUntilChanged](#valueobservationdistinctuntilchanged) method. It requires the observed value to adopt the Equatable protocol:
+You can filter out those duplicates with the [ValueObservation.removeDuplicates](#valueobservationremoveduplicates) method. It requires the observed value to adopt the Equatable protocol:
 
 ```swift
 extension HallOfFame: Equatable { ... }
 
 let observation = ValueObservation
     .tracking(Player.all(), fetch: HallOfFame.fetch)
-    .distinctUntilChanged()
+    .removeDuplicates()
 
 let observer = observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
     print("""
@@ -6442,7 +6431,7 @@ let observer = ValueObservation
 
 - [ValueObservation.map](#valueobservationmap)
 - [ValueObservation.compactMap](#valueobservationcompactmap)
-- [ValueObservation.distinctUntilChanged](#valueobservationdistinctuntilchanged)
+- [ValueObservation.removeDuplicates](#valueobservationremoveduplicates)
 - [ValueObservation.combine(...)](#valueobservationcombine)
 
 
@@ -6454,9 +6443,8 @@ For example:
 
 ```swift
 // Observe a player's profile image
-let observation = ValueObservation
-    .trackingOne(Player.filter(key: 42))
-    .map { player in player?.loadBigProfileImage() }
+let observation = Player.filter(key: 42).observationForFirst()
+    .map { player in player?.image }
 
 let observer = observation.start(in: dbQueue) { (image: UIImage?) in
     print("Player picture has changed")
@@ -6474,8 +6462,7 @@ For example:
 
 ```swift
 // Observe a player
-let observation = ValueObservation
-    .trackingOne(Player.filter(key: 42))
+let observation = Player.filter(key: 42).observationForFirst()
     .compactMap { $0 }
     
 let observer = observation.start(in: dbQueue) { (player: Player) in
@@ -6486,17 +6473,16 @@ let observer = observation.start(in: dbQueue) { (player: Player) in
 The transformation closure does not run on the main queue, and is suitable for heavy computations.
 
 
-#### ValueObservation.distinctUntilChanged
+#### ValueObservation.removeDuplicates
 
-The `distinctUntilChanged` method filters out the consecutive equal values notified by a ValueObservation. The observed values must adopt the standard Equatable protocol.
+The `removeDuplicates` method filters out the consecutive equal values notified by a ValueObservation. The observed values must adopt the standard Equatable protocol.
 
 For example:
 
 ```swift
-let observation = ValueObservation
-    .trackingOne(Player.filter(key: 42))
+let observation = Player.filter(key: 42).observationForFirst()
     .map { player in player != nil } // existence test
-    .distinctUntilChanged()
+    .removeDuplicates()
 
 let observer = observation.start(in: dbQueue) { (exists: Bool) in
     if exists {
@@ -6507,38 +6493,55 @@ let observer = observation.start(in: dbQueue) { (exists: Bool) in
 }
 ```
 
-> :point_up: **Note**: the observations returned by the [ValueObservation.trackingCount, trackingOne, and trackingAll](#valueobservationtrackingcount-trackingone-trackingall) methods already perform a similar filtering, based on raw database values.
+> :point_up: **Note**: the observations returned by the [observationForCount, observationForAll, observationForFirst](#observationforcount-observationforall-observationforfirst) methods already perform a similar filtering, based on raw database values.
 
 
 #### ValueObservation.combine(...)
 
-Sometimes you need to observe several requests at the same time. For example, you need to observe changes in both a team and its players.
+Sometimes you need to observe several requests at the same time.
 
 When this happens, **combine** several observations together with the `ValueObservation.combine(...)` method:
 
 ```swift
-// The two observed requests (the team and its players)
-let teamRequest = Team.filter(key: 1)
-let playersRequest = Player.filter(Column("teamId") == 1)
+struct HallOfFame {
+    /// Total number of players
+    var playerCount: Int
+    
+    /// The best ones
+    var bestPlayers: [Player]
+}
 
-// Two observations
-let teamObservation = ValueObservation.trackingOne(teamRequest)
-let playersObservation = ValueObservation.trackingAll(playersRequest)
+// The two base observations
+let playerCountObservation = Player.observationForCount()
+let bestPlayersObservation = Player
+    .limit(10)
+    .order(Column("score").desc)
+    .observationForAll()
 
 // The combined observation
-let observation = ValueObservation.combine(teamObservation, playersObservation)
+let observation = ValueObservation
+    .combine(playerCountObservation, bestPlayersObservation)
+    .map { HallOfFame(playerCount: $0, bestPlayers: $1) }
 
-// Start tracking players and teams
-let observer = observation.start(in: dbQueue) { (team: Team?, players: [Player]) in
-    print("Team or players have changed.")
+// Start tracking the hall of fame
+let observer = observation.start(in: dbQueue) { (hallOfFame: HallOfFame) in
+    print("The hall of fame has changed.")
 }
 ```
 
+`combine` also exists as an instance method:
+
+```swift
+let observation = playerCountObservation.combine(bestPlayersObservation) {
+    HallOfFame(playerCount: $0, bestPlayers: $1)
+}
+```
+
+You can combine up to eight observations together. They can feed from as many database tables as needed.
+
 Combining observations provides the guarantee that notified values are [**consistent**](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
 
-> :point_up: **Note**: you can combine up to eight observations together. If you need more, combine several combined observations, or please submit a pull request.
->
-> :point_up: **Note**: readers who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the `ValueObservation.combine` method. The reactive operator does not care about data consistency, though: if you use a Reactive layer such as [RxGRDB], compose observations with `ValueObservation.combine`, not with the CombineLatest operator.
+> :point_up: **Note**: readers who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the ValueObservation `combine` method. The reactive operator does not care about data consistency, though: if you use a Reactive layer such as [RxGRDB] or [Combine], make sure you compose observations with `ValueObservation.combine`, not with the CombineLatest operator.
 
 
 ### ValueObservation Error Handling
@@ -6575,8 +6578,7 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // On main queue
-    let observer = ValueObservation
-        .trackingAll(Player.all())
+    let observer = Player.observationForAll()
         .start(in: dbQueue) { (players: [Player]) in
             // On main queue
             print("fresh players: \(players)")
@@ -6588,8 +6590,7 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // Not on the main queue
-    let observer = ValueObservation
-        .trackingAll(Player.all())
+    let observer = Player.observationForAll()
         .start(in: dbQueue) { (players: [Player]) in
             // On main queue
             print("fresh players: \(players)")
@@ -6613,7 +6614,7 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // On main queue
-    var observation = ValueObservation.trackingAll(Player.all())
+    var observation = Player.observationForAll()
     observation.scheduling = .async(onQueue: .main, startImmediately: true)
     let observer = try observation.start(in: dbQueue) { (players: [Player]) in
         // On main queue
@@ -6628,7 +6629,7 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // On any queue
-    var observation = ValueObservation.trackingAll(Player.all())
+    var observation = Player.observationForAll()
     observation.scheduling = .unsafe(startImmediately: true)
     let observer = try observation.start(in: dbQueue) { (players: [Player]) in
         print("fresh players: \(players)")
@@ -8856,3 +8857,4 @@ This chapter has been renamed [Beyond FetchableRecord].
 [DatabaseRegion]: #databaseregion
 [SQL Interpolation]: Documentation/SQLInterpolation.md
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
+[Combine]: https://developer.apple.com/documentation/combine
