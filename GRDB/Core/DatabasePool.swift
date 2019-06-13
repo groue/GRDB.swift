@@ -285,6 +285,58 @@ extension DatabasePool : DatabaseReader {
         }
     }
     
+    #if compiler(>=5.0)
+    /// Asynchronously executes a read-only block in a protected dispatch queue.
+    ///
+    ///     let players = try dbQueue.asyncRead { result in
+    ///         do {
+    ///             let db = try result.get()
+    ///             let count = try Player.fetchCount(db)
+    ///         } catch {
+    ///             // Handle error
+    ///         }
+    ///     }
+    ///
+    /// Starting SQLite 3.8.0 (iOS 8.2+, OSX 10.10+, custom SQLite builds and
+    /// SQLCipher), attempts to write in the database from this meethod throw a
+    /// DatabaseError of resultCode `SQLITE_READONLY`.
+    ///
+    /// - parameter block: A block that accesses the database.
+    public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
+        // First async jump in order to grab a reader connection.
+        // Honor configuration dispatching (qos/targetQueue).
+        configuration
+            .makeDispatchQueue(defaultLabel: "GRDB.DatabasePool", purpose: "asyncRead")
+            .async {
+                do {
+                    let (reader, releaseReader) = try self.readerPool.get()
+                    
+                    // Second async jump because sync could deadlock if
+                    // configuration has a serial targetQueue.
+                    reader.async { db in
+                        defer {
+                            try? db.commit() // Ignore commit error
+                            releaseReader()
+                        }
+                        do {
+                            // The block isolation comes from the DEFERRED transaction.
+                            try db.beginTransaction(.deferred)
+                            
+                            // Reset the schema cache before running user code in snapshot isolation
+                            db.schemaCache = SimpleDatabaseSchemaCache()
+                            
+                            block(.success(db))
+                        } catch {
+                            block(.failure(error))
+                        }
+                    }
+                } catch {
+                    block(.failure(error))
+                }
+        }
+    }
+    #endif
+    
     /// Synchronously executes a read-only block in a protected dispatch queue,
     /// and returns its result.
     ///
@@ -381,7 +433,7 @@ extension DatabasePool : DatabaseReader {
         
         // The semaphore that blocks until futureResult is defined:
         let futureSemaphore = DispatchSemaphore(value: 0)
-        var futureResult: Result<T>? = nil
+        var futureResult: DatabaseResult<T>? = nil
         
         do {
             let (reader, releaseReader) = try readerPool.get()
@@ -406,7 +458,7 @@ extension DatabasePool : DatabaseReader {
                 db.schemaCache = SimpleDatabaseSchemaCache()
                 
                 // Fetch and release the future
-                futureResult = Result { try block(db) }
+                futureResult = DatabaseResult { try block(db) }
                 futureSemaphore.signal()
             }
         } catch {

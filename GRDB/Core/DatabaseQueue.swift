@@ -169,6 +169,28 @@ extension DatabaseQueue {
         }
     }
     
+    #if compiler(>=5.0)
+    /// Asynchronously executes a read-only block in a protected dispatch queue.
+    ///
+    ///     let players = try dbQueue.asyncRead { result in
+    ///         do {
+    ///             let db = try result.get()
+    ///             let count = try Player.fetchCount(db)
+    ///         } catch {
+    ///             // Handle error
+    ///         }
+    ///     }
+    ///
+    /// Starting SQLite 3.8.0 (iOS 8.2+, OSX 10.10+, custom SQLite builds and
+    /// SQLCipher), attempts to write in the database from this meethod throw a
+    /// DatabaseError of resultCode `SQLITE_READONLY`.
+    ///
+    /// - parameter block: A block that accesses the database.
+    public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
+        writer.async { block(.success($0)) }
+    }
+    #endif
+
     /// Synchronously executes a block in a protected dispatch queue, and
     /// returns its result.
     ///
@@ -204,7 +226,7 @@ extension DatabaseQueue {
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
         // DatabaseQueue can't perform parallel reads.
         // Perform a blocking read instead.
-        return DatabaseFuture(Result {
+        return DatabaseFuture(DatabaseResult {
             // Check that we're on the writer queue...
             try writer.execute { db in
                 // ... and that no transaction is opened.

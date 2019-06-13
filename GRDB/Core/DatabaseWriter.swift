@@ -388,7 +388,7 @@ public class DatabaseFuture<Value> {
         _wait = wait
     }
     
-    init(_ result: Result<Value>) {
+    init(_ result: DatabaseResult<Value>) {
         _wait = result.get
     }
     
@@ -428,6 +428,13 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
         return try base.read(block)
     }
+    
+    #if compiler(>=5.0)
+    /// :nodoc:
+    public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
+        base.asyncRead(block)
+    }
+    #endif
     
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {

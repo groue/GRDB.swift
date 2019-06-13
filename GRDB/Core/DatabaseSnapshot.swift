@@ -62,6 +62,24 @@ extension DatabaseSnapshot {
         return try serializedDatabase.sync(block)
     }
     
+    #if compiler(>=5.0)
+    /// Asynchronously executes a read-only block in a protected dispatch queue.
+    ///
+    ///     let players = try snapshot.asyncRead { result in
+    ///         do {
+    ///             let db = try result.get()
+    ///             let count = try Player.fetchCount(db)
+    ///         } catch {
+    ///             // Handle error
+    ///         }
+    ///     }
+    ///
+    /// - parameter block: A block that accesses the database.
+    public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
+        serializedDatabase.async { block(.success($0)) }
+    }
+    #endif
+    
     /// Alias for `read`. See `DatabaseReader.unsafeRead`.
     ///
     /// :nodoc:
