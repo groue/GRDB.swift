@@ -7970,6 +7970,7 @@ You can catch those errors and wait for [UIApplicationDelegate.applicationProtec
 - [Advanced DatabasePool](#advanced-databasepool)
 - [Database Snapshots](#database-snapshots)
 - [DatabaseWriter and DatabaseReader Protocols](#databasewriter-and-databasereader-protocols)
+- [Asynchronous APIs](#asynchronous-apis)
 - [Unsafe Concurrency APIs](#unsafe-concurrency-apis)
 - [Dealing with External Connections](#dealing-with-external-connections)
 
@@ -8294,9 +8295,94 @@ let component = MyReadOnlyComponent(reader: dbQueue)
 > ```
 
 
+### Asynchronous APIs
+
+**Database queues, pools, snapshots, as well as their common protocols `DatabaseReader` and `DatabaseWriter` provide asynchronous database access methods.**
+
+- **`asyncRead`**
+    
+    The `asyncRead` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue:
+    
+    ```swift
+    reader.asyncRead { result: Result<Database> in
+        try {
+            let db = try result.get()
+            let players = try Player.fetchAll(db)
+        } catch {
+            // handle error
+        }
+    }
+    ```
+    
+    The argument function accepts a standard `Result<Database, Error>` which may contain a failure if it was impossible to start a reading access to the database.
+    
+    Any attempt at modifying the database throws an error.
+    
+    When you use a [database queue](#database-queues) or a [database snapshot](#database-snapshots), the read has to wait for any eventual concurrent database access performed by this queue or snapshot to complete.
+    
+    When you use a [database pool](#database-pools), reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#databasepool-configuration).
+
+- **`asyncWrite`**
+    
+    The `asyncWrite` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue, wrapped inside a [database transaction](#transactions-and-savepoints):
+    
+    ```swift
+    writer.asyncWrite({ db: Database in
+        try Player(...).insert(db)
+    }, completion: { result: Result<Void, Error> in
+        switch result {
+        case let .success:
+            // handle transaction success
+        case let .failure(error):
+            // handle transaction error
+        }
+    })
+    ```
+    
+    `asyncWrite` accepts two function arguments. The first one executes your database updates. The second one is a completion function which accepts the result of the asynchronous transaction.
+    
+    On the first unhandled error during database updates, all changes are reverted, the whole transaction is rollbacked, and the error is passed to the completion function.
+    
+    When the transaction completes successfully, the result of the first function is contained in the standard `Result` passed to the completion function:
+    
+    ```swift
+    writer.asyncWrite({ db: Database in
+        try Player(...).insert(db)
+        return try Player.fetchCount(db)
+    }, completion: { result: Result<Int, Error> in
+        switch result {
+        case let .success(newPlayerCount):
+            // handle value and transaction success
+        case let .failure(error):
+            // handle transaction error
+        }
+    })
+    ```
+    
+    The scheduled asynchronous transaction has to wait for any eventual concurrent database write to complete before it can start.
+
+- **`asyncWriteWithoutTransaction`**
+
+    The `asyncWriteWithoutTransaction` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue, outside of any transaction:
+
+    ```swift
+    reader.asyncWriteWithoutTransaction { db in
+        try {
+            try Player(...).insert(db)
+        } catch {
+            // handle error
+        }
+    }
+    ```
+    
+    **Writing outside of any transaction is dangerous.** Please see [Transactions and Savepoints](#transactions-and-savepoints) for more information.
+    
+    The scheduled asynchronous updates have to wait for any eventual concurrent database write to complete before they can start.
+
+
 ### Unsafe Concurrency APIs
 
-**Database queues, pools, snapshots, as well as their common protocols `DatabaseReader` and `DatabaseWriter` provide *unsafe* APIs.** Unsafe APIs lift [concurrency guarantees](#guarantees-and-rules), and allow advanced yet unsafe patterns.
+**Database queues, pools, snapshots, as well as their common protocols `DatabaseReader` and `DatabaseWriter` provide *unsafe* database access methods.** Unsafe APIs lift [concurrency guarantees](#guarantees-and-rules), and allow advanced yet unsafe patterns.
 
 - **`unsafeRead`**
     
