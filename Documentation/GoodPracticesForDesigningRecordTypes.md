@@ -643,15 +643,11 @@ extension LibraryManager {
 }
 ```
 
-The `AuthorListItem`, `BookInfo`, `AuthorInfo` types returned by the manager are designed to feed your view controllers.
+The `AuthorListItem`, `BookInfo`, `AuthorInfo` types returned by the manager are designed to feed your views.
 
 When a new screen is added to your application, and you want to make sure it displays **consistent data** free from any data race, make sure you update the manager if needed. The rule is very simple: consumed data must come from a **single database access** (`dbQueue.read`, `write`, etc.)
 
-This may sound unusual. Aren't view controllers (or view models, or presenters, depending on your application architecture) supposed to freely pick and compose the pieces of data they need from a general-purpose database manager which stands passively in front of the database?
-
-Well, not quite with GRDB. It is an unmanaged ORM, so some amount of management must be imported into your application.
-
-If you happen to connect to HTTP apis sometimes, here is a way to look at it: have your database manager behave like a web server! Each method of the database manager behaves like a GET, PUT, POST or DELETE endpoint, that performs its job, only its job, and performs it well. Do you like it when a screen of your app has to feed from several HTTP requests? I personally do not, because it is more difficult, error management is tricky, etc. Well, it is the same with your database managers: don't force your screens to feed from multiple endpoints.
+In other words: since GRDB is an unmanaged ORM, some amount of management must be imported into your application.
 
 > :question: **Note**: Wrapping several fetches in a single `read` method may look like an inconvenience to you. After all, other ORMs don't require that much ceremony:
 > 
