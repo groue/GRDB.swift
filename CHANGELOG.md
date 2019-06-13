@@ -65,7 +65,9 @@ The [Define Record Requests](Documentation/GoodPracticesForDesigningRecordTypes.
 
 The [Examples of Record Definitions](README.md#examples-of-record-definitions) has been extended with a sample record optimized for fetching performance.
 
-The [ValueObservation](README.md#valueobservation) chapter has been updated with the new APIs.
+The [ValueObservation](README.md#valueobservation) chapter has been updated with new APIs for building observation, and combining observations together in order to avoid data races.
+
+The [ValueObservation Error Handling](README.md#valueobservation-error-handling) chapter explains with more details how to deal with observation errors.
 
 
 ### API Diff
