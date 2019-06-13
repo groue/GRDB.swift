@@ -58,6 +58,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#542](https://github.com/groue/GRDB.swift/pull/542): Move eager loading of hasMany associations to FetchRequest
 - [#546](https://github.com/groue/GRDB.swift/pull/546) by [@robcas3](https://github.com/robcas3): Fix SPM errors with Xcode 11 beta
 - [#549](https://github.com/groue/GRDB.swift/pull/549) Support for Combine
+- [#550](https://github.com/groue/GRDB.swift/pull/550) Asynchronous Database Access Methods
 
 ### Documentation Diff
 
