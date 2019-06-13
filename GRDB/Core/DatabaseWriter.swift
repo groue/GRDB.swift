@@ -68,7 +68,7 @@ public protocol DatabaseWriter : DatabaseReader {
     ///
     /// Eventual concurrent reads may see changes performed in the block before
     /// the block completes.
-    func unsafeAsyncWrite(_ block: @escaping (Database) -> Void)
+    func asyncWriteWithoutTransaction(_ block: @escaping (Database) -> Void)
 
     // MARK: - Reading from Database
     
@@ -238,7 +238,7 @@ extension DatabaseWriter {
             } else {
                 // Use case: observation does not start on the main queue, but
                 // has the default scheduling .mainQueue
-                unsafeAsyncWrite { db in
+                asyncWriteWithoutTransaction { db in
                     do {
                         let region = try observation.observedRegion(db)
                         var reducer = try observation.makeReducer(db)
@@ -265,7 +265,7 @@ extension DatabaseWriter {
             
         case let .async(onQueue: queue, startImmediately: startImmediately):
             // Use case: observation must not block the target queue
-            unsafeAsyncWrite { db in
+            asyncWriteWithoutTransaction { db in
                 do {
                     let region = try observation.observedRegion(db)
                     var reducer = try observation.makeReducer(db)
@@ -337,7 +337,7 @@ extension DatabaseWriter {
                 //
                 // This is unsafe because no promise is made on the dispatch
                 // queue on which the onChange and onError callbacks are called.
-                unsafeAsyncWrite { db in
+                asyncWriteWithoutTransaction { db in
                     do {
                         let region = try observation.observedRegion(db)
                         let reducer = try observation.makeReducer(db)
@@ -462,8 +462,8 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     }
     
     /// :nodoc:
-    public func unsafeAsyncWrite(_ block: @escaping (Database) -> Void) {
-        base.unsafeAsyncWrite(block)
+    public func asyncWriteWithoutTransaction(_ block: @escaping (Database) -> Void) {
+        base.asyncWriteWithoutTransaction(block)
     }
 
     // MARK: - Functions

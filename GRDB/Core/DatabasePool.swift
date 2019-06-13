@@ -555,7 +555,7 @@ extension DatabasePool : DatabaseReader {
     ///
     /// Eventual concurrent reads may see changes performed in the block before
     /// the block completes.
-    public func unsafeAsyncWrite(_ block: @escaping (Database) -> Void) {
+    public func asyncWriteWithoutTransaction(_ block: @escaping (Database) -> Void) {
         writer.async(block)
     }
     

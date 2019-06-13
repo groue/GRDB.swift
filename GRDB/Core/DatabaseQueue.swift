@@ -320,7 +320,7 @@ extension DatabaseQueue {
         return try writer.reentrantSync(block)
     }
     
-    public func unsafeAsyncWrite(_ block: @escaping (Database) -> Void) {
+    public func asyncWriteWithoutTransaction(_ block: @escaping (Database) -> Void) {
         writer.async(block)
     }
     
