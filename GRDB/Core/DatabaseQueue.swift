@@ -187,7 +187,9 @@ extension DatabaseQueue {
     ///
     /// - parameter block: A block that accesses the database.
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
-        writer.async { block(.success($0)) }
+        writer.async { db in
+            db.readOnly { block(.success(db)) }
+        }
     }
     #endif
 
