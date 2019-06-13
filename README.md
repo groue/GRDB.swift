@@ -8321,6 +8321,8 @@ let component = MyReadOnlyComponent(reader: dbQueue)
     When you use a [database queue](#database-queues) or a [database snapshot](#database-snapshots), the read has to wait for any eventual concurrent database access performed by this queue or snapshot to complete.
     
     When you use a [database pool](#database-pools), reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#databasepool-configuration).
+    
+    > :point_up: **Note**: because it uses the standard `Result` type, `asyncRead` is only available with a Swift 5+ compiler, starting Xcode 10.2.
 
 - **`asyncWrite`**
     
@@ -8360,13 +8362,15 @@ let component = MyReadOnlyComponent(reader: dbQueue)
     ```
     
     The scheduled asynchronous transaction has to wait for any eventual concurrent database write to complete before it can start.
+    
+    > :point_up: **Note**: because it uses the standard `Result` type, `asyncWrite` is only available with a Swift 5+ compiler, starting Xcode 10.2.
 
 - **`asyncWriteWithoutTransaction`**
 
     The `asyncWriteWithoutTransaction` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue, outside of any transaction:
 
     ```swift
-    reader.asyncWriteWithoutTransaction { db in
+    writer.asyncWriteWithoutTransaction { db in
         try {
             try Player(...).insert(db)
         } catch {
