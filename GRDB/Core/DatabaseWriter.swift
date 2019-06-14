@@ -518,6 +518,7 @@ public final class AnyDatabaseWriter : DatabaseWriter {
         self.base = base
     }
     
+    /// :nodoc:
     public var configuration: Configuration {
         return base.configuration
     }

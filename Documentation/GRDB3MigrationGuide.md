@@ -46,10 +46,13 @@ To guarantee asynchronous notifications, and never ever block your main thread, 
 // On main queue
 var observation = Player.observationForAll()
 observation.scheduling = .async(onQueue: .main, startImmediately: true)
-let observer = try observation.start(in: dbQueue) { (players: [Player]) in
-    // On main queue
-    print("fresh players: \(players)")s
-}
+let observer = try observation.start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange: { (players: [Player]) in
+        // On main queue
+        print("fresh players: \(players)")s
+    })
 // <- here "fresh players" is not printed yet.
 ```
 

@@ -53,7 +53,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 - [#537](https://github.com/groue/GRDB.swift/pull/537): Remove useless parenthesis from generated SQL
 - [#538](https://github.com/groue/GRDB.swift/pull/538) by [@Timac](https://github.com/Timac): Add FAQ to clarify "Wrong number of statement arguments" error with "like '%?%'"
-- [#539](https://github.com/groue/GRDB.swift/pull/539): Expose joining methods of both requests and associations
+- [#539](https://github.com/groue/GRDB.swift/pull/539): Expose joining methods on both requests and associations
 - [#540](https://github.com/groue/GRDB.swift/pull/540): Update SQLite to 3.28.0 (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib))
 - [#542](https://github.com/groue/GRDB.swift/pull/542): Move eager loading of hasMany associations to FetchRequest
 - [#546](https://github.com/groue/GRDB.swift/pull/546) by [@robcas3](https://github.com/robcas3): Fix SPM errors with Xcode 11 beta
@@ -73,19 +73,110 @@ The [ValueObservation Error Handling](README.md#valueobservation-error-handling)
 
 ### API Diff
 
+<details>
+    <summary>Asynchronous database access methods</summary>
+
+```diff
+ protocol DatabaseReader {
++    #if compiler(>=5.0)
++    func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void)
++    #endif
+ }
+ 
+ protocol DatabaseWriter {
++    var configuration: Configuration { get }
++    func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void)
++    #if compiler(>=5.0)
++    func asyncWrite<T>(_ updates: @escaping (Database) throws -> T, completion: @escaping (Database, Result<T, Error>) -> Void)
++    #endif
+ }
+```
+
+</details>
+
+<details>
+    <summary>ValueObservation changes</summary>
+
+```diff
++extension FetchRequest {
++    func observationForCount() -> ValueObservation<...>
++}
++extension FetchRequest where RowDecoder: ... {
++    func observationForAll() -> ValueObservation<...>
++    func observationForFirst() -> ValueObservation<...>
++)
++extension TableRecord {
++    static func observationForCount() -> ValueObservation<...>
++    static func observationForAll() -> ValueObservation<...>
++    static func observationForFirst() -> ValueObservation<...>
++}
+ extension ValueObservation where ... {
++    @available(*, deprecated)
+     static func trackingCount<Request: FetchRequest>(_ request: Request) -> ValueObservation<...>
++    @available(*, deprecated)
+     static func trackingAll<Request: FetchRequest>(_ request: Request) -> ValueObservation<...>
++    @available(*, deprecated)
+     static func trackingOne<Request: FetchRequest>(_ request: Request) -> ValueObservation<...>
+ }
+ extension ValueObservation where Reducer: ValueReducer {
+-    func start(in reader: DatabaseReader, onError: ((Error) -> Void)? = nil, onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
++    func start(in reader: DatabaseReader, onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
++    func start(in reader: DatabaseReader, onError: @escaping (Error) -> Void, onChange: @escaping (Reducer.Value) -> Void) -> TransactionObserver
++    func combine<..., Combined>(..., transform: @escaping (...) -> Combined) -> ValueObservation<...>
+ }
+ extension ValueObservation where Reducer: ValueReducer, Reducer.Value: Equatable {
++    @available(*, deprecated)
+     func distinctUntilChanged() -> ValueObservation<...>
++    func removeDuplicates() -> ValueObservation<...>
+ }
+```
+
+The core FetchRequest preparation method is now `preparedRequest(_:forSingleResult:)`. The former core method `prepare(_:forSingleResult:)` will remain a requirement of the FetchRequest protocol until GRDB 5 due to semantic versioning constraints. Both methods are provided with a default implementation which makes each one depend on the other: this creates an infinite loop unless you provide at least one of them. If you have a choice, prefer `preparedRequest(_:forSingleResult:)`.
+
+</details>
+
+<details>
+    <summary>Joining methods on both requests and associations</summary>
+
+```diff
++protocol JoinableRequest {
++    associatedtype RowDecoder
++}
++
++extension JoinableRequest {
++    func including<A: AssociationToMany>(all association: A) -> Self where A.OriginRowDecoder == RowDecoder
++    func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder
++    func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder
++    func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder
++    func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder
++}
+
+-protocol DerivableRequest: SelectionRequest, FilteredRequest, OrderedRequest { }
++protocol DerivableRequest: SelectionRequest, FilteredRequest, OrderedRequest, JoinableRequest { }
+```
+
+</details>
+
+<details>
+    <summary>Miscellaneous changes</summary>
+
 ```diff
 +struct PreparedRequest {
 +    var statement: SelectStatement
 +    var adapter: RowAdapter?
 +    init(statement: SelectStatement, adapter: RowAdapter? = nil)
 +}
- 
+
  protocol FetchRequest {
 +    // deprecated
      func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
 +    func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
  }
 ```
+
+The core FetchRequest preparation method is now `preparedRequest(_:forSingleResult:)`. The former core method `prepare(_:forSingleResult:)` will remain a requirement of the FetchRequest protocol until GRDB 5 due to semantic versioning constraints. Both methods are provided with a default implementation which makes each one depend on the other: this creates an infinite loop unless you provide at least one of them. If you have a choice, prefer `preparedRequest(_:forSingleResult:)`.
+
+</details>
 
 
 ## 4.0.1

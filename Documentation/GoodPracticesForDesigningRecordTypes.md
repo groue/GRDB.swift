@@ -158,7 +158,7 @@ When your record type is a [Codable Record], derive columns from the [CodingKeys
 // For a codable record
 extension Author {
     // Define database columns from CodingKeys
-    fileprivate enum Columns {
+    enum Columns {
         static let id = Column(CodingKeys.id)
         static let name = Column(CodingKeys.name)
         static let country = Column(CodingKeys.country)
@@ -172,13 +172,11 @@ Otherwise, declare a plain String enum that conforms to the ColumnExpression pro
 // For a non-codable record
 extension Author {
     // Define database columns as an enum
-    fileprivate enum Columns: String, ColumnExpression {
+    enum Columns: String, ColumnExpression {
         case id, name, country
     }
 }
 ```
-
-Note that those Columns enum are declared `fileprivate`, because we prefer hiding them as much as possible from the rest of the application.
 
 > :bulb: **Tip**: Define commonly used requests in a constrained extension of the `DerivableRequest` protocol.
 
@@ -223,7 +221,7 @@ try dbQueue.read { db in
 }
 ```
 
-Those methods are also available on record associations, because associations also conform to the `DerivableRequest` protocol:
+Those customized request methods are also available on record associations, because associations conform to the `DerivableRequest` protocol:
 
 ```swift
 // Some requests of Book
@@ -268,7 +266,7 @@ try dbQueue.read { db in
 }
 ```
 
-Finally, when it happens that a request only makes sense when defined on the Record type itself, just go ahead and define a static method on your Record type:
+Finally, when it happens that a request only makes sense when defined on the Record type itself, just go ahead and define a static method or property of your Record type:
 
 ```swift
 extension MySingletonRecord {
@@ -645,9 +643,9 @@ extension LibraryManager {
 
 The `AuthorListItem`, `BookInfo`, `AuthorInfo` types returned by the manager are designed to feed your views.
 
-When a new screen is added to your application, and you want to make sure it displays **consistent data** free from any data race, make sure you update the manager if needed. The rule is very simple: consumed data must come from a **single database access** (`dbQueue.read`, `write`, etc.)
+When a new screen is added to your application, and you want to make sure it displays **consistent data** free from any data race, make sure you update the manager if needed. The rule is very simple: consumed data must come from a **single** database access method (`dbQueue.read`, `write`, etc.), or [ValueObservation].
 
-In other words: since GRDB is an unmanaged ORM, some amount of management must be imported into your application.
+In other words: since GRDB is an unmanaged ORM, some amount of management must be imported into your application in order to make it fully thread-safe.
 
 > :question: **Note**: Wrapping several fetches in a single `read` method may look like an inconvenience to you. After all, other ORMs don't require that much ceremony:
 > 

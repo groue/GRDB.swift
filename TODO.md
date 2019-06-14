@@ -45,7 +45,6 @@
 - [ ] FTS: prefix queries
 - [ ] Test NOT TESTED methods
 - [ ] A way to stop a ValueObservation observer without waiting for deinit
-- [ ] Add async read and writes. Useful for GRDBCombine+RxGRDB.
 - [ ] Glossary (Database Access Methods, etc.)
 - [ ] One use case for query interface updates that is uneasy to deal with raw SQL:
     

@@ -238,10 +238,10 @@ extension Player {
 let player = try Player.filter(name: "Arthur O'Brien").fetchOne(db)
 ```
 
-Custom SQL requests as the one above are welcome in database observation tools like [ValueObservation], [GRDBCombine] and [RxGRDB]:
+Custom SQL requests as the one above are welcome in database observation tools like the built-in [ValueObservation], or the companion libraries [GRDBCombine] and [RxGRDB]:
 
 ```swift
-// RxSwift
+// RxGRDB
 Player.filter(name: "Arthur O'Brien").rx
     .fetchOne(in: dbQueue)
     .subscribe(onNext: { (player: Player?) in
