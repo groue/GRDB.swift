@@ -8304,7 +8304,7 @@ let component = MyReadOnlyComponent(reader: dbQueue)
     The `asyncRead` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue:
     
     ```swift
-    reader.asyncRead { result: Result<Database> in
+    reader.asyncRead { (result: Result<Database>) in
         try {
             let db = try result.get()
             let players = try Player.fetchAll(db)
@@ -8329,9 +8329,9 @@ let component = MyReadOnlyComponent(reader: dbQueue)
     The `asyncWrite` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue, wrapped inside a [database transaction](#transactions-and-savepoints):
     
     ```swift
-    writer.asyncWrite({ db: Database in
+    writer.asyncWrite({ (db: Database) in
         try Player(...).insert(db)
-    }, completion: { result: Result<Void, Error> in
+    }, completion: { (db: Database, result: Result<Void, Error>) in
         switch result {
         case let .success:
             // handle transaction success
@@ -8341,20 +8341,20 @@ let component = MyReadOnlyComponent(reader: dbQueue)
     })
     ```
     
-    `asyncWrite` accepts two function arguments. The first one executes your database updates. The second one is a completion function which accepts the result of the asynchronous transaction.
+    `asyncWrite` accepts two function arguments. The first one executes your database updates. The second one is a completion function which accepts a database connection and the result of the asynchronous transaction.
     
     On the first unhandled error during database updates, all changes are reverted, the whole transaction is rollbacked, and the error is passed to the completion function.
     
     When the transaction completes successfully, the result of the first function is contained in the standard `Result` passed to the completion function:
     
     ```swift
-    writer.asyncWrite({ db: Database in
+    writer.asyncWrite({ (db: Database) in
         try Player(...).insert(db)
         return try Player.fetchCount(db)
-    }, completion: { result: Result<Int, Error> in
+    }, completion: { (db: Database, result: Result<Int, Error>) in
         switch result {
         case let .success(newPlayerCount):
-            // handle value and transaction success
+            print("new player count: \(newPlayerCount)")
         case let .failure(error):
             // handle transaction error
         }
@@ -8370,7 +8370,7 @@ let component = MyReadOnlyComponent(reader: dbQueue)
     The `asyncWriteWithoutTransaction` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue, outside of any transaction:
 
     ```swift
-    writer.asyncWriteWithoutTransaction { db in
+    writer.asyncWriteWithoutTransaction { (db: Database) in
         try {
             try Player(...).insert(db)
         } catch {

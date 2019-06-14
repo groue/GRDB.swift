@@ -63,8 +63,9 @@ public protocol DatabaseWriter : DatabaseReader {
     /// If the updates throw an error, the transaction is rollbacked.
     ///
     /// The *completion* closure is always called with the result of the
-    /// database updates. Its argument is a failure if the transaction could not
-    /// be committed.
+    /// database updates. Its arguments are a database connection and the
+    /// result of the transaction. This result is a failure if the transaction
+    /// could not be committed.
     ///
     /// Eventual concurrent database updates are postponed until the transaction
     /// and the *completion* closure have completed.
@@ -78,7 +79,7 @@ public protocol DatabaseWriter : DatabaseReader {
     /// - parameter completion: A closure that is called with the eventual
     ///   transaction error.
     /// - throws: The error thrown by the updates, or by the wrapping transaction.
-    func asyncWrite<T>(_ updates: @escaping (Database) throws -> T, completion: @escaping (Result<T, Error>) -> Void)
+    func asyncWrite<T>(_ updates: @escaping (Database) throws -> T, completion: @escaping (Database, Result<T, Error>) -> Void)
     #endif
 
     /// Asynchronously executes database updates in a protected dispatch queue,
@@ -175,8 +176,10 @@ extension DatabaseWriter {
     /// If the updates throw an error, the transaction is rollbacked.
     ///
     /// The *completion* closure is always called with the result of the
-    /// database updates. Its argument is a failure if the transaction could not
-    /// be committed.
+    /// database updates. Its arguments are a database connection and the
+    /// result of the transaction. This result is a failure if the transaction
+    /// could not be committed. The completion closure is executed in a
+    /// protected dispatch queue, outside of any transaction.
     ///
     /// Eventual concurrent database updates are postponed until the transaction
     /// and the *completion* closure have completed.
@@ -190,7 +193,7 @@ extension DatabaseWriter {
     /// - parameter completion: A closure that is called with the eventual
     ///   transaction error.
     /// - throws: The error thrown by the updates, or by the wrapping transaction.
-    public func asyncWrite<T>(_ updates: @escaping (Database) throws -> T, completion: @escaping (Result<T, Error>) -> Void) {
+    public func asyncWrite<T>(_ updates: @escaping (Database) throws -> T, completion: @escaping (Database, Result<T, Error>) -> Void) {
         asyncWriteWithoutTransaction { db in
             do {
                 var result: T?
@@ -198,9 +201,9 @@ extension DatabaseWriter {
                     result = try updates(db)
                     return .commit
                 }
-                completion(.success(result!))
+                completion(db, .success(result!))
             } catch {
-                completion(.failure(error))
+                completion(db, .failure(error))
             }
         }
     }
@@ -562,7 +565,7 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     
     #if compiler(>=5.0)
     /// :nodoc:
-    public func asyncWrite<T>(_ updates: @escaping (Database) throws -> T, completion: @escaping (Result<T, Error>) -> Void) {
+    public func asyncWrite<T>(_ updates: @escaping (Database) throws -> T, completion: @escaping (Database, Result<T, Error>) -> Void) {
         base.asyncWrite(updates, completion: completion)
     }
     #endif

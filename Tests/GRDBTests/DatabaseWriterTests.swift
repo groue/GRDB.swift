@@ -102,7 +102,8 @@ class DatabaseWriterTests : GRDBTestCase {
                 // Make sure this block executes asynchronously
                 semaphore.wait()
                 try db.execute(sql: "CREATE TABLE testAsyncWrite (a)")
-            }, completion: { result in
+            }, completion: { db, result in
+                XCTAssertFalse(db.isInsideTransaction)
                 switch result {
                 case .success:
                     break
@@ -132,7 +133,8 @@ class DatabaseWriterTests : GRDBTestCase {
                 // Make sure this block executes asynchronously
                 semaphore.wait()
                 try db.execute(sql: "This is not SQL")
-            }, completion: { result in
+            }, completion: { db, result in
+                XCTAssertFalse(db.isInsideTransaction)
                 switch result {
                 case .success:
                     XCTFail("Expected error")
