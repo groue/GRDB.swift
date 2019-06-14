@@ -8379,7 +8379,7 @@ let component = MyReadOnlyComponent(reader: dbQueue)
     }
     ```
     
-    **Writing outside of any transaction is dangerous.** Please see [Transactions and Savepoints](#transactions-and-savepoints) for more information.
+    **Writing outside of any transaction is dangerous.** You should almost always prefer the `asyncWrite` method described above. Please see [Transactions and Savepoints](#transactions-and-savepoints) for more information.
     
     The scheduled asynchronous updates have to wait for any eventual concurrent database write to complete before they can start.
 
