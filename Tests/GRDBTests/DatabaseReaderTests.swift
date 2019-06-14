@@ -72,4 +72,60 @@ class DatabaseReaderTests : GRDBTestCase {
         let reader: DatabaseReader = DatabaseQueue()
         let _: DatabaseReader = AnyDatabaseReader(reader)
     }
+    
+    #if compiler(>=5.0)
+    func testAsyncRead() throws {
+        func test(_ dbReader: DatabaseReader) throws {
+            let expectation = self.expectation(description: "updates")
+            let semaphore = DispatchSemaphore(value: 0)
+            var count: Int?
+            dbReader.asyncRead { db in
+                // Make sure this block executes asynchronously
+                semaphore.wait()
+                do {
+                    count = try Int.fetchOne(db.get(), sql: "SELECT COUNT(*) FROM sqlite_master")
+                } catch {
+                    XCTFail("Unexpected error: \(error)")
+                }
+                expectation.fulfill()
+            }
+            semaphore.signal()
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertNotNil(count)
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+        try test(makeDatabasePool().makeSnapshot())
+    }
+    #endif
+    
+    #if compiler(>=5.0)
+    func testAsyncReadPreventsDatabaseModification() throws {
+        func test(_ dbReader: DatabaseReader) throws {
+            let expectation = self.expectation(description: "updates")
+            let semaphore = DispatchSemaphore(value: 0)
+            dbReader.asyncRead { db in
+                // Make sure this block executes asynchronously
+                semaphore.wait()
+                do {
+                    try db.get().execute(sql: "CREATE TABLE testAsyncReadPreventsDatabaseModification (a)")
+                    XCTFail("Expected error")
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.resultCode, .SQLITE_READONLY)
+                } catch {
+                    XCTFail("Unexpected error: \(error)")
+                }
+                expectation.fulfill()
+            }
+            semaphore.signal()
+            waitForExpectations(timeout: 1, handler: nil)
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+        try test(makeDatabasePool().makeSnapshot())
+    }
+    #endif
 }

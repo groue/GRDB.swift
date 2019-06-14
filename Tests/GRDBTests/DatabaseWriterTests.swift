@@ -43,6 +43,119 @@ class DatabaseWriterTests : GRDBTestCase {
         }
     }
     
+    func testAsyncWriteWithoutTransactionSuccess() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            let expectation = self.expectation(description: "updates")
+            let semaphore = DispatchSemaphore(value: 0)
+            dbWriter.asyncWriteWithoutTransaction { db in
+                // Make sure this block executes asynchronously
+                semaphore.wait()
+                do {
+                    try db.execute(sql: "CREATE TABLE testAsyncWriteWithoutTransaction (a)")
+                } catch {
+                    XCTFail("Unexpected error: \(error)")
+                }
+                expectation.fulfill()
+            }
+            semaphore.signal()
+
+            waitForExpectations(timeout: 1, handler: nil)
+            let tableExists = try dbWriter.read { try $0.tableExists("testAsyncWriteWithoutTransaction") }
+            XCTAssertTrue(tableExists)
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
+    
+    func testAsyncWriteWithoutTransactionError() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            let expectation = self.expectation(description: "updates")
+            let semaphore = DispatchSemaphore(value: 0)
+            dbWriter.asyncWriteWithoutTransaction { db in
+                // Make sure this block executes asynchronously
+                semaphore.wait()
+                do {
+                    try db.execute(sql: "This is not SQL")
+                    XCTFail("Expected error")
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.sql, "This is not SQL")
+                } catch {
+                    XCTFail("Unexpected error: \(error)")
+                }
+                expectation.fulfill()
+            }
+            semaphore.signal()
+            waitForExpectations(timeout: 1, handler: nil)
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
+    
+    #if compiler(>=5.0)
+    func testAsyncWriteSuccess() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            let expectation = self.expectation(description: "updates")
+            let semaphore = DispatchSemaphore(value: 0)
+            dbWriter.asyncWrite({ db in
+                // Make sure this block executes asynchronously
+                semaphore.wait()
+                try db.execute(sql: "CREATE TABLE testAsyncWrite (a)")
+            }, completion: { db, result in
+                XCTAssertFalse(db.isInsideTransaction)
+                switch result {
+                case .success:
+                    break
+                case let .failure(error):
+                    XCTFail("Unexpected error: \(error)")
+                }
+                expectation.fulfill()
+            })
+            semaphore.signal()
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            let tableExists = try dbWriter.read { try $0.tableExists("testAsyncWrite") }
+            XCTAssertTrue(tableExists)
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
+    #endif
+    
+    #if compiler(>=5.0)
+    func testAsyncWriteError() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            let expectation = self.expectation(description: "updates")
+            let semaphore = DispatchSemaphore(value: 0)
+            dbWriter.asyncWrite({ db in
+                // Make sure this block executes asynchronously
+                semaphore.wait()
+                try db.execute(sql: "This is not SQL")
+            }, completion: { db, result in
+                XCTAssertFalse(db.isInsideTransaction)
+                switch result {
+                case .success:
+                    XCTFail("Expected error")
+                case let .failure(error):
+                    if let error = error as? DatabaseError {
+                        XCTAssertEqual(error.sql, "This is not SQL")
+                    } else {
+                        XCTFail("Unexpected error: \(error)")
+                    }
+                }
+                expectation.fulfill()
+            })
+            semaphore.signal()
+            waitForExpectations(timeout: 1, handler: nil)
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
+    #endif
+
     func testAnyDatabaseWriter() {
         // This test passes if this code compiles.
         let writer: DatabaseWriter = DatabaseQueue()

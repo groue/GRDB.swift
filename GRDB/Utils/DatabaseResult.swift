@@ -1,7 +1,7 @@
 #if compiler(>=5.0)
-typealias Result<Success> = Swift.Result<Success, Error>
+typealias DatabaseResult<Success> = Swift.Result<Success, Error>
 #else
-enum Result<Success> {
+enum DatabaseResult<Success> {
     case success(Success)
     case failure(Error)
     
@@ -13,7 +13,7 @@ enum Result<Success> {
         }
     }
     
-    func map<T>(_ transform: (Success) -> T) -> Result<T> {
+    func map<T>(_ transform: (Success) -> T) -> DatabaseResult<T> {
         switch self {
         case .success(let success):
             return .success(transform(success))

@@ -21,54 +21,86 @@ public protocol DatabaseWriter : DatabaseReader {
     var configuration: Configuration { get }
     
     // MARK: - Writing in Database
-    
-    /// Synchronously executes a block that takes a database connection, and
-    /// returns its result.
+
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// wrapped inside a transaction, and returns the result.
     ///
-    /// Eventual concurrent database updates are postponed until the block
-    /// has executed.
+    /// If the updates throw an error, the transaction is rollbacked and the
+    /// error is rethrown.
     ///
-    /// Eventual concurrent reads are guaranteed not to see any changes
-    /// performed in the block until they are all saved in the database.
+    /// Eventual concurrent database updates are postponed until the transaction
+    /// has completed.
     ///
-    /// The block may, or may not, be wrapped inside a transaction.
-    ///
-    /// This method is *not* reentrant.
-    func write<T>(_ block: (Database) throws -> T) throws -> T
-    
-    /// Synchronously executes a block that takes a database connection, and
-    /// returns its result.
-    ///
-    /// Eventual concurrent database updates are postponed until the block
-    /// has executed.
-    ///
-    /// Eventual concurrent reads may see changes performed in the block before
-    /// the block completes.
-    ///
-    /// The block is guaranteed to be executed outside of a transaction.
+    /// Eventual concurrent reads are guaranteed to not see any partial updates
+    /// of the database until the transaction has completed.
     ///
     /// This method is *not* reentrant.
-    func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T
+    ///
+    /// - parameter updates: The updates to the database.
+    /// - throws: The error thrown by the updates, or by the
+    ///   wrapping transaction.
+    func write<T>(_ updates: (Database) throws -> T) throws -> T
     
-    /// Synchronously executes a block that takes a database connection, and
-    /// returns its result.
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
     ///
-    /// Eventual concurrent database updates are postponed until the block
-    /// has executed.
+    /// Eventual concurrent database updates are postponed until the updates
+    /// are completed.
     ///
-    /// Eventual concurrent reads may see changes performed in the block before
-    /// the block completes.
+    /// Eventual concurrent reads may see partial updates unless you wrap them
+    /// in a transaction.
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter updates: The updates to the database.
+    /// - throws: The error thrown by the updates.
+    func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T
+    
+    #if compiler(>=5.0)
+    /// Asynchronously executes database updates in a protected dispatch queue,
+    /// wrapped inside a transaction.
+    ///
+    /// If the updates throw an error, the transaction is rollbacked.
+    ///
+    /// The *completion* closure is always called with the result of the
+    /// database updates. Its arguments are a database connection and the
+    /// result of the transaction. This result is a failure if the transaction
+    /// could not be committed.
+    ///
+    /// Eventual concurrent database updates are postponed until the transaction
+    /// and the *completion* closure have completed.
+    ///
+    /// Eventual concurrent reads are guaranteed to not see any partial updates
+    /// of the database until the transaction has completed.
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter updates: The updates to the database.
+    /// - parameter completion: A closure that is called with the eventual
+    ///   transaction error.
+    /// - throws: The error thrown by the updates, or by the wrapping transaction.
+    func asyncWrite<T>(_ updates: @escaping (Database) throws -> T, completion: @escaping (Database, Result<T, Error>) -> Void)
+    #endif
+
+    /// Asynchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction.
+    ///
+    /// Eventual concurrent reads may see partial updates unless you wrap them
+    /// in a transaction.
+    func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void)
+
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
+    ///
+    /// Eventual concurrent database updates are postponed until the updates
+    /// are completed.
+    ///
+    /// Eventual concurrent reads may see partial updates unless you wrap them
+    /// in a transaction.
     ///
     /// This method is reentrant. It should be avoided because it fosters
     /// dangerous concurrency practices.
-    func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T
-    
-    /// Asynchronously executes a block that takes a database connection, and
-    /// returns its result.
-    ///
-    /// Eventual concurrent reads may see changes performed in the block before
-    /// the block completes.
-    func asyncWriteWithoutTransaction(_ block: @escaping (Database) -> Void)
+    func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T
 
     // MARK: - Reading from Database
     
@@ -108,6 +140,74 @@ public protocol DatabaseWriter : DatabaseReader {
 }
 
 extension DatabaseWriter {
+
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// wrapped inside a transaction, and returns the result.
+    ///
+    /// If the updates throw an error, the transaction is rollbacked and the
+    /// error is rethrown.
+    ///
+    /// Eventual concurrent database updates are postponed until the transaction
+    /// has completed.
+    ///
+    /// Eventual concurrent reads are guaranteed to not see any partial updates
+    /// of the database until the transaction has completed.
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter updates: The updates to the database.
+    /// - throws: The error thrown by the updates, or by the
+    ///   wrapping transaction.
+    public func write<T>(_ updates: (Database) throws -> T) throws -> T {
+        return try writeWithoutTransaction { db in
+            var result: T?
+            try db.inTransaction {
+                result = try updates(db)
+                return .commit
+            }
+            return result!
+        }
+    }
+    
+    #if compiler(>=5.0)
+    /// Asynchronously executes database updates in a protected dispatch queue,
+    /// wrapped inside a transaction.
+    ///
+    /// If the updates throw an error, the transaction is rollbacked.
+    ///
+    /// The *completion* closure is always called with the result of the
+    /// database updates. Its arguments are a database connection and the
+    /// result of the transaction. This result is a failure if the transaction
+    /// could not be committed. The completion closure is executed in a
+    /// protected dispatch queue, outside of any transaction.
+    ///
+    /// Eventual concurrent database updates are postponed until the transaction
+    /// and the *completion* closure have completed.
+    ///
+    /// Eventual concurrent reads are guaranteed to not see any partial updates
+    /// of the database until the transaction has completed.
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter updates: The updates to the database.
+    /// - parameter completion: A closure that is called with the eventual
+    ///   transaction error.
+    /// - throws: The error thrown by the updates, or by the wrapping transaction.
+    public func asyncWrite<T>(_ updates: @escaping (Database) throws -> T, completion: @escaping (Database, Result<T, Error>) -> Void) {
+        asyncWriteWithoutTransaction { db in
+            do {
+                var result: T?
+                try db.inTransaction {
+                    result = try updates(db)
+                    return .commit
+                }
+                completion(db, .success(result!))
+            } catch {
+                completion(db, .failure(error))
+            }
+        }
+    }
+    #endif
     
     // MARK: - Transaction Observers
     
@@ -388,7 +488,7 @@ public class DatabaseFuture<Value> {
         _wait = wait
     }
     
-    init(_ result: Result<Value>) {
+    init(_ result: DatabaseResult<Value>) {
         _wait = result.get
     }
     
@@ -429,6 +529,13 @@ public final class AnyDatabaseWriter : DatabaseWriter {
         return try base.read(block)
     }
     
+    #if compiler(>=5.0)
+    /// :nodoc:
+    public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
+        base.asyncRead(block)
+    }
+    #endif
+    
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
         return try base.unsafeRead(block)
@@ -447,23 +554,30 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     // MARK: - Writing in Database
     
     /// :nodoc:
-    public func write<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.write(block)
+    public func write<T>(_ updates: (Database) throws -> T) throws -> T {
+        return try base.write(updates)
     }
     
     /// :nodoc:
-    public func writeWithoutTransaction<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try base.writeWithoutTransaction(block)
+    public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
+        return try base.writeWithoutTransaction(updates)
     }
     
+    #if compiler(>=5.0)
     /// :nodoc:
-    public func unsafeReentrantWrite<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try base.unsafeReentrantWrite(block)
+    public func asyncWrite<T>(_ updates: @escaping (Database) throws -> T, completion: @escaping (Database, Result<T, Error>) -> Void) {
+        base.asyncWrite(updates, completion: completion)
     }
+    #endif
     
     /// :nodoc:
-    public func asyncWriteWithoutTransaction(_ block: @escaping (Database) -> Void) {
-        base.asyncWriteWithoutTransaction(block)
+    public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+        base.asyncWriteWithoutTransaction(updates)
+    }
+
+    /// :nodoc:
+    public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
+        return try base.unsafeReentrantWrite(updates)
     }
 
     // MARK: - Functions

@@ -40,7 +40,7 @@ extension ValueReducer {
     func fetchFuture(_ db: Database, writer: DatabaseWriter, requiringWriteAccess: Bool) -> DatabaseFuture<Fetched> {
         if requiringWriteAccess {
             // Synchronous fetch
-            return DatabaseFuture(Result {
+            return DatabaseFuture(DatabaseResult {
                 var fetchedValue: Fetched!
                 try db.inTransaction {
                     fetchedValue = try fetch(db)
