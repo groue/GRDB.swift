@@ -23,6 +23,9 @@
 /// [busy handler](https://www.sqlite.org/c3ref/busy_handler.html).
 public protocol DatabaseReader : class {
     
+    /// The database configuration
+    var configuration: Configuration { get }
+    
     // MARK: - Read From Database
     
     /// Synchronously executes a read-only block that takes a database
@@ -236,6 +239,11 @@ public final class AnyDatabaseReader : DatabaseReader {
     /// Creates a database reader that wraps a base database reader.
     public init(_ base: DatabaseReader) {
         self.base = base
+    }
+    
+    /// :nodoc:
+    public var configuration: Configuration {
+        return base.configuration
     }
     
     // MARK: - Reading from Database

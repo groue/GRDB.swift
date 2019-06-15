@@ -17,9 +17,6 @@ import Dispatch
 /// [busy handler](https://www.sqlite.org/c3ref/busy_handler.html).
 public protocol DatabaseWriter : DatabaseReader {
     
-    /// The database configuration
-    var configuration: Configuration { get }
-    
     // MARK: - Writing in Database
 
     /// Synchronously executes database updates in a protected dispatch queue,

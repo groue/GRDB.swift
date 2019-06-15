@@ -10,7 +10,7 @@ public class DatabaseSnapshot : DatabaseReader {
     private var serializedDatabase: SerializedDatabase
     
     /// The database configuration
-    var configuration: Configuration {
+    public var configuration: Configuration {
         return serializedDatabase.configuration
     }
     

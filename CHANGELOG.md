@@ -78,14 +78,16 @@ The [ValueObservation Error Handling](README.md#valueobservation-error-handling)
 
 ```diff
  protocol DatabaseReader {
++    var configuration: Configuration { get }
++
 +    #if compiler(>=5.0)
 +    func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void)
 +    #endif
  }
  
  protocol DatabaseWriter {
-+    var configuration: Configuration { get }
 +    func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void)
++
 +    #if compiler(>=5.0)
 +    func asyncWrite<T>(_ updates: @escaping (Database) throws -> T, completion: @escaping (Database, Result<T, Error>) -> Void)
 +    #endif
