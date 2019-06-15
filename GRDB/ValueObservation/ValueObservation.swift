@@ -211,6 +211,9 @@ extension ValueObservation where Reducer: ValueReducer {
 
     // MARK: - Fetching Values
     
+    // Exposed for RxGRDB and GRDBCombine
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
     /// Returns the observed value.
     ///
     /// This method returns nil if observation would not notify any
@@ -226,9 +229,11 @@ extension ValueObservation where Reducer: ValueReducer {
     /// The `fetchFirst` method thus returns nil if player does not exist:
     ///
     ///     let player: Player? = try dbQueue.read { db in
-    ///         try observation.fetchFirst(db)
+    ///         try observation.fetch(db)
     ///     }
-    func fetchFirst(_ db: Database) throws -> Reducer.Value? {
+    ///
+    /// :nodoc:
+    public func fetch(_ db: Database) throws -> Reducer.Value? {
         var reducer = try makeReducer(db)
         return try reducer.value(reducer.fetch(db, requiringWriteAccess: requiresWriteAccess))
     }

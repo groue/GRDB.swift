@@ -42,6 +42,11 @@ extension ValueReducers {
     }
 }
 
+extension ValueReducers.Combine2: ImmediateValueReducer where
+    R1: ImmediateValueReducer,
+    R2: ImmediateValueReducer
+{ }
+
 extension ValueObservation where Reducer == Void {
     public static func combine<
         R1: ValueReducer,
@@ -123,6 +128,12 @@ extension ValueReducers {
         }
     }
 }
+
+extension ValueReducers.Combine3: ImmediateValueReducer where
+    R1: ImmediateValueReducer,
+    R2: ImmediateValueReducer,
+    R3: ImmediateValueReducer
+{ }
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
@@ -224,6 +235,13 @@ extension ValueReducers {
         }
     }
 }
+
+extension ValueReducers.Combine4: ImmediateValueReducer where
+    R1: ImmediateValueReducer,
+    R2: ImmediateValueReducer,
+    R3: ImmediateValueReducer,
+    R4: ImmediateValueReducer
+{ }
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
@@ -340,6 +358,14 @@ extension ValueReducers {
         }
     }
 }
+
+extension ValueReducers.Combine5: ImmediateValueReducer where
+    R1: ImmediateValueReducer,
+    R2: ImmediateValueReducer,
+    R3: ImmediateValueReducer,
+    R4: ImmediateValueReducer,
+    R5: ImmediateValueReducer
+{ }
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
@@ -472,6 +498,15 @@ extension ValueReducers {
     }
 }
 
+extension ValueReducers.Combine6: ImmediateValueReducer where
+    R1: ImmediateValueReducer,
+    R2: ImmediateValueReducer,
+    R3: ImmediateValueReducer,
+    R4: ImmediateValueReducer,
+    R5: ImmediateValueReducer,
+    R6: ImmediateValueReducer
+{ }
+
 extension ValueObservation where Reducer == Void {
     public static func combine<
         R1: ValueReducer,
@@ -589,6 +624,16 @@ extension ValueReducers {
         }
     }
 }
+
+extension ValueReducers.Combine7: ImmediateValueReducer where
+    R1: ImmediateValueReducer,
+    R2: ImmediateValueReducer,
+    R3: ImmediateValueReducer,
+    R4: ImmediateValueReducer,
+    R5: ImmediateValueReducer,
+    R6: ImmediateValueReducer,
+    R7: ImmediateValueReducer
+{ }
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
@@ -719,6 +764,17 @@ extension ValueReducers {
         }
     }
 }
+
+extension ValueReducers.Combine8: ImmediateValueReducer where
+    R1: ImmediateValueReducer,
+    R2: ImmediateValueReducer,
+    R3: ImmediateValueReducer,
+    R4: ImmediateValueReducer,
+    R5: ImmediateValueReducer,
+    R6: ImmediateValueReducer,
+    R7: ImmediateValueReducer,
+    R8: ImmediateValueReducer
+{ }
 
 extension ValueObservation where Reducer == Void {
     public static func combine<

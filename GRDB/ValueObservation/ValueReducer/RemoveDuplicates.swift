@@ -64,6 +64,8 @@ extension ValueReducers {
     }
 }
 
+extension ValueReducers.RemoveDuplicates: ImmediateValueReducer where Base: ImmediateValueReducer { }
+
 /// :nodoc:
 @available(*, deprecated, renamed: "ValueReducers.RemoveDuplicates")
 public typealias DistinctUntilChangedValueReducer<Base> = ValueReducers.RemoveDuplicates<Base> where Base: ValueReducer, Base.Value: Equatable

@@ -48,6 +48,8 @@ extension ValueReducers {
     }
 }
 
+extension ValueReducers.Map: ImmediateValueReducer where Base: ImmediateValueReducer { }
+
 /// :nodoc:
 @available(*, deprecated, renamed: "ValueReducers.Map")
 public typealias MapValueReducer<Base, Value> = ValueReducers.Map<Base, Value> where Base: ValueReducer
