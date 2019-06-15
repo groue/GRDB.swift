@@ -8795,8 +8795,8 @@ FAQ
 - [How do I print a request as SQL?](#how-do-i-print-a-request-as-sql)
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
-- [What Are Experimental Features?](#what-are-experimental-features)
 - [SQLite error 21 "wrong number of statement arguments" with LIKE queries](#sqlite-error-21-wrong-number-of-statement-arguments-with-like-queries)
+- [What Are Experimental Features?](#what-are-experimental-features)
 
 
 ### How do I create a database in my application?
@@ -8929,15 +8929,6 @@ When your application should be able to run in the background on a locked device
 This error can also be prevented altogether by using a more relaxed [file protection](https://developer.apple.com/reference/foundation/filemanager/1653059-file_protection_values).
 
 
-### What Are Experimental Features?
-
-Since GRDB 1.0, all backwards compatibility guarantees of [semantic versioning](http://semver.org) apply: no breaking change will happen until the next major version of the library.
-
-There is an exception, though: *experimental features*, marked with the "**:fire: EXPERIMENTAL**" badge. Those are advanced features that are too young, or lack user feedback. They are not stabilized yet.
-
-Those experimental features are not protected by semantic versioning, and may break between two minor releases of the library. To help them becoming stable, [your feedback](https://github.com/groue/GRDB.swift/issues) is greatly appreciated.
-
-
 ### SQLite error 21 "wrong number of statement arguments" with LIKE queries
 
 You may get the error "wrong number of statement arguments" when executing a LIKE query similar to:
@@ -8962,6 +8953,15 @@ let players: [Player] = try dbQueue.read { db in
     return try Player.fetchAll(db, sql: "SELECT * FROM player WHERE name LIKE ?", arguments: [pattern])
 }
 ```
+
+
+### What Are Experimental Features?
+
+Since GRDB 1.0, all backwards compatibility guarantees of [semantic versioning](http://semver.org) apply: no breaking change will happen until the next major version of the library.
+
+There is an exception, though: *experimental features*, marked with the "**:fire: EXPERIMENTAL**" badge. Those are advanced features that are too young, or lack user feedback. They are not stabilized yet.
+
+Those experimental features are not protected by semantic versioning, and may break between two minor releases of the library. To help them becoming stable, [your feedback](https://github.com/groue/GRDB.swift/issues) is greatly appreciated.
 
 
 Sample Code
