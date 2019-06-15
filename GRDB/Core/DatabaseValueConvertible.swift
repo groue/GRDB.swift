@@ -448,6 +448,26 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Wrapped?] {
         return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
+    
+    /// Returns a single value fetched from a prepared statement.
+    ///
+    /// The result is nil if the query returns no row, or if no value can be
+    /// extracted from the first row.
+    ///
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
+    ///     let name = try Optional<String>.fetchOne(statement)   // String?
+    ///
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: An optional value.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Wrapped? {
+        // fetchOne returns nil if there is no row, or if there is a row with a null value
+        let cursor = try NullableDatabaseValueCursor<Wrapped>(statement: statement, arguments: arguments, adapter: adapter)
+        return try cursor.next() ?? nil
+    }
 }
 
 extension Optional where Wrapped: DatabaseValueConvertible {
@@ -490,6 +510,24 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Wrapped?] {
         return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+    }
+    
+    /// Returns a single value fetched from an SQL query.
+    ///
+    /// The result is nil if the query returns no row, or if no value can be
+    /// extracted from the first row.
+    ///
+    ///     let name = try Optional<String>.fetchOne(db, sql: "SELECT name FROM ...") // String?
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sql: An SQL query.
+    ///     - arguments: Statement arguments.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: An optional value.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Wrapped? {
+        return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -534,6 +572,24 @@ extension Optional where Wrapped: DatabaseValueConvertible {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         return try fetchAll(request.statement, adapter: request.adapter)
     }
+    
+    /// Returns a single value fetched from a fetch request.
+    ///
+    /// The result is nil if the query returns no row, or if no value can be
+    /// extracted from the first row.
+    ///
+    ///     let request = Player.filter(key: 1).select(Column("name"))
+    ///     let name = try Optional<String>.fetchOne(db, request) // String?
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A FetchRequest.
+    /// - returns: An optional value.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> Wrapped? {
+        let request = try request.makePreparedRequest(db, forSingleResult: true)
+        return try fetchOne(request.statement, adapter: request.adapter)
+    }
 }
 
 extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped: DatabaseValueConvertible {
@@ -571,5 +627,19 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     public func fetchAll(_ db: Database) throws -> [RowDecoder._Wrapped?] {
         return try Optional<RowDecoder._Wrapped>.fetchAll(db, self)
     }
+    
+    /// The first fetched value.
+    ///
+    /// The result is nil if the request returns no row, or if no value can be
+    /// extracted from the first row.
+    ///
+    ///     let request: ... // Some FetchRequest that fetches String?
+    ///     let string = try request.fetchOne(db) // String?
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: An optional value.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchOne(_ db: Database) throws -> RowDecoder._Wrapped? {
+        return try Optional<RowDecoder._Wrapped>.fetchOne(db, self)
+    }
 }
-

@@ -612,4 +612,153 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
             }
         }
     }
+
+    func testOptionalFetchOne() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                func test(_ nilBecauseMissingRow: Fetched?) {
+                    XCTAssertTrue(nilBecauseMissingRow == nil)
+                }
+                do {
+                    let sql = "SELECT 1 WHERE 0"
+                    let statement = try db.makeSelectStatement(sql: sql)
+                    try test(Optional<Fetched>.fetchOne(db, sql: sql))
+                    try test(Optional<Fetched>.fetchOne(statement))
+                    try test(Optional<Fetched>.fetchOne(db, SQLRequest<Void>(sql: sql)))
+                    try test(SQLRequest<Fetched?>(sql: sql).fetchOne(db))
+                }
+                do {
+                    let sql = "SELECT 0, 1 WHERE 0"
+                    let statement = try db.makeSelectStatement(sql: sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(Optional<Fetched>.fetchOne(db, sql: sql, adapter: adapter))
+                    try test(Optional<Fetched>.fetchOne(statement, adapter: adapter))
+                    try test(Optional<Fetched>.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)))
+                    try test(SQLRequest<Fetched?>(sql: sql, adapter: adapter).fetchOne(db))
+                }
+            }
+            do {
+                func test(_ nilBecauseNull: Fetched?) {
+                    XCTAssertTrue(nilBecauseNull == nil)
+                }
+                do {
+                    let sql = "SELECT NULL"
+                    let statement = try db.makeSelectStatement(sql: sql)
+                    try test(Optional<Fetched>.fetchOne(db, sql: sql))
+                    try test(Optional<Fetched>.fetchOne(statement))
+                    try test(Optional<Fetched>.fetchOne(db, SQLRequest<Void>(sql: sql)))
+                    try test(SQLRequest<Fetched?>(sql: sql).fetchOne(db))
+                }
+                do {
+                    let sql = "SELECT 0, NULL"
+                    let statement = try db.makeSelectStatement(sql: sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(Optional<Fetched>.fetchOne(db, sql: sql, adapter: adapter))
+                    try test(Optional<Fetched>.fetchOne(statement, adapter: adapter))
+                    try test(Optional<Fetched>.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)))
+                    try test(SQLRequest<Fetched?>(sql: sql, adapter: adapter).fetchOne(db))
+                }
+            }
+            do {
+                func test(_ value: Fetched?) {
+                    XCTAssertEqual(value!.int, 1)
+                }
+                do {
+                    let sql = "SELECT 1"
+                    let statement = try db.makeSelectStatement(sql: sql)
+                    try test(Optional<Fetched>.fetchOne(db, sql: sql))
+                    try test(Optional<Fetched>.fetchOne(statement))
+                    try test(Optional<Fetched>.fetchOne(db, SQLRequest<Void>(sql: sql)))
+                    try test(SQLRequest<Fetched?>(sql: sql).fetchOne(db))
+                }
+                do {
+                    let sql = "SELECT 0, 1"
+                    let statement = try db.makeSelectStatement(sql: sql)
+                    let adapter = SuffixRowAdapter(fromIndex: 1)
+                    try test(Optional<Fetched>.fetchOne(db, sql: sql, adapter: adapter))
+                    try test(Optional<Fetched>.fetchOne(statement, adapter: adapter))
+                    try test(Optional<Fetched>.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)))
+                    try test(SQLRequest<Fetched?>(sql: sql, adapter: adapter).fetchOne(db))
+                }
+            }
+        }
+    }
+    
+    #if swift(>=5.0)
+    func testOptionalFetchOneWithInterpolation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request: SQLRequest<Fetched?> = "SELECT \(42)"
+            let fetched = try request.fetchOne(db)
+            XCTAssertEqual(fetched!.int, 42)
+        }
+    }
+    #endif
+    
+    func testOptionalFetchOneStepFailure() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let customError = NSError(domain: "Custom", code: 0xDEAD)
+        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        try dbQueue.inDatabase { db in
+            func test(_ value: @autoclosure () throws -> Fetched?, sql: String) throws {
+                do {
+                    _ = try value()
+                    XCTFail()
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                    XCTAssertEqual(error.message, "\(customError)")
+                    XCTAssertEqual(error.sql!, sql)
+                    XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
+                }
+            }
+            do {
+                let sql = "SELECT throw()"
+                try test(Optional<Fetched>.fetchOne(db, sql: sql), sql: sql)
+                try test(Optional<Fetched>.fetchOne(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Optional<Fetched>.fetchOne(db, SQLRequest<Void>(sql: sql)), sql: sql)
+                try test(SQLRequest<Fetched?>(sql: sql).fetchOne(db), sql: sql)
+            }
+            do {
+                let sql = "SELECT 0, throw()"
+                let adapter = SuffixRowAdapter(fromIndex: 1)
+                try test(Optional<Fetched>.fetchOne(db, sql: sql, adapter: adapter), sql: sql)
+                try test(Optional<Fetched>.fetchOne(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Optional<Fetched>.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Fetched?>(sql: sql, adapter: adapter).fetchOne(db), sql: sql)
+            }
+        }
+    }
+    
+    func testOptionalFetchOneCompilationFailure() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            func test(_ value: @autoclosure () throws -> Fetched?, sql: String) throws {
+                do {
+                    _ = try value()
+                    XCTFail()
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                    XCTAssertEqual(error.message, "no such table: nonExistingTable")
+                    XCTAssertEqual(error.sql!, sql)
+                    XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
+                }
+            }
+            do {
+                let sql = "SELECT * FROM nonExistingTable"
+                try test(Optional<Fetched>.fetchOne(db, sql: sql), sql: sql)
+                try test(Optional<Fetched>.fetchOne(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Optional<Fetched>.fetchOne(db, SQLRequest<Void>(sql: sql)), sql: sql)
+                try test(SQLRequest<Fetched?>(sql: sql).fetchOne(db), sql: sql)
+            }
+            do {
+                let sql = "SELECT * FROM nonExistingTable"
+                let adapter = SuffixRowAdapter(fromIndex: 1)
+                try test(Optional<Fetched>.fetchOne(db, sql: sql, adapter: adapter), sql: sql)
+                try test(Optional<Fetched>.fetchOne(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Optional<Fetched>.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Fetched?>(sql: sql, adapter: adapter).fetchOne(db), sql: sql)
+            }
+        }
+    }
 }
