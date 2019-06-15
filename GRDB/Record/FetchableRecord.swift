@@ -276,7 +276,7 @@ extension FetchableRecord {
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> RecordCursor<Self> {
-        let request = try request.preparedRequest(db, forSingleResult: false)
+        let request = try request.makePreparedRequest(db, forSingleResult: false)
         precondition(request.supplementaryFetch == nil, "Not implemented: fetchCursor with supplementary fetch")
         return try fetchCursor(request.statement, adapter: request.adapter)
     }
@@ -292,7 +292,7 @@ extension FetchableRecord {
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll<R: FetchRequest>(_ db: Database, _ request: R) throws -> [Self] {
-        let request = try request.preparedRequest(db, forSingleResult: false)
+        let request = try request.makePreparedRequest(db, forSingleResult: false)
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try Row.fetchAll(request.statement, adapter: request.adapter)
             try supplementaryFetch(rows)
@@ -313,7 +313,7 @@ extension FetchableRecord {
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> Self? {
-        let request = try request.preparedRequest(db, forSingleResult: true)
+        let request = try request.makePreparedRequest(db, forSingleResult: true)
         if let supplementaryFetch = request.supplementaryFetch {
             guard let row = try Row.fetchOne(request.statement, adapter: request.adapter) else {
                 return nil

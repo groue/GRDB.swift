@@ -50,7 +50,7 @@ extension QueryInterfaceRequest: FetchRequest {
     /// - parameter singleResult: A hint as to whether the query should be optimized for a single result.
     /// - returns: A prepared statement and an eventual row adapter.
     /// :nodoc:
-    public func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
         var query = self.query
         
         // Optimize query by setting a limit of 1 when appropriate

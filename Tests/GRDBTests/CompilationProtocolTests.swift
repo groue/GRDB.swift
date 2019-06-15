@@ -112,7 +112,7 @@ private struct UserRowRequest : FetchRequest {
     typealias RowDecoder = CustomType
     // TODO: remove when we remove the deprecated prepare(_:forSingleResult:) method
     func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
-    func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest { preconditionFailure() }
+    func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest { preconditionFailure() }
 }
 
 // MARK: - FetchableRecord

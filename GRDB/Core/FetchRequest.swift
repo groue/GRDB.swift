@@ -51,7 +51,7 @@ public protocol FetchRequest: DatabaseRegionConvertible {
     
     // TODO: remove when we remove the deprecated prepare(_:forSingleResult:) method
     /// This method is deprecated. Use
-    /// `preparedRequest(_:forSingleResult:)` instead.
+    /// `makePreparedRequest(_:forSingleResult:)` instead.
     ///
     /// Returns a tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
@@ -63,15 +63,14 @@ public protocol FetchRequest: DatabaseRegionConvertible {
     /// - returns: A prepared statement and an eventual row adapter.
     func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
 
-    /// Returns a PreparedRequest made of a prepared statement that is ready to
-    /// be executed, and an eventual row adapter.
+    /// Returns a PreparedRequest that is ready to be executed.
     ///
     /// - parameter db: A database connection.
     /// - parameter singleResult: A hint that a single result row will be
     ///   consumed. Implementations can optionally use this to optimize the
     ///   prepared statement.
     /// - returns: A prepared request.
-    func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
+    func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
     
     /// Returns the number of rows fetched by the request.
     ///
@@ -100,7 +99,7 @@ extension FetchRequest {
     ///
     /// - parameter db: A database connection.
     public func fetchCount(_ db: Database) throws -> Int {
-        let request = try preparedRequest(db, forSingleResult: false)
+        let request = try makePreparedRequest(db, forSingleResult: false)
         let sql = "SELECT COUNT(*) FROM (\(request.statement.sql))"
         return try Int.fetchOne(db, sql: sql, arguments: request.statement.arguments)!
     }
@@ -112,14 +111,14 @@ extension FetchRequest {
     ///
     /// - parameter db: A database connection.
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        let request = try preparedRequest(db, forSingleResult: false)
+        let request = try makePreparedRequest(db, forSingleResult: false)
         return request.statement.databaseRegion
     }
     
     // Support for legacy requests which only define prepare(_:forSingleResult:)
     // TODO: remove when we remove the deprecated prepare(_:forSingleResult:) method
     /// :nodoc:
-    public func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
         let (statement, adapter) = try prepare(db, forSingleResult: singleResult)
         return PreparedRequest(statement: statement, adapter: adapter)
     }
@@ -127,7 +126,7 @@ extension FetchRequest {
     // TODO: remove when we remove the deprecated prepare(_:forSingleResult:) method
     /// :nodoc:
     public func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
-        let request = try preparedRequest(db, forSingleResult: singleResult)
+        let request = try makePreparedRequest(db, forSingleResult: singleResult)
         return (request.statement, request.adapter)
     }
 }
@@ -149,8 +148,8 @@ public struct AdaptedFetchRequest<Base: FetchRequest> : FetchRequest {
     }
     
     /// :nodoc:
-    public func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        var request = try base.preparedRequest(db, forSingleResult: singleResult)
+    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+        var request = try base.makePreparedRequest(db, forSingleResult: singleResult)
         if let baseAdapter = request.adapter {
             request.adapter = try ChainedAdapter(first: baseAdapter, second: adapter(db))
         } else {
@@ -185,7 +184,7 @@ public struct AnyFetchRequest<T> : FetchRequest {
     
     /// Creates a request that wraps and forwards operations to `request`.
     public init<Request: FetchRequest>(_ request: Request) {
-        _preparedRequest = request.preparedRequest
+        _preparedRequest = request.makePreparedRequest
         _fetchCount = request.fetchCount
         _databaseRegion = request.databaseRegion
     }
@@ -212,7 +211,7 @@ public struct AnyFetchRequest<T> : FetchRequest {
     }
     
     /// :nodoc:
-    public func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
         return try _preparedRequest(db, singleResult)
     }
     

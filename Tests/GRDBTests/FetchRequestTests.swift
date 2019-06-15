@@ -37,7 +37,7 @@ class FetchRequestTests: GRDBTestCase {
     func testRequestFetchRows() throws {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
-            func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
                 return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT * FROM table1"))
             }
         }
@@ -62,7 +62,7 @@ class FetchRequestTests: GRDBTestCase {
     func testRequestFetchValues() throws {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Int
-            func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
                 return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT id FROM table1"))
             }
         }
@@ -90,7 +90,7 @@ class FetchRequestTests: GRDBTestCase {
         }
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = CustomRecord
-            func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
                 return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT id FROM table1"))
             }
         }
@@ -115,7 +115,7 @@ class FetchRequestTests: GRDBTestCase {
     func testRequestFetchCount() throws {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
-            func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
                 return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT * FROM table1"))
             }
         }
@@ -138,7 +138,7 @@ class FetchRequestTests: GRDBTestCase {
     func testRequestCustomizedFetchCount() throws {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
-            func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
                 return try PreparedRequest(statement: db.makeSelectStatement(sql: "INVALID"))
             }
             
@@ -167,7 +167,7 @@ class FetchRequestTests: GRDBTestCase {
     func testSingleResultHint() throws {
         struct CustomRequest<T>: FetchRequest {
             typealias RowDecoder = T
-            func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
                 if singleResult {
                     return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT 'single' AS hint"))
                 } else {
@@ -369,7 +369,7 @@ class FetchRequestTests: GRDBTestCase {
     func testSingleResultHintIsNotUsedForDefaultFetchCount() throws {
         struct CustomRequest: FetchRequest {
             typealias RowDecoder = Void
-            func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
                 if singleResult { fatalError("not implemented") }
                 return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT 'multiple'"))
             }
@@ -386,7 +386,7 @@ class FetchRequestTests: GRDBTestCase {
     func testSingleResultHintIsNotUsedForDefaultDatabaseRegion() throws {
         struct CustomRequest: FetchRequest {
             typealias RowDecoder = Void
-            func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
                 if singleResult { fatalError("not implemented") }
                 return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT * FROM multiple"))
             }

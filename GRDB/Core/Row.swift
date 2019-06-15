@@ -980,7 +980,7 @@ extension Row {
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> RowCursor {
-        let request = try request.preparedRequest(db, forSingleResult: false)
+        let request = try request.makePreparedRequest(db, forSingleResult: false)
         precondition(request.supplementaryFetch == nil, "Not implemented: fetchCursor with supplementary fetch")
         return try fetchCursor(request.statement, adapter: request.adapter)
     }
@@ -996,7 +996,7 @@ extension Row {
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll<R: FetchRequest>(_ db: Database, _ request: R) throws -> [Row] {
-        let request = try request.preparedRequest(db, forSingleResult: false)
+        let request = try request.makePreparedRequest(db, forSingleResult: false)
         let rows = try fetchAll(request.statement, adapter: request.adapter)
         try request.supplementaryFetch?(rows)
         return rows
@@ -1013,7 +1013,7 @@ extension Row {
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> Row? {
-        let request = try request.preparedRequest(db, forSingleResult: true)
+        let request = try request.makePreparedRequest(db, forSingleResult: true)
         guard let row = try fetchOne(request.statement, adapter: request.adapter) else {
             return nil
         }

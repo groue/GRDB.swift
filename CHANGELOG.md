@@ -131,8 +131,6 @@ The [ValueObservation Error Handling](README.md#valueobservation-error-handling)
  }
 ```
 
-The core FetchRequest preparation method is now `preparedRequest(_:forSingleResult:)`. The former core method `prepare(_:forSingleResult:)` will remain a requirement of the FetchRequest protocol until GRDB 5 due to semantic versioning constraints. Both methods are provided with a default implementation which makes each one depend on the other: this creates an infinite loop unless you provide at least one of them. If you have a choice, prefer `preparedRequest(_:forSingleResult:)`.
-
 </details>
 
 <details>
@@ -158,7 +156,7 @@ The core FetchRequest preparation method is now `preparedRequest(_:forSingleResu
 </details>
 
 <details>
-    <summary>Miscellaneous changes</summary>
+    <summary>FetchRequest changes</summary>
 
 ```diff
 +struct PreparedRequest {
@@ -170,11 +168,11 @@ The core FetchRequest preparation method is now `preparedRequest(_:forSingleResu
  protocol FetchRequest {
 +    // deprecated
      func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
-+    func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
++    func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
  }
 ```
 
-The core FetchRequest preparation method is now `preparedRequest(_:forSingleResult:)`. The former core method `prepare(_:forSingleResult:)` will remain a requirement of the FetchRequest protocol until GRDB 5 due to semantic versioning constraints. Both methods are provided with a default implementation which makes each one depend on the other: this creates an infinite loop unless you provide at least one of them. If you have a choice, prefer `preparedRequest(_:forSingleResult:)`.
+The core FetchRequest preparation method is now `makePreparedRequest(_:forSingleResult:)`. The former core method `prepare(_:forSingleResult:)` will remain a requirement of the FetchRequest protocol until GRDB 5 due to semantic versioning constraints. Both methods are provided with a default implementation which makes each one depend on the other: this creates an infinite loop unless you provide at least one of them. If you have a choice, prefer `makePreparedRequest(_:forSingleResult:)`.
 
 </details>
 

@@ -54,7 +54,7 @@ class SQLRequestTests: GRDBTestCase {
     func testRequestInitializer() throws {
         struct CustomRequest: FetchRequest {
             typealias RowDecoder = Row
-            func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
                 let statement = try db.makeSelectStatement(sql: "SELECT ? AS a, ? AS b")
                 statement.arguments = [1, "foo"]
                 return PreparedRequest(statement: statement)
@@ -73,7 +73,7 @@ class SQLRequestTests: GRDBTestCase {
     func testRequestInitializerAndSingleResultHint() throws {
         struct CustomRequest: FetchRequest {
             typealias RowDecoder = Row
-            func preparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
                 if singleResult { fatalError("not implemented") }
                 return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT 'multiple'"))
             }
