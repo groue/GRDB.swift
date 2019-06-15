@@ -203,8 +203,8 @@ extension DatabaseValueConvertible {
     
     /// Returns a single value fetched from a prepared statement.
     ///
-    /// The result is nil if the query returns no row, or if no value can be
-    /// extracted from the first row.
+    /// The result is nil if the query returns no row, or if the fetched
+    /// database value is null.
     ///
     ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
     ///     let name = try String.fetchOne(statement)   // String?
@@ -266,8 +266,8 @@ extension DatabaseValueConvertible {
     
     /// Returns a single value fetched from an SQL query.
     ///
-    /// The result is nil if the query returns no row, or if no value can be
-    /// extracted from the first row.
+    /// The result is nil if the query returns no row, or if the fetched
+    /// database value is null.
     ///
     ///     let name = try String.fetchOne(db, sql: "SELECT name FROM ...") // String?
     ///
@@ -327,8 +327,8 @@ extension DatabaseValueConvertible {
     
     /// Returns a single value fetched from a fetch request.
     ///
-    /// The result is nil if the query returns no row, or if no value can be
-    /// extracted from the first row.
+    /// The result is nil if the query returns no row, or if the fetched
+    /// database value is null.
     ///
     ///     let request = Player.filter(key: 1).select(Column("name"))
     ///     let name = try String.fetchOne(db, request) // String?
@@ -451,8 +451,8 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     
     /// Returns a single value fetched from a prepared statement.
     ///
-    /// The result is nil if the query returns no row, or if no value can be
-    /// extracted from the first row.
+    /// The result is nil if the query returns no row, or if the fetched
+    /// database value is null.
     ///
     ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
     ///     let name = try Optional<String>.fetchOne(statement)   // String?
@@ -514,8 +514,8 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     
     /// Returns a single value fetched from an SQL query.
     ///
-    /// The result is nil if the query returns no row, or if no value can be
-    /// extracted from the first row.
+    /// The result is nil if the query returns no row, or if the fetched
+    /// database value is null.
     ///
     ///     let name = try Optional<String>.fetchOne(db, sql: "SELECT name FROM ...") // String?
     ///
@@ -575,8 +575,8 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     
     /// Returns a single value fetched from a fetch request.
     ///
-    /// The result is nil if the query returns no row, or if no value can be
-    /// extracted from the first row.
+    /// The result is nil if the query returns no row, or if the fetched
+    /// database value is null.
     ///
     ///     let request = Player.filter(key: 1).select(Column("name"))
     ///     let name = try Optional<String>.fetchOne(db, request) // String?
