@@ -372,11 +372,13 @@
 					568E5FCA1E926430002582E0 = {
 						CreatedOnToolsVersion = 8.3;
 						DevelopmentTeam = AMD8W895CT;
+						LastSwiftMigration = 1020;
 						ProvisioningStyle = Automatic;
 					};
 					56B036021E8D9EBE003B6DA4 = {
 						CreatedOnToolsVersion = 8.3;
 						DevelopmentTeam = AMD8W895CT;
+						LastSwiftMigration = 1020;
 						ProvisioningStyle = Automatic;
 					};
 				};
