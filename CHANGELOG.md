@@ -5,10 +5,13 @@ All notable changes to this project will be documented in this file.
 
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
+<!--
 [Next Release](#next-release)
+-->
 
 #### 4.x Releases
 
+- `4.1.x` Releases - [4.1.0](#410)
 - `4.0.x` Releases - [4.0.0](#400) | [4.0.1](#401)
 
 #### 3.x Releases
@@ -48,8 +51,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 - [0.110.0](#01100), ...
 
-
+<!--
 ## Next Release
+-->
+
+## 4.1.0
+
+Released June 15, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.0.1...v4.1.0)
 
 - [#537](https://github.com/groue/GRDB.swift/pull/537): Remove useless parenthesis from generated SQL
 - [#538](https://github.com/groue/GRDB.swift/pull/538) by [@Timac](https://github.com/Timac): Add FAQ to clarify "Wrong number of statement arguments" error with "like '%?%'"
@@ -62,14 +70,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 ### Documentation Diff
 
-The [Define Record Requests](Documentation/GoodPracticesForDesigningRecordTypes.md#define-record-requests) chapter of the The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) has been rewritten. Yes, good practices evolve.
+Good practices evolve: the [Define Record Requests](Documentation/GoodPracticesForDesigningRecordTypes.md#define-record-requests) chapter of the The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) has been rewritten.
 
 The [Examples of Record Definitions](README.md#examples-of-record-definitions) has been extended with a sample record optimized for fetching performance.
 
 The [ValueObservation](README.md#valueobservation) chapter has been updated with new APIs for building observation, and combining observations together in order to avoid data races.
 
 The [ValueObservation Error Handling](README.md#valueobservation-error-handling) chapter explains with more details how to deal with observation errors.
-
 
 ### API Diff
 
@@ -174,7 +181,7 @@ The [ValueObservation Error Handling](README.md#valueobservation-error-handling)
  }
 ```
 
-The core FetchRequest preparation method is now `makePreparedRequest(_:forSingleResult:)`. The former core method `prepare(_:forSingleResult:)` will remain a requirement of the FetchRequest protocol until GRDB 5 due to semantic versioning constraints. Both methods are provided with a default implementation which makes each one depend on the other: this creates an infinite loop unless you provide at least one of them. If you have a choice, prefer `makePreparedRequest(_:forSingleResult:)`.
+The core FetchRequest preparation method is now `makePreparedRequest(_:forSingleResult:)`. The former core method `prepare(_:forSingleResult:)` will remain a requirement of the FetchRequest protocol until GRDB 5 due to semantic versioning constraints. Both methods are provided with a default implementation which makes each one depend on the other: this creates an infinite loop unless you provide at least one of them. If you have a choice, implement only `makePreparedRequest(_:forSingleResult:)`.
 
 </details>
 
