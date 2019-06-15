@@ -8892,13 +8892,13 @@ You may get this error when using the `read` and `write` methods of database que
 
 ```swift
 // Generic parameter 'T' could not be inferred
-let x = try dbQueue.read { db in
+let string = try dbQueue.read { db in
     let result = try String.fetchOne(db, ...)
     return result
 }
 ```
 
-This is a Swift compiler issue (see [SR-1570](https://bugs.swift.org/browse/SR-1570)).
+This is a limitation of the Swift compiler.
 
 The general workaround is to explicitly declare the type of the closure result:
 
