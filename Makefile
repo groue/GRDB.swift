@@ -52,11 +52,11 @@ TEST_ACTIONS = clean build build-for-testing test-without-building
 ifeq ($(XCODEVERSION),10.2)
   MAX_SWIFT_VERSION = 5
   MIN_SWIFT_VERSION = 4.2
-  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone XS,OS=12.2"
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone X,OS=12.2"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
 else ifeq ($(XCODEVERSION),10.1)
   MAX_SWIFT_VERSION = 4.2
-  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone XS,OS=12.1"
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone X,OS=12.1"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
 else ifeq ($(XCODEVERSION),10.0)
   MAX_SWIFT_VERSION = 4.2
