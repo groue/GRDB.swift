@@ -8926,6 +8926,17 @@ Those errors may be the sign that SQLite can't access the database due to [data 
 
 When your application should be able to run in the background on a locked device, it has to catch this error, and, for example, wait for [UIApplicationDelegate.applicationProtectedDataDidBecomeAvailable(_:)](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1623044-applicationprotecteddatadidbecom) or [UIApplicationProtectedDataDidBecomeAvailable](https://developer.apple.com/reference/uikit/uiapplicationprotecteddatadidbecomeavailable) notification and retry the failed database operation.
 
+```swift
+do {
+    try ...
+} catch let error as DatabaseError where
+    error.resultCode == .SQLITE_IOERR ||
+    error.resultCode == .SQLITE_AUTH
+{
+    // Handle possible data protection error
+}
+```
+
 This error can also be prevented altogether by using a more relaxed [file protection](https://developer.apple.com/reference/foundation/filemanager/1653059-file_protection_values).
 
 
