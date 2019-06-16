@@ -8429,7 +8429,7 @@ let component = MyReadOnlyComponent(reader: dbQueue)
     When the transaction completes successfully, the result of the first function is contained in the standard `Result` passed to the completion function:
     
     ```swift
-    writer.asyncWrite({ (db: Database) in
+    writer.asyncWrite({ (db: Database) -> Int in
         try Player(...).insert(db)
         return try Player.fetchCount(db)
     }, completion: { (db: Database, result: Result<Int, Error>) in
