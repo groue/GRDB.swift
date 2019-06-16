@@ -1137,9 +1137,9 @@ try dbQueue.read { db in
     try Int.fetchAll(db, sql: "SELECT ...", arguments: ...)    // [Int]
     try Int.fetchOne(db, sql: "SELECT ...", arguments: ...)    // Int?
     
+    // When database may contain NULL:
     try Optional<Int>.fetchCursor(db, sql: "SELECT ...", arguments: ...) // A Cursor of Int?
     try Optional<Int>.fetchAll(db, sql: "SELECT ...", arguments: ...)    // [Int?]
-    try Optional<Int>.fetchOne(db, sql: "SELECT ...", arguments: ...)    // Int?
 }
 
 let playerCount = try dbQueue.read { db in
