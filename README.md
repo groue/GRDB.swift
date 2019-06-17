@@ -8380,127 +8380,138 @@ let component = MyReadOnlyComponent(reader: dbQueue)
 
 **Database queues, pools, snapshots, as well as their common protocols `DatabaseReader` and `DatabaseWriter` provide asynchronous database access methods.**
 
-- **`asyncRead`**
-    
-    The `asyncRead` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue:
-    
-    ```swift
-    reader.asyncRead { (result: Result<Database>) in
-        try {
-            let db = try result.get()
-            let players = try Player.fetchAll(db)
-        } catch {
-            // handle error
-        }
+- [`asyncRead`](#asyncread)
+- [`asyncWrite`](#asyncwrite)
+- [`asyncWriteWithoutTransaction`](#asyncwritewithouttransaction)
+- [`asyncConcurrentRead`](#asyncconcurrentread)
+
+
+#### `asyncRead`
+
+The `asyncRead` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue:
+
+```swift
+reader.asyncRead { (result: Result<Database>) in
+    try {
+        let db = try result.get()
+        let players = try Player.fetchAll(db)
+    } catch {
+        // handle error
     }
-    ```
-    
-    The argument function accepts a standard `Result<Database, Error>` which may contain a failure if it was impossible to start a reading access to the database.
-    
-    Any attempt at modifying the database throws an error.
-    
-    When you use a [database queue](#database-queues) or a [database snapshot](#database-snapshots), the read has to wait for any eventual concurrent database access performed by this queue or snapshot to complete.
-    
-    When you use a [database pool](#database-pools), reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#databasepool-configuration).
-    
-    > :point_up: **Note**: because it uses the standard `Result` type, `asyncRead` is only available with a Swift 5+ compiler, starting Xcode 10.2.
+}
+```
 
-- **`asyncWrite`**
-    
-    The `asyncWrite` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue, wrapped inside a [database transaction](#transactions-and-savepoints):
-    
-    ```swift
-    writer.asyncWrite({ (db: Database) in
-        try Player(...).insert(db)
-    }, completion: { (db: Database, result: Result<Void, Error>) in
-        switch result {
-        case let .success:
-            // handle transaction success
-        case let .failure(error):
-            // handle transaction error
-        }
-    })
-    ```
-    
-    `asyncWrite` accepts two function arguments. The first one executes your database updates. The second one is a completion function which accepts a database connection and the result of the asynchronous transaction.
-    
-    On the first unhandled error during database updates, all changes are reverted, the whole transaction is rollbacked, and the error is passed to the completion function.
-    
-    When the transaction completes successfully, the result of the first function is contained in the standard `Result` passed to the completion function:
-    
-    ```swift
-    writer.asyncWrite({ (db: Database) -> Int in
-        try Player(...).insert(db)
-        return try Player.fetchCount(db)
-    }, completion: { (db: Database, result: Result<Int, Error>) in
-        switch result {
-        case let .success(newPlayerCount):
-            print("new player count: \(newPlayerCount)")
-        case let .failure(error):
-            // handle transaction error
-        }
-    })
-    ```
-    
-    The scheduled asynchronous transaction has to wait for any eventual concurrent database write to complete before it can start.
-    
-    > :point_up: **Note**: because it uses the standard `Result` type, `asyncWrite` is only available with a Swift 5+ compiler, starting Xcode 10.2.
+The argument function accepts a standard `Result<Database, Error>` which may contain a failure if it was impossible to start a reading access to the database.
 
-- **`asyncWriteWithoutTransaction`**
+Any attempt at modifying the database throws an error.
 
-    The `asyncWriteWithoutTransaction` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue, outside of any transaction:
+When you use a [database queue](#database-queues) or a [database snapshot](#database-snapshots), the read has to wait for any eventual concurrent database access performed by this queue or snapshot to complete.
 
-    ```swift
-    writer.asyncWriteWithoutTransaction { (db: Database) in
-        try {
-            try Player(...).insert(db)
-        } catch {
-            // handle error
-        }
+When you use a [database pool](#database-pools), reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#databasepool-configuration).
+
+> :point_up: **Note**: because it uses the standard `Result` type, `asyncRead` is only available with a Swift 5+ compiler, starting Xcode 10.2.
+
+
+#### `asyncWrite`
+    
+The `asyncWrite` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue, wrapped inside a [database transaction](#transactions-and-savepoints):
+
+```swift
+writer.asyncWrite({ (db: Database) in
+    try Player(...).insert(db)
+}, completion: { (db: Database, result: Result<Void, Error>) in
+    switch result {
+    case let .success:
+        // handle transaction success
+    case let .failure(error):
+        // handle transaction error
     }
-    ```
-    
-    **Writing outside of any transaction is dangerous.** You should almost always prefer the `asyncWrite` method described above. Please see [Transactions and Savepoints](#transactions-and-savepoints) for more information.
-    
-    The scheduled asynchronous updates have to wait for any eventual concurrent database write to complete before they can start.
+})
+```
 
-- **`asyncConcurrentRead`**
+`asyncWrite` accepts two function arguments. The first one executes your database updates. The second one is a completion function which accepts a database connection and the result of the asynchronous transaction.
 
-    The `asyncConcurrentRead` method is available on database pools only. It is the asynchronous equivalent of the `concurrentRead` described in the [Advanced DatabasePool](#advanced-databasepool) chapter.
-    
-    It must be called from a writing dispatch queue, outside of any transaction. You'll get a fatal error otherwise.
-    
-    The closure argument is guaranteed to see the database in the last committed state at the moment this method is called. Eventual concurrent database updates are *not visible* inside the block.
-    
-    `asyncConcurrentRead` blocks until it can guarantee its closure argument an isolated access to the last committed state of the database. It then asynchronously executes the closure.
-    
-    In the example below, the number of players is fetched concurrently with the player insertion. Yet the future is guaranteed to return zero:
-    
-    ```swift
-    try writer.asyncWriteWithoutTransaction { db in
-        do {
-            // Delete all players
-            try Player.deleteAll()
-            
-            // <- not in a transaction here
-            // Count players concurrently
-            writer.asyncConcurrentRead { (result: Result<Database>) in
-                try {
-                    let db = try result.get()
-                    // Guaranteed to be zero
-                    let count = try Player.fetchCount()
-                } catch {
-                    // handle error
-                }
+On the first unhandled error during database updates, all changes are reverted, the whole transaction is rollbacked, and the error is passed to the completion function.
+
+When the transaction completes successfully, the result of the first function is contained in the standard `Result` passed to the completion function:
+
+```swift
+writer.asyncWrite({ (db: Database) -> Int in
+    try Player(...).insert(db)
+    return try Player.fetchCount(db)
+}, completion: { (db: Database, result: Result<Int, Error>) in
+    switch result {
+    case let .success(newPlayerCount):
+        print("new player count: \(newPlayerCount)")
+    case let .failure(error):
+        // handle transaction error
+    }
+})
+```
+
+The scheduled asynchronous transaction has to wait for any eventual concurrent database write to complete before it can start.
+
+> :point_up: **Note**: because it uses the standard `Result` type, `asyncWrite` is only available with a Swift 5+ compiler, starting Xcode 10.2.
+
+
+#### `asyncWriteWithoutTransaction`
+
+The `asyncWriteWithoutTransaction` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue, outside of any transaction:
+
+```swift
+writer.asyncWriteWithoutTransaction { (db: Database) in
+    try {
+        try Player(...).insert(db)
+    } catch {
+        // handle error
+    }
+}
+```
+
+**Writing outside of any transaction is dangerous.** You should almost always prefer the `asyncWrite` method described above. Please see [Transactions and Savepoints](#transactions-and-savepoints) for more information.
+
+The scheduled asynchronous updates have to wait for any eventual concurrent database write to complete before they can start.
+
+
+#### `asyncConcurrentRead`
+
+The `asyncConcurrentRead` method is available on database pools only. It is the asynchronous equivalent of the `concurrentRead` described in the [Advanced DatabasePool](#advanced-databasepool) chapter.
+
+It must be called from a writing dispatch queue, outside of any transaction. You'll get a fatal error otherwise.
+
+The closure argument is guaranteed to see the database in the last committed state at the moment this method is called. Eventual concurrent database updates are *not visible* inside the block.
+
+`asyncConcurrentRead` blocks until it can guarantee its closure argument an isolated access to the last committed state of the database. It then asynchronously executes the closure.
+
+In the example below, the number of players is fetched concurrently with the player insertion. Yet the future is guaranteed to return zero:
+
+```swift
+try writer.asyncWriteWithoutTransaction { db in
+    do {
+        // Delete all players
+        try Player.deleteAll()
+        
+        // <- not in a transaction here
+        // Count players concurrently
+        writer.asyncConcurrentRead { (result: Result<Database>) in
+            try {
+                let db = try result.get()
+                // Guaranteed to be zero
+                let count = try Player.fetchCount()
+            } catch {
+                // handle error
             }
-            
-            // Insert a player
-            try Player(...).insert(db)
-        } catch {
-            // handle error
         }
+        
+        // Insert a player
+        try Player(...).insert(db)
+    } catch {
+        // handle error
     }
-    ```
+}
+```
+
+> :point_up: **Note**: because it uses the standard `Result` type, `asyncWriteWithoutTransaction` is only available with a Swift 5+ compiler, starting Xcode 10.2.
 
 
 ### Unsafe Concurrency APIs
