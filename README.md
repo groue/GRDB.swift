@@ -8464,6 +8464,44 @@ let component = MyReadOnlyComponent(reader: dbQueue)
     
     The scheduled asynchronous updates have to wait for any eventual concurrent database write to complete before they can start.
 
+- **`asyncConcurrentRead`**
+
+    The `asyncConcurrentRead` method is available on database pools only. It is the asynchronous equivalent of the `concurrentRead` described in the [Advanced DatabasePool](#advanced-databasepool) chapter.
+    
+    It must be called from a writing dispatch queue, outside of any transaction. You'll get a fatal error otherwise.
+    
+    The closure argument is guaranteed to see the database in the last committed state at the moment this method is called. Eventual concurrent database updates are *not visible* inside the block.
+    
+    `asyncConcurrentRead` blocks until it can guarantee its closure argument an isolated access to the last committed state of the database. It then asynchronously executes the closure.
+    
+    In the example below, the number of players is fetched concurrently with the player insertion. Yet the future is guaranteed to return zero:
+    
+    ```swift
+    try writer.asyncWriteWithoutTransaction { db in
+        do {
+            // Delete all players
+            try Player.deleteAll()
+            
+            // <- not in a transaction here
+            // Count players concurrently
+            writer.asyncConcurrentRead { (result: Result<Database>) in
+                try {
+                    let db = try result.get()
+                    // Guaranteed to be zero
+                    let count = try Player.fetchCount()
+                } catch {
+                    // handle error
+                }
+            }
+            
+            // Insert a player
+            try Player(...).insert(db)
+        } catch {
+            // handle error
+        }
+    }
+    ```
+
 
 ### Unsafe Concurrency APIs
 

@@ -298,7 +298,7 @@ extension DatabasePool : DatabaseReader {
     ///     }
     ///
     /// Starting SQLite 3.8.0 (iOS 8.2+, OSX 10.10+, custom SQLite builds and
-    /// SQLCipher), attempts to write in the database from this meethod throw a
+    /// SQLCipher), attempts to write in the database from this method throw a
     /// DatabaseError of resultCode `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
@@ -505,18 +505,19 @@ extension DatabasePool : DatabaseReader {
     ///         try Player.deleteAll()
     ///
     ///         // Count players concurrently
-    ///         writer.asyncConcurrentRead { db in
-    ///             // Guaranteed to be zero
-    ///             let count = try Player.fetchCount()
+    ///         writer.asyncConcurrentRead { result in
+    ///             do {
+    ///                 let db = try result.get()
+    ///                 // Guaranteed to be zero
+    ///                 let count = try Player.fetchCount(db)
+    ///             } catch {
+    ///                 // Handle error
+    ///             }
     ///         }
     ///
     ///         // Insert a player
     ///         try Player(...).insert(db)
     ///     }
-    ///
-    /// Starting SQLite 3.8.0 (iOS 8.2+, OSX 10.10+, custom SQLite builds and
-    /// SQLCipher), attempts to write in the database from this meethod throw a
-    /// DatabaseError of resultCode `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
     public func asyncConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void) {

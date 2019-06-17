@@ -158,7 +158,7 @@ extension DatabaseQueue {
     /// This method is *not* reentrant.
     ///
     /// Starting SQLite 3.8.0 (iOS 8.2+, OSX 10.10+, custom SQLite builds and
-    /// SQLCipher), attempts to write in the database from this meethod throw a
+    /// SQLCipher), attempts to write in the database from this method throw a
     /// DatabaseError of resultCode `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
@@ -182,7 +182,7 @@ extension DatabaseQueue {
     ///     }
     ///
     /// Starting SQLite 3.8.0 (iOS 8.2+, OSX 10.10+, custom SQLite builds and
-    /// SQLCipher), attempts to write in the database from this meethod throw a
+    /// SQLCipher), attempts to write in the database from this method throw a
     /// DatabaseError of resultCode `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
