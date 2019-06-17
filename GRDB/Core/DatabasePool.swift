@@ -416,6 +416,17 @@ extension DatabasePool : DatabaseReader {
     }
     
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
+        // The semaphore that blocks until futureResult is defined:
+        let futureSemaphore = DispatchSemaphore(value: 0)
+        var futureResult: DatabaseResult<T>? = nil
+        
+        #if compiler(>=5.0)
+        asyncConcurrentRead { db in
+            // Fetch and release the future
+            futureResult = DatabaseResult { try block(db.get()) }
+            futureSemaphore.signal()
+        }
+        #else
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
@@ -430,10 +441,6 @@ extension DatabasePool : DatabaseReader {
         // The semaphore that blocks the writing dispatch queue until snapshot
         // isolation has been established:
         let isolationSemaphore = DispatchSemaphore(value: 0)
-        
-        // The semaphore that blocks until futureResult is defined:
-        let futureSemaphore = DispatchSemaphore(value: 0)
-        var futureResult: DatabaseResult<T>? = nil
         
         do {
             let (reader, releaseReader) = try readerPool.get()
@@ -462,11 +469,13 @@ extension DatabasePool : DatabaseReader {
                 futureSemaphore.signal()
             }
         } catch {
-            return DatabaseFuture { throw error }
+            isolationSemaphore.signal()
+            futureResult = .failure(error)
         }
         
         // Block the writer queue until snapshot isolation success or error
         _ = isolationSemaphore.wait(timeout: .distantFuture)
+        #endif
         
         return DatabaseFuture {
             // Block the future until results are fetched
@@ -474,6 +483,91 @@ extension DatabasePool : DatabaseReader {
             return try futureResult!.get()
         }
     }
+    
+    #if compiler(>=5.0)
+    /// Asynchronously executes a read-only block in a protected dispatch queue.
+    ///
+    /// This method must be called from a writing dispatch queue, outside of any
+    /// transaction. You'll get a fatal error otherwise.
+    ///
+    /// The *block* argument is guaranteed to see the database in the last
+    /// committed state at the moment this method is called. Eventual concurrent
+    /// database updates are *not visible* inside the block.
+    ///
+    /// This method returns as soon as the isolation guarantees described above
+    /// are established.
+    ///
+    /// In the example below, the number of players is fetched concurrently with
+    /// the player insertion. Yet the future is guaranteed to return zero:
+    ///
+    ///     try writer.asyncWriteWithoutTransaction { db in
+    ///         // Delete all players
+    ///         try Player.deleteAll()
+    ///
+    ///         // Count players concurrently
+    ///         writer.asyncConcurrentRead { db in
+    ///             // Guaranteed to be zero
+    ///             let count = try Player.fetchCount()
+    ///         }
+    ///
+    ///         // Insert a player
+    ///         try Player(...).insert(db)
+    ///     }
+    ///
+    /// Starting SQLite 3.8.0 (iOS 8.2+, OSX 10.10+, custom SQLite builds and
+    /// SQLCipher), attempts to write in the database from this meethod throw a
+    /// DatabaseError of resultCode `SQLITE_READONLY`.
+    ///
+    /// - parameter block: A block that accesses the database.
+    public func asyncConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void) {
+        // Check that we're on the writer queue...
+        writer.execute { db in
+            // ... and that no transaction is opened.
+            GRDBPrecondition(!db.isInsideTransaction, """
+                concurrentRead must not be called from inside a transaction. \
+                If this error is raised from a DatabasePool.write block, use \
+                DatabasePool.writeWithoutTransaction instead (and use \
+                transactions when needed).
+                """)
+        }
+        
+        // The semaphore that blocks the writing dispatch queue until snapshot
+        // isolation has been established:
+        let isolationSemaphore = DispatchSemaphore(value: 0)
+        
+        do {
+            let (reader, releaseReader) = try readerPool.get()
+            reader.async { db in
+                defer {
+                    try? db.commit() // Ignore commit error
+                    releaseReader()
+                }
+                do {
+                    try db.beginSnapshotIsolation()
+                } catch {
+                    isolationSemaphore.signal()
+                    block(.failure(error))
+                    return
+                }
+                
+                // Release the writer queue
+                isolationSemaphore.signal()
+                
+                // Reset the schema cache before running user code in snapshot isolation
+                db.schemaCache = SimpleDatabaseSchemaCache()
+                
+                // Fetch and release the future
+                block(.success(db))
+            }
+        } catch {
+            isolationSemaphore.signal()
+            block(.failure(error))
+        }
+        
+        // Block the writer queue until snapshot isolation success or error
+        _ = isolationSemaphore.wait(timeout: .distantFuture)
+    }
+    #endif
     
     /// Returns a reader that can be used from the current dispatch queue,
     /// if any.
