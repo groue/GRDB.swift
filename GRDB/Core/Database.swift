@@ -162,20 +162,7 @@ public final class Database {
     
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
-    private var readOnlyDepth = 0 {
-        didSet {
-            // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-            // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-            // Assume those pragmas never fail
-            switch (oldValue, readOnlyDepth) {
-            case (1, 0):
-                try! internalCachedUpdateStatement(sql: "PRAGMA query_only = 0").execute()
-            case (0, 1):
-                try! internalCachedUpdateStatement(sql: "PRAGMA query_only = 1").execute()
-            default: break
-            }
-        }
-    }
+    private var _readOnlyDepth = 0 // Modify with beginReadOnly/endReadOnly
     private var isClosed: Bool = false
 
     // MARK: - Initializer
@@ -548,15 +535,54 @@ extension Database {
     
     // MARK: - Read-Only Access
     
+    func beginReadOnly() throws {
+        _readOnlyDepth += 1
+        if _readOnlyDepth == 1 {
+            // PRAGMA query_only was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
+            // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+            try internalCachedUpdateStatement(sql: "PRAGMA query_only = 1").execute()
+        }
+    }
+    
+    func endReadOnly() throws {
+        _readOnlyDepth -= 1
+        if _readOnlyDepth == 0 {
+            // PRAGMA query_only was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
+            // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+            try internalCachedUpdateStatement(sql: "PRAGMA query_only = 0").execute()
+        }
+    }
+    
     /// Grants read-only access, starting SQLite 3.8.0
-    func readOnly<T>(_ block: () throws -> T) rethrows -> T {
+    func readOnly<T>(_ block: () throws -> T) throws -> T {
         if configuration.readonly {
             return try block()
         }
         
-        readOnlyDepth += 1
-        defer { readOnlyDepth -= 1 }
-        return try block()
+        try beginReadOnly()
+        
+        var result: T?
+        var thrownError: Error?
+        
+        do {
+            result = try block()
+        } catch {
+            thrownError = error
+        }
+        
+        do {
+            try endReadOnly()
+        } catch {
+            if thrownError == nil {
+                thrownError = error
+            }
+        }
+        
+        if let error = thrownError {
+            throw error
+        }
+        
+        return result!
     }
 }
 
