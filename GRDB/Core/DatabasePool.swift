@@ -469,8 +469,9 @@ extension DatabasePool : DatabaseReader {
                 futureSemaphore.signal()
             }
         } catch {
-            isolationSemaphore.signal()
             futureResult = .failure(error)
+            isolationSemaphore.signal()
+            futureSemaphore.signal()
         }
         
         // Block the writer queue until snapshot isolation success or error
