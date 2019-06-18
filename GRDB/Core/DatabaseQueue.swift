@@ -232,13 +232,29 @@ extension DatabaseQueue {
             // Check that we're on the writer queue...
             try writer.execute { db in
                 // ... and that no transaction is opened.
-                GRDBPrecondition(!db.isInsideTransaction, "concurrentRead must not be called from inside a transaction.")
+                GRDBPrecondition(!db.isInsideTransaction, "must not be called from inside a transaction.")
                 return try db.readOnly {
                     try block(db)
                 }
             }
         })
     }
+    
+    #if compiler(>=5.0)
+    /// Performs the same job as asyncConcurrentRead.
+    ///
+    /// :nodoc:
+    public func spawnConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void) {
+        // Check that we're on the writer queue...
+        writer.execute { db in
+            // ... and that no transaction is opened.
+            GRDBPrecondition(!db.isInsideTransaction, "must not be called from inside a transaction.")
+            db.readOnly {
+                block(.success(db))
+            }
+        }
+    }
+    #endif
     
     // MARK: - Writing in Database
     

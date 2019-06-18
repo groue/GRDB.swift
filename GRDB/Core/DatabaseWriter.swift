@@ -101,8 +101,7 @@ public protocol DatabaseWriter : DatabaseReader {
 
     // MARK: - Reading from Database
     
-    /// Concurrently executes a read-only block that takes a
-    /// database connection.
+    /// Concurrently executes a read-only block in a protected dispatch queue.
     ///
     /// This method must be called from a writing dispatch queue, outside of any
     /// transaction. You'll get a fatal error otherwise.
@@ -111,9 +110,8 @@ public protocol DatabaseWriter : DatabaseReader {
     /// committed state at the moment this method is called. Eventual concurrent
     /// database updates are *not visible* inside the block.
     ///
-    /// This method returns as soon as the isolation guarantees described above
-    /// are established. To access the fetched results, you call the wait()
-    /// method of the returned future, on any dispatch queue.
+    /// To access the fetched results, you call the wait() method of the
+    /// returned future, on any dispatch queue.
     ///
     /// In the example below, the number of players is fetched concurrently with
     /// the player insertion. Yet the future is guaranteed to return zero:
@@ -134,6 +132,46 @@ public protocol DatabaseWriter : DatabaseReader {
     ///         let count = try future.wait()
     ///     }
     func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T>
+    
+    #if compiler(>=5.0)
+    // Exposed for RxGRDB and GRBCombine. Naming is not stabilized.
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// Concurrently executes a read-only block in a protected dispatch queue.
+    ///
+    /// This method must be called from a writing dispatch queue, outside of any
+    /// transaction. You'll get a fatal error otherwise.
+    ///
+    /// The *block* argument is guaranteed to see the database in the last
+    /// committed state at the moment this method is called. Eventual concurrent
+    /// database updates are *not visible* inside the block.
+    ///
+    /// In the example below, the number of players is fetched concurrently with
+    /// the player insertion. Yet the future is guaranteed to return zero:
+    ///
+    ///     try writer.asyncWriteWithoutTransaction { db in
+    ///         // Delete all players
+    ///         try Player.deleteAll()
+    ///
+    ///         // Count players concurrently
+    ///         writer.asyncConcurrentRead { result in
+    ///             do {
+    ///                 let db = try result.get()
+    ///                 // Guaranteed to be zero
+    ///                 let count = try Player.fetchCount(db)
+    ///             } catch {
+    ///                 // Handle error
+    ///             }
+    ///         }
+    ///
+    ///         // Insert a player
+    ///         try Player(...).insert(db)
+    ///     }
+    ///
+    /// - parameter block: A block that accesses the database.
+    /// :nodoc:
+    func spawnConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void)
+    #endif
 }
 
 extension DatabaseWriter {
@@ -548,6 +586,13 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
         return base.concurrentRead(block)
     }
+    
+    #if compiler(>=5.0)
+    /// :nodoc:
+    public func spawnConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void) {
+        base.spawnConcurrentRead(block)
+    }
+    #endif
     
     // MARK: - Writing in Database
     

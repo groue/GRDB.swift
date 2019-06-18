@@ -431,7 +431,7 @@ extension DatabasePool : DatabaseReader {
         writer.execute { db in
             // ... and that no transaction is opened.
             GRDBPrecondition(!db.isInsideTransaction, """
-                concurrentRead must not be called from inside a transaction. \
+                must not be called from inside a transaction. \
                 If this error is raised from a DatabasePool.write block, use \
                 DatabasePool.writeWithoutTransaction instead (and use \
                 transactions when needed).
@@ -485,6 +485,15 @@ extension DatabasePool : DatabaseReader {
     }
     
     #if compiler(>=5.0)
+    /// Performs the same job as asyncConcurrentRead.
+    ///
+    /// :nodoc:
+    public func spawnConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void) {
+        asyncConcurrentRead(block)
+    }
+    #endif
+
+    #if compiler(>=5.0)
     /// Asynchronously executes a read-only block in a protected dispatch queue.
     ///
     /// This method must be called from a writing dispatch queue, outside of any
@@ -525,7 +534,7 @@ extension DatabasePool : DatabaseReader {
         writer.execute { db in
             // ... and that no transaction is opened.
             GRDBPrecondition(!db.isInsideTransaction, """
-                concurrentRead must not be called from inside a transaction. \
+                must not be called from inside a transaction. \
                 If this error is raised from a DatabasePool.write block, use \
                 DatabasePool.writeWithoutTransaction instead (and use \
                 transactions when needed).
