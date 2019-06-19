@@ -7,6 +7,8 @@
     import SQLite3
 #endif
 
+import Foundation
+
 /// FTS5 lets you define "fts5" virtual tables.
 ///
 ///     // CREATE VIRTUAL TABLE document USING fts5(content)

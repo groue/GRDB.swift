@@ -7,6 +7,8 @@
     import SQLite3
 #endif
 
+import Foundation
+
 /// Flags that tell SQLite how to register a token.
 ///
 /// See https://www.sqlite.org/fts5.html#custom_tokenizers

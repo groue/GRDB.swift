@@ -7,6 +7,8 @@
     import SQLite3
 #endif
 
+import Foundation
+
 /// A low-level SQLite function that lets FTS5Tokenizer notify tokens.
 ///
 /// See FTS5Tokenizer.tokenize(context:flags:pText:nText:tokenCallback:)
