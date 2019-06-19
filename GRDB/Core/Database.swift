@@ -537,7 +537,7 @@ extension Database {
     
     func beginReadOnly() throws {
         _readOnlyDepth += 1
-        if _readOnlyDepth == 1 {
+        if _readOnlyDepth == 1 && configuration.readonly == false  {
             // PRAGMA query_only was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
             // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
             try internalCachedUpdateStatement(sql: "PRAGMA query_only = 1").execute()
@@ -546,7 +546,7 @@ extension Database {
     
     func endReadOnly() throws {
         _readOnlyDepth -= 1
-        if _readOnlyDepth == 0 {
+        if _readOnlyDepth == 0 && configuration.readonly == false {
             // PRAGMA query_only was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
             // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
             try internalCachedUpdateStatement(sql: "PRAGMA query_only = 0").execute()
@@ -555,10 +555,6 @@ extension Database {
     
     /// Grants read-only access, starting SQLite 3.8.0
     func readOnly<T>(_ block: () throws -> T) throws -> T {
-        if configuration.readonly {
-            return try block()
-        }
-        
         try beginReadOnly()
         
         var result: T?
