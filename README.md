@@ -7352,6 +7352,19 @@ pod 'GRDB.swift/SQLCipher'
 pod 'SQLCipher', '~> 3.4'
 ```
 
+Or use the [Swift Package Manager](https://swift.org/package-manager/) (SQLCipher 4 only), and depend on the `GRDBCipher` product:
+
+```swift
+let package = Package(
+    dependencies: [
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "4.0.1")
+    ],
+    targets: [
+        .target(name: "MyTarget", dependencies: ["GRDBCipher"])
+    ]
+)
+```
+
 > :warning: **Warning**: SQLCipher 4 is *not compatible** with SQLCipher 3.
 >
 > When you want to open your existing SQLCipher 3 database with SQLCipher 4, you may want to run the `cipher_compatibility` pragma:
