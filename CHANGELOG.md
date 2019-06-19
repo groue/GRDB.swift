@@ -67,6 +67,7 @@ Released June 15, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare
 - [#546](https://github.com/groue/GRDB.swift/pull/546) by [@robcas3](https://github.com/robcas3): Fix SPM errors with Xcode 11 beta
 - [#549](https://github.com/groue/GRDB.swift/pull/549) Support for Combine
 - [#550](https://github.com/groue/GRDB.swift/pull/550) Asynchronous Database Access Methods
+- [#555](https://github.com/groue/GRDB.swift/pull/555) Avoid a crash when read-only access can't be established
 
 ### Documentation Diff
 

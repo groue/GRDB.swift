@@ -188,7 +188,17 @@ extension DatabaseQueue {
     /// - parameter block: A block that accesses the database.
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         writer.async { db in
-            db.readOnly { block(.success(db)) }
+            do {
+                try db.beginReadOnly()
+            } catch {
+                block(.failure(error))
+                return
+            }
+            
+            block(.success(db))
+            
+            // Ignore error because we can not notify it.
+            try? db.endReadOnly()
         }
     }
     #endif
@@ -249,9 +259,18 @@ extension DatabaseQueue {
         writer.execute { db in
             // ... and that no transaction is opened.
             GRDBPrecondition(!db.isInsideTransaction, "must not be called from inside a transaction.")
-            db.readOnly {
-                block(.success(db))
+            
+            do {
+                try db.beginReadOnly()
+            } catch {
+                block(.failure(error))
+                return
             }
+            
+            block(.success(db))
+            
+            // Ignore error because we can not notify it.
+            try? db.endReadOnly()
         }
     }
     #endif
