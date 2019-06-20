@@ -28,7 +28,7 @@
 ///     }
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public struct QueryInterfaceRequest<T> {
+public struct QueryInterfaceRequest<T>: DerivableRequest {
     var query: SQLQuery
     
     init(query: SQLQuery) {
@@ -38,13 +38,9 @@ public struct QueryInterfaceRequest<T> {
     init(relation: SQLRelation) {
         self.init(query: SQLQuery(relation: relation))
     }
-    
-    var prefetchedAssociations: [SQLAssociation] {
-        return query.relation.prefetchedAssociations
-    }
 }
 
-extension QueryInterfaceRequest : FetchRequest {
+extension QueryInterfaceRequest: FetchRequest {
     public typealias RowDecoder = T
     
     /// Returns a tuple that contains a prepared statement that is ready to be
@@ -54,15 +50,27 @@ extension QueryInterfaceRequest : FetchRequest {
     /// - parameter singleResult: A hint as to whether the query should be optimized for a single result.
     /// - returns: A prepared statement and an eventual row adapter.
     /// :nodoc:
-    public func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
+    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
         var query = self.query
         
         // Optimize query by setting a limit of 1 when appropriate
         if singleResult && !query.expectsSingleResult {
             query.limit = SQLLimit(limit: 1, offset: query.limit?.offset)
         }
-
-        return try SQLQueryGenerator(query).prepare(db)
+        
+        let (statement, adapter) = try SQLQueryGenerator(query).prepare(db)
+        let associations = query.relation.prefetchedAssociations
+        if associations.isEmpty {
+            return PreparedRequest(statement: statement, adapter: adapter)
+        } else {
+            // Eager loading of prefetched associations
+            return PreparedRequest(
+                statement: statement,
+                adapter: adapter,
+                supplementaryFetch: { rows in
+                    try prefetch(db, associations: associations, in: rows)
+            })
+        }
     }
     
     /// Returns the number of rows fetched by the request.
@@ -86,7 +94,7 @@ extension QueryInterfaceRequest : FetchRequest {
             let association = fifo.removeFirst()
             
             // Build the query for prefetched rows.
-            // CAUTION: Keep this code in sync with Row.prefetch(_:associations:in:)
+            // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
             let pivotMappings = try association.pivot.condition.columnMappings(db)
             let pivotColumns = pivotMappings.map { $0.right }
             let pivotAlias = TableAlias()
@@ -108,10 +116,9 @@ extension QueryInterfaceRequest : FetchRequest {
     }
 }
 
-extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
-    
+extension QueryInterfaceRequest: SelectionRequest {
     // MARK: Request Derivation
-
+    
     /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM player
@@ -214,20 +221,11 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
         // From raw rows? From copied rows?
         return mapQuery { $0.annotated(with: selection) }
     }
+}
 
-    /// Creates a request which returns distinct rows.
-    ///
-    ///     // SELECT DISTINCT * FROM player
-    ///     var request = Player.all()
-    ///     request = request.distinct()
-    ///
-    ///     // SELECT DISTINCT name FROM player
-    ///     var request = Player.select(Column("name"))
-    ///     request = request.distinct()
-    public func distinct() -> QueryInterfaceRequest {
-        return mapQuery { $0.distinct() }
-    }
-    
+extension QueryInterfaceRequest: FilteredRequest {
+    // MARK: Request Derivation
+
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
     ///
@@ -237,28 +235,11 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
         return mapQuery { $0.filter(predicate) }
     }
-    
-    /// Creates a request which expects a single result.
-    ///
-    /// It is unlikely you need to call this method. Its net effect is that
-    /// QueryInterfaceRequest does not use any `LIMIT 1` sql clause when you
-    /// call a `fetchOne` method.
-    ///
-    /// :nodoc:
-    public func expectingSingleResult() -> QueryInterfaceRequest {
-        return mapQuery { $0.expectingSingleResult() }
-    }
-    
-    /// Creates a request grouped according to *expressions promise*.
-    public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceRequest {
-        return mapQuery { $0.group(expressions) }
-    }
-    
-    /// Creates a request with the provided *predicate* added to the
-    /// eventual set of already applied predicates.
-    public func having(_ predicate: SQLExpressible) -> QueryInterfaceRequest {
-        return mapQuery { $0.having(predicate) }
-    }
+
+}
+
+extension QueryInterfaceRequest: OrderedRequest {
+    // MARK: Request Derivation
     
     /// Creates a request with the provided *orderings promise*.
     ///
@@ -300,6 +281,78 @@ extension QueryInterfaceRequest : DerivableRequest, AggregatingRequest {
     public func unordered() -> QueryInterfaceRequest {
         return mapQuery { $0.unordered() }
     }
+}
+
+extension QueryInterfaceRequest: AggregatingRequest {
+    // MARK: Request Derivation
+    
+    /// Creates a request grouped according to *expressions promise*.
+    public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceRequest {
+        return mapQuery { $0.group(expressions) }
+    }
+    
+    /// Creates a request with the provided *predicate* added to the
+    /// eventual set of already applied predicates.
+    public func having(_ predicate: SQLExpressible) -> QueryInterfaceRequest {
+        return mapQuery { $0.having(predicate) }
+    }
+}
+
+extension QueryInterfaceRequest: JoinableRequest {
+    /// :nodoc:
+    public func _including(all association: SQLAssociation) -> QueryInterfaceRequest {
+        return mapQuery { $0._including(all: association) }
+    }
+    
+    /// :nodoc:
+    public func _including(optional association: SQLAssociation) -> QueryInterfaceRequest {
+        return mapQuery { $0._including(optional: association) }
+    }
+    
+    /// :nodoc:
+    public func _including(required association: SQLAssociation) -> QueryInterfaceRequest {
+        return mapQuery { $0._including(required: association) }
+    }
+    
+    /// :nodoc:
+    public func _joining(optional association: SQLAssociation) -> QueryInterfaceRequest {
+        return mapQuery { $0._joining(optional: association) }
+    }
+    
+    /// :nodoc:
+    public func _joining(required association: SQLAssociation) -> QueryInterfaceRequest {
+        return mapQuery { $0._joining(required: association) }
+    }
+}
+
+extension QueryInterfaceRequest {
+    
+    // MARK: Request Derivation
+
+    /// Creates a request which returns distinct rows.
+    ///
+    ///     // SELECT DISTINCT * FROM player
+    ///     var request = Player.all()
+    ///     request = request.distinct()
+    ///
+    ///     // SELECT DISTINCT name FROM player
+    ///     var request = Player.select(Column("name"))
+    ///     request = request.distinct()
+    public func distinct() -> QueryInterfaceRequest {
+        return mapQuery { $0.distinct() }
+    }
+    
+    /// Creates a request which expects a single result.
+    ///
+    /// It is unlikely you need to call this method. Its net effect is that
+    /// QueryInterfaceRequest does not use any `LIMIT 1` sql clause when you
+    /// call a `fetchOne` method.
+    ///
+    /// :nodoc:
+    public func expectingSingleResult() -> QueryInterfaceRequest {
+        return mapQuery { $0.expectingSingleResult() }
+    }
+    
     
     /// Creates a request which fetches *limit* rows, starting at *offset*.
     ///
@@ -373,7 +426,7 @@ extension QueryInterfaceRequest {
         // Prevent information loss
         GRDBPrecondition(!query.isDistinct, "Not implemented: join distinct queries")
         GRDBPrecondition(query.groupPromise == nil, "Can't join aggregated queries")
-        GRDBPrecondition(query.havingExpression == nil, "Can't join aggregated queries")
+        GRDBPrecondition(query.havingExpressions.isEmpty, "Can't join aggregated queries")
         GRDBPrecondition(query.limit == nil, "Can't join limited queries")
         
         return query.relation
@@ -420,5 +473,88 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
     public func deleteAll(_ db: Database) throws -> Int {
         try SQLQueryGenerator(query).makeDeleteStatement(db).execute()
         return db.changesCount
+    }
+}
+
+// MARK: - Eager loading of hasMany associations
+
+/// Append rows from prefetched associations into the argument rows.
+fileprivate func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [Row]) throws {
+    guard let firstRow = rows.first else {
+        // No rows -> no prefetch
+        return
+    }
+    
+    // CAUTION: Keep this code in sync with QueryInterfaceRequest.databaseRegion(_:)
+    for association in associations {
+        let pivotMappings = try association.pivot.condition.columnMappings(db)
+        
+        let prefetchedRows: [[DatabaseValue] : [Row]]
+        do {
+            // Annotate prefetched rows with pivot columns, so that we can
+            // group them.
+            //
+            // Those pivot columns are necessary when we prefetch
+            // indirect associations:
+            //
+            //      // SELECT country.*, passport.citizenId AS grdb_citizenId
+            //      // --                ^ the necessary pivot column
+            //      // FROM country
+            //      // JOIN passport ON passport.countryCode = country.code
+            //      //               AND passport.citizenId IN (1, 2, 3)
+            //      Citizen.including(all: Citizen.countries)
+            //
+            // Those pivot columns are redundant when we prefetch direct
+            // associations (maybe we'll remove this redundancy later):
+            //
+            //      // SELECT *, authorId AS grdb_authorId
+            //      // --        ^ the redundant pivot column
+            //      // FROM book
+            //      // WHERE authorId IN (1, 2, 3)
+            //      Author.including(all: Author.books)
+            let pivotColumns = pivotMappings.map { $0.right }
+            let pivotAlias = TableAlias()
+            let prefetchedRelation = association
+                .mapPivotRelation { $0.qualified(with: pivotAlias) }
+                .destinationRelation(fromOriginRows: { _ in rows })
+                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].aliased("grdb_\($0)") })
+            prefetchedRows = try QueryInterfaceRequest(relation: prefetchedRelation)
+                .fetchAll(db)
+                .grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
+            // TODO: can we remove those grdb_ columns now that grouping has been done?
+        }
+        
+        let groupingIndexes = firstRow.indexes(ofColumns: pivotMappings.map { $0.left })
+        for row in rows {
+            let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
+            let prefetchedRows = prefetchedRows[groupingKey, default: []]
+            row.prefetchedRows.setRows(prefetchedRows, forKeyPath: association.keyPath)
+        }
+    }
+}
+
+extension Array where Element == Row {
+    /// - precondition: Columns all exist in all rows. All rows have the same
+    ///   columnns, in the same order.
+    fileprivate func grouped(byDatabaseValuesOnColumns columns: [String]) -> [[DatabaseValue]: [Row]] {
+        guard let firstRow = first else {
+            return [:]
+        }
+        let indexes = firstRow.indexes(ofColumns: columns)
+        return Dictionary(grouping: self, by: { row in
+            indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
+        })
+    }
+}
+
+extension Row {
+    /// - precondition: Columns all exist in the row.
+    fileprivate func indexes(ofColumns columns: [String]) -> [Int] {
+        return columns.map { column -> Int in
+            guard let index = index(ofColumn: column) else {
+                fatalError("Column \(column) is not selected")
+            }
+            return index
+        }
     }
 }

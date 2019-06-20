@@ -189,6 +189,7 @@ extension SQLLiteralTests {
             SELECT
               \(a),
               \(a + 1),
+              \(2 * (a + 1)),
               \(a < b),
               \(integer),
               \(optionalInteger),
@@ -198,14 +199,15 @@ extension SQLLiteralTests {
         XCTAssertEqual(query.sql, """
             SELECT
               "a",
-              ("a" + ?),
-              ("a" < "b"),
+              "a" + ?,
+              ? * ("a" + ?),
+              "a" < "b",
               ?,
               ?,
               NULL,
-              ("a" IS NULL)
+              "a" IS NULL
             """)
-        XCTAssertEqual(query.arguments, [1, 1, 2])
+        XCTAssertEqual(query.arguments, [1, 2, 1, 1, 2])
     }
     
     func testQualifiedExpressionInterpolation() {
@@ -265,7 +267,7 @@ extension SQLLiteralTests {
             SELECT * FROM player
             WHERE teamId IN (?)
               AND name IN (?,?,?)
-              AND c IN ("a",("b" + ?))
+              AND c IN ("a","b" + ?)
               AND d IN (SELECT NULL WHERE NULL)
             """)
         XCTAssertEqual(query.arguments, [1, "foo", "bar", "baz", 2])

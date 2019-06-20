@@ -153,7 +153,10 @@ struct SQLRelation {
     
     var source: SQLSource
     var selection: [SQLSelectable]
-    var filterPromise: DatabasePromise<SQLExpression?>
+    // Filter is an array of expressions that we'll join with the AND operator.
+    // This gives nicer output in generated SQL: `(a AND b AND c)` instead of
+    // `((a AND b) AND c)`.
+    var filtersPromise: DatabasePromise<[SQLExpression]>
     var ordering: SQLRelation.Ordering
     var children: OrderedDictionary<String, Child>
     
@@ -173,13 +176,13 @@ struct SQLRelation {
     init(
         source: SQLSource,
         selection: [SQLSelectable] = [],
-        filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil),
+        filtersPromise: DatabasePromise<[SQLExpression]> = DatabasePromise(value: []),
         ordering: SQLRelation.Ordering = SQLRelation.Ordering(),
         children: OrderedDictionary<String, Child> = [:])
     {
         self.source = source
         self.selection = selection
-        self.filterPromise = filterPromise
+        self.filtersPromise = filtersPromise
         self.ordering = ordering
         self.children = children
     }
@@ -200,12 +203,8 @@ extension SQLRelation {
 
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLRelation {
         var relation = self
-        relation.filterPromise = relation.filterPromise.flatMap { filter in
-            if let filter = filter {
-                return DatabasePromise { try filter && predicate($0) }
-            } else {
-                return DatabasePromise { try predicate($0).sqlExpression }
-            }
+        relation.filtersPromise = relation.filtersPromise.flatMap { filters in
+            DatabasePromise { try filters + [predicate($0).sqlExpression] }
         }
         return relation
     }
@@ -245,39 +244,6 @@ extension SQLRelation {
         return relation
     }
     
-    /// Creates a relation that prefetches another one.
-    func including(all association: SQLAssociation) -> SQLRelation {
-        return appending(association, kind: .allPrefetched)
-    }
-    
-    /// Creates a relation that includes another one. The columns of the
-    /// associated record are selected. The returned relation does not
-    /// require that the associated database table contains a matching row.
-    func including(optional association: SQLAssociation) -> SQLRelation {
-        return appending(association, kind: .oneOptional)
-    }
-    
-    /// Creates a relation that includes another one. The columns of the
-    /// associated record are selected. The returned relation requires
-    /// that the associated database table contains a matching row.
-    func including(required association: SQLAssociation) -> SQLRelation {
-        return appending(association, kind: .oneRequired)
-    }
-    
-    /// Creates a relation that joins another one. The columns of the
-    /// associated record are not selected. The returned relation does not
-    /// require that the associated database table contains a matching row.
-    func joining(optional association: SQLAssociation) -> SQLRelation {
-        return appending(association.mapDestinationRelation { $0.select([]) }, kind: .oneOptional)
-    }
-    
-    /// Creates a relation that joins another one. The columns of the
-    /// associated record are not selected. The returned relation requires
-    /// that the associated database table contains a matching row.
-    func joining(required association: SQLAssociation) -> SQLRelation {
-        return appending(association.mapDestinationRelation { $0.select([]) }, kind: .oneRequired)
-    }
-    
     /// Returns a relation extended with an association.
     ///
     /// This method provides support for public joining methods such
@@ -310,7 +276,7 @@ extension SQLRelation {
     /// HasMany in the above examples, but also for indirect associations such
     /// as HasManyThrough, which have any number of pivot relations between the
     /// origin and the destination.
-    func appending(_ association: SQLAssociation, kind: SQLRelation.Child.Kind) -> SQLRelation {
+    func appendingChild(for association: SQLAssociation, kind: SQLRelation.Child.Kind) -> SQLRelation {
         let childCardinality = (kind == .allNotPrefetched)
             // preserve association cardinality in intermediate steps of including(all:)
             ? association.destination.cardinality
@@ -360,7 +326,7 @@ extension SQLRelation {
         
         switch kind {
         case .oneRequired, .oneOptional, .allNotPrefetched:
-            return appending(reducedAssociation, kind: kind)
+            return appendingChild(for: reducedAssociation, kind: kind)
         case .allPrefetched:
             // Intermediate steps of indirect associations are not prefetched.
             //
@@ -372,7 +338,7 @@ extension SQLRelation {
             //          static let citizens = hasMany(Citizens.self, through: passports, using: Passport.citizen)
             //      }
             //      let request = Country.including(all: Country.citizens)
-            return appending(reducedAssociation, kind: .allNotPrefetched)
+            return appendingChild(for: reducedAssociation, kind: .allNotPrefetched)
         }
     }
     
@@ -388,6 +354,28 @@ extension SQLRelation {
             relation.children.appendValue(child, forKey: key)
         }
         return relation
+    }
+}
+
+extension SQLRelation: _JoinableRequest {
+    func _including(all association: SQLAssociation) -> SQLRelation {
+        return appendingChild(for: association, kind: .allPrefetched)
+    }
+    
+    func _including(optional association: SQLAssociation) -> SQLRelation {
+        return appendingChild(for: association, kind: .oneOptional)
+    }
+    
+    func _including(required association: SQLAssociation) -> SQLRelation {
+        return appendingChild(for: association, kind: .oneRequired)
+    }
+    
+    func _joining(optional association: SQLAssociation) -> SQLRelation {
+        return appendingChild(for: association.mapDestinationRelation { $0.select([]) }, kind: .oneOptional)
+    }
+    
+    func _joining(required association: SQLAssociation) -> SQLRelation {
+        return appendingChild(for: association.mapDestinationRelation { $0.select([]) }, kind: .oneRequired)
     }
 }
 
@@ -568,7 +556,7 @@ struct SQLAssociationCondition: Equatable {
         }
     }
     
-    /// Resolves the condition into an SQL expression which involves both left
+    /// Resolves the condition into SQL expressions which involve both left
     /// and right tables.
     ///
     ///     SELECT * FROM left JOIN right ON (right.a = left.b)
@@ -579,11 +567,12 @@ struct SQLAssociationCondition: Equatable {
     ///   JOIN operator.
     /// - parameter rightAlias: A TableAlias for the table on the right of the
     ///   JOIN operator.
-    /// - Returns: An SQL expression.
-    func joinExpression(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> SQLExpression {
-        return try columnMappings(db)
-            .map { QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias) }
-            .joined(operator: .and)
+    /// - Returns: An array of SQL expression that should be joined with
+    ///   the AND operator.
+    func expressions(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> [SQLExpression] {
+        return try columnMappings(db).map {
+            QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias)
+        }
     }
     
     /// Resolves the condition into an SQL expression which involves only the
@@ -661,16 +650,8 @@ extension SQLRelation {
             return nil
         }
         
-        let mergedFilterPromise: DatabasePromise<SQLExpression?> = filterPromise.flatMap { expression in
-            return DatabasePromise { db in
-                let otherExpression = try other.filterPromise.resolve(db)
-                let expressions = [expression, otherExpression].compactMap { $0 }
-                if expressions.isEmpty {
-                    return nil
-                } else {
-                    return expressions.joined(operator: .and)
-                }
-            }
+        let mergedFiltersPromise: DatabasePromise<[SQLExpression]> = filtersPromise.flatMap { filters in
+            DatabasePromise { try filters + other.filtersPromise.resolve($0) }
         }
         
         var mergedChildren: OrderedDictionary<String, SQLRelation.Child> = [:]
@@ -698,7 +679,7 @@ extension SQLRelation {
         return SQLRelation(
             source: mergedSource,
             selection: mergedSelection,
-            filterPromise: mergedFilterPromise,
+            filtersPromise: mergedFiltersPromise,
             ordering: mergedOrdering,
             children: mergedChildren)
     }

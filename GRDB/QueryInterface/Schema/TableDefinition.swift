@@ -416,9 +416,7 @@ public final class TableDefinition {
     ///
     /// - parameter sql: An SQL snippet
     public func check(sql: String) {
-        // We do not want to wrap the SQL snippet inside parentheses around the
-        // checked SQL. This is why we use the "unsafeLiteral" initializer.
-        checkConstraints.append(SQLExpressionLiteral(unsafeLiteral: SQLLiteral(sql: sql)))
+        checkConstraints.append(SQLExpressionLiteral(sql: sql))
     }
     
     fileprivate func sql(_ db: Database) throws -> String {
@@ -506,8 +504,7 @@ public final class TableDefinition {
                 
                 for checkExpression in checkConstraints {
                     var chunks: [String] = []
-                    chunks.append("CHECK")
-                    chunks.append("(" + checkExpression.quotedSQL() + ")")
+                    chunks.append("CHECK (\(checkExpression.quotedSQL(wrappedInParenthesis: false)))")
                     items.append(chunks.joined(separator: " "))
                 }
                 
@@ -721,9 +718,7 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func check(sql: String) -> Self {
-        // We do not want to wrap the SQL snippet inside parentheses around the
-        // checked SQL. This is why we use the "unsafeLiteral" initializer.
-        checkConstraints.append(SQLExpressionLiteral(unsafeLiteral: SQLLiteral(sql: sql)))
+        checkConstraints.append(SQLExpressionLiteral(sql: sql))
         return self
     }
     
@@ -755,9 +750,7 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func defaults(sql: String) -> Self {
-        // We do not want to wrap the SQL snippet inside parentheses around the
-        // checked SQL. This is why we use the "unsafeLiteral" initializer.
-        defaultExpression = SQLExpressionLiteral(unsafeLiteral: SQLLiteral(sql: sql))
+        defaultExpression = SQLExpressionLiteral(sql: sql)
         return self
     }
     
@@ -860,13 +853,11 @@ public final class ColumnDefinition {
         }
         
         for checkConstraint in checkConstraints {
-            chunks.append("CHECK")
-            chunks.append("(" + checkConstraint.quotedSQL() + ")")
+            chunks.append("CHECK (\(checkConstraint.quotedSQL(wrappedInParenthesis: false)))")
         }
         
         if let defaultExpression = defaultExpression {
-            chunks.append("DEFAULT")
-            chunks.append(defaultExpression.quotedSQL())
+            chunks.append("DEFAULT \(defaultExpression.quotedSQL(wrappedInParenthesis: false))")
         }
         
         if let collationName = collationName {
@@ -942,8 +933,7 @@ private struct IndexDefinition {
         chunks.append("ON")
         chunks.append("\(table.quotedDatabaseIdentifier)(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
         if let condition = condition {
-            chunks.append("WHERE")
-            chunks.append(condition.quotedSQL())
+            chunks.append("WHERE \(condition.quotedSQL(wrappedInParenthesis: false))")
         }
         return chunks.joined(separator: " ")
     }

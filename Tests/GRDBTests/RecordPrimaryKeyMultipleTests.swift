@@ -345,7 +345,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             XCTAssertTrue(fetchedRecord.personName == record.personName)
             XCTAssertTrue(fetchedRecord.countryName == record.countryName)
             XCTAssertTrue(fetchedRecord.native == record.native)
-            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"citizenships\" WHERE ((\"personName\" = '\(record.personName!)') AND (\"countryName\" = '\(record.countryName!)'))")
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"citizenships\" WHERE (\"personName\" = '\(record.personName!)') AND (\"countryName\" = '\(record.countryName!)')")
         }
     }
 
@@ -418,7 +418,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             XCTAssertTrue(fetchedRecord.personName == record.personName)
             XCTAssertTrue(fetchedRecord.countryName == record.countryName)
             XCTAssertTrue(fetchedRecord.native == record.native)
-            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"citizenships\" WHERE ((\"personName\" = '\(record.personName!)') AND (\"countryName\" = '\(record.countryName!)'))")
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"citizenships\" WHERE (\"personName\" = '\(record.personName!)') AND (\"countryName\" = '\(record.countryName!)')")
         }
     }
     

@@ -363,15 +363,7 @@ extension AggregatingRequest {
     /// Creates a request with a new grouping.
     public func group(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        // This "expression" is not a real expression. We support raw sql which
-        // actually contains several expressions:
-        //
-        //   request = Player.group(sql: "teamId, level")
-        //
-        // This is why we use the "unsafeLiteral" initializer, so that the
-        // SQLExpressionLiteral does not wrap input in parentheses, and
-        // generates invalid SQL `GROUP BY (teamId, level)`.
-        return group(SQLExpressionLiteral(unsafeLiteral: sqlLiteral))
+        return group(SQLExpressionLiteral(literal: sqlLiteral))
     }
 
     /// Creates a request with the provided *sql* added to the
@@ -392,7 +384,7 @@ extension AggregatingRequest {
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
-/// The protocol for all requests that be ordered.
+/// The protocol for all requests that can be ordered.
 ///
 /// :nodoc:
 public protocol OrderedRequest {
@@ -498,15 +490,93 @@ extension OrderedRequest {
     ///         .order(sql: "name")
     public func order(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        // This "expression" is not a real expression. We support raw sql which
-        // actually contains several expressions:
-        //
-        //   request = Player.order(sql: "teamId, level")
-        //
-        // This is why we use the "unsafeLiteral" initializer, so that the
-        // SQLExpressionLiteral does not wrap input in parentheses, and
-        // generates invalid SQL `ORDER BY (teamId, level)`.
-        return order(SQLExpressionLiteral(unsafeLiteral: sqlLiteral))
+        return order(SQLExpressionLiteral(literal: sqlLiteral))
+    }
+}
+
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// Type-unsafe support for the JoinableRequest protocol.
+///
+/// :nodoc:
+public protocol _JoinableRequest {
+    /// Creates a request that prefetches an association.
+    func _including(all association: SQLAssociation) -> Self
+    
+    /// Creates a request that includes an association. The columns of the
+    /// associated record are selected. The returned request does not
+    /// require that the associated database table contains a matching row.
+    func _including(optional association: SQLAssociation) -> Self
+    
+    /// Creates a request that includes an association. The columns of the
+    /// associated record are selected. The returned request requires
+    /// that the associated database table contains a matching row.
+    func _including(required association: SQLAssociation) -> Self
+    
+    /// Creates a request that joins an association. The columns of the
+    /// associated record are not selected. The returned request does not
+    /// require that the associated database table contains a matching row.
+    func _joining(optional association: SQLAssociation) -> Self
+    
+    /// Creates a request that joins an association. The columns of the
+    /// associated record are not selected. The returned request requires
+    /// that the associated database table contains a matching row.
+    func _joining(required association: SQLAssociation) -> Self
+}
+
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// The protocol for all requests that can be associated.
+///
+/// :nodoc:
+public protocol JoinableRequest: _JoinableRequest {
+    /// The record type that can be associated to.
+    ///
+    /// In the request below, it is Book:
+    ///
+    ///     let request = Book.all()
+    ///
+    /// In the `belongsTo` association below, it is Author:
+    ///
+    ///     struct Book: TableRecord {
+    ///         // BelongsToAssociation<Book, Author>
+    ///         static let author = belongsTo(Author.self)
+    ///     }
+    associatedtype RowDecoder
+}
+
+extension JoinableRequest {
+    /// Creates a request that prefetches an association.
+    public func including<A: AssociationToMany>(all association: A) -> Self where A.OriginRowDecoder == RowDecoder {
+        return _including(all: association.sqlAssociation)
+    }
+    
+    /// Creates a request that includes an association. The columns of the
+    /// associated record are selected. The returned request does not
+    /// require that the associated database table contains a matching row.
+    public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
+        return _including(optional: association.sqlAssociation)
+    }
+    
+    /// Creates a request that includes an association. The columns of the
+    /// associated record are selected. The returned request requires
+    /// that the associated database table contains a matching row.
+    public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
+        return _including(required: association.sqlAssociation)
+    }
+    
+    /// Creates a request that joins an association. The columns of the
+    /// associated record are not selected. The returned request does not
+    /// require that the associated database table contains a matching row.
+    public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
+        return _joining(optional: association.sqlAssociation)
+    }
+    
+    /// Creates a request that joins an association. The columns of the
+    /// associated record are not selected. The returned request requires
+    /// that the associated database table contains a matching row.
+    public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
+        return _joining(required: association.sqlAssociation)
     }
 }
 
@@ -517,6 +587,4 @@ extension OrderedRequest {
 /// The base protocol for all requests that can be refined.
 ///
 /// :nodoc:
-public protocol DerivableRequest: SelectionRequest, FilteredRequest, OrderedRequest {
-    associatedtype RowDecoder
-}
+public protocol DerivableRequest: SelectionRequest, FilteredRequest, OrderedRequest, JoinableRequest { }

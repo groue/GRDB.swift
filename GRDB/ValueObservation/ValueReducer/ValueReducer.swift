@@ -18,6 +18,43 @@ public protocol ValueReducer {
     mutating func value(_ fetched: Fetched) -> Value?
 }
 
+extension ValueReducer {
+    /// Synchronous fetch
+    func fetch(_ db: Database, requiringWriteAccess: Bool) throws -> Fetched {
+        if requiringWriteAccess {
+            var fetchedValue: Fetched?
+            try db.inSavepoint {
+                fetchedValue = try fetch(db)
+                return .commit
+            }
+            return fetchedValue!
+        } else {
+            return try db.readOnly {
+                try fetch(db)
+            }
+        }
+    }
+    
+    /// Synchronous or asynchronous fetch
+    /// Support for ValueObserver
+    func fetchFuture(_ db: Database, writer: DatabaseWriter, requiringWriteAccess: Bool) -> DatabaseFuture<Fetched> {
+        if requiringWriteAccess {
+            // Synchronous fetch
+            return DatabaseFuture(DatabaseResult {
+                var fetchedValue: Fetched!
+                try db.inTransaction {
+                    fetchedValue = try fetch(db)
+                    return .commit
+                }
+                return fetchedValue
+            })
+        } else {
+            // Concurrent fetch
+            return writer.concurrentRead(fetch)
+        }
+    }
+}
+
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// A type-erased ValueReducer.
@@ -69,24 +106,5 @@ public struct AnyValueReducer<Fetched, Value>: ValueReducer {
     }
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// A reducer which outputs raw values.
-///
-/// :nodoc:
-public struct RawValueReducer<Value>: ValueReducer {
-    private let _fetch: (Database) throws -> Value
-    
-    public init(_ fetch: @escaping (Database) throws -> Value) {
-        self._fetch = fetch
-    }
-    
-    public func fetch(_ db: Database) throws -> Value {
-        return try _fetch(db)
-    }
-    
-    public func value(_ fetched: Value) -> Value? {
-        return fetched
-    }
-}
-
+/// A namespace for types related to the ValueReducer protocol.
+public enum ValueReducers { }

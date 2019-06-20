@@ -57,20 +57,20 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
             try assertEqualSQL(db, A.including(required: A.c), """
                 SELECT "a".*, "c".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bId") \
-                JOIN "c" ON ("c"."id" = "b"."cId")
+                JOIN "b" ON "b"."id" = "a"."bId" \
+                JOIN "c" ON "c"."id" = "b"."cId"
                 """)
             try assertEqualSQL(db, A.including(required: A.restrictedC), """
                 SELECT "a".*, "c"."name" \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bId") \
-                JOIN "c" ON ("c"."id" = "b"."cId")
+                JOIN "b" ON "b"."id" = "a"."bId" \
+                JOIN "c" ON "c"."id" = "b"."cId"
                 """)
             try assertEqualSQL(db, A.including(required: A.extendedC), """
                 SELECT "a".*, "c".*, "c"."rowid" \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bId") \
-                JOIN "c" ON ("c"."id" = "b"."cId")
+                JOIN "b" ON "b"."id" = "a"."bId" \
+                JOIN "c" ON "c"."id" = "b"."cId"
                 """)
         }
     }
@@ -84,8 +84,8 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "c"."name" \
                     FROM "a" \
-                    JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON ("c"."id" = "b"."cId")
+                    JOIN "b" ON "b"."id" = "a"."bId" \
+                    JOIN "c" ON "c"."id" = "b"."cId"
                     """)
             }
             do {
@@ -96,8 +96,8 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "c".*, "c"."rowid" \
                     FROM "a" \
-                    JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON ("c"."id" = "b"."cId")
+                    JOIN "b" ON "b"."id" = "a"."bId" \
+                    JOIN "c" ON "c"."id" = "b"."cId"
                     """)
             }
             do {
@@ -109,10 +109,10 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                             Column("name"),
                             (Column("id") + aAlias[Column("id")]).aliased("foo")))
                 try assertEqualSQL(db, request, """
-                    SELECT "a".*, "c"."name", ("c"."id" + "a"."id") AS "foo" \
+                    SELECT "a".*, "c"."name", "c"."id" + "a"."id" AS "foo" \
                     FROM "a" \
-                    JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON ("c"."id" = "b"."cId")
+                    JOIN "b" ON "b"."id" = "a"."bId" \
+                    JOIN "c" ON "c"."id" = "b"."cId"
                     """)
             }
         }
@@ -126,8 +126,8 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "c".* \
                     FROM "a" \
-                    JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON (("c"."id" = "b"."cId") AND ("c"."name" IS NOT NULL))
+                    JOIN "b" ON "b"."id" = "a"."bId" \
+                    JOIN "c" ON ("c"."id" = "b"."cId") AND ("c"."name" IS NOT NULL)
                     """)
             }
             do {
@@ -135,8 +135,8 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "c".* \
                     FROM "a" \
-                    JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON (("c"."id" = "b"."cId") AND ("c"."id" = 1))
+                    JOIN "b" ON "b"."id" = "a"."bId" \
+                    JOIN "c" ON ("c"."id" = "b"."cId") AND ("c"."id" = 1)
                     """)
             }
             do {
@@ -144,8 +144,8 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "c".* \
                     FROM "a" \
-                    JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON (("c"."id" = "b"."cId") AND ("c"."id" IN (1, 2, 3)))
+                    JOIN "b" ON "b"."id" = "a"."bId" \
+                    JOIN "c" ON ("c"."id" = "b"."cId") AND ("c"."id" IN (1, 2, 3))
                     """)
             }
             do {
@@ -153,8 +153,8 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "c".* \
                     FROM "a" \
-                    JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON (("c"."id" = "b"."cId") AND ("c"."id" = 1))
+                    JOIN "b" ON "b"."id" = "a"."bId" \
+                    JOIN "c" ON ("c"."id" = "b"."cId") AND ("c"."id" = 1)
                     """)
             }
             do {
@@ -162,8 +162,8 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "c".* \
                     FROM "a" \
-                    JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON (("c"."id" = "b"."cId") AND (("c"."id" = 1) OR ("c"."id" = 2)))
+                    JOIN "b" ON "b"."id" = "a"."bId" \
+                    JOIN "c" ON ("c"."id" = "b"."cId") AND (("c"."id" = 1) OR ("c"."id" = 2))
                     """)
             }
             do {
@@ -174,8 +174,8 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "customC".* \
                     FROM "a" \
-                    JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" "customC" ON (("customC"."id" = "b"."cId") AND (customC.name = 'foo'))
+                    JOIN "b" ON "b"."id" = "a"."bId" \
+                    JOIN "c" "customC" ON ("customC"."id" = "b"."cId") AND (customC.name = 'foo')
                     """)
             }
         }
@@ -191,9 +191,9 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
             try assertEqualSQL(db, request, """
                 SELECT "a".*, "c".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bId") \
-                JOIN "c" ON ("c"."id" = "b"."cId") \
-                WHERE ("c"."name" IS NOT NULL)
+                JOIN "b" ON "b"."id" = "a"."bId" \
+                JOIN "c" ON "c"."id" = "b"."cId" \
+                WHERE "c"."name" IS NOT NULL
                 """)
         }
     }
@@ -204,57 +204,57 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
             try assertEqualSQL(db, A.including(required: A.c.order(Column("name"))), """
                 SELECT "a".*, "c".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bId") \
-                JOIN "c" ON ("c"."id" = "b"."cId") \
+                JOIN "b" ON "b"."id" = "a"."bId" \
+                JOIN "c" ON "c"."id" = "b"."cId" \
                 ORDER BY "c"."name"
                 """)
             try assertEqualSQL(db, A.including(required: A.c.orderByPrimaryKey()), """
                 SELECT "a".*, "c".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bId") \
-                JOIN "c" ON ("c"."id" = "b"."cId") \
+                JOIN "b" ON "b"."id" = "a"."bId" \
+                JOIN "c" ON "c"."id" = "b"."cId" \
                 ORDER BY "c"."id"
                 """)
             try assertEqualSQL(db, A.including(required: A.c.orderByPrimaryKey()).orderByPrimaryKey(), """
                 SELECT "a".*, "c".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bId") \
-                JOIN "c" ON ("c"."id" = "b"."cId") \
+                JOIN "b" ON "b"."id" = "a"."bId" \
+                JOIN "c" ON "c"."id" = "b"."cId" \
                 ORDER BY "a"."id", "c"."id"
                 """)
             try assertEqualSQL(db, A.including(required: A.c.orderByPrimaryKey().reversed()).orderByPrimaryKey(), """
                 SELECT "a".*, "c".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bId") \
-                JOIN "c" ON ("c"."id" = "b"."cId") \
+                JOIN "b" ON "b"."id" = "a"."bId" \
+                JOIN "c" ON "c"."id" = "b"."cId" \
                 ORDER BY "a"."id", "c"."id" DESC
                 """)
             try assertEqualSQL(db, A.including(required: A.c.order(Column("name"))).reversed(), """
                 SELECT "a".*, "c".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bId") \
-                JOIN "c" ON ("c"."id" = "b"."cId") \
+                JOIN "b" ON "b"."id" = "a"."bId" \
+                JOIN "c" ON "c"."id" = "b"."cId" \
                 ORDER BY "c"."name" DESC
                 """)
             try assertEqualSQL(db, A.including(required: A.c.orderByPrimaryKey()).reversed(), """
                 SELECT "a".*, "c".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bId") \
-                JOIN "c" ON ("c"."id" = "b"."cId") \
+                JOIN "b" ON "b"."id" = "a"."bId" \
+                JOIN "c" ON "c"."id" = "b"."cId" \
                 ORDER BY "c"."id" DESC
                 """)
             try assertEqualSQL(db, A.including(required: A.c.orderByPrimaryKey()).orderByPrimaryKey().reversed(), """
                 SELECT "a".*, "c".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bId") \
-                JOIN "c" ON ("c"."id" = "b"."cId") \
+                JOIN "b" ON "b"."id" = "a"."bId" \
+                JOIN "c" ON "c"."id" = "b"."cId" \
                 ORDER BY "a"."id" DESC, "c"."id" DESC
                 """)
             try assertEqualSQL(db, A.including(required: A.c.orderByPrimaryKey().reversed()).orderByPrimaryKey().reversed(), """
                 SELECT "a".*, "c".* \
                 FROM "a" \
-                JOIN "b" ON ("b"."id" = "a"."bId") \
-                JOIN "c" ON ("c"."id" = "b"."cId") \
+                JOIN "b" ON "b"."id" = "a"."bId" \
+                JOIN "c" ON "c"."id" = "b"."cId" \
                 ORDER BY "a"."id" DESC, "c"."id"
                 """)
         }

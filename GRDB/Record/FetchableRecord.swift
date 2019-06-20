@@ -276,8 +276,9 @@ extension FetchableRecord {
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> RecordCursor<Self> {
-        let (statement, adapter) = try request.prepare(db, forSingleResult: false)
-        return try fetchCursor(statement, adapter: adapter)
+        let request = try request.makePreparedRequest(db, forSingleResult: false)
+        precondition(request.supplementaryFetch == nil, "Not implemented: fetchCursor with supplementary fetch")
+        return try fetchCursor(request.statement, adapter: request.adapter)
     }
     
     /// Returns an array of records fetched from a fetch request.
@@ -291,8 +292,14 @@ extension FetchableRecord {
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll<R: FetchRequest>(_ db: Database, _ request: R) throws -> [Self] {
-        let (statement, adapter) = try request.prepare(db, forSingleResult: false)
-        return try fetchAll(statement, adapter: adapter)
+        let request = try request.makePreparedRequest(db, forSingleResult: false)
+        if let supplementaryFetch = request.supplementaryFetch {
+            let rows = try Row.fetchAll(request.statement, adapter: request.adapter)
+            try supplementaryFetch(rows)
+            return rows.map(Self.init(row:))
+        } else {
+            return try fetchAll(request.statement, adapter: request.adapter)
+        }
     }
     
     /// Returns a single record fetched from a fetch request.
@@ -306,8 +313,16 @@ extension FetchableRecord {
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> Self? {
-        let (statement, adapter) = try request.prepare(db, forSingleResult: true)
-        return try fetchOne(statement, adapter: adapter)
+        let request = try request.makePreparedRequest(db, forSingleResult: true)
+        if let supplementaryFetch = request.supplementaryFetch {
+            guard let row = try Row.fetchOne(request.statement, adapter: request.adapter) else {
+                return nil
+            }
+            try supplementaryFetch([row])
+            return Self.init(row: row)
+        } else {
+            return try fetchOne(request.statement, adapter: request.adapter)
+        }
     }
 }
 

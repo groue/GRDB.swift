@@ -111,12 +111,14 @@ struct Book: Codable {
 // Add Database access
 
 extension Author: FetchableRecord, MutablePersistableRecord {
+    // Update auto-incremented id upon successful insertion
     mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
 }
 
 extension Book: FetchableRecord, MutablePersistableRecord {
+    // Update auto-incremented id upon successful insertion
     mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
@@ -148,103 +150,132 @@ Applying the **[Single Responsibility Principle]** has a consequence: don't even
 
 Now that we have record types that are able to read and write in the database, we'd like to put them to good use.
 
-> :bulb: **Tip**: Define requests which make sense for your application in your record types.
+> :bulb: **Tip**: Define an enumeration of columns that you will use in order to filter, sort, etc.
 
-This may give:
+When your record type is a [Codable Record], derive columns from the [CodingKeys] enum:
 
 ```swift
+// For a codable record
 extension Author {
     // Define database columns from CodingKeys
-    private enum Columns {
-        static let id = Column(CodingKeys.id)
-        static let name = Column(CodingKeys.name)
-        static let country = Column(CodingKeys.country)
-    }
-    
-    /// Returns a request for all authors ordered by name, in a localized
-    /// case-insensitive fashion.
-    static func orderByName() -> QueryInterfaceRequest<Author> {
-        let name = Author.Columns.name
-        return Author.order(name.collating(.localizedCaseInsensitiveCompare))
-    }
-    
-    /// Returns a request for all authors from a country.
-    static func filter(country: String) -> QueryInterfaceRequest<Author> {
-        return Author.filter(Author.Columns.country == country)
-    }
-}
-```
-
-Those requests will hide intimate database details like database columns inside the record types, and make your application code crystal clear:
-
-```swift
-let sortedAuthors = try dbQueue.read { db in
-    try Author.orderByName().fetchAll(db)
-}
-```
-
-You can also use those requests to [observe database changes] in order to, say, reload a table view:
-
-```swift
-try ValueObservation
-    .trackingAll(Author.orderByName())
-    .start(in: dbQueue) { (authors: [Author]) in
-        print("fresh authors: \(authors)")
-    }
-```
-
-### Make Requests Able to Compose Together
-
-When requests should be composed together, don't define them as static methods of your record type. Instead, define them in a constrained extension of the `DerivableRequest` protocol:
-
-```swift
-extension Author {
-    // Define database columns from CodingKeys
-    fileprivate enum Columns {
+    enum Columns {
         static let id = Column(CodingKeys.id)
         static let name = Column(CodingKeys.name)
         static let country = Column(CodingKeys.country)
     }
 }
+```
 
+Otherwise, declare a plain String enum that conforms to the ColumnExpression protocol:
+
+```swift
+// For a non-codable record
+extension Author {
+    // Define database columns as an enum
+    enum Columns: String, ColumnExpression {
+        case id, name, country
+    }
+}
+```
+
+> :bulb: **Tip**: Define commonly used requests in a constrained extension of the `DerivableRequest` protocol.
+
+The `DerivableRequest` protocol generally lets you filter, sort, and join or include associations (we'll talk about associations in the [Compose Records] chapter below).
+
+Here is how you define those requests:
+
+```swift
+// Some requests of Author --------------------v
 extension DerivableRequest where RowDecoder == Author {
+	
     /// Returns a request for all authors ordered by name, in a localized
-    /// case-insensitive fashion.
+    /// case-insensitive fashion
     func orderByName() -> Self {
         let name = Author.Columns.name
         return order(name.collating(.localizedCaseInsensitiveCompare))
     }
     
-    /// Returns a request for all authors from a country.
+    /// Returns a request for all authors from a country
     func filter(country: String) -> Self {
         return filter(Author.Columns.country == country)
     }
 }
 ```
 
-This extension lets you compose complex requests from small building blocks:
+Those methods defined on the `DerivableRequest` protocol hide intimate database details. They allow you to compose database requests in a fluent style:
 
 ```swift
 try dbQueue.read { db in
-    let sortedAuthors = try Author.all()
+    let sortedAuthors: [Author] = try Author.all()
         .orderByName()
         .fetchAll(db)
-    let frenchAuthors = try Author.all()
+        
+    let frenchAuthors: [Author] = try Author.all()
         .filter(country: "France")
         .fetchAll(db)
-    let sortedSpanishAuthors = try Author.all()
+        
+    let sortedSpanishAuthors: [Author] = try Author.all()
         .filter(country: "Spain")
         .orderByName()
         .fetchAll(db)
 }
 ```
 
-Extensions on `DerivableRequest` also play nicely with record [associations]:
+Those customized request methods are also available on record associations, because associations conform to the `DerivableRequest` protocol:
 
 ```swift
-let englishBooks = try dbQueue.read { db in
-    // Only keep books that can be joined to an English author
-    try Book.joining(required: Book.author.filter(country: "United Kingdom"))
+// Some requests of Book
+extension DerivableRequest where RowDecoder == Book {
+    /// Returns a request for all books from a country
+    func filter(authorCountry: String) -> Self {
+        // A book is from a country if it can be
+        // joined with an author from that country:
+        // ---------------------------------v
+        return joining(required: Book.author.filter(country: authorCountry))
+    }
+}
+
+try dbQueue.read { db in
+    let italianBooks = try Book.all()
+        .filter(authorCountry: "Italy")
+        .fetchAll(db)
+}
+```
+
+Not *every requests* can be expressed on `DerivableRequest`. For example, [Association Aggregates] are out of scope. When this happens, define your requests in a constrained extension to `QueryInterfaceRequest`:
+
+```swift
+// More requests of Author -------------------------v
+extension QueryInterfaceRequest where RowDecoder == Author {
+    /// Returns a request for all authors with at least one book
+    func havingBooks() -> QueryInterfaceRequest<Author> {
+        return having(Author.books.isEmpty == false)
+    }
+}
+```
+
+Those requests defined on `QueryInterfaceRequest` still compose fluently:
+
+```swift
+try dbQueue.read { db in
+    let sortedFrenchAuthorsHavingBooks = try Author.all()
+        .filter(country: "France")
+        .havingBooks() // <-
+        .orderByName()
+        .fetchAll(db)
+}
+```
+
+Finally, when it happens that a request only makes sense when defined on the Record type itself, just go ahead and define a static method or property of your Record type:
+
+```swift
+extension MySingletonRecord {
+    /// The one any only record stored in the database
+    static let shared = all().limit(1)
+}
+
+let singleton = try dbQueue.read { db
+    try MySingletonRecord.shared.fetchOne(db)
 }
 ```
 
@@ -610,15 +641,11 @@ extension LibraryManager {
 }
 ```
 
-The `AuthorListItem`, `BookInfo`, `AuthorInfo` types returned by the manager are designed to feed your view controllers.
+The `AuthorListItem`, `BookInfo`, `AuthorInfo` types returned by the manager are designed to feed your views.
 
-When a new screen is added to your application, and you want to make sure it displays **consistent data** free from any data race, make sure you update the manager if needed. The rule is very simple: consumed data must come from a **single database access** (`dbQueue.read`, `write`, etc.)
+When a new screen is added to your application, and you want to make sure it displays **consistent data** free from any data race, make sure you update the manager if needed. The rule is very simple: consumed data must come from a **single** database access method (`dbQueue.read`, `write`, etc.), or [ValueObservation].
 
-This may sound unusual. Aren't view controllers (or view models, or presenters, depending on your application architecture) supposed to freely pick and compose the pieces of data they need from a general-purpose database manager which stands passively in front of the database?
-
-Well, not quite with GRDB. It is an unmanaged ORM, so some amount of management must be imported into your application.
-
-If you happen to connect to HTTP apis sometimes, here is a way to look at it: have your database manager behave like a web server! Each method of the database manager behaves like a GET, PUT, POST or DELETE endpoint, that performs its job, only its job, and performs it well. Do you like it when a screen of your app has to feed from several HTTP requests? I personally do not, because it is more difficult, error management is tricky, etc. Well, it is the same with your database managers: don't force your screens to feed from multiple endpoints.
+In other words: since GRDB is an unmanaged ORM, some amount of management must be imported into your application in order to make it fully thread-safe.
 
 > :question: **Note**: Wrapping several fetches in a single `read` method may look like an inconvenience to you. After all, other ORMs don't require that much ceremony:
 > 
@@ -654,6 +681,8 @@ Instead, have a look at [Database Observation]:
 >
 > :bulb: **Tip**: [FetchedRecordsController] performs automated tracking of database changes, and can animate the cells of a table or collection view.
 >
+> :bulb: **Tip**: [GRDBCombine] performs automated tracking of database changes, in the [Combine](https://developer.apple.com/documentation/combine) way.
+>
 > :bulb: **Tip**: [RxGRDB] performs automated tracking of database changes, in the [RxSwift](https://github.com/ReactiveX/RxSwift) way.
 >
 > :bulb: **Tip**: [TransactionObserver] provides low-level database observation, for your most advanced needs.
@@ -684,6 +713,7 @@ Instead, have a look at [Database Observation]:
 [ValueObservation]: ../README.md#valueobservation
 [FetchedRecordsController]: ../README.md#fetchedrecordscontroller
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
+[GRDBCombine]: http://github.com/groue/GRDBCombine
 [TransactionObserver]: ../README.md#transactionobserver-protocol
 [Trust SQLite More Than Yourself]: #trust-sqlite-more-than-yourself
 [Persistable Record Types are Responsible for Their Tables]: #persistable-record-types-are-responsible-for-their-tables
@@ -697,3 +727,6 @@ Instead, have a look at [Database Observation]:
 [Embrace Errors]: #embrace-errors
 [Thread-Safety is also an Application Concern]: #thread-safety-is-also-an-application-concern
 [recommended convention]: AssociationsBasics.md#associations-and-the-database-schema
+[Association Aggregates]: AssociationsBasics.md#association-aggregates
+[Codable Record]: ../README.md#codable-records
+[CodingKeys]: https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types

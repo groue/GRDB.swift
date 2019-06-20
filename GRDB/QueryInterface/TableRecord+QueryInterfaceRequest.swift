@@ -11,6 +11,16 @@ extension TableRecord {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public static func all() -> QueryInterfaceRequest<Self> {
+        // TODO: could we delay selection definition until we know what we are
+        // really fetching?
+        //
+        // Use case:
+        //
+        //      // Would be nice if it would only fetch SubPlayer columns
+        //      Player.all().asRequest(of: SubPlayer.self)
+        //
+        //      // Would be nice if it would fetch extra ExtendedPlayer columns
+        //      Player.all().asRequest(of: ExtendedPlayer.self)
         let relation = SQLRelation(
             source: .table(tableName: databaseTableName, alias: nil),
             selection: databaseSelection)

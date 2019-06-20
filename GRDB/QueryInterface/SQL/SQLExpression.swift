@@ -23,7 +23,12 @@ public protocol SQLExpression : SQLSpecificExpressible, SQLSelectable, SQLOrderi
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns an SQL string that represents the expression.
-    func expressionSQL(_ context: inout SQLGenerationContext) -> String
+    ///
+    /// - parameter context: An SQL generation context which accepts
+    ///   statement arguments.
+    /// - parameter wrappedInParenthesis: If true, the returned SQL should be
+    ///   wrapped inside parenthesis.
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -133,8 +138,11 @@ struct SQLExpressionNot : SQLExpression {
         self.expression = expression
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext) -> String {
-        return "NOT \(expression.expressionSQL(&context))"
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+        if wrappedInParenthesis {
+            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+        }
+        return "NOT \(expression.expressionSQL(&context, wrappedInParenthesis: true))"
     }
     
     var negated: SQLExpression {

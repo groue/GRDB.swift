@@ -45,7 +45,7 @@ struct SQLExpressionsArray : SQLCollection {
     }
     
     func collectionSQL(_ context: inout SQLGenerationContext) -> String {
-        return (expressions.map { $0.expressionSQL(&context) } as [String]).joined(separator: ", ")
+        return (expressions.map { $0.expressionSQL(&context, wrappedInParenthesis: false) } as [String]).joined(separator: ", ")
     }
     
     func contains(_ value: SQLExpressible) -> SQLExpression {

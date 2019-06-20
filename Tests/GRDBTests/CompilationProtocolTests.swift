@@ -110,7 +110,9 @@ private class UserPersistableRecord2 : PersistableRecord {
 private struct UserRowRequest : FetchRequest {
     struct CustomType { }
     typealias RowDecoder = CustomType
+    // TODO: remove when we remove the deprecated prepare(_:forSingleResult:) method
     func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
+    func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest { preconditionFailure() }
 }
 
 // MARK: - FetchableRecord

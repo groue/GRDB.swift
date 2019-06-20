@@ -569,7 +569,7 @@ private func makeFetchFunction<Record, T>(
     controller: FetchedRecordsController<Record>,
     fetchAlongside: @escaping (Database) throws -> T,
     willProcessTransaction: @escaping () -> (),
-    completion: @escaping (Result<(fetchedItems: [Item<Record>], fetchedAlongside: T, observer: FetchedRecordsObserver<Record>)>) -> ()
+    completion: @escaping (DatabaseResult<(fetchedItems: [Item<Record>], fetchedAlongside: T, observer: FetchedRecordsObserver<Record>)>) -> ()
     ) -> (FetchedRecordsObserver<Record>) -> ()
 {
     // Make sure we keep a weak reference to the fetched records controller,

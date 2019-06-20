@@ -827,11 +827,12 @@ Those requests can also turn out useful when you want to track their changes wit
 ```swift
 // Track changes in the author's books:
 let author: Author = ...
-ValueObservation
-    .trackingAll(author.books)
-    .start(in: dbQueue) { (books: [Book]) in
+author.books.observationForAll().start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange: { (books: [Book]) in
         print("Author's book have changed")
-    }
+    })
 ```
 
 

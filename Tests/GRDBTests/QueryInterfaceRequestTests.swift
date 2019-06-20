@@ -108,7 +108,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT * FROM \"readers\" LIMIT 10)")
             
             XCTAssertEqual(try tableRequest.filter(Col.age == 42).fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE (\"age\" = 42)")
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\" WHERE \"age\" = 42")
             
             XCTAssertEqual(try tableRequest.distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT DISTINCT * FROM \"readers\")")
@@ -120,10 +120,10 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"name\") FROM \"readers\"")
             
             XCTAssertEqual(try tableRequest.select(Col.age * 2).distinct().fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
             
             XCTAssertEqual(try tableRequest.select((Col.age * 2).aliased("ignored")).distinct().fetchCount(db), 0)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT (\"age\" * 2)) FROM \"readers\"")
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
             
             XCTAssertEqual(try tableRequest.select(Col.name, Col.age).fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"readers\"")
@@ -220,7 +220,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             
             let request = tableRequest.select(Col.name, Col.id - 1)
             let rows = try Row.fetchAll(db, request)
-            XCTAssertEqual(lastSQLQuery, "SELECT \"name\", (\"id\" - 1) FROM \"readers\"")
+            XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
             XCTAssertEqual(rows[0][0] as String, "Arthur")
             XCTAssertEqual(rows[0][1] as Int64, 0)
@@ -236,7 +236,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             
             let request = tableRequest.select(Col.name.aliased("nom"), (Col.age + 1).aliased("agePlusOne"))
             let row = try Row.fetchOne(db, request)!
-            XCTAssertEqual(lastSQLQuery, "SELECT \"name\" AS \"nom\", (\"age\" + 1) AS \"agePlusOne\" FROM \"readers\" LIMIT 1")
+            XCTAssertEqual(lastSQLQuery, "SELECT \"name\" AS \"nom\", \"age\" + 1 AS \"agePlusOne\" FROM \"readers\" LIMIT 1")
             XCTAssertEqual(row["nom"] as String, "Arthur")
             XCTAssertEqual(row["agePlusOne"] as Int, 43)
         }
@@ -248,32 +248,32 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             do {
                 let request = Reader.annotated(with: [Col.id - 1])
                 _ = try Row.fetchAll(db, request)
-                XCTAssertEqual(lastSQLQuery, "SELECT *, (\"id\" - 1) FROM \"readers\"")
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"id\" - 1 FROM \"readers\"")
             }
             do {
                 let request = Reader.annotated(with: Col.id - 1, Col.id + 1)
                 _ = try Row.fetchAll(db, request)
-                XCTAssertEqual(lastSQLQuery, "SELECT *, (\"id\" - 1), (\"id\" + 1) FROM \"readers\"")
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"id\" - 1, \"id\" + 1 FROM \"readers\"")
             }
             do {
                 let request = tableRequest.annotated(with: [Col.id - 1])
                 _ = try Row.fetchAll(db, request)
-                XCTAssertEqual(lastSQLQuery, "SELECT *, (\"id\" - 1) FROM \"readers\"")
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"id\" - 1 FROM \"readers\"")
             }
             do {
                 let request = tableRequest.annotated(with: Col.id - 1, Col.id + 1)
                 _ = try Row.fetchAll(db, request)
-                XCTAssertEqual(lastSQLQuery, "SELECT *, (\"id\" - 1), (\"id\" + 1) FROM \"readers\"")
+                XCTAssertEqual(lastSQLQuery, "SELECT *, \"id\" - 1, \"id\" + 1 FROM \"readers\"")
             }
             do {
                 let request = tableRequest.select(Col.name).annotated(with: [Col.id - 1])
                 _ = try Row.fetchAll(db, request)
-                XCTAssertEqual(lastSQLQuery, "SELECT \"name\", (\"id\" - 1) FROM \"readers\"")
+                XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1 FROM \"readers\"")
             }
             do {
                 let request = tableRequest.select(Col.name).annotated(with: Col.id - 1, Col.id + 1)
                 _ = try Row.fetchAll(db, request)
-                XCTAssertEqual(lastSQLQuery, "SELECT \"name\", (\"id\" - 1), (\"id\" + 1) FROM \"readers\"")
+                XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1, \"id\" + 1 FROM \"readers\"")
             }
         }
     }
@@ -487,21 +487,30 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(sql: "id <> 1")),
-            "SELECT * FROM \"readers\" WHERE (id <> 1)")
+            "SELECT * FROM \"readers\" WHERE id <> 1")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(sql: "id <> 1").filter(true)),
+            "SELECT * FROM \"readers\" WHERE (id <> 1) AND 1")
     }
     
     func testFilterLiteralWithPositionalArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(sql: "id <> ?", arguments: [1])),
-            "SELECT * FROM \"readers\" WHERE (id <> 1)")
+            "SELECT * FROM \"readers\" WHERE id <> 1")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(sql: "id <> ?", arguments: [1]).filter(true)),
+            "SELECT * FROM \"readers\" WHERE (id <> 1) AND 1")
     }
     
     func testFilterLiteralWithNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(sql: "id <> :id", arguments: ["id": 1])),
-            "SELECT * FROM \"readers\" WHERE (id <> 1)")
+            "SELECT * FROM \"readers\" WHERE id <> 1")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(sql: "id <> :id", arguments: ["id": 1]).filter(true)),
+            "SELECT * FROM \"readers\" WHERE (id <> 1) AND 1")
     }
     
     func testFilterLiteralWithMixedArguments() throws {
@@ -510,12 +519,12 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, tableRequest
                 .filter(sql: "age > :age", arguments: ["age": 20])
                 .filter(sql: "name = ?", arguments: ["arthur"])),
-            "SELECT * FROM \"readers\" WHERE ((age > 20) AND (name = 'arthur'))")
+            "SELECT * FROM \"readers\" WHERE (age > 20) AND (name = 'arthur')")
         XCTAssertEqual(
             sql(dbQueue, tableRequest
                 .filter(sql: "age > ?", arguments: [20])
                 .filter(sql: "name = :name", arguments: ["name": "arthur"])),
-            "SELECT * FROM \"readers\" WHERE ((age > 20) AND (name = 'arthur'))")
+            "SELECT * FROM \"readers\" WHERE (age > 20) AND (name = 'arthur')")
     }
 
     func testFilter() throws {
@@ -529,7 +538,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(true).filter(false)),
-            "SELECT * FROM \"readers\" WHERE (1 AND 0)")
+            "SELECT * FROM \"readers\" WHERE 1 AND 0")
     }
     
     
@@ -580,35 +589,35 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Col.name).having(sql: "min(age) > 18")),
-            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING (min(age) > 18)")
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING min(age) > 18")
     }
     
     func testHavingLiteralWithPositionalArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Col.name).having(sql: "min(age) > ?", arguments: [18])),
-            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING (min(age) > 18)")
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING min(age) > 18")
     }
     
     func testHavingLiteralWithNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Col.name).having(sql: "min(age) > :age", arguments: ["age": 18])),
-            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING (min(age) > 18)")
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING min(age) > 18")
     }
     
     func testHaving() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Col.name).having(min(Col.age) > 18)),
-            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING (MIN(\"age\") > 18)")
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING MIN(\"age\") > 18")
     }
     
     func testMultipleHaving() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Col.name).having(min(Col.age) > 18).having(max(Col.age) < 50)),
-                "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING ((MIN(\"age\") > 18) AND (MAX(\"age\") < 50))")
+                "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING (MIN(\"age\") > 18) AND (MAX(\"age\") < 50)")
     }
     
     

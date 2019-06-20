@@ -71,15 +71,18 @@ class PlayersViewController: UITableViewController {
     
     private func configureTitle() {
         // Track changes in the number of players
-        playerCountObserver = try! ValueObservation
-            .trackingCount(playersRequest)
-            .start(in: dbQueue) { [unowned self] count in
+        playerCountObserver = playersRequest.observationForCount().start(
+            in: dbQueue,
+            onError: { error in
+                fatalError("Unexpected error: \(error)")
+        },
+            onChange: { [unowned self] count in
                 switch count {
                 case 0: self.navigationItem.title = "No Player"
                 case 1: self.navigationItem.title = "1 Player"
                 default: self.navigationItem.title = "\(count) Players"
                 }
-        }
+        })
     }
     
     private func configureTableView() {

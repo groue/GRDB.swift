@@ -23,6 +23,9 @@
 /// [busy handler](https://www.sqlite.org/c3ref/busy_handler.html).
 public protocol DatabaseReader : class {
     
+    /// The database configuration
+    var configuration: Configuration { get }
+    
     // MARK: - Read From Database
     
     /// Synchronously executes a read-only block that takes a database
@@ -33,14 +36,14 @@ public protocol DatabaseReader : class {
     ///
     ///     try reader.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
-    ///         // `wine` table is modified between the two requests:
-    ///         let count1 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
+    ///         // `player` table is modified between the two requests:
+    ///         let count1 = try Player.fetchCount(db)
+    ///         let count2 = try Player.fetchCount(db)
     ///     }
     ///
     ///     try reader.read { db in
     ///         // Now this value may be different:
-    ///         let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
+    ///         let count = try Player.fetchCount(db)
     ///     }
     ///
     /// Guarantee 2: Starting iOS 8.2, OSX 10.10, and with custom SQLite builds
@@ -52,6 +55,33 @@ public protocol DatabaseReader : class {
     ///   happen while establishing the read access to the database.
     func read<T>(_ block: (Database) throws -> T) throws -> T
     
+    #if compiler(>=5.0)
+    /// Asynchronously executes a read-only block that takes a
+    /// database connection.
+    ///
+    /// Guarantee 1: the block argument is isolated. Eventual concurrent
+    /// database updates are not visible inside the block:
+    ///
+    ///     try reader.asyncRead { result in
+    ///         do (
+    ///             let db = try result.get()
+    ///             // Those two values are guaranteed to be equal, even if the
+    ///             // `player` table is modified between the two requests:
+    ///             let count1 = try Player.fetchCount(db)
+    ///             let count2 = try Player.fetchCount(db)
+    ///         } catch {
+    ///             // handle error
+    ///         }
+    ///     }
+    ///
+    /// Guarantee 2: Starting iOS 8.2, OSX 10.10, and with custom SQLite builds
+    /// and SQLCipher, attempts to write in the database throw a DatabaseError
+    /// whose resultCode is `SQLITE_READONLY`.
+    ///
+    /// - parameter block: A block that accesses the database.
+    func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void)
+    #endif
+    
     /// Synchronously executes a read-only block that takes a database
     /// connection, and returns its result.
     ///
@@ -62,9 +92,9 @@ public protocol DatabaseReader : class {
     ///
     ///     try reader.unsafeRead { db in
     ///         // Those two values may be different because some other thread
-    ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
+    ///         // may have inserted or deleted a player between the two requests:
+    ///         let count1 = try Player.fetchCount(db)
+    ///         let count2 = try Player.fetchCount(db)
     ///     }
     ///
     /// Cursor iterations are isolated, though:
@@ -93,9 +123,9 @@ public protocol DatabaseReader : class {
     ///
     ///     try reader.unsafeReentrantRead { db in
     ///         // Those two values may be different because some other thread
-    ///         // may have inserted or deleted a wine between the two requests:
-    ///         let count1 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
-    ///         let count2 = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM wine")!
+    ///         // may have inserted or deleted a player between the two requests:
+    ///         let count1 = try Player.fetchCount(db)
+    ///         let count2 = try Player.fetchCount(db)
     ///     }
     ///
     /// Cursor iterations are isolated, though:
@@ -166,9 +196,9 @@ public protocol DatabaseReader : class {
     /// - returns: a TransactionObserver
     func add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        onError: ((Error) -> Void)?,
+        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        throws -> TransactionObserver
+        -> TransactionObserver
     
     /// Remove a transaction observer.
     func remove(transactionObserver: TransactionObserver)
@@ -211,12 +241,24 @@ public final class AnyDatabaseReader : DatabaseReader {
         self.base = base
     }
     
+    /// :nodoc:
+    public var configuration: Configuration {
+        return base.configuration
+    }
+    
     // MARK: - Reading from Database
     
     /// :nodoc:
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
         return try base.read(block)
     }
+    
+    #if compiler(>=5.0)
+    /// :nodoc:
+    public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
+        base.asyncRead(block)
+    }
+    #endif
     
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
@@ -257,11 +299,11 @@ public final class AnyDatabaseReader : DatabaseReader {
     /// :nodoc:
     public func add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        onError: ((Error) -> Void)?,
+        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        throws -> TransactionObserver
+        -> TransactionObserver
     {
-        return try base.add(observation: observation, onError: onError, onChange: onChange)
+        return base.add(observation: observation, onError: onError, onChange: onChange)
     }
     
     /// :nodoc:

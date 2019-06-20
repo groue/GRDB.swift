@@ -41,12 +41,12 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
             
             try testHasOneWithTwoSteps(
                 db, ab: A.b, ac: A.c,
-                bCondition: "(\"b\".\"id\" = \"a\".\"bId\")",
-                cCondition: "(\"c\".\"id\" = \"b\".\"cId\")")
+                bCondition: "\"b\".\"id\" = \"a\".\"bId\"",
+                cCondition: "\"c\".\"id\" = \"b\".\"cId\"")
             
             try assertEqualSQL(db, A().request(for: A.c), """
                 SELECT "c".* FROM "c" \
-                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."id" = 1))
+                JOIN "b" ON ("b"."cId" = "c"."id") AND ("b"."id" = 1)
                 """)
         }
     }
@@ -81,12 +81,12 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
             
             try testHasOneWithTwoSteps(
                 db, ab: A.b, ac: A.c,
-                bCondition: "(\"b\".\"id\" = \"a\".\"bId\")",
-                cCondition: "(\"c\".\"bId\" = \"b\".\"id\")")
+                bCondition: "\"b\".\"id\" = \"a\".\"bId\"",
+                cCondition: "\"c\".\"bId\" = \"b\".\"id\"")
             
             try assertEqualSQL(db, A().request(for: A.c), """
                 SELECT "c".* FROM "c" \
-                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."id" = 1))
+                JOIN "b" ON ("b"."id" = "c"."bId") AND ("b"."id" = 1)
                 """)
         }
     }
@@ -121,12 +121,12 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
             
             try testHasOneWithTwoSteps(
                 db, ab: A.b, ac: A.c,
-                bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
-                cCondition: "(\"c\".\"id\" = \"b\".\"cId\")")
+                bCondition: "\"b\".\"aId\" = \"a\".\"id\"",
+                cCondition: "\"c\".\"id\" = \"b\".\"cId\"")
             
             try assertEqualSQL(db, A().request(for: A.c), """
                 SELECT "c".* FROM "c" \
-                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."aId" = 1))
+                JOIN "b" ON ("b"."cId" = "c"."id") AND ("b"."aId" = 1)
                 """)
         }
     }
@@ -161,12 +161,12 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
             
             try testHasOneWithTwoSteps(
                 db, ab: A.b, ac: A.c,
-                bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
-                cCondition: "(\"c\".\"bId\" = \"b\".\"id\")")
+                bCondition: "\"b\".\"aId\" = \"a\".\"id\"",
+                cCondition: "\"c\".\"bId\" = \"b\".\"id\"")
             
             try assertEqualSQL(db, A().request(for: A.c), """
                 SELECT "c".* FROM "c" \
-                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."aId" = 1))
+                JOIN "b" ON ("b"."id" = "c"."bId") AND ("b"."aId" = 1)
                 """)
         }
     }
@@ -358,19 +358,19 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
             
             try testHasOneWithThreeSteps(
                 db, b: A.b, c: A.c, dThroughC: A.dThroughC, dThroughB: A.dThroughB,
-                bCondition: "(\"b\".\"id\" = \"a\".\"bId\")",
-                cCondition: "(\"c\".\"id\" = \"b\".\"cId\")",
-                dCondition: "(\"d\".\"id\" = \"c\".\"dId\")")
+                bCondition: "\"b\".\"id\" = \"a\".\"bId\"",
+                cCondition: "\"c\".\"id\" = \"b\".\"cId\"",
+                dCondition: "\"d\".\"id\" = \"c\".\"dId\"")
             
             try assertEqualSQL(db, A().request(for: A.dThroughC), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."dId" = "d"."id") \
-                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."id" = 1))
+                JOIN "c" ON "c"."dId" = "d"."id" \
+                JOIN "b" ON ("b"."cId" = "c"."id") AND ("b"."id" = 1)
                 """)
             try assertEqualSQL(db, A().request(for: A.dThroughB), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."dId" = "d"."id") \
-                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."id" = 1))
+                JOIN "c" ON "c"."dId" = "d"."id" \
+                JOIN "b" ON ("b"."cId" = "c"."id") AND ("b"."id" = 1)
                 """)
         }
     }
@@ -415,19 +415,19 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
             
             try testHasOneWithThreeSteps(
                 db, b: A.b, c: A.c, dThroughC: A.dThroughC, dThroughB: A.dThroughB,
-                bCondition: "(\"b\".\"id\" = \"a\".\"bId\")",
-                cCondition: "(\"c\".\"id\" = \"b\".\"cId\")",
-                dCondition: "(\"d\".\"cId\" = \"c\".\"id\")")
+                bCondition: "\"b\".\"id\" = \"a\".\"bId\"",
+                cCondition: "\"c\".\"id\" = \"b\".\"cId\"",
+                dCondition: "\"d\".\"cId\" = \"c\".\"id\"")
             
             try assertEqualSQL(db, A().request(for: A.dThroughC), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."id" = "d"."cId") \
-                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."id" = 1))
+                JOIN "c" ON "c"."id" = "d"."cId" \
+                JOIN "b" ON ("b"."cId" = "c"."id") AND ("b"."id" = 1)
                 """)
             try assertEqualSQL(db, A().request(for: A.dThroughB), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."id" = "d"."cId") \
-                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."id" = 1))
+                JOIN "c" ON "c"."id" = "d"."cId" \
+                JOIN "b" ON ("b"."cId" = "c"."id") AND ("b"."id" = 1)
                 """)
         }
     }
@@ -472,19 +472,19 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
             
             try testHasOneWithThreeSteps(
                 db, b: A.b, c: A.c, dThroughC: A.dThroughC, dThroughB: A.dThroughB,
-                bCondition: "(\"b\".\"id\" = \"a\".\"bId\")",
-                cCondition: "(\"c\".\"bId\" = \"b\".\"id\")",
-                dCondition: "(\"d\".\"id\" = \"c\".\"dId\")")
+                bCondition: "\"b\".\"id\" = \"a\".\"bId\"",
+                cCondition: "\"c\".\"bId\" = \"b\".\"id\"",
+                dCondition: "\"d\".\"id\" = \"c\".\"dId\"")
             
             try assertEqualSQL(db, A().request(for: A.dThroughC), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."dId" = "d"."id") \
-                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."id" = 1))
+                JOIN "c" ON "c"."dId" = "d"."id" \
+                JOIN "b" ON ("b"."id" = "c"."bId") AND ("b"."id" = 1)
                 """)
             try assertEqualSQL(db, A().request(for: A.dThroughB), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."dId" = "d"."id") \
-                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."id" = 1))
+                JOIN "c" ON "c"."dId" = "d"."id" \
+                JOIN "b" ON ("b"."id" = "c"."bId") AND ("b"."id" = 1)
                 """)
         }
     }
@@ -529,19 +529,19 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
             
             try testHasOneWithThreeSteps(
                 db, b: A.b, c: A.c, dThroughC: A.dThroughC, dThroughB: A.dThroughB,
-                bCondition: "(\"b\".\"id\" = \"a\".\"bId\")",
-                cCondition: "(\"c\".\"bId\" = \"b\".\"id\")",
-                dCondition: "(\"d\".\"cId\" = \"c\".\"id\")")
+                bCondition: "\"b\".\"id\" = \"a\".\"bId\"",
+                cCondition: "\"c\".\"bId\" = \"b\".\"id\"",
+                dCondition: "\"d\".\"cId\" = \"c\".\"id\"")
             
             try assertEqualSQL(db, A().request(for: A.dThroughC), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."id" = "d"."cId") \
-                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."id" = 1))
+                JOIN "c" ON "c"."id" = "d"."cId" \
+                JOIN "b" ON ("b"."id" = "c"."bId") AND ("b"."id" = 1)
                 """)
             try assertEqualSQL(db, A().request(for: A.dThroughB), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."id" = "d"."cId") \
-                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."id" = 1))
+                JOIN "c" ON "c"."id" = "d"."cId" \
+                JOIN "b" ON ("b"."id" = "c"."bId") AND ("b"."id" = 1)
                 """)
         }
     }
@@ -586,19 +586,19 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
             
             try testHasOneWithThreeSteps(
                 db, b: A.b, c: A.c, dThroughC: A.dThroughC, dThroughB: A.dThroughB,
-                bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
-                cCondition: "(\"c\".\"id\" = \"b\".\"cId\")",
-                dCondition: "(\"d\".\"id\" = \"c\".\"dId\")")
+                bCondition: "\"b\".\"aId\" = \"a\".\"id\"",
+                cCondition: "\"c\".\"id\" = \"b\".\"cId\"",
+                dCondition: "\"d\".\"id\" = \"c\".\"dId\"")
             
             try assertEqualSQL(db, A().request(for: A.dThroughC), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."dId" = "d"."id") \
-                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."aId" = 1))
+                JOIN "c" ON "c"."dId" = "d"."id" \
+                JOIN "b" ON ("b"."cId" = "c"."id") AND ("b"."aId" = 1)
                 """)
             try assertEqualSQL(db, A().request(for: A.dThroughB), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."dId" = "d"."id") \
-                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."aId" = 1))
+                JOIN "c" ON "c"."dId" = "d"."id" \
+                JOIN "b" ON ("b"."cId" = "c"."id") AND ("b"."aId" = 1)
                 """)
         }
     }
@@ -643,19 +643,19 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
             
             try testHasOneWithThreeSteps(
                 db, b: A.b, c: A.c, dThroughC: A.dThroughC, dThroughB: A.dThroughB,
-                bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
-                cCondition: "(\"c\".\"id\" = \"b\".\"cId\")",
-                dCondition: "(\"d\".\"cId\" = \"c\".\"id\")")
+                bCondition: "\"b\".\"aId\" = \"a\".\"id\"",
+                cCondition: "\"c\".\"id\" = \"b\".\"cId\"",
+                dCondition: "\"d\".\"cId\" = \"c\".\"id\"")
             
             try assertEqualSQL(db, A().request(for: A.dThroughC), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."id" = "d"."cId") \
-                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."aId" = 1))
+                JOIN "c" ON "c"."id" = "d"."cId" \
+                JOIN "b" ON ("b"."cId" = "c"."id") AND ("b"."aId" = 1)
                 """)
             try assertEqualSQL(db, A().request(for: A.dThroughB), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."id" = "d"."cId") \
-                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."aId" = 1))
+                JOIN "c" ON "c"."id" = "d"."cId" \
+                JOIN "b" ON ("b"."cId" = "c"."id") AND ("b"."aId" = 1)
                 """)
         }
     }
@@ -700,19 +700,19 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
             
             try testHasOneWithThreeSteps(
                 db, b: A.b, c: A.c, dThroughC: A.dThroughC, dThroughB: A.dThroughB,
-                bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
-                cCondition: "(\"c\".\"bId\" = \"b\".\"id\")",
-                dCondition: "(\"d\".\"id\" = \"c\".\"dId\")")
+                bCondition: "\"b\".\"aId\" = \"a\".\"id\"",
+                cCondition: "\"c\".\"bId\" = \"b\".\"id\"",
+                dCondition: "\"d\".\"id\" = \"c\".\"dId\"")
             
             try assertEqualSQL(db, A().request(for: A.dThroughC), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."dId" = "d"."id") \
-                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."aId" = 1))
+                JOIN "c" ON "c"."dId" = "d"."id" \
+                JOIN "b" ON ("b"."id" = "c"."bId") AND ("b"."aId" = 1)
                 """)
             try assertEqualSQL(db, A().request(for: A.dThroughB), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."dId" = "d"."id") \
-                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."aId" = 1))
+                JOIN "c" ON "c"."dId" = "d"."id" \
+                JOIN "b" ON ("b"."id" = "c"."bId") AND ("b"."aId" = 1)
                 """)
         }
     }
@@ -757,19 +757,19 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
             
             try testHasOneWithThreeSteps(
                 db, b: A.b, c: A.c, dThroughC: A.dThroughC, dThroughB: A.dThroughB,
-                bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
-                cCondition: "(\"c\".\"bId\" = \"b\".\"id\")",
-                dCondition: "(\"d\".\"cId\" = \"c\".\"id\")")
+                bCondition: "\"b\".\"aId\" = \"a\".\"id\"",
+                cCondition: "\"c\".\"bId\" = \"b\".\"id\"",
+                dCondition: "\"d\".\"cId\" = \"c\".\"id\"")
             
             try assertEqualSQL(db, A().request(for: A.dThroughC), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."id" = "d"."cId") \
-                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."aId" = 1))
+                JOIN "c" ON "c"."id" = "d"."cId" \
+                JOIN "b" ON ("b"."id" = "c"."bId") AND ("b"."aId" = 1)
                 """)
             try assertEqualSQL(db, A().request(for: A.dThroughB), """
                 SELECT "d".* FROM "d" \
-                JOIN "c" ON ("c"."id" = "d"."cId") \
-                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."aId" = 1))
+                JOIN "c" ON "c"."id" = "d"."cId" \
+                JOIN "b" ON ("b"."id" = "c"."bId") AND ("b"."aId" = 1)
                 """)
         }
     }
@@ -1324,41 +1324,41 @@ class AssociationHasOneThroughSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, A.including(required: association), """
                     SELECT "a".*, "e".* \
                     FROM "a" \
-                    JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON ("c"."id" = "b"."cId") \
-                    JOIN "d" ON ("d"."id" = "c"."dId") \
-                    JOIN "e" ON ("e"."id" = "d"."eId")
+                    JOIN "b" ON "b"."id" = "a"."bId" \
+                    JOIN "c" ON "c"."id" = "b"."cId" \
+                    JOIN "d" ON "d"."id" = "c"."dId" \
+                    JOIN "e" ON "e"."id" = "d"."eId"
                     """)
                 try assertEqualSQL(db, A.including(optional: association), """
                     SELECT "a".*, "e".* \
                     FROM "a" \
-                    LEFT JOIN "b" ON ("b"."id" = "a"."bId") \
-                    LEFT JOIN "c" ON ("c"."id" = "b"."cId") \
-                    LEFT JOIN "d" ON ("d"."id" = "c"."dId") \
-                    LEFT JOIN "e" ON ("e"."id" = "d"."eId")
+                    LEFT JOIN "b" ON "b"."id" = "a"."bId" \
+                    LEFT JOIN "c" ON "c"."id" = "b"."cId" \
+                    LEFT JOIN "d" ON "d"."id" = "c"."dId" \
+                    LEFT JOIN "e" ON "e"."id" = "d"."eId"
                     """)
                 try assertEqualSQL(db, A.joining(required: association), """
                     SELECT "a".* \
                     FROM "a" \
-                    JOIN "b" ON ("b"."id" = "a"."bId") \
-                    JOIN "c" ON ("c"."id" = "b"."cId") \
-                    JOIN "d" ON ("d"."id" = "c"."dId") \
-                    JOIN "e" ON ("e"."id" = "d"."eId")
+                    JOIN "b" ON "b"."id" = "a"."bId" \
+                    JOIN "c" ON "c"."id" = "b"."cId" \
+                    JOIN "d" ON "d"."id" = "c"."dId" \
+                    JOIN "e" ON "e"."id" = "d"."eId"
                     """)
                 try assertEqualSQL(db, A.joining(optional: association), """
                     SELECT "a".* \
                     FROM "a" \
-                    LEFT JOIN "b" ON ("b"."id" = "a"."bId") \
-                    LEFT JOIN "c" ON ("c"."id" = "b"."cId") \
-                    LEFT JOIN "d" ON ("d"."id" = "c"."dId") \
-                    LEFT JOIN "e" ON ("e"."id" = "d"."eId")
+                    LEFT JOIN "b" ON "b"."id" = "a"."bId" \
+                    LEFT JOIN "c" ON "c"."id" = "b"."cId" \
+                    LEFT JOIN "d" ON "d"."id" = "c"."dId" \
+                    LEFT JOIN "e" ON "e"."id" = "d"."eId"
                     """)
                 try assertEqualSQL(db, A().request(for: association), """
                     SELECT "e".* \
                     FROM "e" \
-                    JOIN "d" ON ("d"."eId" = "e"."id") \
-                    JOIN "c" ON ("c"."dId" = "d"."id") \
-                    JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."id" = 1))
+                    JOIN "d" ON "d"."eId" = "e"."id" \
+                    JOIN "c" ON "c"."dId" = "d"."id" \
+                    JOIN "b" ON ("b"."cId" = "c"."id") AND ("b"."id" = 1)
                     """)
             }
         }

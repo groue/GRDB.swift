@@ -10,7 +10,7 @@ public class DatabaseSnapshot : DatabaseReader {
     private var serializedDatabase: SerializedDatabase
     
     /// The database configuration
-    var configuration: Configuration {
+    public var configuration: Configuration {
         return serializedDatabase.configuration
     }
     
@@ -62,6 +62,24 @@ extension DatabaseSnapshot {
         return try serializedDatabase.sync(block)
     }
     
+    #if compiler(>=5.0)
+    /// Asynchronously executes a read-only block in a protected dispatch queue.
+    ///
+    ///     let players = try snapshot.asyncRead { result in
+    ///         do {
+    ///             let db = try result.get()
+    ///             let count = try Player.fetchCount(db)
+    ///         } catch {
+    ///             // Handle error
+    ///         }
+    ///     }
+    ///
+    /// - parameter block: A block that accesses the database.
+    public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
+        serializedDatabase.async { block(.success($0)) }
+    }
+    #endif
+    
     /// Alias for `read`. See `DatabaseReader.unsafeRead`.
     ///
     /// :nodoc:
@@ -100,36 +118,41 @@ extension DatabaseSnapshot {
     
     public func add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        onError: ((Error) -> Void)?,
+        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        throws -> TransactionObserver
+        -> TransactionObserver
     {
-        // Deal with initial value
-        switch observation.scheduling {
-        case .mainQueue:
-            if let value = try unsafeReentrantRead(observation.initialValue) {
-                if DispatchQueue.isMain {
-                    onChange(value)
-                } else {
-                    DispatchQueue.main.async {
+        // TODO: fetch asynchronously when possible
+        do {
+            // Deal with initial value
+            switch observation.scheduling {
+            case .mainQueue:
+                if let value = try unsafeReentrantRead(observation.fetchFirst) {
+                    if DispatchQueue.isMain {
+                        onChange(value)
+                    } else {
+                        DispatchQueue.main.async {
+                            onChange(value)
+                        }
+                    }
+                }
+            case let .async(onQueue: queue, startImmediately: startImmediately):
+                if startImmediately {
+                    if let value = try unsafeReentrantRead(observation.fetchFirst) {
+                        queue.async {
+                            onChange(value)
+                        }
+                    }
+                }
+            case let .unsafe(startImmediately: startImmediately):
+                if startImmediately {
+                    if let value = try unsafeReentrantRead(observation.fetchFirst) {
                         onChange(value)
                     }
                 }
             }
-        case let .async(onQueue: queue, startImmediately: startImmediately):
-            if startImmediately {
-                if let value = try unsafeReentrantRead(observation.initialValue) {
-                    queue.async {
-                        onChange(value)
-                    }
-                }
-            }
-        case let .unsafe(startImmediately: startImmediately):
-            if startImmediately {
-                if let value = try unsafeReentrantRead(observation.initialValue) {
-                    onChange(value)
-                }
-            }
+        } catch {
+            onError(error)
         }
         
         // Return a dummy observer, because snapshots never change
@@ -138,15 +161,6 @@ extension DatabaseSnapshot {
     
     public func remove(transactionObserver: TransactionObserver) {
         // Can't remove an observer which could not be added :-)
-    }
-}
-
-extension ValueObservation where Reducer: ValueReducer {
-    /// Helper method for DatabaseSnapshot.add(observation:onError:onChange:)
-    fileprivate func initialValue(_ db: Database) throws -> Reducer.Value? {
-        var reducer = try makeReducer(db)
-        let fetched = try reducer.fetch(db)
-        return reducer.value(fetched)
     }
 }
 

@@ -44,12 +44,15 @@
 - [ ] Look at the jazzy configuration of https://github.com/bignerdranch/Deferred
 - [ ] FTS: prefix queries
 - [ ] Test NOT TESTED methods
-- [ ] Update RxGRDB: https://github.com/RxSwiftCommunity/RxGRDB/pull/51
-- [ ] Update [GRDBObjc](https://github.com/groue/GRDBObjc)
-
-GRDB 4.0
-
-- [ ] Review @inlinable stuff
+- [ ] A way to stop a ValueObservation observer without waiting for deinit
+- [ ] Glossary (Database Access Methods, etc.)
+- [ ] One use case for query interface updates that is uneasy to deal with raw SQL:
+    
+    ```
+    // Uneasy to do with raw SQL
+    let players = Player.filter(...) // Returns a request that filters on column A or column B depending on the argument
+    players.update(...)              // Runs the expected UPDATE statement
+    ```
 
 Swift 4.2
 

@@ -6,7 +6,10 @@ struct SQLQuery {
     var isDistinct: Bool
     var expectsSingleResult: Bool
     var groupPromise: DatabasePromise<[SQLExpression]>?
-    var havingExpression: SQLExpression?
+    // Having clause is an array of expressions that we'll join with
+    // the AND operator. This gives nicer output in generated SQL:
+    // `(a AND b AND c)` instead of `((a AND b) AND c)`.
+    var havingExpressions: [SQLExpression]
     var limit: SQLLimit?
 
     init(
@@ -14,25 +17,24 @@ struct SQLQuery {
         isDistinct: Bool = false,
         expectsSingleResult: Bool = false,
         groupPromise: DatabasePromise<[SQLExpression]>? = nil,
-        havingExpression: SQLExpression? = nil,
+        havingExpressions: [SQLExpression] = [],
         limit: SQLLimit? = nil)
     {
         self.relation = relation
         self.isDistinct = isDistinct
         self.expectsSingleResult = expectsSingleResult
         self.groupPromise = groupPromise
-        self.havingExpression = havingExpression
+        self.havingExpressions = havingExpressions
         self.limit = limit
     }
 }
 
-extension SQLQuery: SelectionRequest, FilteredRequest, OrderedRequest {
-    func select(_ selection: [SQLSelectable]) -> SQLQuery {
-        return mapRelation { $0.select(selection) }
-    }
-    
-    func annotated(with selection: [SQLSelectable]) -> SQLQuery {
-        return mapRelation { $0.annotated(with: selection) }
+extension SQLQuery {
+    /// Returns a query whose relation is transformed by the given closure.
+    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLQuery {
+        var query = self
+        query.relation = transform(relation)
+        return query
     }
     
     func distinct() -> SQLQuery {
@@ -40,33 +42,41 @@ extension SQLQuery: SelectionRequest, FilteredRequest, OrderedRequest {
         query.isDistinct = true
         return query
     }
-
+    
     func expectingSingleResult() -> SQLQuery {
         var query = self
         query.expectsSingleResult = true
         return query
     }
     
+    func limit(_ limit: Int, offset: Int? = nil) -> SQLQuery {
+        var query = self
+        query.limit = SQLLimit(limit: limit, offset: offset)
+        return query
+    }
+    
+    func qualified(with alias: TableAlias) -> SQLQuery {
+        return mapRelation { $0.qualified(with: alias) }
+    }
+}
+
+extension SQLQuery: SelectionRequest {
+    func select(_ selection: [SQLSelectable]) -> SQLQuery {
+        return mapRelation { $0.select(selection) }
+    }
+    
+    func annotated(with selection: [SQLSelectable]) -> SQLQuery {
+        return mapRelation { $0.annotated(with: selection) }
+    }
+}
+
+extension SQLQuery: FilteredRequest {
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLQuery {
         return mapRelation { $0.filter(predicate) }
     }
-    
-    func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> SQLQuery {
-        var query = self
-        query.groupPromise = DatabasePromise { db in try expressions(db).map { $0.sqlExpression } }
-        return query
-    }
-    
-    func having(_ predicate: SQLExpressible) -> SQLQuery {
-        var query = self
-        if let havingExpression = query.havingExpression {
-            query.havingExpression = (havingExpression && predicate).sqlExpression
-        } else {
-            query.havingExpression = predicate.sqlExpression
-        }
-        return query
-    }
+}
 
+extension SQLQuery: OrderedRequest {
     func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> SQLQuery {
         return mapRelation { $0.order(orderings) }
     }
@@ -78,22 +88,41 @@ extension SQLQuery: SelectionRequest, FilteredRequest, OrderedRequest {
     func unordered() -> SQLQuery {
         return mapRelation { $0.unordered() }
     }
+}
 
-    func limit(_ limit: Int, offset: Int? = nil) -> SQLQuery {
+extension SQLQuery: AggregatingRequest {
+    func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> SQLQuery {
         var query = self
-        query.limit = SQLLimit(limit: limit, offset: offset)
+        query.groupPromise = DatabasePromise { db in try expressions(db).map { $0.sqlExpression } }
         return query
     }
     
-    func qualified(with alias: TableAlias) -> SQLQuery {
-        return mapRelation { $0.qualified(with: alias) }
+    func having(_ predicate: SQLExpressible) -> SQLQuery {
+        var query = self
+        query.havingExpressions.append(predicate.sqlExpression)
+        return query
+    }
+}
+
+extension SQLQuery: _JoinableRequest {
+    func _including(all association: SQLAssociation) -> SQLQuery {
+        return mapRelation { $0._including(all: association) }
     }
     
-    /// Returns a query whose relation is transformed by the given closure.
-    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLQuery {
-        var query = self
-        query.relation = transform(relation)
-        return query
+    func _including(optional association: SQLAssociation) -> SQLQuery {
+        return mapRelation { $0._including(optional: association) }
+    }
+    
+    func _including(required association: SQLAssociation) -> SQLQuery {
+        return mapRelation { $0._including(required: association) }
+    }
+    
+    func _joining(optional association: SQLAssociation) -> SQLQuery {
+        return mapRelation { $0._joining(optional: association) }
+    }
+    
+    func _joining(required association: SQLAssociation) -> SQLQuery {
+        return mapRelation { $0._joining(required: association) }
     }
 }
 

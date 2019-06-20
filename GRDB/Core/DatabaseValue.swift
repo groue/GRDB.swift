@@ -231,7 +231,7 @@ extension DatabaseValue {
 extension DatabaseValue {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ context: inout SQLGenerationContext) -> String {
+    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
         // fast path for NULL
         if isNull {
             return "NULL"

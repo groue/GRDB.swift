@@ -59,7 +59,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             let observation = ValueObservation.tracking(request, reducer: { _ in reducer })
             
             // Start observation
-            let observer = try observation.start(
+            let observer = observation.start(
                 in: dbWriter,
                 onError: {
                     errors.append($0)
@@ -122,7 +122,7 @@ class ValueObservationReducerTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func testInitialError() throws {
+    func testInitialErrorWithoutErrorHandling() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             struct TestError: Error { }
             let reducer = AnyValueReducer(
@@ -136,11 +136,33 @@ class ValueObservationReducerTests: GRDBTestCase {
             do {
                 _ = try observation.start(
                     in: dbWriter,
-                    onError: { _ in fatalError() },
-                    onChange: { _ in fatalError() })
+                    onChange: { _ in })
                 XCTFail("Expected error")
             } catch is TestError {
             }
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
+    
+    func testInitialErrorWithErrorHandling() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            struct TestError: Error { }
+            let reducer = AnyValueReducer(
+                fetch: { _ in throw TestError() },
+                value: { _ in fatalError() })
+            
+            // Create an observation
+            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
+            
+            // Start observation
+            var error: TestError?
+            _ = observation.start(
+                in: dbWriter,
+                onError: { error = $0 as? TestError },
+                onChange: { _ in })
+            XCTAssertNotNil(error)
         }
         
         try test(makeDatabaseQueue())
@@ -174,7 +196,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             
             // Start observation
-            let observer = try observation.start(
+            let observer = observation.start(
                 in: dbWriter,
                 onError: {
                     errors.append($0)
@@ -351,9 +373,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 3
             
             struct T: TableRecord { }
-            let observation = ValueObservation
-                .trackingCount(T.all())
-                .map { "\($0)" }
+            let observation = T.observationForCount().map { "\($0)" }
             let observer = try observation.start(in: dbWriter) { count in
                 counts.append(count)
                 notificationExpectation.fulfill()

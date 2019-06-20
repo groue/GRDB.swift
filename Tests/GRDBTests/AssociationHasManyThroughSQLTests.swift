@@ -39,12 +39,12 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             
             try testHasManyWithTwoSteps(
                 db, ab: A.b, ac: A.c,
-                bCondition: "(\"b\".\"id\" = \"a\".\"bId\")",
-                cCondition: "(\"c\".\"bId\" = \"b\".\"id\")")
+                bCondition: "\"b\".\"id\" = \"a\".\"bId\"",
+                cCondition: "\"c\".\"bId\" = \"b\".\"id\"")
             
             try assertEqualSQL(db, A().request(for: A.c), """
                 SELECT "c".* FROM "c" \
-                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."id" = 1))
+                JOIN "b" ON ("b"."id" = "c"."bId") AND ("b"."id" = 1)
                 """)
         }
     }
@@ -79,12 +79,12 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             
             try testHasManyWithTwoSteps(
                 db, ab: A.b, ac: A.c,
-                bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
-                cCondition: "(\"c\".\"bId\" = \"b\".\"id\")")
+                bCondition: "\"b\".\"aId\" = \"a\".\"id\"",
+                cCondition: "\"c\".\"bId\" = \"b\".\"id\"")
             
             try assertEqualSQL(db, A().request(for: A.c), """
                 SELECT "c".* FROM "c" \
-                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."aId" = 1))
+                JOIN "b" ON ("b"."id" = "c"."bId") AND ("b"."aId" = 1)
                 """)
         }
     }
@@ -119,12 +119,12 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             
             try testHasManyWithTwoSteps(
                 db, ab: A.b, ac: A.c,
-                bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
-                cCondition: "(\"c\".\"id\" = \"b\".\"cId\")")
+                bCondition: "\"b\".\"aId\" = \"a\".\"id\"",
+                cCondition: "\"c\".\"id\" = \"b\".\"cId\"")
             
             try assertEqualSQL(db, A().request(for: A.c), """
                 SELECT "c".* FROM "c" \
-                JOIN "b" ON (("b"."cId" = "c"."id") AND ("b"."aId" = 1))
+                JOIN "b" ON ("b"."cId" = "c"."id") AND ("b"."aId" = 1)
                 """)
         }
     }
@@ -159,12 +159,12 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
             
             try testHasManyWithTwoSteps(
                 db, ab: A.b, ac: A.c,
-                bCondition: "(\"b\".\"aId\" = \"a\".\"id\")",
-                cCondition: "(\"c\".\"bId\" = \"b\".\"id\")")
+                bCondition: "\"b\".\"aId\" = \"a\".\"id\"",
+                cCondition: "\"c\".\"bId\" = \"b\".\"id\"")
             
             try assertEqualSQL(db, A().request(for: A.c), """
                 SELECT "c".* FROM "c" \
-                JOIN "b" ON (("b"."id" = "c"."bId") AND ("b"."aId" = 1))
+                JOIN "b" ON ("b"."id" = "c"."bId") AND ("b"."aId" = 1)
                 """)
         }
     }
