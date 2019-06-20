@@ -5,7 +5,7 @@ GRDB 4 [![Swift 4.2](https://img.shields.io/badge/swift-4.2-orange.svg?style=fla
 
 ---
 
-**Latest release**: June 15, 2019 • version 4.1.0 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 3 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
+**Latest release**: June 20, 2019 • version 4.1.0 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 3 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
 
 **Requirements**: iOS 9.0+ / macOS 10.9+ / watchOS 2.0+ &bull; Swift 4.2+ / Xcode 10.0+
 
