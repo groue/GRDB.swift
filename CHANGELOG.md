@@ -11,7 +11,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 #### 4.x Releases
 
-- `4.1.x` Releases - [4.1.0](#410)
+- `4.1.x` Releases - [4.1.0](#410) | [4.1.1](#411)
 - `4.0.x` Releases - [4.0.0](#400) | [4.0.1](#401)
 
 #### 3.x Releases
@@ -54,6 +54,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 <!--
 ## Next Release
 -->
+
+## 4.1.1
+
+Released June 22, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.1.0...v4.1.1)
+
+This version is identical to 4.1.0.
 
 ## 4.1.0
 
