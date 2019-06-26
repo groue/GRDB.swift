@@ -440,7 +440,7 @@ public final class RecordCursor<Record: FetchableRecord> : Cursor {
 public enum DatabaseDateDecodingStrategy {
     /// The strategy that uses formatting from the Date structure.
     ///
-    /// It decodes numeric values as a nunber of seconds since Epoch
+    /// It decodes numeric values as a number of seconds since Epoch
     /// (midnight UTC on January 1st, 1970).
     ///
     /// It decodes strings in the following formats, assuming UTC time zone.
