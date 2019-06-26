@@ -54,6 +54,8 @@
     players.update(...)              // Runs the expected UPDATE statement
     ```
 
+- [ ] Predicates, so that a filter can be evaluated both on the database, and on a record instance
+
 Swift 4.2
 
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0208-package-manager-system-library-targets.md
