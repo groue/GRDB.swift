@@ -55,6 +55,39 @@
     ```
 
 - [ ] Predicates, so that a filter can be evaluated both on the database, and on a record instance
+- [ ] ValueObservation erasure
+
+    ```
+    // Do better than this
+    observation.mapReducer { _, reducer in AnyValueReducer(reducer) }
+    ```
+- [ ] Association:
+    
+    ```swift
+    let request = DeviceConfiguration.all()
+        .joining(optional: DeviceConfiguration.activeSubscription /* belongsTo */
+            .including(all: Subscription.carCategoryRelationships)) /* hasMany */
+    ```
+    
+    The request above executes the two following SQL queries:
+    
+    ```sql
+    SELECT "deviceConfiguration".*
+    FROM "deviceConfiguration"
+    LEFT JOIN "subscription" ON "subscription"."uid" = "deviceConfiguration"."activeSubscriptionUID"
+    LIMIT 1
+    
+    SELECT "subscriptionCarCategory".*, "subscription"."uid" AS "grdb_uid"
+    FROM "subscriptionCarCategory"
+    JOIN "subscription" ON ("subscription"."uid" = "subscriptionCarCategory"."subscriptionUID") AND ("subscription"."uid" = 2)
+    ```
+    
+    - Problem 1: In the first query, the left join has no purpose.
+    - Problem 2: Do we generally support all queries like `joining(one.joining(one.joining(one.including(all))))` - series of nested joinings of to-one associations ending with an including(all:)?
+
+- [ ] ValueObservation.flatMap:
+
+    Make it possible to build a single observation where some requests depend on the result of other requests. As long as we can't express this in a single observation, we fail the "guaranteed consistency is possible" contract.
 
 Swift 4.2
 
