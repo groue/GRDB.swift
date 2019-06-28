@@ -54,7 +54,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 ## Next Release
 
-- [#562](https://github.com/groue/GRDB.swift/pull/537): Fix crash when using more than one DatabaseCollation
+- [#562](https://github.com/groue/GRDB.swift/pull/562): Fix crash when using more than one DatabaseCollation
 
 
 ## 4.1.1
