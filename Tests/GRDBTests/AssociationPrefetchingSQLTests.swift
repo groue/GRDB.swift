@@ -1240,7 +1240,9 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
-                #warning("TODO: remove the harmless but useless LEFT JOIN in the first query")
+                // LEFT JOIN in the first query are useless but harmless.
+                // And SQLite may well optimize them out.
+                // So don't bother removing them.
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT "b".* \
@@ -1293,7 +1295,9 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
-                #warning("TODO: remove the harmless but useless LEFT JOIN in the first query")
+                // LEFT JOIN in the first query are useless but harmless.
+                // And SQLite may well optimize them out.
+                // So don't bother removing them.
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT "b".* \
@@ -1352,7 +1356,9 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
-                #warning("TODO: remove the harmless but useless LEFT JOIN in the first query")
+                // LEFT JOIN in the first query are useless but harmless.
+                // And SQLite may well optimize them out.
+                // So don't bother removing them.
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT "a".* \
@@ -1405,7 +1411,9 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
-                #warning("TODO: remove the harmless but useless LEFT JOIN in the first query")
+                // LEFT JOIN in the first query are useless but harmless.
+                // And SQLite may well optimize them out.
+                // So don't bother removing them.
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT "a".* \
@@ -1466,7 +1474,9 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
-                #warning("TODO: remove the harmless but useless LEFT JOIN in the first query")
+                // LEFT JOIN in the first query are useless but harmless.
+                // And SQLite may well optimize them out.
+                // So don't bother removing them.
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT "d".* \
@@ -1505,7 +1515,9 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 _ = try Row.fetchAll(db, request)
                 
                 let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
-                #warning("TODO: remove the harmless but useless LEFT JOIN in the first query")
+                // LEFT JOIN in the first query are useless but harmless.
+                // And SQLite may well optimize them out.
+                // So don't bother removing them.
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT "d".* \
