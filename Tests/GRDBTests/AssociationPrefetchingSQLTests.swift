@@ -1028,4 +1028,114 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
             }
         }
     }
+
+    func testIncludingOptionalHasOneIncludingAllHasMany() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            // Plain request
+            do {
+                let request = A
+                    .including(optional: A
+                        .hasOne(C.self)
+                        .including(all: C
+                            .hasMany(D.self)
+                            .orderByPrimaryKey())
+                    )
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT "a".*, "c".* \
+                    FROM "a" \
+                    LEFT JOIN "c" ON "c"."colc2" = "a"."cola1" \
+                    ORDER BY "a"."cola1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2, 3)) \
+                    ORDER BY "d"."cold1"
+                    """])
+            }
+
+            // Request with filters
+            do {
+                let request = A
+                    .including(optional: A
+                        .hasOne(C.self)
+                        .filter(Column("colc1") == 9)
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") == 11)
+                            .orderByPrimaryKey()
+                            .forKey("ds1"))
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") != 11)
+                            .orderByPrimaryKey()
+                            .forKey("ds2"))
+                        .forKey("c1"))
+                    .including(optional: A
+                        .hasOne(C.self)
+                        .filter(Column("colc1") != 9)
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") == 11)
+                            .orderByPrimaryKey()
+                            .forKey("ds1"))
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") != 11)
+                            .orderByPrimaryKey()
+                            .forKey("ds2"))
+                        .forKey("c2"))
+                    .orderByPrimaryKey()
+
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT "a".*, "c1".*, "c2".* \
+                    FROM "a" \
+                    LEFT JOIN "c" "c1" ON ("c1"."colc2" = "a"."cola1") AND ("c1"."colc1" = 9) \
+                    LEFT JOIN "c" "c2" ON ("c2"."colc2" = "a"."cola1") AND ("c2"."colc1" <> 9) \
+                    ORDER BY "a"."cola1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" = 9) AND ("c"."colc2" IN (1, 2, 3)) \
+                    WHERE "d"."cold1" = 11 \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" = 9) AND ("c"."colc2" IN (1, 2, 3)) \
+                    WHERE "d"."cold1" <> 11 \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" <> 9) AND ("c"."colc2" IN (1, 2, 3)) \
+                    WHERE "d"."cold1" = 11 \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" <> 9) AND ("c"."colc2" IN (1, 2, 3)) \
+                    WHERE "d"."cold1" <> 11 \
+                    ORDER BY "d"."cold1"
+                    """])
+            }
+        }
+    }
 }
