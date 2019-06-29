@@ -50,6 +50,6 @@ extension DatabaseCollation: Hashable {
     /// :nodoc:
     public static func == (lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
         // See https://www.sqlite.org/c3ref/create_collation.html
-        return sqlite3_stricmp(lhs.name, lhs.name) == 0
+        return sqlite3_stricmp(lhs.name, rhs.name) == 0
     }
 }

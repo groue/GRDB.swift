@@ -5,9 +5,9 @@ All notable changes to this project will be documented in this file.
 
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
-<!--
+
 [Next Release](#next-release)
--->
+
 
 #### 4.x Releases
 
@@ -51,9 +51,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 - [0.110.0](#01100), ...
 
-<!--
+
 ## Next Release
--->
+
+- [#562](https://github.com/groue/GRDB.swift/pull/562): Fix crash when using more than one DatabaseCollation
+
 
 ## 4.1.1
 
