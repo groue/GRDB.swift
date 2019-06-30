@@ -6,7 +6,7 @@
 ///     }
 ///
 /// See https://www.sqlite.org/fts3.html
-public struct FTS4 : VirtualTableModule {
+public struct FTS4: VirtualTableModule {
     
     /// Creates a FTS4 module suitable for the Database
     /// `create(virtualTable:using:)` method.
@@ -53,7 +53,10 @@ public struct FTS4 : VirtualTableModule {
             if tokenizer.arguments.isEmpty {
                 arguments.append("tokenize=\(tokenizer.name)")
             } else {
-                arguments.append("tokenize=\(tokenizer.name) " + tokenizer.arguments.map { "\"\($0)\"" as String }.joined(separator: " "))
+                arguments.append("tokenize=\(tokenizer.name) ")
+                arguments.append(tokenizer.arguments
+                    .map { "\"\($0)\"" as String }
+                    .joined(separator: " "))
             }
         }
         
@@ -112,16 +115,16 @@ public struct FTS4 : VirtualTableModule {
             
             try db.execute(sql: """
                 CREATE TRIGGER \("__\(tableName)_bu".quotedDatabaseIdentifier) BEFORE UPDATE ON \(content) BEGIN
-                    DELETE FROM \(ftsTable) WHERE docid=\(oldRowID);
+                DELETE FROM \(ftsTable) WHERE docid=\(oldRowID);
                 END;
                 CREATE TRIGGER \("__\(tableName)_bd".quotedDatabaseIdentifier) BEFORE DELETE ON \(content) BEGIN
-                    DELETE FROM \(ftsTable) WHERE docid=\(oldRowID);
+                DELETE FROM \(ftsTable) WHERE docid=\(oldRowID);
                 END;
                 CREATE TRIGGER \("__\(tableName)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN
-                    INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns));
+                INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns));
                 END;
                 CREATE TRIGGER \("__\(tableName)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
-                    INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns));
+                INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns));
                 END;
                 """)
             
@@ -273,7 +276,8 @@ public final class FTS4ColumnDefinition {
     @discardableResult
     public func notIndexed() -> Self {
         // notindexed FTS4 option was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        // It is available from iOS 8.2 and OS X 10.10
+        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         self.isIndexed = false
         return self
     }
@@ -292,7 +296,8 @@ public final class FTS4ColumnDefinition {
     @discardableResult
     public func notIndexed() -> Self {
         // notindexed FTS4 option was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        // It is available from iOS 8.2 and OS X 10.10
+        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         self.isIndexed = false
         return self
     }

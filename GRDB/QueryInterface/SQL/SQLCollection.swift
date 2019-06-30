@@ -37,15 +37,17 @@ extension SQLCollection {
 /// SQLExpressionsArray wraps an array of expressions
 ///
 ///     SQLExpressionsArray([1, 2, 3])
-struct SQLExpressionsArray : SQLCollection {
+struct SQLExpressionsArray: SQLCollection {
     let expressions: [SQLExpression]
     
-    init<S: Sequence>(_ expressions: S) where S.Iterator.Element : SQLExpressible {
+    init<S: Sequence>(_ expressions: S) where S.Iterator.Element: SQLExpressible {
         self.expressions = expressions.map { $0.sqlExpression }
     }
     
     func collectionSQL(_ context: inout SQLGenerationContext) -> String {
-        return (expressions.map { $0.expressionSQL(&context, wrappedInParenthesis: false) } as [String]).joined(separator: ", ")
+        return expressions
+            .map { $0.expressionSQL(&context, wrappedInParenthesis: false) }
+            .joined(separator: ", ")
     }
     
     func contains(_ value: SQLExpressible) -> SQLExpression {

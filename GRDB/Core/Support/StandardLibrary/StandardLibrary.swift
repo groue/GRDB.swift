@@ -1,9 +1,9 @@
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 // MARK: - Value Types
@@ -500,11 +500,12 @@ extension DatabaseFunction {
     ///     let nameColumn = Column("name")
     ///     let request = Player.select(nameColumn.capitalized)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    public static let capitalize = DatabaseFunction("swiftCapitalizedString", argumentCount: 1, pure: true) { dbValues in
-        guard let string = String.fromDatabaseValue(dbValues[0]) else {
-            return nil
-        }
-        return string.capitalized
+    public static let capitalize =
+        DatabaseFunction("swiftCapitalizedString", argumentCount: 1, pure: true) { dbValues in
+            guard let string = String.fromDatabaseValue(dbValues[0]) else {
+                return nil
+            }
+            return string.capitalized
     }
     
     /// An SQL function that returns the Swift built-in lowercased
@@ -519,11 +520,12 @@ extension DatabaseFunction {
     ///     let nameColumn = Column("name")
     ///     let request = Player.select(nameColumn.lowercased())
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    public static let lowercase = DatabaseFunction("swiftLowercaseString", argumentCount: 1, pure: true) { dbValues in
-        guard let string = String.fromDatabaseValue(dbValues[0]) else {
-            return nil
-        }
-        return string.lowercased()
+    public static let lowercase =
+        DatabaseFunction("swiftLowercaseString", argumentCount: 1, pure: true) { dbValues in
+            guard let string = String.fromDatabaseValue(dbValues[0]) else {
+                return nil
+            }
+            return string.lowercased()
     }
     
     /// An SQL function that returns the Swift built-in uppercased
@@ -538,11 +540,12 @@ extension DatabaseFunction {
     ///     let nameColumn = Column("name")
     ///     let request = Player.select(nameColumn.uppercased())
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    public static let uppercase = DatabaseFunction("swiftUppercaseString", argumentCount: 1, pure: true) { dbValues in
-        guard let string = String.fromDatabaseValue(dbValues[0]) else {
-            return nil
-        }
-        return string.uppercased()
+    public static let uppercase =
+        DatabaseFunction("swiftUppercaseString", argumentCount: 1, pure: true) { dbValues in
+            guard let string = String.fromDatabaseValue(dbValues[0]) else {
+                return nil
+            }
+            return string.uppercased()
     }
 }
 
@@ -560,11 +563,12 @@ extension DatabaseFunction {
     ///     let request = Player.select(nameColumn.localizedCapitalized)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
-    public static let localizedCapitalize = DatabaseFunction("swiftLocalizedCapitalizedString", argumentCount: 1, pure: true) { dbValues in
-        guard let string = String.fromDatabaseValue(dbValues[0]) else {
-            return nil
-        }
-        return string.localizedCapitalized
+    public static let localizedCapitalize =
+        DatabaseFunction("swiftLocalizedCapitalizedString", argumentCount: 1, pure: true) { dbValues in
+            guard let string = String.fromDatabaseValue(dbValues[0]) else {
+                return nil
+            }
+            return string.localizedCapitalized
     }
     
     /// An SQL function that returns the Swift built-in
@@ -580,11 +584,12 @@ extension DatabaseFunction {
     ///     let request = Player.select(nameColumn.localizedLowercased)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
-    public static let localizedLowercase = DatabaseFunction("swiftLocalizedLowercaseString", argumentCount: 1, pure: true) { dbValues in
-        guard let string = String.fromDatabaseValue(dbValues[0]) else {
-            return nil
-        }
-        return string.localizedLowercase
+    public static let localizedLowercase =
+        DatabaseFunction("swiftLocalizedLowercaseString", argumentCount: 1, pure: true) { dbValues in
+            guard let string = String.fromDatabaseValue(dbValues[0]) else {
+                return nil
+            }
+            return string.localizedLowercase
     }
     
     /// An SQL function that returns the Swift built-in
@@ -600,11 +605,12 @@ extension DatabaseFunction {
     ///     let request = Player.select(nameColumn.localizedUppercased)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
-    public static let localizedUppercase = DatabaseFunction("swiftLocalizedUppercaseString", argumentCount: 1, pure: true) { dbValues in
-        guard let string = String.fromDatabaseValue(dbValues[0]) else {
-            return nil
-        }
-        return string.localizedUppercase
+    public static let localizedUppercase =
+        DatabaseFunction("swiftLocalizedUppercaseString", argumentCount: 1, pure: true) { dbValues in
+            guard let string = String.fromDatabaseValue(dbValues[0]) else {
+                return nil
+            }
+            return string.localizedUppercase
     }
 }
 
@@ -637,8 +643,9 @@ extension DatabaseCollation {
     ///           name TEXT COLLATE \(collationName)
     ///         )
     ///         """)
-    public static let unicodeCompare = DatabaseCollation("swiftCompare") { (lhs, rhs) in
-        return (lhs < rhs) ? .orderedAscending : ((lhs == rhs) ? .orderedSame : .orderedDescending)
+    public static let unicodeCompare =
+        DatabaseCollation("swiftCompare") { (lhs, rhs) in
+            (lhs < rhs) ? .orderedAscending : ((lhs == rhs) ? .orderedSame : .orderedDescending)
     }
     
     /// A collation, or SQL string comparison function, that compares strings
@@ -655,8 +662,9 @@ extension DatabaseCollation {
     ///           name TEXT COLLATE \(collationName)
     ///         )
     ///         """)
-    public static let caseInsensitiveCompare = DatabaseCollation("swiftCaseInsensitiveCompare") { (lhs, rhs) in
-        return lhs.caseInsensitiveCompare(rhs)
+    public static let caseInsensitiveCompare =
+        DatabaseCollation("swiftCaseInsensitiveCompare") { (lhs, rhs) in
+            lhs.caseInsensitiveCompare(rhs)
     }
     
     /// A collation, or SQL string comparison function, that compares strings
@@ -673,8 +681,9 @@ extension DatabaseCollation {
     ///           name TEXT COLLATE \(collationName)
     ///         )
     ///         """)
-    public static let localizedCaseInsensitiveCompare = DatabaseCollation("swiftLocalizedCaseInsensitiveCompare") { (lhs, rhs) in
-        return lhs.localizedCaseInsensitiveCompare(rhs)
+    public static let localizedCaseInsensitiveCompare =
+        DatabaseCollation("swiftLocalizedCaseInsensitiveCompare") { (lhs, rhs) in
+            return lhs.localizedCaseInsensitiveCompare(rhs)
     }
     
     /// A collation, or SQL string comparison function, that compares strings
@@ -691,8 +700,9 @@ extension DatabaseCollation {
     ///           name TEXT COLLATE \(collationName)
     ///         )
     ///         """)
-    public static let localizedCompare = DatabaseCollation("swiftLocalizedCompare") { (lhs, rhs) in
-        return lhs.localizedCompare(rhs)
+    public static let localizedCompare =
+        DatabaseCollation("swiftLocalizedCompare") { (lhs, rhs) in
+            lhs.localizedCompare(rhs)
     }
     
     /// A collation, or SQL string comparison function, that compares strings
@@ -709,7 +719,8 @@ extension DatabaseCollation {
     ///           name TEXT COLLATE \(collationName)
     ///         )
     ///         """)
-    public static let localizedStandardCompare = DatabaseCollation("swiftLocalizedStandardCompare") { (lhs, rhs) in
-        return lhs.localizedStandardCompare(rhs)
+    public static let localizedStandardCompare =
+        DatabaseCollation("swiftLocalizedStandardCompare") { (lhs, rhs) in
+            lhs.localizedStandardCompare(rhs)
     }
 }

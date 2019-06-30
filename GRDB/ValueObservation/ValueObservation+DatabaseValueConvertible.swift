@@ -125,9 +125,9 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
 }
 
 extension ValueObservation where Reducer == Void {
-
+    
     // MARK: - DatabaseValueConvertible Observation
-
+    
     /// Creates a ValueObservation which observes *request*, and notifies
     /// fresh values whenever the request is modified by a
     /// database transaction.
@@ -335,12 +335,15 @@ extension ValueReducers {
 
 /// :nodoc:
 @available(*, deprecated, renamed: "ValueReducers.AllValues")
-public typealias DatabaseValuesReducer<RowDecoder> = ValueReducers.AllValues<RowDecoder> where RowDecoder: DatabaseValueConvertible
+public typealias DatabaseValuesReducer<RowDecoder> = ValueReducers.AllValues<RowDecoder>
+    where RowDecoder: DatabaseValueConvertible
 
 /// :nodoc:
 @available(*, deprecated, renamed: "ValueReducers.OneValue")
-public typealias DatabaseValueReducer<RowDecoder> = ValueReducers.OneValue<RowDecoder> where RowDecoder: DatabaseValueConvertible
+public typealias DatabaseValueReducer<RowDecoder> = ValueReducers.OneValue<RowDecoder>
+    where RowDecoder: DatabaseValueConvertible
 
 /// :nodoc:
 @available(*, deprecated, renamed: "ValueReducers.AllOptionalValues")
-public typealias OptionalDatabaseValuesReducer<RowDecoder> = ValueReducers.AllOptionalValues<RowDecoder> where RowDecoder: DatabaseValueConvertible
+public typealias OptionalDatabaseValuesReducer<RowDecoder> = ValueReducers.AllOptionalValues<RowDecoder>
+    where RowDecoder: DatabaseValueConvertible

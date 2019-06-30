@@ -5,20 +5,8 @@
 /// SQLExpression is the protocol for types that represent an SQL expression, as
 /// described at https://www.sqlite.org/lang_expr.html
 ///
-/// GRDB ships with a variety of types that already adopt this protocol, and
-/// allow to represent many SQLite expressions:
-///
-/// - Column
-/// - DatabaseValue
-/// - SQLExpressionLiteral
-/// - SQLExpressionUnary
-/// - SQLExpressionBinary
-/// - SQLExpressionExists
-/// - SQLExpressionFunction
-/// - SQLExpressionCollate
-///
 /// :nodoc:
-public protocol SQLExpression : SQLSpecificExpressible, SQLSelectable, SQLOrderingTerm {
+public protocol SQLExpression: SQLSpecificExpressible, SQLSelectable, SQLOrderingTerm {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -131,7 +119,7 @@ extension SQLExpression {
 
 // MARK: - SQLExpressionNot
 
-struct SQLExpressionNot : SQLExpression {
+struct SQLExpressionNot: SQLExpression {
     let expression: SQLExpression
     
     init(_ expression: SQLExpression) {

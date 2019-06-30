@@ -54,32 +54,43 @@ struct SQLQueryGenerator {
         GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with empty selection")
         sql += " " + selection.map { $0.resultColumnSQL(&context) }.joined(separator: ", ")
         
-        sql += try " FROM " + relation.source.sql(db, &context)
+        sql += " FROM "
+        sql += try relation.source.sql(db, &context)
         
         for (_, join) in relation.joins {
-            sql += try " " + join.sql(db, &context, leftAlias: relation.alias)
+            sql += " "
+            sql += try join.sql(db, &context, leftAlias: relation.alias)
         }
         
         let filters = try relation.filtersPromise.resolve(db)
         if filters.isEmpty == false {
-            sql += " WHERE " + SQLExpressionAnd(filters).expressionSQL(&context, wrappedInParenthesis: false)
+            sql += " WHERE "
+            sql += SQLExpressionAnd(filters).expressionSQL(&context, wrappedInParenthesis: false)
         }
         
         if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
-            sql += " GROUP BY " + groupExpressions.map { $0.expressionSQL(&context, wrappedInParenthesis: false) }.joined(separator: ", ")
+            sql += " GROUP BY "
+            sql += groupExpressions
+                .map { $0.expressionSQL(&context, wrappedInParenthesis: false) }
+                .joined(separator: ", ")
         }
         
         if havingExpressions.isEmpty == false {
-            sql += " HAVING " + SQLExpressionAnd(havingExpressions).expressionSQL(&context, wrappedInParenthesis: false)
+            sql += " HAVING "
+            sql += SQLExpressionAnd(havingExpressions).expressionSQL(&context, wrappedInParenthesis: false)
         }
         
         let orderings = try relation.ordering.resolve(db)
         if !orderings.isEmpty {
-            sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
+            sql += " ORDER BY "
+            sql += orderings
+                .map { $0.orderingTermSQL(&context) }
+                .joined(separator: ", ")
         }
         
         if let limit = limit {
-            sql += " LIMIT " + limit.sql
+            sql += " LIMIT "
+            sql += limit.sql
         }
         
         return sql
@@ -409,23 +420,23 @@ private enum SQLQualifiedSource {
     
     init(_ source: SQLSource) {
         switch source {
-        case .table(let tableName, let alias):
+        case let .table(tableName, alias):
             let alias = alias ?? TableAlias(tableName: tableName)
             self = .table(tableName: tableName, alias: alias)
-        case .query(let query):
+        case let .query(query):
             self = .query(SQLQueryGenerator(query))
         }
     }
     
     func sql(_ db: Database, _ context: inout SQLGenerationContext) throws -> String {
         switch self {
-        case .table(let tableName, let alias):
+        case let .table(tableName, alias):
             if let aliasName = context.aliasName(for: alias) {
                 return "\(tableName.quotedDatabaseIdentifier) \(aliasName.quotedDatabaseIdentifier)"
             } else {
                 return "\(tableName.quotedDatabaseIdentifier)"
             }
-        case .query(let query):
+        case let .query(query):
             return try "(\(query.sql(db, &context)))"
         }
     }
@@ -437,15 +448,22 @@ private struct SQLQualifiedJoin {
         case leftJoin = "LEFT JOIN"
         case innerJoin = "JOIN"
     }
+    
     let kind: Kind
     let condition: SQLAssociationCondition
     let relation: SQLQualifiedRelation
     
-    func sql(_ db: Database,_ context: inout SQLGenerationContext, leftAlias: TableAlias) throws -> String {
+    func sql(_ db: Database, _ context: inout SQLGenerationContext, leftAlias: TableAlias) throws -> String {
         return try sql(db, &context, leftAlias: leftAlias, allowingInnerJoin: true)
     }
     
-    private func sql(_ db: Database,_ context: inout SQLGenerationContext, leftAlias: TableAlias, allowingInnerJoin allowsInnerJoin: Bool) throws -> String {
+    private func sql(
+        _ db: Database,
+        _ context: inout SQLGenerationContext,
+        leftAlias: TableAlias,
+        allowingInnerJoin allowsInnerJoin: Bool)
+        throws -> String
+    {
         var allowsInnerJoin = allowsInnerJoin
         var sql = ""
         

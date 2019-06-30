@@ -23,7 +23,7 @@ extension ValueReducers {
                 r2.fetch(db))
         }
         
-        mutating public func value(_ fetched: Fetched) -> Value? {
+        public mutating func value(_ fetched: Fetched) -> Value? {
             let v1 = r1.value(fetched.0)
             let v2 = r2.value(fetched.1)
             defer {
@@ -102,7 +102,7 @@ extension ValueReducers {
                 r3.fetch(db))
         }
         
-        mutating public func value(_ fetched: Fetched) -> Value? {
+        public mutating func value(_ fetched: Fetched) -> Value? {
             let v1 = r1.value(fetched.0)
             let v2 = r2.value(fetched.1)
             let v3 = r3.value(fetched.2)
@@ -200,7 +200,7 @@ extension ValueReducers {
                 r4.fetch(db))
         }
         
-        mutating public func value(_ fetched: Fetched) -> Value? {
+        public mutating func value(_ fetched: Fetched) -> Value? {
             let v1 = r1.value(fetched.0)
             let v2 = r2.value(fetched.1)
             let v3 = r3.value(fetched.2)
@@ -313,7 +313,7 @@ extension ValueReducers {
                 r5.fetch(db))
         }
         
-        mutating public func value(_ fetched: Fetched) -> Value? {
+        public mutating func value(_ fetched: Fetched) -> Value? {
             let v1 = r1.value(fetched.0)
             let v2 = r2.value(fetched.1)
             let v3 = r3.value(fetched.2)
@@ -441,7 +441,7 @@ extension ValueReducers {
                 r6.fetch(db))
         }
         
-        mutating public func value(_ fetched: Fetched) -> Value? {
+        public mutating func value(_ fetched: Fetched) -> Value? {
             let v1 = r1.value(fetched.0)
             let v2 = r2.value(fetched.1)
             let v3 = r3.value(fetched.2)
@@ -556,7 +556,7 @@ extension ValueReducers {
                 r7.fetch(db))
         }
         
-        mutating public func value(_ fetched: Fetched) -> Value? {
+        public mutating func value(_ fetched: Fetched) -> Value? {
             let v1 = r1.value(fetched.0)
             let v2 = r2.value(fetched.1)
             let v3 = r3.value(fetched.2)
@@ -641,6 +641,7 @@ extension ValueReducers {
         R7: ValueReducer,
         R8: ValueReducer>: ValueReducer
     {
+        // swiftlint:disable:next line_length
         public typealias Fetched = (R1.Fetched, R2.Fetched, R3.Fetched, R4.Fetched, R5.Fetched, R6.Fetched, R7.Fetched, R8.Fetched)
         public typealias Value = (R1.Value, R2.Value, R3.Value, R4.Value, R5.Value, R6.Value, R7.Value, R8.Value)
         var r1: R1
@@ -683,7 +684,7 @@ extension ValueReducers {
                 r8.fetch(db))
         }
         
-        mutating public func value(_ fetched: Fetched) -> Value? {
+        public mutating func value(_ fetched: Fetched) -> Value? {
             let v1 = r1.value(fetched.0)
             let v2 = r2.value(fetched.1)
             let v3 = r3.value(fetched.2)

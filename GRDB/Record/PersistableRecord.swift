@@ -1,6 +1,5 @@
 extension Database.ConflictResolution {
-    @usableFromInline
-    var invalidatesLastInsertedRowID: Bool {
+    @usableFromInline var invalidatesLastInsertedRowID: Bool {
         switch self {
         case .abort, .fail, .rollback, .replace:
             return false
@@ -55,7 +54,7 @@ public struct PersistenceConflictPolicy {
 }
 
 /// Types that adopt MutablePersistableRecord can be inserted, updated, and deleted.
-public protocol MutablePersistableRecord : EncodableRecord, TableRecord {
+public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// The policy that handles SQLite conflicts when records are inserted
     /// or updated.
     ///
@@ -219,7 +218,10 @@ extension MutablePersistableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    public func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Element: ColumnExpression {
+    public func update<Sequence>(_ db: Database, columns: Sequence)
+        throws
+        where Sequence: Swift.Sequence, Sequence.Element: ColumnExpression
+    {
         try update(db, columns: Set(columns.map { $0.name }))
     }
     
@@ -230,7 +232,10 @@ extension MutablePersistableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    public func update<Sequence: Swift.Sequence>(_ db: Database, columns: Sequence) throws where Sequence.Element == String {
+    public func update<Sequence>(_ db: Database, columns: Sequence)
+        throws
+        where Sequence: Swift.Sequence, Sequence.Element == String
+    {
         try update(db, columns: Set(columns))
     }
     
@@ -303,7 +308,7 @@ extension MutablePersistableRecord {
         try change(&self)
         return try updateChanges(db, from: container)
     }
-
+    
     /// Executes an INSERT or an UPDATE statement so that `self` is saved in
     /// the database.
     ///
@@ -392,9 +397,13 @@ extension MutablePersistableRecord {
     @inlinable
     public func performUpdate(_ db: Database, columns: Set<String>) throws {
         let dao = try DAO(db, self)
-        guard let statement = try dao.updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
-            // Nil primary key
-            throw dao.makeRecordNotFoundError()
+        guard
+            let statement = try dao.updateStatement(
+                columns: columns,
+                onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate)
+            else {
+                // Nil primary key
+                throw dao.makeRecordNotFoundError()
         }
         try statement.execute()
         if db.changesCount == 0 {
@@ -463,7 +472,7 @@ extension MutablePersistableRecord {
 extension MutablePersistableRecord where Self: AnyObject {
     
     // MARK: - Record Comparison
-
+    
     /// Mutates the record according to the provided closure, and then, if the
     /// record has any difference from its previous version, executes an
     /// UPDATE statement so that those differences and only those difference are
@@ -534,7 +543,10 @@ extension MutablePersistableRecord {
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted rows
     @discardableResult
-    public static func deleteAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> Int where Sequence.Element: DatabaseValueConvertible {
+    public static func deleteAll<Sequence>(_ db: Database, keys: Sequence)
+        throws -> Int
+        where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
+    {
         let keys = Array(keys)
         if keys.isEmpty {
             // Avoid hitting the database
@@ -563,7 +575,10 @@ extension MutablePersistableRecord {
     ///     - key: A primary key value.
     /// - returns: Whether a database row was deleted.
     @discardableResult
-    public static func deleteOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) throws -> Bool {
+    public static func deleteOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType?)
+        throws -> Bool
+        where PrimaryKeyType: DatabaseValueConvertible
+    {
         guard let key = key else {
             // Avoid hitting the database
             return false
@@ -617,7 +632,7 @@ extension MutablePersistableRecord {
 ///
 /// Unlike MutablePersistableRecord, the insert() and save() methods are not
 /// mutating methods.
-public protocol PersistableRecord : MutablePersistableRecord {
+public protocol PersistableRecord: MutablePersistableRecord {
     
     /// Notifies the record that it was succesfully inserted.
     ///
@@ -749,7 +764,7 @@ extension PersistableRecord {
 
 extension PersistenceContainer {
     /// Convenience initializer from a database connection and a record
-    init<Record: EncodableRecord & TableRecord>(_ db: Database,_ record: Record) throws {
+    init<Record: EncodableRecord & TableRecord>(_ db: Database, _ record: Record) throws {
         let databaseTableName = type(of: record).databaseTableName
         let columnCount = try db.columns(in: databaseTableName).count
         self.init(minimumCapacity: columnCount)
@@ -916,9 +931,16 @@ extension InsertQuery {
         let sql: String
         switch onConflict {
         case .abort:
-            sql = "INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) VALUES (\(valuesSQL))"
+            sql = """
+                INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+                VALUES (\(valuesSQL))
+                """
         default:
-            sql = "INSERT OR \(onConflict.rawValue) INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) VALUES (\(valuesSQL))"
+            sql = """
+                INSERT OR \(onConflict.rawValue) \
+                INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+                VALUES (\(valuesSQL))
+                """
         }
         InsertQuery.sqlCache.write { $0[self] = sql }
         return sql
@@ -946,9 +968,17 @@ extension UpdateQuery {
         let sql: String
         switch onConflict {
         case .abort:
-            sql = "UPDATE \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
+            sql = """
+                UPDATE \(tableName.quotedDatabaseIdentifier) \
+                SET \(updateSQL) \
+                WHERE \(whereSQL)
+                """
         default:
-            sql = "UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) SET \(updateSQL) WHERE \(whereSQL)"
+            sql = """
+                UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
+                SET \(updateSQL) \
+                WHERE \(whereSQL)
+                """
         }
         UpdateQuery.sqlCache.write { $0[self] = sql }
         return sql

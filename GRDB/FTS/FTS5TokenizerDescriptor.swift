@@ -57,11 +57,20 @@ public struct FTS5TokenizerDescriptor {
     ///
     /// See https://www.sqlite.org/fts5.html#ascii_tokenizer
     public static func ascii(separators: Set<Character> = []) -> FTS5TokenizerDescriptor {
+        let components: [String]
         if separators.isEmpty {
-            return FTS5TokenizerDescriptor(components: ["ascii"])
+            components = ["ascii"]
         } else {
-            return FTS5TokenizerDescriptor(components: ["ascii", "separators", separators.map { String($0) }.joined(separator: "").sqlExpression.quotedSQL(wrappedInParenthesis: false)])
+            components = [
+                "ascii",
+                "separators",
+                separators
+                    .map { String($0) }
+                    .joined()
+                    .sqlExpression
+                    .quotedSQL()]
         }
+        return FTS5TokenizerDescriptor(components: components)
     }
     
     /// The "porter" tokenizer
@@ -98,7 +107,12 @@ public struct FTS5TokenizerDescriptor {
     ///       consider these characters as token characters.
     ///
     /// See https://www.sqlite.org/fts5.html#unicode61_tokenizer
-    public static func unicode61(diacritics: FTS5.Diacritics = .removeLegacy, separators: Set<Character> = [], tokenCharacters: Set<Character> = []) -> FTS5TokenizerDescriptor {
+    public static func unicode61(
+        diacritics: FTS5.Diacritics = .removeLegacy,
+        separators: Set<Character> = [],
+        tokenCharacters: Set<Character> = [])
+        -> FTS5TokenizerDescriptor
+    {
         var components: [String] = ["unicode61"]
         switch diacritics {
         case .removeLegacy:
@@ -111,26 +125,32 @@ public struct FTS5TokenizerDescriptor {
             #endif
         }
         if !separators.isEmpty {
-            // TODO: test "=" and "\"", "(" and ")" as separators, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
+            // TODO: test "=" and "\"", "(" and ")" as separators, with
+            // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
+            // and Database.create(virtualTable:using:)
             components.append(contentsOf: [
                 "separators",
                 separators
                     .sorted()
                     .map { String($0) }
-                    .joined(separator: "")
+                    .joined()
                     .sqlExpression
-                    .quotedSQL(wrappedInParenthesis: false)])
+                    .quotedSQL()
+                ])
         }
         if !tokenCharacters.isEmpty {
-            // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with both FTS3Pattern(matchingAnyTokenIn:tokenizer:) and Database.create(virtualTable:using:)
+            // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with
+            // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
+            // and Database.create(virtualTable:using:)
             components.append(contentsOf: [
                 "tokenchars",
                 tokenCharacters
                     .sorted()
                     .map { String($0) }
-                    .joined(separator: "")
+                    .joined()
                     .sqlExpression
-                    .quotedSQL(wrappedInParenthesis: false)])
+                    .quotedSQL()
+                ])
         }
         return FTS5TokenizerDescriptor(components: components)
     }

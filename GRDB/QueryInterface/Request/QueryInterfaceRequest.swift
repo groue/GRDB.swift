@@ -143,7 +143,9 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         let request = Player.all().select([max(Column("score"))], as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+    public func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type)
+        -> QueryInterfaceRequest<RowDecoder>
+    {
         return mapQuery { $0.select(selection) }.asRequest(of: RowDecoder.self)
     }
     
@@ -155,7 +157,9 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         let request = Player.all().select(max(Column("score")), as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+    public func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type)
+        -> QueryInterfaceRequest<RowDecoder>
+    {
         return select(selection, as: type)
     }
     
@@ -167,7 +171,12 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         let request = Player.all().select(sql: "max(score)", as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(sql: String, arguments: StatementArguments = StatementArguments(), as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+    public func select<RowDecoder>(
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        as type: RowDecoder.Type)
+        -> QueryInterfaceRequest<RowDecoder>
+    {
         return select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
     }
     
@@ -198,7 +207,11 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///                 as: String.self)
     ///         let name: String? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(literal sqlLiteral: SQLLiteral, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+    public func select<RowDecoder>(
+        literal sqlLiteral: SQLLiteral,
+        as type: RowDecoder.Type)
+        -> QueryInterfaceRequest<RowDecoder>
+    {
         return select(SQLSelectionLiteral(literal: sqlLiteral), as: type)
     }
     
@@ -225,7 +238,7 @@ extension QueryInterfaceRequest: SelectionRequest {
 
 extension QueryInterfaceRequest: FilteredRequest {
     // MARK: Request Derivation
-
+    
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
     ///
@@ -235,7 +248,6 @@ extension QueryInterfaceRequest: FilteredRequest {
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
         return mapQuery { $0.filter(predicate) }
     }
-
 }
 
 extension QueryInterfaceRequest: OrderedRequest {
@@ -328,7 +340,7 @@ extension QueryInterfaceRequest: JoinableRequest {
 extension QueryInterfaceRequest {
     
     // MARK: Request Derivation
-
+    
     /// Creates a request which returns distinct rows.
     ///
     ///     // SELECT DISTINCT * FROM player
@@ -479,7 +491,7 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
 // MARK: - Eager loading of hasMany associations
 
 /// Append rows from prefetched associations into the argument rows.
-fileprivate func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [Row]) throws {
+private func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [Row]) throws {
     guard let firstRow = rows.first else {
         // No rows -> no prefetch
         return

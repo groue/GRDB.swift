@@ -18,7 +18,7 @@ public struct DatabaseRegionObservation {
     /// A closure that is evaluated when the observation starts, and returns
     /// the observed database region.
     var observedRegion: (Database) throws -> DatabaseRegion
-
+    
     // Not public because we foster DatabaseRegionConvertible.
     init(tracking region: @escaping (Database) throws -> DatabaseRegion) {
         self.observedRegion = { db in
@@ -87,7 +87,11 @@ extension DatabaseRegionObservation {
     /// - parameter onChange: A closure that is provided a database connection
     ///   with write access each time the observed region has been modified.
     /// - returns: a TransactionObserver
-    public func start(in dbWriter: DatabaseWriter, onChange: @escaping (Database) -> Void) throws -> TransactionObserver {
+    public func start(
+        in dbWriter: DatabaseWriter,
+        onChange: @escaping (Database) -> Void)
+        throws -> TransactionObserver
+    {
         // Use unsafeReentrantWrite so that observation can start from any
         // dispatch queue.
         return try dbWriter.unsafeReentrantWrite { db -> TransactionObserver in
@@ -123,7 +127,7 @@ private class DatabaseRegionObserver: TransactionObserver {
     func databaseDidCommit(_ db: Database) {
         guard isChanged else { return }
         isChanged = false
-
+        
         onChange(db)
     }
     

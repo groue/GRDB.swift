@@ -1,16 +1,16 @@
 #if os(Linux)
-    import Glibc
+import Glibc
 #endif
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 /// A protocol around sqlite3_set_authorizer
-protocol StatementAuthorizer : class {
+protocol StatementAuthorizer: AnyObject {
     func authorize(
         _ actionCode: Int32,
         _ cString1: UnsafePointer<Int8>?,
@@ -21,7 +21,7 @@ protocol StatementAuthorizer : class {
 }
 
 /// A class that gathers information about one statement during its compilation.
-final class StatementCompilationAuthorizer : StatementAuthorizer {
+final class StatementCompilationAuthorizer: StatementAuthorizer {
     /// What this statements reads
     var databaseRegion = DatabaseRegion()
     
@@ -47,7 +47,11 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
         _ cString4: UnsafePointer<Int8>?)
         -> Int32
     {
-        // print("StatementCompilationAuthorizer: \(actionCode) \([cString1, cString2, cString3, cString4].flatMap { $0.map({ String(cString: $0) }) })")
+         // print("""
+         //    StatementCompilationAuthorizer: \
+         //    \(actionCode) \
+         //    \([cString1, cString2, cString3, cString4].compactMap { $0.map({ String(cString: $0) }) })
+         //    """)
         
         switch actionCode {
         case SQLITE_DROP_TABLE, SQLITE_DROP_VTABLE, SQLITE_DROP_TEMP_TABLE,
@@ -168,7 +172,7 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
 //
 /// Warning: to perform well, this authorizer must be used during statement
 /// execution, not during statement compilation.
-final class TruncateOptimizationBlocker : StatementAuthorizer {
+final class TruncateOptimizationBlocker: StatementAuthorizer {
     func authorize(
         _ actionCode: Int32,
         _ cString1: UnsafePointer<Int8>?,
@@ -177,8 +181,11 @@ final class TruncateOptimizationBlocker : StatementAuthorizer {
         _ cString4: UnsafePointer<Int8>?)
         -> Int32
     {
-        // print("TruncateOptimizationBlocker: \(actionCode) \([cString1, cString2, cString3, cString4].flatMap { $0.map({ String(cString: $0) }) })")
+        // print("""
+        //    TruncateOptimizationBlocker: \
+        //    \(actionCode) \
+        //    \([cString1, cString2, cString3, cString4].compactMap { $0.map({ String(cString: $0) }) })
+        //    """)
         return (actionCode == SQLITE_DELETE) ? SQLITE_IGNORE : SQLITE_OK
     }
 }
-

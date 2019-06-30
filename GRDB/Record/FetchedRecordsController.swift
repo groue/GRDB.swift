@@ -1,7 +1,7 @@
 import Foundation
 
 #if os(iOS)
-    import UIKit
+import UIKit
 #endif
 
 /// You use FetchedRecordsController to track changes in the results of an
@@ -85,7 +85,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
         if let isSameRecord = isSameRecord {
             itemsAreIdenticalFactory = { _ in { isSameRecord($0.record, $1.record) } }
         } else {
-            itemsAreIdenticalFactory = { _ in { _,_ in false } }
+            itemsAreIdenticalFactory = { _ in { _, _ in false } }
         }
         
         try self.init(
@@ -112,7 +112,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
         self.databaseWriter = databaseWriter
         self.queue = queue
     }
-
+    
     /// Executes the controller's fetch request.
     ///
     /// After executing this method, you can access the the fetched objects with
@@ -162,7 +162,10 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     ///
     /// This method must be used from the controller's dispatch queue (the
     /// main queue unless stated otherwise in the controller's initializer).
-    public func setRequest<Request>(_ request: Request) throws where Request: FetchRequest, Request.RowDecoder == Record {
+    public func setRequest<Request>(_ request: Request)
+        throws
+        where Request: FetchRequest, Request.RowDecoder == Record
+    {
         self.request = ItemRequest(request)
         (self.region, self.itemsAreIdentical) = try databaseWriter.unsafeRead { db in
             let region = try request.databaseRegion(db)
@@ -196,7 +199,12 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     ///
     /// This method must be used from the controller's dispatch queue (the
     /// main queue unless stated otherwise in the controller's initializer).
-    public func setRequest(sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws {
+    public func setRequest(
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        adapter: RowAdapter? = nil)
+        throws
+    {
         try setRequest(SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
@@ -211,19 +219,27 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     ///       removed, moved, or updated.
     ///     - didChange: Invoked after records have been updated.
     public func trackChanges(
-        willChange: ((FetchedRecordsController<Record>) -> ())? = nil,
-        onChange: ((FetchedRecordsController<Record>, Record, FetchedRecordChange) -> ())? = nil,
-        didChange: ((FetchedRecordsController<Record>) -> ())? = nil)
+        willChange: ((FetchedRecordsController<Record>) -> Void)? = nil,
+        onChange: ((FetchedRecordsController<Record>, Record, FetchedRecordChange) -> Void)? = nil,
+        didChange: ((FetchedRecordsController<Record>) -> Void)? = nil)
     {
-        // I hate you SE-0110.
-        let wrappedWillChange: ((FetchedRecordsController<Record>, Void) -> ())?
+        // Without SE-0110, we could simply:
+        //
+        //  trackChanges(
+        //      fetchAlongside: { _ in },
+        //      willChange: willChange.map { callback in { (controller, _) in callback(controller) } },
+        //      onChange: onChange,
+        //      didChange: didChange.map { callback in { (controller, _) in callback(controller) } })
+        //
+        // But instead:
+        let wrappedWillChange: ((FetchedRecordsController<Record>, Void) -> Void)?
         if let willChange = willChange {
             wrappedWillChange = { (controller, _) in willChange(controller) }
         } else {
             wrappedWillChange = nil
         }
         
-        let wrappedDidChange: ((FetchedRecordsController<Record>, Void) -> ())?
+        let wrappedDidChange: ((FetchedRecordsController<Record>, Void) -> Void)?
         if let didChange = didChange {
             wrappedDidChange = { (controller, _) in didChange(controller) }
         } else {
@@ -235,15 +251,8 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
             willChange: wrappedWillChange,
             onChange: onChange,
             didChange: wrappedDidChange)
-        
-        // Without bloody SE-0110:
-//        trackChanges(
-//            fetchAlongside: { _ in },
-//            willChange: willChange.map { callback in { (controller, _) in callback(controller) } },
-//            onChange: onChange,
-//            didChange: didChange.map { callback in { (controller, _) in callback(controller) } })
     }
-
+    
     /// Registers changes notification callbacks.
     ///
     /// This method must be used from the controller's dispatch queue (the
@@ -262,9 +271,9 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     ///     - didChange: Invoked after records have been updated.
     public func trackChanges<T>(
         fetchAlongside: @escaping (Database) throws -> T,
-        willChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil,
-        onChange: ((FetchedRecordsController<Record>, Record, FetchedRecordChange) -> ())? = nil,
-        didChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())? = nil)
+        willChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> Void)? = nil,
+        onChange: ((FetchedRecordsController<Record>, Record, FetchedRecordChange) -> Void)? = nil,
+        didChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> Void)? = nil)
     {
         // If some changes are currently processed, make sure they are
         // discarded because they would trigger previously set callbacks.
@@ -276,20 +285,20 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
             return
         }
         
-        var willProcessTransaction: () -> () = { }
-        var didProcessTransaction: () -> () = { }
+        var willProcessTransaction: () -> Void = { }
+        var didProcessTransaction: () -> Void = { }
         #if os(iOS)
-            if let application = application {
-                var backgroundTaskID: UIBackgroundTaskIdentifier! = nil
-                willProcessTransaction = {
-                    backgroundTaskID = application.beginBackgroundTask {
-                        application.endBackgroundTask(backgroundTaskID)
-                    }
-                }
-                didProcessTransaction = {
+        if let application = application {
+            var backgroundTaskID: UIBackgroundTaskIdentifier! = nil
+            willProcessTransaction = {
+                backgroundTaskID = application.beginBackgroundTask {
                     application.endBackgroundTask(backgroundTaskID)
                 }
             }
+            didProcessTransaction = {
+                application.endBackgroundTask(backgroundTaskID)
+            }
+        }
         #endif
         
         let initialItems = fetchedItems
@@ -312,7 +321,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
             }
         }
     }
-
+    
     /// Registers an error callback.
     ///
     /// Whenever the controller could not look for changes after a transaction
@@ -325,7 +334,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     ///
     /// This method must be used from the controller's dispatch queue (the
     /// main queue unless stated otherwise in the controller's initializer).
-    public func trackErrors(_ errorHandler: @escaping (FetchedRecordsController<Record>, Error) -> ()) {
+    public func trackErrors(_ errorHandler: @escaping (FetchedRecordsController<Record>, Error) -> Void) {
         self.errorHandler = errorHandler
     }
     
@@ -369,7 +378,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     /// Support for allowBackgroundChangeTracking(in:)
     var application: UIApplication?
     #endif
-
+    
     /// The items
     fileprivate var fetchedItems: [Item<Record>]?
     
@@ -378,19 +387,19 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     
     /// The record comparator factory (support for request change)
     private let itemsAreIdenticalFactory: ItemComparatorFactory<Record>
-
+    
     /// The request
     fileprivate typealias ItemRequest = AnyFetchRequest<Item<Record>>
     fileprivate var request: ItemRequest
     
     /// The observed database region
-    private var region : DatabaseRegion
+    private var region: DatabaseRegion
     
     /// The eventual current database observer
     private var observer: FetchedRecordsObserver<Record>?
     
     /// The eventual error handler
-    fileprivate var errorHandler: ((FetchedRecordsController<Record>, Error) -> ())?
+    fileprivate var errorHandler: ((FetchedRecordsController<Record>, Error) -> Void)?
 }
 
 extension FetchedRecordsController where Record: TableRecord {
@@ -510,15 +519,15 @@ extension FetchedRecordsController where Record: TableRecord {
 
 /// FetchedRecordsController adopts TransactionObserverType so that it can
 /// monitor changes to its fetched records.
-private final class FetchedRecordsObserver<Record: FetchableRecord> : TransactionObserver {
+private final class FetchedRecordsObserver<Record: FetchableRecord>: TransactionObserver {
     var isValid: Bool
     var needsComputeChanges: Bool
     var items: [Item<Record>]!  // ought to be not nil when observer has started tracking transactions
     let queue: DispatchQueue // protects items
     let region: DatabaseRegion
-    var fetchAndNotifyChanges: (FetchedRecordsObserver<Record>) -> ()
+    var fetchAndNotifyChanges: (FetchedRecordsObserver<Record>) -> Void
     
-    init(region: DatabaseRegion, fetchAndNotifyChanges: @escaping (FetchedRecordsObserver<Record>) -> ()) {
+    init(region: DatabaseRegion, fetchAndNotifyChanges: @escaping (FetchedRecordsObserver<Record>) -> Void) {
         self.isValid = true
         self.items = nil
         self.needsComputeChanges = false
@@ -565,12 +574,18 @@ private final class FetchedRecordsObserver<Record: FetchableRecord> : Transactio
 
 // MARK: - Changes
 
+private typealias FetchCompletionHandler<Record: FetchableRecord, T> = (
+    DatabaseResult<(fetchedItems: [Item<Record>],
+    fetchedAlongside: T,
+    observer: FetchedRecordsObserver<Record>)>)
+    -> Void
+
 private func makeFetchFunction<Record, T>(
     controller: FetchedRecordsController<Record>,
     fetchAlongside: @escaping (Database) throws -> T,
-    willProcessTransaction: @escaping () -> (),
-    completion: @escaping (DatabaseResult<(fetchedItems: [Item<Record>], fetchedAlongside: T, observer: FetchedRecordsObserver<Record>)>) -> ()
-    ) -> (FetchedRecordsObserver<Record>) -> ()
+    willProcessTransaction: @escaping () -> Void,
+    completion: @escaping FetchCompletionHandler<Record, T>
+    ) -> (FetchedRecordsObserver<Record>) -> Void
 {
     // Make sure we keep a weak reference to the fetched records controller,
     // so that the user can use unowned references in callbacks:
@@ -623,12 +638,12 @@ private func makeFetchAndNotifyChangesFunction<Record, T>(
     controller: FetchedRecordsController<Record>,
     fetchAlongside: @escaping (Database) throws -> T,
     itemsAreIdentical: @escaping ItemComparator<Record>,
-    willProcessTransaction: @escaping () -> (),
-    willChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?,
-    onChange: ((FetchedRecordsController<Record>, Record, FetchedRecordChange) -> ())?,
-    didChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> ())?,
-    didProcessTransaction: @escaping () -> ()
-    ) -> (FetchedRecordsObserver<Record>) -> ()
+    willProcessTransaction: @escaping () -> Void,
+    willChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> Void)?,
+    onChange: ((FetchedRecordsController<Record>, Record, FetchedRecordChange) -> Void)?,
+    didChange: ((FetchedRecordsController<Record>, _ fetchedAlongside: T) -> Void)?,
+    didProcessTransaction: @escaping () -> Void
+    ) -> (FetchedRecordsObserver<Record>) -> Void
 {
     // Make sure we keep a weak reference to the fetched records controller,
     // so that the user can use unowned references in callbacks:
@@ -637,12 +652,16 @@ private func makeFetchAndNotifyChangesFunction<Record, T>(
     //
     // Should controller become strong at any point before callbacks are
     // called, such unowned reference would have an opportunity to crash.
-    return makeFetchFunction(controller: controller, fetchAlongside: fetchAlongside, willProcessTransaction: willProcessTransaction) { [weak controller] result in
+    return makeFetchFunction(
+        controller: controller,
+        fetchAlongside: fetchAlongside,
+        willProcessTransaction: willProcessTransaction)
+    { [weak controller] result in
         // Return if fetched records controller has been deallocated
         guard let callbackQueue = controller?.queue else { return }
         
         switch result {
-        case .failure(let error):
+        case let .failure(error):
             callbackQueue.async {
                 // Now we can retain controller
                 guard let strongController = controller else { return }
@@ -650,7 +669,7 @@ private func makeFetchAndNotifyChangesFunction<Record, T>(
                 didProcessTransaction()
             }
             
-        case .success((fetchedItems: let fetchedItems, fetchedAlongside: let fetchedAlongside, observer: let observer)):
+        case let .success((fetchedItems: fetchedItems, fetchedAlongside: fetchedAlongside, observer: observer)):
             // Return if there is no change
             let changes: [ItemChange<Record>]
             if onChange != nil {
@@ -689,7 +708,12 @@ private func makeFetchAndNotifyChangesFunction<Record, T>(
     }
 }
 
-private func computeChanges<Record>(from s: [Item<Record>], to t: [Item<Record>], itemsAreIdentical: ItemComparator<Record>) -> [ItemChange<Record>] {
+private func computeChanges<Record>(
+    from s: [Item<Record>],
+    to t: [Item<Record>],
+    itemsAreIdentical: ItemComparator<Record>)
+    -> [ItemChange<Record>]
+{
     let m = s.count
     let n = t.count
     
@@ -754,8 +778,12 @@ private func computeChanges<Record>(from s: [Item<Record>], to t: [Item<Record>]
         /// If *change* is a deletion or an insertion, and there is a matching inverse
         /// insertion/deletion with the same value in *changes*, a corresponding .move or .update is returned.
         /// As a convenience, the index of the matched change is returned as well.
-        func merge(change: ItemChange<Record>, in changes: [ItemChange<Record>], itemsAreIdentical: ItemComparator<Record>) -> (mergedChange: ItemChange<Record>, mergedIndex: Int)? {
-            
+        func merge(
+            change: ItemChange<Record>,
+            in changes: [ItemChange<Record>],
+            itemsAreIdentical: ItemComparator<Record>)
+            -> (mergedChange: ItemChange<Record>, mergedIndex: Int)?
+        {
             /// Returns the changes between two rows: a dictionary [key: oldValue]
             /// Precondition: both rows have the same columns
             func changedValues(from oldRow: Row, to newRow: Row) -> [String: DatabaseValue] {
@@ -770,30 +798,52 @@ private func computeChanges<Record>(from s: [Item<Record>], to t: [Item<Record>]
             }
             
             switch change {
-            case .insertion(let newItem, let newIndexPath):
+            case let .insertion(newItem, newIndexPath):
                 // Look for a matching deletion
                 for (index, otherChange) in changes.enumerated() {
-                    guard case .deletion(let oldItem, let oldIndexPath) = otherChange else { continue }
+                    guard case let .deletion(oldItem, oldIndexPath) = otherChange else { continue }
                     guard itemsAreIdentical(oldItem, newItem) else { continue }
                     let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
                     if oldIndexPath == newIndexPath {
-                        return (ItemChange.update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
+                        return (
+                            ItemChange.update(
+                                item: newItem,
+                                indexPath: oldIndexPath,
+                                changes: rowChanges),
+                            index)
                     } else {
-                        return (ItemChange.move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
+                        return (
+                            ItemChange.move(
+                                item: newItem,
+                                indexPath: oldIndexPath,
+                                newIndexPath: newIndexPath,
+                                changes: rowChanges),
+                            index)
                     }
                 }
                 return nil
                 
-            case .deletion(let oldItem, let oldIndexPath):
+            case let .deletion(oldItem, oldIndexPath):
                 // Look for a matching insertion
                 for (index, otherChange) in changes.enumerated() {
-                    guard case .insertion(let newItem, let newIndexPath) = otherChange else { continue }
+                    guard case let .insertion(newItem, newIndexPath) = otherChange else { continue }
                     guard itemsAreIdentical(oldItem, newItem) else { continue }
                     let rowChanges = changedValues(from: oldItem.row, to: newItem.row)
                     if oldIndexPath == newIndexPath {
-                        return (ItemChange.update(item: newItem, indexPath: oldIndexPath, changes: rowChanges), index)
+                        return (
+                            ItemChange.update(
+                                item: newItem,
+                                indexPath: oldIndexPath,
+                                changes: rowChanges),
+                            index)
                     } else {
-                        return (ItemChange.move(item: newItem, indexPath: oldIndexPath, newIndexPath: newIndexPath, changes: rowChanges), index)
+                        return (
+                            ItemChange.move(
+                                item: newItem,
+                                indexPath: oldIndexPath,
+                                newIndexPath: newIndexPath,
+                                changes: rowChanges),
+                            index)
                     }
                 }
                 return nil
@@ -807,7 +857,9 @@ private func computeChanges<Record>(from s: [Item<Record>], to t: [Item<Record>]
         var mergedChanges: [ItemChange<Record>] = []
         var updateChanges: [ItemChange<Record>] = []
         for change in changes {
-            if let (mergedChange, mergedIndex) = merge(change: change, in: mergedChanges, itemsAreIdentical: itemsAreIdentical) {
+            if let (mergedChange, mergedIndex)
+                = merge(change: change, in: mergedChanges, itemsAreIdentical: itemsAreIdentical)
+            {
                 mergedChanges.remove(at: mergedIndex)
                 switch mergedChange {
                 case .update:
@@ -829,10 +881,8 @@ private func identicalItemArrays<Record>(_ lhs: [Item<Record>], _ rhs: [Item<Rec
     guard lhs.count == rhs.count else {
         return false
     }
-    for (lhs, rhs) in zip(lhs, rhs) {
-        if lhs.row != rhs.row {
-            return false
-        }
+    for (lhs, rhs) in zip(lhs, rhs) where lhs.row != rhs.row {
+        return false
     }
     return true
 }
@@ -887,8 +937,11 @@ extension FetchedRecordsController where Record: EncodableRecord {
     ///   if record could not be found.
     public func indexPath(for record: Record) -> IndexPath? {
         let item = Item<Record>(row: Row(record))
-        guard let fetchedItems = fetchedItems, let index = fetchedItems.firstIndex(where: { itemsAreIdentical($0, item) }) else {
-            return nil
+        guard
+            let fetchedItems = fetchedItems,
+            let index = fetchedItems.firstIndex(where: { itemsAreIdentical($0, item) })
+            else {
+                return nil
         }
         return IndexPath(indexes: [0, index])
     }
@@ -917,13 +970,13 @@ extension ItemChange {
     
     var fetchedRecordChange: FetchedRecordChange {
         switch self {
-        case .insertion(item: _, indexPath: let indexPath):
+        case let .insertion(item: _, indexPath: indexPath):
             return .insertion(indexPath: indexPath)
-        case .deletion(item: _, indexPath: let indexPath):
+        case let .deletion(item: _, indexPath: indexPath):
             return .deletion(indexPath: indexPath)
-        case .move(item: _, indexPath: let indexPath, newIndexPath: let newIndexPath, changes: let changes):
+        case let .move(item: _, indexPath: indexPath, newIndexPath: newIndexPath, changes: changes):
             return .move(indexPath: indexPath, newIndexPath: newIndexPath, changes: changes)
-        case .update(item: _, indexPath: let indexPath, changes: let changes):
+        case let .update(item: _, indexPath: indexPath, changes: changes):
             return .update(indexPath: indexPath, changes: changes)
         }
     }
@@ -932,16 +985,16 @@ extension ItemChange {
 extension ItemChange: CustomStringConvertible {
     var description: String {
         switch self {
-        case .insertion(let item, let indexPath):
+        case let .insertion(item, indexPath):
             return "Insert \(item) at \(indexPath)"
             
-        case .deletion(let item, let indexPath):
+        case let .deletion(item, indexPath):
             return "Delete \(item) from \(indexPath)"
             
-        case .move(let item, let indexPath, let newIndexPath, changes: let changes):
+        case let .move(item, indexPath, newIndexPath, changes: changes):
             return "Move \(item) from \(indexPath) to \(newIndexPath) with changes: \(changes)"
             
-        case .update(let item, let indexPath, let changes):
+        case let .update(item, indexPath, changes):
             return "Update \(item) at \(indexPath) with changes: \(changes)"
         }
     }
@@ -973,16 +1026,16 @@ public enum FetchedRecordChange {
 extension FetchedRecordChange: CustomStringConvertible {
     public var description: String {
         switch self {
-        case .insertion(let indexPath):
+        case let .insertion(indexPath):
             return "Insertion at \(indexPath)"
             
-        case .deletion(let indexPath):
+        case let .deletion(indexPath):
             return "Deletion from \(indexPath)"
             
-        case .move(let indexPath, let newIndexPath, changes: let changes):
+        case let .move(indexPath, newIndexPath, changes: changes):
             return "Move from \(indexPath) to \(newIndexPath) with changes: \(changes)"
             
-        case .update(let indexPath, let changes):
+        case let .update(indexPath, changes):
             return "Update at \(indexPath) with changes: \(changes)"
         }
     }
@@ -1014,11 +1067,11 @@ public struct FetchedRecordsSectionInfo<Record: FetchableRecord> {
 
 // MARK: - Item
 
-private final class Item<T: FetchableRecord> : FetchableRecord, Equatable {
+private final class Item<T: FetchableRecord>: FetchableRecord, Equatable {
     let row: Row
     
     // Records are lazily loaded
-    lazy var record: T = T(row: self.row)
+    lazy var record = T(row: self.row)
     
     init(row: Row) {
         self.row = row.copy()

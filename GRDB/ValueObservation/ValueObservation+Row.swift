@@ -60,7 +60,7 @@ extension FetchRequest where RowDecoder == Row {
 }
 
 extension ValueObservation where Reducer == Void {
-
+    
     // MARK: - Row Observation
     
     /// Creates a ValueObservation which observes *request*, and notifies

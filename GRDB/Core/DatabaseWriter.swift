@@ -15,10 +15,10 @@ import Dispatch
 /// connection to the database. Should you have to cope with external
 /// connections, protect yourself with transactions, and be ready to setup a
 /// [busy handler](https://www.sqlite.org/c3ref/busy_handler.html).
-public protocol DatabaseWriter : DatabaseReader {
+public protocol DatabaseWriter: DatabaseReader {
     
     // MARK: - Writing in Database
-
+    
     /// Synchronously executes database updates in a protected dispatch queue,
     /// wrapped inside a transaction, and returns the result.
     ///
@@ -76,16 +76,18 @@ public protocol DatabaseWriter : DatabaseReader {
     /// - parameter completion: A closure that is called with the eventual
     ///   transaction error.
     /// - throws: The error thrown by the updates, or by the wrapping transaction.
-    func asyncWrite<T>(_ updates: @escaping (Database) throws -> T, completion: @escaping (Database, Result<T, Error>) -> Void)
+    func asyncWrite<T>(
+        _ updates: @escaping (Database) throws -> T,
+        completion: @escaping (Database, Result<T, Error>) -> Void)
     #endif
-
+    
     /// Asynchronously executes database updates in a protected dispatch queue,
     /// outside of any transaction.
     ///
     /// Eventual concurrent reads may see partial updates unless you wrap them
     /// in a transaction.
     func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void)
-
+    
     /// Synchronously executes database updates in a protected dispatch queue,
     /// outside of any transaction, and returns the result.
     ///
@@ -98,7 +100,7 @@ public protocol DatabaseWriter : DatabaseReader {
     /// This method is reentrant. It should be avoided because it fosters
     /// dangerous concurrency practices.
     func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T
-
+    
     // MARK: - Reading from Database
     
     /// Concurrently executes a read-only block in a protected dispatch queue.
@@ -175,7 +177,7 @@ public protocol DatabaseWriter : DatabaseReader {
 }
 
 extension DatabaseWriter {
-
+    
     /// Synchronously executes database updates in a protected dispatch queue,
     /// wrapped inside a transaction, and returns the result.
     ///
@@ -228,7 +230,10 @@ extension DatabaseWriter {
     /// - parameter completion: A closure that is called with the eventual
     ///   transaction error.
     /// - throws: The error thrown by the updates, or by the wrapping transaction.
-    public func asyncWrite<T>(_ updates: @escaping (Database) throws -> T, completion: @escaping (Database, Result<T, Error>) -> Void) {
+    public func asyncWrite<T>(
+        _ updates: @escaping (Database) throws -> T,
+        completion: @escaping (Database, Result<T, Error>) -> Void)
+    {
         asyncWriteWithoutTransaction { db in
             do {
                 var result: T?
@@ -255,7 +260,10 @@ extension DatabaseWriter {
     /// - parameter extent: The duration of the observation. The default is
     ///   the observer lifetime (observation lasts until observer
     ///   is deallocated).
-    public func add(transactionObserver: TransactionObserver, extent: Database.TransactionObservationExtent = .observerLifetime) {
+    public func add(
+        transactionObserver: TransactionObserver,
+        extent: Database.TransactionObservationExtent = .observerLifetime)
+    {
         writeWithoutTransaction { $0.add(transactionObserver: transactionObserver, extent: extent) }
     }
     
@@ -273,7 +281,8 @@ extension DatabaseWriter {
     ///   execution of this method.
     public func erase() throws {
         #if SQLITE_HAS_CODEC
-        // SQLCipher does not support the backup API: https://discuss.zetetic.net/t/using-the-sqlite-online-backup-api/2631
+        // SQLCipher does not support the backup API:
+        // https://discuss.zetetic.net/t/using-the-sqlite-online-backup-api/2631
         // So we'll drop all database objects one after the other.
         try writeWithoutTransaction { db in
             // Prevent foreign keys from messing with drop table statements
@@ -285,7 +294,8 @@ extension DatabaseWriter {
             // Remove all database objects, one after the other
             do {
                 try db.inTransaction {
-                    while let row = try Row.fetchOne(db, sql: "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'") {
+                    let sql = "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
+                    while let row = try Row.fetchOne(db, sql: sql) {
                         let type: String = row["type"]
                         let name: String = row["name"]
                         try db.execute(sql: "DROP \(type) \(name.quotedDatabaseIdentifier)")
@@ -545,7 +555,7 @@ public class DatabaseFuture<Value> {
 ///
 /// Instances of AnyDatabaseWriter forward their methods to an arbitrary
 /// underlying database writer.
-public final class AnyDatabaseWriter : DatabaseWriter {
+public final class AnyDatabaseWriter: DatabaseWriter {
     private let base: DatabaseWriter
     
     /// Creates a database writer that wraps a base database writer.
@@ -608,7 +618,10 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     
     #if compiler(>=5.0)
     /// :nodoc:
-    public func asyncWrite<T>(_ updates: @escaping (Database) throws -> T, completion: @escaping (Database, Result<T, Error>) -> Void) {
+    public func asyncWrite<T>(
+        _ updates: @escaping (Database) throws -> T,
+        completion: @escaping (Database, Result<T, Error>) -> Void)
+    {
         base.asyncWrite(updates, completion: completion)
     }
     #endif
@@ -617,12 +630,12 @@ public final class AnyDatabaseWriter : DatabaseWriter {
     public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
         base.asyncWriteWithoutTransaction(updates)
     }
-
+    
     /// :nodoc:
     public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
         return try base.unsafeReentrantWrite(updates)
     }
-
+    
     // MARK: - Functions
     
     /// :nodoc:

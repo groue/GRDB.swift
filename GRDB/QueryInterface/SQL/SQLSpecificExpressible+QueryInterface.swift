@@ -63,4 +63,3 @@ extension SQLSpecificExpressible {
         return SQLCollatedExpression(sqlExpression, collationName: Database.CollationName(collation.name))
     }
 }
-

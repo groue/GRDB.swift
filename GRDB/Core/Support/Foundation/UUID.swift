@@ -1,10 +1,10 @@
 import Foundation
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 #if !os(Linux)

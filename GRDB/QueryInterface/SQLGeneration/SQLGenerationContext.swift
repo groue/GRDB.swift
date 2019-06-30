@@ -96,7 +96,6 @@ public struct SQLGenerationContext {
 ///
 /// A TableAlias identifies a table in a request.
 public class TableAlias: Hashable {
-    private var impl: Impl
     private enum Impl {
         /// A TableAlias is undefined when it is created by the GRDB user:
         ///
@@ -143,6 +142,8 @@ public class TableAlias: Hashable {
         ///         .aliased(customAlias)
         case proxy(TableAlias)
     }
+    
+    private var impl: Impl
     
     /// Resolve all proxies
     private var root: TableAlias {
@@ -221,7 +222,8 @@ public class TableAlias: Hashable {
         let root = self.root
         let otherRoot = other.root
         switch (root.impl, otherRoot.impl) {
-        case let (.table(tableName: tableName, userName: userName), .table(tableName: otherTableName, userName: otherUserName)):
+        case let (.table(tableName: tableName, userName: userName),
+                  .table(tableName: otherTableName, userName: otherUserName)):
             guard tableName == otherTableName else {
                 // can't merge
                 return nil

@@ -1,10 +1,10 @@
 import Foundation
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 /// A raw SQLite statement, suitable for the SQLite C API.
@@ -56,18 +56,25 @@ public class Statement {
         var sqliteStatement: SQLiteStatement? = nil
         // sqlite3_prepare_v3 was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        let code = sqlite3_prepare_v3(database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags), &sqliteStatement, statementEnd)
+        let code = sqlite3_prepare_v3(
+            database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags),
+            &sqliteStatement, statementEnd)
         #else
         let code: Int32
         if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
-            code = sqlite3_prepare_v3(database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags), &sqliteStatement, statementEnd)
+            code = sqlite3_prepare_v3(
+                database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags),
+                &sqliteStatement, statementEnd)
         } else {
             code = sqlite3_prepare_v2(database.sqliteConnection, statementStart, -1, &sqliteStatement, statementEnd)
         }
         #endif
         
         guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: String(cString: statementStart))
+            throw DatabaseError(
+                resultCode: code,
+                message: database.lastErrorMessage,
+                sql: String(cString: statementStart))
         }
         
         guard let statement = sqliteStatement else {
@@ -102,7 +109,7 @@ public class Statement {
     
     // Returns ["id", nil", "name"] for "INSERT INTO table VALUES (:id, ?, :name)"
     fileprivate lazy var sqliteArgumentNames: [String?] = {
-        return (0..<self.sqliteArgumentCount).map {
+        (0..<self.sqliteArgumentCount).map {
             guard let cString = sqlite3_bind_parameter_name(self.sqliteStatement, Int32($0 + 1)) else {
                 return nil
             }
@@ -203,7 +210,7 @@ public class Statement {
             fatalError(DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql).description)
         }
     }
-
+    
     fileprivate func prepare(withArguments arguments: StatementArguments?) {
         // Force arguments validity: it is a programmer error to provide
         // arguments that do not match the statement.
@@ -250,7 +257,10 @@ extension StatementProtocol where Self: Statement {
             guard remainingSQL.isEmpty else {
                 throw DatabaseError(
                     resultCode: .SQLITE_MISUSE,
-                    message: "Multiple statements found. To execute multiple statements, use Database.execute(sql:) instead.",
+                    message: """
+                        Multiple statements found. To execute multiple statements, \
+                        use Database.execute(sql:) instead.
+                        """,
                     sql: sql,
                     arguments: nil)
             }
@@ -271,7 +281,7 @@ extension StatementProtocol where Self: Statement {
 ///         let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
-public final class SelectStatement : Statement {    
+public final class SelectStatement: Statement {
     /// The database region that the statement looks into.
     public private(set) var databaseRegion = DatabaseRegion()
     
@@ -301,8 +311,12 @@ public final class SelectStatement : Statement {
             prepFlags: prepFlags,
             authorizer: authorizer)
         
-        GRDBPrecondition(authorizer.invalidatesDatabaseSchemaCache == false, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
-        GRDBPrecondition(authorizer.transactionEffect == nil, "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
+        GRDBPrecondition(
+            authorizer.invalidatesDatabaseSchemaCache == false,
+            "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
+        GRDBPrecondition(
+            authorizer.transactionEffect == nil,
+            "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
         
         self.databaseRegion = authorizer.databaseRegion
     }
@@ -320,7 +334,7 @@ public final class SelectStatement : Statement {
     
     /// Cache for index(ofColumn:). Keys are lowercase.
     private lazy var columnIndexes: [String: Int] = {
-        return Dictionary(
+        Dictionary(
             self.columnNames.enumerated().map { ($0.element.lowercased(), $0.offset) },
             uniquingKeysWith: { (left, _) in left }) // keep leftmost indexes
     }()
@@ -353,7 +367,6 @@ public final class SelectStatement : Statement {
             message: database.lastErrorMessage,
             sql: sql,
             arguments: arguments)
-
     }
 }
 
@@ -418,7 +431,7 @@ final class StatementCursor: Cursor {
 ///         try statement.execute(arguments: ["Barbara"])
 ///         return .commit
 ///     }
-public final class UpdateStatement : Statement {
+public final class UpdateStatement: Statement {
     enum TransactionEffect {
         case beginTransaction
         case commitTransaction
@@ -502,7 +515,11 @@ public final class UpdateStatement : Statement {
                 
             case let code:
                 try database.updateStatementDidFail(self)
-                throw DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql, arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
+                throw DatabaseError(
+                    resultCode: code,
+                    message: database.lastErrorMessage,
+                    sql: sql,
+                    arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
             }
         }
     }
@@ -589,7 +606,9 @@ public final class UpdateStatement : Statement {
 ///         .filter(sql: "team = :team", arguments: ["team": "Blue"])
 ///         .filter(sql: "score > ?", arguments: [1000])
 ///         .fetchAll(db)
-public struct StatementArguments: CustomStringConvertible, Equatable, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral {
+public struct StatementArguments: CustomStringConvertible, Equatable,
+    ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral
+{
     private(set) var values: [DatabaseValue] = []
     private(set) var namedValues: [String: DatabaseValue] = [:]
     
@@ -667,7 +686,9 @@ public struct StatementArguments: CustomStringConvertible, Equatable, Expressibl
     ///
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
-    public init<Sequence: Swift.Sequence>(_ sequence: Sequence) where Sequence.Element == (String, DatabaseValueConvertible?) {
+    public init<Sequence>(_ sequence: Sequence)
+        where Sequence: Swift.Sequence, Sequence.Element == (String, DatabaseValueConvertible?)
+    {
         namedValues = Dictionary(uniqueKeysWithValues: sequence.map { ($0.0, $0.1?.databaseValue ?? .null) })
     }
     
@@ -843,33 +864,51 @@ public struct StatementArguments: CustomStringConvertible, Equatable, Expressibl
     /// append(contentsOf:) method.
     public static func += (lhs: inout StatementArguments, rhs: StatementArguments) {
         let replacedValues = lhs.append(contentsOf: rhs)
-        GRDBPrecondition(replacedValues.isEmpty, "already defined statement argument: \(replacedValues.keys.joined(separator: ", "))")
+        GRDBPrecondition(
+            replacedValues.isEmpty,
+            "already defined statement argument: \(replacedValues.keys.joined(separator: ", "))")
     }
     
     
     // MARK: Not Public
     
-    mutating func extractBindings(forStatement statement: Statement, allowingRemainingValues: Bool) throws -> [DatabaseValue] {
+    mutating func extractBindings(
+        forStatement statement: Statement,
+        allowingRemainingValues: Bool)
+        throws -> [DatabaseValue]
+    {
         let initialValuesCount = values.count
         let bindings = try statement.sqliteArgumentNames.map { argumentName -> DatabaseValue in
             if let argumentName = argumentName {
                 if let dbValue = namedValues[argumentName] {
                     return dbValue
                 } else if values.isEmpty {
-                    throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "missing statement argument: \(argumentName)", sql: statement.sql, arguments: nil)
+                    throw DatabaseError(
+                        resultCode: .SQLITE_MISUSE,
+                        message: "missing statement argument: \(argumentName)",
+                        sql: statement.sql,
+                        arguments: nil)
                 } else {
                     return values.removeFirst()
                 }
             } else {
                 if values.isEmpty {
-                    throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)", sql: statement.sql, arguments: nil)
+                    throw DatabaseError(
+                        resultCode: .SQLITE_MISUSE,
+                        message: "wrong number of statement arguments: \(initialValuesCount)",
+                        sql: statement.sql,
+                        arguments: nil)
                 } else {
                     return values.removeFirst()
                 }
             }
         }
         if !allowingRemainingValues && !values.isEmpty {
-            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)", sql: statement.sql, arguments: nil)
+            throw DatabaseError(
+                resultCode: .SQLITE_MISUSE,
+                message: "wrong number of statement arguments: \(initialValuesCount)",
+                sql: statement.sql,
+                arguments: nil)
         }
         return bindings
     }
@@ -907,7 +946,7 @@ extension StatementArguments {
     public var description: String {
         let valuesDescriptions = values.map { $0.description }
         let namedValuesDescriptions = namedValues.map { (key, value) -> String in
-            return "\(String(reflecting: key)): \(value)"
+            "\(String(reflecting: key)): \(value)"
         }
         return "[" + (namedValuesDescriptions + valuesDescriptions).joined(separator: ", ") + "]"
     }

@@ -25,7 +25,7 @@ public protocol SQLSelectable {
 
 // MARK: - SQLSelectionLiteral
 
-struct SQLSelectionLiteral : SQLSelectable {
+struct SQLSelectionLiteral: SQLSelectable {
     private let sqlLiteral: SQLLiteral
     
     init(literal sqlLiteral: SQLLiteral) {
@@ -42,15 +42,24 @@ struct SQLSelectionLiteral : SQLSelectable {
     }
     
     func countedSQL(_ context: inout SQLGenerationContext) -> String {
-        fatalError("Selection literals can't be counted. To resolve this error, select one or several SQLExpressionLiteral instead.")
+        fatalError("""
+            Selection literals can't be counted. \
+            To resolve this error, select one or several SQLExpressionLiteral instead.
+            """)
     }
     
     func count(distinct: Bool) -> SQLCount? {
-        fatalError("Selection literals can't be counted. To resolve this error, select one or several SQLExpressionLiteral instead.")
+        fatalError("""
+            Selection literals can't be counted. \
+            To resolve this error, select one or several SQLExpressionLiteral instead.
+            """)
     }
     
     func columnCount(_ db: Database) throws -> Int {
-        fatalError("Selection literals don't known how many columns they contain. To resolve this error, select one or several SQLExpressionLiteral instead.")
+        fatalError("""
+            Selection literals don't known how many columns they contain. \
+            To resolve this error, select one or several SQLExpressionLiteral instead.
+            """)
     }
     
     func qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {

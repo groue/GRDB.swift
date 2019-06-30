@@ -1,10 +1,10 @@
 import Foundation
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 extension Database {
@@ -213,13 +213,15 @@ extension Database {
         // Check that all arguments were consumed: it is a programmer error to
         // provide arguments that do not match the statement.
         if arguments.values.isEmpty == false {
-            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "wrong number of statement arguments: \(initialValuesCount)")
+            throw DatabaseError(
+                resultCode: .SQLITE_MISUSE,
+                message: "wrong number of statement arguments: \(initialValuesCount)")
         }
     }
 }
 
 extension Database {
-
+    
     func updateStatementWillExecute(_ statement: UpdateStatement) {
         observationBroker.updateStatementWillExecute(statement)
     }
@@ -294,7 +296,7 @@ struct StatementCache {
         selectStatements[sql] = statement
         return statement
     }
-
+    
     mutating func updateStatement(_ sql: String) throws -> UpdateStatement {
         if let statement = updateStatements[sql] {
             return statement

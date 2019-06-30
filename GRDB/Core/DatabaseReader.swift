@@ -1,9 +1,9 @@
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 /// The protocol for all types that can fetch values from a database.
@@ -21,7 +21,7 @@
 /// connection to the database. Should you have to cope with external
 /// connections, protect yourself with transactions, and be ready to setup a
 /// [busy handler](https://www.sqlite.org/c3ref/busy_handler.html).
-public protocol DatabaseReader : class {
+public protocol DatabaseReader: AnyObject {
     
     /// The database configuration
     var configuration: Configuration { get }
@@ -220,10 +220,14 @@ extension DatabaseReader {
         try backup(to: writer, afterBackupInit: nil, afterBackupStep: nil)
     }
     
-    func backup(to writer: DatabaseWriter, afterBackupInit: (() -> ())?, afterBackupStep: (() -> ())?) throws {
+    func backup(to writer: DatabaseWriter, afterBackupInit: (() -> Void)?, afterBackupStep: (() -> Void)?) throws {
         try read { dbFrom in
             try writer.writeWithoutTransaction { dbDest in
-                try Database.backup(from: dbFrom, to: dbDest, afterBackupInit: afterBackupInit, afterBackupStep: afterBackupStep)
+                try Database.backup(
+                    from: dbFrom,
+                    to: dbDest,
+                    afterBackupInit: afterBackupInit,
+                    afterBackupStep: afterBackupStep)
             }
         }
     }
@@ -233,7 +237,7 @@ extension DatabaseReader {
 ///
 /// Instances of AnyDatabaseReader forward their methods to an arbitrary
 /// underlying database reader.
-public final class AnyDatabaseReader : DatabaseReader {
+public final class AnyDatabaseReader: DatabaseReader {
     private let base: DatabaseReader
     
     /// Creates a database reader that wraps a base database reader.

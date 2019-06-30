@@ -8,9 +8,9 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
     var region: DatabaseRegion!
     var reducer: Reducer!
     var notificationQueue: DispatchQueue?
-
+    
     private var requiresWriteAccess: Bool
-    unowned private var writer: DatabaseWriter
+    private unowned var writer: DatabaseWriter
     private let reduceQueue: DispatchQueue
     private let onError: (Error) -> Void
     private let onChange: (Reducer.Value) -> Void

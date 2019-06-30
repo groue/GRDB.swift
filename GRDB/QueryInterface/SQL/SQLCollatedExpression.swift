@@ -51,7 +51,7 @@ public struct SQLCollatedExpression {
 }
 
 /// :nodoc:
-extension SQLCollatedExpression : SQLOrderingTerm {
+extension SQLCollatedExpression: SQLOrderingTerm {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:

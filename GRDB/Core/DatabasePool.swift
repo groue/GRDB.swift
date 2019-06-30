@@ -1,14 +1,14 @@
 import Foundation
 import Dispatch
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 #if os(iOS)
-    import UIKit
+import UIKit
 #endif
 
 /// A DatabasePool grants concurrent accesses to an SQLite database.
@@ -79,7 +79,10 @@ public final class DatabasePool: DatabaseWriter {
                     // opens a pool to an existing non-WAL database, and
                     // attempts to read from it.
                     // See https://github.com/groue/GRDB.swift/issues/102
-                    try db.execute(sql: "CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY); DROP TABLE grdb_issue_102;")
+                    try db.execute(sql: """
+                        CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY);
+                        DROP TABLE grdb_issue_102;
+                        """)
                 }
             }
         }
@@ -87,8 +90,13 @@ public final class DatabasePool: DatabaseWriter {
         // Readers
         readerConfig = configuration
         readerConfig.readonly = true
-        readerConfig.defaultTransactionKind = .deferred // Make it the default for readers. Other transaction kinds are forbidden by SQLite in read-only connections.
-        readerConfig.allowsUnsafeTransactions = false   // Because there's no guarantee that one can get the same reader in order to close its opened transaction.
+        // Readers use deferred transactions by default.
+        // Other transaction kinds are forbidden by SQLite in read-only connections.
+        readerConfig.defaultTransactionKind = .deferred
+        // Readers can't allow dangling transactions because there's no
+        // guarantee that one can get the same reader later in order to close
+        // an opened transaction.
+        readerConfig.allowsUnsafeTransactions = false
         var readerCount = 0
         readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
             readerCount += 1 // protected by pool's ReadWriteBox (undocumented behavior and protection)
@@ -134,9 +142,9 @@ public final class DatabasePool: DatabaseWriter {
 }
 
 extension DatabasePool {
-
+    
     // MARK: - WAL Checkpoints
-
+    
     /// Runs a WAL checkpoint
     ///
     /// See https://www.sqlite.org/wal.html and
@@ -158,9 +166,9 @@ extension DatabasePool {
 }
 
 extension DatabasePool {
-
+    
     // MARK: - Memory management
-
+    
     /// Free as much memory as possible.
     ///
     /// This method blocks the current thread until all database accesses are completed.
@@ -195,7 +203,8 @@ extension DatabasePool {
             object: nil)
     }
     
-    @objc private func applicationDidEnterBackground(_ notification: NSNotification) {
+    @objc
+    private func applicationDidEnterBackground(_ notification: NSNotification) {
         guard let application = application else {
             return
         }
@@ -213,7 +222,8 @@ extension DatabasePool {
         }
     }
     
-    @objc private func applicationDidReceiveMemoryWarning(_ notification: NSNotification) {
+    @objc
+    private func applicationDidReceiveMemoryWarning(_ notification: NSNotification) {
         DispatchQueue.global().async {
             self.releaseMemory()
         }
@@ -222,24 +232,24 @@ extension DatabasePool {
 }
 
 #if SQLITE_HAS_CODEC
-    extension DatabasePool {
-
-        // MARK: - Encryption
-        
-        /// Changes the passphrase of an encrypted database
-        public func change(passphrase: String) throws {
-            try readerPool.clear(andThen: {
-                try writer.sync { try $0.change(passphrase: passphrase) }
-                readerConfig.passphrase = passphrase
-            })
-        }
+extension DatabasePool {
+    
+    // MARK: - Encryption
+    
+    /// Changes the passphrase of an encrypted database
+    public func change(passphrase: String) throws {
+        try readerPool.clear(andThen: {
+            try writer.sync { try $0.change(passphrase: passphrase) }
+            readerConfig.passphrase = passphrase
+        })
     }
+}
 #endif
 
-extension DatabasePool : DatabaseReader {
+extension DatabasePool: DatabaseReader {
     
     // MARK: - Reading from Database
-
+    
     /// Synchronously executes a read-only block in a protected dispatch queue,
     /// and returns its result. The block is wrapped in a deferred transaction.
     ///
@@ -493,7 +503,7 @@ extension DatabasePool : DatabaseReader {
         asyncConcurrentRead(block)
     }
     #endif
-
+    
     #if compiler(>=5.0)
     /// Asynchronously executes a read-only block in a protected dispatch queue.
     ///
@@ -649,7 +659,11 @@ extension DatabasePool : DatabaseReader {
     ///     - updates: The updates to the database.
     /// - throws: The error thrown by the updates, or by the
     ///   wrapping transaction.
-    public func writeInTransaction(_ kind: Database.TransactionKind? = nil, _ updates: (Database) throws -> Database.TransactionCompletion) throws {
+    public func writeInTransaction(
+        _ kind: Database.TransactionKind? = nil,
+        _ updates: (Database) throws -> Database.TransactionCompletion)
+        throws
+    {
         try writer.sync { db in
             try db.inTransaction(kind) {
                 try updates(db)
@@ -811,7 +825,9 @@ extension DatabasePool {
         // Sanity check
         if writer.onValidQueue {
             writer.execute { db in
-                GRDBPrecondition(!db.isInsideTransaction, "makeSnapshot() must not be called from inside a transaction.")
+                GRDBPrecondition(
+                    !db.isInsideTransaction,
+                    "makeSnapshot() must not be called from inside a transaction.")
             }
         }
         

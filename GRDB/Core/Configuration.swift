@@ -1,11 +1,11 @@
 import Foundation
 import Dispatch
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 /// Configuration for a DatabaseQueue or DatabasePool.
@@ -85,7 +85,7 @@ public struct Configuration {
     public var passphrase: String?
     
     #endif
-
+    
     /// If set, allows custom configuration to be run every time
     /// a new connection is opened.
     ///
@@ -181,9 +181,9 @@ public struct Configuration {
     // MARK: - Not Public
     
     var threadingMode: Database.ThreadingMode = .`default`
-    var SQLiteConnectionDidOpen: (() -> ())?
-    var SQLiteConnectionWillClose: ((SQLiteConnection) -> ())?
-    var SQLiteConnectionDidClose: (() -> ())?
+    var SQLiteConnectionDidOpen: (() -> Void)?
+    var SQLiteConnectionWillClose: ((SQLiteConnection) -> Void)?
+    var SQLiteConnectionDidClose: (() -> Void)?
     var SQLiteOpenFlags: Int32 {
         let readWriteFlags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
         return threadingMode.SQLiteOpenFlags | readWriteFlags

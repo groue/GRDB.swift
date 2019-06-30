@@ -250,8 +250,12 @@ extension ValueReducers {
 
 /// :nodoc:
 @available(*, deprecated, renamed: "ValueReducers.AllRecords")
-public typealias FetchableRecordsReducer<RowDecoder> = ValueReducers.AllRecords<RowDecoder> where RowDecoder: FetchableRecord
+public typealias FetchableRecordsReducer<RowDecoder>
+    = ValueReducers.AllRecords<RowDecoder>
+    where RowDecoder: FetchableRecord
 
 /// :nodoc:
 @available(*, deprecated, renamed: "ValueReducers.OneRecord")
-public typealias FetchableRecordReducer<RowDecoder> = ValueReducers.OneRecord<RowDecoder> where RowDecoder: FetchableRecord
+public typealias FetchableRecordReducer<RowDecoder>
+    = ValueReducers.OneRecord<RowDecoder>
+    where RowDecoder: FetchableRecord

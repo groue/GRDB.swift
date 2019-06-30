@@ -67,7 +67,7 @@ struct SQLForeignKeyRequest: Equatable {
         // No matching foreign key found: use the destination primary key
         if let originColumns = originColumns {
             let destinationColumns = try db.primaryKey(destinationTable).columns
-            if (originColumns.count == destinationColumns.count) {
+            if originColumns.count == destinationColumns.count {
                 let mapping = zip(originColumns, destinationColumns).map {
                     (origin: $0, destination: $1)
                 }
