@@ -47,6 +47,7 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                     INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
                     INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
                     INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
+                    INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
                     """,
                 arguments: [
                     1, "a1",
@@ -63,6 +64,7 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                     11, 8, "d2",
                     12, 8, "d3",
                     13, 9, "d4",
+                    14, nil, "d5",
                 ])
         }
     }
@@ -779,7 +781,6 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
         }
     }
     
-    // TODO: make a variant with joining(optional:)
     func testIncludingOptionalBelongsToIncludingAllHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
@@ -991,6 +992,76 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
         }
     }
     
+    func testJoiningOptionalHasOneThroughIncludingAllHasMany() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            // Plain request
+            do {
+                let request = D
+                    .joining(optional: D
+                        .hasOne(A.self, through: D.belongsTo(C.self), using: C.belongsTo(A.self))
+                        .including(all: A
+                            .hasMany(B.self)
+                            .orderByPrimaryKey()))
+                    .orderByPrimaryKey()
+                
+                // Row.fetchAll
+                do {
+                    let rows = try Row.fetchAll(db, request)
+                    XCTAssertEqual(rows.count, 5)
+                    
+                    XCTAssertEqual(rows[0].description, "[cold1:10 cold2:7 cold3:\"d1\"]")
+                    XCTAssertEqual(rows[0].debugDescription, """
+                        ▿ [cold1:10 cold2:7 cold3:"d1"]
+                          + bs: 2 rows
+                        """)
+                    
+                    XCTAssertEqual(rows[0].unscoped, ["cold1": 10, "cold2": 7, "cold3": "d1"])
+                    XCTAssertEqual(rows[0].prefetchedRows.keys, ["bs"])
+                    XCTAssertEqual(rows[0].prefetchedRows["bs"]!.count, 2)
+                    XCTAssertEqual(rows[0].prefetchedRows["bs"]![0], ["colb1": 4, "colb2": 1, "colb3": "b1", "grdb_colc1": 7])
+                    XCTAssertEqual(rows[0].prefetchedRows["bs"]![1], ["colb1": 5, "colb2": 1, "colb3": "b2", "grdb_colc1": 7])
+                    XCTAssertEqual(rows[0].scopes.count, 0)
+
+                    XCTAssertEqual(rows[1].unscoped, ["cold1": 11, "cold2": 8, "cold3": "d2"])
+                    XCTAssertEqual(rows[1].prefetchedRows.keys, ["bs"])
+                    XCTAssertEqual(rows[1].prefetchedRows["bs"]!.count, 1)
+                    XCTAssertEqual(rows[1].prefetchedRows["bs"]![0], ["colb1": 6, "colb2": 2, "colb3": "b3", "grdb_colc1": 8])
+                    XCTAssertEqual(rows[1].scopes.count, 0)
+
+                    XCTAssertEqual(rows[2].unscoped, ["cold1": 12, "cold2": 8, "cold3": "d3"])
+                    XCTAssertEqual(rows[2].prefetchedRows.keys, ["bs"])
+                    XCTAssertEqual(rows[2].prefetchedRows["bs"]!.count, 1)
+                    XCTAssertEqual(rows[2].prefetchedRows["bs"]![0], ["colb1": 6, "colb2": 2, "colb3": "b3", "grdb_colc1": 8])
+                    XCTAssertEqual(rows[2].scopes.count, 0)
+
+                    XCTAssertEqual(rows[3].unscoped, ["cold1": 13, "cold2": 9, "cold3": "d4"])
+                    XCTAssertEqual(rows[3].prefetchedRows.keys, ["bs"])
+                    XCTAssertEqual(rows[3].prefetchedRows["bs"]!.count, 1)
+                    XCTAssertEqual(rows[3].prefetchedRows["bs"]![0], ["colb1": 6, "colb2": 2, "colb3": "b3", "grdb_colc1": 9])
+                    XCTAssertEqual(rows[3].scopes.count, 0)
+
+                    XCTAssertEqual(rows[4].unscoped, ["cold1": 14, "cold2": nil, "cold3": "d5"])
+                    XCTAssertEqual(rows[4].prefetchedRows.keys, ["bs"])
+                    XCTAssertEqual(rows[4].prefetchedRows["bs"]!.count, 0)
+                    XCTAssertEqual(rows[4].scopes.count, 0)
+                }
+                
+                // Row.fetchOne
+                do {
+                    let row = try Row.fetchOne(db, request)!
+                    
+                    XCTAssertEqual(row.unscoped, ["cold1": 10, "cold2": 7, "cold3": "d1"])
+                    XCTAssertEqual(row.prefetchedRows.keys, ["bs"])
+                    XCTAssertEqual(row.prefetchedRows["bs"]!.count, 2)
+                    XCTAssertEqual(row.prefetchedRows["bs"]![0], ["colb1": 4, "colb2": 1, "colb3": "b1", "grdb_colc1": 7])
+                    XCTAssertEqual(row.prefetchedRows["bs"]![1], ["colb1": 5, "colb2": 1, "colb3": "b2", "grdb_colc1": 7])
+                    XCTAssertEqual(row.scopes.count, 0)
+                }
+            }
+        }
+    }
+
     func testEquatable() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in

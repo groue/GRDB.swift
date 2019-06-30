@@ -236,7 +236,6 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
         }
     }
     
-    // TODO: make a variant with joining(optional:)
     func testIncludingOptionalBelongsToIncludingAllHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
@@ -284,6 +283,27 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                         .forKey("a2"))
                 
                 try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),b(colb1,colb2,colb3),c(colc1,colc2)")
+            }
+        }
+    }
+    
+    func testJoiningOptionalHasOneThroughIncludingAllHasMany() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            // Plain request
+            do {
+                let request = D
+                    .joining(optional: D
+                        .hasOne(A.self, through: D.belongsTo(C.self), using: C.belongsTo(A.self))
+                        .including(all: A
+                            .hasMany(B.self)
+                            .orderByPrimaryKey()))
+                    .orderByPrimaryKey()
+                
+                try XCTAssert([
+                    "a(*),b(colb1,colb2,colb3),c(colc1,colc2),d(cold1,cold2,cold3)",     // iOS 12
+                    "a(cola1),b(colb1,colb2,colb3),c(colc1,colc2),d(cold1,cold2,cold3)", // iOS 9
+                    ].contains(request.databaseRegion(db).description))
             }
         }
     }

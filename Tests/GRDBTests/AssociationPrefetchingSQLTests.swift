@@ -12,6 +12,12 @@ private struct D: TableRecord { }
 
 class AssociationPrefetchingSQLTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
+        // A.hasMany(B)
+        // A.hasMany(C)
+        // B.belongsTo(A)
+        // C.belongsTo(A)
+        // C.hasMany(D)
+        // D.belongsTo(C)
         try dbWriter.write { db in
             try db.create(table: "a") { t in
                 t.autoIncrementedPrimaryKey("cola1")
@@ -918,7 +924,6 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
         }
     }
 
-    // TODO: make a variant with joining(optional:)
     func testIncludingOptionalBelongsToIncludingAllHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
@@ -1024,6 +1029,510 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a2') AND ("a"."cola1" IN (1, 2)) \
                     WHERE "c"."colc1" <> 9 \
                     ORDER BY "c"."colc1"
+                    """])
+            }
+        }
+    }
+
+    func testIncludingOptionalHasOneIncludingAllHasMany() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            // Plain request
+            do {
+                let request = A
+                    .including(optional: A
+                        .hasOne(C.self)
+                        .including(all: C
+                            .hasMany(D.self)
+                            .orderByPrimaryKey())
+                    )
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT "a".*, "c".* \
+                    FROM "a" \
+                    LEFT JOIN "c" ON "c"."colc2" = "a"."cola1" \
+                    ORDER BY "a"."cola1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2, 3)) \
+                    ORDER BY "d"."cold1"
+                    """])
+            }
+
+            // Request with filters
+            do {
+                let request = A
+                    .including(optional: A
+                        .hasOne(C.self)
+                        .filter(Column("colc1") == 9)
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") == 11)
+                            .orderByPrimaryKey()
+                            .forKey("ds1"))
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") != 11)
+                            .orderByPrimaryKey()
+                            .forKey("ds2"))
+                        .forKey("c1"))
+                    .including(optional: A
+                        .hasOne(C.self)
+                        .filter(Column("colc1") != 9)
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") == 11)
+                            .orderByPrimaryKey()
+                            .forKey("ds1"))
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") != 11)
+                            .orderByPrimaryKey()
+                            .forKey("ds2"))
+                        .forKey("c2"))
+                    .orderByPrimaryKey()
+
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT "a".*, "c1".*, "c2".* \
+                    FROM "a" \
+                    LEFT JOIN "c" "c1" ON ("c1"."colc2" = "a"."cola1") AND ("c1"."colc1" = 9) \
+                    LEFT JOIN "c" "c2" ON ("c2"."colc2" = "a"."cola1") AND ("c2"."colc1" <> 9) \
+                    ORDER BY "a"."cola1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" = 9) AND ("c"."colc2" IN (1, 2, 3)) \
+                    WHERE "d"."cold1" = 11 \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" = 9) AND ("c"."colc2" IN (1, 2, 3)) \
+                    WHERE "d"."cold1" <> 11 \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" <> 9) AND ("c"."colc2" IN (1, 2, 3)) \
+                    WHERE "d"."cold1" = 11 \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" <> 9) AND ("c"."colc2" IN (1, 2, 3)) \
+                    WHERE "d"."cold1" <> 11 \
+                    ORDER BY "d"."cold1"
+                    """])
+            }
+        }
+    }
+    
+    func testIncludingOptionalBelongsToIncludingOptionalBelongsToIncludingAllHasMany() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            // Plain request
+            do {
+                let request = D
+                    .including(optional: D
+                        .belongsTo(C.self)
+                        .including(optional: C
+                            .belongsTo(A.self)
+                            .including(all: A
+                                .hasMany(B.self)
+                                .orderByPrimaryKey())))
+                    .orderByPrimaryKey()
+                    .filter(Column("cold2") != 8)
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT "d".*, "c".*, "a".* \
+                    FROM "d" \
+                    LEFT JOIN "c" ON "c"."colc1" = "d"."cold2" \
+                    LEFT JOIN "a" ON "a"."cola1" = "c"."colc2" \
+                    WHERE "d"."cold2" <> 8 \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "b".*, "c"."colc1" AS "grdb_colc1" \
+                    FROM "b" \
+                    JOIN "a" ON "a"."cola1" = "b"."colb2" \
+                    JOIN "c" ON ("c"."colc2" = "a"."cola1") AND ("c"."colc1" IN (7, 9)) \
+                    ORDER BY "b"."colb1"
+                    """])
+            }
+        }
+    }
+    
+    func testIncludingOptionalHasOneThroughIncludingAllHasMany() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            // Plain request
+            do {
+                let request = D
+                    .including(optional: D
+                        .hasOne(A.self, through: D.belongsTo(C.self), using: C.belongsTo(A.self))
+                        .including(all: A
+                            .hasMany(B.self)
+                            .orderByPrimaryKey()))
+                    .orderByPrimaryKey()
+                    .filter(Column("cold2") != 8)
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT "d".*, "a".* \
+                    FROM "d" \
+                    LEFT JOIN "c" ON "c"."colc1" = "d"."cold2" \
+                    LEFT JOIN "a" ON "a"."cola1" = "c"."colc2" \
+                    WHERE "d"."cold2" <> 8 \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "b".*, "c"."colc1" AS "grdb_colc1" \
+                    FROM "b" \
+                    JOIN "a" ON "a"."cola1" = "b"."colb2" \
+                    JOIN "c" ON ("c"."colc2" = "a"."cola1") AND ("c"."colc1" IN (7, 9)) \
+                    ORDER BY "b"."colb1"
+                    """])
+            }
+        }
+    }
+
+    func testJoiningOptionalBelongsToIncludingAllHasMany() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            // Plain request
+            do {
+                let request = B
+                    .joining(optional: B
+                        .belongsTo(A.self)
+                        .including(all: A
+                            .hasMany(C.self)
+                            .orderByPrimaryKey())
+                    )
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                // LEFT JOIN in the first query are useless but harmless.
+                // And SQLite may well optimize them out.
+                // So don't bother removing them.
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT "b".* \
+                    FROM "b" \
+                    LEFT JOIN "a" ON "a"."cola1" = "b"."colb2" \
+                    ORDER BY "b"."colb1"
+                    """,
+                    """
+                    SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
+                    FROM "c" \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola1" IN (1, 2)) \
+                    ORDER BY "c"."colc1"
+                    """])
+            }
+            
+            // Request with filters
+            do {
+                let request = B
+                    .joining(optional: B
+                        .belongsTo(A.self)
+                        .filter(Column("cola2") == "a1")
+                        .including(all: A
+                            .hasMany(C.self)
+                            .filter(Column("colc1") == 9)
+                            .orderByPrimaryKey()
+                            .forKey("cs1"))
+                        .including(all: A
+                            .hasMany(C.self)
+                            .filter(Column("colc1") != 9)
+                            .orderByPrimaryKey()
+                            .forKey("cs2"))
+                        .forKey("a1"))
+                    .joining(optional: B
+                        .belongsTo(A.self)
+                        .filter(Column("cola2") == "a2")
+                        .including(all: A
+                            .hasMany(C.self)
+                            .filter(Column("colc1") == 9)
+                            .orderByPrimaryKey()
+                            .forKey("cs1"))
+                        .including(all: A
+                            .hasMany(C.self)
+                            .filter(Column("colc1") != 9)
+                            .orderByPrimaryKey()
+                            .forKey("cs2"))
+                        .forKey("a2"))
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                // LEFT JOIN in the first query are useless but harmless.
+                // And SQLite may well optimize them out.
+                // So don't bother removing them.
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT "b".* \
+                    FROM "b" \
+                    LEFT JOIN "a" "a1" ON ("a1"."cola1" = "b"."colb2") AND ("a1"."cola2" = 'a1') \
+                    LEFT JOIN "a" "a2" ON ("a2"."cola1" = "b"."colb2") AND ("a2"."cola2" = 'a2') \
+                    ORDER BY "b"."colb1"
+                    """,
+                    """
+                    SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
+                    FROM "c" \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a1') AND ("a"."cola1" IN (1, 2)) \
+                    WHERE "c"."colc1" = 9 \
+                    ORDER BY "c"."colc1"
+                    """,
+                    """
+                    SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
+                    FROM "c" \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a1') AND ("a"."cola1" IN (1, 2)) \
+                    WHERE "c"."colc1" <> 9 \
+                    ORDER BY "c"."colc1"
+                    """,
+                    """
+                    SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
+                    FROM "c" \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a2') AND ("a"."cola1" IN (1, 2)) \
+                    WHERE "c"."colc1" = 9 \
+                    ORDER BY "c"."colc1"
+                    """,
+                    """
+                    SELECT "c".*, "a"."cola1" AS "grdb_cola1" \
+                    FROM "c" \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND ("a"."cola2" = 'a2') AND ("a"."cola1" IN (1, 2)) \
+                    WHERE "c"."colc1" <> 9 \
+                    ORDER BY "c"."colc1"
+                    """])
+            }
+        }
+    }
+    
+    func testJoiningOptionalHasOneIncludingAllHasMany() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            // Plain request
+            do {
+                let request = A
+                    .joining(optional: A
+                        .hasOne(C.self)
+                        .including(all: C
+                            .hasMany(D.self)
+                            .orderByPrimaryKey())
+                    )
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                // LEFT JOIN in the first query are useless but harmless.
+                // And SQLite may well optimize them out.
+                // So don't bother removing them.
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT "a".* \
+                    FROM "a" \
+                    LEFT JOIN "c" ON "c"."colc2" = "a"."cola1" \
+                    ORDER BY "a"."cola1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2, 3)) \
+                    ORDER BY "d"."cold1"
+                    """])
+            }
+            
+            // Request with filters
+            do {
+                let request = A
+                    .joining(optional: A
+                        .hasOne(C.self)
+                        .filter(Column("colc1") == 9)
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") == 11)
+                            .orderByPrimaryKey()
+                            .forKey("ds1"))
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") != 11)
+                            .orderByPrimaryKey()
+                            .forKey("ds2"))
+                        .forKey("c1"))
+                    .joining(optional: A
+                        .hasOne(C.self)
+                        .filter(Column("colc1") != 9)
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") == 11)
+                            .orderByPrimaryKey()
+                            .forKey("ds1"))
+                        .including(all: C
+                            .hasMany(D.self)
+                            .filter(Column("cold1") != 11)
+                            .orderByPrimaryKey()
+                            .forKey("ds2"))
+                        .forKey("c2"))
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                // LEFT JOIN in the first query are useless but harmless.
+                // And SQLite may well optimize them out.
+                // So don't bother removing them.
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT "a".* \
+                    FROM "a" \
+                    LEFT JOIN "c" "c1" ON ("c1"."colc2" = "a"."cola1") AND ("c1"."colc1" = 9) \
+                    LEFT JOIN "c" "c2" ON ("c2"."colc2" = "a"."cola1") AND ("c2"."colc1" <> 9) \
+                    ORDER BY "a"."cola1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" = 9) AND ("c"."colc2" IN (1, 2, 3)) \
+                    WHERE "d"."cold1" = 11 \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" = 9) AND ("c"."colc2" IN (1, 2, 3)) \
+                    WHERE "d"."cold1" <> 11 \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" <> 9) AND ("c"."colc2" IN (1, 2, 3)) \
+                    WHERE "d"."cold1" = 11 \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc1" <> 9) AND ("c"."colc2" IN (1, 2, 3)) \
+                    WHERE "d"."cold1" <> 11 \
+                    ORDER BY "d"."cold1"
+                    """])
+            }
+        }
+    }
+    
+    func testJoiningOptionalBelongsToJoiningOptionalBelongsToIncludingAllHasMany() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            // Plain request
+            do {
+                let request = D
+                    .joining(optional: D
+                        .belongsTo(C.self)
+                        .joining(optional: C
+                            .belongsTo(A.self)
+                            .including(all: A
+                                .hasMany(B.self)
+                                .orderByPrimaryKey())))
+                    .orderByPrimaryKey()
+                    .filter(Column("cold2") != 8)
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                // LEFT JOIN in the first query are useless but harmless.
+                // And SQLite may well optimize them out.
+                // So don't bother removing them.
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT "d".* \
+                    FROM "d" \
+                    LEFT JOIN "c" ON "c"."colc1" = "d"."cold2" \
+                    LEFT JOIN "a" ON "a"."cola1" = "c"."colc2" \
+                    WHERE "d"."cold2" <> 8 \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "b".*, "c"."colc1" AS "grdb_colc1" \
+                    FROM "b" \
+                    JOIN "a" ON "a"."cola1" = "b"."colb2" \
+                    JOIN "c" ON ("c"."colc2" = "a"."cola1") AND ("c"."colc1" IN (7, 9)) \
+                    ORDER BY "b"."colb1"
+                    """])
+            }
+        }
+    }
+    
+    func testJoiningOptionalHasOneThroughIncludingAllHasMany() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            // Plain request
+            do {
+                let request = D
+                    .joining(optional: D
+                        .hasOne(A.self, through: D.belongsTo(C.self), using: C.belongsTo(A.self))
+                        .including(all: A
+                            .hasMany(B.self)
+                            .orderByPrimaryKey()))
+                    .orderByPrimaryKey()
+                    .filter(Column("cold2") != 8)
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") }
+                // LEFT JOIN in the first query are useless but harmless.
+                // And SQLite may well optimize them out.
+                // So don't bother removing them.
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT "d".* \
+                    FROM "d" \
+                    LEFT JOIN "c" ON "c"."colc1" = "d"."cold2" \
+                    LEFT JOIN "a" ON "a"."cola1" = "c"."colc2" \
+                    WHERE "d"."cold2" <> 8 \
+                    ORDER BY "d"."cold1"
+                    """,
+                    """
+                    SELECT "b".*, "c"."colc1" AS "grdb_colc1" \
+                    FROM "b" \
+                    JOIN "a" ON "a"."cola1" = "b"."colb2" \
+                    JOIN "c" ON ("c"."colc2" = "a"."cola1") AND ("c"."colc1" IN (7, 9)) \
+                    ORDER BY "b"."colb1"
                     """])
             }
         }
