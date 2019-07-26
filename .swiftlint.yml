@@ -10,7 +10,6 @@ disabled_rules:
   - function_parameter_count
   - identifier_name
   - is_disjoint
-  - large_tuple
   - nesting
   - opening_brace
   - redundant_optional_initialization
@@ -48,6 +47,7 @@ opt_in_rules:
   - redundant_type_annotation
   - sorted_first_last
   - toggle_bool
+  - unused_declaration
   - unused_import
   - unused_private_declaration
   - yoda_condition
