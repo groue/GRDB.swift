@@ -463,7 +463,9 @@ extension Row {
     @inlinable
     public subscript<Value, Column>(_ column: Column)
         -> Value
-        where Value: DatabaseValueConvertible & StatementColumnConvertible, Column: ColumnExpression
+        where
+        Value: DatabaseValueConvertible & StatementColumnConvertible,
+        Column: ColumnExpression
     {
         return self[column.name]
     }

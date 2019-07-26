@@ -152,14 +152,14 @@ public struct FTS5: VirtualTableModule {
             
             try db.execute(sql: """
                 CREATE TRIGGER \("__\(tableName)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
-                INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
+                    INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
                 END;
                 CREATE TRIGGER \("__\(tableName)_ad".quotedDatabaseIdentifier) AFTER DELETE ON \(content) BEGIN
-                INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns));
+                    INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns));
                 END;
                 CREATE TRIGGER \("__\(tableName)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN
-                INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns));
-                INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
+                    INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns));
+                    INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
                 END;
                 """)
             

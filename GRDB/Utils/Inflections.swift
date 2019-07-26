@@ -186,10 +186,10 @@ public struct Inflections {
             return string
         }
         return """
-        \(string.prefix(upTo: indexOfLastWord))\
-        \(inflectWord(lastWord, with: rules))\
-        \(string.suffix(from: endIndexOfDigitlessRadical))
-        """
+            \(string.prefix(upTo: indexOfLastWord))\
+            \(inflectWord(lastWord, with: rules))\
+            \(string.suffix(from: endIndexOfDigitlessRadical))
+            """
     }
     
     private func inflectWord(_ string: String, with rules: [(NSRegularExpression, String)]) -> String {

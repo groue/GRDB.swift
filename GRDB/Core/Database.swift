@@ -53,7 +53,7 @@ public final class Database {
             if logError != nil {
                 registerErrorLogCallback { (_, code, message) in
                     guard let logError = Database.logError else { return }
-                    guard let message = message.map({ String(cString: $0) }) else { return }
+                    guard let message = message.map(String.init) else { return }
                     let resultCode = ResultCode(rawValue: code)
                     logError(resultCode, message)
                 }
@@ -278,7 +278,7 @@ extension Database {
     private func setupTrace_v1() {
         let dbPointer = Unmanaged.passUnretained(self).toOpaque()
         sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
-            guard let sql = sql.map({ String(cString: $0) }) else { return }
+            guard let sql = sql.map(String.init) else { return }
             let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
             db.configuration.trace!(sql)
         }, dbPointer)
@@ -891,7 +891,7 @@ extension Database {
             throw DatabaseError(resultCode: dbDest.lastErrorCode, message: dbDest.lastErrorMessage)
         }
         guard Int(bitPattern: backup) != Int(SQLITE_ERROR) else {
-            throw DatabaseError(resultCode: .SQLITE_ERROR)
+            throw DatabaseError()
         }
         
         afterBackupInit?()

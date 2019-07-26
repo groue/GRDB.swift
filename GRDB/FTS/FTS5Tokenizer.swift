@@ -152,7 +152,7 @@ extension Database {
         
         init(xTokenizer: fts5_tokenizer, contextPointer: UnsafeMutableRawPointer?, arguments: [String]) throws {
             guard let xCreate = xTokenizer.xCreate else {
-                throw DatabaseError(resultCode: .SQLITE_ERROR, message: "nil fts5_tokenizer.xCreate")
+                throw DatabaseError(message: "nil fts5_tokenizer.xCreate")
             }
             
             self.xTokenizer = xTokenizer

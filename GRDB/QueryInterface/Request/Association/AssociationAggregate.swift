@@ -1,6 +1,6 @@
 import Foundation
 
-public typealias AssociationAggregatePreparation<RowDecoder> =
+typealias AssociationAggregatePreparation<RowDecoder> =
     (QueryInterfaceRequest<RowDecoder>)
     -> (request: QueryInterfaceRequest<RowDecoder>, expression: SQLExpression)
 

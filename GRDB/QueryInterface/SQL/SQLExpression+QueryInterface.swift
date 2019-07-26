@@ -247,10 +247,10 @@ public struct SQLExpressionBinary: SQLExpression {
             return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
         return """
-        \(lhs.expressionSQL(&context, wrappedInParenthesis: true)) \
-        \(op.sql) \
-        \(rhs.expressionSQL(&context, wrappedInParenthesis: true))
-        """
+            \(lhs.expressionSQL(&context, wrappedInParenthesis: true)) \
+            \(op.sql) \
+            \(rhs.expressionSQL(&context, wrappedInParenthesis: true))
+            """
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -388,10 +388,10 @@ struct SQLExpressionEqual: SQLExpression {
             return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
         return """
-        \(lhs.expressionSQL(&context, wrappedInParenthesis: true)) \
-        \(op.rawValue) \
-        \(rhs.expressionSQL(&context, wrappedInParenthesis: true))
-        """
+            \(lhs.expressionSQL(&context, wrappedInParenthesis: true)) \
+            \(op.rawValue) \
+            \(rhs.expressionSQL(&context, wrappedInParenthesis: true))
+            """
     }
     
     var negated: SQLExpression {
@@ -459,10 +459,10 @@ struct SQLExpressionContains: SQLExpression {
             return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
         return """
-        \(expression.expressionSQL(&context, wrappedInParenthesis: true)) \
-        \(isNegated ? "NOT IN" : "IN") \
-        (\(collection.collectionSQL(&context)))
-        """
+            \(expression.expressionSQL(&context, wrappedInParenthesis: true)) \
+            \(isNegated ? "NOT IN" : "IN") \
+            (\(collection.collectionSQL(&context)))
+            """
     }
     
     var negated: SQLExpression {
@@ -527,12 +527,12 @@ struct SQLExpressionBetween: SQLExpression {
             return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
         return """
-        \(expression.expressionSQL(&context, wrappedInParenthesis: true)) \
-        \(isNegated ? "NOT BETWEEN" : "BETWEEN") \
-        \(lowerBound.expressionSQL(&context, wrappedInParenthesis: true)) \
-        AND \
-        \(upperBound.expressionSQL(&context, wrappedInParenthesis: true))
-        """
+            \(expression.expressionSQL(&context, wrappedInParenthesis: true)) \
+            \(isNegated ? "NOT BETWEEN" : "BETWEEN") \
+            \(lowerBound.expressionSQL(&context, wrappedInParenthesis: true)) \
+            AND \
+            \(upperBound.expressionSQL(&context, wrappedInParenthesis: true))
+            """
     }
     
     var negated: SQLExpression {
@@ -701,9 +701,9 @@ struct SQLExpressionIsEmpty: SQLExpression {
             return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
         return """
-        \(countExpression.expressionSQL(&context, wrappedInParenthesis: true)) \
-        \(isEmpty ? "= 0" : "> 0")
-        """
+            \(countExpression.expressionSQL(&context, wrappedInParenthesis: true)) \
+            \(isEmpty ? "= 0" : "> 0")
+            """
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
@@ -722,10 +722,10 @@ struct TableMatchExpression: SQLExpression {
             return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
         return """
-        \(context.resolvedName(for: alias).quotedDatabaseIdentifier) \
-        MATCH \
-        \(pattern.expressionSQL(&context, wrappedInParenthesis: true))
-        """
+            \(context.resolvedName(for: alias).quotedDatabaseIdentifier) \
+            MATCH \
+            \(pattern.expressionSQL(&context, wrappedInParenthesis: true))
+            """
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
@@ -754,12 +754,11 @@ struct SQLExpressionCollate: SQLExpression {
         if wrappedInParenthesis {
             return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
-        let sql = expression.expressionSQL(&context, wrappedInParenthesis: false)
         return """
-        \(sql) \
-        COLLATE \
-        \(collationName.rawValue)
-        """
+            \(expression.expressionSQL(&context, wrappedInParenthesis: false)) \
+            COLLATE \
+            \(collationName.rawValue)
+            """
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {

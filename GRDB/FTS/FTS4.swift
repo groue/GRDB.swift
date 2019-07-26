@@ -115,16 +115,16 @@ public struct FTS4: VirtualTableModule {
             
             try db.execute(sql: """
                 CREATE TRIGGER \("__\(tableName)_bu".quotedDatabaseIdentifier) BEFORE UPDATE ON \(content) BEGIN
-                DELETE FROM \(ftsTable) WHERE docid=\(oldRowID);
+                    DELETE FROM \(ftsTable) WHERE docid=\(oldRowID);
                 END;
                 CREATE TRIGGER \("__\(tableName)_bd".quotedDatabaseIdentifier) BEFORE DELETE ON \(content) BEGIN
-                DELETE FROM \(ftsTable) WHERE docid=\(oldRowID);
+                    DELETE FROM \(ftsTable) WHERE docid=\(oldRowID);
                 END;
                 CREATE TRIGGER \("__\(tableName)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN
-                INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns));
+                    INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns));
                 END;
                 CREATE TRIGGER \("__\(tableName)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
-                INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns));
+                    INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns));
                 END;
                 """)
             

@@ -249,8 +249,7 @@ extension StatementProtocol where Self: Statement {
                 throw DatabaseError(
                     resultCode: .SQLITE_ERROR,
                     message: "empty statement",
-                    sql: sql,
-                    arguments: nil)
+                    sql: sql)
             }
             
             let remainingSQL = String(cString: statementEnd!).trimmingCharacters(in: .sqlStatementSeparators)
@@ -261,8 +260,7 @@ extension StatementProtocol where Self: Statement {
                         Multiple statements found. To execute multiple statements, \
                         use Database.execute(sql:) instead.
                         """,
-                    sql: sql,
-                    arguments: nil)
+                    sql: sql)
             }
             
             return statement
@@ -886,8 +884,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
                     throw DatabaseError(
                         resultCode: .SQLITE_MISUSE,
                         message: "missing statement argument: \(argumentName)",
-                        sql: statement.sql,
-                        arguments: nil)
+                        sql: statement.sql)
                 } else {
                     return values.removeFirst()
                 }
@@ -896,8 +893,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
                     throw DatabaseError(
                         resultCode: .SQLITE_MISUSE,
                         message: "wrong number of statement arguments: \(initialValuesCount)",
-                        sql: statement.sql,
-                        arguments: nil)
+                        sql: statement.sql)
                 } else {
                     return values.removeFirst()
                 }
@@ -907,8 +903,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
             throw DatabaseError(
                 resultCode: .SQLITE_MISUSE,
                 message: "wrong number of statement arguments: \(initialValuesCount)",
-                sql: statement.sql,
-                arguments: nil)
+                sql: statement.sql)
         }
         return bindings
     }

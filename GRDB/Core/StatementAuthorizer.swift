@@ -50,7 +50,7 @@ final class StatementCompilationAuthorizer: StatementAuthorizer {
          // print("""
          //    StatementCompilationAuthorizer: \
          //    \(actionCode) \
-         //    \([cString1, cString2, cString3, cString4].compactMap { $0.map({ String(cString: $0) }) })
+         //    \([cString1, cString2, cString3, cString4].compactMap { $0.map(String.init) })
          //    """)
         
         switch actionCode {
@@ -71,8 +71,8 @@ final class StatementCompilationAuthorizer: StatementAuthorizer {
             return SQLITE_OK
             
         case SQLITE_READ:
-            guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
-            guard let columnName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
+            guard let tableName = cString1.map(String.init) else { return SQLITE_OK }
+            guard let columnName = cString2.map(String.init) else { return SQLITE_OK }
             if columnName.isEmpty {
                 // SELECT COUNT(*) FROM table
                 databaseRegion.formUnion(DatabaseRegion(table: tableName))
@@ -83,7 +83,7 @@ final class StatementCompilationAuthorizer: StatementAuthorizer {
             return SQLITE_OK
             
         case SQLITE_INSERT:
-            guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
+            guard let tableName = cString1.map(String.init) else { return SQLITE_OK }
             databaseEventKinds.append(.insert(tableName: tableName))
             return SQLITE_OK
             
@@ -104,8 +104,8 @@ final class StatementCompilationAuthorizer: StatementAuthorizer {
             return SQLITE_IGNORE
             
         case SQLITE_UPDATE:
-            guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
-            guard let columnName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
+            guard let tableName = cString1.map(String.init) else { return SQLITE_OK }
+            guard let columnName = cString2.map(String.init) else { return SQLITE_OK }
             insertUpdateEventKind(tableName: tableName, columnName: columnName)
             return SQLITE_OK
             
@@ -122,7 +122,7 @@ final class StatementCompilationAuthorizer: StatementAuthorizer {
             
         case SQLITE_SAVEPOINT:
             guard let cString1 = cString1 else { return SQLITE_OK }
-            guard let name = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
+            guard let name = cString2.map(String.init) else { return SQLITE_OK }
             if strcmp(cString1, "BEGIN") == 0 {
                 transactionEffect = .beginSavepoint(name)
             } else if strcmp(cString1, "RELEASE") == 0 {
@@ -184,7 +184,7 @@ final class TruncateOptimizationBlocker: StatementAuthorizer {
         // print("""
         //    TruncateOptimizationBlocker: \
         //    \(actionCode) \
-        //    \([cString1, cString2, cString3, cString4].compactMap { $0.map({ String(cString: $0) }) })
+        //    \([cString1, cString2, cString3, cString4].compactMap { $0.map(String.init) })
         //    """)
         return (actionCode == SQLITE_DELETE) ? SQLITE_IGNORE : SQLITE_OK
     }
