@@ -54,7 +54,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 ## Next Release
 
+- [#560](https://github.com/groue/GRDB.swift/pull/560) by [@bellebethcooper](https://github.com/bellebethcooper): Minor typo fix
 - [#562](https://github.com/groue/GRDB.swift/pull/562): Fix crash when using more than one DatabaseCollation
+- [#563](https://github.com/groue/GRDB.swift/pull/563): More tests for eager loading of hasMany associations
 - [#574](https://github.com/groue/GRDB.swift/pull/574): SwiftLint
 
 
