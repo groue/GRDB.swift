@@ -58,7 +58,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#562](https://github.com/groue/GRDB.swift/pull/562): Fix crash when using more than one DatabaseCollation
 - [#563](https://github.com/groue/GRDB.swift/pull/563): More tests for eager loading of hasMany associations
 - [#574](https://github.com/groue/GRDB.swift/pull/574): SwiftLint
-- [#577](https://github.com/groue/GRDB.swift/pull/577): Rename aliased(_:) methods to forKey(_:)
+- [#577](https://github.com/groue/GRDB.swift/pull/577): Rename `aliased(_:)` methods to `forKey(_:)`
 
 ### API Diff
 
