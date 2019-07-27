@@ -63,6 +63,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 ### API Diff
 
 ```diff
+-protocol DerivableRequest: FilteredRequest, JoinableRequest, OrderedRequest, SelectionRequest { }
++protocol DerivableRequest: FilteredRequest, JoinableRequest, OrderedRequest, SelectionRequest, TableRequest { }
+
 -extension QueryInterfaceRequest {
 -    func matching(_ pattern: FTS3Pattern?) -> QueryInterfaceRequest<T>
 -}
