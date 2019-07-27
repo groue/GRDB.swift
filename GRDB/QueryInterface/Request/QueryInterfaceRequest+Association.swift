@@ -4,8 +4,8 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     
     private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest {
         let (request, expression) = aggregate.prepare(self)
-        if let alias = aggregate.alias {
-            return request.annotated(with: [expression.aliased(alias)])
+        if let key = aggregate.key {
+            return request.annotated(with: [expression.forKey(key)])
         } else {
             return request.annotated(with: [expression])
         }

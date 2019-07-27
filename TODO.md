@@ -69,7 +69,6 @@
 
     Make it possible to build a single observation where some requests depend on the result of other requests. As long as we can't express this in a single observation, we fail the "guaranteed consistency is possible" contract.
 - [ ] rename fetchOne to fetchFirst
-- [ ] Rename aliased() to forKey() when relevant
 - [ ] new.updateChanges(from: old) vs. old.updateChanges(with: { old.a = new.a }). This is confusing.
 
 Swift 4.2

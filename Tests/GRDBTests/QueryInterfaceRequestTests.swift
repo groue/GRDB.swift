@@ -122,7 +122,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(try tableRequest.select(Col.age * 2).distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
             
-            XCTAssertEqual(try tableRequest.select((Col.age * 2).aliased("ignored")).distinct().fetchCount(db), 0)
+            XCTAssertEqual(try tableRequest.select((Col.age * 2).forKey("ignored")).distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
             
             XCTAssertEqual(try tableRequest.select(Col.name, Col.age).fetchCount(db), 0)
@@ -229,12 +229,12 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         }
     }
 
-    func testSelectAliased() throws {
+    func testSelectionCustomKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
             
-            let request = tableRequest.select(Col.name.aliased("nom"), (Col.age + 1).aliased("agePlusOne"))
+            let request = tableRequest.select(Col.name.forKey("nom"), (Col.age + 1).forKey("agePlusOne"))
             let row = try Row.fetchOne(db, request)!
             XCTAssertEqual(lastSQLQuery, "SELECT \"name\" AS \"nom\", \"age\" + 1 AS \"agePlusOne\" FROM \"readers\" LIMIT 1")
             XCTAssertEqual(row["nom"] as String, "Arthur")
