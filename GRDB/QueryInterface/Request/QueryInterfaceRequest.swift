@@ -101,7 +101,7 @@ extension QueryInterfaceRequest: FetchRequest {
             let prefetchedRelation = association
                 .mapPivotRelation { $0.qualified(with: pivotAlias) }
                 .destinationRelation(fromOriginRows: { _ in [] /* no origin row */ })
-                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].aliased("grdb_\($0)") })
+                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].forKey("grdb_\($0)") })
             let prefetchedQuery = SQLQuery(relation: prefetchedRelation)
             
             // Union region
@@ -529,7 +529,7 @@ private func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [
             let prefetchedRelation = association
                 .mapPivotRelation { $0.qualified(with: pivotAlias) }
                 .destinationRelation(fromOriginRows: { _ in rows })
-                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].aliased("grdb_\($0)") })
+                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].forKey("grdb_\($0)") })
             prefetchedRows = try QueryInterfaceRequest(relation: prefetchedRelation)
                 .fetchAll(db)
                 .grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
