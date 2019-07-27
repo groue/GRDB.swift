@@ -60,6 +60,44 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#574](https://github.com/groue/GRDB.swift/pull/574): SwiftLint
 - [#576](https://github.com/groue/GRDB.swift/pull/576): Expose table name and full-text filtering methods to DerivableRequest
 
+### API Diff
+
+```diff
+-extension QueryInterfaceRequest {
+-    func matching(_ pattern: FTS3Pattern?) -> QueryInterfaceRequest<T>
+-}
+-extension QueryInterfaceRequest {
+-    func matching(_ pattern: FTS5Pattern?) -> QueryInterfaceRequest<T>
+-}
++extension TableRequest where Self: FilteredRequest {
++    func matching(_ pattern: FTS3Pattern?) -> Self
++}
++extension TableRequest where Self: FilteredRequest {
++    func matching(_ pattern: FTS5Pattern?) -> Self
++}
+ 
+ protocol Association: DerivableRequest {
+-    associatedtype OriginRowDecoder
++    associatedtype OriginRowDecoder: TableRecord
+ }
+
+-struct BelongsToAssociation<Origin, Destination>: AssociationToOne { }
+-struct HasManyAssociation<Origin, Destination>: AssociationToMany { }
+-struct HasManyThroughAssociation<Origin, Destination>: AssociationToMany { }
+-struct HasOneAssociation<Origin, Destination>: AssociationToOne { }
+-struct HasOneThroughAssociation<Origin, Destination>: AssociationToOne { }
++struct BelongsToAssociation<Origin: TableRecord, Destination: TableRecord>: AssociationToOne { }
++struct HasManyAssociation<Origin: TableRecord, Destination: TableRecord>: AssociationToMany { }
++struct HasManyThroughAssociation<Origin: TableRecord, Destination: TableRecord>: AssociationToMany { }
++struct HasOneAssociation<Origin: TableRecord, Destination: TableRecord>: AssociationToOne { }
++struct HasOneThroughAssociation<Origin: TableRecord, Destination: TableRecord>: AssociationToOne { }
+
+-struct QueryInterfaceRequest<T>: DerivableRequest { }
++struct QueryInterfaceRequest<T>: FilteredRequest, JoinableRequest, OrderedRequest, SelectionRequest { }
++extension QueryInterfaceRequest: TableRequest where RowDecoder: TableRecord { }
++extension QueryInterfaceRequest: DerivableRequest where RowDecoder: TableRecord { }
+```
+
 
 ## 4.1.1
 
