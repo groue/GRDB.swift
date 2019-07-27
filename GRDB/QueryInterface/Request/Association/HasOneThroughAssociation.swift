@@ -21,7 +21,7 @@
 /// two other associations: the `through:` and `using:` arguments. Those
 /// associations can be any other association to one (BelongsTo, HasOne,
 /// HasOneThrough).
-public struct HasOneThroughAssociation<Origin, Destination>: AssociationToOne {
+public struct HasOneThroughAssociation<Origin: TableRecord, Destination: TableRecord>: AssociationToOne {
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
     
@@ -36,6 +36,3 @@ public struct HasOneThroughAssociation<Origin, Destination>: AssociationToOne {
         self.sqlAssociation = sqlAssociation
     }
 }
-
-// Allow HasOneThroughAssociation(...).filter(key: ...)
-extension HasOneThroughAssociation: TableRequest where Destination: TableRecord { }

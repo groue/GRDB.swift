@@ -58,7 +58,7 @@
 ///     }
 ///
 /// See ForeignKey for more information.
-public struct BelongsToAssociation<Origin, Destination>: AssociationToOne {
+public struct BelongsToAssociation<Origin: TableRecord, Destination: TableRecord>: AssociationToOne {
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
     
@@ -73,6 +73,3 @@ public struct BelongsToAssociation<Origin, Destination>: AssociationToOne {
         self.sqlAssociation = sqlAssociation
     }
 }
-
-// Allow BelongsToAssociation(...).filter(key: ...)
-extension BelongsToAssociation: TableRequest where Destination: TableRecord { }

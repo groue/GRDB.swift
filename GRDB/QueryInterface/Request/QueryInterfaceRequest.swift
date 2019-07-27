@@ -28,7 +28,7 @@
 ///     }
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public struct QueryInterfaceRequest<T>: DerivableRequest {
+public struct QueryInterfaceRequest<T> {
     var query: SQLQuery
     
     init(query: SQLQuery) {
@@ -310,7 +310,7 @@ extension QueryInterfaceRequest: AggregatingRequest {
     }
 }
 
-extension QueryInterfaceRequest: JoinableRequest {
+extension QueryInterfaceRequest: _JoinableRequest {
     /// :nodoc:
     public func _including(all association: SQLAssociation) -> QueryInterfaceRequest {
         return mapQuery { $0._including(all: association) }
@@ -336,6 +336,8 @@ extension QueryInterfaceRequest: JoinableRequest {
         return mapQuery { $0._joining(required: association) }
     }
 }
+
+extension QueryInterfaceRequest: JoinableRequest where RowDecoder: TableRecord { }
 
 extension QueryInterfaceRequest {
     
@@ -471,6 +473,9 @@ extension QueryInterfaceRequest: TableRequest {
         }
     }
 }
+
+// TODO: remove this explicit conformance when Swift is able to infer it.
+extension QueryInterfaceRequest: DerivableRequest where RowDecoder: TableRecord { }
 
 extension QueryInterfaceRequest where T: MutablePersistableRecord {
     
