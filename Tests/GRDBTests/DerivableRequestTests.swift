@@ -41,10 +41,10 @@ private struct Book: FetchableRecord, PersistableRecord, Codable {
     }
 }
 
-private struct BookFts4: FetchableRecord, TableRecord, Decodable { }
+private struct BookFts4: TableRecord { }
 
 #if SQLITE_ENABLE_FTS5
-private struct BookFts5: FetchableRecord, TableRecord, Decodable { }
+private struct BookFts5: TableRecord { }
 #endif
 
 private var libraryMigrator: DatabaseMigrator = {
