@@ -4,7 +4,7 @@
 ///     try db.create(virtualTable: "document", using: FTS3()) { t in
 ///         t.column("content")
 ///     }
-public struct FTS3 : VirtualTableModule {
+public struct FTS3: VirtualTableModule {
     /// Options for Latin script characters. Matches the raw "remove_diacritics"
     /// tokenizer argument.
     ///
@@ -55,7 +55,10 @@ public struct FTS3 : VirtualTableModule {
             if tokenizer.arguments.isEmpty {
                 arguments.append("tokenize=\(tokenizer.name)")
             } else {
-                arguments.append("tokenize=\(tokenizer.name) " + tokenizer.arguments.map { "\"\($0)\"" as String }.joined(separator: " "))
+                arguments.append(
+                    "tokenize=\(tokenizer.name) " + tokenizer.arguments
+                        .map { "\"\($0)\"" as String }
+                        .joined(separator: " "))
             }
         }
         return arguments

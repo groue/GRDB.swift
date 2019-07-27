@@ -52,7 +52,11 @@ extension TableRecord {
     ///
     ///     // SELECT id, email FROM player
     ///     let request = Player.select(sql: "id, email")
-    public static func select(sql: String, arguments: StatementArguments = StatementArguments()) -> QueryInterfaceRequest<Self> {
+    public static func select(
+        sql: String,
+        arguments: StatementArguments = StatementArguments())
+        -> QueryInterfaceRequest<Self>
+    {
         return select(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
@@ -72,7 +76,11 @@ extension TableRecord {
     ///         let request = Player.select([max(Column("score"))], as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public static func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+    public static func select<RowDecoder>(
+        _ selection: [SQLSelectable],
+        as type: RowDecoder.Type)
+        -> QueryInterfaceRequest<RowDecoder>
+    {
         return all().select(selection, as: type)
     }
     
@@ -84,7 +92,11 @@ extension TableRecord {
     ///         let request = Player.select(max(Column("score")), as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public static func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+    public static func select<RowDecoder>(
+        _ selection: SQLSelectable...,
+        as type: RowDecoder.Type)
+        -> QueryInterfaceRequest<RowDecoder>
+    {
         return all().select(selection, as: type)
     }
     
@@ -96,7 +108,12 @@ extension TableRecord {
     ///         let request = Player.select(sql: "max(score)", as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public static func select<RowDecoder>(sql: String, arguments: StatementArguments = StatementArguments(), as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+    public static func select<RowDecoder>(
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        as type: RowDecoder.Type)
+        -> QueryInterfaceRequest<RowDecoder>
+    {
         return all().select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
     }
     
@@ -108,7 +125,11 @@ extension TableRecord {
     ///         let request = Player.select(literal: SQLLiteral(sql: "max(score)"), as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public static func select<RowDecoder>(literal sqlLiteral: SQLLiteral, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+    public static func select<RowDecoder>(
+        literal sqlLiteral: SQLLiteral,
+        as type: RowDecoder.Type)
+        -> QueryInterfaceRequest<RowDecoder>
+    {
         return all().select(literal: sqlLiteral, as: type)
     }
     
@@ -152,7 +173,10 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType?) -> QueryInterfaceRequest<Self> {
+    public static func filter<PrimaryKeyType>(key: PrimaryKeyType?)
+        -> QueryInterfaceRequest<Self>
+        where PrimaryKeyType: DatabaseValueConvertible
+    {
         return all().filter(key: key)
     }
     
@@ -164,7 +188,10 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func filter<Sequence: Swift.Sequence>(keys: Sequence) -> QueryInterfaceRequest<Self> where Sequence.Element: DatabaseValueConvertible {
+    public static func filter<Sequence>(keys: Sequence)
+        -> QueryInterfaceRequest<Self>
+        where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
+    {
         return all().filter(keys: keys)
     }
     
@@ -206,7 +233,11 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> QueryInterfaceRequest<Self> {
+    public static func filter(
+        sql: String,
+        arguments: StatementArguments = StatementArguments())
+        -> QueryInterfaceRequest<Self>
+    {
         return filter(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
@@ -277,7 +308,11 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func order(sql: String, arguments: StatementArguments = StatementArguments()) -> QueryInterfaceRequest<Self> {
+    public static func order(
+        sql: String,
+        arguments: StatementArguments = StatementArguments())
+        -> QueryInterfaceRequest<Self>
+    {
         return all().order(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     

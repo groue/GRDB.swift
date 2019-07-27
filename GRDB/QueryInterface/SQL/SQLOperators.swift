@@ -3,14 +3,14 @@
 // Outputs "x = y" or "x IS NULL"
 private func isEqual(_ lhs: SQLExpression, _ rhs: SQLExpression) -> SQLExpression {
     switch (lhs, rhs) {
-    case (let lhs, let rhs as DatabaseValue):
+    case let (lhs, rhs as DatabaseValue):
         switch rhs.storage {
         case .null:
             return SQLExpressionEqual(.is, lhs, rhs)
         default:
             return SQLExpressionEqual(.equal, lhs, rhs)
         }
-    case (let lhs as DatabaseValue, let rhs):
+    case let (lhs as DatabaseValue, rhs):
         switch lhs.storage {
         case .null:
             return SQLExpressionEqual(.is, rhs, lhs)

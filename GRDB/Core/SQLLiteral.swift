@@ -1,4 +1,5 @@
-/// SQLLiteral is a type which support [SQL Interpolation](https://github.com/groue/GRDB.swift/blob/master/Documentation/SQLInterpolation.md).
+/// SQLLiteral is a type which support [SQL
+/// Interpolation](https://github.com/groue/GRDB.swift/blob/master/Documentation/SQLInterpolation.md).
 ///
 /// For example:
 ///
@@ -9,8 +10,8 @@
 ///         try db.execute(literal: query)
 ///     }
 public struct SQLLiteral {
-    private(set) public var sql: String
-    private(set) public var arguments: StatementArguments
+    public private(set) var sql: String
+    public private(set) var arguments: StatementArguments
     
     /// Creates an SQLLiteral from a plain SQL string, and eventual arguments.
     ///
@@ -63,7 +64,7 @@ extension SQLLiteral {
     public mutating func append(literal sqlLiteral: SQLLiteral) {
         self += sqlLiteral
     }
-
+    
     /// Appends a plain SQL string to the receiver, and eventual arguments.
     ///
     ///     let name = "O'Brien"

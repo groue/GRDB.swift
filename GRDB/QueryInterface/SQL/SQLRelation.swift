@@ -1,4 +1,5 @@
-/// A "relation", as defined by the [relational terminology](https://en.wikipedia.org/wiki/Relational_database#Terminology),
+/// A "relation", as defined by the [relational
+/// terminology](https://en.wikipedia.org/wiki/Relational_database#Terminology),
 /// is "a set of tuples sharing the same attributes; a set of columns and rows."
 ///
 /// SQLRelation is defined with a selection, a source table of query, and an
@@ -200,7 +201,7 @@ extension SQLRelation {
         relation.selection.append(contentsOf: selection)
         return relation
     }
-
+    
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLRelation {
         var relation = self
         relation.filtersPromise = relation.filtersPromise.flatMap { filters in
@@ -277,10 +278,10 @@ extension SQLRelation {
     /// as HasManyThrough, which have any number of pivot relations between the
     /// origin and the destination.
     func appendingChild(for association: SQLAssociation, kind: SQLRelation.Child.Kind) -> SQLRelation {
+        // Preserve association cardinality in intermediate steps of
+        // including(all:), and force desired cardinality otherwize
         let childCardinality = (kind == .allNotPrefetched)
-            // preserve association cardinality in intermediate steps of including(all:)
             ? association.destination.cardinality
-            // force desired cardinality otherwize
             : kind.cardinality
         let childKey = association.destination.key.name(for: childCardinality)
         let child = SQLRelation.Child(
@@ -347,7 +348,10 @@ extension SQLRelation {
         if let existingChild = relation.children.removeValue(forKey: key) {
             guard let mergedChild = existingChild.merged(with: child) else {
                 // can't merge
-                fatalError("The association key \"\(key)\" is ambiguous. Use the Association.forKey(_:) method is order to disambiguate.")
+                fatalError("""
+                    The association key \"\(key)\" is ambiguous. \
+                    Use the Association.forKey(_:) method is order to disambiguate.
+                    """)
             }
             relation.children.appendValue(mergedChild, forKey: key)
         } else {
@@ -387,7 +391,7 @@ enum SQLSource {
     
     func qualified(with alias: TableAlias) -> SQLSource {
         switch self {
-        case .table(let tableName, let sourceAlias):
+        case let .table(tableName, sourceAlias):
             if let sourceAlias = sourceAlias {
                 alias.becomeProxy(of: sourceAlias)
                 return self
@@ -395,7 +399,7 @@ enum SQLSource {
                 alias.setTableName(tableName)
                 return .table(tableName: tableName, alias: alias)
             }
-        case .query(let query):
+        case let .query(query):
             return .query(query.qualified(with: alias))
         }
     }
@@ -774,7 +778,7 @@ extension SQLRelation.Child.Kind {
             //   .including(all: associationToDestinationThroughPivot)
             //   .including(all: associationToPivot)
             fatalError("Not implemented: merging a direct association and an indirect one with including(all:)")
-
+            
         case (.allNotPrefetched, .allNotPrefetched):
             // Equivalent to Record.including(all: association)
             //

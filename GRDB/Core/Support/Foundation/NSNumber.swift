@@ -1,10 +1,16 @@
 #if !os(Linux)
 import Foundation
 
-private let integerRoundingBehavior = NSDecimalNumberHandler(roundingMode: .plain, scale: 0, raiseOnExactness: false, raiseOnOverflow: false, raiseOnUnderflow: false, raiseOnDivideByZero: false)
+private let integerRoundingBehavior = NSDecimalNumberHandler(
+    roundingMode: .plain,
+    scale: 0,
+    raiseOnExactness: false,
+    raiseOnOverflow: false,
+    raiseOnUnderflow: false,
+    raiseOnDivideByZero: false)
 
 /// NSNumber adopts DatabaseValueConvertible
-extension NSNumber : DatabaseValueConvertible {
+extension NSNumber: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
@@ -34,13 +40,17 @@ extension NSNumber : DatabaseValueConvertible {
             return Int64(intValue).databaseValue
         case "L":
             let uint = uintValue
-            GRDBPrecondition(UInt64(uint) <= UInt64(Int64.max), "could not convert \(uint) to an Int64 that can be stored in the database")
+            GRDBPrecondition(
+                UInt64(uint) <= UInt64(Int64.max),
+                "could not convert \(uint) to an Int64 that can be stored in the database")
             return Int64(uint).databaseValue
         case "q":
             return Int64(int64Value).databaseValue
         case "Q":
             let uint64 = uint64Value
-            GRDBPrecondition(uint64 <= UInt64(Int64.max), "could not convert \(uint64) to an Int64 that can be stored in the database")
+            GRDBPrecondition(
+                uint64 <= UInt64(Int64.max),
+                "could not convert \(uint64) to an Int64 that can be stored in the database")
             return Int64(uint64).databaseValue
         case "f":
             return Double(floatValue).databaseValue

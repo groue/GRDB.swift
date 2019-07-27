@@ -2,7 +2,7 @@
 
 /// Record is a class that wraps a table row, or the result of any query. It is
 /// designed to be subclassed.
-open class Record : FetchableRecord, TableRecord, PersistableRecord {
+open class Record: FetchableRecord, TableRecord, PersistableRecord {
     
     // MARK: - Initializers
     
@@ -11,7 +11,7 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
     }
     
     /// Creates a Record from a row.
-    required public init(row: Row) {
+    public required init(row: Row) {
         if row.isFetched {
             // Take care of the hasDatabaseChanges flag.
             //
@@ -93,7 +93,7 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
         return [AllColumns()]
     }
     
-
+    
     /// Defines the values persisted in the database.
     ///
     /// Store in the *container* argument all values that should be stored in
@@ -216,7 +216,7 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
     /// Reference row for the *hasDatabaseChanges* property.
     var referenceRow: Row?
     
-
+    
     // MARK: - CRUD
     
     /// Executes an INSERT statement.
@@ -274,9 +274,13 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
         //
         // But this would trigger two calls to `encode(to:)`.
         let dao = try DAO(db, self)
-        guard let statement = try dao.updateStatement(columns: columns, onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate) else {
-            // Nil primary key
-            throw dao.makeRecordNotFoundError()
+        guard
+            let statement = try dao.updateStatement(
+                columns: columns,
+                onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate)
+            else {
+                // Nil primary key
+                throw dao.makeRecordNotFoundError()
         }
         try statement.execute()
         if db.changesCount == 0 {
@@ -302,7 +306,7 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database and record could not be updated.
     @discardableResult
-    final public func updateChanges(_ db: Database) throws -> Bool {
+    public final func updateChanges(_ db: Database) throws -> Bool {
         let changedColumns = Set(databaseChanges.keys)
         if changedColumns.isEmpty {
             return false
@@ -331,7 +335,7 @@ open class Record : FetchableRecord, TableRecord, PersistableRecord {
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError whenever an SQLite error occurs, or errors
     ///   thrown by update().
-    final public func save(_ db: Database) throws {
+    public final func save(_ db: Database) throws {
         try performSave(db)
     }
     

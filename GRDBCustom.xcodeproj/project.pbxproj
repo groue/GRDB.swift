@@ -1108,9 +1108,9 @@
 				5605F1501C672E4000235C62 /* NSNull.swift */,
 				5605F1511C672E4000235C62 /* NSNumber.swift */,
 				5605F1521C672E4000235C62 /* NSString.swift */,
+				567071F2208A00BE006AD95A /* SQLiteDateParser.swift */,
 				5657AB0E1D10899D006283EF /* URL.swift */,
 				56A8C22F1D1914540096E9D4 /* UUID.swift */,
-				567071F2208A00BE006AD95A /* SQLiteDateParser.swift */,
 			);
 			path = Foundation;
 			sourceTree = "<group>";
@@ -1877,6 +1877,7 @@
 				F3BA7FFA1CFB25E4003DC1BA /* Frameworks */,
 				F3BA7FFB1CFB25E4003DC1BA /* Headers */,
 				F3BA7FFC1CFB25E4003DC1BA /* Resources */,
+				56EB54FD22C9119B00850069 /* Swiftlint */,
 			);
 			buildRules = (
 			);
@@ -1915,6 +1916,7 @@
 				F3BA80561CFB2BB2003DC1BA /* Frameworks */,
 				F3BA80571CFB2BB2003DC1BA /* Headers */,
 				F3BA80581CFB2BB2003DC1BA /* Resources */,
+				56EB54FB22C9118600850069 /* Swiftlint */,
 			);
 			buildRules = (
 			);
@@ -1951,16 +1953,16 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0730;
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1030;
 				ORGANIZATIONNAME = "Gwendal Roué";
 				TargetAttributes = {
 					F3BA7FFD1CFB25E4003DC1BA = {
 						CreatedOnToolsVersion = 7.3.1;
-						LastSwiftMigration = 0830;
+						LastSwiftMigration = 1020;
 					};
 					F3BA80401CFB2AD7003DC1BA = {
 						CreatedOnToolsVersion = 7.3.1;
-						LastSwiftMigration = 0800;
+						LastSwiftMigration = 1020;
 					};
 					F3BA80591CFB2BB2003DC1BA = {
 						CreatedOnToolsVersion = 7.3.1;
@@ -2045,6 +2047,42 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		56EB54FB22C9118600850069 /* Swiftlint */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = Swiftlint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if which swiftlint >/dev/null; then\n  swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+		56EB54FD22C9119B00850069 /* Swiftlint */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = Swiftlint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if which swiftlint >/dev/null; then\n  swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
 		EED476F01CFD0B290026A4EC /* Copy .example configuration files (if no USER customizations exist) */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;

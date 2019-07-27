@@ -158,7 +158,7 @@ extension SQLSpecificExpressible {
     public var capitalized: SQLExpression {
         return DatabaseFunction.capitalize.apply(sqlExpression)
     }
-
+    
     /// Returns an SQL expression that applies the Swift's built-in
     /// lowercased String property. It is NULL for non-String arguments.
     ///
@@ -168,7 +168,7 @@ extension SQLSpecificExpressible {
     public var lowercased: SQLExpression {
         return DatabaseFunction.lowercase.apply(sqlExpression)
     }
-
+    
     /// Returns an SQL expression that applies the Swift's built-in
     /// uppercased String property. It is NULL for non-String arguments.
     ///

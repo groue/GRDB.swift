@@ -1,10 +1,10 @@
 #if SQLITE_ENABLE_FTS5
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 /// FTS5 lets you define "fts5" virtual tables.
@@ -15,7 +15,7 @@
 ///     }
 ///
 /// See https://www.sqlite.org/fts5.html
-public struct FTS5 : VirtualTableModule {
+public struct FTS5: VirtualTableModule {
     /// Options for Latin script characters. Matches the raw "remove_diacritics"
     /// tokenizer argument.
     ///
@@ -34,7 +34,7 @@ public struct FTS5 : VirtualTableModule {
         case remove
         #endif
     }
-
+    
     /// Creates a FTS5 module suitable for the Database
     /// `create(virtualTable:using:)` method.
     ///
@@ -75,30 +75,41 @@ public struct FTS5 : VirtualTableModule {
         }
         
         if let tokenizer = definition.tokenizer {
-            arguments.append("tokenize=\(tokenizer.components.joined(separator: " ").sqlExpression.quotedSQL(wrappedInParenthesis: false))")
+            let tokenizerSQL = tokenizer
+                .components
+                .joined(separator: " ")
+                .sqlExpression
+                .quotedSQL()
+            arguments.append("tokenize=\(tokenizerSQL)")
         }
         
         switch definition.contentMode {
-        case .raw(let content, let contentRowID):
+        case let .raw(content, contentRowID):
             if let content = content {
-                let quotedContent = content.sqlExpression.quotedSQL(wrappedInParenthesis: false)
+                let quotedContent = content.sqlExpression.quotedSQL()
                 arguments.append("content=\(quotedContent)")
             }
             if let contentRowID = contentRowID {
-                let quotedContentRowID = contentRowID.sqlExpression.quotedSQL(wrappedInParenthesis: false)
+                let quotedContentRowID = contentRowID.sqlExpression.quotedSQL()
                 arguments.append("content_rowid=\(quotedContentRowID)")
             }
-        case .synchronized(let contentTable):
-            arguments.append("content=\(contentTable.sqlExpression.quotedSQL(wrappedInParenthesis: false))")
+        case let .synchronized(contentTable):
+            arguments.append("content=\(contentTable.sqlExpression.quotedSQL())")
             if let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn {
-                let quotedRowID = rowIDColumn.sqlExpression.quotedSQL(wrappedInParenthesis: false)
+                let quotedRowID = rowIDColumn.sqlExpression.quotedSQL()
                 arguments.append("content_rowid=\(quotedRowID)")
             }
         }
         
         
         if let prefixes = definition.prefixes {
-            arguments.append("prefix=\(prefixes.sorted().map { "\($0)" }.joined(separator: " ").sqlExpression.quotedSQL(wrappedInParenthesis: false))")
+            let prefix = prefixes
+                .sorted()
+                .map { "\($0)" }
+                .joined(separator: " ")
+                .sqlExpression
+                .quotedSQL()
+            arguments.append("prefix=\(prefix)")
         }
         
         if let columnSize = definition.columnSize {
@@ -141,14 +152,14 @@ public struct FTS5 : VirtualTableModule {
             
             try db.execute(sql: """
                 CREATE TRIGGER \("__\(tableName)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
-                INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
+                    INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
                 END;
                 CREATE TRIGGER \("__\(tableName)_ad".quotedDatabaseIdentifier) AFTER DELETE ON \(content) BEGIN
-                INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns));
+                    INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns));
                 END;
                 CREATE TRIGGER \("__\(tableName)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN
-                INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns));
-                INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
+                    INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns));
+                    INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
                 END;
                 """)
             
@@ -190,7 +201,7 @@ public struct FTS5 : VirtualTableModule {
         }
         #if swift(>=5.0)
         return data.withUnsafeBytes {
-        $0.bindMemory(to: UnsafePointer<fts5_api>.self).first!
+            $0.bindMemory(to: UnsafePointer<fts5_api>.self).first!
         }
         #else
         return data.withUnsafeBytes {
@@ -203,7 +214,9 @@ public struct FTS5 : VirtualTableModule {
     // https://forums.swift.org/t/c-interoperability-combinations-of-library-and-os-versions/14029/4
     private static func api_v2(
         _ db: Database,
+        // swiftlint:disable:next line_length
         _ sqlite3_prepare_v3: @convention(c) (OpaquePointer?, UnsafePointer<Int8>?, Int32, UInt32, UnsafeMutablePointer<OpaquePointer?>?, UnsafeMutablePointer<UnsafePointer<Int8>?>?) -> Int32,
+        // swiftlint:disable:next line_length
         _ sqlite3_bind_pointer: @convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?, UnsafePointer<Int8>?, (@convention(c) (UnsafeMutableRawPointer?) -> Void)?) -> Int32)
         -> UnsafePointer<fts5_api>
     {

@@ -58,7 +58,7 @@ final class Pool<T> {
     
     /// Returns a tuple (element, release)
     /// Client MUST call release() after the element has been used.
-    func get() throws -> (T, () -> ()) {
+    func get() throws -> (T, () -> Void) {
         _ = semaphore.wait(timeout: .distantFuture)
         do {
             let item = try items.write { items -> Item in
@@ -97,7 +97,7 @@ final class Pool<T> {
     
     /// Performs a block on each pool element, available or not.
     /// The block is run is some arbitrary dispatch queue.
-    func forEach(_ body: (T) throws -> ()) rethrows {
+    func forEach(_ body: (T) throws -> Void) rethrows {
         try items.read { items in
             for item in items {
                 try body(item.element)
@@ -112,7 +112,7 @@ final class Pool<T> {
     
     /// Empty the pool. Currently used items won't be reused.
     /// Eventual block is executed before any other element is dequeued.
-    func clear(andThen block: () throws -> ()) rethrows {
+    func clear(andThen block: () throws -> Void) rethrows {
         try items.write { items in
             items.removeAll()
             try block()

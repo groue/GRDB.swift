@@ -51,6 +51,7 @@ extension Inflections {
         // become more complete. This is a safety measure to keep existing
         // applications from breaking.
         //
+        // swiftlint:disable:next line_length
         // https://github.com/rails/rails/blob/b2eb1d1c55a59fee1e6c4cba7030d8ceb524267c/activesupport/lib/active_support/inflections.rb
         var inflections = Inflections()
         

@@ -77,7 +77,10 @@ extension FetchableRecord where Self: TableRecord {
     ///     - keys: A sequence of primary keys.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> RecordCursor<Self> where Sequence.Element: DatabaseValueConvertible {
+    public static func fetchCursor<Sequence>(_ db: Database, keys: Sequence)
+        throws -> RecordCursor<Self>
+        where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
+    {
         return try filter(keys: keys).fetchCursor(db)
     }
     
@@ -92,7 +95,9 @@ extension FetchableRecord where Self: TableRecord {
     ///     - keys: A sequence of primary keys.
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll<Sequence: Swift.Sequence>(_ db: Database, keys: Sequence) throws -> [Self] where Sequence.Element: DatabaseValueConvertible {
+    public static func fetchAll<Sequence>(_ db: Database, keys: Sequence)
+        throws -> [Self]
+        where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible {
         let keys = Array(keys)
         if keys.isEmpty {
             // Avoid hitting the database
@@ -110,7 +115,10 @@ extension FetchableRecord where Self: TableRecord {
     ///     - key: A primary key value.
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne<PrimaryKeyType: DatabaseValueConvertible>(_ db: Database, key: PrimaryKeyType?) throws -> Self? {
+    public static func fetchOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType?)
+        throws -> Self?
+        where PrimaryKeyType: DatabaseValueConvertible
+    {
         guard let key = key else {
             // Avoid hitting the database
             return nil
@@ -126,7 +134,10 @@ extension FetchableRecord where Self: TableRecord {
     /// Returns a cursor over records identified by the provided unique keys
     /// (primary key or any key with a unique index on it).
     ///
-    ///     let players = try Player.fetchCursor(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]]) // Cursor of Player
+    ///     // Cursor of Player
+    ///     let players = try Player.fetchCursor(db, keys: [
+    ///         ["email": "a@example.com"],
+    ///         ["email": "b@example.com"]])
     ///     while let player = try players.next() { // Player
     ///         ...
     ///     }
@@ -138,14 +149,19 @@ extension FetchableRecord where Self: TableRecord {
     ///     - keys: An array of key dictionaries.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> RecordCursor<Self> {
+    public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]])
+        throws -> RecordCursor<Self>
+    {
         return try filter(keys: keys).fetchCursor(db)
     }
     
     /// Returns an array of records identified by the provided unique keys
     /// (primary key or any key with a unique index on it).
     ///
-    ///     let players = try Player.fetchAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]]) // [Player]
+    ///     // [Player]
+    ///     let players = try Player.fetchAll(db, keys: [
+    ///         ["email": "a@example.com"],
+    ///         ["email": "b@example.com"]])
     ///
     /// The order of records in the returned array is undefined.
     ///

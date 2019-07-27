@@ -1,16 +1,16 @@
 #if os(Linux)
-    import Glibc
+import Glibc
 #endif
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 /// A protocol around sqlite3_set_authorizer
-protocol StatementAuthorizer : class {
+protocol StatementAuthorizer: AnyObject {
     func authorize(
         _ actionCode: Int32,
         _ cString1: UnsafePointer<Int8>?,
@@ -21,7 +21,7 @@ protocol StatementAuthorizer : class {
 }
 
 /// A class that gathers information about one statement during its compilation.
-final class StatementCompilationAuthorizer : StatementAuthorizer {
+final class StatementCompilationAuthorizer: StatementAuthorizer {
     /// What this statements reads
     var databaseRegion = DatabaseRegion()
     
@@ -47,7 +47,11 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
         _ cString4: UnsafePointer<Int8>?)
         -> Int32
     {
-        // print("StatementCompilationAuthorizer: \(actionCode) \([cString1, cString2, cString3, cString4].flatMap { $0.map({ String(cString: $0) }) })")
+         // print("""
+         //    StatementCompilationAuthorizer: \
+         //    \(actionCode) \
+         //    \([cString1, cString2, cString3, cString4].compactMap { $0.map(String.init) })
+         //    """)
         
         switch actionCode {
         case SQLITE_DROP_TABLE, SQLITE_DROP_VTABLE, SQLITE_DROP_TEMP_TABLE,
@@ -67,8 +71,8 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             return SQLITE_OK
             
         case SQLITE_READ:
-            guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
-            guard let columnName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
+            guard let tableName = cString1.map(String.init) else { return SQLITE_OK }
+            guard let columnName = cString2.map(String.init) else { return SQLITE_OK }
             if columnName.isEmpty {
                 // SELECT COUNT(*) FROM table
                 databaseRegion.formUnion(DatabaseRegion(table: tableName))
@@ -79,7 +83,7 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             return SQLITE_OK
             
         case SQLITE_INSERT:
-            guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
+            guard let tableName = cString1.map(String.init) else { return SQLITE_OK }
             databaseEventKinds.append(.insert(tableName: tableName))
             return SQLITE_OK
             
@@ -100,8 +104,8 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             return SQLITE_IGNORE
             
         case SQLITE_UPDATE:
-            guard let tableName = cString1.map({ String(cString: $0) }) else { return SQLITE_OK }
-            guard let columnName = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
+            guard let tableName = cString1.map(String.init) else { return SQLITE_OK }
+            guard let columnName = cString2.map(String.init) else { return SQLITE_OK }
             insertUpdateEventKind(tableName: tableName, columnName: columnName)
             return SQLITE_OK
             
@@ -118,7 +122,7 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
             
         case SQLITE_SAVEPOINT:
             guard let cString1 = cString1 else { return SQLITE_OK }
-            guard let name = cString2.map({ String(cString: $0) }) else { return SQLITE_OK }
+            guard let name = cString2.map(String.init) else { return SQLITE_OK }
             if strcmp(cString1, "BEGIN") == 0 {
                 transactionEffect = .beginSavepoint(name)
             } else if strcmp(cString1, "RELEASE") == 0 {
@@ -168,7 +172,7 @@ final class StatementCompilationAuthorizer : StatementAuthorizer {
 //
 /// Warning: to perform well, this authorizer must be used during statement
 /// execution, not during statement compilation.
-final class TruncateOptimizationBlocker : StatementAuthorizer {
+final class TruncateOptimizationBlocker: StatementAuthorizer {
     func authorize(
         _ actionCode: Int32,
         _ cString1: UnsafePointer<Int8>?,
@@ -177,8 +181,11 @@ final class TruncateOptimizationBlocker : StatementAuthorizer {
         _ cString4: UnsafePointer<Int8>?)
         -> Int32
     {
-        // print("TruncateOptimizationBlocker: \(actionCode) \([cString1, cString2, cString3, cString4].flatMap { $0.map({ String(cString: $0) }) })")
+        // print("""
+        //    TruncateOptimizationBlocker: \
+        //    \(actionCode) \
+        //    \([cString1, cString2, cString3, cString4].compactMap { $0.map(String.init) })
+        //    """)
         return (actionCode == SQLITE_DELETE) ? SQLITE_IGNORE : SQLITE_OK
     }
 }
-

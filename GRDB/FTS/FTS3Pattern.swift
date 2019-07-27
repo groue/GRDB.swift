@@ -24,7 +24,7 @@ public struct FTS3Pattern {
             }
         } catch let error as DatabaseError {
             // Remove private SQL & arguments from the thrown error
-            throw DatabaseError(resultCode: error.extendedResultCode, message: error.message, sql: nil, arguments: nil)
+            throw DatabaseError(resultCode: error.extendedResultCode, message: error.message)
         }
         
         // Pattern is valid
@@ -115,7 +115,7 @@ public struct FTS3Pattern {
     #endif
 }
 
-extension FTS3Pattern : DatabaseValueConvertible {
+extension FTS3Pattern: DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
         return rawPattern.databaseValue

@@ -72,12 +72,12 @@ extension Association {
 
 extension Association {
     private func mapDestinationRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self {
-        return Self.init(sqlAssociation: sqlAssociation.mapDestinationRelation(transform))
+        return .init(sqlAssociation: sqlAssociation.mapDestinationRelation(transform))
     }
 }
 
 extension Association {
-
+    
     /// The association key defines how rows fetched from this association
     /// should be consumed.
     ///
@@ -306,7 +306,7 @@ public protocol AssociationToOne: Association { }
 extension AssociationToOne {
     public func forKey(_ key: String) -> Self {
         let associationKey = SQLAssociationKey.fixedSingular(key)
-        return Self.init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
+        return .init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
     }
 }
 
@@ -320,7 +320,7 @@ public protocol AssociationToMany: Association { }
 extension AssociationToMany {
     public func forKey(_ key: String) -> Self {
         let associationKey = SQLAssociationKey.fixedPlural(key)
-        return Self.init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
+        return .init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
     }
 }
 

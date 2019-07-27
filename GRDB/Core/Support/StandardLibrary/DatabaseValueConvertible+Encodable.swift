@@ -1,4 +1,4 @@
-private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
+private struct DatabaseValueEncodingContainer: SingleValueEncodingContainer {
     let encode: (DatabaseValue) -> Void
     
     var codingPath: [CodingKey] { return [] }
@@ -34,7 +34,7 @@ private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
     /// - parameter value: The value to encode.
     /// - throws: `EncodingError.invalidValue` if the given value is invalid in the current context for this format.
     /// - precondition: May not be called after a previous `self.encode(_:)` call.
-    mutating func encode<T>(_ value: T) throws where T : Encodable {
+    mutating func encode<T>(_ value: T) throws where T: Encodable {
         if let dbValueConvertible = value as? DatabaseValueConvertible {
             // Prefer DatabaseValueConvertible encoding over Decodable.
             // This allows us to encode Date as String, for example.
@@ -45,7 +45,7 @@ private struct DatabaseValueEncodingContainer : SingleValueEncodingContainer {
     }
 }
 
-private struct DatabaseValueEncoder : Encoder {
+private struct DatabaseValueEncoder: Encoder {
     let encode: (DatabaseValue) -> Void
     
     /// The path of coding keys taken to get to this point in encoding.
@@ -53,7 +53,7 @@ private struct DatabaseValueEncoder : Encoder {
     var codingPath: [CodingKey] { return [] }
     
     /// Any contextual information set by the user for encoding.
-    var userInfo: [CodingUserInfoKey : Any] = [:]
+    var userInfo: [CodingUserInfoKey: Any] = [:]
     
     init(encode: @escaping (DatabaseValue) -> Void) {
         self.encode = encode
@@ -64,7 +64,8 @@ private struct DatabaseValueEncoder : Encoder {
     /// - parameter type: The key type to use for the container.
     /// - returns: A new keyed encoding container.
     /// - precondition: May not be called after a prior `self.unkeyedContainer()` call.
-    /// - precondition: May not be called after a value has been encoded through a previous `self.singleValueContainer()` call.
+    /// - precondition: May not be called after a value has been encoded through
+    ///   a previous `self.singleValueContainer()` call.
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> {
         fatalError("keyed encoding is not supported")
     }
@@ -73,7 +74,8 @@ private struct DatabaseValueEncoder : Encoder {
     ///
     /// - returns: A new empty unkeyed container.
     /// - precondition: May not be called after a prior `self.container(keyedBy:)` call.
-    /// - precondition: May not be called after a value has been encoded through a previous `self.singleValueContainer()` call.
+    /// - precondition: May not be called after a value has been encoded through
+    ///   a previous `self.singleValueContainer()` call.
     func unkeyedContainer() -> UnkeyedEncodingContainer {
         fatalError("unkeyed encoding is not supported")
     }
@@ -83,7 +85,8 @@ private struct DatabaseValueEncoder : Encoder {
     /// - returns: A new empty single value container.
     /// - precondition: May not be called after a prior `self.container(keyedBy:)` call.
     /// - precondition: May not be called after a prior `self.unkeyedContainer()` call.
-    /// - precondition: May not be called after a value has been encoded through a previous `self.singleValueContainer()` call.
+    /// - precondition: May not be called after a value has been encoded through
+    ///   a previous `self.singleValueContainer()` call.
     func singleValueContainer() -> SingleValueEncodingContainer {
         return DatabaseValueEncodingContainer(encode: encode)
     }

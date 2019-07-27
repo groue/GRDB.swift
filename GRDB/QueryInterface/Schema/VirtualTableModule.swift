@@ -96,7 +96,13 @@ extension Database {
     ///     - module: a VirtualTableModule
     ///     - body: An optional closure that defines the virtual table.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func create<Module: VirtualTableModule>(virtualTable tableName: String, ifNotExists: Bool = false, using module: Module, _ body: ((Module.TableDefinition) -> Void)? = nil) throws {
+    public func create<Module: VirtualTableModule>(
+        virtualTable tableName: String,
+        ifNotExists: Bool = false,
+        using module: Module,
+        _ body: ((Module.TableDefinition) -> Void)? = nil)
+        throws
+    {
         // Define virtual table
         let definition = module.makeTableDefinition()
         if let body = body {

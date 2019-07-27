@@ -1,16 +1,16 @@
 import Foundation
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 #if !os(Linux)
 /// NSDate is stored in the database using the format
 /// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
-extension NSDate : DatabaseValueConvertible {
+extension NSDate: DatabaseValueConvertible {
     /// Returns a database value that contains the date encoded as
     /// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
     public var databaseValue: DatabaseValue {
@@ -38,7 +38,7 @@ extension NSDate : DatabaseValueConvertible {
 
 /// Date is stored in the database using the format
 /// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
-extension Date : DatabaseValueConvertible {
+extension Date: DatabaseValueConvertible {
     /// Returns a database value that contains the date encoded as
     /// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
     public var databaseValue: DatabaseValue {
@@ -149,7 +149,7 @@ private let storageDateFormatter: DateFormatter = {
     formatter.locale = Locale(identifier: "en_US_POSIX")
     formatter.timeZone = TimeZone(secondsFromGMT: 0)
     return formatter
-    }()
+}()
 
 // The NSCalendar for stored dates.
 private let UTCCalendar: Calendar = {
@@ -157,4 +157,4 @@ private let UTCCalendar: Calendar = {
     calendar.locale = Locale(identifier: "en_US_POSIX")
     calendar.timeZone = TimeZone(secondsFromGMT: 0)!
     return calendar
-    }()
+}()

@@ -127,8 +127,8 @@ class GRDBTestCase: XCTestCase {
         }
     }
     
-    func assertDidExecute(sql: String) {
-        XCTAssertTrue(sqlQueries.contains(sql), "Did not execute \(sql)")
+    func assertDidExecute(sql: String, file: StaticString = #file, line: UInt = #line) {
+        XCTAssertTrue(sqlQueries.contains(sql), "Did not execute \(sql)", file: file, line: line)
     }
     
     func assert(_ record: EncodableRecord, isEncodedIn row: Row, file: StaticString = #file, line: UInt = #line) {

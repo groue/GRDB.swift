@@ -208,7 +208,7 @@ extension ValueObservation where Reducer: ValueReducer {
     {
         return reader.add(observation: self, onError: onError, onChange: onChange)
     }
-
+    
     // MARK: - Fetching Values
     
     /// Returns the observed value.

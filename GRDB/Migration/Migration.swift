@@ -5,26 +5,27 @@ struct Migration {
     let migrate: (Database) throws -> Void
     
     #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        init(identifier: String, disabledForeignKeyChecks: Bool = false, migrate: @escaping (Database) throws -> Void) {
-            self.identifier = identifier
-            self.disabledForeignKeyChecks = disabledForeignKeyChecks
-            self.migrate = migrate
-        }
+    init(identifier: String, disabledForeignKeyChecks: Bool = false, migrate: @escaping (Database) throws -> Void) {
+        self.identifier = identifier
+        self.disabledForeignKeyChecks = disabledForeignKeyChecks
+        self.migrate = migrate
+    }
     #else
-        init(identifier: String, migrate: @escaping (Database) throws -> Void) {
-            self.identifier = identifier
-            self.disabledForeignKeyChecks = false
-            self.migrate = migrate
-        }
+    init(identifier: String, migrate: @escaping (Database) throws -> Void) {
+        self.identifier = identifier
+        self.disabledForeignKeyChecks = false
+        self.migrate = migrate
+    }
     
-        @available(OSX 10.10, *)
-        // PRAGMA foreign_key_check was introduced in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        init(identifier: String, disabledForeignKeyChecks: Bool, migrate: @escaping (Database) throws -> Void) {
-            self.identifier = identifier
-            self.disabledForeignKeyChecks = disabledForeignKeyChecks
-            self.migrate = migrate
-        }
+    @available(OSX 10.10, *)
+    // PRAGMA foreign_key_check was introduced in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
+    // It is available from iOS 8.2 and OS X 10.10
+    // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+    init(identifier: String, disabledForeignKeyChecks: Bool, migrate: @escaping (Database) throws -> Void) {
+        self.identifier = identifier
+        self.disabledForeignKeyChecks = disabledForeignKeyChecks
+        self.migrate = migrate
+    }
     #endif
     
     func run(_ db: Database) throws {

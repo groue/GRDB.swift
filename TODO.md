@@ -54,36 +54,16 @@
     players.update(...)              // Runs the expected UPDATE statement
     ```
 
-- [ ] Predicates, so that a filter can be evaluated both on the database, and on a record instance
+- [ ] Predicates, so that a filter can be evaluated both on the database, and on a record instance.
+    
+    After investigation, we can't do it reliably without knowing the collation used by a column. And SQLite does not provide this information elsewhere than in the full CREATE TABLE statement stored in sqlite_master.
+
 - [ ] ValueObservation erasure
 
     ```
     // Do better than this
     observation.mapReducer { _, reducer in AnyValueReducer(reducer) }
     ```
-- [ ] Association:
-    
-    ```swift
-    let request = DeviceConfiguration.all()
-        .joining(optional: DeviceConfiguration.activeSubscription /* belongsTo */
-            .including(all: Subscription.carCategoryRelationships)) /* hasMany */
-    ```
-    
-    The request above executes the two following SQL queries:
-    
-    ```sql
-    SELECT "deviceConfiguration".*
-    FROM "deviceConfiguration"
-    LEFT JOIN "subscription" ON "subscription"."uid" = "deviceConfiguration"."activeSubscriptionUID"
-    LIMIT 1
-    
-    SELECT "subscriptionCarCategory".*, "subscription"."uid" AS "grdb_uid"
-    FROM "subscriptionCarCategory"
-    JOIN "subscription" ON ("subscription"."uid" = "subscriptionCarCategory"."subscriptionUID") AND ("subscription"."uid" = 2)
-    ```
-    
-    - Problem 1: In the first query, the left join has no purpose.
-    - Problem 2: Do we generally support all queries like `joining(one.joining(one.joining(one.including(all))))` - series of nested joinings of to-one associations ending with an including(all:)?
 
 - [ ] ValueObservation.flatMap:
 

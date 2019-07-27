@@ -31,6 +31,7 @@
 ///         let region = try request.databaseRegion(db)
 public struct DatabaseRegion: CustomStringConvertible, Equatable {
     private let tableRegions: [String: TableRegion]?
+    
     private init(tableRegions: [String: TableRegion]?) {
         self.tableRegions = tableRegions
     }
@@ -125,9 +126,9 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
             switch (tableRegion, otherTableRegion) {
             case (nil, nil):
                 preconditionFailure()
-            case (nil, let tableRegion?), (let tableRegion?, nil):
+            case let (nil, tableRegion?), let (tableRegion?, nil):
                 tableRegionUnion = tableRegion
-            case (let tableRegion?, let otherTableRegion?):
+            case let (tableRegion?, otherTableRegion?):
                 tableRegionUnion = tableRegion.union(otherTableRegion)
             }
             tableRegionsUnion[table] = tableRegionUnion
@@ -184,7 +185,10 @@ extension DatabaseRegion {
             // Slow path when several tables are observed.
             guard let tableRegion = tableRegions[event.tableName] else {
                 // Shouldn't happen if the precondition is met.
-                fatalError("precondition failure: event was not filtered out in observes(eventsOfKind:) by region.isModified(byEventsOfKind:)")
+                fatalError("""
+                    precondition failure: event was not filtered out in observes(eventsOfKind:) \
+                    by region.isModified(byEventsOfKind:)
+                    """)
             }
             return tableRegion.contains(rowID: event.rowID)
         }
@@ -198,16 +202,14 @@ extension DatabaseRegion {
         switch (lhs.tableRegions, rhs.tableRegions) {
         case (nil, nil):
             return true
-        case (let ltableRegions?, let rtableRegions?):
+        case let (ltableRegions?, rtableRegions?):
             let ltableNames = Set(ltableRegions.keys)
             let rtableNames = Set(rtableRegions.keys)
             guard ltableNames == rtableNames else {
                 return false
             }
-            for tableName in ltableNames {
-                if ltableRegions[tableName]! != rtableRegions[tableName]! {
-                    return false
-                }
+            for tableName in ltableNames where ltableRegions[tableName]! != rtableRegions[tableName]! {
+                return false
             }
             return true
         default:
@@ -257,17 +259,17 @@ private struct TableRegion: Equatable {
     func intersection(_ other: TableRegion) -> TableRegion {
         let columnsIntersection: Set<String>?
         switch (self.columns, other.columns) {
-        case (nil, let columns), (let columns, nil):
+        case let (nil, columns), let (columns, nil):
             columnsIntersection = columns
-        case (let columns?, let other?):
+        case let (columns?, other?):
             columnsIntersection = columns.intersection(other)
         }
         
         let rowIdsIntersection: Set<Int64>?
         switch (self.rowIds, other.rowIds) {
-        case (nil, let rowIds), (let rowIds, nil):
+        case let (nil, rowIds), let (rowIds, nil):
             rowIdsIntersection = rowIds
-        case (let rowIds?, let other?):
+        case let (rowIds?, other?):
             rowIdsIntersection = rowIds.intersection(other)
         }
         
@@ -279,7 +281,7 @@ private struct TableRegion: Equatable {
         switch (self.columns, other.columns) {
         case (nil, _), (_, nil):
             columnsUnion = nil
-        case (let columns?, let other?):
+        case let (columns?, other?):
             columnsUnion = columns.union(other)
         }
         
@@ -287,7 +289,7 @@ private struct TableRegion: Equatable {
         switch (self.rowIds, other.rowIds) {
         case (nil, _), (_, nil):
             rowIdsUnion = nil
-        case (let rowIds?, let other?):
+        case let (rowIds?, other?):
             rowIdsUnion = rowIds.union(other)
         }
         
