@@ -58,6 +58,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#562](https://github.com/groue/GRDB.swift/pull/562): Fix crash when using more than one DatabaseCollation
 - [#563](https://github.com/groue/GRDB.swift/pull/563): More tests for eager loading of hasMany associations
 - [#574](https://github.com/groue/GRDB.swift/pull/574): SwiftLint
+- [#576](https://github.com/groue/GRDB.swift/pull/576): Expose table name and full-text filtering methods to DerivableRequest
 
 
 ## 4.1.1
