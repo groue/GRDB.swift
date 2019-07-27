@@ -65,7 +65,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(try Reader.select(Col.age * 2).distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
             
-            XCTAssertEqual(try Reader.select((Col.age * 2).aliased("ignored")).distinct().fetchCount(db), 0)
+            XCTAssertEqual(try Reader.select((Col.age * 2).forKey("ignored")).distinct().fetchCount(db), 0)
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(DISTINCT \"age\" * 2) FROM \"readers\"")
             
             XCTAssertEqual(try Reader.select(Col.name, Col.age).fetchCount(db), 0)
