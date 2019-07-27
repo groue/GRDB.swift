@@ -471,6 +471,10 @@ private struct SQLQualifiedJoin {
         case .innerJoin:
             guard allowsInnerJoin else {
                 // TODO: chainOptionalRequired
+                //
+                // When we eventually implement this, make sure we both support:
+                // - joining(optional: assoc.joining(required: ...))
+                // - having(assoc.joining(required: ...).isEmpty)
                 fatalError("Not implemented: chaining a required association behind an optional association")
             }
         case .leftJoin:
