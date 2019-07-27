@@ -78,7 +78,7 @@ extension AssociationAggregate {
     ///     let aggregate = Author.books.count.aliased("numberOfBooks")
     ///     let request = Author.annotated(with: aggregate)
     ///     if let row = try Row.fetchOne(db, request) {
-    ///         let bookCount: Int = row["numberOfBooks"]
+    ///         let numberOfBooks: Int = row["numberOfBooks"]
     ///     }
     @available(*, deprecated, renamed: "forKey(_:)")
     public func aliased(_ name: String) -> AssociationAggregate<RowDecoder> {
@@ -92,7 +92,7 @@ extension AssociationAggregate {
     ///     let aggregate = Author.books.count.forKey("numberOfBooks")
     ///     let request = Author.annotated(with: aggregate)
     ///     if let row = try Row.fetchOne(db, request) {
-    ///         let bookCount: Int = row["numberOfBooks"]
+    ///         let numberOfBooks: Int = row["numberOfBooks"]
     ///     }
     public func forKey(_ key: String) -> AssociationAggregate<RowDecoder> {
         var aggregate = self
@@ -107,10 +107,10 @@ extension AssociationAggregate {
     ///
     ///     struct AuthorInfo: Decodable, FetchableRecord {
     ///         var author: Author
-    ///         var bookCount: Int
+    ///         var numberOfBooks: Int
     ///
     ///         static func fetchAll(_ db: Database) throws -> [AuthorInfo] {
-    ///             let aggregate = Author.books.count.aliased(CodingKeys.bookCount)
+    ///             let aggregate = Author.books.count.aliased(CodingKeys.numberOfBooks)
     ///             let request = Author.annotated(with: aggregate)
     ///             return try AuthorInfo.fetchAll(db, request)
     ///         }
@@ -127,10 +127,10 @@ extension AssociationAggregate {
     ///
     ///     struct AuthorInfo: Decodable, FetchableRecord {
     ///         var author: Author
-    ///         var bookCount: Int
+    ///         var numberOfBooks: Int
     ///
     ///         static func fetchAll(_ db: Database) throws -> [AuthorInfo] {
-    ///             let aggregate = Author.books.count.forKey(CodingKeys.bookCount)
+    ///             let aggregate = Author.books.count.forKey(CodingKeys.numberOfBooks)
     ///             let request = Author.annotated(with: aggregate)
     ///             return try AuthorInfo.fetchAll(db, request)
     ///         }
