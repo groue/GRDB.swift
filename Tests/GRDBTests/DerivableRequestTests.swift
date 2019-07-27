@@ -340,7 +340,7 @@ class DerivableRequestTests: GRDBTestCase {
             do {
                 sqlQueries.removeAll()
                 let title = try Book.all()
-                    .matchingFts4(FTS3Pattern(matchingAllTokensIn: "moby dick"))
+                    .matchingFts4(FTS3Pattern(rawPattern: "moby dick"))
                     .fetchOne(db)
                     .map { $0.title }
                 XCTAssertEqual(title, "Moby-Dick")
@@ -352,7 +352,7 @@ class DerivableRequestTests: GRDBTestCase {
                 
                 sqlQueries.removeAll()
                 let fullName = try Author
-                    .joining(required: Author.books.matchingFts4(FTS3Pattern(matchingAllTokensIn: "moby dick")))
+                    .joining(required: Author.books.matchingFts4(FTS3Pattern(rawPattern: "moby dick")))
                     .fetchOne(db)
                     .map { $0.fullName }
                 XCTAssertEqual(fullName, "Herman Melville")
@@ -369,7 +369,7 @@ class DerivableRequestTests: GRDBTestCase {
             do {
                 sqlQueries.removeAll()
                 let title = try Book.all()
-                    .matchingFts5(FTS3Pattern(matchingAllTokensIn: "cote swann"))
+                    .matchingFts5(FTS3Pattern(rawPattern: "cote swann"))
                     .fetchOne(db)
                     .map { $0.title }
                 XCTAssertEqual(title, "Du côté de chez Swann")
@@ -381,7 +381,7 @@ class DerivableRequestTests: GRDBTestCase {
                 
                 sqlQueries.removeAll()
                 let fullName = try Author
-                    .joining(required: Author.books.matchingFts5(FTS3Pattern(matchingAllTokensIn: "cote swann")))
+                    .joining(required: Author.books.matchingFts5(FTS3Pattern(rawPattern: "cote swann")))
                     .fetchOne(db)
                     .map { $0.fullName }
                 XCTAssertEqual(fullName, "Marcel Proust")
