@@ -337,7 +337,7 @@ extension QueryInterfaceRequest: _JoinableRequest {
     }
 }
 
-extension QueryInterfaceRequest: JoinableRequest where RowDecoder: TableRecord { }
+extension QueryInterfaceRequest: JoinableRequest where T: TableRecord { }
 
 extension QueryInterfaceRequest {
     
@@ -474,8 +474,7 @@ extension QueryInterfaceRequest: TableRequest {
     }
 }
 
-// TODO: remove this explicit conformance when Swift is able to infer it.
-extension QueryInterfaceRequest: DerivableRequest where RowDecoder: TableRecord { }
+extension QueryInterfaceRequest: DerivableRequest where T: TableRecord { }
 
 extension QueryInterfaceRequest where T: MutablePersistableRecord {
     

@@ -97,9 +97,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 +struct HasOneThroughAssociation<Origin: TableRecord, Destination: TableRecord>: AssociationToOne { }
 
 -struct QueryInterfaceRequest<T>: DerivableRequest { }
-+struct QueryInterfaceRequest<T>: FilteredRequest, JoinableRequest, OrderedRequest, SelectionRequest { }
-+extension QueryInterfaceRequest: TableRequest where RowDecoder: TableRecord { }
-+extension QueryInterfaceRequest: DerivableRequest where RowDecoder: TableRecord { }
++struct QueryInterfaceRequest<T>: FilteredRequest, OrderedRequest, SelectionRequest, TableRequuest { }
++extension QueryInterfaceRequest: JoinableRequest where T: TableRecord { }
++extension QueryInterfaceRequest: DerivableRequest where T: TableRecord { }
 
  extension AssociationAggregate {
 +    @available(*, deprecated, renamed: "forKey(_:)")
