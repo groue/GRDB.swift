@@ -500,6 +500,8 @@ extension OrderedRequest {
     }
 }
 
+// MARK: - JoinableRequest
+
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// Type-unsafe support for the JoinableRequest protocol.
@@ -548,7 +550,7 @@ public protocol JoinableRequest: _JoinableRequest {
     ///         // BelongsToAssociation<Book, Author>
     ///         static let author = belongsTo(Author.self)
     ///     }
-    associatedtype RowDecoder
+    associatedtype RowDecoder: TableRecord
 }
 
 extension JoinableRequest {
@@ -593,4 +595,4 @@ extension JoinableRequest {
 /// The base protocol for all requests that can be refined.
 ///
 /// :nodoc:
-public protocol DerivableRequest: SelectionRequest, FilteredRequest, OrderedRequest, JoinableRequest { }
+public protocol DerivableRequest: FilteredRequest, JoinableRequest, OrderedRequest, SelectionRequest, TableRequest { }

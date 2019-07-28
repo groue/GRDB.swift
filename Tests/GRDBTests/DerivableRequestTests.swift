@@ -1,8 +1,8 @@
 import XCTest
 #if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
+import GRDBCustomSQLite
 #else
-    import GRDB
+import GRDB
 #endif
 
 private struct Author: FetchableRecord, PersistableRecord, Codable {
@@ -18,10 +18,12 @@ private struct Author: FetchableRecord, PersistableRecord, Codable {
     
     static let databaseTableName = "author"
     static let books = hasMany(Book.self)
+    
     var books: QueryInterfaceRequest<Book> {
         return request(for: Author.books)
     }
 }
+
 private struct Book: FetchableRecord, PersistableRecord, Codable {
     var id: Int64
     var authorId: Int64
@@ -29,10 +31,21 @@ private struct Book: FetchableRecord, PersistableRecord, Codable {
     
     static let databaseTableName = "book"
     static let author = belongsTo(Author.self)
+    static let bookFts4 = hasOne(BookFts4.self, using: ForeignKey([Column.rowID]))
+    #if SQLITE_ENABLE_FTS5
+    static let bookFts5 = hasOne(BookFts5.self, using: ForeignKey([Column.rowID]))
+    #endif
+    
     var author: QueryInterfaceRequest<Author> {
         return request(for: Book.author)
     }
 }
+
+private struct BookFts4: TableRecord { }
+
+#if SQLITE_ENABLE_FTS5
+private struct BookFts5: TableRecord { }
+#endif
 
 private var libraryMigrator: DatabaseMigrator = {
     var migrator = DatabaseMigrator()
@@ -48,6 +61,16 @@ private var libraryMigrator: DatabaseMigrator = {
             t.column("authorId", .integer).notNull().references("author")
             t.column("title", .text).notNull()
         }
+        try db.create(virtualTable: "bookFts4", using: FTS4()) { t in
+            t.synchronize(withTable: "book")
+            t.column("title")
+        }
+        #if SQLITE_ENABLE_FTS5
+        try db.create(virtualTable: "bookFts5", using: FTS5()) { t in
+            t.synchronize(withTable: "book")
+            t.column("title")
+        }
+        #endif
     }
     migrator.registerMigration("fixture") { db in
         try Author(id: 1, firstName: "Herman", lastName: "Melville", country: "US").insert(db)
@@ -87,6 +110,28 @@ extension DerivableRequest where RowDecoder == Book {
     // JoinableRequest
     func filter(authorCountry: String) -> Self {
         return joining(required: Book.author.filter(country: authorCountry))
+    }
+    
+    // TableRequest & FilteredRequest
+    func filter(id: Int) -> Self {
+        return filter(key: id)
+    }
+    
+    // TableRequest & FilteredRequest
+    func matchingFts4(_ pattern: FTS3Pattern?) -> Self {
+        return joining(required: Book.bookFts4.matching(pattern))
+    }
+    
+    #if SQLITE_ENABLE_FTS5
+    // TableRequest & FilteredRequest
+    func matchingFts5(_ pattern: FTS3Pattern?) -> Self {
+        return joining(required: Book.bookFts5.matching(pattern))
+    }
+    #endif
+    
+    // TableRequest & OrderedRequest
+    func orderById() -> Self {
+        return orderByPrimaryKey()
     }
 }
 
@@ -259,6 +304,115 @@ class DerivableRequestTests: GRDBTestCase {
                     JOIN "book" ON "book"."authorId" = "author1"."id" \
                     JOIN "author" "author2" ON ("author2"."id" = "book"."authorId") AND ("author2"."country" = 'FR') \
                     ORDER BY "author1"."firstName"
+                    """)
+            }
+        }
+    }
+    
+    func testTableRequestFilteredRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try libraryMigrator.migrate(dbQueue)
+        try dbQueue.inDatabase { db in
+            // filter(id:)
+            do {
+                let title = try Book.all()
+                    .filter(id: 2)
+                    .fetchOne(db)
+                    .map { $0.title }
+                XCTAssertEqual(title, "Du côté de chez Swann")
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT * FROM "book" WHERE "id" = 2
+                    """)
+                
+                let fullName = try Author
+                    .joining(required: Author.books.filter(id: 2))
+                    .fetchOne(db)
+                    .map { $0.fullName }
+                XCTAssertEqual(fullName, "Marcel Proust")
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT "author".* FROM "author" \
+                    JOIN "book" ON ("book"."authorId" = "author"."id") AND ("book"."id" = 2) \
+                    LIMIT 1
+                    """)
+            }
+            
+            // matchingFts4
+            do {
+                sqlQueries.removeAll()
+                let title = try Book.all()
+                    .matchingFts4(FTS3Pattern(rawPattern: "moby dick"))
+                    .fetchOne(db)
+                    .map { $0.title }
+                XCTAssertEqual(title, "Moby-Dick")
+                XCTAssert(sqlQueries.contains("""
+                    SELECT "book".* FROM "book" \
+                    JOIN "bookFts4" ON ("bookFts4"."rowid" = "book"."id") AND ("bookFts4" MATCH 'moby dick') \
+                    LIMIT 1
+                    """))
+                
+                sqlQueries.removeAll()
+                let fullName = try Author
+                    .joining(required: Author.books.matchingFts4(FTS3Pattern(rawPattern: "moby dick")))
+                    .fetchOne(db)
+                    .map { $0.fullName }
+                XCTAssertEqual(fullName, "Herman Melville")
+                XCTAssert(sqlQueries.contains("""
+                    SELECT "author".* FROM "author" \
+                    JOIN "book" ON "book"."authorId" = "author"."id" \
+                    JOIN "bookFts4" ON ("bookFts4"."rowid" = "book"."id") AND ("bookFts4" MATCH 'moby dick') \
+                    LIMIT 1
+                    """))
+            }
+            
+            #if SQLITE_ENABLE_FTS5
+            // matchingFts5
+            do {
+                sqlQueries.removeAll()
+                let title = try Book.all()
+                    .matchingFts5(FTS3Pattern(rawPattern: "cote swann"))
+                    .fetchOne(db)
+                    .map { $0.title }
+                XCTAssertEqual(title, "Du côté de chez Swann")
+                XCTAssert(sqlQueries.contains("""
+                    SELECT "book".* FROM "book" \
+                    JOIN "bookFts5" ON ("bookFts5"."rowid" = "book"."id") AND ("bookFts5" MATCH 'cote swann') \
+                    LIMIT 1
+                    """))
+                
+                sqlQueries.removeAll()
+                let fullName = try Author
+                    .joining(required: Author.books.matchingFts5(FTS3Pattern(rawPattern: "cote swann")))
+                    .fetchOne(db)
+                    .map { $0.fullName }
+                XCTAssertEqual(fullName, "Marcel Proust")
+                XCTAssert(sqlQueries.contains("""
+                    SELECT "author".* FROM "author" \
+                    JOIN "book" ON "book"."authorId" = "author"."id" \
+                    JOIN "bookFts5" ON ("bookFts5"."rowid" = "book"."id") AND ("bookFts5" MATCH 'cote swann') \
+                    LIMIT 1
+                    """))
+            }
+            #endif
+            
+            // orderById
+            do {
+                let titles = try Book.all()
+                    .orderById()
+                    .fetchAll(db)
+                    .map { $0.title }
+                XCTAssertEqual(titles, ["Moby-Dick", "Du côté de chez Swann"])
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT * FROM "book" ORDER BY "id"
+                    """)
+                
+                let fullNames = try Author
+                    .joining(required: Author.books.orderById())
+                    .fetchAll(db)
+                    .map { $0.fullName }
+                XCTAssertEqual(fullNames, ["Herman Melville", "Marcel Proust"])
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT "author".* FROM "author" \
+                    JOIN "book" ON "book"."authorId" = "author"."id" ORDER BY "book"."id"
                     """)
             }
         }

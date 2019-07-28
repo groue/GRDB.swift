@@ -60,7 +60,6 @@ extension TableRecord {
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
         -> BelongsToAssociation<Self, Destination>
-        where Destination: TableRecord
     {
         let foreignKeyRequest = SQLForeignKeyRequest(
             originTable: databaseTableName,
@@ -146,7 +145,6 @@ extension TableRecord {
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
         -> HasManyAssociation<Self, Destination>
-        where Destination: TableRecord
     {
         let foreignKeyRequest = SQLForeignKeyRequest(
             originTable: Destination.databaseTableName,
@@ -314,7 +312,6 @@ extension TableRecord {
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
         -> HasOneAssociation<Self, Destination>
-        where Destination: TableRecord
     {
         let foreignKeyRequest = SQLForeignKeyRequest(
             originTable: Destination.databaseTableName,

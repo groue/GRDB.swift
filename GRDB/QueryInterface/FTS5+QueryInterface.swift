@@ -1,5 +1,5 @@
 #if SQLITE_ENABLE_FTS5
-extension QueryInterfaceRequest {
+extension TableRequest where Self: FilteredRequest {
     
     // MARK: Full Text Search
     
@@ -16,7 +16,7 @@ extension QueryInterfaceRequest {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public func matching(_ pattern: FTS5Pattern?) -> QueryInterfaceRequest<T> {
+    public func matching(_ pattern: FTS5Pattern?) -> Self {
         guard let pattern = pattern else {
             return none()
         }

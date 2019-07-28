@@ -18,7 +18,7 @@ public protocol Association: DerivableRequest {
     ///         // BelongsToAssociation<Book, Author>
     ///         static let author = belongsTo(Author.self)
     ///     }
-    associatedtype OriginRowDecoder
+    associatedtype OriginRowDecoder: TableRecord
     
     /// :nodoc:
     var sqlAssociation: SQLAssociation { get }
@@ -290,8 +290,8 @@ extension Association {
     }
 }
 
-// Allow association.filter(key: ...)
-extension Association where Self: TableRequest, RowDecoder: TableRecord {
+// TableRequest
+extension Association {
     /// :nodoc:
     public var databaseTableName: String { return RowDecoder.databaseTableName }
 }
@@ -324,7 +324,7 @@ extension AssociationToMany {
     }
 }
 
-extension AssociationToMany where OriginRowDecoder: TableRecord {
+extension AssociationToMany {
     private func makeAggregate(_ expression: SQLExpression) -> AssociationAggregate<OriginRowDecoder> {
         return AssociationAggregate { request in
             let tableAlias = TableAlias()

@@ -68,7 +68,6 @@
 - [ ] ValueObservation.flatMap:
 
     Make it possible to build a single observation where some requests depend on the result of other requests. As long as we can't express this in a single observation, we fail the "guaranteed consistency is possible" contract.
-- [ ] matching (FTS3, 5) on associations and DerivableRequest
 - [ ] rename fetchOne to fetchFirst
 - [ ] new.updateChanges(from: old) vs. old.updateChanges(with: { old.a = new.a }). This is confusing.
 

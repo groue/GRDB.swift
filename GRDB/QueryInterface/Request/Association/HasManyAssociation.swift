@@ -58,7 +58,7 @@
 ///     }
 ///
 /// See ForeignKey for more information.
-public struct HasManyAssociation<Origin, Destination>: AssociationToMany {
+public struct HasManyAssociation<Origin: TableRecord, Destination: TableRecord>: AssociationToMany {
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
     
@@ -73,6 +73,3 @@ public struct HasManyAssociation<Origin, Destination>: AssociationToMany {
         self.sqlAssociation = sqlAssociation
     }
 }
-
-// Allow HasManyAssociation(...).filter(key: ...)
-extension HasManyAssociation: TableRequest where Destination: TableRecord { }

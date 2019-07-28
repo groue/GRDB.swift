@@ -175,10 +175,10 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
         ac: CAssociation,
         bCondition: String,
         cCondition: String) throws
-        where BAssociation: Association,
+        where
+        BAssociation: Association,
         CAssociation: Association,
-        BAssociation.OriginRowDecoder == CAssociation.OriginRowDecoder,
-        BAssociation.OriginRowDecoder: TableRecord
+        BAssociation.OriginRowDecoder == CAssociation.OriginRowDecoder
     {
         let A = BAssociation.OriginRowDecoder.self
         
