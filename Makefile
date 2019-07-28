@@ -272,9 +272,27 @@ test_install_SPM:
 	./.build/debug/SPM && \
 	$(SWIFT) package unedit --force GRDB
 
-test_install_GRDB_CocoaPods:
+test_install_GRDB_CocoaPods: test_install_GRDB_CocoaPods_framework test_install_GRDB_CocoaPods_static
+
+test_install_GRDB_CocoaPods_framework:
 ifdef POD
-	cd Tests/CocoaPods/GRDBiOS && \
+	cd Tests/CocoaPods/GRDBiOS-framework && \
+	$(POD) install && \
+	$(XCODEBUILD) \
+	  -workspace iOS.xcworkspace \
+	  -scheme iOS \
+	  -configuration Release \
+	  -destination $(MAX_IOS_DESTINATION) \
+	  clean build \
+	  $(XCPRETTY)
+else
+	@echo CocoaPods must be installed for test_install_GRDB_CocoaPods
+	@exit 1
+endif
+
+test_install_GRDB_CocoaPods_static:
+ifdef POD
+	cd Tests/CocoaPods/GRDBiOS-static && \
 	$(POD) install && \
 	$(XCODEBUILD) \
 	  -workspace iOS.xcworkspace \
