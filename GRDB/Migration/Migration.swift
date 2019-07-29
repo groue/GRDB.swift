@@ -76,6 +76,7 @@ struct Migration {
             return .commit
         }
         
+        // TODO: we should restore foreign_keys in case of error as well
         // > 12. If foreign keys constraints were originally enabled, reenable them now.
         try db.execute(sql: "PRAGMA foreign_keys = ON")
     }
