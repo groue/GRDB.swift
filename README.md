@@ -324,10 +324,10 @@ See [Enabling FTS5 Support](#enabling-fts5-support) for the installation procedu
 [CocoaPods](http://cocoapods.org/) is a dependency manager for Xcode projects. To use GRDB with CocoaPods (version 1.2 or higher), specify in your `Podfile`:
 
 ```ruby
-use_frameworks!
 pod 'GRDB.swift'
 ```
 
+GRDB can be installed as a framework, or a static library.
 
 ## Swift Package Manager
 
