@@ -56,8 +56,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 - [#560](https://github.com/groue/GRDB.swift/pull/560) by [@bellebethcooper](https://github.com/bellebethcooper): Minor typo fix
 - [#562](https://github.com/groue/GRDB.swift/pull/562): Fix crash when using more than one DatabaseCollation
-- [#570](https://github.com/groue/GRDB.swift/pull/570): Allow Swift static library integration via CocoaPods
 - [#563](https://github.com/groue/GRDB.swift/pull/563): More tests for eager loading of hasMany associations
+- [#570](https://github.com/groue/GRDB.swift/pull/570) by [@chrisballinger](https://github.com/chrisballinger): Allow Swift static library integration via CocoaPods
 - [#574](https://github.com/groue/GRDB.swift/pull/574): SwiftLint
 - [#576](https://github.com/groue/GRDB.swift/pull/576): Expose table name and full-text filtering methods to DerivableRequest
 - [#577](https://github.com/groue/GRDB.swift/pull/577): Rename `aliased(_:)` methods to `forKey(_:)`
