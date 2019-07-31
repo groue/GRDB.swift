@@ -292,6 +292,8 @@ There are several SQLite features that GRDB could natively support:
 - [Windows Functions](https://www.sqlite.org/windowfunctions.html)
 - [More ideas](https://www.sqlite.org/lang.html)
 
+See [issue #575](https://github.com/groue/GRDB.swift/issues/575) for more information and guidance about the implementation of extra table alterations.
+
 
 ### Reactive Database Observation
 
