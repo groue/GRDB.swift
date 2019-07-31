@@ -88,7 +88,6 @@ The ideas, in alphabetical order:
 - [Reactive Database Observation]
 - [SQL Console in the Debugger]
 - [SQLCipher in a Shared App Container]
-- [Static Library]
 - [Typed Expressions]
 
 
@@ -318,13 +317,6 @@ Sometimes one needs, in lldb, a console similar to the [Command Line Shell For S
 See issue [#302](https://github.com/groue/GRDB.swift/issues/302).
 
 
-### Static Library
-
-:question: Unknown Difficulty :hammer: Tooling
-
-It would be nice to be able to integrate GRDB as a static library.
-
-
 ### Typed Expressions
 
 :bowtie: Public API Challenge :muscle: Hard :fire: Experimental
@@ -384,7 +376,6 @@ Features that blur this focus are non-goals:
 [Report Bugs]: #report-bugs
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
 [Concurrency]: #concurrency
-[Static Library]: #static-library
 [Sponsoring and Professional Support]: #sponsoring-and-professional-support
 [SQL Console in the Debugger]: #sql-console-in-the-debugger
 [SQLCipher in a Shared App Container]: #sqlcipher-in-a-shared-app-container
