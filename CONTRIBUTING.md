@@ -298,9 +298,9 @@ See [issue #575](https://github.com/groue/GRDB.swift/issues/575) for more inform
 
 :baby: Starter Task
 
-We already have the [RxGRDB] companion library, which offers [RxSwift](https://github.com/ReactiveX/RxSwift) bindings.
+We already have the [GRDBCombine](http://github.com/groue/GRDBCombine) and [RxGRDB] companion libraries.
 
-We need more choices of reactive engines.
+More choices of reactive engines would help more developers enjoy GRDB.
 
 
 ### SQL Console in the Debugger
