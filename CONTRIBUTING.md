@@ -378,6 +378,7 @@ Features that blur this focus are non-goals:
 [JSON]: #json
 [Linux]: #linux
 [More SQL Generation]: #more-sql-generation
+[Reactive Database Observation]: #reactive-database-observation
 [Records: Splitting Database Encoding from Ability to Write in the Database]: #records-splitting-database-encoding-from-ability-to-write-in-the-database
 [Non-Goals]: #non-goals
 [Report Bugs]: #report-bugs
