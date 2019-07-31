@@ -1,0 +1,4 @@
+target 'iOS'
+platform :ios, '9.0'
+supports_swift_versions '4.2'
+pod 'GRDB.swift', :path => '../../..'
