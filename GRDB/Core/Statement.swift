@@ -43,6 +43,7 @@ public class Statement {
     ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
+    /// - parameter authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error.
     required init?(
         database: Database,
@@ -227,14 +228,14 @@ public class Statement {
 extension Statement {
     // Static method instead of an initializer because initializer can't run
     // inside `sqlCodeUnits.withUnsafeBufferPointer`.
-    static func prepare(sql: String, prepFlags: Int32, in database: Database) throws -> Self {
+    static func prepare(_ db: Database, sql: String, prepFlags: Int32) throws -> Self {
         let authorizer = StatementCompilationAuthorizer()
-        return try database.withAuthorizer(authorizer) {
+        return try db.withAuthorizer(authorizer) {
             try sql.utf8CString.withUnsafeBufferPointer { buffer in
                 let statementStart = buffer.baseAddress!
                 var statementEnd: UnsafePointer<Int8>? = nil
                 guard let statement = try self.init(
-                    database: database,
+                    database: db,
                     statementStart: statementStart,
                     statementEnd: &statementEnd,
                     prepFlags: prepFlags,
@@ -251,9 +252,9 @@ extension Statement {
                     throw DatabaseError(
                         resultCode: .SQLITE_MISUSE,
                         message: """
-                        Multiple statements found. To execute multiple statements, \
-                        use Database.execute(sql:) instead.
-                        """,
+                            Multiple statements found. To execute multiple statements, \
+                            use Database.execute(sql:) instead.
+                            """,
                         sql: sql)
                 }
                 
@@ -288,7 +289,7 @@ public final class SelectStatement: Statement {
     ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
-    /// - authorizer: A StatementCompilationAuthorizer
+    /// - parameter authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error.
     required init?(
         database: Database,
@@ -451,7 +452,7 @@ public final class UpdateStatement: Statement {
     ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
-    /// - authorizer: A StatementCompilationAuthorizer
+    /// - parameter authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error.
     required init?(
         database: Database,
