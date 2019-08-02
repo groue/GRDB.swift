@@ -130,26 +130,7 @@ public final class Database {
     var lastErrorMessage: String? { return String(cString: sqlite3_errmsg(sqliteConnection)) }
     
     // Statement authorizer
-    var authorizer: StatementAuthorizer? {
-        didSet {
-            switch (oldValue, authorizer) {
-            case (.some, nil):
-                sqlite3_set_authorizer(sqliteConnection, nil, nil)
-            case (nil, .some):
-                let dbPointer = Unmanaged.passUnretained(self).toOpaque()
-                sqlite3_set_authorizer(
-                    sqliteConnection,
-                    { (dbPointer, actionCode, cString1, cString2, cString3, cString4) -> Int32 in
-                        guard let dbPointer = dbPointer else { return SQLITE_OK }
-                        let db = Unmanaged<Database>.fromOpaque(dbPointer).takeUnretainedValue()
-                        return db.authorizer!.authorize(actionCode, cString1, cString2, cString3, cString4)
-                },
-                    dbPointer)
-            default:
-                break
-            }
-        }
-    }
+    var authorizer: StatementAuthorizer?
     
     // Transaction observers management
     lazy var observationBroker = DatabaseObservationBroker(self)
@@ -221,6 +202,7 @@ extension Database {
         setupBusyMode()
         setupDefaultFunctions()
         setupDefaultCollations()
+        setupAuthorizer()
         observationBroker.installCommitAndRollbackHooks()
         try activateExtendedCodes()
         
@@ -351,6 +333,20 @@ extension Database {
         add(collation: .localizedCompare)
         add(collation: .localizedStandardCompare)
     }
+    
+    private func setupAuthorizer() {
+        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
+        sqlite3_set_authorizer(
+            sqliteConnection,
+            { (dbPointer, actionCode, cString1, cString2, cString3, cString4) -> Int32 in
+                guard let dbPointer = dbPointer else { return SQLITE_OK }
+                let db = Unmanaged<Database>.fromOpaque(dbPointer).takeUnretainedValue()
+                guard let authorizer = db.authorizer else { return SQLITE_OK }
+                return authorizer.authorize(actionCode, cString1, cString2, cString3, cString4)
+        },
+            dbPointer)
+    }
+
     
     private func activateExtendedCodes() throws {
         let code = sqlite3_extended_result_codes(sqliteConnection, 1)
