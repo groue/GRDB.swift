@@ -339,9 +339,10 @@ extension Database {
         sqlite3_set_authorizer(
             sqliteConnection,
             { (dbPointer, actionCode, cString1, cString2, cString3, cString4) -> Int32 in
-                guard let dbPointer = dbPointer else { return SQLITE_OK }
-                let db = Unmanaged<Database>.fromOpaque(dbPointer).takeUnretainedValue()
-                guard let authorizer = db._authorizer else { return SQLITE_OK }
+                let db = Unmanaged<Database>.fromOpaque(dbPointer.unsafelyUnwrapped).takeUnretainedValue()
+                guard let authorizer = db._authorizer else {
+                    return SQLITE_OK
+                }
                 return authorizer.authorize(actionCode, cString1, cString2, cString3, cString4)
         },
             dbPointer)
