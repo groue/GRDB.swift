@@ -129,8 +129,8 @@ public final class Database {
     var lastErrorCode: ResultCode { return ResultCode(rawValue: sqlite3_errcode(sqliteConnection)) }
     var lastErrorMessage: String? { return String(cString: sqlite3_errmsg(sqliteConnection)) }
     
-    // Statement authorizer
-    var authorizer: StatementAuthorizer?
+    // Statement authorizer. Use withAuthorizer(_:_:).
+    fileprivate var _authorizer: StatementAuthorizer? //
     
     // Transaction observers management
     lazy var observationBroker = DatabaseObservationBroker(self)
@@ -341,7 +341,7 @@ extension Database {
             { (dbPointer, actionCode, cString1, cString2, cString3, cString4) -> Int32 in
                 guard let dbPointer = dbPointer else { return SQLITE_OK }
                 let db = Unmanaged<Database>.fromOpaque(dbPointer).takeUnretainedValue()
-                guard let authorizer = db.authorizer else { return SQLITE_OK }
+                guard let authorizer = db._authorizer else { return SQLITE_OK }
                 return authorizer.authorize(actionCode, cString1, cString2, cString3, cString4)
         },
             dbPointer)
@@ -591,6 +591,19 @@ extension Database {
         }
         
         return result!
+    }
+}
+
+extension Database {
+    
+    // MARK: - Authorizer
+    
+    func withAuthorizer<T>(_ authorizer: StatementAuthorizer?, _ block: () throws -> T) rethrows -> T {
+        SchedulingWatchdog.preconditionValidQueue(self)
+        let old = self._authorizer
+        self._authorizer = authorizer
+        defer { self._authorizer = old }
+        return try block()
     }
 }
 
