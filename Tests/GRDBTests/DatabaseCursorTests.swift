@@ -71,6 +71,7 @@ class DatabaseCursorTests: GRDBTestCase {
         }
     }
     
+    // Regression test for http://github.com/groue/GRDB.swift/issues/583
     func testIssue583() throws {
         struct User: Codable, TableRecord, FetchableRecord, MutablePersistableRecord {
             static let databaseTableName: String = "user"

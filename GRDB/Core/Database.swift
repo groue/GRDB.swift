@@ -335,6 +335,14 @@ extension Database {
     }
     
     private func setupAuthorizer() {
+        // SQLite authorizer is set only once per database connection.
+        //
+        // This is because authorizer changes have SQLite invalidate statements,
+        // with undesired side effects. See:
+        //
+        // - DatabaseCursorTests.testIssue583()
+        // - http://sqlite.1065341.n5.nabble.com/Issue-report-sqlite3-set-authorizer-triggers-error-4-516-SQLITE-ABORT-ROLLBACK-during-statement-itern-td107972.html
+        // swiftlint:disable:previous line_length
         let dbPointer = Unmanaged.passUnretained(self).toOpaque()
         sqlite3_set_authorizer(
             sqliteConnection,
