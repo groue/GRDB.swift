@@ -129,27 +129,8 @@ public final class Database {
     var lastErrorCode: ResultCode { return ResultCode(rawValue: sqlite3_errcode(sqliteConnection)) }
     var lastErrorMessage: String? { return String(cString: sqlite3_errmsg(sqliteConnection)) }
     
-    // Statement authorizer
-    var authorizer: StatementAuthorizer? {
-        didSet {
-            switch (oldValue, authorizer) {
-            case (.some, nil):
-                sqlite3_set_authorizer(sqliteConnection, nil, nil)
-            case (nil, .some):
-                let dbPointer = Unmanaged.passUnretained(self).toOpaque()
-                sqlite3_set_authorizer(
-                    sqliteConnection,
-                    { (dbPointer, actionCode, cString1, cString2, cString3, cString4) -> Int32 in
-                        guard let dbPointer = dbPointer else { return SQLITE_OK }
-                        let db = Unmanaged<Database>.fromOpaque(dbPointer).takeUnretainedValue()
-                        return db.authorizer!.authorize(actionCode, cString1, cString2, cString3, cString4)
-                },
-                    dbPointer)
-            default:
-                break
-            }
-        }
-    }
+    // Statement authorizer. Use withAuthorizer(_:_:).
+    fileprivate var _authorizer: StatementAuthorizer? //
     
     // Transaction observers management
     lazy var observationBroker = DatabaseObservationBroker(self)
@@ -221,6 +202,7 @@ extension Database {
         setupBusyMode()
         setupDefaultFunctions()
         setupDefaultCollations()
+        setupAuthorizer()
         observationBroker.installCommitAndRollbackHooks()
         try activateExtendedCodes()
         
@@ -351,6 +333,29 @@ extension Database {
         add(collation: .localizedCompare)
         add(collation: .localizedStandardCompare)
     }
+    
+    private func setupAuthorizer() {
+        // SQLite authorizer is set only once per database connection.
+        //
+        // This is because authorizer changes have SQLite invalidate statements,
+        // with undesired side effects. See:
+        //
+        // - DatabaseCursorTests.testIssue583()
+        // - http://sqlite.1065341.n5.nabble.com/Issue-report-sqlite3-set-authorizer-triggers-error-4-516-SQLITE-ABORT-ROLLBACK-during-statement-itern-td107972.html
+        // swiftlint:disable:previous line_length
+        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
+        sqlite3_set_authorizer(
+            sqliteConnection,
+            { (dbPointer, actionCode, cString1, cString2, cString3, cString4) -> Int32 in
+                let db = Unmanaged<Database>.fromOpaque(dbPointer.unsafelyUnwrapped).takeUnretainedValue()
+                guard let authorizer = db._authorizer else {
+                    return SQLITE_OK
+                }
+                return authorizer.authorize(actionCode, cString1, cString2, cString3, cString4)
+        },
+            dbPointer)
+    }
+
     
     private func activateExtendedCodes() throws {
         let code = sqlite3_extended_result_codes(sqliteConnection, 1)
@@ -595,6 +600,19 @@ extension Database {
         }
         
         return result!
+    }
+}
+
+extension Database {
+    
+    // MARK: - Authorizer
+    
+    func withAuthorizer<T>(_ authorizer: StatementAuthorizer?, _ block: () throws -> T) rethrows -> T {
+        SchedulingWatchdog.preconditionValidQueue(self)
+        let old = self._authorizer
+        self._authorizer = authorizer
+        defer { self._authorizer = old }
+        return try block()
     }
 }
 

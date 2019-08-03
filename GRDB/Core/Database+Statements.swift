@@ -36,7 +36,7 @@ extension Database {
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeSelectStatement(sql: String, prepFlags: Int32) throws -> SelectStatement {
-        return try SelectStatement.prepare(sql: sql, prepFlags: prepFlags, in: self)
+        return try SelectStatement.prepare(self, sql: sql, prepFlags: prepFlags)
     }
     
     /// Returns a prepared statement that can be reused.
@@ -85,7 +85,7 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeUpdateStatement(sql: String, prepFlags: Int32) throws -> UpdateStatement {
-        return try UpdateStatement.prepare(sql: sql, prepFlags: prepFlags, in: self)
+        return try UpdateStatement.prepare(self, sql: sql, prepFlags: prepFlags)
     }
     
     /// Returns a prepared statement that can be reused.
@@ -180,16 +180,15 @@ extension Database {
                 
                 // Compile
                 do {
-                    let statementCompilationAuthorizer = StatementCompilationAuthorizer()
-                    authorizer = statementCompilationAuthorizer
-                    defer { authorizer = nil }
-                    
-                    nextStatement = try UpdateStatement(
-                        database: self,
-                        statementStart: statementStart,
-                        statementEnd: &statementEnd,
-                        prepFlags: 0,
-                        authorizer: statementCompilationAuthorizer)
+                    let authorizer = StatementCompilationAuthorizer()
+                    nextStatement = try withAuthorizer(authorizer) {
+                        try UpdateStatement(
+                            database: self,
+                            statementStart: statementStart,
+                            statementEnd: &statementEnd,
+                            prepFlags: 0,
+                            authorizer: authorizer)
+                    }
                 }
                 
                 guard let statement = nextStatement else {
@@ -222,11 +221,54 @@ extension Database {
 
 extension Database {
     
-    func updateStatementWillExecute(_ statement: UpdateStatement) {
-        observationBroker.updateStatementWillExecute(statement)
+    func executeUpdateStatement(_ statement: UpdateStatement) throws {
+        let authorizer = observationBroker.updateStatementWillExecute(statement)
+        let sqliteStatement = statement.sqliteStatement
+        var code: Int32 = SQLITE_OK
+        withAuthorizer(authorizer) {
+            while true {
+                code = sqlite3_step(sqliteStatement)
+                if code == SQLITE_ROW {
+                    // Statement returns a row, but the user ignores the
+                    // content of this row:
+                    //
+                    //     try db.execute(sql: "SELECT ...")
+                    //
+                    // That's OK: maybe the selected rows perform side effects.
+                    // For example:
+                    //
+                    //      try db.execute(sql: "SELECT sqlcipher_export(...)")
+                    //
+                    // Or maybe the user doesn't know that the executed statement
+                    // return rows (https://github.com/groue/GRDB.swift/issues/15);
+                    //
+                    //      try db.execute(sql: "PRAGMA journal_mode=WAL")
+                    //
+                    // It is thus important that we consume *all* rows.
+                    continue
+                } else {
+                    break
+                }
+            }
+        }
+        
+        // Statement has been fully executed, and authorizer has been reset.
+        // We can now move on further tasks.
+        
+        if code == SQLITE_DONE {
+            try updateStatementDidExecute(statement)
+        } else {
+            assert(code != SQLITE_ROW)
+            try updateStatementDidFail(statement)
+            throw DatabaseError(
+                resultCode: code,
+                message: lastErrorMessage,
+                sql: statement.sql,
+                arguments: statement.arguments)
+        }
     }
     
-    func updateStatementDidExecute(_ statement: UpdateStatement) throws {
+    private func updateStatementDidExecute(_ statement: UpdateStatement) throws {
         if statement.invalidatesDatabaseSchemaCache {
             clearSchemaCache()
         }
@@ -234,7 +276,7 @@ extension Database {
         try observationBroker.updateStatementDidExecute(statement)
     }
     
-    func updateStatementDidFail(_ statement: UpdateStatement) throws {
+    private func updateStatementDidFail(_ statement: UpdateStatement) throws {
         // Failed statements can not be reused, because sqlite3_reset won't
         // be able to restore the statement to its initial state:
         // https://www.sqlite.org/c3ref/reset.html

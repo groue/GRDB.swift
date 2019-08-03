@@ -206,7 +206,10 @@ class DatabaseObservationBroker {
     
     // MARK: - Statement execution
     
-    func updateStatementWillExecute(_ statement: UpdateStatement) {
+    /// Setups observation of changes that are about to be performed by the
+    /// statement, and returns the authorizer that should be used during
+    /// statement execution.
+    func updateStatementWillExecute(_ statement: UpdateStatement) -> StatementAuthorizer? {
         // As statement executes, it may trigger database changes that will
         // be notified to transaction observers. As a consequence, observers
         // may disable themselves with stopObservingDatabaseChangesUntilNextTransaction()
@@ -285,16 +288,15 @@ class DatabaseObservationBroker {
         }
         
         if observesRowDeletion {
-            database.authorizer = TruncateOptimizationBlocker()
+            return TruncateOptimizationBlocker()
         } else {
-            database.authorizer = nil
+            return nil
         }
     }
     
     func updateStatementDidFail(_ statement: UpdateStatement) throws {
         // Undo updateStatementWillExecute
         statementObservations = []
-        database.authorizer = nil
         SchedulingWatchdog.current!.databaseObservationBroker = nil
         
         // Reset transactionState before databaseDidRollback eventually
@@ -319,7 +321,6 @@ class DatabaseObservationBroker {
     func updateStatementDidExecute(_ statement: UpdateStatement) throws {
         // Undo updateStatementWillExecute
         statementObservations = []
-        database.authorizer = nil
         SchedulingWatchdog.current!.databaseObservationBroker = nil
         
         // Has statement any effect on transaction/savepoints?

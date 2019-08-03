@@ -43,6 +43,7 @@ public class Statement {
     ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
+    /// - parameter authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error.
     required init?(
         database: Database,
@@ -224,46 +225,41 @@ public class Statement {
 
 // MARK: - Statement Preparation
 
-/// A common protocol for UpdateStatement and SelectStatement, only used as
-/// support for SelectStatement.prepare(...) and UpdateStatement.prepare(...).
-protocol StatementProtocol { }
-extension Statement: StatementProtocol { }
-extension StatementProtocol where Self: Statement {
+extension Statement {
     // Static method instead of an initializer because initializer can't run
     // inside `sqlCodeUnits.withUnsafeBufferPointer`.
-    static func prepare(sql: String, prepFlags: Int32, in database: Database) throws -> Self {
+    static func prepare(_ db: Database, sql: String, prepFlags: Int32) throws -> Self {
         let authorizer = StatementCompilationAuthorizer()
-        database.authorizer = authorizer
-        defer { database.authorizer = nil }
-        
-        return try sql.utf8CString.withUnsafeBufferPointer { buffer in
-            let statementStart = buffer.baseAddress!
-            var statementEnd: UnsafePointer<Int8>? = nil
-            guard let statement = try self.init(
-                database: database,
-                statementStart: statementStart,
-                statementEnd: &statementEnd,
-                prepFlags: prepFlags,
-                authorizer: authorizer) else
-            {
-                throw DatabaseError(
-                    resultCode: .SQLITE_ERROR,
-                    message: "empty statement",
-                    sql: sql)
+        return try db.withAuthorizer(authorizer) {
+            try sql.utf8CString.withUnsafeBufferPointer { buffer in
+                let statementStart = buffer.baseAddress!
+                var statementEnd: UnsafePointer<Int8>? = nil
+                guard let statement = try self.init(
+                    database: db,
+                    statementStart: statementStart,
+                    statementEnd: &statementEnd,
+                    prepFlags: prepFlags,
+                    authorizer: authorizer) else
+                {
+                    throw DatabaseError(
+                        resultCode: .SQLITE_ERROR,
+                        message: "empty statement",
+                        sql: sql)
+                }
+                
+                let remainingSQL = String(cString: statementEnd!).trimmingCharacters(in: .sqlStatementSeparators)
+                guard remainingSQL.isEmpty else {
+                    throw DatabaseError(
+                        resultCode: .SQLITE_MISUSE,
+                        message: """
+                            Multiple statements found. To execute multiple statements, \
+                            use Database.execute(sql:) instead.
+                            """,
+                        sql: sql)
+                }
+                
+                return statement
             }
-            
-            let remainingSQL = String(cString: statementEnd!).trimmingCharacters(in: .sqlStatementSeparators)
-            guard remainingSQL.isEmpty else {
-                throw DatabaseError(
-                    resultCode: .SQLITE_MISUSE,
-                    message: """
-                        Multiple statements found. To execute multiple statements, \
-                        use Database.execute(sql:) instead.
-                        """,
-                    sql: sql)
-            }
-            
-            return statement
         }
     }
 }
@@ -293,7 +289,7 @@ public final class SelectStatement: Statement {
     ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
-    /// - authorizer: A StatementCompilationAuthorizer
+    /// - parameter authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error.
     required init?(
         database: Database,
@@ -456,7 +452,7 @@ public final class UpdateStatement: Statement {
     ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
-    /// - authorizer: A StatementCompilationAuthorizer
+    /// - parameter authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error.
     required init?(
         database: Database,
@@ -484,42 +480,11 @@ public final class UpdateStatement: Statement {
         SchedulingWatchdog.preconditionValidQueue(database)
         prepare(withArguments: arguments)
         try reset()
-        database.updateStatementWillExecute(self)
         
-        while true {
-            switch sqlite3_step(sqliteStatement) {
-            case SQLITE_ROW:
-                // The statement did return a row, and the user ignores the
-                // content of this row:
-                //
-                //     try db.execute(sql: "SELECT ...")
-                //
-                // That's OK: maybe the selected rows perform side effects.
-                // For example:
-                //
-                //      try db.execute(sql: "SELECT sqlcipher_export(...)")
-                //
-                // Or maybe the user doesn't know that the executed statement
-                // return rows (https://github.com/groue/GRDB.swift/issues/15);
-                //
-                //      try db.execute(sql: "PRAGMA journal_mode=WAL")
-                //
-                // It is thus important that we consume *all* rows.
-                continue
-                
-            case SQLITE_DONE:
-                try database.updateStatementDidExecute(self)
-                return
-                
-            case let code:
-                try database.updateStatementDidFail(self)
-                throw DatabaseError(
-                    resultCode: code,
-                    message: database.lastErrorMessage,
-                    sql: sql,
-                    arguments: self.arguments) // Error uses self.arguments, not the optional arguments parameter.
-            }
-        }
+        // Statement does not know how to execute itself, because it does not
+        // know how to handle its errors, or if truncate optimisation should be
+        // prevented or not. Database knows.
+        try database.executeUpdateStatement(self)
     }
 }
 

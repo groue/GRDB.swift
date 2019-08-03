@@ -61,6 +61,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#574](https://github.com/groue/GRDB.swift/pull/574): SwiftLint
 - [#576](https://github.com/groue/GRDB.swift/pull/576): Expose table name and full-text filtering methods to DerivableRequest
 - [#577](https://github.com/groue/GRDB.swift/pull/577): Rename `aliased(_:)` methods to `forKey(_:)`
+- [#585](https://github.com/groue/GRDB.swift/pull/585): Fix use of SQLite authorizers
 
 ### API Diff
 
