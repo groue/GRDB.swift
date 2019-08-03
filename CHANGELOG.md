@@ -62,6 +62,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#576](https://github.com/groue/GRDB.swift/pull/576): Expose table name and full-text filtering methods to DerivableRequest
 - [#577](https://github.com/groue/GRDB.swift/pull/577): Rename `aliased(_:)` methods to `forKey(_:)`
 - [#585](https://github.com/groue/GRDB.swift/pull/585): Fix use of SQLite authorizers
+- [#586](https://github.com/groue/GRDB.swift/pull/586): Automatic region tracking for ValueObservation
 
 ### API Diff
 
@@ -121,6 +122,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 +    @available(*, deprecated, renamed: "forKey(_:)")
      func aliased(_ key: CodingKey) -> SQLSelectable
 +    func forKey(_ key: CodingKey) -> SQLSelectable
+ }
+ 
+ extension ValueObservation where Reducer == Void {
++    static func tracking<Value>(fetch: @escaping (Database) throws -> Value) -> ValueObservation<ValueReducers.Fetch<Value>>
  }
 ```
 
