@@ -6173,6 +6173,7 @@ Changes are only notified after they have been committed in the database. No ins
 
 - **[ValueObservation Usage](#valueobservation-usage)**
 - [observationForCount, observationForAll, observationForFirst](#observationforcount-observationforall-observationforfirst)
+- [ValueObservation.tracking(fetch:)](#valueobservationtrackingfetch)
 - [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
 - [ValueObservation Transformations](#valueobservation-transformations): [map](#valueobservationmap), [compactMap](#valueobservationcompactmap), ...
 - [ValueObservation Error Handling](#valueobservation-error-handling)
@@ -6327,7 +6328,7 @@ Those observations match the `fetchCount`, `fetchAll`, and `fetchOne` request me
 > :point_up: **Note**: observations returned by those methods perform a filtering of consecutive identical values, based on raw database values.
 
 
-### ValueObservation.tracking(_:fetch:)
+### ValueObservation.tracking(fetch:)
 
 Observing the database is not always easy to express with simple requests, as above.
 
@@ -6358,12 +6359,57 @@ print("""
     """)
 ```
 
-In order to track changes in the Hall of Fame, we'll use the `ValueObservation.tracking(_:fetch:)` method. It accepts two parameters:
+In order to track changes in the Hall of Fame, we'll use the `ValueObservation.tracking(fetch:)` method. It accepts a closure that fetches the observed values:
+
+```swift
+let observation = ValueObservation.tracking { db in
+    try HallOfFame.fetch(db)
+}
+
+let observer = observation.start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange:{ (hallOfFame: HallOfFame) in
+        print("""
+            Best players out of \(hallOfFame.totalPlayerCount):
+            \(hallOfFame.bestPlayers)
+            """)
+    })
+```
+
+Such an observation can observe several tables. For example:
+
+```swift
+// Observe several tables
+let teamId = 123
+let observation = ValueObservation.tracking { db -> (Team, [Player])? in
+    guard let team = try Team.fetchOne(db, key: teamId) else {
+        return nil
+    }
+    let players = Player.filter(teamId: teamId).fetchAll(db)
+    return (team, players)
+}
+```
+
+When you use a [database pool](#database-pools), and the fetch is slow, you may optimize the observation by using the [`ValueObservation.tracking(_:fetch:)`](#valueobservationtracking_fetch) method. See below.
+
+
+### ValueObservation.tracking(_:fetch:)
+
+The `ValueObservation.tracking(_:fetch:)` method is an optimized version of the [`ValueObservation.tracking(fetch:)`](#valueobservationtrackingfetch) method seen above. 
+
+It performs better when you use a [database pool](#database-pools), and the fetch is slow. It reduces write contention.
+
+When you use a [database queue](#database-queues), the results are the same, but no optimization is applied.
+
+It accepts two arguments:
 
 1. A list of observed requests.
 2. A closure that fetches a fresh value whenever one of the observed requests are modified.
 
-In our case, any change to the `player` table can impact the Hall of Fame. We thus track the request for all players, `Player.all()`, and fetch a new Hall of Fame whenever players change:
+Changes that happen outside of the observed requests are ignored, so make sure you cover the database region you want to observe.
+
+In the Hall Of Fame example seen above, any change to the `player` table can impact the Hall of Fame. We thus track the request for all players, `Player.all()`, and fetch a new Hall of Fame whenever players change:
 
 ```swift
 let observation = ValueObservation.tracking(Player.all(), fetch: { db in
