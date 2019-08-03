@@ -6369,7 +6369,7 @@ let observation = ValueObservation.tracking { db in
 let observer = observation.start(
     in: dbQueue,
     onError: { error in ... },
-    onChange:{ (hallOfFame: HallOfFame) in
+    onChange: { (hallOfFame: HallOfFame) in
         print("""
             Best players out of \(hallOfFame.totalPlayerCount):
             \(hallOfFame.bestPlayers)
@@ -6419,7 +6419,7 @@ let observation = ValueObservation.tracking(Player.all(), fetch: { db in
 let observer = observation.start(
     in: dbQueue,
     onError: { error in ... },
-    onChange:{ (hallOfFame: HallOfFame) in
+    onChange: { (hallOfFame: HallOfFame) in
         print("""
             Best players out of \(hallOfFame.totalPlayerCount):
             \(hallOfFame.bestPlayers)
