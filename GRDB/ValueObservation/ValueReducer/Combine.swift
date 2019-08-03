@@ -51,9 +51,11 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Combine2<R1, R2>>
     {
         return ValueObservation<ValueReducers.Combine2>(
-            observedRegion: { try DatabaseRegion.union(
-                o1.observedRegion($0),
-                o2.observedRegion($0)) },
+            baseRegion: { try DatabaseRegion.union(
+                o1.baseRegion($0),
+                o2.baseRegion($0)) },
+            observesSelectedRegion: o1.observesSelectedRegion
+                || o2.observesSelectedRegion,
             makeReducer: { try ValueReducers.Combine2(
                 o1.makeReducer($0),
                 o2.makeReducer($0)) },
@@ -138,10 +140,13 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Combine3<R1, R2, R3>>
     {
         return ValueObservation<ValueReducers.Combine3>(
-            observedRegion: { try DatabaseRegion.union(
-                o1.observedRegion($0),
-                o2.observedRegion($0),
-                o3.observedRegion($0)) },
+            baseRegion: { try DatabaseRegion.union(
+                o1.baseRegion($0),
+                o2.baseRegion($0),
+                o3.baseRegion($0)) },
+            observesSelectedRegion: o1.observesSelectedRegion
+                || o2.observesSelectedRegion
+                || o3.observesSelectedRegion,
             makeReducer: { try ValueReducers.Combine3(
                 o1.makeReducer($0),
                 o2.makeReducer($0),
@@ -245,11 +250,15 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Combine4<R1, R2, R3, R4>>
     {
         return ValueObservation<ValueReducers.Combine4>(
-            observedRegion: { try DatabaseRegion.union(
-                o1.observedRegion($0),
-                o2.observedRegion($0),
-                o3.observedRegion($0),
-                o4.observedRegion($0)) },
+            baseRegion: { try DatabaseRegion.union(
+                o1.baseRegion($0),
+                o2.baseRegion($0),
+                o3.baseRegion($0),
+                o4.baseRegion($0)) },
+            observesSelectedRegion: o1.observesSelectedRegion
+                || o2.observesSelectedRegion
+                || o3.observesSelectedRegion
+                || o4.observesSelectedRegion,
             makeReducer: { try ValueReducers.Combine4(
                 o1.makeReducer($0),
                 o2.makeReducer($0),
@@ -368,12 +377,17 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Combine5<R1, R2, R3, R4, R5>>
     {
         return ValueObservation<ValueReducers.Combine5>(
-            observedRegion: { try DatabaseRegion.union(
-                o1.observedRegion($0),
-                o2.observedRegion($0),
-                o3.observedRegion($0),
-                o4.observedRegion($0),
-                o5.observedRegion($0)) },
+            baseRegion: { try DatabaseRegion.union(
+                o1.baseRegion($0),
+                o2.baseRegion($0),
+                o3.baseRegion($0),
+                o4.baseRegion($0),
+                o5.baseRegion($0)) },
+            observesSelectedRegion: o1.observesSelectedRegion
+                || o2.observesSelectedRegion
+                || o3.observesSelectedRegion
+                || o4.observesSelectedRegion
+                || o5.observesSelectedRegion,
             makeReducer: { try ValueReducers.Combine5(
                 o1.makeReducer($0),
                 o2.makeReducer($0),
@@ -507,13 +521,19 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Combine6<R1, R2, R3, R4, R5, R6>>
     {
         return ValueObservation<ValueReducers.Combine6>(
-            observedRegion: { try DatabaseRegion.union(
-                o1.observedRegion($0),
-                o2.observedRegion($0),
-                o3.observedRegion($0),
-                o4.observedRegion($0),
-                o5.observedRegion($0),
-                o6.observedRegion($0)) },
+            baseRegion: { try DatabaseRegion.union(
+                o1.baseRegion($0),
+                o2.baseRegion($0),
+                o3.baseRegion($0),
+                o4.baseRegion($0),
+                o5.baseRegion($0),
+                o6.baseRegion($0)) },
+            observesSelectedRegion: o1.observesSelectedRegion
+                || o2.observesSelectedRegion
+                || o3.observesSelectedRegion
+                || o4.observesSelectedRegion
+                || o5.observesSelectedRegion
+                || o6.observesSelectedRegion,
             makeReducer: { try ValueReducers.Combine6(
                 o1.makeReducer($0),
                 o2.makeReducer($0),
@@ -634,14 +654,21 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Combine7<R1, R2, R3, R4, R5, R6, R7>>
     {
         return ValueObservation<ValueReducers.Combine7>(
-            observedRegion: { try DatabaseRegion.union(
-                o1.observedRegion($0),
-                o2.observedRegion($0),
-                o3.observedRegion($0),
-                o4.observedRegion($0),
-                o5.observedRegion($0),
-                o6.observedRegion($0),
-                o7.observedRegion($0)) },
+            baseRegion: { try DatabaseRegion.union(
+                o1.baseRegion($0),
+                o2.baseRegion($0),
+                o3.baseRegion($0),
+                o4.baseRegion($0),
+                o5.baseRegion($0),
+                o6.baseRegion($0),
+                o7.baseRegion($0)) },
+            observesSelectedRegion: o1.observesSelectedRegion
+                || o2.observesSelectedRegion
+                || o3.observesSelectedRegion
+                || o4.observesSelectedRegion
+                || o5.observesSelectedRegion
+                || o6.observesSelectedRegion
+                || o7.observesSelectedRegion,
             makeReducer: { try ValueReducers.Combine7(
                 o1.makeReducer($0),
                 o2.makeReducer($0),
@@ -775,15 +802,23 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Combine8<R1, R2, R3, R4, R5, R6, R7, R8>>
     {
         return ValueObservation<ValueReducers.Combine8>(
-            observedRegion: { try DatabaseRegion.union(
-                o1.observedRegion($0),
-                o2.observedRegion($0),
-                o3.observedRegion($0),
-                o4.observedRegion($0),
-                o5.observedRegion($0),
-                o6.observedRegion($0),
-                o7.observedRegion($0),
-                o8.observedRegion($0)) },
+            baseRegion: { try DatabaseRegion.union(
+                o1.baseRegion($0),
+                o2.baseRegion($0),
+                o3.baseRegion($0),
+                o4.baseRegion($0),
+                o5.baseRegion($0),
+                o6.baseRegion($0),
+                o7.baseRegion($0),
+                o8.baseRegion($0)) },
+            observesSelectedRegion: o1.observesSelectedRegion
+                || o2.observesSelectedRegion
+                || o3.observesSelectedRegion
+                || o4.observesSelectedRegion
+                || o5.observesSelectedRegion
+                || o6.observesSelectedRegion
+                || o7.observesSelectedRegion
+                || o8.observesSelectedRegion,
             makeReducer: { try ValueReducers.Combine8(
                 o1.makeReducer($0),
                 o2.makeReducer($0),

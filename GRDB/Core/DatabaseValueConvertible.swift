@@ -65,6 +65,9 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Cursor 
             _columnIndex = 0
         }
         _statement.reset(withArguments: arguments)
+        
+        // Assume cursor is created for iteration
+        statement.database.selectStatementWillExecute(statement)
     }
     
     deinit {
@@ -118,6 +121,9 @@ public final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible>:
             _columnIndex = 0
         }
         _statement.reset(withArguments: arguments)
+        
+        // Assume cursor is created for iteration
+        statement.database.selectStatementWillExecute(statement)
     }
     
     deinit {

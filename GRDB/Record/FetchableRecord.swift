@@ -429,6 +429,9 @@ public final class RecordCursor<Record: FetchableRecord>: Cursor {
         _row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         _sqliteStatement = statement.sqliteStatement
         _statement.reset(withArguments: arguments)
+        
+        // Assume cursor is created for iteration
+        statement.database.selectStatementWillExecute(statement)
     }
     
     deinit {

@@ -288,6 +288,13 @@ extension Database {
         try observationBroker.updateStatementDidFail(statement)
     }
     
+    @inline(__always)
+    func selectStatementWillExecute(_ statement: SelectStatement) {
+        if _isRecordingSelectedRegion {
+            _selectedRegion.formUnion(statement.databaseRegion)
+        }
+    }
+    
     func selectStatementDidFail(_ statement: SelectStatement) {
         // Failed statements can not be reused, because sqlite3_reset won't
         // be able to restore the statement to its initial state:

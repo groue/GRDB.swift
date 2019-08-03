@@ -790,6 +790,9 @@ public final class RowCursor: Cursor {
         self._row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         self._sqliteStatement = statement.sqliteStatement
         statement.reset(withArguments: arguments)
+        
+        // Assume cursor is created for iteration
+        statement.database.selectStatementWillExecute(statement)
     }
     
     deinit {

@@ -5,7 +5,8 @@ extension ValueObservation {
     public func mapReducer<R>(_ transform: @escaping (Database, Reducer) throws -> R) -> ValueObservation<R> {
         let makeReducer = self.makeReducer
         return ValueObservation<R>(
-            observedRegion: observedRegion,
+            baseRegion: baseRegion,
+            observesSelectedRegion: observesSelectedRegion,
             makeReducer: { db in try transform(db, makeReducer(db)) },
             requiresWriteAccess: requiresWriteAccess,
             scheduling: scheduling)

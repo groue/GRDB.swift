@@ -129,8 +129,8 @@ public final class Database {
     var lastErrorCode: ResultCode { return ResultCode(rawValue: sqlite3_errcode(sqliteConnection)) }
     var lastErrorMessage: String? { return String(cString: sqlite3_errmsg(sqliteConnection)) }
     
-    // Statement authorizer. Use withAuthorizer(_:_:).
-    fileprivate var _authorizer: StatementAuthorizer? //
+    /// Statement authorizer. Use withAuthorizer(_:_:).
+    fileprivate var _authorizer: StatementAuthorizer?
     
     // Transaction observers management
     lazy var observationBroker = DatabaseObservationBroker(self)
@@ -140,6 +140,11 @@ public final class Database {
         try! Set(String.fetchCursor($0, sql: "PRAGMA COMPILE_OPTIONS"))
     }
     
+    /// If true, select statement execution is recorded.
+    /// Use recordingSelectedRegion(_:), see `selectStatementWillExecute(_:)`
+    var _isRecordingSelectedRegion: Bool = false
+    var _selectedRegion = DatabaseRegion()
+
     // MARK: - Private properties
     
     private var busyCallback: BusyCallback?
@@ -613,6 +618,28 @@ extension Database {
         self._authorizer = authorizer
         defer { self._authorizer = old }
         return try block()
+    }
+}
+
+extension Database {
+    
+    // MARK: - Recording of the selected region
+    
+    func recordingSelectedRegion<T>(_ block: () throws -> T) rethrows -> (T, DatabaseRegion) {
+        SchedulingWatchdog.preconditionValidQueue(self)
+        let oldFlag = self._isRecordingSelectedRegion
+        let oldRegion = self._selectedRegion
+        self._isRecordingSelectedRegion = true
+        self._selectedRegion = DatabaseRegion()
+        defer {
+            self._isRecordingSelectedRegion = oldFlag
+            if self._isRecordingSelectedRegion {
+                self._selectedRegion = oldRegion.union(self._selectedRegion)
+            } else {
+                self._selectedRegion = oldRegion
+            }
+        }
+        return try (block(), _selectedRegion)
     }
 }
 

@@ -384,6 +384,9 @@ final class StatementCursor: Cursor {
         _statement = statement
         _sqliteStatement = statement.sqliteStatement
         _statement.reset(withArguments: arguments)
+        
+        // Assume cursor is created for iteration
+        statement.database.selectStatementWillExecute(statement)
     }
     
     deinit {
