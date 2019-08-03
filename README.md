@@ -6359,7 +6359,7 @@ print("""
     """)
 ```
 
-In order to track changes in the Hall of Fame, we'll use the `ValueObservation.tracking(fetch:)` method. It accepts a closure that fetches the observed values:
+In order to track changes in the Hall of Fame, we'll use the `ValueObservation.tracking(fetch:)` method. Just make it fetch the observed values:
 
 ```swift
 let observation = ValueObservation.tracking { db in
@@ -6398,7 +6398,7 @@ When you use a [database pool](#database-pools), and the fetch is slow, you may 
 
 The `ValueObservation.tracking(_:fetch:)` method is an optimized version of the [`ValueObservation.tracking(fetch:)`](#valueobservationtrackingfetch) method seen above. 
 
-It performs better when you use a [database pool](#database-pools), and the fetch is slow. It reduces write contention.
+It only performs better when you use a [database pool](#database-pools), and the fetch is slow, because it reduces write contention by fetching fresh values without blocking write accesses.
 
 When you use a [database queue](#database-queues), the results are the same, but no optimization is applied.
 
@@ -6432,7 +6432,7 @@ let observer = observation.start(
 
 It may happen that a database change does not modify the observed values. The Hall of Fame, for example, is not affected by changes that happen to the worst players.
 
-When such a database change happens, `ValueObservation.tracking(_:fetch:)` is triggered, just in case the best players would be modified, and ends up notifying identical consecutive values.
+When such a database change happens, [`ValueObservation.tracking(fetch:)`](#valueobservationtrackingfetch) and [`ValueObservation.tracking(_:fetch:)`](#valueobservationtracking_fetch) are triggered, just in case the best players would be modified, and ends up notifying identical consecutive values.
 
 You can filter out those duplicates with the [ValueObservation.removeDuplicates](#valueobservationremoveduplicates) method. It requires the observed value to adopt the Equatable protocol:
 
@@ -6440,7 +6440,7 @@ You can filter out those duplicates with the [ValueObservation.removeDuplicates]
 extension HallOfFame: Equatable { ... }
 
 let observation = ValueObservation
-    .tracking(Player.all(), fetch: HallOfFame.fetch)
+    .tracking(fetch: HallOfFame.fetch)
     .removeDuplicates()
 
 let observer = observation.start(
@@ -6457,7 +6457,7 @@ let observer = observation.start(
 
 #### DatabaseRegionConvertible Observation
 
-The initial parameter of the `ValueObservation.tracking(_:fetch:)` method can be fed with requests, and generally speaking, values that adopt the [DatabaseRegionConvertible] protocol.
+The initial parameter of the [`ValueObservation.tracking(_:fetch:)`](#valueobservationtracking_fetch) method can be fed with requests, and generally speaking, values that adopt the [DatabaseRegionConvertible] protocol.
 
 Thanks to DatabaseRegionConvertible, `TeamInfoRequest` below is not only able to fetch a team and its players, but also to be observed.
 
@@ -6774,9 +6774,10 @@ The `scheduling` property lets you control how fresh values are notified:
 The `requiresWriteAccess` property is false by default. When true, a ValueObservation has a write access to the database, and its fetches are automatically wrapped in a [savepoint](#transactions-and-savepoints):
 
 ```swift
-var observation = ValueObservation.tracking(..., fetch: { db in
+var observation = ValueObservation.tracking { db in
     // write access allowed
-})
+    ...
+}
 observation.requiresWriteAccess = true
 ```
 
