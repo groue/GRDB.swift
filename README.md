@@ -6396,18 +6396,16 @@ When you use a [database pool](#database-pools), and the fetch is slow, you may 
 
 ### ValueObservation.tracking(_:fetch:)
 
-The `ValueObservation.tracking(_:fetch:)` method is an optimized version of the [`ValueObservation.tracking(fetch:)`](#valueobservationtrackingfetch) method seen above. 
+The `ValueObservation.tracking(_:fetch:)` method is an **optimized** version of the [`ValueObservation.tracking(fetch:)`](#valueobservationtrackingfetch) method seen above. 
 
-It only performs better when you use a [database pool](#database-pools), and the fetch is slow, because it reduces write contention by fetching fresh values without blocking write accesses.
-
-When you use a [database queue](#database-queues), the results are the same, but no optimization is applied.
+It ouputs exactly the same results, but it can perform better when you use a [database pool](#database-pools), and the fetch is slow. It reduces write contention by fetching fresh values without blocking write accesses. When you use a [database queue](#database-queues), no optimization is applied.
 
 It accepts two arguments:
 
 1. A list of observed requests.
 2. A closure that fetches a fresh value whenever one of the observed requests are modified.
 
-Changes that happen outside of the observed requests are ignored, so make sure you cover the database region you want to observe.
+Changes that happen outside of the observed requests are ignored, so make sure you fully cover the database region you want to observe. This is the price you pay for the optimization.
 
 In the Hall Of Fame example seen above, any change to the `player` table can impact the Hall of Fame. We thus track the request for all players, `Player.all()`, and fetch a new Hall of Fame whenever players change:
 
