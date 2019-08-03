@@ -330,7 +330,7 @@ Tests/Performance/Realm/build/osx/swift-10.2.1/RealmSwift.framework:
 FMDB: Tests/Performance/fmdb/src/fmdb/FMDatabase.h
 
 # Makes sure the Tests/Performance/fmdb submodule has been downloaded
-Tests/Performance/fmdb/FMDatabase.h:
+Tests/Performance/fmdb/src/fmdb/FMDatabase.h:
 	$(GIT) submodule update --init Tests/Performance/fmdb
 
 SQLite.swift: Tests/Performance/SQLite.swift/SQLite.xcodeproj
