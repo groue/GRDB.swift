@@ -142,10 +142,16 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         self = union(other)
     }
     
-    func ignoring(_ tables: Set<String>) -> DatabaseRegion {
-        guard tables.isEmpty == false else { return self }
+    /// Returns a region suitable for database observation by removing views.
+    ///
+    /// We can do it because modifications only happen in actual tables. And we
+    /// want to do it because we have a fast path for regions that span a
+    /// single table.
+    func ignoringViews(_ db: Database) throws -> DatabaseRegion {
         guard let tableRegions = tableRegions else { return .fullDatabase }
-        let filteredRegions = tableRegions.filter { tables.contains($0.key) == false }
+        let viewNames = try db.schema().names(ofType: .view)
+        guard viewNames.isEmpty == false else { return self }
+        let filteredRegions = tableRegions.filter { viewNames.contains($0.key) == false }
         return DatabaseRegion(tableRegions: filteredRegions)
     }
 }

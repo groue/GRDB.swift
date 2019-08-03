@@ -363,7 +363,7 @@ extension DatabaseWriter {
                 
                 do {
                     try unsafeReentrantWrite { db in
-                        let region = try observation.observedRegion(db)
+                        let region = try observation.observedRegion(db).ignoringViews(db)
                         var reducer = try observation.makeReducer(db)
                         
                         // Fetch initial value
@@ -385,7 +385,7 @@ extension DatabaseWriter {
                 // has the default scheduling .mainQueue
                 asyncWriteWithoutTransaction { db in
                     do {
-                        let region = try observation.observedRegion(db)
+                        let region = try observation.observedRegion(db).ignoringViews(db)
                         var reducer = try observation.makeReducer(db)
                         
                         // Fetch initial value
@@ -412,7 +412,7 @@ extension DatabaseWriter {
             // Use case: observation must not block the target queue
             asyncWriteWithoutTransaction { db in
                 do {
-                    let region = try observation.observedRegion(db)
+                    let region = try observation.observedRegion(db).ignoringViews(db)
                     var reducer = try observation.makeReducer(db)
                     
                     // Fetch initial value
@@ -458,7 +458,7 @@ extension DatabaseWriter {
                 
                 do {
                     try unsafeReentrantWrite { db in
-                        let region = try observation.observedRegion(db)
+                        let region = try observation.observedRegion(db).ignoringViews(db)
                         var reducer = try observation.makeReducer(db)
                         
                         // Fetch initial value
@@ -484,7 +484,7 @@ extension DatabaseWriter {
                 // queue on which the onChange and onError callbacks are called.
                 asyncWriteWithoutTransaction { db in
                     do {
-                        let region = try observation.observedRegion(db)
+                        let region = try observation.observedRegion(db).ignoringViews(db)
                         let reducer = try observation.makeReducer(db)
                         
                         // Start observing the database

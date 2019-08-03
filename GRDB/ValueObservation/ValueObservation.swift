@@ -87,7 +87,7 @@ public struct ValueObservation<Reducer> {
     ///
     /// Don't set this flag to true unless you really need it. A read/write
     /// observation is less efficient than a read-only observation.
-    public var requiresWriteAccess: Bool = false
+    public var requiresWriteAccess: Bool
     
     /// `scheduling` controls how fresh values are notified. Default
     /// is `.mainQueue`.
@@ -144,25 +144,7 @@ public struct ValueObservation<Reducer> {
     ///
     ///     When the database changes, other values are notified on
     ///     unspecified queues.
-    public var scheduling: ValueScheduling = .mainQueue
-    
-    // Not public because we foster DatabaseRegionConvertible.
-    // See ValueObservation.tracking(_:reducer:)
-    init(
-        tracking region: @escaping (Database) throws -> DatabaseRegion,
-        reducer: @escaping (Database) throws -> Reducer)
-    {
-        self.observedRegion = { db in
-            // Remove views from the observed region.
-            //
-            // We can do it because we are only interested in modifications in
-            // actual tables. And we want to do it because we have a fast path
-            // for simple regions that span a single table.
-            let views = try db.schema().names(ofType: .view)
-            return try region(db).ignoring(views)
-        }
-        self.makeReducer = reducer
-    }
+    public var scheduling: ValueScheduling
 }
 
 extension ValueObservation where Reducer: ValueReducer {
@@ -323,8 +305,10 @@ extension ValueObservation {
         -> ValueObservation
     {
         return ValueObservation(
-            tracking: DatabaseRegion.union(regions),
-            reducer: reducer)
+            observedRegion: DatabaseRegion.union(regions),
+            makeReducer: reducer,
+            requiresWriteAccess: false,
+            scheduling: .mainQueue)
     }
 }
 
@@ -396,7 +380,9 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
         return ValueObservation<ValueReducers.Fetch<Value>>(
-            tracking: DatabaseRegion.union(regions),
-            reducer: { _ in ValueReducers.Fetch(fetch) })
+            observedRegion: DatabaseRegion.union(regions),
+            makeReducer: { _ in ValueReducers.Fetch(fetch) },
+            requiresWriteAccess: false,
+            scheduling: .mainQueue)
     }
 }

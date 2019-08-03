@@ -51,12 +51,15 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Combine2<R1, R2>>
     {
         return ValueObservation<ValueReducers.Combine2>(
-            tracking: { try DatabaseRegion.union(
+            observedRegion: { try DatabaseRegion.union(
                 o1.observedRegion($0),
                 o2.observedRegion($0)) },
-            reducer: { try ValueReducers.Combine2(
+            makeReducer: { try ValueReducers.Combine2(
                 o1.makeReducer($0),
-                o2.makeReducer($0)) })
+                o2.makeReducer($0)) },
+            requiresWriteAccess: o1.requiresWriteAccess
+                || o2.requiresWriteAccess,
+            scheduling: .mainQueue)
     }
 }
 
@@ -135,14 +138,18 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Combine3<R1, R2, R3>>
     {
         return ValueObservation<ValueReducers.Combine3>(
-            tracking: { try DatabaseRegion.union(
+            observedRegion: { try DatabaseRegion.union(
                 o1.observedRegion($0),
                 o2.observedRegion($0),
                 o3.observedRegion($0)) },
-            reducer: { try ValueReducers.Combine3(
+            makeReducer: { try ValueReducers.Combine3(
                 o1.makeReducer($0),
                 o2.makeReducer($0),
-                o3.makeReducer($0)) })
+                o3.makeReducer($0)) },
+            requiresWriteAccess: o1.requiresWriteAccess
+                || o2.requiresWriteAccess
+                || o3.requiresWriteAccess,
+            scheduling: .mainQueue)
     }
 }
 
@@ -238,16 +245,21 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Combine4<R1, R2, R3, R4>>
     {
         return ValueObservation<ValueReducers.Combine4>(
-            tracking: { try DatabaseRegion.union(
+            observedRegion: { try DatabaseRegion.union(
                 o1.observedRegion($0),
                 o2.observedRegion($0),
                 o3.observedRegion($0),
                 o4.observedRegion($0)) },
-            reducer: { try ValueReducers.Combine4(
+            makeReducer: { try ValueReducers.Combine4(
                 o1.makeReducer($0),
                 o2.makeReducer($0),
                 o3.makeReducer($0),
-                o4.makeReducer($0)) })
+                o4.makeReducer($0)) },
+            requiresWriteAccess: o1.requiresWriteAccess
+                || o2.requiresWriteAccess
+                || o3.requiresWriteAccess
+                || o4.requiresWriteAccess,
+            scheduling: .mainQueue)
     }
 }
 
@@ -356,18 +368,24 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Combine5<R1, R2, R3, R4, R5>>
     {
         return ValueObservation<ValueReducers.Combine5>(
-            tracking: { try DatabaseRegion.union(
+            observedRegion: { try DatabaseRegion.union(
                 o1.observedRegion($0),
                 o2.observedRegion($0),
                 o3.observedRegion($0),
                 o4.observedRegion($0),
                 o5.observedRegion($0)) },
-            reducer: { try ValueReducers.Combine5(
+            makeReducer: { try ValueReducers.Combine5(
                 o1.makeReducer($0),
                 o2.makeReducer($0),
                 o3.makeReducer($0),
                 o4.makeReducer($0),
-                o5.makeReducer($0)) })
+                o5.makeReducer($0)) },
+            requiresWriteAccess: o1.requiresWriteAccess
+                || o2.requiresWriteAccess
+                || o3.requiresWriteAccess
+                || o4.requiresWriteAccess
+                || o5.requiresWriteAccess,
+            scheduling: .mainQueue)
     }
 }
 
@@ -489,20 +507,27 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Combine6<R1, R2, R3, R4, R5, R6>>
     {
         return ValueObservation<ValueReducers.Combine6>(
-            tracking: { try DatabaseRegion.union(
+            observedRegion: { try DatabaseRegion.union(
                 o1.observedRegion($0),
                 o2.observedRegion($0),
                 o3.observedRegion($0),
                 o4.observedRegion($0),
                 o5.observedRegion($0),
                 o6.observedRegion($0)) },
-            reducer: { try ValueReducers.Combine6(
+            makeReducer: { try ValueReducers.Combine6(
                 o1.makeReducer($0),
                 o2.makeReducer($0),
                 o3.makeReducer($0),
                 o4.makeReducer($0),
                 o5.makeReducer($0),
-                o6.makeReducer($0)) })
+                o6.makeReducer($0)) },
+            requiresWriteAccess: o1.requiresWriteAccess
+                || o2.requiresWriteAccess
+                || o3.requiresWriteAccess
+                || o4.requiresWriteAccess
+                || o5.requiresWriteAccess
+                || o6.requiresWriteAccess,
+            scheduling: .mainQueue)
     }
 }
 
@@ -609,7 +634,7 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Combine7<R1, R2, R3, R4, R5, R6, R7>>
     {
         return ValueObservation<ValueReducers.Combine7>(
-            tracking: { try DatabaseRegion.union(
+            observedRegion: { try DatabaseRegion.union(
                 o1.observedRegion($0),
                 o2.observedRegion($0),
                 o3.observedRegion($0),
@@ -617,14 +642,22 @@ extension ValueObservation where Reducer == Void {
                 o5.observedRegion($0),
                 o6.observedRegion($0),
                 o7.observedRegion($0)) },
-            reducer: { try ValueReducers.Combine7(
+            makeReducer: { try ValueReducers.Combine7(
                 o1.makeReducer($0),
                 o2.makeReducer($0),
                 o3.makeReducer($0),
                 o4.makeReducer($0),
                 o5.makeReducer($0),
                 o6.makeReducer($0),
-                o7.makeReducer($0)) })
+                o7.makeReducer($0)) },
+            requiresWriteAccess: o1.requiresWriteAccess
+                || o2.requiresWriteAccess
+                || o3.requiresWriteAccess
+                || o4.requiresWriteAccess
+                || o5.requiresWriteAccess
+                || o6.requiresWriteAccess
+                || o7.requiresWriteAccess,
+            scheduling: .mainQueue)
     }
 }
 
@@ -742,7 +775,7 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Combine8<R1, R2, R3, R4, R5, R6, R7, R8>>
     {
         return ValueObservation<ValueReducers.Combine8>(
-            tracking: { try DatabaseRegion.union(
+            observedRegion: { try DatabaseRegion.union(
                 o1.observedRegion($0),
                 o2.observedRegion($0),
                 o3.observedRegion($0),
@@ -751,7 +784,7 @@ extension ValueObservation where Reducer == Void {
                 o6.observedRegion($0),
                 o7.observedRegion($0),
                 o8.observedRegion($0)) },
-            reducer: { try ValueReducers.Combine8(
+            makeReducer: { try ValueReducers.Combine8(
                 o1.makeReducer($0),
                 o2.makeReducer($0),
                 o3.makeReducer($0),
@@ -759,6 +792,15 @@ extension ValueObservation where Reducer == Void {
                 o5.makeReducer($0),
                 o6.makeReducer($0),
                 o7.makeReducer($0),
-                o8.makeReducer($0)) })
+                o8.makeReducer($0)) },
+            requiresWriteAccess: o1.requiresWriteAccess
+                || o2.requiresWriteAccess
+                || o3.requiresWriteAccess
+                || o4.requiresWriteAccess
+                || o5.requiresWriteAccess
+                || o6.requiresWriteAccess
+                || o7.requiresWriteAccess
+                || o8.requiresWriteAccess,
+            scheduling: .mainQueue)
     }
 }
