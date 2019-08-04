@@ -6,6 +6,64 @@ import XCTest
 #endif
 
 class ValueObservationRegionRecordingTests: GRDBTestCase {
+    func testRecordingSelectedRegion() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: """
+                CREATE TABLE team(id INTEGER PRIMARY KEY, name TEXT);
+                CREATE TABLE player(id INTEGER PRIMARY KEY, name TEXT);
+                """)
+            
+            do {
+                let (_, region) = db.recordingSelectedRegion { }
+                XCTAssertTrue(region.isEmpty)
+            }
+            
+            do {
+                let (_, region) = try db.recordingSelectedRegion {
+                    _ = try Row.fetchAll(db, sql: "SELECT * FROM team")
+                }
+                XCTAssertEqual(region.description, "team(id,name)")
+            }
+            
+            do {
+                let (_, region) = try db.recordingSelectedRegion {
+                    _ = try Row.fetchAll(db, sql: "SELECT name FROM player")
+                }
+                XCTAssertEqual(region.description, "player(name)")
+            }
+            
+            do {
+                let (_, region) = try db.recordingSelectedRegion {
+                    _ = try Row.fetchAll(db, sql: "SELECT * FROM team")
+                    _ = try Row.fetchAll(db, sql: "SELECT * FROM player")
+                }
+                XCTAssertEqual(region.description, "player(id,name),team(id,name)")
+            }
+
+            do {
+                var region1 = DatabaseRegion()
+                var region2 = DatabaseRegion()
+                var region3 = DatabaseRegion()
+                var region4 = DatabaseRegion()
+                (_, region1) = try db.recordingSelectedRegion {
+                    _ = try Row.fetchAll(db, sql: "SELECT * FROM team")
+                    (_, region2) = try db.recordingSelectedRegion {
+                        _ = try Row.fetchAll(db, sql: "SELECT name FROM player")
+                        (_, region3) = db.recordingSelectedRegion { }
+                    }
+                    (_, region4) = try db.recordingSelectedRegion {
+                        _ = try Row.fetchAll(db, sql: "SELECT * FROM player")
+                    }
+                }
+                XCTAssertEqual(region1.description, "player(id,name),team(id,name)")
+                XCTAssertEqual(region2.description, "player(name)")
+                XCTAssertTrue(region3.isEmpty)
+                XCTAssertEqual(region4.description, "player(id,name)")
+            }
+        }
+    }
+    
     func testMainQueueScheduling() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
