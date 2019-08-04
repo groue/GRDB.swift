@@ -6284,7 +6284,10 @@ extension {
     }
 }
 
-let hallOfFame = try dbQueue.read { db in try HallOfFame.fetch(db) }
+let hallOfFame = try dbQueue.read { db in 
+    try HallOfFame.fetch(db)
+}
+
 print("""
     Best players out of \(hallOfFame.totalPlayerCount):
     \(hallOfFame.bestPlayers)
