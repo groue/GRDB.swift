@@ -100,10 +100,7 @@ struct SQLQueryGenerator {
         return try (makeSelectStatement(db), rowAdapter(db))
     }
     
-    func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        let statement = try makeSelectStatement(db)
-        let databaseRegion = statement.databaseRegion
-        
+    private func optimizedDatabaseRegion(_ db: Database, _ databaseRegion: DatabaseRegion) throws -> DatabaseRegion {
         // Can we intersect the region with rowIds?
         //
         // Give up unless request feeds from a single database table
@@ -178,7 +175,7 @@ struct SQLQueryGenerator {
     }
     
     /// Returns a select statement
-    private func makeSelectStatement(_ db: Database) throws -> SelectStatement {
+    func makeSelectStatement(_ db: Database) throws -> SelectStatement {
         // Build an SQK generation context with all aliases found in the query,
         // so that we can disambiguate tables that are used several times with
         // SQL aliases.
@@ -190,6 +187,9 @@ struct SQLQueryGenerator {
         // Compile & set arguments
         let statement = try db.makeSelectStatement(sql: sql)
         statement.arguments = context.arguments! // not nil for this kind of context
+        
+        // Optimize databaseRegion
+        statement.databaseRegion = try optimizedDatabaseRegion(db, statement.databaseRegion)
         return statement
     }
     

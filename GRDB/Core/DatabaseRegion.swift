@@ -154,6 +154,13 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         let filteredRegions = tableRegions.filter { viewNames.contains($0.key) == false }
         return DatabaseRegion(tableRegions: filteredRegions)
     }
+    
+    /// Returns a region which doesn't contain any SQLite internal table.
+    func ignoringInternalSQLiteTables() -> DatabaseRegion {
+        guard let tableRegions = tableRegions else { return .fullDatabase }
+        let filteredRegions = tableRegions.filter { !$0.key.starts(with: "sqlite_") }
+        return DatabaseRegion(tableRegions: filteredRegions)
+    }
 }
 
 extension DatabaseRegion {

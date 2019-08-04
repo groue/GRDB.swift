@@ -86,7 +86,7 @@ extension QueryInterfaceRequest: FetchRequest {
     /// - parameter db: A database connection.
     /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        var region = try SQLQueryGenerator(query).databaseRegion(db)
+        var region = try SQLQueryGenerator(query).makeSelectStatement(db).databaseRegion
         
         // Iterate all prefetched associations
         var fifo = query.relation.prefetchedAssociations
@@ -105,7 +105,7 @@ extension QueryInterfaceRequest: FetchRequest {
             let prefetchedQuery = SQLQuery(relation: prefetchedRelation)
             
             // Union region
-            try region.formUnion(SQLQueryGenerator(prefetchedQuery).databaseRegion(db))
+            try region.formUnion(SQLQueryGenerator(prefetchedQuery).makeSelectStatement(db).databaseRegion)
             
             // Append nested prefetched associations (support for
             // A.including(all: A.bs.including(all: B.cs))

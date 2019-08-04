@@ -277,7 +277,7 @@ extension Statement {
 ///     }
 public final class SelectStatement: Statement {
     /// The database region that the statement looks into.
-    public private(set) var databaseRegion = DatabaseRegion()
+    public internal(set) var databaseRegion = DatabaseRegion()
     
     /// Creates a prepared statement. Returns nil if the compiled string is
     /// blank or empty.
