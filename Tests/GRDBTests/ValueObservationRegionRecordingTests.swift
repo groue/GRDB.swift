@@ -34,6 +34,15 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             }
             
             do {
+                // Test for rowID optimization
+                struct Player: TableRecord, FetchableRecord, Decodable { }
+                let (_, region) = try db.recordingSelectedRegion {
+                    _ = try Player.fetchOne(db, key: 123)
+                }
+                XCTAssertEqual(region.description, "player(id,name)[123]")
+            }
+
+            do {
                 let (_, region) = try db.recordingSelectedRegion {
                     _ = try Row.fetchAll(db, sql: "SELECT * FROM team")
                     _ = try Row.fetchAll(db, sql: "SELECT * FROM player")
