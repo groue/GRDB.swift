@@ -231,8 +231,10 @@ See the [Query Interface](#the-query-interface)
     <summary>Be notified of database changes</summary>
 
 ```swift
-let request = Place.order(Column("title"))
-request.observationForAll().start(
+let observation = ValueObservation.tracking { db in
+    try Place.fetchAll(db)
+}
+observation.start(
     in: dbQueue,
     onError: { error in
         print("fresh places could not be fetched")
@@ -2890,44 +2892,7 @@ extension Player: FetchableRecord, PersistableRecord {
 }
 ```
 
-Those columns let you build requests with the [query interface](#the-query-interface):
-
-```swift
-extension Player {
-    static func filter(name: String) -> QueryInterfaceRequest<Player> {
-        return filter(Columns.name == name)
-    }
-    
-    static var maximumScore: QueryInterfaceRequest<Int> {
-        return select(max(Columns.score), as: Int.self)
-    }
-}
-```
-
-Those requests can both fetch...
-
-```swift
-// Fetch values
-try dbQueue.read { db in
-    // SELECT * FROM player WHERE name = 'Arthur'
-    let arthur = try Player.filter(name: "Arthur").fetchOne(db) // Player?
-    
-    // SELECT MAX(score) FROM player
-    let maxScore = try Player.maximumScore.fetchOne(db)         // Int?
-}
-```
-
-... and feed database observation tools such as [ValueObservation]:
-
-```swift
-// Observe changes
-Player.maximumScore.observationForFirst().start(
-    in: dbQueue,
-    onError: { error in ... },
-    onChange: { (maxScore: Int?) in
-        print("The maximum score has changed")
-    })
-```
+See the [query interface](#the-query-interface) and [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) for further information.
 
 
 ## Record Class
@@ -4475,29 +4440,9 @@ let minScore = row[0] as Int?
 let maxScore = row[1] as Int?
 ```
 
-When you also want to use database observation tools such as [ValueObservation], you have to go one step further, and change the type of the request:
+You can also change the request so that it knows the type it has to fetch:
 
-- When you change the selection, prefer the `select(..., as:)` method:
-    
-    ```swift
-    // A request of Int
-    let request = Player.select(max(scoreColumn), as: Int.self)
-    
-    // Simple fetch
-    let maxScore = try dbQueue.read { db in
-        try request.fetchOne(db) // Int?
-    }
-    
-    // Observe with ValueObservation
-    request.observationForFirst().start(
-        in: dbQueue,
-        onError: { error in ... },
-        onChange: { (maxScore: Int?) in
-            print("The maximum score has changed")
-        })
-    ```
-
-- Otherwise, use `asRequest(of:)`. Here is an example that uses [Associations]:
+- With `asRequest(of:)`, useful when you use [Associations]:
     
     ```swift
     struct BookInfo: FetchableRecord, Decodable {
@@ -4510,18 +4455,20 @@ When you also want to use database observation tools such as [ValueObservation],
         .including(required: Book.author)
         .asRequest(of: BookInfo.self)
     
-    // Simple fetch
     let bookInfos = try dbQueue.read { db in
         try request.fetchAll(db) // [BookInfo]
     }
+    ```
     
-    // Observe with ValueObservation
-    request.observationForAll().start(
-        in: dbQueue,
-        onError: { error in ... },
-        onChange: { (bookInfos: [BookInfo]) in
-            print("Books have changed")
-        })
+- With `select(..., as:)`, which is handy when you change the selection:
+    
+    ```swift
+    // A request of Int
+    let request = Player.select(max(scoreColumn), as: Int.self)
+    
+    let maxScore = try dbQueue.read { db in
+        try request.fetchOne(db) // Int?
+    }
     ```
 
 
@@ -4586,17 +4533,6 @@ let citizenship = request.fetchOne(db)   // Citizenship?
 // SELECT * FROM player WHERE email = 'arthur@example.com'
 let request = Player.filter(key: ["email": "arthur@example.com"])
 let player = try request.fetchOne(db)    // Player?
-```
-
-Those requests can feed [ValueObservation]:
-
-```swift
-Player.filter(key: 1).observationForFirst().start(
-    in: dbQueue,
-    onError: { error in ... },
-    onChange: { (player: Player?) in
-        print("Player 1 has changed")
-    })
 ```
 
 
@@ -4707,17 +4643,6 @@ But you may prefer to bring some elegance back in, and build custom requests:
 ```swift
 // No custom SQL in sight
 try Player.customRequest().fetchAll(db) // [Player]
-```
-
-Custom requests can also feed [ValueObservation]:
-
-```swift
-Player.customRequest(...).observationForAll().start(
-    in: dbQueue,
-    onError: { error in ... },
-    onChange: { (players: [Player]) in
-        print("Players have changed")
-    })
 ```
 
 - [FetchRequest Protocol](#fetchrequest-protocol)
@@ -6259,9 +6184,10 @@ The observer returned by the `start` method is stored in a property of the view 
 >
 > See [ValueObservation.scheduling](#valueobservationscheduling) for more information.
 
+
 ### observationForCount, observationForAll, observationForFirst
 
-Given a [request](#requests), you can observe its number of results, all results, or the first one:
+Given a [request](#requests), even a [custom request](#custom-requests), you can observe its number of results, all results, or the first one:
 
 ```swift
 request.observationForCount()
@@ -6269,7 +6195,9 @@ request.observationForAll()
 request.observationForFirst()
 ```
 
-Those observations match the `fetchCount`, `fetchAll`, and `fetchOne` request methods:
+Those observations match the `fetchCount`, `fetchAll`, and `fetchOne` request methods.
+
+They perform a filtering of consecutive identical values, based on raw database values, so that you are not notified of database changes that do not impact the result of the request.
 
 - `observationForCount()` notifies counts:
 
@@ -6325,12 +6253,10 @@ Those observations match the `fetchCount`, `fetchAll`, and `fetchOne` request me
         })
     ```
 
-> :point_up: **Note**: observations returned by those methods perform a filtering of consecutive identical values, based on raw database values.
-
 
 ### ValueObservation.tracking(fetch:)
 
-Observing the database is not always easy to express with simple requests, as above.
+Observing the database is not always a matter of tracking a single request, as above.
 
 For example, let's say that we have a struct that defines a "Hall of Fame":
 
@@ -6338,7 +6264,13 @@ For example, let's say that we have a struct that defines a "Hall of Fame":
 struct HallOfFame {
     var totalPlayerCount: Int
     var bestPlayers: [Player]
+}
+```
 
+To fetch the Hall of Fame from the database, we perform two requests: the 10 best players, and the total number of players. Following the Rule 2 of the [Concurrency Guide](#guarantees-and-rules), we make sure the two requests are always performed in a single database access, as below:
+
+```swift
+extension {
     /// Fetch a HallOfFame
     static fetch(_ db: Database) throws -> HallOfFame {
         let totalPlayerCount = try Player.fetchCount(db)
@@ -6359,7 +6291,7 @@ print("""
     """)
 ```
 
-In order to track changes in the Hall of Fame, we'll use the `ValueObservation.tracking(fetch:)` method. Just make it fetch the observed values:
+Now, in order to track changes in the Hall of Fame, we'll use the `ValueObservation.tracking(fetch:)` method. Just make it fetch the observed values:
 
 ```swift
 let observation = ValueObservation.tracking { db in
@@ -6377,21 +6309,33 @@ let observer = observation.start(
     })
 ```
 
-Such an observation can observe several tables. For example:
+- Observation built from `ValueObservation.tracking(fetch:)` can observe several tables:
 
-```swift
-// Observe several tables
-let teamId = 123
-let observation = ValueObservation.tracking { db -> (Team, [Player])? in
-    guard let team = try Team.fetchOne(db, key: teamId) else {
-        return nil
+    ```swift
+    // Observe several tables
+    let teamId = 123
+    let observation = ValueObservation.tracking { db -> (Team, [Player])? in
+        guard let team = try Team.fetchOne(db, key: teamId) else {
+            return nil
+        }
+        let players = Player.filter(teamId: teamId).fetchAll(db)
+        return (team, players)
     }
-    let players = Player.filter(teamId: teamId).fetchAll(db)
-    return (team, players)
-}
-```
+    ```
 
-When you use a [database pool](#database-pools), and the fetch is slow, you may optimize the observation by using the [`ValueObservation.tracking(_:fetch:)`](#valueobservationtracking_fetch) method. See below.
+- Unlike [observationForCount, observationForAll, observationForFirst](#observationforcount-observationforall-observationforfirst), `ValueObservation.tracking(fetch:)` does not filter out consecutive identical values. For example, database changes that happen to the worst players trigger the observation of the Hall of Fame, just in case the best players would be modified.
+    
+    You can filter out those duplicates with the [ValueObservation.removeDuplicates](#valueobservationremoveduplicates) method. It requires the observed value to adopt the Equatable protocol:
+    
+    ```swift
+    extension HallOfFame: Equatable { ... }
+    
+    let observation = ValueObservation
+        .tracking(fetch: HallOfFame.fetch)
+        .removeDuplicates()
+    ```
+
+- When you use a [database pool](#database-pools), and the fetch is slow, you may optimize the observation by using the [`ValueObservation.tracking(_:fetch:)`](#valueobservationtracking_fetch) method. See below.
 
 
 ### ValueObservation.tracking(_:fetch:)
@@ -6426,95 +6370,7 @@ let observer = observation.start(
 ```
 
 
-#### Filtering out Consecutive Identical Values
-
-It may happen that a database change does not modify the observed values. The Hall of Fame, for example, is not affected by changes that happen to the worst players.
-
-When such a database change happens, [`ValueObservation.tracking(fetch:)`](#valueobservationtrackingfetch) and [`ValueObservation.tracking(_:fetch:)`](#valueobservationtracking_fetch) are triggered, just in case the best players would be modified, and ends up notifying identical consecutive values.
-
-You can filter out those duplicates with the [ValueObservation.removeDuplicates](#valueobservationremoveduplicates) method. It requires the observed value to adopt the Equatable protocol:
-
-```swift
-extension HallOfFame: Equatable { ... }
-
-let observation = ValueObservation
-    .tracking(fetch: HallOfFame.fetch)
-    .removeDuplicates()
-
-let observer = observation.start(
-    in: dbQueue,
-    onError: { error in ... },
-    onChange: { (hallOfFame: HallOfFame) in
-        print("""
-            Best players out of \(hallOfFame.totalPlayerCount):
-            \(hallOfFame.bestPlayers)
-            """)
-    })
-```
-
-
-#### DatabaseRegionConvertible Observation
-
-The initial parameter of the [`ValueObservation.tracking(_:fetch:)`](#valueobservationtracking_fetch) method can be fed with requests, and generally speaking, values that adopt the [DatabaseRegionConvertible] protocol.
-
-Thanks to DatabaseRegionConvertible, `TeamInfoRequest` below is not only able to fetch a team and its players, but also to be observed.
-
-```swift
-/// A team and its players
-struct TeamInfo {
-    var team: Team
-    var players: [Player]
-}
-
-/// A request that can fetch TeamInfo, given a team id.
-struct TeamInfoRequest {
-    var teamId: Int64
-    
-    /// The request for the team
-    private var teamRequest: QueryInterfaceRequest<Team> {
-        return Team.filter(key: teamId)
-    }
-    
-    /// The request for the players
-    private var playersRequest: QueryInterfaceRequest<Player> {
-        return Player.filter(Column("teamId") == teamId)
-    }
-    
-    /// Fetch a TeamInfo
-    func fetch(_ db: Database) throws -> TeamInfo? {
-        guard let team = try teamRequest.fetchOne(db) else {
-            return nil
-        }
-        let players = try playersRequest.fetchAll(db)
-        return TeamInfo(team: team, players: players)
-    }
-}
-
-/// Make TeamInfoRequest observable
-extension TeamInfoRequest: DatabaseRegionConvertible {
-    func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        // Returns the union of the team region and the players region
-        let teamRegion = try teamRequest.databaseRegion(db)
-        let playersRegion = try playersRequest.databaseRegion(db)
-        return teamRegion.union(playersRegion)
-    }
-}
-
-let request = TeamInfoRequest(teamId: 1)
-
-// Simple fetch
-let teamInfo: TeamInfo? = try dbQueue.read(request.fetch)
-
-// Observation
-let observer = ValueObservation
-    .tracking(request, fetch: request.fetch)
-    .start(
-        in: dbQueue,
-        onError: { error in ... },
-        onChange: { (teamInfo: TeamInfo?) in
-            print("Team and its players have hanged.")
-        })
-```
+> :point_up: **Note**: the initial parameter of `ValueObservation.tracking(_:fetch:)` can be fed with requests, and generally speaking, values that adopt the [DatabaseRegionConvertible] protocol.
 
 
 ### ValueObservation Transformations
@@ -6597,20 +6453,10 @@ let observer = observation.start(
 
 #### ValueObservation.combine(...)
 
-Sometimes you need to observe several requests at the same time.
-
-When this happens, **combine** several observations together with the `ValueObservation.combine(...)` method:
+The `ValueObservation.combine(...)` method builds a single observation from several:
 
 ```swift
-struct HallOfFame {
-    /// Total number of players
-    var playerCount: Int
-    
-    /// The best ones
-    var bestPlayers: [Player]
-}
-
-// The two base observations
+// Two base observations
 let playerCountObservation = Player.observationForCount()
 let bestPlayersObservation = Player
     .limit(10)
@@ -6620,22 +6466,29 @@ let bestPlayersObservation = Player
 // The combined observation
 let observation = ValueObservation
     .combine(playerCountObservation, bestPlayersObservation)
-    .map { HallOfFame(playerCount: $0, bestPlayers: $1) }
-
+    
 // Start tracking the hall of fame
 let observer = observation.start(
     in: dbQueue,
     onError: { error in ... },
-    onChange: { (hallOfFame: HallOfFame) in
-        print("The hall of fame has changed.")
+    onChange: { (totalPlayerCount, bestPlayers) in
+        print("""
+            Best players out of \(totalPlayerCount):
+            \(bestPlayers)
+            """)
     })
 ```
 
 `combine` also exists as an instance method:
 
 ```swift
+struct HallOfFame {
+    var totalPlayerCount: Int
+    var bestPlayers: [Player]
+}
+
 let observation = playerCountObservation.combine(bestPlayersObservation) {
-    HallOfFame(playerCount: $0, bestPlayers: $1)
+    HallOfFame(totalPlayerCount: $0, bestPlayers: $1)
 }
 ```
 
@@ -7531,7 +7384,7 @@ protocol DatabaseRegionConvertible {
 
 All [requests](#requests) adopt this protocol, and this allows them to be observed with [DatabaseRegionObservation] and [ValueObservation].
 
-Use this protocol when you want to encapsulate your complex requests in a dedicated type, and still profit from observation APIs. See [DatabaseRegionConvertible Observation](#databaseregionconvertible-observation) for more information.
+Use this protocol when you want to encapsulate your complex requests in a dedicated type, and still profit from optimized observation APIs. See [`ValueObservation.tracking(_:fetch:)`](#valueobservationtracking_fetch) for more information.
 
 
 ### Support for SQLite Pre-Update Hooks
