@@ -24,7 +24,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         
         let observation = ValueObservation.tracking { db -> Int in
             let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
-            return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM \(table)")!
+            return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
         }
         
         let observer = try observation.start(in: dbQueue) { count in
@@ -33,7 +33,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         }
         
         let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-        XCTAssertEqual(token.observer.observedRegion.description, "a(*),source(name)")
+        XCTAssertEqual(token.observer.observedRegion.description, "a(value),source(name)")
         
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
@@ -49,7 +49,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             XCTAssertEqual(results, [0, 1, 2, 3])
             
             let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-            XCTAssertEqual(token.observer.observedRegion.description, "b(*),source(name)")
+            XCTAssertEqual(token.observer.observedRegion.description, "b(value),source(name)")
         }
     }
     
@@ -71,7 +71,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         
         var observation = ValueObservation.tracking { db -> Int in
             let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
-            return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM \(table)")!
+            return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
         }
         observation.scheduling = .async(onQueue: DispatchQueue.main, startImmediately: false)
         
@@ -96,7 +96,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             XCTAssertEqual(results, [1, 2, 3])
             
             let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-            XCTAssertEqual(token.observer.observedRegion.description, "b(*),source(name)")
+            XCTAssertEqual(token.observer.observedRegion.description, "b(value),source(name)")
         }
     }
     
@@ -118,7 +118,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         
         var observation = ValueObservation.tracking { db -> Int in
             let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
-            return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM \(table)")!
+            return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
         }
         observation.scheduling = .async(onQueue: DispatchQueue.main, startImmediately: true)
         
@@ -143,7 +143,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             XCTAssertEqual(results, [0, 1, 2, 3])
             
             let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-            XCTAssertEqual(token.observer.observedRegion.description, "b(*),source(name)")
+            XCTAssertEqual(token.observer.observedRegion.description, "b(value),source(name)")
         }
     }
     
@@ -165,7 +165,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         
         var observation = ValueObservation.tracking { db -> Int in
             let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
-            return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM \(table)")!
+            return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
         }
         observation.scheduling = .unsafe(startImmediately: false)
         
@@ -190,7 +190,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             XCTAssertEqual(results, [1, 2, 3])
             
             let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-            XCTAssertEqual(token.observer.observedRegion.description, "b(*),source(name)")
+            XCTAssertEqual(token.observer.observedRegion.description, "b(value),source(name)")
         }
     }
     
@@ -212,7 +212,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         
         var observation = ValueObservation.tracking { db -> Int in
             let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
-            return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM \(table)")!
+            return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
         }
         observation.scheduling = .unsafe(startImmediately: true)
         
@@ -222,7 +222,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         }
         
         let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-        XCTAssertEqual(token.observer.observedRegion.description, "a(*),source(name)")
+        XCTAssertEqual(token.observer.observedRegion.description, "a(value),source(name)")
         
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
@@ -238,7 +238,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             XCTAssertEqual(results, [0, 1, 2, 3])
             
             let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-            XCTAssertEqual(token.observer.observedRegion.description, "b(*),source(name)")
+            XCTAssertEqual(token.observer.observedRegion.description, "b(value),source(name)")
         }
     }
 }
