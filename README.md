@@ -6100,7 +6100,7 @@ Changes are only notified after they have been committed in the database. No ins
 
 - **[ValueObservation Usage](#valueobservation-usage)**
 - [observationForCount, observationForAll, observationForFirst](#observationforcount-observationforall-observationforfirst)
-- [ValueObservation.tracking(fetch:)](#valueobservationtrackingfetch)
+- [ValueObservation.tracking(value:)](#valueobservationtrackingvalue)
 - [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
 - [ValueObservation Transformations](#valueobservation-transformations): [map](#valueobservationmap), [compactMap](#valueobservationcompactmap), ...
 - [ValueObservation Error Handling](#valueobservation-error-handling)
@@ -6258,7 +6258,7 @@ They perform a filtering of consecutive identical values, based on raw database 
     ```
 
 
-### ValueObservation.tracking(fetch:)
+### ValueObservation.tracking(value:)
 
 Observing the database is not always a matter of tracking a single request, as above.
 
@@ -6298,7 +6298,7 @@ print("""
     """)
 ```
 
-Now, in order to track changes in the Hall of Fame, we'll use the `ValueObservation.tracking(fetch:)` method. Just make it fetch the observed values:
+Now, in order to track changes in the Hall of Fame, we'll use the `ValueObservation.tracking(value:)` method. Just make it fetch the observed value:
 
 ```swift
 let observation = ValueObservation.tracking { db in
@@ -6316,7 +6316,7 @@ let observer = observation.start(
     })
 ```
 
-- Observation built from `ValueObservation.tracking(fetch:)` can observe several tables:
+- Observation built from `ValueObservation.tracking(value:)` can observe several tables:
 
     ```swift
     // Observe several tables
@@ -6330,7 +6330,7 @@ let observer = observation.start(
     }
     ```
 
-- Unlike [observationForCount, observationForAll, observationForFirst](#observationforcount-observationforall-observationforfirst), `ValueObservation.tracking(fetch:)` does not filter out consecutive identical values. For example, database changes that happen to the worst players trigger the observation of the Hall of Fame, just in case the best players would be modified.
+- Unlike [observationForCount, observationForAll, observationForFirst](#observationforcount-observationforall-observationforfirst), `ValueObservation.tracking(value:)` does not filter out consecutive identical values. For example, database changes that happen to the worst players trigger the observation of the Hall of Fame, just in case the best players would be modified.
     
     You can filter out those duplicates with the [ValueObservation.removeDuplicates](#valueobservationremoveduplicates) method. It requires the observed value to adopt the Equatable protocol:
     
@@ -6347,7 +6347,7 @@ let observer = observation.start(
 
 ### ValueObservation.tracking(_:fetch:)
 
-The `ValueObservation.tracking(_:fetch:)` method is an **optimized** version of the [`ValueObservation.tracking(fetch:)`](#valueobservationtrackingfetch) method seen above. 
+The `ValueObservation.tracking(_:fetch:)` method is an **optimized** version of the [`ValueObservation.tracking(value:)`](#valueobservationtrackingvalue) method seen above. 
 
 It ouputs exactly the same results, but it can perform better when you use a [database pool](#database-pools), and the fetch is slow. It reduces write contention by fetching fresh values without blocking write accesses. When you use a [database queue](#database-queues), no optimization is applied.
 

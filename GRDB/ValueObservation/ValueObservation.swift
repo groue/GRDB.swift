@@ -345,16 +345,15 @@ extension ValueObservation where Reducer == Void {
     /// - The observation lasts until the observer returned by
     /// `start` is deallocated.
     ///
-    /// - parameter regions: A list of observed regions.
-    /// - parameter fetch: A closure that fetches a value.
+    /// - parameter value: A closure that fetches a value.
     public static func tracking<Value>(
-        fetch: @escaping (Database) throws -> Value)
+        value: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
         return ValueObservation<ValueReducers.Fetch<Value>>(
             baseRegion: { _ in DatabaseRegion() },
             observesSelectedRegion: true,
-            makeReducer: { _ in ValueReducers.Fetch(fetch) },
+            makeReducer: { _ in ValueReducers.Fetch(value) },
             requiresWriteAccess: false,
             scheduling: .mainQueue)
     }
