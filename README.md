@@ -6338,7 +6338,7 @@ let observer = observation.start(
     extension HallOfFame: Equatable { ... }
     
     let observation = ValueObservation
-        .tracking(fetch: HallOfFame.fetch)
+        .tracking(value: HallOfFame.fetch)
         .removeDuplicates()
     ```
 
