@@ -49,7 +49,12 @@ endif
 TEST_ACTIONS = clean build build-for-testing test-without-building
 
 # When adding support for an Xcode version, look for available devices with `instruments -s devices`
-ifeq ($(XCODEVERSION),10.2)
+ifeq ($(XCODEVERSION),10.3)
+  MAX_SWIFT_VERSION = 5
+  MIN_SWIFT_VERSION = 4.2
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone X,OS=12.4"
+  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
+else ifeq ($(XCODEVERSION),10.2)
   MAX_SWIFT_VERSION = 5
   MIN_SWIFT_VERSION = 4.2
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone X,OS=12.2"
@@ -320,10 +325,10 @@ test_performance: Realm FMDB SQLite.swift
 	  -scheme GRDBOSXPerformanceComparisonTests \
 	  build-for-testing test-without-building
 
-Realm: Tests/Performance/Realm/build/osx/swift-10.2.1/RealmSwift.framework
+Realm: Tests/Performance/Realm/build/osx/swift-10.3/RealmSwift.framework
 
 # Makes sure the Tests/Performance/Realm submodule has been downloaded, and Realm framework has been built.
-Tests/Performance/Realm/build/osx/swift-10.2.1/RealmSwift.framework:
+Tests/Performance/Realm/build/osx/swift-10.3/RealmSwift.framework:
 	$(GIT) submodule update --init --recursive Tests/Performance/Realm
 	cd Tests/Performance/Realm && sh build.sh osx-swift
 

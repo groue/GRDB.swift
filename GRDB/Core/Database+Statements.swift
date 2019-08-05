@@ -288,6 +288,28 @@ extension Database {
         try observationBroker.updateStatementDidFail(statement)
     }
     
+    @inline(__always)
+    func selectStatementWillExecute(_ statement: SelectStatement) {
+        if _isRecordingSelectedRegion {
+            // Don't record schema introspection queries, which may be
+            // run, or not, depending on the state of the schema cache.
+            //
+            // This gives us a quick way to make sure that the observation
+            // below, which runs schema introspection queries as a side effect,
+            // only tracks the "player" table:
+            //
+            //      let observation = ValueObservation.tracking { db in
+            //          try Player.fetchOne(db, key: 1)
+            //      }
+            //
+            // Strictly speaking, this prevents the recording of all schema
+            // queries. But we assume, until proven wrong, that such recording
+            // isn't needed by anyone.
+            let region = statement.databaseRegion.ignoringInternalSQLiteTables()
+            _selectedRegion.formUnion(region)
+        }
+    }
+    
     func selectStatementDidFail(_ statement: SelectStatement) {
         // Failed statements can not be reused, because sqlite3_reset won't
         // be able to restore the statement to its initial state:

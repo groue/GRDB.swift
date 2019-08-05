@@ -822,19 +822,6 @@ let novels = try author
     .fetchAll(db) // [Book]
 ```
 
-Those requests can also turn out useful when you want to track their changes with [database observation tools] like [ValueObservation]:
-
-```swift
-// Track changes in the author's books:
-let author: Author = ...
-author.books.observationForAll().start(
-    in: dbQueue,
-    onError: { error in ... },
-    onChange: { (books: [Book]) in
-        print("Author's book have changed")
-    })
-```
-
 
 ## Joining And Prefetching Associated Records
 

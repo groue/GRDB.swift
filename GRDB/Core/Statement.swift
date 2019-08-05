@@ -276,8 +276,12 @@ extension Statement {
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
 public final class SelectStatement: Statement {
+    // Database region is computed during statement compilation, and maybe
+    // optimized when statement is compiled for a QueryInterfaceRequest, in
+    // order to perform focused database observation. See
+    // SQLQueryGenerator.optimizedDatabaseRegion(_:_:)
     /// The database region that the statement looks into.
-    public private(set) var databaseRegion = DatabaseRegion()
+    public internal(set) var databaseRegion = DatabaseRegion()
     
     /// Creates a prepared statement. Returns nil if the compiled string is
     /// blank or empty.
@@ -384,6 +388,9 @@ final class StatementCursor: Cursor {
         _statement = statement
         _sqliteStatement = statement.sqliteStatement
         _statement.reset(withArguments: arguments)
+        
+        // Assume cursor is created for iteration
+        statement.database.selectStatementWillExecute(statement)
     }
     
     deinit {

@@ -77,6 +77,9 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
             _columnIndex = 0
         }
         _statement.reset(withArguments: arguments)
+        
+        // Assume cursor is created for iteration
+        statement.database.selectStatementWillExecute(statement)
     }
     
     deinit {
@@ -133,6 +136,9 @@ public final class FastNullableDatabaseValueCursor<Value>: Cursor
             _columnIndex = 0
         }
         _statement.reset(withArguments: arguments)
+        
+        // Assume cursor is created for iteration
+        statement.database.selectStatementWillExecute(statement)
     }
     
     deinit {
