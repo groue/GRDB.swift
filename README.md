@@ -6054,7 +6054,9 @@ let request = Player.all()
 [ValueObservation] notifies your application with **fresh values** (this is what most applications need :+1:):
 
 ```swift
-let observation = request.observationForAll()
+let observation = ValueObservation.tracking { db in
+    try request.fetchAll(db)
+}
 let observer = observation.start(
     in: dbQueue,
     onError: { error in
@@ -6119,8 +6121,9 @@ class PlayerViewController: UIViewController {
         super.viewWillAppear(animated)
         
         // Define a ValueObservation which tracks a player
-        let request = Player.filter(key: 42)
-        let observation = request.observationForFirst()
+        let observation = ValueObservation.tracking { db in
+            try Player.fetchOne(db, key: 42)
+        }
         
         // Start observing the database
         observer = observation.start(
@@ -6158,8 +6161,9 @@ The observer returned by the `start` method is stored in a property of the view 
 >     super.viewWillAppear(animated)
 >     
 >     // Define a ValueObservation which tracks a player
->     let request = Player.filter(key: 42)
->     var observation = request.observationForFirst()
+>     let observation = ValueObservation.tracking { db in
+>         try Player.fetchOne(db, key: 42)
+>     }
 >
 >     // Observation is asynchronous
 >     observation.scheduling = .async(onQueue: .main, startImmediately: true)
@@ -6392,7 +6396,8 @@ For example:
 
 ```swift
 // Observe a player's profile image
-let observation = Player.filter(key: 42).observationForFirst()
+let observation = ValueObservation
+    .tracking { db in try Player.fetchOne(db, key: 42) }
     .map { player in player?.image }
 
 let observer = observation.start(
@@ -6414,7 +6419,8 @@ For example:
 
 ```swift
 // Observe a player
-let observation = Player.filter(key: 42).observationForFirst()
+let observation = ValueObservation
+    .tracking { db in try Player.fetchOne(db, key: 42) }
     .compactMap { $0 }
     
 let observer = observation.start(
@@ -6435,19 +6441,15 @@ The `removeDuplicates` method filters out the consecutive equal values notified 
 For example:
 
 ```swift
-let observation = Player.filter(key: 42).observationForFirst()
-    .map { player in player != nil } // existence test
+let observation = ValueObservation
+    .tracking { db in try Player.fetchOne(db, key: 42) }
     .removeDuplicates()
 
 let observer = observation.start(
     in: dbQueue,
     onError: { error in ... },
-    onChange: { (exists: Bool) in
-        if exists {
-            print("Player 42 exists.")
-        } else {
-            print("Player 42 does not exist.")
-        }
+    onChange: { (player: Player) in
+        print("Player: \(player)")
     })
 ```
 
@@ -6460,15 +6462,20 @@ The `ValueObservation.combine(...)` method builds a single observation from seve
 
 ```swift
 // Two base observations
-let playerCountObservation = Player.observationForCount()
-let bestPlayersObservation = Player
-    .limit(10)
-    .order(Column("score").desc)
-    .observationForAll()
+let playerCountObservation = ValueObservation.tracking { db in
+    try Player.fetchCount(db)
+}
+let bestPlayersObservation = ValueObservation.tracking { db in
+    try Player
+        .limit(10)
+        .order(Column("score").desc)
+        .fetchAll(db)
+}
 
 // The combined observation
-let observation = ValueObservation
-    .combine(playerCountObservation, bestPlayersObservation)
+let observation = ValueObservation.combine(
+    playerCountObservation, 
+    bestPlayersObservation)
     
 // Start tracking the hall of fame
 let observer = observation.start(
@@ -6549,36 +6556,34 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // On main queue
-    let observer = Player.observationForAll().start(
+    let observer = observation.start(
         in: dbQueue,
         onError: { error in ... },
-        onChange: { (players: [Player]) in
+        onChange: { value in
             // On main queue
-            print("fresh players: \(players)")
+            print("fresh value: \(value)")
         })
-    // <- here "fresh players" is already printed.
+    // <- Here "fresh value" is already printed.
     ```
     
     If the observation does not start on the main queue, an initial value is also notified on the main queue, but asynchronously:
     
     ```swift
     // Not on the main queue
-    let observer = Player.observationForAll().start(
+    let observer = observation.start(
         in: dbQueue,
         onError: { error in ... },
-        onChange: { (players: [Player]) in
+        onChange: { value in
             // On main queue
-            print("fresh players: \(players)")
+            print("fresh value: \(value)")
         })
     ```
     
-    When the database changes, fresh values are asynchronously notified:
+    After the initial value has been notified, all subsequent values are notified asynchronously:
     
     ```swift
-    // Eventually prints "fresh players" on the main queue
-    try dbQueue.write { db in
-        try Player(...).insert(db)
-    }
+    try dbQueue.write { db in ... }
+    // <- Eventually prints "fresh value" on the main queue
     ```
 
 - `.async(onQueue:startImmediately:)`: all values are asychronously notified on the specified queue.
@@ -6589,16 +6594,16 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // On main queue
-    var observation = Player.observationForAll()
+    var observation = ...
     observation.scheduling = .async(onQueue: .main, startImmediately: true)
     let observer = observation.start(
         in: dbQueue,
         onError: { error in ... },
-        onChange: { (players: [Player]) in
+        onChange: { value in
             // On main queue
-            print("fresh players: \(players)")s
+            print("fresh value: \(value)")
         })
-    // <- here "fresh players" is not printed yet.
+    // <- Eventually prints "fresh value"
     ```
 
 - `unsafe(startImmediately:)`: values are not all notified on the same dispatch queue.
@@ -6607,18 +6612,18 @@ The `scheduling` property lets you control how fresh values are notified:
     
     ```swift
     // On any queue
-    var observation = Player.observationForAll()
+    var observation = ...
     observation.scheduling = .unsafe(startImmediately: true)
     let observer = observation.start(
         in: dbQueue,
         onError: { error in ... },
-        onChange: { (players: [Player]) in
-            print("fresh players: \(players)")
+        onChange: { value in
+            print("fresh value: \(value)")
         })
-    // <- here "fresh players" is already printed.
+    // <- Here "fresh value" is already printed.
     ```
     
-    When the database changes, other values are notified on unspecified queues.
+    After the initial value has been notified, all subsequent values are notified on unspecified queues.
     
     > :point_up: **Note**: this unsafe mode is intended for third-party libraries that provide their own scheduling engine.
 
