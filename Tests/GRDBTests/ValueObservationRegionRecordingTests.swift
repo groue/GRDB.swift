@@ -73,6 +73,20 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         }
     }
     
+    func testTupleObservation() throws {
+        // Here we just test that user can destructure an observed tuple.
+        // I'm completely paranoid about tuple destructuring - I can't wrap my
+        // head about the rules that allow or disallow it.
+        let dbQueue = try makeDatabaseQueue()
+        let observation = ValueObservation.tracking { db -> (Int, String) in
+            (0, "")
+        }
+        _ = observation.start(
+            in: dbQueue,
+            onError: { _ in },
+            onChange: { (int: Int, string: String) in }) // <- destructure
+    }
+    
     func testMainQueueScheduling() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
