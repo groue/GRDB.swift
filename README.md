@@ -6257,7 +6257,6 @@ struct HallOfFame {
     var totalPlayerCount: Int
     var bestPlayers: [Player]
 }
-```
 
 extension HallOfFame {
     /// Fetch the HallOfFame
