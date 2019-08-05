@@ -276,6 +276,10 @@ extension Statement {
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
 public final class SelectStatement: Statement {
+    // Database region is computed during statement compilation, and maybe
+    // optimized when statement is compiled for a QueryInterfaceRequest, in
+    // order to perform focused database observation. See
+    // SQLQueryGenerator.optimizedDatabaseRegion(_:_:)
     /// The database region that the statement looks into.
     public internal(set) var databaseRegion = DatabaseRegion()
     
