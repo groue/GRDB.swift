@@ -79,9 +79,9 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
                         return .commit
                     }
                     self.selectedRegion = selectedRegion
-                    future = DatabaseFuture(Result.success(fetchedValue))
+                    future = DatabaseFuture(DatabaseResult.success(fetchedValue))
                 } catch {
-                    future = DatabaseFuture(Result.failure(error))
+                    future = DatabaseFuture(DatabaseResult.failure(error))
                 }
             } else {
                 // Synchronous read/write fetch
@@ -104,9 +104,9 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
                         }
                     }
                     self.selectedRegion = selectedRegion
-                    future = DatabaseFuture(Result.success(fetchedValue))
+                    future = DatabaseFuture(DatabaseResult.success(fetchedValue))
                 } catch {
-                    future = DatabaseFuture(Result.failure(error))
+                    future = DatabaseFuture(DatabaseResult.failure(error))
                 }
             } else {
                 // Concurrent fetch
