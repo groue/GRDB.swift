@@ -71,7 +71,10 @@ class PlayersViewController: UITableViewController {
     
     private func configureTitle() {
         // Track changes in the number of players
-        playerCountObserver = playersRequest.observationForCount().start(
+        let observation = ValueObservation.tracking { db in
+            try Player.fetchCount(db)
+        }
+        playerCountObserver = observation.start(
             in: dbQueue,
             onError: { error in
                 fatalError("Unexpected error: \(error)")
