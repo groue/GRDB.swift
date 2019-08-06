@@ -2,7 +2,7 @@
 import Foundation
 
 /// NSData is convertible to and from DatabaseValue.
-extension NSData : DatabaseValueConvertible {
+extension NSData: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {

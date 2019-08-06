@@ -74,9 +74,15 @@ public enum ValueScheduling {
 ///     }
 public struct ValueObservation<Reducer> {
     /// A closure that is evaluated when the observation starts, and returns
-    /// the observed database region.
-    var observedRegion: (Database) throws -> DatabaseRegion
+    /// a "base" observed database region.
+    ///
+    /// See also `observesSelectedRegion`
+    var baseRegion: (Database) throws -> DatabaseRegion
     
+    /// If true, the region selected by the reducer is observed as well
+    /// as `baseRegion`.
+    var observesSelectedRegion: Bool
+
     /// The reducer is created when observation starts, and is triggered upon
     /// each database change in *observedRegion*.
     var makeReducer: (Database) throws -> Reducer
@@ -87,7 +93,7 @@ public struct ValueObservation<Reducer> {
     ///
     /// Don't set this flag to true unless you really need it. A read/write
     /// observation is less efficient than a read-only observation.
-    public var requiresWriteAccess: Bool = false
+    public var requiresWriteAccess: Bool
     
     /// `scheduling` controls how fresh values are notified. Default
     /// is `.mainQueue`.
@@ -144,25 +150,7 @@ public struct ValueObservation<Reducer> {
     ///
     ///     When the database changes, other values are notified on
     ///     unspecified queues.
-    public var scheduling: ValueScheduling = .mainQueue
-    
-    // Not public because we foster DatabaseRegionConvertible.
-    // See ValueObservation.tracking(_:reducer:)
-    init(
-        tracking region: @escaping (Database) throws -> DatabaseRegion,
-        reducer: @escaping (Database) throws -> Reducer)
-    {
-        self.observedRegion = { db in
-            // Remove views from the observed region.
-            //
-            // We can do it because we are only interested in modifications in
-            // actual tables. And we want to do it because we have a fast path
-            // for simple regions that span a single table.
-            let views = try db.schema().names(ofType: .view)
-            return try region(db).ignoring(views)
-        }
-        self.makeReducer = reducer
-    }
+    public var scheduling: ValueScheduling
 }
 
 extension ValueObservation where Reducer: ValueReducer {
@@ -208,7 +196,7 @@ extension ValueObservation where Reducer: ValueReducer {
     {
         return reader.add(observation: self, onError: onError, onChange: onChange)
     }
-
+    
     // MARK: - Fetching Values
     
     /// Returns the observed value.
@@ -239,7 +227,7 @@ private class ErrorCatcher {
     var error: Error?
 }
 
-extension ValueObservation {
+extension ValueObservation where Reducer: ValueReducer {
     
     // MARK: - Creating ValueObservation from ValueReducer
     
@@ -323,14 +311,52 @@ extension ValueObservation {
         -> ValueObservation
     {
         return ValueObservation(
-            tracking: DatabaseRegion.union(regions),
-            reducer: reducer)
+            baseRegion: DatabaseRegion.union(regions),
+            observesSelectedRegion: false,
+            makeReducer: reducer,
+            requiresWriteAccess: false,
+            scheduling: .mainQueue)
     }
 }
 
 extension ValueObservation where Reducer == Void {
     
     // MARK: - Creating ValueObservation from Fetch Closures
+    
+    /// Creates a ValueObservation which notifies the values returned by the
+    /// *fetch* closure whenever a database transaction changes them.
+    ///
+    /// For example:
+    ///
+    ///     let observation = ValueObservation.tracking { db in
+    ///         try Player.fetchAll(db)
+    ///     }
+    ///
+    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
+    ///         print("Players have changed")
+    ///     }
+    ///
+    /// The returned observation has the default configuration:
+    ///
+    /// - When started with the `start(in:onError:onChange:)` method, a fresh
+    /// value is immediately notified on the main queue.
+    /// - Upon subsequent database changes, fresh values are notified on the
+    /// main queue.
+    /// - The observation lasts until the observer returned by
+    /// `start` is deallocated.
+    ///
+    /// - parameter value: A closure that fetches a value.
+    public static func tracking<Value>(
+        value: @escaping (Database) throws -> Value)
+        -> ValueObservation<ValueReducers.Fetch<Value>>
+    {
+        return ValueObservation<ValueReducers.Fetch<Value>>(
+            baseRegion: { _ in DatabaseRegion() },
+            observesSelectedRegion: true,
+            makeReducer: { _ in ValueReducers.Fetch(value) },
+            requiresWriteAccess: false,
+            scheduling: .mainQueue)
+    }
     
     /// Creates a ValueObservation which observes *regions*, and notifies the
     /// values returned by the *fetch* closure whenever one of the observed
@@ -396,7 +422,10 @@ extension ValueObservation where Reducer == Void {
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
         return ValueObservation<ValueReducers.Fetch<Value>>(
-            tracking: DatabaseRegion.union(regions),
-            reducer: { _ in ValueReducers.Fetch(fetch) })
+            baseRegion: DatabaseRegion.union(regions),
+            observesSelectedRegion: false,
+            makeReducer: { _ in ValueReducers.Fetch(fetch) },
+            requiresWriteAccess: false,
+            scheduling: .mainQueue)
     }
 }

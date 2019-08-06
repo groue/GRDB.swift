@@ -88,7 +88,6 @@ The ideas, in alphabetical order:
 - [Reactive Database Observation]
 - [SQL Console in the Debugger]
 - [SQLCipher in a Shared App Container]
-- [Static Library]
 - [Typed Expressions]
 
 
@@ -292,14 +291,16 @@ There are several SQLite features that GRDB could natively support:
 - [Windows Functions](https://www.sqlite.org/windowfunctions.html)
 - [More ideas](https://www.sqlite.org/lang.html)
 
+See [issue #575](https://github.com/groue/GRDB.swift/issues/575) for more information and guidance about the implementation of extra table alterations.
+
 
 ### Reactive Database Observation
 
 :baby: Starter Task
 
-We already have the [RxGRDB] companion library, which offers [RxSwift](https://github.com/ReactiveX/RxSwift) bindings.
+We already have the [GRDBCombine](http://github.com/groue/GRDBCombine) and [RxGRDB] companion libraries.
 
-We need more choices of reactive engines.
+More choices of reactive engines would help more developers enjoy GRDB.
 
 
 ### SQL Console in the Debugger
@@ -314,13 +315,6 @@ Sometimes one needs, in lldb, a console similar to the [Command Line Shell For S
 :question: Unknown Difficulty
 
 See issue [#302](https://github.com/groue/GRDB.swift/issues/302).
-
-
-### Static Library
-
-:question: Unknown Difficulty :hammer: Tooling
-
-It would be nice to be able to integrate GRDB as a static library.
 
 
 ### Typed Expressions
@@ -376,12 +370,12 @@ Features that blur this focus are non-goals:
 [JSON]: #json
 [Linux]: #linux
 [More SQL Generation]: #more-sql-generation
+[Reactive Database Observation]: #reactive-database-observation
 [Records: Splitting Database Encoding from Ability to Write in the Database]: #records-splitting-database-encoding-from-ability-to-write-in-the-database
 [Non-Goals]: #non-goals
 [Report Bugs]: #report-bugs
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
 [Concurrency]: #concurrency
-[Static Library]: #static-library
 [Sponsoring and Professional Support]: #sponsoring-and-professional-support
 [SQL Console in the Debugger]: #sql-console-in-the-debugger
 [SQLCipher in a Shared App Container]: #sqlcipher-in-a-shared-app-container

@@ -1,10 +1,10 @@
 import Foundation
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 /// Types that adopt FetchableRecord can be initialized from a database Row.
@@ -160,7 +160,12 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
+    public static func fetchCursor(
+        _ statement: SelectStatement,
+        arguments: StatementArguments? = nil,
+        adapter: RowAdapter? = nil)
+        throws -> RecordCursor<Self>
+    {
         return try RecordCursor(statement: statement, arguments: arguments, adapter: adapter)
     }
     
@@ -175,7 +180,12 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Self] {
+    public static func fetchAll(
+        _ statement: SelectStatement,
+        arguments: StatementArguments? = nil,
+        adapter: RowAdapter? = nil)
+        throws -> [Self]
+    {
         return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
     
@@ -190,7 +200,12 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Self? {
+    public static func fetchOne(
+        _ statement: SelectStatement,
+        arguments: StatementArguments? = nil,
+        adapter: RowAdapter? = nil)
+        throws -> Self?
+    {
         return try fetchCursor(statement, arguments: arguments, adapter: adapter).next()
     }
 }
@@ -218,7 +233,13 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RecordCursor<Self> {
+    public static func fetchCursor(
+        _ db: Database,
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        adapter: RowAdapter? = nil)
+        throws -> RecordCursor<Self>
+    {
         return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
@@ -233,7 +254,13 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Self] {
+    public static func fetchAll(
+        _ db: Database,
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        adapter: RowAdapter? = nil)
+        throws -> [Self]
+    {
         return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
@@ -248,7 +275,13 @@ extension FetchableRecord {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Self? {
+    public static func fetchOne(
+        _ db: Database,
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        adapter: RowAdapter? = nil)
+        throws -> Self?
+    {
         return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
@@ -319,7 +352,7 @@ extension FetchableRecord {
                 return nil
             }
             try supplementaryFetch([row])
-            return Self.init(row: row)
+            return .init(row: row)
         } else {
             return try fetchOne(request.statement, adapter: request.adapter)
         }
@@ -385,7 +418,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
 ///     try dbQueue.read { db in
 ///         let players: RecordCursor<Player> = try Player.fetchCursor(db, sql: "SELECT * FROM player")
 ///     }
-public final class RecordCursor<Record: FetchableRecord> : Cursor {
+public final class RecordCursor<Record: FetchableRecord>: Cursor {
     @usableFromInline let _statement: SelectStatement
     @usableFromInline let _row: Row // Reused for performance
     @usableFromInline let _sqliteStatement: SQLiteStatement
@@ -396,6 +429,9 @@ public final class RecordCursor<Record: FetchableRecord> : Cursor {
         _row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         _sqliteStatement = statement.sqliteStatement
         _statement.reset(withArguments: arguments)
+        
+        // Assume cursor is created for iteration
+        statement.database.selectStatementWillExecute(statement)
     }
     
     deinit {
@@ -440,7 +476,7 @@ public final class RecordCursor<Record: FetchableRecord> : Cursor {
 public enum DatabaseDateDecodingStrategy {
     /// The strategy that uses formatting from the Date structure.
     ///
-    /// It decodes numeric values as a nunber of seconds since Epoch
+    /// It decodes numeric values as a number of seconds since Epoch
     /// (midnight UTC on January 1st, 1970).
     ///
     /// It decodes strings in the following formats, assuming UTC time zone.

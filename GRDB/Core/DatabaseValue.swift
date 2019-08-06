@@ -1,10 +1,10 @@
 import Foundation
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 // MARK: - DatabaseValue
@@ -20,7 +20,7 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
     public static let null = DatabaseValue(storage: .null)
     
     /// An SQLite storage (NULL, INTEGER, REAL, TEXT, BLOB).
-    public enum Storage : Equatable {
+    public enum Storage: Equatable {
         /// The NULL storage class.
         case null
         
@@ -60,10 +60,10 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
         public static func == (_ lhs: Storage, _ rhs: Storage) -> Bool {
             switch (lhs, rhs) {
             case (.null, .null): return true
-            case (.int64(let lhs), .int64(let rhs)): return lhs == rhs
-            case (.double(let lhs), .double(let rhs)): return lhs == rhs
-            case (.string(let lhs), .string(let rhs)): return lhs == rhs
-            case (.blob(let lhs), .blob(let rhs)): return lhs == rhs
+            case let (.int64(lhs), .int64(rhs)): return lhs == rhs
+            case let (.double(lhs), .double(rhs)): return lhs == rhs
+            case let (.string(lhs), .string(rhs)): return lhs == rhs
+            case let (.blob(lhs), .blob(rhs)): return lhs == rhs
             default: return false
             }
         }
@@ -120,7 +120,7 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
             fatalError("Unexpected SQLite value type: \(type)")
         }
     }
-
+    
     /// Returns a DatabaseValue initialized from a raw SQLite statement pointer.
     init(sqliteStatement: SQLiteStatement, index: Int32) {
         switch sqlite3_column_type(sqliteStatement, index) {
@@ -187,17 +187,17 @@ extension DatabaseValue {
         switch (lhs.storage, rhs.storage) {
         case (.null, .null):
             return true
-        case (.int64(let lhs), .int64(let rhs)):
+        case let (.int64(lhs), .int64(rhs)):
             return lhs == rhs
-        case (.double(let lhs), .double(let rhs)):
+        case let (.double(lhs), .double(rhs)):
             return lhs == rhs
-        case (.int64(let lhs), .double(let rhs)):
+        case let (.int64(lhs), .double(rhs)):
             return Int64(exactly: rhs) == lhs
-        case (.double(let lhs), .int64(let rhs)):
+        case let (.double(lhs), .int64(rhs)):
             return rhs == Int64(exactly: lhs)
-        case (.string(let lhs), .string(let rhs)):
+        case let (.string(lhs), .string(rhs)):
             return lhs == rhs
-        case (.blob(let lhs), .blob(let rhs)):
+        case let (.blob(lhs), .blob(rhs)):
             return lhs == rhs
         default:
             return false
@@ -266,8 +266,10 @@ extension DatabaseValue {
         case .blob:
             // We can't assume all blobs are true, and return false:
             //
-            // SELECT NOT X'31' -- 0 (because X'31' is turned into the string '1', then into integer 1, which is negated into 0)
-            // SELECT NOT X'30' -- 1 (because X'30' is turned into the string '0', then into integer 0, which is negated into 1)
+            // SELECT NOT X'31' -- 0 (because X'31' is turned into the string '1',
+            //  then into integer 1, which is negated into 0)
+            // SELECT NOT X'30' -- 1 (because X'30' is turned into the string '0',
+            //  then into integer 0, which is negated into 1)
             return SQLExpressionNot(self)
         }
     }
@@ -309,17 +311,17 @@ extension DatabaseValue {
 /// easier testing.
 func < (lhs: DatabaseValue, rhs: DatabaseValue) -> Bool {
     switch (lhs.storage, rhs.storage) {
-    case (.int64(let lhs), .int64(let rhs)):
+    case let (.int64(lhs), .int64(rhs)):
         return lhs < rhs
-    case (.double(let lhs), .double(let rhs)):
+    case let (.double(lhs), .double(rhs)):
         return lhs < rhs
-    case (.int64(let lhs), .double(let rhs)):
+    case let (.int64(lhs), .double(rhs)):
         return Double(lhs) < rhs
-    case (.double(let lhs), .int64(let rhs)):
+    case let (.double(lhs), .int64(rhs)):
         return lhs < Double(rhs)
-    case (.string(let lhs), .string(let rhs)):
+    case let (.string(lhs), .string(rhs)):
         return lhs.utf8.lexicographicallyPrecedes(rhs.utf8)
-    case (.blob(let lhs), .blob(let rhs)):
+    case let (.blob(lhs), .blob(rhs)):
         return lhs.lexicographicallyPrecedes(rhs, by: <)
     case (.blob, _):
         return false

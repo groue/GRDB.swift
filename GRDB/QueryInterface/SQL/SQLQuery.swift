@@ -11,7 +11,7 @@ struct SQLQuery {
     // `(a AND b AND c)` instead of `((a AND b) AND c)`.
     var havingExpressions: [SQLExpression]
     var limit: SQLLimit?
-
+    
     init(
         relation: SQLRelation,
         isDistinct: Bool = false,

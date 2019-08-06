@@ -24,18 +24,78 @@ extension SQLSpecificExpressible {
 /// :nodoc:
 extension SQLSpecificExpressible {
     
-    /// Returns a value that can be used as an argument to QueryInterfaceRequest.select()
+    /// Give the expression the given SQL name.
     ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    /// For example:
+    ///
+    ///     // SELECT (width * height) AS area FROM shape
+    ///     let area = (Column("width") * Column("height")).aliased("area")
+    ///     let request = Shape.select(area)
+    ///     if let row = try Row.fetchOne(db, request) {
+    ///         let area: Int = row["area"]
+    ///     }
+    @available(*, deprecated, renamed: "forKey(_:)")
     public func aliased(_ name: String) -> SQLSelectable {
-        return SQLAliasedExpression(sqlExpression, name: name)
+        return forKey(name)
     }
     
-    /// Returns a value that can be used as an argument to QueryInterfaceRequest.select()
+    /// Give the expression the given SQL name.
     ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    /// For example:
+    ///
+    ///     // SELECT (width * height) AS area FROM shape
+    ///     let area = (Column("width") * Column("height")).forKey("area")
+    ///     let request = Shape.select(area)
+    ///     if let row = try Row.fetchOne(db, request) {
+    ///         let area: Int = row["area"]
+    ///     }
+    public func forKey(_ key: String) -> SQLSelectable {
+        return SQLAliasedExpression(sqlExpression, name: key)
+    }
+    
+    /// Give the expression the same SQL name as the coding key.
+    ///
+    /// For example:
+    ///
+    ///     struct Shape: Decodable, FetchableRecord, TableRecord {
+    ///         let width: Int
+    ///         let height: Int
+    ///         let area: Int
+    ///
+    ///         static let databaseSelection: [SQLSelectable] = [
+    ///             Column(CodingKeys.width),
+    ///             Column(CodingKeys.height),
+    ///             (Column(CodingKeys.width) * Column(CodingKeys.height)).aliased(CodingKeys.area),
+    ///         ]
+    ///     }
+    ///
+    ///     // SELECT width, height, (width * height) AS area FROM shape
+    ///     let shapes: [Shape] = try Shape.fetchAll(db)
+    @available(*, deprecated, renamed: "forKey(_:)")
     public func aliased(_ key: CodingKey) -> SQLSelectable {
-        return aliased(key.stringValue)
+        return forKey(key)
+    }
+    
+    /// Give the expression the same SQL name as the coding key.
+    ///
+    /// For example:
+    ///
+    ///     struct Shape: Decodable, FetchableRecord, TableRecord {
+    ///         let width: Int
+    ///         let height: Int
+    ///         let area: Int
+    ///
+    ///         static let databaseSelection: [SQLSelectable] = [
+    ///             Column(CodingKeys.width),
+    ///             Column(CodingKeys.height),
+    ///             (Column(CodingKeys.width) * Column(CodingKeys.height)).forKey(CodingKeys.area),
+    ///         ]
+    ///     }
+    ///
+    ///     // SELECT width, height, (width * height) AS area FROM shape
+    ///     let shapes: [Shape] = try Shape.fetchAll(db)
+    public func forKey(_ key: CodingKey) -> SQLSelectable {
+        return forKey(key.stringValue)
     }
 }
 
@@ -63,4 +123,3 @@ extension SQLSpecificExpressible {
         return SQLCollatedExpression(sqlExpression, collationName: Database.CollationName(collation.name))
     }
 }
-

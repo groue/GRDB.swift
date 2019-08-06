@@ -43,7 +43,12 @@ final class SchedulingWatchdog {
         return try body()
     }
     
-    static func preconditionValidQueue(_ db: Database, _ message: @autoclosure() -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
+    static func preconditionValidQueue(
+        _ db: Database,
+        _ message: @autoclosure() -> String = "Database was not used on the correct thread.",
+        file: StaticString = #file,
+        line: UInt = #line)
+    {
         GRDBPrecondition(current?.allows(db) ?? false, message(), file: file, line: line)
     }
     

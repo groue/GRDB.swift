@@ -822,19 +822,6 @@ let novels = try author
     .fetchAll(db) // [Book]
 ```
 
-Those requests can also turn out useful when you want to track their changes with [database observation tools] like [ValueObservation]:
-
-```swift
-// Track changes in the author's books:
-let author: Author = ...
-author.books.observationForAll().start(
-    in: dbQueue,
-    onError: { error in ... },
-    onChange: { (books: [Book]) in
-        print("Author's book have changed")
-    })
-```
-
 
 ## Joining And Prefetching Associated Records
 
@@ -1791,14 +1778,14 @@ The default name is built from the aggregating method, the **[association key](#
 
 Those default names are lost whenever an aggregate is modified (negated, added, multiplied, whatever).
 
-You can name or rename aggregates with the `aliased` method:
+You can name or rename aggregates with the `forKey` method:
 
 ```swift
 struct AuthorInfo: Decodable, FetchableRecord {
     var author: Author
     var numberOfBooks: Int
 }
-let numberOfBooks = Author.books.count.aliased("numberOfBooks")                    // <--
+let numberOfBooks = Author.books.count.forKey("numberOfBooks")                    // <--
 let request = Author.annotated(with: numberOfBooks)
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 
@@ -1806,7 +1793,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
     var author: Author
     var hasBooks: Bool
 }
-let hasBooks = (Author.books.isEmpty == false).aliased("hasBooks")                 // <--
+let hasBooks = (Author.books.isEmpty == false).forKey("hasBooks")                 // <--
 let request = Author.annotated(with: hasBooks)
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 
@@ -1814,7 +1801,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
     var author: Author
     var workCount: Int
 }
-let workCount = (Author.books.count + Author.paintings.count).aliased("workCount") // <--
+let workCount = (Author.books.count + Author.paintings.count).forKey("workCount") // <--
 let request = Author.annotated(with: workCount)
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 ```
@@ -1827,7 +1814,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
     var numberOfBooks: Int
     
     static func all() -> QueryInterfaceRequest<AuthorInfo> {
-        let numberOfBooks = Author.books.count.aliased(CodingKey.numberOfBooks)    // <--
+        let numberOfBooks = Author.books.count.forKey(CodingKey.numberOfBooks)    // <--
         return Author
             .annotated(with: numberOfBooks)
             .asRequest(of: AuthorInfo.self)
@@ -2041,7 +2028,7 @@ Aggregates can be modified and combined with Swift operators:
     
     ```swift
     let workCount = Author.books.count + Author.paintings.count)
-    let request = Author.annotated(with: workCount.aliased("workCount"))
+    let request = Author.annotated(with: workCount.forKey("workCount"))
     ```
 
 - IFNULL operator `??`
@@ -2133,7 +2120,7 @@ In this other example, the `Author.books` and `Author.paintings` have the distin
     
     let aggregate = Author.books.count +   // association key "books"
                     Author.paintings.count // association key "paintings"
-    let request = Author.annotated(with: aggregate.aliased("workCount"))
+    let request = Author.annotated(with: aggregate.forKey("workCount"))
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
 
@@ -2201,11 +2188,11 @@ But in the following example, we use the same association `Author.books` twice, 
     let novelCount = Author.books                // association key "books"
         .filter(Column("kind") == "novel")
         .count
-        .aliased("novelCount")
+        .forKey("novelCount")
     let theatrePlayCount = Author.books          // association key "books"
         .filter(Column("kind") == "theatrePlay")
         .count
-        .aliased("theatrePlayCount")
+        .forKey("theatrePlayCount")
     let request = Author.annotated(with: novelCount, theatrePlayCount)
     let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```

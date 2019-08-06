@@ -34,25 +34,6 @@ extension ValueReducer {
             }
         }
     }
-    
-    /// Synchronous or asynchronous fetch
-    /// Support for ValueObserver
-    func fetchFuture(_ db: Database, writer: DatabaseWriter, requiringWriteAccess: Bool) -> DatabaseFuture<Fetched> {
-        if requiringWriteAccess {
-            // Synchronous fetch
-            return DatabaseFuture(DatabaseResult {
-                var fetchedValue: Fetched!
-                try db.inTransaction {
-                    fetchedValue = try fetch(db)
-                    return .commit
-                }
-                return fetchedValue
-            })
-        } else {
-            // Concurrent fetch
-            return writer.concurrentRead(fetch)
-        }
-    }
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)

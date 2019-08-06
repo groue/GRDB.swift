@@ -176,7 +176,7 @@ extension FilteredRequest {
         // NOT TESTED
         return filter(SQLExpressionLiteral(literal: sqlLiteral))
     }
-
+    
     /// Creates a request that matches nothing.
     ///
     ///     // SELECT * FROM player WHERE 0
@@ -230,7 +230,10 @@ extension TableRequest where Self: FilteredRequest {
     }
     
     /// Creates a request with the provided primary key *predicate*.
-    public func filter<Sequence: Swift.Sequence>(keys: Sequence) -> Self where Sequence.Element: DatabaseValueConvertible {
+    public func filter<Sequence: Swift.Sequence>(keys: Sequence)
+        -> Self
+        where Sequence.Element: DatabaseValueConvertible
+    {
         var request = self
         let keys = Array(keys)
         switch keys.count {
@@ -241,7 +244,7 @@ extension TableRequest where Self: FilteredRequest {
         default:
             break
         }
-
+        
         let databaseTableName = self.databaseTableName
         return request.filter { db in
             let primaryKey = try db.primaryKey(databaseTableName)
@@ -286,7 +289,10 @@ extension TableRequest where Self: FilteredRequest {
                     // ("foo", "bar") is not a unique key (primary key or columns of a
                     // unique index)
                     guard let columns = try db.columnsForUniqueKey(key.keys, in: databaseTableName) else {
-                        fatalError("table \(databaseTableName) has no unique index on column(s) \(key.keys.sorted().joined(separator: ", "))")
+                        fatalError("""
+                            table \(databaseTableName) has no unique index on column(s) \
+                            \(key.keys.sorted().joined(separator: ", "))
+                            """)
                     }
                     
                     let lowercaseColumns = columns.map { $0.lowercased() }
@@ -365,13 +371,13 @@ extension AggregatingRequest {
         // NOT TESTED
         return group(SQLExpressionLiteral(literal: sqlLiteral))
     }
-
+    
     /// Creates a request with the provided *sql* added to the
     /// eventual set of already applied predicates.
     public func having(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
         return having(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
-
+    
     /// Creates a request with the provided *sql* added to the
     /// eventual set of already applied predicates.
     public func having(literal sqlLiteral: SQLLiteral) -> Self {
@@ -494,6 +500,8 @@ extension OrderedRequest {
     }
 }
 
+// MARK: - JoinableRequest
+
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
 /// Type-unsafe support for the JoinableRequest protocol.
@@ -542,7 +550,7 @@ public protocol JoinableRequest: _JoinableRequest {
     ///         // BelongsToAssociation<Book, Author>
     ///         static let author = belongsTo(Author.self)
     ///     }
-    associatedtype RowDecoder
+    associatedtype RowDecoder: TableRecord
 }
 
 extension JoinableRequest {
@@ -587,4 +595,4 @@ extension JoinableRequest {
 /// The base protocol for all requests that can be refined.
 ///
 /// :nodoc:
-public protocol DerivableRequest: SelectionRequest, FilteredRequest, OrderedRequest, JoinableRequest { }
+public protocol DerivableRequest: FilteredRequest, JoinableRequest, OrderedRequest, SelectionRequest, TableRequest { }

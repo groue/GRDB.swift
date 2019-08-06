@@ -13,25 +13,14 @@ public struct DatabaseRegionObservation {
     /// `.observerLifetime`: the observation lasts until the
     /// observer returned by the `start(in:onChange:)` method
     /// is deallocated.
-    public var extent = Database.TransactionObservationExtent.observerLifetime
+    public var extent: Database.TransactionObservationExtent
     
     /// A closure that is evaluated when the observation starts, and returns
     /// the observed database region.
     var observedRegion: (Database) throws -> DatabaseRegion
+}
 
-    // Not public because we foster DatabaseRegionConvertible.
-    init(tracking region: @escaping (Database) throws -> DatabaseRegion) {
-        self.observedRegion = { db in
-            // Remove views from the observed region.
-            //
-            // We can do it because we are only interested in modifications in
-            // actual tables. And we want to do it because we have a fast path
-            // for simple regions that span a single table.
-            let views = try db.schema().names(ofType: .view)
-            return try region(db).ignoring(views)
-        }
-    }
-    
+extension DatabaseRegionObservation {
     /// Creates a DatabaseRegionObservation which observes *regions*, and
     /// notifies whenever one of the observed regions is modified by a
     /// database transaction.
@@ -75,7 +64,9 @@ public struct DatabaseRegionObservation {
     ///
     /// - parameter regions: A list of observed regions.
     public init(tracking regions: [DatabaseRegionConvertible]) {
-        self.init(tracking: DatabaseRegion.union(regions))
+        self.init(
+            extent: .observerLifetime,
+            observedRegion: DatabaseRegion.union(regions))
     }
 }
 
@@ -87,11 +78,15 @@ extension DatabaseRegionObservation {
     /// - parameter onChange: A closure that is provided a database connection
     ///   with write access each time the observed region has been modified.
     /// - returns: a TransactionObserver
-    public func start(in dbWriter: DatabaseWriter, onChange: @escaping (Database) -> Void) throws -> TransactionObserver {
+    public func start(
+        in dbWriter: DatabaseWriter,
+        onChange: @escaping (Database) -> Void)
+        throws -> TransactionObserver
+    {
         // Use unsafeReentrantWrite so that observation can start from any
         // dispatch queue.
         return try dbWriter.unsafeReentrantWrite { db -> TransactionObserver in
-            let region = try observedRegion(db)
+            let region = try observedRegion(db).ignoringViews(db)
             let observer = DatabaseRegionObserver(region: region, onChange: onChange)
             db.add(transactionObserver: observer, extent: extent)
             return observer
@@ -123,7 +118,7 @@ private class DatabaseRegionObserver: TransactionObserver {
     func databaseDidCommit(_ db: Database) {
         guard isChanged else { return }
         isChanged = false
-
+        
         onChange(db)
     }
     

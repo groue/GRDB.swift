@@ -107,7 +107,7 @@ class AssociationHasOneThroughSQLDerivationTests: GRDBTestCase {
                     .including(required: A.c
                         .select(
                             Column("name"),
-                            (Column("id") + aAlias[Column("id")]).aliased("foo")))
+                            (Column("id") + aAlias[Column("id")]).forKey("foo")))
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "c"."name", "c"."id" + "a"."id" AS "foo" \
                     FROM "a" \

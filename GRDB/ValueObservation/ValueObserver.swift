@@ -3,14 +3,21 @@ import Foundation
 /// Support for ValueObservation.
 /// See DatabaseWriter.add(observation:onError:onChange:)
 class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
-    // Region, reducer, and notificationQueue must be set before observer is
+    // Reducer and notificationQueue must be set before observer is
     // added to a database.
-    var region: DatabaseRegion!
     var reducer: Reducer!
     var notificationQueue: DispatchQueue?
-
+    
+    var baseRegion = DatabaseRegion() {
+        didSet { observedRegion = baseRegion.union(selectedRegion) }
+    }
+    var selectedRegion = DatabaseRegion() {
+        didSet { observedRegion = baseRegion.union(selectedRegion) }
+    }
+    var observedRegion: DatabaseRegion! // internal for testability
     private var requiresWriteAccess: Bool
-    unowned private var writer: DatabaseWriter
+    private var observesSelectedRegion: Bool
+    private unowned var writer: DatabaseWriter
     private let reduceQueue: DispatchQueue
     private let onError: (Error) -> Void
     private let onChange: (Reducer.Value) -> Void
@@ -19,6 +26,7 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
     
     init(
         requiresWriteAccess: Bool,
+        observesSelectedRegion: Bool,
         writer: DatabaseWriter,
         reduceQueue: DispatchQueue,
         onError: @escaping (Error) -> Void,
@@ -26,6 +34,7 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
     {
         self.writer = writer
         self.requiresWriteAccess = requiresWriteAccess
+        self.observesSelectedRegion = observesSelectedRegion
         self.reduceQueue = reduceQueue
         self.onError = onError
         self.onChange = onChange
@@ -37,12 +46,12 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
         if isCancelled { return false }
-        return region.isModified(byEventsOfKind: eventKind)
+        return observedRegion.isModified(byEventsOfKind: eventKind)
     }
     
     func databaseDidChange(with event: DatabaseEvent) {
         if isCancelled { return }
-        if region.isModified(by: event) {
+        if observedRegion.isModified(by: event) {
             isChanged = true
             stopObservingDatabaseChangesUntilNextTransaction()
         }
@@ -54,7 +63,56 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
         isChanged = false
         
         // Grab future fetched value
-        let future = reducer.fetchFuture(db, writer: writer, requiringWriteAccess: requiresWriteAccess)
+        let future: DatabaseFuture<Reducer.Fetched>
+        if requiresWriteAccess {
+            // Synchronous read/write fetch
+            if observesSelectedRegion {
+                do {
+                    var fetchedValue: Reducer.Fetched!
+                    var selectedRegion: DatabaseRegion!
+                    try db.inTransaction {
+                        let (_fetchedValue, _selectedRegion) = try db.recordingSelectedRegion {
+                            try reducer.fetch(db)
+                        }
+                        fetchedValue = _fetchedValue
+                        selectedRegion = _selectedRegion
+                        return .commit
+                    }
+                    self.selectedRegion = selectedRegion
+                    future = DatabaseFuture(DatabaseResult.success(fetchedValue))
+                } catch {
+                    future = DatabaseFuture(DatabaseResult.failure(error))
+                }
+            } else {
+                // Synchronous read/write fetch
+                future = DatabaseFuture(DatabaseResult {
+                    var fetchedValue: Reducer.Fetched!
+                    try db.inTransaction {
+                        fetchedValue = try reducer.fetch(db)
+                        return .commit
+                    }
+                    return fetchedValue
+                })
+            }
+        } else {
+            if observesSelectedRegion {
+                // Synchronous read-only fetch
+                do {
+                    let (fetchedValue, selectedRegion) = try db.readOnly {
+                        try db.recordingSelectedRegion {
+                            try reducer.fetch(db)
+                        }
+                    }
+                    self.selectedRegion = selectedRegion
+                    future = DatabaseFuture(DatabaseResult.success(fetchedValue))
+                } catch {
+                    future = DatabaseFuture(DatabaseResult.failure(error))
+                }
+            } else {
+                // Concurrent fetch
+                future = writer.concurrentRead(reducer.fetch)
+            }
+        }
         
         // Wait for future fetched value in reduceQueue. This guarantees:
         // - that notifications have the same ordering as transactions.

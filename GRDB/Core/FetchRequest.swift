@@ -23,7 +23,7 @@ public struct PreparedRequest {
     {
         self.init(statement: statement, adapter: adapter, supplementaryFetch: nil)
     }
-
+    
     init(
         statement: SelectStatement,
         adapter: RowAdapter?,
@@ -62,7 +62,7 @@ public protocol FetchRequest: DatabaseRegionConvertible {
     ///   prepared statement.
     /// - returns: A prepared statement and an eventual row adapter.
     func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
-
+    
     /// Returns a PreparedRequest that is ready to be executed.
     ///
     /// - parameter db: A database connection.
@@ -86,7 +86,7 @@ public protocol FetchRequest: DatabaseRegionConvertible {
 }
 
 extension FetchRequest {
-
+    
     /// Returns an adapted request.
     public func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedFetchRequest<Self> {
         return AdaptedFetchRequest(self, adapter)
@@ -134,7 +134,7 @@ extension FetchRequest {
 // MARK: - AdaptedFetchRequest
 
 /// An adapted request.
-public struct AdaptedFetchRequest<Base: FetchRequest> : FetchRequest {
+public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
     public typealias RowDecoder = Base.RowDecoder
     
     private let base: Base
@@ -175,7 +175,7 @@ public struct AdaptedFetchRequest<Base: FetchRequest> : FetchRequest {
 ///
 /// An AnyFetchRequest forwards its operations to an underlying request,
 /// hiding its specifics.
-public struct AnyFetchRequest<T> : FetchRequest {
+public struct AnyFetchRequest<T>: FetchRequest {
     public typealias RowDecoder = T
     
     private let _preparedRequest: (Database, _ singleResult: Bool) throws -> PreparedRequest

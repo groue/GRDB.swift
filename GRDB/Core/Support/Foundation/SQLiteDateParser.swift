@@ -58,6 +58,7 @@ class SQLiteDateParser {
                         withUnsafeMutablePointer(to: &parserComponents.minute) { minuteP in
                             withUnsafeMutablePointer(to: &parserComponents.second) { secondP in
                                 parserComponents.nanosecond.withUnsafeMutableBufferPointer { nanosecondBuffer in
+                                    // swiftlint:disable:next line_length
                                     withVaList([yearP, monthP, dayP, hourP, minuteP, secondP, nanosecondBuffer.baseAddress!]) { pointer in
                                         vsscanf(cString, "%4d-%2d-%2d%*1[ T]%2d:%2d:%2d.%9s", pointer)
                                     }

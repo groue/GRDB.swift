@@ -171,7 +171,8 @@ extension EncodableRecord {
     /// same set of columns in their `encode(to:)` method, only the columns
     /// defined by the receiver record are considered.
     public func databaseChanges<Record: EncodableRecord>(from record: Record) -> [String: DatabaseValue] {
-        return Dictionary(uniqueKeysWithValues: PersistenceContainer(self).changesIterator(from: PersistenceContainer(record)))
+        let changes = PersistenceContainer(self).changesIterator(from: PersistenceContainer(record))
+        return Dictionary(uniqueKeysWithValues: changes)
     }
 }
 

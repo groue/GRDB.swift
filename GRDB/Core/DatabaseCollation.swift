@@ -1,10 +1,10 @@
 import Foundation
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 /// A Collation is a string comparison function used by SQLite.
@@ -27,8 +27,16 @@ public final class DatabaseCollation {
         self.name = name
         self.function = { (length1, buffer1, length2, buffer2) in
             // Buffers are not C strings: they do not end with \0.
-            let string1 = String(bytesNoCopy: UnsafeMutableRawPointer(mutating: buffer1.unsafelyUnwrapped), length: Int(length1), encoding: .utf8, freeWhenDone: false)!
-            let string2 = String(bytesNoCopy: UnsafeMutableRawPointer(mutating: buffer2.unsafelyUnwrapped), length: Int(length2), encoding: .utf8, freeWhenDone: false)!
+            let string1 = String(
+                bytesNoCopy: UnsafeMutableRawPointer(mutating: buffer1.unsafelyUnwrapped),
+                length: Int(length1),
+                encoding: .utf8,
+                freeWhenDone: false)!
+            let string2 = String(
+                bytesNoCopy: UnsafeMutableRawPointer(mutating: buffer2.unsafelyUnwrapped),
+                length: Int(length2),
+                encoding: .utf8,
+                freeWhenDone: false)!
             return function(string1, string2)
         }
     }
@@ -50,6 +58,6 @@ extension DatabaseCollation: Hashable {
     /// :nodoc:
     public static func == (lhs: DatabaseCollation, rhs: DatabaseCollation) -> Bool {
         // See https://www.sqlite.org/c3ref/create_collation.html
-        return sqlite3_stricmp(lhs.name, lhs.name) == 0
+        return sqlite3_stricmp(lhs.name, rhs.name) == 0
     }
 }

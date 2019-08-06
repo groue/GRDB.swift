@@ -18,7 +18,7 @@ public struct AllColumns {
     public init() { }
 }
 
-extension AllColumns : SQLSelectable {
+extension AllColumns: SQLSelectable {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
@@ -69,7 +69,7 @@ struct QualifiedAllColumns {
     }
 }
 
-extension QualifiedAllColumns : SQLSelectable {
+extension QualifiedAllColumns: SQLSelectable {
     func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
         if let qualifier = context.qualifier(for: alias) {
             return qualifier.quotedDatabaseIdentifier + ".*"
@@ -94,10 +94,10 @@ extension QualifiedAllColumns : SQLSelectable {
         //
         // So let's always return `*`, and fix this later.
         
-//        if context.qualifier(for: alias) != nil {
-//            // SELECT COUNT(t.*) is invalid SQL
-//            fatalError("Not implemented, or invalid query")
-//        }
+        // if context.qualifier(for: alias) != nil {
+        //     // SELECT COUNT(t.*) is invalid SQL
+        //     fatalError("Not implemented, or invalid query")
+        // }
         
         return "*"
     }
@@ -118,7 +118,7 @@ extension QualifiedAllColumns : SQLSelectable {
 
 // MARK: - SQLAliasedExpression
 
-struct SQLAliasedExpression : SQLSelectable {
+struct SQLAliasedExpression: SQLSelectable {
     let expression: SQLExpression
     let name: String
     

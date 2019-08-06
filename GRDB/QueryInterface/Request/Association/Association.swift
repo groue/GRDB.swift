@@ -18,7 +18,7 @@ public protocol Association: DerivableRequest {
     ///         // BelongsToAssociation<Book, Author>
     ///         static let author = belongsTo(Author.self)
     ///     }
-    associatedtype OriginRowDecoder
+    associatedtype OriginRowDecoder: TableRecord
     
     /// :nodoc:
     var sqlAssociation: SQLAssociation { get }
@@ -72,12 +72,12 @@ extension Association {
 
 extension Association {
     private func mapDestinationRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self {
-        return Self.init(sqlAssociation: sqlAssociation.mapDestinationRelation(transform))
+        return .init(sqlAssociation: sqlAssociation.mapDestinationRelation(transform))
     }
 }
 
 extension Association {
-
+    
     /// The association key defines how rows fetched from this association
     /// should be consumed.
     ///
@@ -290,8 +290,8 @@ extension Association {
     }
 }
 
-// Allow association.filter(key: ...)
-extension Association where Self: TableRequest, RowDecoder: TableRecord {
+// TableRequest
+extension Association {
     /// :nodoc:
     public var databaseTableName: String { return RowDecoder.databaseTableName }
 }
@@ -306,7 +306,7 @@ public protocol AssociationToOne: Association { }
 extension AssociationToOne {
     public func forKey(_ key: String) -> Self {
         let associationKey = SQLAssociationKey.fixedSingular(key)
-        return Self.init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
+        return .init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
     }
 }
 
@@ -320,11 +320,11 @@ public protocol AssociationToMany: Association { }
 extension AssociationToMany {
     public func forKey(_ key: String) -> Self {
         let associationKey = SQLAssociationKey.fixedPlural(key)
-        return Self.init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
+        return .init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
     }
 }
 
-extension AssociationToMany where OriginRowDecoder: TableRecord {
+extension AssociationToMany {
     private func makeAggregate(_ expression: SQLExpression) -> AssociationAggregate<OriginRowDecoder> {
         return AssociationAggregate { request in
             let tableAlias = TableAlias()
@@ -353,7 +353,7 @@ extension AssociationToMany where OriginRowDecoder: TableRecord {
     ///     let teams: [Team] = try Team.having(Team.players.count() > 10).fetchAll(db)
     public var count: AssociationAggregate<OriginRowDecoder> {
         return makeAggregate(SQLExpressionCountDistinct(Column.rowID))
-            .aliased("\(key.singularizedName)Count")
+            .forKey("\(key.singularizedName)Count")
     }
     
     /// Creates an aggregate that is true if there exists no associated records.
@@ -373,7 +373,7 @@ extension AssociationToMany where OriginRowDecoder: TableRecord {
     ///     let teams: [Team] = try Team.having(Team.players.isEmpty() == false)
     public var isEmpty: AssociationAggregate<OriginRowDecoder> {
         return makeAggregate(SQLExpressionIsEmpty(SQLExpressionCountDistinct(Column.rowID)))
-            .aliased("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
+            .forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
     }
     
     /// Creates an aggregate which evaluate to the average value of the given
@@ -397,7 +397,7 @@ extension AssociationToMany where OriginRowDecoder: TableRecord {
         let aggregate = makeAggregate(SQLExpressionFunction(.avg, arguments: expression))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
-            return aggregate.aliased("average\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+            return aggregate.forKey("average\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
         } else {
             return aggregate
         }
@@ -424,7 +424,7 @@ extension AssociationToMany where OriginRowDecoder: TableRecord {
         let aggregate = makeAggregate(SQLExpressionFunction(.max, arguments: expression))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
-            return aggregate.aliased("max\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+            return aggregate.forKey("max\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
         } else {
             return aggregate
         }
@@ -451,7 +451,7 @@ extension AssociationToMany where OriginRowDecoder: TableRecord {
         let aggregate = makeAggregate(SQLExpressionFunction(.min, arguments: expression))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
-            return aggregate.aliased("min\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+            return aggregate.forKey("min\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
         } else {
             return aggregate
         }
@@ -478,7 +478,7 @@ extension AssociationToMany where OriginRowDecoder: TableRecord {
         let aggregate = makeAggregate(SQLExpressionFunction(.sum, arguments: expression))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
-            return aggregate.aliased("\(name)\(column.name.uppercasingFirstCharacter)Sum")
+            return aggregate.forKey("\(name)\(column.name.uppercasingFirstCharacter)Sum")
         } else {
             return aggregate
         }

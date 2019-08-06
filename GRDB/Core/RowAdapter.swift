@@ -100,7 +100,7 @@ public struct LayoutedColumnMapping {
 /// LayoutedColumnMapping adopts LayoutedRowAdapter
 ///
 /// :nodoc:
-extension LayoutedColumnMapping : LayoutedRowAdapter {
+extension LayoutedColumnMapping: LayoutedRowAdapter {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns self.
@@ -117,7 +117,7 @@ extension LayoutedColumnMapping : LayoutedRowAdapter {
 }
 
 /// :nodoc:
-extension LayoutedColumnMapping : RowLayout {
+extension LayoutedColumnMapping: RowLayout {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns the index of the leftmost column named `name`, in a
@@ -171,7 +171,7 @@ public protocol RowLayout {
     func layoutIndex(ofColumn name: String) -> Int?
 }
 
-extension SelectStatement : RowLayout {
+extension SelectStatement: RowLayout {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public var layoutColumns: [(Int, String)] {
@@ -270,7 +270,7 @@ public struct EmptyRowAdapter: RowAdapter {
 ///
 ///     // [foo:"bar"]
 ///     try Row.fetchOne(db, sql: sql, adapter: adapter)
-public struct ColumnMapping : RowAdapter {
+public struct ColumnMapping: RowAdapter {
     /// A dictionary from mapped column names to column names in a base row.
     let mapping: [String: String]
     
@@ -287,7 +287,12 @@ public struct ColumnMapping : RowAdapter {
             .map { (mappedColumn, baseColumn) -> (Int, String) in
                 guard let index = layout.layoutIndex(ofColumn: baseColumn) else {
                     let columnNames = layout.layoutColumns.map { $0.1 }
-                    throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Mapping references missing column \(baseColumn). Valid column names are: \(columnNames.joined(separator: ", ")).")
+                    throw DatabaseError(
+                        resultCode: .SQLITE_MISUSE,
+                        message: """
+                            Mapping references missing column \(baseColumn). \
+                            Valid column names are: \(columnNames.joined(separator: ", ")).
+                            """)
                 }
                 let baseIndex = layout.layoutColumns[index].0
                 return (baseIndex, mappedColumn)
@@ -304,7 +309,7 @@ public struct ColumnMapping : RowAdapter {
 ///
 ///     // [baz:3]
 ///     try Row.fetchOne(db, sql: sql, adapter: adapter)
-public struct SuffixRowAdapter : RowAdapter {
+public struct SuffixRowAdapter: RowAdapter {
     /// The suffix index
     let index: Int
     
@@ -331,7 +336,7 @@ public struct SuffixRowAdapter : RowAdapter {
 ///
 ///     // [bar:2 baz:3]
 ///     try Row.fetchOne(db, sql: sql, adapter: adapter)
-public struct RangeRowAdapter : RowAdapter {
+public struct RangeRowAdapter: RowAdapter {
     /// The range
     let range: CountableRange<Int>
     
@@ -376,7 +381,7 @@ public struct RangeRowAdapter : RowAdapter {
 ///     if let barRow = row.scopes["bar"] {
 ///         barRow["value"]    // "bar"
 ///     }
-public struct ScopeAdapter : RowAdapter {
+public struct ScopeAdapter: RowAdapter {
     
     /// The base adapter
     let base: RowAdapter
@@ -439,15 +444,15 @@ public struct ScopeAdapter : RowAdapter {
 }
 
 /// The LayoutedRowAdapter for ScopeAdapter
-struct LayoutedScopeAdapter : LayoutedRowAdapter {
+struct LayoutedScopeAdapter: LayoutedRowAdapter {
     let mapping: LayoutedColumnMapping
     let scopes: [String: LayoutedRowAdapter]
 }
 
-struct ChainedAdapter : RowAdapter {
+struct ChainedAdapter: RowAdapter {
     let first: RowAdapter
     let second: RowAdapter
-
+    
     func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
         return try second.layoutedAdapter(from: first.layoutedAdapter(from: layout).mapping)
     }
@@ -458,7 +463,7 @@ extension Row {
     convenience init(base: Row, adapter: LayoutedRowAdapter) {
         self.init(impl: AdaptedRowImpl(base: base, adapter: adapter))
     }
-
+    
     /// Returns self if adapter is nil
     func adapted(with adapter: RowAdapter?, layout: RowLayout) throws -> Row {
         guard let adapter = adapter else {
@@ -468,7 +473,7 @@ extension Row {
     }
 }
 
-struct AdaptedRowImpl : RowImpl {
+struct AdaptedRowImpl: RowImpl {
     let base: Row
     let adapter: LayoutedRowAdapter
     let mapping: LayoutedColumnMapping
@@ -517,7 +522,7 @@ struct AdaptedRowImpl : RowImpl {
         return Value.fastDecodeIfPresent(from: base, atUncheckedIndex: mappedIndex)
     }
     
-    func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
+    func dataNoCopy(atUncheckedIndex index: Int) -> Data? {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
         return base.impl.dataNoCopy(atUncheckedIndex: mappedIndex)
     }
@@ -533,7 +538,7 @@ struct AdaptedRowImpl : RowImpl {
     func copiedRow(_ row: Row) -> Row {
         return Row(base: base.copy(), adapter: adapter)
     }
-
+    
     func unscopedRow(_ row: Row) -> Row {
         assert(adapter.mapping.scopes.isEmpty)
         return Row(base: base, adapter: adapter.mapping)

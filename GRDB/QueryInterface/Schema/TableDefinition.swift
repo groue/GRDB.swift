@@ -25,8 +25,19 @@ extension Database {
     ///     - withoutRowID: If true, uses WITHOUT ROWID optimization.
     ///     - body: A closure that defines table columns and constraints.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool = false, body: (TableDefinition) -> Void) throws {
-        let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
+    public func create(
+        table name: String,
+        temporary: Bool = false,
+        ifNotExists: Bool = false,
+        withoutRowID: Bool = false,
+        body: (TableDefinition) -> Void)
+        throws
+    {
+        let definition = TableDefinition(
+            name: name,
+            temporary: temporary,
+            ifNotExists: ifNotExists,
+            withoutRowID: withoutRowID)
         body(definition)
         let sql = try definition.sql(self)
         try execute(sql: sql)
@@ -55,10 +66,22 @@ extension Database {
     ///     - body: A closure that defines table columns and constraints.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     @available(OSX 10.10, *)
-    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, withoutRowID: Bool, body: (TableDefinition) -> Void) throws {
+    public func create(
+        table name: String,
+        temporary: Bool = false,
+        ifNotExists: Bool = false,
+        withoutRowID: Bool,
+        body: (TableDefinition) -> Void)
+        throws
+    {
         // WITHOUT ROWID was added in SQLite 3.8.2 http://www.sqlite.org/changes.html#version_3_8_2
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: withoutRowID)
+        // It is available from iOS 8.2 and OS X 10.10
+        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        let definition = TableDefinition(
+            name: name,
+            temporary: temporary,
+            ifNotExists: ifNotExists,
+            withoutRowID: withoutRowID)
         body(definition)
         let sql = try definition.sql(self)
         try execute(sql: sql)
@@ -84,14 +107,24 @@ extension Database {
     ///       already exists.
     ///     - body: A closure that defines table columns and constraints.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func create(table name: String, temporary: Bool = false, ifNotExists: Bool = false, body: (TableDefinition) -> Void) throws {
-        let definition = TableDefinition(name: name, temporary: temporary, ifNotExists: ifNotExists, withoutRowID: false)
+    public func create(
+        table name: String,
+        temporary: Bool = false,
+        ifNotExists: Bool = false,
+        body: (TableDefinition) -> Void)
+        throws
+    {
+        let definition = TableDefinition(
+            name: name,
+            temporary: temporary,
+            ifNotExists: ifNotExists,
+            withoutRowID: false)
         body(definition)
         let sql = try definition.sql(self)
         try execute(sql: sql)
     }
     #endif
-
+    
     /// Renames a database table.
     ///
     /// See https://www.sqlite.org/lang_altertable.html
@@ -150,10 +183,25 @@ extension Database {
     ///     - ifNotExists: If false, no error is thrown if index already exists.
     ///     - condition: If not nil, creates a partial index
     ///       (see https://www.sqlite.org/partialindex.html).
-    public func create(index name: String, on table: String, columns: [String], unique: Bool = false, ifNotExists: Bool = false, condition: SQLExpressible? = nil) throws {
+    public func create(
+        index name: String,
+        on table: String,
+        columns: [String],
+        unique: Bool = false,
+        ifNotExists: Bool = false,
+        condition: SQLExpressible? = nil)
+        throws
+    {
         // Partial indexes were introduced in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: condition?.sqlExpression)
+        // It is available from iOS 8.2 and OS X 10.10
+        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        let definition = IndexDefinition(
+            name: name,
+            table: table,
+            columns: columns,
+            unique: unique,
+            ifNotExists: ifNotExists,
+            condition: condition?.sqlExpression)
         let sql = definition.sql()
         try execute(sql: sql)
     }
@@ -176,10 +224,24 @@ extension Database {
     ///     - columns: The indexed columns.
     ///     - unique: If true, creates a unique index.
     ///     - ifNotExists: If false, no error is thrown if index already exists.
-    public func create(index name: String, on table: String, columns: [String], unique: Bool = false, ifNotExists: Bool = false) throws {
+    public func create(
+        index name: String,
+        on table: String,
+        columns: [String],
+        unique: Bool = false,
+        ifNotExists: Bool = false)
+        throws
+    {
         // Partial indexes were introduced in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: nil)
+        // It is available from iOS 8.2 and OS X 10.10
+        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        let definition = IndexDefinition(
+            name: name,
+            table: table,
+            columns: columns,
+            unique: unique,
+            ifNotExists: ifNotExists,
+            condition: nil)
         let sql = definition.sql()
         try execute(sql: sql)
     }
@@ -199,10 +261,25 @@ extension Database {
     ///     - ifNotExists: If false, no error is thrown if index already exists.
     ///     - condition: The condition that indexed rows must verify.
     @available(OSX 10.10, *)
-    public func create(index name: String, on table: String, columns: [String], unique: Bool = false, ifNotExists: Bool = false, condition: SQLExpressible) throws {
+    public func create(
+        index name: String,
+        on table: String,
+        columns: [String],
+        unique: Bool = false,
+        ifNotExists: Bool = false,
+        condition: SQLExpressible)
+        throws
+    {
         // Partial indexes were introduced in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        let definition = IndexDefinition(name: name, table: table, columns: columns, unique: unique, ifNotExists: ifNotExists, condition: condition.sqlExpression)
+        // It is available from iOS 8.2 and OS X 10.10
+        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        let definition = IndexDefinition(
+            name: name,
+            table: table,
+            columns: columns,
+            unique: unique,
+            ifNotExists: ifNotExists,
+            condition: condition.sqlExpression)
         let sql = definition.sql()
         try execute(sql: sql)
     }
@@ -253,7 +330,18 @@ extension Database {
 ///
 /// See https://www.sqlite.org/lang_createtable.html
 public final class TableDefinition {
-    private typealias KeyConstraint = (columns: [String], conflictResolution: Database.ConflictResolution?)
+    private typealias KeyConstraint = (
+        columns: [String],
+        conflictResolution: Database.ConflictResolution?)
+    
+    private struct ForeignKeyConstraint {
+        var columns: [String]
+        var table: String
+        var destinationColumns: [String]?
+        var deleteAction: Database.ForeignKeyAction?
+        var updateAction: Database.ForeignKeyAction?
+        var deferred: Bool
+    }
     
     private let name: String
     private let temporary: Bool
@@ -262,7 +350,7 @@ public final class TableDefinition {
     private var columns: [ColumnDefinition] = []
     private var primaryKeyConstraint: KeyConstraint?
     private var uniqueKeyConstraints: [KeyConstraint] = []
-    private var foreignKeyConstraints: [(columns: [String], table: String, destinationColumns: [String]?, deleteAction: Database.ForeignKeyAction?, updateAction: Database.ForeignKeyAction?, deferred: Bool)] = []
+    private var foreignKeyConstraints: [ForeignKeyConstraint] = []
     private var checkConstraints: [SQLExpression] = []
     
     init(name: String, temporary: Bool, ifNotExists: Bool, withoutRowID: Bool) {
@@ -300,10 +388,14 @@ public final class TableDefinition {
     ///   (see https://www.sqlite.org/lang_conflict.html).
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
-    public func autoIncrementedPrimaryKey(_ name: String, onConflict conflictResolution: Database.ConflictResolution? = nil) -> ColumnDefinition {
+    public func autoIncrementedPrimaryKey(
+        _ name: String,
+        onConflict conflictResolution: Database.ConflictResolution? = nil)
+        -> ColumnDefinition
+    {
         return column(name, .integer).primaryKey(onConflict: conflictResolution, autoincrement: true)
     }
-
+    
     /// Appends a table column.
     ///
     ///     try db.create(table: "player") { t in
@@ -383,8 +475,21 @@ public final class TableDefinition {
     ///     - updateAction: Optional action when the referenced row is updated.
     ///     - deferred: If true, defines a deferred foreign key constraint.
     ///       See https://www.sqlite.org/foreignkeys.html#fk_deferred.
-    public func foreignKey(_ columns: [String], references table: String, columns destinationColumns: [String]? = nil, onDelete deleteAction: Database.ForeignKeyAction? = nil, onUpdate updateAction: Database.ForeignKeyAction? = nil, deferred: Bool = false) {
-        foreignKeyConstraints.append((columns: columns, table: table, destinationColumns: destinationColumns, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred))
+    public func foreignKey(
+        _ columns: [String],
+        references table: String,
+        columns destinationColumns: [String]? = nil,
+        onDelete deleteAction: Database.ForeignKeyAction? = nil,
+        onUpdate updateAction: Database.ForeignKeyAction? = nil,
+        deferred: Bool = false)
+    {
+        foreignKeyConstraints.append(ForeignKeyConstraint(
+            columns: columns,
+            table: table,
+            destinationColumns: destinationColumns,
+            deleteAction: deleteAction,
+            updateAction: updateAction,
+            deferred: deferred))
     }
     
     /// Adds a CHECK constraint.
@@ -451,12 +556,14 @@ public final class TableDefinition {
             
             do {
                 var items: [String] = []
-                try items.append(contentsOf: columns.map { try $0.sql(db, tableName: name, primaryKeyColumns: primaryKeyColumns) })
+                try items.append(contentsOf: columns.map {
+                    try $0.sql(db, tableName: name, primaryKeyColumns: primaryKeyColumns)
+                })
                 
                 if let (columns, conflictResolution) = primaryKeyConstraint {
                     var chunks: [String] = []
                     chunks.append("PRIMARY KEY")
-                    chunks.append("(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+                    chunks.append("(\(columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", ")))")
                     if let conflictResolution = conflictResolution {
                         chunks.append("ON CONFLICT")
                         chunks.append(conflictResolution.rawValue)
@@ -467,7 +574,7 @@ public final class TableDefinition {
                 for (columns, conflictResolution) in uniqueKeyConstraints {
                     var chunks: [String] = []
                     chunks.append("UNIQUE")
-                    chunks.append("(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+                    chunks.append("(\(columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", ")))")
                     if let conflictResolution = conflictResolution {
                         chunks.append("ON CONFLICT")
                         chunks.append(conflictResolution.rawValue)
@@ -475,28 +582,40 @@ public final class TableDefinition {
                     items.append(chunks.joined(separator: " "))
                 }
                 
-                for (columns, table, destinationColumns, deleteAction, updateAction, deferred) in foreignKeyConstraints {
+                for constraint in foreignKeyConstraints {
                     var chunks: [String] = []
                     chunks.append("FOREIGN KEY")
-                    chunks.append("(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+                    chunks.append("(\(constraint.columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", ")))")
                     chunks.append("REFERENCES")
-                    if let destinationColumns = destinationColumns {
-                        chunks.append("\(table.quotedDatabaseIdentifier)(\((destinationColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
-                    } else if table == name {
-                        chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKeyColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+                    if let destinationColumns = constraint.destinationColumns {
+                        chunks.append("""
+                            \(constraint.table.quotedDatabaseIdentifier)(\
+                            \(destinationColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                            )
+                            """)
+                    } else if constraint.table == name {
+                        chunks.append("""
+                            \(constraint.table.quotedDatabaseIdentifier)(\
+                            \(primaryKeyColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                            )
+                            """)
                     } else {
-                        let primaryKey = try db.primaryKey(table)
-                        chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKey.columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+                        let primaryKey = try db.primaryKey(constraint.table)
+                        chunks.append("""
+                            \(constraint.table.quotedDatabaseIdentifier)(\
+                            \(primaryKey.columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                            )
+                            """)
                     }
-                    if let deleteAction = deleteAction {
+                    if let deleteAction = constraint.deleteAction {
                         chunks.append("ON DELETE")
                         chunks.append(deleteAction.rawValue)
                     }
-                    if let updateAction = updateAction {
+                    if let updateAction = constraint.updateAction {
                         chunks.append("ON UPDATE")
                         chunks.append(updateAction.rawValue)
                     }
-                    if deferred {
+                    if constraint.deferred {
                         chunks.append("DEFERRABLE INITIALLY DEFERRED")
                     }
                     items.append(chunks.joined(separator: " "))
@@ -504,7 +623,7 @@ public final class TableDefinition {
                 
                 for checkExpression in checkConstraints {
                     var chunks: [String] = []
-                    chunks.append("CHECK (\(checkExpression.quotedSQL(wrappedInParenthesis: false)))")
+                    chunks.append("CHECK (\(checkExpression.quotedSQL()))")
                     items.append(chunks.joined(separator: " "))
                 }
                 
@@ -603,13 +722,22 @@ public final class ColumnDefinition {
         case index
         case unique(Database.ConflictResolution)
     }
+    
+    private struct ForeignKeyConstraint {
+        var table: String
+        var column: String?
+        var deleteAction: Database.ForeignKeyAction?
+        var updateAction: Database.ForeignKeyAction?
+        var deferred: Bool
+    }
+
     fileprivate let name: String
     private let type: Database.ColumnType?
     fileprivate var primaryKey: (conflictResolution: Database.ConflictResolution?, autoincrement: Bool)?
     private var index: Index = .none
     private var notNullConflictResolution: Database.ConflictResolution?
     private var checkConstraints: [SQLExpression] = []
-    private var foreignKeyConstraints: [(table: String, column: String?, deleteAction: Database.ForeignKeyAction?, updateAction: Database.ForeignKeyAction?, deferred: Bool)] = []
+    private var foreignKeyConstraints: [ForeignKeyConstraint] = []
     private var defaultExpression: SQLExpression?
     private var collationName: String?
     
@@ -633,7 +761,11 @@ public final class ColumnDefinition {
     ///     - autoincrement: If true, the primary key is autoincremented.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
-    public func primaryKey(onConflict conflictResolution: Database.ConflictResolution? = nil, autoincrement: Bool = false) -> Self {
+    public func primaryKey(
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        autoincrement: Bool = false)
+        -> Self
+    {
         primaryKey = (conflictResolution: conflictResolution, autoincrement: autoincrement)
         return self
     }
@@ -804,8 +936,19 @@ public final class ColumnDefinition {
     ///       See https://www.sqlite.org/foreignkeys.html#fk_deferred.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
-    public func references(_ table: String, column: String? = nil, onDelete deleteAction: Database.ForeignKeyAction? = nil, onUpdate updateAction: Database.ForeignKeyAction? = nil, deferred: Bool = false) -> Self {
-        foreignKeyConstraints.append((table: table, column: column, deleteAction: deleteAction, updateAction: updateAction, deferred: deferred))
+    public func references(
+        _ table: String,
+        column: String? = nil,
+        onDelete deleteAction: Database.ForeignKeyAction? = nil,
+        onUpdate updateAction: Database.ForeignKeyAction? = nil,
+        deferred: Bool = false) -> Self
+    {
+        foreignKeyConstraints.append(ForeignKeyConstraint(
+            table: table,
+            column: column,
+            deleteAction: deleteAction,
+            updateAction: updateAction,
+            deferred: deferred))
         return self
     }
     
@@ -853,11 +996,11 @@ public final class ColumnDefinition {
         }
         
         for checkConstraint in checkConstraints {
-            chunks.append("CHECK (\(checkConstraint.quotedSQL(wrappedInParenthesis: false)))")
+            chunks.append("CHECK (\(checkConstraint.quotedSQL()))")
         }
         
         if let defaultExpression = defaultExpression {
-            chunks.append("DEFAULT \(defaultExpression.quotedSQL(wrappedInParenthesis: false))")
+            chunks.append("DEFAULT \(defaultExpression.quotedSQL())")
         }
         
         if let collationName = collationName {
@@ -865,29 +1008,37 @@ public final class ColumnDefinition {
             chunks.append(collationName)
         }
         
-        for (table, column, deleteAction, updateAction, deferred) in foreignKeyConstraints {
+        for constraint in foreignKeyConstraints {
             chunks.append("REFERENCES")
-            if let column = column {
+            if let column = constraint.column {
                 // explicit reference
-                chunks.append("\(table.quotedDatabaseIdentifier)(\(column.quotedDatabaseIdentifier))")
-            } else if table.lowercased() == tableName.lowercased() {
+                chunks.append("\(constraint.table.quotedDatabaseIdentifier)(\(column.quotedDatabaseIdentifier))")
+            } else if constraint.table.lowercased() == tableName.lowercased() {
                 // implicit autoreference
-                let primaryKeyColumns = try primaryKeyColumns ?? db.primaryKey(table).columns
-                chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKeyColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+                let primaryKeyColumns = try primaryKeyColumns ?? db.primaryKey(constraint.table).columns
+                chunks.append("""
+                    \(constraint.table.quotedDatabaseIdentifier)(\
+                    \(primaryKeyColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                    )
+                    """)
             } else {
                 // implicit external reference
-                let primaryKeyColumns = try db.primaryKey(table).columns
-                chunks.append("\(table.quotedDatabaseIdentifier)(\((primaryKeyColumns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+                let primaryKeyColumns = try db.primaryKey(constraint.table).columns
+                chunks.append("""
+                    \(constraint.table.quotedDatabaseIdentifier)(\
+                    \(primaryKeyColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                    )
+                    """)
             }
-            if let deleteAction = deleteAction {
+            if let deleteAction = constraint.deleteAction {
                 chunks.append("ON DELETE")
                 chunks.append(deleteAction.rawValue)
             }
-            if let updateAction = updateAction {
+            if let updateAction = constraint.updateAction {
                 chunks.append("ON UPDATE")
                 chunks.append(updateAction.rawValue)
             }
-            if deferred {
+            if constraint.deferred {
                 chunks.append("DEFERRABLE INITIALLY DEFERRED")
             }
         }
@@ -931,9 +1082,13 @@ private struct IndexDefinition {
         }
         chunks.append(name.quotedDatabaseIdentifier)
         chunks.append("ON")
-        chunks.append("\(table.quotedDatabaseIdentifier)(\((columns.map { $0.quotedDatabaseIdentifier } as [String]).joined(separator: ", ")))")
+        chunks.append("""
+            \(table.quotedDatabaseIdentifier)(\
+            \(columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+            )
+            """)
         if let condition = condition {
-            chunks.append("WHERE \(condition.quotedSQL(wrappedInParenthesis: false))")
+            chunks.append("WHERE \(condition.quotedSQL())")
         }
         return chunks.joined(separator: " ")
     }

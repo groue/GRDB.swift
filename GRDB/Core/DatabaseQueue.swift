@@ -71,9 +71,9 @@ public final class DatabaseQueue: DatabaseWriter {
 }
 
 extension DatabaseQueue {
-
+    
     // MARK: - Memory management
-
+    
     /// Free as much memory as possible.
     ///
     /// This method blocks the current thread until all database accesses are completed.
@@ -106,7 +106,8 @@ extension DatabaseQueue {
             object: nil)
     }
     
-    @objc private func applicationDidEnterBackground(_ notification: NSNotification) {
+    @objc
+    private func applicationDidEnterBackground(_ notification: NSNotification) {
         guard let application = application else {
             return
         }
@@ -124,7 +125,8 @@ extension DatabaseQueue {
         }
     }
     
-    @objc private func applicationDidReceiveMemoryWarning(_ notification: NSNotification) {
+    @objc
+    private func applicationDidReceiveMemoryWarning(_ notification: NSNotification) {
         DispatchQueue.global().async {
             self.releaseMemory()
         }
@@ -133,15 +135,15 @@ extension DatabaseQueue {
 }
 
 #if SQLITE_HAS_CODEC
-    extension DatabaseQueue {
-
-        // MARK: - Encryption
-
-        /// Changes the passphrase of an encrypted database
-        public func change(passphrase: String) throws {
-            try writer.sync { try $0.change(passphrase: passphrase) }
-        }
+extension DatabaseQueue {
+    
+    // MARK: - Encryption
+    
+    /// Changes the passphrase of an encrypted database
+    public func change(passphrase: String) throws {
+        try writer.sync { try $0.change(passphrase: passphrase) }
     }
+}
 #endif
 
 extension DatabaseQueue {
@@ -202,7 +204,7 @@ extension DatabaseQueue {
         }
     }
     #endif
-
+    
     /// Synchronously executes a block in a protected dispatch queue, and
     /// returns its result.
     ///
@@ -302,7 +304,11 @@ extension DatabaseQueue {
     ///     - updates: The updates to the database.
     /// - throws: The error thrown by the updates, or by the
     ///   wrapping transaction.
-    public func inTransaction(_ kind: Database.TransactionKind? = nil, _ updates: (Database) throws -> Database.TransactionCompletion) throws {
+    public func inTransaction(
+        _ kind: Database.TransactionKind? = nil,
+        _ updates: (Database) throws -> Database.TransactionCompletion)
+        throws
+    {
         try writer.sync { db in
             try db.inTransaction(kind) {
                 try updates(db)
@@ -323,7 +329,7 @@ extension DatabaseQueue {
     public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         return try writer.sync(updates)
     }
-
+    
     /// Synchronously executes database updates in a protected dispatch queue,
     /// outside of any transaction, and returns the result.
     ///

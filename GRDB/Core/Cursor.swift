@@ -29,7 +29,10 @@ extension Sequence {
     
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
-    public func flatMap<SegmentOfResult: Cursor>(_ transform: @escaping (Iterator.Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<AnyCursor<Iterator.Element>, SegmentOfResult>> {
+    public func flatMap<SegmentOfResult: Cursor>(
+        _ transform: @escaping (Iterator.Element) throws -> SegmentOfResult)
+        -> FlattenCursor<MapCursor<AnyCursor<Iterator.Element>, SegmentOfResult>>
+    {
         return AnyCursor(self).flatMap(transform)
     }
 }
@@ -76,7 +79,7 @@ extension Set {
 /// `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`,
 /// `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`,
 /// `suffix`.
-public protocol Cursor : class {
+public protocol Cursor: AnyObject {
     /// The type of element traversed by the cursor.
     associatedtype Element
     
@@ -141,7 +144,9 @@ extension Cursor {
     
     /// Returns a cursor over the concatenated non-nil results of mapping
     /// transform over this cursor.
-    public func compactMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?) -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult> {
+    public func compactMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?)
+        -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult>
+    {
         return map(transform).filter { $0 != nil }.map { $0! }
     }
     
@@ -190,7 +195,7 @@ extension Cursor {
     public func dropFirst() -> DropFirstCursor<Self> {
         return dropFirst(1)
     }
-
+    
     /// Returns an array containing all but the given number of final
     /// elements.
     ///
@@ -243,13 +248,19 @@ extension Cursor {
     
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
-    public func flatMap<SegmentOfResult: Sequence>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, AnyCursor<SegmentOfResult.Element>>> {
+    public func flatMap<SegmentOfResult>(_ transform: @escaping (Element) throws -> SegmentOfResult)
+        -> FlattenCursor<MapCursor<Self, AnyCursor<SegmentOfResult.Element>>>
+        where SegmentOfResult: Sequence
+    {
         return flatMap { try AnyCursor(transform($0)) }
     }
     
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
-    public func flatMap<SegmentOfResult: Cursor>(_ transform: @escaping (Element) throws -> SegmentOfResult) -> FlattenCursor<MapCursor<Self, SegmentOfResult>> {
+    public func flatMap<SegmentOfResult>(_ transform: @escaping (Element) throws -> SegmentOfResult)
+        -> FlattenCursor<MapCursor<Self, SegmentOfResult>>
+        where SegmentOfResult: Cursor
+    {
         return map(transform).joined()
     }
     
@@ -503,7 +514,7 @@ extension Cursor where Element: StringProtocol {
 /// This cursor forwards its next() method to an arbitrary underlying cursor
 /// having the same Element type, hiding the specifics of the underlying
 /// cursor.
-public final class AnyCursor<Element> : Cursor {
+public final class AnyCursor<Element>: Cursor {
     private let element: () throws -> Element?
     
     /// Creates a cursor that wraps a base cursor but whose type depends only on
@@ -539,11 +550,11 @@ public final class AnyCursor<Element> : Cursor {
 }
 
 /// :nodoc:
-public final class DropFirstCursor<Base: Cursor> : Cursor {
+public final class DropFirstCursor<Base: Cursor>: Cursor {
     private let base: Base
     private let limit: Int
     private var dropped: Int = 0
-
+    
     init(_ base: Base, limit: Int) {
         GRDBPrecondition(limit >= 0, "Can't drop a negative number of elements from a cursor")
         self.base = base
@@ -566,7 +577,7 @@ public final class DropFirstCursor<Base: Cursor> : Cursor {
 /// consecutive elements of some base cursor that satisfy a given predicate.
 ///
 /// :nodoc:
-public final class DropWhileCursor<Base: Cursor> : Cursor {
+public final class DropWhileCursor<Base: Cursor>: Cursor {
     private let base: Base
     private let predicate: (Base.Element) throws -> Bool
     private var predicateHasFailed = false
@@ -605,7 +616,7 @@ public final class DropWhileCursor<Base: Cursor> : Cursor {
 ///     // Prints: "1: bar"
 ///
 /// :nodoc:
-public final class EnumeratedCursor<Base: Cursor> : Cursor {
+public final class EnumeratedCursor<Base: Cursor>: Cursor {
     private let base: Base
     private var index: Int
     
@@ -628,7 +639,7 @@ public final class EnumeratedCursor<Base: Cursor> : Cursor {
 /// also satisfy a given predicate.
 ///
 /// :nodoc:
-public final class FilterCursor<Base: Cursor> : Cursor {
+public final class FilterCursor<Base: Cursor>: Cursor {
     private let base: Base
     private let isIncluded: (Base.Element) throws -> Bool
     
@@ -656,7 +667,7 @@ public final class FilterCursor<Base: Cursor> : Cursor {
 /// See Cursor.joined(), Cursor.flatMap(_:), Sequence.flatMap(_:)
 ///
 /// :nodoc:
-public final class FlattenCursor<Base: Cursor> : Cursor where Base.Element: Cursor {
+public final class FlattenCursor<Base: Cursor>: Cursor where Base.Element: Cursor {
     private let base: Base
     private var inner: Base.Element?
     
@@ -686,7 +697,7 @@ public final class FlattenCursor<Base: Cursor> : Cursor where Base.Element: Curs
 /// See Cursor.map(_:)
 ///
 /// :nodoc:
-public final class MapCursor<Base: Cursor, Element> : Cursor {
+public final class MapCursor<Base: Cursor, Element>: Cursor {
     private let base: Base
     private let transform: (Base.Element) throws -> Element
     
@@ -708,7 +719,7 @@ public final class MapCursor<Base: Cursor, Element> : Cursor {
 /// `Base` cursor.
 ///
 /// :nodoc:
-public final class PrefixCursor<Base: Cursor> : Cursor {
+public final class PrefixCursor<Base: Cursor>: Cursor {
     private let base: Base
     private let maxLength: Int
     private var taken = 0
@@ -735,7 +746,7 @@ public final class PrefixCursor<Base: Cursor> : Cursor {
 /// some base cursor that satisfy a given predicate.
 ///
 /// :nodoc:
-public final class PrefixWhileCursor<Base: Cursor> : Cursor {
+public final class PrefixWhileCursor<Base: Cursor>: Cursor {
     private let base: Base
     private let predicate: (Base.Element) throws -> Bool
     private var predicateHasFailed = false

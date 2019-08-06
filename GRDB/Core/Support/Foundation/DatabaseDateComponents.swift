@@ -1,17 +1,17 @@
 import Foundation
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 /// DatabaseDateComponents reads and stores DateComponents in the database.
-public struct DatabaseDateComponents : DatabaseValueConvertible, StatementColumnConvertible {
-
+public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnConvertible {
+    
     /// The available formats for reading and storing date components.
-    public enum Format : String {
+    public enum Format: String {
         
         /// The format "yyyy-MM-dd".
         case YMD = "yyyy-MM-dd"
@@ -81,8 +81,10 @@ public struct DatabaseDateComponents : DatabaseValueConvertible, StatementColumn
             fatalConversionError(to: DatabaseDateComponents.self, sqliteStatement: sqliteStatement, index: index)
         }
         let length = Int(sqlite3_column_bytes(sqliteStatement, index)) // avoid an strlen
-        let optionalComponents = cString.withMemoryRebound(to: Int8.self, capacity: length + 1 /* trailing \0 */) { cString in
-            SQLiteDateParser().components(cString: cString, length: length)
+        let optionalComponents = cString.withMemoryRebound(
+            to: Int8.self,
+            capacity: length + 1 /* trailing \0 */) { cString in
+                SQLiteDateParser().components(cString: cString, length: length)
         }
         guard let components = optionalComponents else {
             fatalConversionError(to: DatabaseDateComponents.self, sqliteStatement: sqliteStatement, index: index)
@@ -122,7 +124,9 @@ public struct DatabaseDateComponents : DatabaseValueConvertible, StatementColumn
             let minute = dateComponents.minute ?? 0
             let second = dateComponents.second ?? 0
             let nanosecond = dateComponents.nanosecond ?? 0
-            timeString = String(format: "%02d:%02d:%02d.%03d", hour, minute, second, Int(round(Double(nanosecond) / 1_000_000.0)))
+            timeString = String(
+                format: "%02d:%02d:%02d.%03d",
+                hour, minute, second, Int(round(Double(nanosecond) / 1_000_000.0)))
         default:
             timeString = nil
         }

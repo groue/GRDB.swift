@@ -31,7 +31,7 @@ public protocol SQLExpressible {
 /// On the other side, Int adopts SQLExpressible (via DatabaseValueConvertible).
 ///
 /// :nodoc:
-public protocol SQLSpecificExpressible : SQLExpressible {
+public protocol SQLSpecificExpressible: SQLExpressible {
     // SQLExpressible can be adopted by Swift standard types, and user
     // types, through the DatabaseValueConvertible protocol which inherits
     // from SQLExpressible.

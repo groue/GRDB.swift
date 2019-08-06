@@ -23,7 +23,7 @@ public protocol SQLOrderingTerm {
 
 // MARK: - SQLOrdering
 
-enum SQLOrdering : SQLOrderingTerm {
+enum SQLOrdering: SQLOrderingTerm {
     case asc(SQLExpression)
     case desc(SQLExpression)
     

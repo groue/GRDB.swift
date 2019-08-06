@@ -1,14 +1,17 @@
 import Foundation
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 /// A database row.
-public final class Row : Equatable, Hashable, RandomAccessCollection, ExpressibleByDictionaryLiteral, CustomStringConvertible, CustomDebugStringConvertible {
+public final class Row: Equatable, Hashable, RandomAccessCollection,
+    ExpressibleByDictionaryLiteral, CustomStringConvertible,
+    CustomDebugStringConvertible
+{
     // It is not a violation of the Demeter law when another type uses this
     // property, which is exposed for optimizations.
     let impl: RowImpl
@@ -45,7 +48,7 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     ///     let bookRows = row.prefetchedRows["books"]
     ///     print(bookRows[0])
     ///     // Prints [id:42 title:"Moby-Dick"]
-    public internal(set) var prefetchedRows: PrefetchedRowsView = PrefetchedRowsView()
+    public internal(set) var prefetchedRows = PrefetchedRowsView()
     
     // MARK: - Building rows
     
@@ -126,8 +129,13 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
     /// The row is implemented on top of StatementCopyRowImpl, which *copies*
     /// the values from the SQLite statement so that further iteration of the
     /// statement does not modify the row.
-    convenience init(copiedFromSQLiteStatement sqliteStatement: SQLiteStatement, statementRef: Unmanaged<SelectStatement>) {
-        self.init(impl: StatementCopyRowImpl(sqliteStatement: sqliteStatement, columnNames: statementRef.takeUnretainedValue().columnNames))
+    convenience init(
+        copiedFromSQLiteStatement sqliteStatement: SQLiteStatement,
+        statementRef: Unmanaged<SelectStatement>)
+    {
+        self.init(impl: StatementCopyRowImpl(
+            sqliteStatement: sqliteStatement,
+            columnNames: statementRef.takeUnretainedValue().columnNames))
     }
     
     init(impl: RowImpl) {
@@ -139,7 +147,7 @@ public final class Row : Equatable, Hashable, RandomAccessCollection, Expressibl
 }
 
 extension Row {
-
+    
     // MARK: - Columns
     
     /// The names of columns in the row.
@@ -416,7 +424,12 @@ extension Row {
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
     @inlinable
-    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible, Column: ColumnExpression>(_ column: Column) -> Value? {
+    public subscript<Value, Column>(_ column: Column)
+        -> Value?
+        where
+        Value: DatabaseValueConvertible & StatementColumnConvertible,
+        Column: ColumnExpression
+    {
         return self[column.name]
     }
     
@@ -448,7 +461,12 @@ extension Row {
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see https://www.sqlite.org/datatype3.html).
     @inlinable
-    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible, Column: ColumnExpression>(_ column: Column) -> Value {
+    public subscript<Value, Column>(_ column: Column)
+        -> Value
+        where
+        Value: DatabaseValueConvertible & StatementColumnConvertible,
+        Column: ColumnExpression
+    {
         return self[column.name]
     }
     
@@ -565,7 +583,7 @@ extension Row {
         }
         return Record(row: scopedRow)
     }
-
+    
     /// Returns the eventual record associated with the given scope.
     ///
     /// For example:
@@ -761,7 +779,7 @@ extension Row {
 ///     try dbQueue.read { db in
 ///         let rows: RowCursor = try Row.fetchCursor(db, sql: "SELECT * FROM player")
 ///     }
-public final class RowCursor : Cursor {
+public final class RowCursor: Cursor {
     public let statement: SelectStatement
     @usableFromInline let _sqliteStatement: SQLiteStatement
     @usableFromInline let _row: Row // Reused for performance
@@ -772,6 +790,9 @@ public final class RowCursor : Cursor {
         self._row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         self._sqliteStatement = statement.sqliteStatement
         statement.reset(withArguments: arguments)
+        
+        // Assume cursor is created for iteration
+        statement.database.selectStatementWillExecute(statement)
     }
     
     deinit {
@@ -833,7 +854,12 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> RowCursor {
+    public static func fetchCursor(
+        _ statement: SelectStatement,
+        arguments: StatementArguments? = nil,
+        adapter: RowAdapter? = nil)
+        throws -> RowCursor
+    {
         return try RowCursor(statement: statement, arguments: arguments, adapter: adapter)
     }
     
@@ -848,7 +874,12 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [Row] {
+    public static func fetchAll(
+        _ statement: SelectStatement,
+        arguments: StatementArguments? = nil,
+        adapter: RowAdapter? = nil)
+        throws -> [Row]
+    {
         // The cursor reuses a single mutable row. Return immutable copies.
         return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() })
     }
@@ -864,7 +895,12 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> Row? {
+    public static func fetchOne(
+        _ statement: SelectStatement,
+        arguments: StatementArguments? = nil,
+        adapter: RowAdapter? = nil)
+        throws -> Row?
+    {
         let cursor = try fetchCursor(statement, arguments: arguments, adapter: adapter)
         // Keep cursor alive until we can copy the fetched row
         return try withExtendedLifetime(cursor) {
@@ -905,7 +941,13 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: A cursor over fetched rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> RowCursor {
+    public static func fetchCursor(
+        _ db: Database,
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        adapter: RowAdapter? = nil)
+        throws -> RowCursor
+    {
         return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
@@ -924,7 +966,13 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An array of rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [Row] {
+    public static func fetchAll(
+        _ db: Database,
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        adapter: RowAdapter? = nil)
+        throws -> [Row]
+    {
         return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
@@ -943,7 +991,13 @@ extension Row {
     ///     - adapter: Optional RowAdapter
     /// - returns: An optional row.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> Row? {
+    public static func fetchOne(
+        _ db: Database,
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        adapter: RowAdapter? = nil)
+        throws -> Row?
+    {
         return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
@@ -1079,7 +1133,7 @@ extension FetchRequest where RowDecoder == Row {
         return try Row.fetchOne(db, self)
     }
 }
-    
+
 // ExpressibleByDictionaryLiteral
 extension Row {
     
@@ -1198,7 +1252,7 @@ extension Row {
         if level == 0 && self == self.unadapted && prefetchedRows.prefetches.isEmpty {
             return description
         }
-        let prefix = repeatElement("  ", count: level + 1).joined(separator: "")
+        let prefix = repeatElement("  ", count: level + 1).joined()
         var str = ""
         if level == 0 {
             str = "▿ " + description
@@ -1234,7 +1288,7 @@ extension Row {
 // MARK: - RowIndex
 
 /// Indexes to (ColumnName, DatabaseValue) pairs in a database row.
-public struct RowIndex : Comparable, Strideable {
+public struct RowIndex: Comparable, Strideable {
     let index: Int
     init(_ index: Int) { self.index = index }
 }
@@ -1386,7 +1440,7 @@ extension Row {
             }
             return names
         }
-
+        
         /// Returns the row associated with the given scope.
         ///
         /// For example:
@@ -1461,7 +1515,7 @@ extension Row {
         public var isEmpty: Bool {
             return prefetches.isEmpty
         }
-
+        
         /// The keys for available prefetched rows
         ///
         /// For example:
@@ -1483,7 +1537,7 @@ extension Row {
             }
             return result
         }
-
+        
         /// Returns the prefetched rows associated with the given key.
         ///
         /// For example:
@@ -1538,13 +1592,20 @@ extension OrderedDictionary where Key == String, Value == Row.Prefetch {
 protocol RowImpl {
     var count: Int { get }
     var isFetched: Bool { get }
+    
     func scopes(prefetchedRows: Row.PrefetchedRowsView) -> Row.ScopesView
     func columnName(atUncheckedIndex index: Int) -> String
-    func hasNull(atUncheckedIndex index:Int) -> Bool
+    func hasNull(atUncheckedIndex index: Int) -> Bool
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue
-    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int) -> Value
-    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ type: Value.Type, atUncheckedIndex index: Int) -> Value?
-    func dataNoCopy(atUncheckedIndex index:Int) -> Data?
+    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int)
+        -> Value
+    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int)
+        -> Value?
+    func dataNoCopy(atUncheckedIndex index: Int) -> Data?
     
     /// Returns the index of the leftmost column that matches *name* (case-insensitive)
     func index(ofColumn name: String) -> Int?
@@ -1558,7 +1619,7 @@ protocol RowImpl {
 extension RowImpl {
     func copiedRow(_ row: Row) -> Row {
         // unless customized, assume unsafe and unadapted row
-        return Row(impl: ArrayRowImpl(columns: row.map { $0 }))
+        return Row(impl: ArrayRowImpl(columns: Array(row)))
     }
     
     func unscopedRow(_ row: Row) -> Row {
@@ -1576,7 +1637,7 @@ extension RowImpl {
         return Row.ScopesView()
     }
     
-    func hasNull(atUncheckedIndex index:Int) -> Bool {
+    func hasNull(atUncheckedIndex index: Int) -> Bool {
         // unless customized, use slow check (see StatementRowImpl and AdaptedRowImpl for customization)
         return databaseValue(atUncheckedIndex: index).isNull
     }
@@ -1601,7 +1662,7 @@ extension RowImpl {
             conversionContext: ValueConversionContext(Row(impl: self)).atColumn(index))
     }
     
-    func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
+    func dataNoCopy(atUncheckedIndex index: Int) -> Data? {
         // unless customized, copy data (see StatementRowImpl and AdaptedRowImpl for customization)
         return Data.decodeIfPresent(
             from: databaseValue(atUncheckedIndex: index),
@@ -1611,7 +1672,7 @@ extension RowImpl {
 
 // TODO: merge with StatementCopyRowImpl eventually?
 /// See Row.init(dictionary:)
-private struct ArrayRowImpl : RowImpl {
+private struct ArrayRowImpl: RowImpl {
     let columns: [(String, DatabaseValue)]
     
     init(columns: [(String, DatabaseValue)]) {
@@ -1647,13 +1708,16 @@ private struct ArrayRowImpl : RowImpl {
 
 // TODO: merge with ArrayRowImpl eventually?
 /// See Row.init(copiedFromStatementRef:sqliteStatement:)
-private struct StatementCopyRowImpl : RowImpl {
+private struct StatementCopyRowImpl: RowImpl {
     let dbValues: ContiguousArray<DatabaseValue>
     let columnNames: [String]
     
     init(sqliteStatement: SQLiteStatement, columnNames: [String]) {
         let sqliteStatement = sqliteStatement
-        self.dbValues = ContiguousArray((0..<sqlite3_column_count(sqliteStatement)).map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) } as [DatabaseValue])
+        self.dbValues = ContiguousArray(
+            (0..<sqlite3_column_count(sqliteStatement))
+                .map { DatabaseValue(sqliteStatement: sqliteStatement, index: $0) }
+                as [DatabaseValue])
         self.columnNames = columnNames
     }
     
@@ -1685,7 +1749,7 @@ private struct StatementCopyRowImpl : RowImpl {
 
 
 /// See Row.init(statement:)
-private struct StatementRowImpl : RowImpl {
+private struct StatementRowImpl: RowImpl {
     let statementRef: Unmanaged<SelectStatement>
     let sqliteStatement: SQLiteStatement
     let lowercaseColumnIndexes: [String: Int]
@@ -1694,7 +1758,8 @@ private struct StatementRowImpl : RowImpl {
         self.statementRef = statementRef
         self.sqliteStatement = sqliteStatement
         // Optimize row[columnName]
-        let lowercaseColumnNames = (0..<sqlite3_column_count(sqliteStatement)).map { String(cString: sqlite3_column_name(sqliteStatement, Int32($0))).lowercased() }
+        let lowercaseColumnNames = (0..<sqlite3_column_count(sqliteStatement))
+            .map { String(cString: sqlite3_column_name(sqliteStatement, Int32($0))).lowercased() }
         self.lowercaseColumnIndexes = Dictionary(
             lowercaseColumnNames
                 .enumerated()
@@ -1710,12 +1775,12 @@ private struct StatementRowImpl : RowImpl {
         return true
     }
     
-    func hasNull(atUncheckedIndex index:Int) -> Bool {
+    func hasNull(atUncheckedIndex index: Int) -> Bool {
         // Avoid extracting values, because this modifies the SQLite statement.
         return sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL
     }
     
-    func dataNoCopy(atUncheckedIndex index:Int) -> Data? {
+    func dataNoCopy(atUncheckedIndex index: Int) -> Data? {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
             return nil
         }
@@ -1761,7 +1826,7 @@ private struct StatementRowImpl : RowImpl {
 }
 
 // This one is not optimized at all, since it is only used in fatal conversion errors, so far
-private struct SQLiteStatementRowImpl : RowImpl {
+private struct SQLiteStatementRowImpl: RowImpl {
     let sqliteStatement: SQLiteStatement
     var count: Int { return Int(sqlite3_column_count(sqliteStatement)) }
     var isFetched: Bool { return true }
@@ -1784,7 +1849,7 @@ private struct SQLiteStatementRowImpl : RowImpl {
 }
 
 /// See Row.init()
-private struct EmptyRowImpl : RowImpl {
+private struct EmptyRowImpl: RowImpl {
     var count: Int {
         return 0
     }

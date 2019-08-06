@@ -28,7 +28,7 @@
 ///     }
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public struct QueryInterfaceRequest<T>: DerivableRequest {
+public struct QueryInterfaceRequest<T> {
     var query: SQLQuery
     
     init(query: SQLQuery) {
@@ -86,7 +86,7 @@ extension QueryInterfaceRequest: FetchRequest {
     /// - parameter db: A database connection.
     /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        var region = try SQLQueryGenerator(query).databaseRegion(db)
+        var region = try SQLQueryGenerator(query).makeSelectStatement(db).databaseRegion
         
         // Iterate all prefetched associations
         var fifo = query.relation.prefetchedAssociations
@@ -101,11 +101,11 @@ extension QueryInterfaceRequest: FetchRequest {
             let prefetchedRelation = association
                 .mapPivotRelation { $0.qualified(with: pivotAlias) }
                 .destinationRelation(fromOriginRows: { _ in [] /* no origin row */ })
-                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].aliased("grdb_\($0)") })
+                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].forKey("grdb_\($0)") })
             let prefetchedQuery = SQLQuery(relation: prefetchedRelation)
             
             // Union region
-            try region.formUnion(SQLQueryGenerator(prefetchedQuery).databaseRegion(db))
+            try region.formUnion(SQLQueryGenerator(prefetchedQuery).makeSelectStatement(db).databaseRegion)
             
             // Append nested prefetched associations (support for
             // A.including(all: A.bs.including(all: B.cs))
@@ -143,7 +143,9 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         let request = Player.all().select([max(Column("score"))], as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+    public func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type)
+        -> QueryInterfaceRequest<RowDecoder>
+    {
         return mapQuery { $0.select(selection) }.asRequest(of: RowDecoder.self)
     }
     
@@ -155,7 +157,9 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         let request = Player.all().select(max(Column("score")), as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+    public func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type)
+        -> QueryInterfaceRequest<RowDecoder>
+    {
         return select(selection, as: type)
     }
     
@@ -167,7 +171,12 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         let request = Player.all().select(sql: "max(score)", as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(sql: String, arguments: StatementArguments = StatementArguments(), as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+    public func select<RowDecoder>(
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        as type: RowDecoder.Type)
+        -> QueryInterfaceRequest<RowDecoder>
+    {
         return select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
     }
     
@@ -198,7 +207,11 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///                 as: String.self)
     ///         let name: String? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(literal sqlLiteral: SQLLiteral, as type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+    public func select<RowDecoder>(
+        literal sqlLiteral: SQLLiteral,
+        as type: RowDecoder.Type)
+        -> QueryInterfaceRequest<RowDecoder>
+    {
         return select(SQLSelectionLiteral(literal: sqlLiteral), as: type)
     }
     
@@ -225,7 +238,7 @@ extension QueryInterfaceRequest: SelectionRequest {
 
 extension QueryInterfaceRequest: FilteredRequest {
     // MARK: Request Derivation
-
+    
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
     ///
@@ -235,7 +248,6 @@ extension QueryInterfaceRequest: FilteredRequest {
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
         return mapQuery { $0.filter(predicate) }
     }
-
 }
 
 extension QueryInterfaceRequest: OrderedRequest {
@@ -298,7 +310,7 @@ extension QueryInterfaceRequest: AggregatingRequest {
     }
 }
 
-extension QueryInterfaceRequest: JoinableRequest {
+extension QueryInterfaceRequest: _JoinableRequest {
     /// :nodoc:
     public func _including(all association: SQLAssociation) -> QueryInterfaceRequest {
         return mapQuery { $0._including(all: association) }
@@ -325,10 +337,12 @@ extension QueryInterfaceRequest: JoinableRequest {
     }
 }
 
+extension QueryInterfaceRequest: JoinableRequest where T: TableRecord { }
+
 extension QueryInterfaceRequest {
     
     // MARK: Request Derivation
-
+    
     /// Creates a request which returns distinct rows.
     ///
     ///     // SELECT DISTINCT * FROM player
@@ -460,6 +474,8 @@ extension QueryInterfaceRequest: TableRequest {
     }
 }
 
+extension QueryInterfaceRequest: DerivableRequest where T: TableRecord { }
+
 extension QueryInterfaceRequest where T: MutablePersistableRecord {
     
     // MARK: Deleting
@@ -479,7 +495,7 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
 // MARK: - Eager loading of hasMany associations
 
 /// Append rows from prefetched associations into the argument rows.
-fileprivate func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [Row]) throws {
+private func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [Row]) throws {
     guard let firstRow = rows.first else {
         // No rows -> no prefetch
         return
@@ -517,7 +533,7 @@ fileprivate func prefetch(_ db: Database, associations: [SQLAssociation], in row
             let prefetchedRelation = association
                 .mapPivotRelation { $0.qualified(with: pivotAlias) }
                 .destinationRelation(fromOriginRows: { _ in rows })
-                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].aliased("grdb_\($0)") })
+                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].forKey("grdb_\($0)") })
             prefetchedRows = try QueryInterfaceRequest(relation: prefetchedRelation)
                 .fetchAll(db)
                 .grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })

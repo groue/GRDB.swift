@@ -7,8 +7,7 @@ extension String {
     /// SQL query.
     ///
     ///     db.execute(sql: "SELECT * FROM \(tableName.quotedDatabaseIdentifier)")
-    @inlinable
-    public var quotedDatabaseIdentifier: String {
+    @inlinable public var quotedDatabaseIdentifier: String {
         // See https://www.sqlite.org/lang_keywords.html
         return "\"\(self)\""
     }
@@ -38,7 +37,7 @@ public protocol _OptionalProtocol {
 /// This conformance is an implementation detail of GRDB. Don't rely on it.
 ///
 /// :nodoc:
-extension Optional : _OptionalProtocol {
+extension Optional: _OptionalProtocol {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public typealias _Wrapped = Wrapped
@@ -49,7 +48,12 @@ extension Optional : _OptionalProtocol {
 
 /// Reserved for GRDB: do not use.
 @inlinable
-func GRDBPrecondition(_ condition: @autoclosure() -> Bool, _ message: @autoclosure() -> String = "", file: StaticString = #file, line: UInt = #line) {
+func GRDBPrecondition(
+    _ condition: @autoclosure() -> Bool,
+    _ message: @autoclosure() -> String = "",
+    file: StaticString = #file,
+    line: UInt = #line)
+{
     /// Custom precondition function which aims at solving
     /// https://bugs.swift.org/browse/SR-905 and
     /// https://github.com/groue/GRDB.swift/issues/37
@@ -87,7 +91,7 @@ extension DispatchQueue {
         DispatchQueue.main.setSpecific(key: key, value: ())
         return key
     }()
-
+    
     static var isMain: Bool {
         return DispatchQueue.getSpecific(key: mainKey) != nil
     }

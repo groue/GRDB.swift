@@ -1,14 +1,14 @@
 #if SQLITE_ENABLE_FTS5
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
 #elseif GRDBCIPHER
-    import SQLCipher
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 /// The protocol for custom FTS5 tokenizers.
-public protocol FTS5CustomTokenizer : FTS5Tokenizer {
+public protocol FTS5CustomTokenizer: FTS5Tokenizer {
     /// The name of the tokenizer; should uniquely identify your custom
     /// tokenizer.
     static var name: String { get }
@@ -41,7 +41,6 @@ extension FTS5CustomTokenizer {
     public static func tokenizerDescriptor(arguments: [String] = []) -> FTS5TokenizerDescriptor {
         return FTS5TokenizerDescriptor(components: [name] + arguments)
     }
-    
 }
 
 extension Database {
@@ -52,7 +51,10 @@ extension Database {
         let db: Database
         let constructor: (Database, [String], UnsafeMutablePointer<OpaquePointer?>?) -> Int32
         
-        init(db: Database, constructor: @escaping (Database, [String], UnsafeMutablePointer<OpaquePointer?>?) -> Int32) {
+        init(
+            db: Database,
+            constructor: @escaping (Database, [String], UnsafeMutablePointer<OpaquePointer?>?) -> Int32)
+        {
             self.db = db
             self.constructor = constructor
         }
@@ -101,7 +103,13 @@ extension Database {
             Unmanaged<AnyObject>.fromOpaque(constructorPointer).release()
         }
         
-        func xCreateTokenizer(constructorPointer: UnsafeMutableRawPointer?, azArg: UnsafeMutablePointer<UnsafePointer<Int8>?>?, nArg: Int32, tokenizerHandle: UnsafeMutablePointer<OpaquePointer?>?) -> Int32 {
+        func xCreateTokenizer(
+            constructorPointer: UnsafeMutableRawPointer?,
+            azArg: UnsafeMutablePointer<UnsafePointer<Int8>?>?,
+            nArg: Int32,
+            tokenizerHandle: UnsafeMutablePointer<OpaquePointer?>?)
+            -> Int32
+        {
             guard let constructorPointer = constructorPointer else {
                 return SQLITE_ERROR
             }
@@ -122,20 +130,41 @@ extension Database {
             Unmanaged<AnyObject>.fromOpaque(UnsafeMutableRawPointer(tokenizerPointer)).release()
         }
         
-        func xTokenize(tokenizerPointer: OpaquePointer?, context: UnsafeMutableRawPointer?, flags: Int32, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: (@convention(c) (UnsafeMutableRawPointer?, Int32, UnsafePointer<Int8>?, Int32, Int32, Int32) -> Int32)?) -> Int32 {
+        func xTokenize(
+            tokenizerPointer: OpaquePointer?,
+            context: UnsafeMutableRawPointer?,
+            flags: Int32,
+            pText: UnsafePointer<Int8>?,
+            nText: Int32,
+            // swiftlint:disable:next line_length
+            tokenCallback: (@convention(c) (UnsafeMutableRawPointer?, Int32, UnsafePointer<Int8>?, Int32, Int32, Int32) -> Int32)?)
+            -> Int32
+        {
             guard let tokenizerPointer = tokenizerPointer else {
                 return SQLITE_ERROR
             }
-            let object = Unmanaged<AnyObject>.fromOpaque(UnsafeMutableRawPointer(tokenizerPointer)).takeUnretainedValue()
+            let object = Unmanaged<AnyObject>
+                .fromOpaque(UnsafeMutableRawPointer(tokenizerPointer))
+                .takeUnretainedValue()
             guard let tokenizer = object as? FTS5Tokenizer else {
                 return SQLITE_ERROR
             }
-            return tokenizer.tokenize(context: context, tokenization: FTS5Tokenization(rawValue: flags), pText: pText, nText: nText, tokenCallback: tokenCallback!)
+            return tokenizer.tokenize(
+                context: context,
+                tokenization: FTS5Tokenization(rawValue: flags),
+                pText: pText,
+                nText: nText,
+                tokenCallback: tokenCallback!)
         }
         
         var xTokenizer = fts5_tokenizer(xCreate: xCreateTokenizer, xDelete: xDeleteTokenizer, xTokenize: xTokenize)
         let code = withUnsafeMutablePointer(to: &xTokenizer) { xTokenizerPointer in
-            api.pointee.xCreateTokenizer(UnsafeMutablePointer(mutating: api), Tokenizer.name, constructorPointer, xTokenizerPointer, deleteConstructor)
+            api.pointee.xCreateTokenizer(
+                UnsafeMutablePointer(mutating: api),
+                Tokenizer.name,
+                constructorPointer,
+                xTokenizerPointer,
+                deleteConstructor)
         }
         guard code == SQLITE_OK else {
             // Assume a GRDB bug: there is no point throwing any error.

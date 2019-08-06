@@ -1,6 +1,17 @@
-- [ ] Attach databases. Interesting question: what happens when one attaches a non-WAL db to a databasePool?
+## Cleanup
+
 - [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
-- [ ] Query builder
+- [ ] Write regression tests for #156 and #157
+- [ ] Fix matchingRowIds (todo: what is the problem, already?)
+- [ ] deprecate ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
+- [ ] https://github.com/groue/GRDB.swift/issues/514
+- [ ] Test NOT TESTED methods
+
+
+## Features
+
+- [ ] Attach databases. Interesting question: what happens when one attaches a non-WAL db to a databasePool?
+- [ ] SQL Generation
     - [ ] date functions
     - [ ] NOW/CURRENT_TIMESTAMP
     - [ ] ROUND() http://marc.info/?l=sqlite-users&m=130419182719263
@@ -8,65 +19,55 @@
     - [ ] GLOB https://www.sqlite.org/lang_expr.html
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
-- [ ] Write regression tests for #156 and #157
 - [ ] Allow concurrent reads from a snapshot
 - [ ] Decode NSDecimalNumber from text database values
 - [ ] Check https://sqlite.org/sqlar.html
-- [ ] filter(rowid:), filter(rowids:)
-- [ ] Fix matchingRowIds
-- [ ] Simplify Range extensions for Swift 4.1
-- [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
-- [ ] deprecate ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
-- [ ] Joins and full-text tables
-- [ ] UPSERT https://www.sqlite.org/lang_UPSERT.html
-- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0075-import-test.md
-- [ ] Avoid code duplication: https://forums.swift.org/t/c-interoperability-combinations-of-library-and-os-versions/14029/4
-- [ ] Allow joining methods on DerivableRequest
-- [ ] DatabaseWriter.assertWriteAccess()
-- [ ] Configuration.crashOnError = true
-- [ ] Support for "INSERT INTO ... SELECT ...". For example:
-    
-    ```swift
-    // INSERT INTO rigth (id, name) SELECT id, name FROM left
-    let lefts = Left.select(Left.Columns.id, Left.Columns.name)
-    try Right.insert(lefts)
-    ```
-- [ ] select values from a JSON column:
-    
-    ```swift
-    let nesteds = try Record
-        .select(Column("nested"), as: Nested.self)
-        .fetchAll(db)
-    ```
-- [ ] Consider renaming dbQueue.inDatabase, dbPool.writeWithoutTransaction -> dbQueue/Pool.exclusive
-- [ ] FetchedRecordsController diff algorithm: check https://github.com/RxSwiftCommunity/RxDataSources/issues/256
-- [ ] https://github.com/groue/GRDB.swift/issues/514
-- [ ] Look at the jazzy configuration of https://github.com/bignerdranch/Deferred
 - [ ] FTS: prefix queries
-- [ ] Test NOT TESTED methods
 - [ ] A way to stop a ValueObservation observer without waiting for deinit
-- [ ] Glossary (Database Access Methods, etc.)
-- [ ] One use case for query interface updates that is uneasy to deal with raw SQL:
+- [ ] More schema alterations
+- [ ] Query interface updates. One use case for query interface updates that is uneasy to deal with raw SQL:
     
-    ```
+    ```swift
     // Uneasy to do with raw SQL
     let players = Player.filter(...) // Returns a request that filters on column A or column B depending on the argument
     players.update(...)              // Runs the expected UPDATE statement
     ```
 
-Swift 4.2
 
-- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0208-package-manager-system-library-targets.md
-- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0201-package-manager-local-dependencies.md
+## Unsure if necessary
 
-Not sure
-
-- [ ] HiddenColumnsAdapter
+- [ ] filter(rowid:), filter(rowids:)
+- [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0075-import-test.md
+- [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
+- [ ] Configuration.crashOnError = true
+- [ ] Glossary (Database Access Methods, etc.)
+- [ ] ValueObservation.flatMap. Not sure it is still useful now that we have ValueObservation.tracking(value:)
+- [ ] rename fetchOne to fetchFirst. Not sure because it is a big breaking change. Not sure because ValueObservation.tracking(value:) has reduced the need for observationForFirst.
 - [ ] Not sure: type safety for SQL expressions
     - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
     - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
-- [ ] Encode/decode nested records/arrays/dictionaries as JSON?
 - [ ] Cursor.underestimatedCount, which could speed up Array(cursor) and fetchAll()
+- [ ] Remove prefix from association keys when association name is namespaced: https://github.com/groue/GRDB.swift/issues/584#issuecomment-517658122
+
+
+## Unsure how
+
+- [ ] Joins and full-text tables
+- [ ] UPSERT https://www.sqlite.org/lang_UPSERT.html
+- [ ] Support for "INSERT INTO ... SELECT ...".
+- [ ] Look at the jazzy configuration of https://github.com/bignerdranch/Deferred
+- [ ] Predicates, so that a filter can be evaluated both on the database, and on a record instance.
+    
+    After investigation, we can't do it reliably without knowing the collation used by a column. And SQLite does not provide this information elsewhere than in the full CREATE TABLE statement stored in sqlite_master.
+- [ ] ValueObservation erasure
+
+    ```
+    // Do better than this
+    observation.mapReducer { _, reducer in AnyValueReducer(reducer) }
+    ```
+    
+- [ ] FetchedRecordsController diff algorithm: check https://github.com/RxSwiftCommunity/RxDataSources/issues/256
+- [ ] new.updateChanges(from: old) vs. old.updateChanges(with: { old.a = new.a }). This is confusing.
 - [ ] Support for OR ROLLBACK, and mismatch between the Swift depth and the SQLite depth of nested transactions/savepoint:
     
     ```swift
@@ -108,13 +109,7 @@ Not sure
     ```
 
 
-Requires recompilation of SQLite:
-
-- [ ] https://www.sqlite.org/c3ref/column_database_name.html could help extracting out of a row a subrow only made of columns that come from a specific table. Requires SQLITE_ENABLE_COLUMN_METADATA which is not set on the sqlite3 lib that ships with OSX.
-
-
-
-Reading list:
+## Reading list
 
 - Documentation generation: https://twitter.com/jckarter/status/987525569196650496: cmark is the implementation the Swift compiler uses for doc comments etc.
 - VACUUM (https://blogs.gnome.org/jnelson/)

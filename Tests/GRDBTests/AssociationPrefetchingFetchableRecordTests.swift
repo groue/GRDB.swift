@@ -36,7 +36,7 @@ private struct C: TableRecord, FetchableRecord, Equatable {
 }
 private struct D: TableRecord, FetchableRecord, Equatable {
     var cold1: Int64
-    var cold2: Int64
+    var cold2: Int64?
     var cold3: String
     
     init(row: Row) {
@@ -83,6 +83,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                     INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
                     INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
                     INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
+                    INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
                     """,
                 arguments: [
                     1, "a1",
@@ -99,6 +100,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                     11, 8, "d2",
                     12, 8, "d3",
                     13, 9, "d4",
+                    14, nil, "d5",
                 ])
         }
     }
@@ -973,7 +975,6 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
         }
     }
     
-    // TODO: make a variant with joining(optional:)
     func testIncludingOptionalBelongsToIncludingAllHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
@@ -1239,6 +1240,81 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                                 C(row: ["colc1": 7, "colc2": 1]),
                             ]),
                         a2: nil))
+                }
+            }
+        }
+    }
+    
+    func testJoiningOptionalHasOneThroughIncludingAllHasMany() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            // Plain request
+            do {
+                let request = D
+                    .joining(optional: D
+                        .hasOne(A.self, through: D.belongsTo(C.self), using: C.belongsTo(A.self))
+                        .including(all: A
+                            .hasMany(B.self)
+                            .orderByPrimaryKey()))
+                    .orderByPrimaryKey()
+                
+                // Record (flat)
+                do {
+                    struct Record: FetchableRecord, Equatable {
+                        var d: D
+                        var bs: [B] // not optional
+                        
+                        init(d: D, bs: [B]) {
+                            self.d = d
+                            self.bs = bs
+                        }
+                        
+                        init(row: Row) {
+                            self.init(d: D(row: row), bs: row["bs"])
+                        }
+                    }
+                    
+                    // Record.fetchAll
+                    do {
+                        let records = try Record.fetchAll(db, request)
+                        XCTAssertEqual(records, [
+                            Record(
+                                d: D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"]),
+                                bs: [
+                                    B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                                    B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                                ]),
+                            Record(
+                                d: D(row: ["cold1": 11, "cold2": 8, "cold3": "d2"]),
+                                bs: [
+                                    B(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
+                                ]),
+                            Record(
+                                d: D(row: ["cold1": 12, "cold2": 8, "cold3": "d3"]),
+                                bs: [
+                                    B(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
+                                ]),
+                            Record(
+                                d: D(row: ["cold1": 13, "cold2": 9, "cold3": "d4"]),
+                                bs: [
+                                    B(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
+                                ]),
+                            Record(
+                                d: D(row: ["cold1": 14, "cold2": nil, "cold3": "d5"]),
+                                bs: []),
+                            ])
+                    }
+                    
+                    // Record.fetchOne
+                    do {
+                        let record = try Record.fetchOne(db, request)!
+                        XCTAssertEqual(record, Record(
+                            d: D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"]),
+                            bs: [
+                                B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                                B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                            ]))
+                    }
                 }
             }
         }

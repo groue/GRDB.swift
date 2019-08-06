@@ -59,7 +59,11 @@ public struct Inflections {
     ///     - options: Regular expression options (defaults to
     ///       `[.caseInsensitive]`).
     ///     - template: A replacement template string.
-    public mutating func plural(_ pattern: String, options: NSRegularExpression.Options = [.caseInsensitive], _ template: String) {
+    public mutating func plural(
+        _ pattern: String,
+        options: NSRegularExpression.Options = [.caseInsensitive],
+        _ template: String)
+    {
         let reg = try! NSRegularExpression(pattern: pattern, options: options)
         pluralizeRules.append((reg, template))
     }
@@ -75,7 +79,11 @@ public struct Inflections {
     ///     - options: Regular expression options (defaults to
     ///       `[.caseInsensitive]`).
     ///     - template: A replacement template string.
-    public mutating func singular(_ pattern: String, options: NSRegularExpression.Options = [.caseInsensitive], _ template: String) {
+    public mutating func singular(
+        _ pattern: String,
+        options: NSRegularExpression.Options = [.caseInsensitive],
+        _ template: String)
+    {
         let reg = try! NSRegularExpression(pattern: pattern, options: options)
         singularizeRules.append((reg, template))
     }
@@ -155,7 +163,9 @@ public struct Inflections {
     ///     inflections.pluralize("bar") // "bars"
     private mutating func uncountableWord(_ word: String) {
         let escWord = NSRegularExpression.escapedPattern(for: word)
-        uncountablesRegularExpressions[word] = try! NSRegularExpression(pattern: "\\b\(escWord)\\Z", options: [.caseInsensitive])
+        uncountablesRegularExpressions[word] = try! NSRegularExpression(
+            pattern: "\\b\(escWord)\\Z",
+            options: [.caseInsensitive])
     }
     
     private func isUncountable(_ string: String) -> Bool {
@@ -181,7 +191,7 @@ public struct Inflections {
             \(string.suffix(from: endIndexOfDigitlessRadical))
             """
     }
-
+    
     private func inflectWord(_ string: String, with rules: [(NSRegularExpression, String)]) -> String {
         if string.isEmpty {
             return string
@@ -189,8 +199,8 @@ public struct Inflections {
         let range = NSRange(string.startIndex..<string.endIndex, in: string)
         for (reg, template) in rules.reversed() {
             let result = NSMutableString(string: string)
-            let count = reg.replaceMatches(in: result, options: [], range: range, withTemplate: template)
-            if count > 0 {
+            let matchCount = reg.replaceMatches(in: result, options: [], range: range, withTemplate: template)
+            if matchCount > 0 {
                 return String(result)
             }
         }
@@ -203,7 +213,7 @@ public struct Inflections {
     /// startIndexOfLastWord("fooBar")  -> "Bar"
     static func startIndexOfLastWord(_ string: String) -> String.Index {
         let range = NSRange(string.startIndex..<string.endIndex, in: string)
-
+        
         let index1: String.Index? = wordBoundaryReg.firstMatch(in: string, options: [], range: range).flatMap {
             if $0.range.location == NSNotFound { return nil }
             return Range($0.range, in: string)?.lowerBound
@@ -230,9 +240,8 @@ public struct Inflections {
             .endIndex                               // reversed(foo^12)
             .base                                   // foo^12
     }
-
+    
     private static let wordBoundaryReg = try! NSRegularExpression(pattern: "\\b\\w+$", options: [])
     private static let underscoreBoundaryReg = try! NSRegularExpression(pattern: "_[^_]+$", options: [])
     private static let caseBoundaryReg = try! NSRegularExpression(pattern: "[^A-Z][A-Z]+[a-z1-9]+$", options: [])
 }
-

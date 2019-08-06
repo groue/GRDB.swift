@@ -4,8 +4,8 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     
     private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest {
         let (request, expression) = aggregate.prepare(self)
-        if let alias = aggregate.alias {
-            return request.annotated(with: [expression.aliased(alias)])
+        if let key = aggregate.key {
+            return request.annotated(with: [expression.forKey(key)])
         } else {
             return request.annotated(with: [expression])
         }
@@ -20,7 +20,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func annotated(with aggregates: AssociationAggregate<RowDecoder>...) -> QueryInterfaceRequest {
         return annotated(with: aggregates)
     }
-
+    
     /// Creates a request which appends *aggregates* to the current selection.
     ///
     ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
