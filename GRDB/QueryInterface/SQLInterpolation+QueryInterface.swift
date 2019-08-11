@@ -75,7 +75,7 @@ extension SQLInterpolation {
         appendInterpolation(Column(codingKey.stringValue))
     }
     
-    // When a value is both an expression and a sequence of expression,
+    // When a value is both an expression and a sequence of expressions,
     // favor the expression side. Use case: Foundation.Data interpolation.
     /// :nodoc:
     public mutating func appendInterpolation<T>(_ expressible: T)
