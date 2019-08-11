@@ -75,6 +75,15 @@ extension SQLInterpolation {
         appendInterpolation(Column(codingKey.stringValue))
     }
     
+    // When a value is both an expression and a sequence of expression,
+    // favor the expression side. Use case: Foundation.Data interpolation.
+    /// :nodoc:
+    public mutating func appendInterpolation<T>(_ expressible: T)
+        where T: Sequence, T.Element: SQLExpressible, T: SQLExpressible
+    {
+        sql += expressible.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+    }
+
     /// Appends a sequence of expressions, wrapped in parentheses.
     ///
     ///     // SELECT * FROM player WHERE id IN (?,?,?)
