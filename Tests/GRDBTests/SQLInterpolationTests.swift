@@ -104,6 +104,16 @@ class SQLInterpolationTests: GRDBTestCase {
         test(value: V(), isInterpolatedAs: "V".databaseValue)
     }
     
+    func testDataInterpolation() {
+        // This test makes sure the Sequence conformance of Data does not
+        // kick in.
+        let data = "SQLite".data(using: .utf8)!
+        var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 1)
+        sql.appendInterpolation(data)
+        XCTAssertEqual(sql.sql, "?")
+        XCTAssertEqual(sql.arguments, [data])
+    }
+    
     func testQualifiedExpressionInterpolation() {
         var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 1)
         

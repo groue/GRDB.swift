@@ -234,6 +234,15 @@ extension SQLLiteralTests {
         test(value: V(), isInterpolatedAs: "V".databaseValue)
     }
     
+    func testDataInterpolation() {
+        // This test makes sure the Sequence conformance of Data does not
+        // kick in.
+        let data = "SQLite".data(using: .utf8)!
+        let query: SQLLiteral = "SELECT \(data)"
+        XCTAssertEqual(query.sql, "SELECT ?")
+        XCTAssertEqual(query.arguments, [data])
+    }
+    
     func testQualifiedExpressionInterpolation() {
         let query: SQLLiteral = """
             SELECT \(Column("name").aliased("foo"))
