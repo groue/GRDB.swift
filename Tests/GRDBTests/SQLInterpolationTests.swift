@@ -79,6 +79,41 @@ class SQLInterpolationTests: GRDBTestCase {
         XCTAssertEqual(sql.arguments, [1, 2, 1, 1, 2])
     }
     
+    func testDatabaseValueConvertibleInterpolation() {
+        func test<V: DatabaseValueConvertible>(value: V, isInterpolatedAs dbValue: DatabaseValue) {
+            var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 1)
+            sql.appendInterpolation(value)
+            XCTAssertEqual(sql.sql, "?")
+            XCTAssertEqual(sql.arguments, [dbValue])
+        }
+        
+        struct V: DatabaseValueConvertible {
+            var databaseValue: DatabaseValue {
+                return "V".databaseValue
+            }
+            
+            static func fromDatabaseValue(_ dbValue: DatabaseValue) -> V? {
+                return nil
+            }
+        }
+        
+        test(value: 42, isInterpolatedAs: 42.databaseValue)
+        test(value: 1.23, isInterpolatedAs: 1.23.databaseValue)
+        test(value: "foo", isInterpolatedAs: "foo".databaseValue)
+        test(value: "foo".data(using: .utf8)!, isInterpolatedAs: "foo".data(using: .utf8)!.databaseValue)
+        test(value: V(), isInterpolatedAs: "V".databaseValue)
+    }
+    
+    func testDataInterpolation() {
+        // This test makes sure the Sequence conformance of Data does not
+        // kick in.
+        let data = "SQLite".data(using: .utf8)!
+        var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 1)
+        sql.appendInterpolation(data)
+        XCTAssertEqual(sql.sql, "?")
+        XCTAssertEqual(sql.arguments, [data])
+    }
+    
     func testQualifiedExpressionInterpolation() {
         var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 1)
         

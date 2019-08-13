@@ -5,14 +5,14 @@ GRDB 4 [![Swift 4.2](https://img.shields.io/badge/swift-4.2-orange.svg?style=fla
 
 ---
 
-**Latest release**: August 6, 2019 • version 4.2.0 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 3 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
+**Latest release**: August 13, 2019 • version 4.2.1 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 3 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
 
 **Requirements**: iOS 9.0+ / macOS 10.9+ / watchOS 2.0+ &bull; Swift 4.2+ / Xcode 10.0+
 
 | Swift version | GRDB version                                                |
 | ------------- | ----------------------------------------------------------- |
-| **Swift 5**   | **v4.2.0**                                                  |
-| **Swift 4.2** | **v4.2.0**                                                  |
+| **Swift 5**   | **v4.2.1**                                                  |
+| **Swift 4.2** | **v4.2.1**                                                  |
 | Swift 4.1     | [v3.7.0](https://github.com/groue/GRDB.swift/tree/v3.7.0)   |
 | Swift 4       | [v2.10.0](https://github.com/groue/GRDB.swift/tree/v2.10.0) |
 | Swift 3.2     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
@@ -338,7 +338,7 @@ The [Swift Package Manager](https://swift.org/package-manager/) automates the di
 ```swift
 let package = Package(
     dependencies: [
-        .package(url: "https://github.com/groue/GRDB.swift.git", .upToNextMajor(from: "4.2.0"))
+        .package(url: "https://github.com/groue/GRDB.swift.git", .upToNextMajor(from: "4.2.1"))
     ]
 )
 ```
@@ -353,7 +353,7 @@ Note that Linux is not currently supported.
 
 ## Manually
 
-1. [Download](https://github.com/groue/GRDB.swift/releases/tag/v4.2.0) a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the `git checkout v4.2.0` command.
+1. [Download](https://github.com/groue/GRDB.swift/releases/tag/v4.2.1) a copy of GRDB, or clone its repository and make sure you use the latest tagged version with the `git checkout v4.2.1` command.
 
 2. Embed the `GRDB.xcodeproj` project in your own project.
 

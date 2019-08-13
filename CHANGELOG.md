@@ -13,7 +13,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 #### 4.x Releases
 
-- `4.2.x` Releases - [4.2.0](#420)
+- `4.2.x` Releases - [4.2.0](#420) | [4.2.1](#421)
 - `4.1.x` Releases - [4.1.0](#410) | [4.1.1](#411)
 - `4.0.x` Releases - [4.0.0](#400) | [4.0.1](#401)
 
@@ -58,6 +58,16 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 <!--
 ## Next Release
 -->
+
+
+## 4.2.1
+
+Released August 13, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.2.0...v4.2.1)
+
+**Fixed**
+
+- [#592](https://github.com/groue/GRDB.swift/pull/592): Fix Data interpolation
+
 
 ## 4.2.0
 

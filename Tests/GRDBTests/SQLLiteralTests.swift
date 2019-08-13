@@ -210,6 +210,39 @@ extension SQLLiteralTests {
         XCTAssertEqual(query.arguments, [1, 2, 1, 1, 2])
     }
     
+    func testDatabaseValueConvertibleInterpolation() {
+        func test<V: DatabaseValueConvertible>(value: V, isInterpolatedAs dbValue: DatabaseValue) {
+            let query: SQLLiteral = "SELECT \(value)"
+            XCTAssertEqual(query.sql, "SELECT ?")
+            XCTAssertEqual(query.arguments, [dbValue])
+        }
+        
+        struct V: DatabaseValueConvertible {
+            var databaseValue: DatabaseValue {
+                return "V".databaseValue
+            }
+            
+            static func fromDatabaseValue(_ dbValue: DatabaseValue) -> V? {
+                return nil
+            }
+        }
+        
+        test(value: 42, isInterpolatedAs: 42.databaseValue)
+        test(value: 1.23, isInterpolatedAs: 1.23.databaseValue)
+        test(value: "foo", isInterpolatedAs: "foo".databaseValue)
+        test(value: "foo".data(using: .utf8)!, isInterpolatedAs: "foo".data(using: .utf8)!.databaseValue)
+        test(value: V(), isInterpolatedAs: "V".databaseValue)
+    }
+    
+    func testDataInterpolation() {
+        // This test makes sure the Sequence conformance of Data does not
+        // kick in.
+        let data = "SQLite".data(using: .utf8)!
+        let query: SQLLiteral = "SELECT \(data)"
+        XCTAssertEqual(query.sql, "SELECT ?")
+        XCTAssertEqual(query.arguments, [data])
+    }
+    
     func testQualifiedExpressionInterpolation() {
         let query: SQLLiteral = """
             SELECT \(Column("name").aliased("foo"))
