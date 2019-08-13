@@ -14,7 +14,7 @@
     <a title="StatementArguments Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1031,7 +1031,7 @@ number already assigned</li>
 <p>To fill question marks placeholders, feed StatementArguments with an array:</p>
 <pre class="highlight swift"><code><span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT ... (?, ?)"</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt">StatementArguments</span><span class="p">([</span><span class="s">"Arthur"</span><span class="p">,</span> <span class="mi">41</span><span class="p">]))</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="nf">StatementArguments</span><span class="p">([</span><span class="s">"Arthur"</span><span class="p">,</span> <span class="mi">41</span><span class="p">]))</span>
 
 <span class="c1">// Array literals are automatically converted:</span>
 <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span>
@@ -1043,7 +1043,7 @@ number already assigned</li>
 <p>To fill named arguments, feed StatementArguments with a dictionary:</p>
 <pre class="highlight swift"><code><span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT ... (:name, :score)"</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt">StatementArguments</span><span class="p">([</span><span class="s">"name"</span><span class="p">:</span> <span class="s">"Arthur"</span><span class="p">,</span> <span class="s">"score"</span><span class="p">:</span> <span class="mi">41</span><span class="p">]))</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="nf">StatementArguments</span><span class="p">([</span><span class="s">"name"</span><span class="p">:</span> <span class="s">"Arthur"</span><span class="p">,</span> <span class="s">"score"</span><span class="p">:</span> <span class="mi">41</span><span class="p">]))</span>
 
 <span class="c1">// Dictionary literals are automatically converted:</span>
 <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span>
@@ -1114,12 +1114,12 @@ confusing, and it is best to avoid this practice:</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">isEmpty</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">isEmpty</span><span class="p">:</span> <span class="nf">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Statement.swift#L585-L587">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Statement.swift#L585-L587">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1160,7 +1160,7 @@ confusing, and it is best to avoid this practice:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Statement.swift#L593-L594">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Statement.swift#L593-L594">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1191,7 +1191,7 @@ confusing, and it is best to avoid this practice:</p>
                       <div class="abstract">
                         <p>Creates statement arguments from a sequence of optional values.</p>
 <pre class="highlight swift"><code><span class="k">let</span> <span class="nv">values</span><span class="p">:</span> <span class="p">[</span><span class="kt">DatabaseValueConvertible</span><span class="p">?]</span> <span class="o">=</span> <span class="p">[</span><span class="s">"foo"</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="kc">nil</span><span class="p">]</span>
-<span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT ... (?,?,?)"</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="kt">StatementArguments</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+<span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT ... (?,?,?)"</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="nf">StatementArguments</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
 </code></pre>
 
                       </div>
@@ -1227,7 +1227,7 @@ confusing, and it is best to avoid this practice:</p>
                         <p>A StatementArguments.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Statement.swift#L605-L607">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Statement.swift#L605-L607">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1247,7 +1247,7 @@ confusing, and it is best to avoid this practice:</p>
                       <div class="abstract">
                         <p>Creates statement arguments from a sequence of optional values.</p>
 <pre class="highlight swift"><code><span class="k">let</span> <span class="nv">values</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s">"foo"</span><span class="p">,</span> <span class="s">"bar"</span><span class="p">]</span>
-<span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT ... (?,?)"</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="kt">StatementArguments</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+<span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT ... (?,?)"</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="nf">StatementArguments</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
 </code></pre>
 
                       </div>
@@ -1283,7 +1283,7 @@ confusing, and it is best to avoid this practice:</p>
                         <p>A StatementArguments.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Statement.swift#L616-L618">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Statement.swift#L616-L618">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1337,7 +1337,7 @@ array elements adopt DatabaseValueConvertible.</p>
                         <p>A StatementArguments.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Statement.swift#L625-L634">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Statement.swift#L625-L634">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1369,7 +1369,7 @@ array elements adopt DatabaseValueConvertible.</p>
                         <p>Creates statement arguments from a sequence of (key, value) dictionary,
 such as a dictionary.</p>
 <pre class="highlight swift"><code><span class="k">let</span> <span class="nv">values</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">DatabaseValueConvertible</span><span class="p">?]</span> <span class="o">=</span> <span class="p">[</span><span class="s">"firstName"</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span> <span class="s">"lastName"</span><span class="p">:</span> <span class="s">"Miller"</span><span class="p">]</span>
-<span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT ... (:firstName, :lastName)"</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="kt">StatementArguments</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+<span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT ... (:firstName, :lastName)"</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="nf">StatementArguments</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
 </code></pre>
 
                       </div>
@@ -1405,7 +1405,7 @@ such as a dictionary.</p>
                         <p>A StatementArguments.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Statement.swift#L647-L649">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Statement.swift#L647-L649">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1426,7 +1426,7 @@ such as a dictionary.</p>
                         <p>Creates statement arguments from a sequence of (key, value) pairs, such
 as a dictionary.</p>
 <pre class="highlight swift"><code><span class="k">let</span> <span class="nv">values</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">:</span> <span class="kt">DatabaseValueConvertible</span><span class="p">?]</span> <span class="o">=</span> <span class="p">[</span><span class="s">"firstName"</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span> <span class="s">"lastName"</span><span class="p">:</span> <span class="s">"Miller"</span><span class="p">]</span>
-<span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT ... (:firstName, :lastName)"</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="kt">StatementArguments</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+<span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT ... (:firstName, :lastName)"</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="nf">StatementArguments</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
 </code></pre>
 
                       </div>
@@ -1463,7 +1463,7 @@ as a dictionary.</p>
                         <p>A StatementArguments.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Statement.swift#L659-L663">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Statement.swift#L659-L663">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1519,7 +1519,7 @@ adopt DatabaseValueConvertible.</p>
                         <p>A StatementArguments.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Statement.swift#L672-L684">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Statement.swift#L672-L684">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1591,7 +1591,7 @@ the StatementArguments type for more information about mixed arguments):</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Statement.swift#L721-L730">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Statement.swift#L721-L730">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1650,7 +1650,7 @@ append(contentsOf:) method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Statement.swift#L762-L766">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Statement.swift#L762-L766">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1707,7 +1707,7 @@ side wins:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Statement.swift#L796-L800">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Statement.swift#L796-L800">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1769,7 +1769,7 @@ append(contentsOf:) method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Statement.swift#L835-L840">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Statement.swift#L835-L840">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1815,7 +1815,7 @@ append(contentsOf:) method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Statement.swift#L892-L894">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Statement.swift#L892-L894">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1861,7 +1861,7 @@ append(contentsOf:) method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Statement.swift#L905-L907">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Statement.swift#L905-L907">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1871,7 +1871,7 @@ append(contentsOf:) method.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

@@ -14,7 +14,7 @@
     <a title="AssociationToMany Protocol Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1054,7 +1054,7 @@
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L321-L324">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L321-L324">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1092,7 +1092,7 @@
 the association. For example:</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">TeamInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="kt">Decodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">TeamInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="nf">Decodable</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">team</span><span class="p">:</span> <span class="kt">Team</span>
     <span class="k">var</span> <span class="nv">playerCount</span><span class="p">:</span> <span class="kt">Int</span>
 <span class="p">}</span>
@@ -1112,7 +1112,7 @@ the association. For example:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L354-L357">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L354-L357">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1137,7 +1137,7 @@ the association. For example:</p>
 
 <p>It has a default name, which is <q>hasNo[Key]</q>, where key is the key of
 the association. For example:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">TeamInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="kt">Decodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">TeamInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="nf">Decodable</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">team</span><span class="p">:</span> <span class="kt">Team</span>
     <span class="k">var</span> <span class="nv">hasNoPlayer</span><span class="p">:</span> <span class="kt">Bool</span>
 <span class="p">}</span>
@@ -1159,7 +1159,7 @@ the association. For example:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L374-L377">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L374-L377">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1188,14 +1188,14 @@ name which is <q>average[Key][Column]</q>, where key is the key of the
 association. For example:</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">TeamInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="kt">Decodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">TeamInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="nf">Decodable</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">team</span><span class="p">:</span> <span class="kt">Team</span>
     <span class="k">var</span> <span class="nv">averagePlayerScore</span><span class="p">:</span> <span class="kt">Double</span>
 <span class="p">}</span>
-<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">average</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)))</span>
+<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">average</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)))</span>
 <span class="k">let</span> <span class="nv">infos</span><span class="p">:</span> <span class="p">[</span><span class="kt">TeamInfo</span><span class="p">]</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">TeamInfo</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
 
-<span class="k">let</span> <span class="nv">teams</span><span class="p">:</span> <span class="p">[</span><span class="kt">Team</span><span class="p">]</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">having</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">average</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">teams</span><span class="p">:</span> <span class="p">[</span><span class="kt">Team</span><span class="p">]</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">having</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">average</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 </code></pre>
 
                       </div>
@@ -1208,7 +1208,7 @@ association. For example:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L396-L404">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L396-L404">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1237,14 +1237,14 @@ name which is <q>maximum[Key][Column]</q>, where key is the key of the
 association. For example:</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">TeamInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="kt">Decodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">TeamInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="nf">Decodable</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">team</span><span class="p">:</span> <span class="kt">Team</span>
     <span class="k">var</span> <span class="nv">maxPlayerScore</span><span class="p">:</span> <span class="kt">Double</span>
 <span class="p">}</span>
-<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">max</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)))</span>
+<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">max</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)))</span>
 <span class="k">let</span> <span class="nv">infos</span><span class="p">:</span> <span class="p">[</span><span class="kt">TeamInfo</span><span class="p">]</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">TeamInfo</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
 
-<span class="k">let</span> <span class="nv">teams</span><span class="p">:</span> <span class="p">[</span><span class="kt">Team</span><span class="p">]</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">having</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">max</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">teams</span><span class="p">:</span> <span class="p">[</span><span class="kt">Team</span><span class="p">]</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">having</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">max</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 </code></pre>
 
                       </div>
@@ -1257,7 +1257,7 @@ association. For example:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L423-L431">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L423-L431">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1286,14 +1286,14 @@ name which is <q>minimum[Key][Column]</q>, where key is the key of the
 association. For example:</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">TeamInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="kt">Decodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">TeamInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="nf">Decodable</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">team</span><span class="p">:</span> <span class="kt">Team</span>
     <span class="k">var</span> <span class="nv">minPlayerScore</span><span class="p">:</span> <span class="kt">Double</span>
 <span class="p">}</span>
-<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">min</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)))</span>
+<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">min</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)))</span>
 <span class="k">let</span> <span class="nv">infos</span><span class="p">:</span> <span class="p">[</span><span class="kt">TeamInfo</span><span class="p">]</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">TeamInfo</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
 
-<span class="k">let</span> <span class="nv">teams</span><span class="p">:</span> <span class="p">[</span><span class="kt">Team</span><span class="p">]</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">having</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">min</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">teams</span><span class="p">:</span> <span class="p">[</span><span class="kt">Team</span><span class="p">]</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">having</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">min</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 </code></pre>
 
                       </div>
@@ -1306,7 +1306,7 @@ association. For example:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L450-L458">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L450-L458">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1335,14 +1335,14 @@ name which is <q>[key][Column]Sum</q>, where key is the key of the
 association. For example:</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">TeamInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="kt">Decodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">TeamInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="nf">Decodable</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">team</span><span class="p">:</span> <span class="kt">Team</span>
     <span class="k">var</span> <span class="nv">playerScoreSum</span><span class="p">:</span> <span class="kt">Double</span>
 <span class="p">}</span>
-<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">sum</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)))</span>
+<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">sum</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)))</span>
 <span class="k">let</span> <span class="nv">infos</span><span class="p">:</span> <span class="p">[</span><span class="kt">TeamInfo</span><span class="p">]</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">TeamInfo</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
 
-<span class="k">let</span> <span class="nv">teams</span><span class="p">:</span> <span class="p">[</span><span class="kt">Team</span><span class="p">]</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">having</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">sum</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">teams</span><span class="p">:</span> <span class="p">[</span><span class="kt">Team</span><span class="p">]</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Team</span><span class="o">.</span><span class="nf">having</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="nf">sum</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 </code></pre>
 
                       </div>
@@ -1355,7 +1355,7 @@ association. For example:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L477-L485">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L477-L485">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1365,7 +1365,7 @@ association. For example:</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

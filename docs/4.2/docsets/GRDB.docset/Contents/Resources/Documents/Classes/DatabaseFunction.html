@@ -14,7 +14,7 @@
     <a title="DatabaseFunction Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1038,12 +1038,12 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="nf">String</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseFunction.swift#L">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseFunction.swift#L">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1062,8 +1062,8 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an SQL function.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">fn</span> <span class="o">=</span> <span class="kt">DatabaseFunction</span><span class="p">(</span><span class="s">"succ"</span><span class="p">,</span> <span class="nv">argumentCount</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span> <span class="n">dbValues</span> <span class="k">in</span>
-    <span class="k">guard</span> <span class="k">let</span> <span class="nv">int</span> <span class="o">=</span> <span class="kt">Int</span><span class="o">.</span><span class="nf">fromDatabaseValue</span><span class="p">(</span><span class="n">dbValues</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">fn</span> <span class="o">=</span> <span class="nf">DatabaseFunction</span><span class="p">(</span><span class="s">"succ"</span><span class="p">,</span> <span class="nv">argumentCount</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span> <span class="n">dbValues</span> <span class="k">in</span>
+    <span class="k">guard</span> <span class="k">let</span> <span class="nv">int</span> <span class="o">=</span> <span class="kt">Int</span><span class="o">.</span><span class="nf">fromDatabaseValue</span><span class="p">(</span><span class="n">dbValues</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="nf">else</span> <span class="p">{</span>
         <span class="k">return</span> <span class="kc">nil</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">int</span> <span class="o">+</span> <span class="mi">1</span>
@@ -1149,7 +1149,7 @@ not nil.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseFunction.swift#L47-L61">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseFunction.swift#L47-L61">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1168,7 +1168,7 @@ not nil.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an SQL aggregate function.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">MySum</span> <span class="p">:</span> <span class="kt">DatabaseAggregate</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">MySum</span> <span class="p">:</span> <span class="nf">DatabaseAggregate</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">sum</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="k">mutating</span> <span class="kd">func</span> <span class="nf">step</span><span class="p">(</span><span class="n">_</span> <span class="nv">dbValues</span><span class="p">:</span> <span class="p">[</span><span class="kt">DatabaseValue</span><span class="p">])</span> <span class="p">{</span>
@@ -1177,15 +1177,15 @@ not nil.</p>
         <span class="p">}</span>
     <span class="p">}</span>
 
-    <span class="kd">func</span> <span class="nf">finalize</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">DatabaseValueConvertible</span><span class="p">?</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">finalize</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nf">DatabaseValueConvertible</span><span class="p">?</span> <span class="p">{</span>
         <span class="k">return</span> <span class="n">sum</span>
     <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="kt">DatabaseQueue</span><span class="p">()</span>
-<span class="k">let</span> <span class="nv">fn</span> <span class="o">=</span> <span class="kt">DatabaseFunction</span><span class="p">(</span><span class="s">"mysum"</span><span class="p">,</span> <span class="nv">argumentCount</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nv">aggregate</span><span class="p">:</span> <span class="kt">MySum</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="nf">DatabaseQueue</span><span class="p">()</span>
+<span class="k">let</span> <span class="nv">fn</span> <span class="o">=</span> <span class="nf">DatabaseFunction</span><span class="p">(</span><span class="s">"mysum"</span><span class="p">,</span> <span class="nv">argumentCount</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nv">aggregate</span><span class="p">:</span> <span class="kt">MySum</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="n">dbQueue</span><span class="o">.</span><span class="nf">add</span><span class="p">(</span><span class="nv">function</span><span class="p">:</span> <span class="n">fn</span><span class="p">)</span>
-<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"CREATE TABLE test(i)"</span><span class="p">)</span>
     <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT INTO test(i) VALUES (1)"</span><span class="p">)</span>
     <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT INTO test(i) VALUES (2)"</span><span class="p">)</span>
@@ -1270,7 +1270,7 @@ not nil.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseFunction.swift#L102-L111">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseFunction.swift#L102-L111">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1307,7 +1307,7 @@ String property.</p>
 <p>This function is automatically added by GRDB to your database
 connections. It is the function used by the query interface&rsquo;s
 capitalized:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">nameColumn</span> <span class="o">=</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">nameColumn</span> <span class="o">=</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="n">nameColumn</span><span class="o">.</span><span class="n">capitalized</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">names</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">dbQueue</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>   <span class="c1">// [String]</span>
 </code></pre>
@@ -1322,7 +1322,7 @@ capitalized:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Support/StandardLibrary/StandardLibrary.swift#L503">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Support/StandardLibrary/StandardLibrary.swift#L503">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1348,7 +1348,7 @@ String property.</p>
 <p>This function is automatically added by GRDB to your database
 connections. It is the function used by the query interface&rsquo;s
 lowercased:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">nameColumn</span> <span class="o">=</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">nameColumn</span> <span class="o">=</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="n">nameColumn</span><span class="o">.</span><span class="nf">lowercased</span><span class="p">())</span>
 <span class="k">let</span> <span class="nv">names</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">dbQueue</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>   <span class="c1">// [String]</span>
 </code></pre>
@@ -1363,7 +1363,7 @@ lowercased:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Support/StandardLibrary/StandardLibrary.swift#L523">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Support/StandardLibrary/StandardLibrary.swift#L523">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1389,7 +1389,7 @@ String property.</p>
 <p>This function is automatically added by GRDB to your database
 connections. It is the function used by the query interface&rsquo;s
 uppercased:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">nameColumn</span> <span class="o">=</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">nameColumn</span> <span class="o">=</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="n">nameColumn</span><span class="o">.</span><span class="nf">uppercased</span><span class="p">())</span>
 <span class="k">let</span> <span class="nv">names</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">dbQueue</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>   <span class="c1">// [String]</span>
 </code></pre>
@@ -1404,7 +1404,7 @@ uppercased:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Support/StandardLibrary/StandardLibrary.swift#L543">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Support/StandardLibrary/StandardLibrary.swift#L543">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1441,7 +1441,7 @@ localizedCapitalized String property.</p>
 <p>This function is automatically added by GRDB to your database
 connections. It is the function used by the query interface&rsquo;s
 localizedCapitalized:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">nameColumn</span> <span class="o">=</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">nameColumn</span> <span class="o">=</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="n">nameColumn</span><span class="o">.</span><span class="n">localizedCapitalized</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">names</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">dbQueue</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>   <span class="c1">// [String]</span>
 </code></pre>
@@ -1457,7 +1457,7 @@ localizedCapitalized:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Support/StandardLibrary/StandardLibrary.swift#L566">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Support/StandardLibrary/StandardLibrary.swift#L566">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1483,7 +1483,7 @@ localizedLowercased String property.</p>
 <p>This function is automatically added by GRDB to your database
 connections. It is the function used by the query interface&rsquo;s
 localizedLowercased:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">nameColumn</span> <span class="o">=</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">nameColumn</span> <span class="o">=</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="n">nameColumn</span><span class="o">.</span><span class="n">localizedLowercased</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">names</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">dbQueue</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>   <span class="c1">// [String]</span>
 </code></pre>
@@ -1499,7 +1499,7 @@ localizedLowercased:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Support/StandardLibrary/StandardLibrary.swift#L587">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Support/StandardLibrary/StandardLibrary.swift#L587">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1525,7 +1525,7 @@ localizedUppercased String property.</p>
 <p>This function is automatically added by GRDB to your database
 connections. It is the function used by the query interface&rsquo;s
 localizedUppercased:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">nameColumn</span> <span class="o">=</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">nameColumn</span> <span class="o">=</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="n">nameColumn</span><span class="o">.</span><span class="n">localizedUppercased</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">names</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">dbQueue</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>   <span class="c1">// [String]</span>
 </code></pre>
@@ -1541,7 +1541,7 @@ localizedUppercased:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Support/StandardLibrary/StandardLibrary.swift#L608">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Support/StandardLibrary/StandardLibrary.swift#L608">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1584,7 +1584,7 @@ localizedUppercased:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/SQL/SQLFunctions.swift#L8-L10">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/SQL/SQLFunctions.swift#L8-L10">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1594,7 +1594,7 @@ localizedUppercased:</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

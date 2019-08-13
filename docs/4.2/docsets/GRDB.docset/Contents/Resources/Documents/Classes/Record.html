@@ -14,7 +14,7 @@
     <a title="Record Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1051,7 +1051,7 @@ designed to be subclassed.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L10-L11">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L10-L11">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1081,7 +1081,7 @@ designed to be subclassed.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L14-L23">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L14-L23">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1114,8 +1114,8 @@ designed to be subclassed.</p>
 
 <p>This table name is required by the insert, update, save, delete,
 and exists methods.</p>
-<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">Player</span> <span class="p">:</span> <span class="kt">Record</span> <span class="p">{</span>
-    <span class="k">override</span> <span class="kd">class</span> <span class="k">var</span> <span class="nv">databaseTableName</span><span class="p">:</span> <span class="kt">String</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">Player</span> <span class="p">:</span> <span class="nf">Record</span> <span class="p">{</span>
+    <span class="k">override</span> <span class="kd">class</span> <span class="k">var</span> <span class="nv">databaseTableName</span><span class="p">:</span> <span class="nf">String</span> <span class="p">{</span>
         <span class="k">return</span> <span class="s">"player"</span>
     <span class="p">}</span>
 <span class="p">}</span>
@@ -1128,7 +1128,7 @@ and exists methods.</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">class</span> <span class="k">var</span> <span class="nv">databaseTableName</span><span class="p">:</span> <span class="kt">String</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">class</span> <span class="k">var</span> <span class="nv">databaseTableName</span><span class="p">:</span> <span class="nf">String</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
@@ -1137,7 +1137,7 @@ and exists methods.</p>
                         <p>The name of a database table.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L42-L45">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L42-L45">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1173,12 +1173,12 @@ even if a row was actually inserted without any conflict.</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">class</span> <span class="k">var</span> <span class="nv">persistenceConflictPolicy</span><span class="p">:</span> <span class="kt"><a href="../Structs/PersistenceConflictPolicy.html">PersistenceConflictPolicy</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">open</span> <span class="kd">class</span> <span class="k">var</span> <span class="nv">persistenceConflictPolicy</span><span class="p">:</span> <span class="nf">PersistenceConflictPolicy</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L59-L61">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L59-L61">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1205,9 +1205,9 @@ even if a row was actually inserted without any conflict.</p>
 
 <p>You can override this property and provide an explicit list
 of columns:</p>
-<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">RestrictedPlayer</span> <span class="p">:</span> <span class="kt">Record</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">RestrictedPlayer</span> <span class="p">:</span> <span class="nf">Record</span> <span class="p">{</span>
     <span class="k">override</span> <span class="kd">static</span> <span class="k">var</span> <span class="nv">databaseSelection</span><span class="p">:</span> <span class="p">[</span><span class="kt">SQLSelectable</span><span class="p">]</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nf">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)]</span>
     <span class="p">}</span>
 <span class="p">}</span>
 
@@ -1216,9 +1216,9 @@ of columns:</p>
 </code></pre>
 
 <p>You can also add extra columns such as the <code>rowid</code> column:</p>
-<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">ExtendedPlayer</span> <span class="p">:</span> <span class="kt">Player</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">ExtendedPlayer</span> <span class="p">:</span> <span class="nf">Player</span> <span class="p">{</span>
     <span class="k">override</span> <span class="kd">static</span> <span class="k">var</span> <span class="nv">databaseSelection</span><span class="p">:</span> <span class="p">[</span><span class="kt">SQLSelectable</span><span class="p">]</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="p">[</span><span class="kt">AllColumns</span><span class="p">(),</span> <span class="kt">Column</span><span class="o">.</span><span class="n">rowID</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nf">AllColumns</span><span class="p">(),</span> <span class="kt">Column</span><span class="o">.</span><span class="n">rowID</span><span class="p">]</span>
     <span class="p">}</span>
 <span class="p">}</span>
 
@@ -1236,7 +1236,7 @@ of columns:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L92-L94">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L92-L94">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1260,7 +1260,7 @@ of columns:</p>
 the columns of the database table (see Record.databaseTableName()).</p>
 
 <p>Primary key columns, if any, must be included.</p>
-<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">Player</span> <span class="p">:</span> <span class="kt">Record</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">Player</span> <span class="p">:</span> <span class="nf">Record</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">Int64</span><span class="p">?</span>
     <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span>
 
@@ -1284,7 +1284,7 @@ the container.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L116-L117">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L116-L117">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1309,7 +1309,7 @@ dispatch queue, with the inserted RowID and the eventual
 INTEGER PRIMARY KEY column name.</p>
 
 <p>The implementation of the base Record class does nothing.</p>
-<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">Player</span> <span class="p">:</span> <span class="kt">Record</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">Player</span> <span class="p">:</span> <span class="nf">Record</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">Int64</span><span class="p">?</span>
     <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span>
 
@@ -1360,7 +1360,7 @@ INTEGER PRIMARY KEY column name.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L139-L140">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L139-L140">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1409,7 +1409,7 @@ INTEGER PRIMARY KEY column name.</p>
                         <p>A copy of self.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L152-L156">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L152-L156">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1460,12 +1460,12 @@ of the record.</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">hasDatabaseChanges</span><span class="p">:</span> <span class="kt">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="k">set</span> <span class="p">}</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">hasDatabaseChanges</span><span class="p">:</span> <span class="nf">Bool</span> <span class="p">{</span> <span class="k">get</span> <span class="k">set</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L177-L180">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L177-L180">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1503,7 +1503,7 @@ are nil.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L191-L193">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L191-L193">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1577,7 +1577,7 @@ before the insertion.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L235-L255">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L235-L255">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1650,7 +1650,7 @@ match any row in the database and record could not be updated.
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L269-L292">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L269-L292">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1729,7 +1729,7 @@ match any row in the database and record could not be updated.
                         <p>Whether the record had changes.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L309-L317">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L309-L317">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1798,7 +1798,7 @@ thrown by update().
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L338-L340">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L338-L340">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1859,7 +1859,7 @@ thrown by update().
                         <p>Whether a database row was deleted.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/Record.swift#L350-L358">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/Record.swift#L350-L358">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1869,7 +1869,7 @@ thrown by update().
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

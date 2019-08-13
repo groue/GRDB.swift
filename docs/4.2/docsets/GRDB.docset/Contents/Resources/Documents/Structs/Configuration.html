@@ -14,7 +14,7 @@
     <a title="Configuration Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1052,7 +1052,7 @@
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Configuration.swift#L19">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Configuration.swift#L19">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1084,7 +1084,7 @@
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Configuration.swift#L24">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Configuration.swift#L24">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1105,11 +1105,11 @@
                         <p>The database label.</p>
 
 <p>You can query this label at runtime:</p>
-<pre class="highlight swift"><code><span class="k">var</span> <span class="nv">configuration</span> <span class="o">=</span> <span class="kt">Configuration</span><span class="p">()</span>
+<pre class="highlight swift"><code><span class="k">var</span> <span class="nv">configuration</span> <span class="o">=</span> <span class="nf">Configuration</span><span class="p">()</span>
 <span class="n">configuration</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="s">"MyDatabase"</span>
-<span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">DatabaseQueue</span><span class="p">(</span><span class="nv">path</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span> <span class="nv">configuration</span><span class="p">:</span> <span class="n">configuration</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="k">try</span> <span class="nf">DatabaseQueue</span><span class="p">(</span><span class="nv">path</span><span class="p">:</span> <span class="o">...</span><span class="p">,</span> <span class="nv">configuration</span><span class="p">:</span> <span class="n">configuration</span><span class="p">)</span>
 
-<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="nf">print</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">configuration</span><span class="o">.</span><span class="n">label</span><span class="p">)</span> <span class="c1">// Prints "MyDatabase"</span>
 <span class="p">}</span>
 </code></pre>
@@ -1162,7 +1162,7 @@ DatabaseSnapshot. N grows with the number of snapshots.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Configuration.swift#L71">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Configuration.swift#L71">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1194,7 +1194,7 @@ DatabaseSnapshot. N grows with the number of snapshots.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Configuration.swift#L76">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Configuration.swift#L76">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1252,7 +1252,7 @@ before that connection has been made available to any read/write
 API&rsquo;s.</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="k">var</span> <span class="nv">config</span> <span class="o">=</span> <span class="kt">Configuration</span><span class="p">()</span>
+<pre class="highlight swift"><code><span class="k">var</span> <span class="nv">config</span> <span class="o">=</span> <span class="nf">Configuration</span><span class="p">()</span>
 <span class="n">config</span><span class="o">.</span><span class="n">prepareDatabase</span> <span class="o">=</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"PRAGMA kdf_iter = 10000"</span><span class="p">)</span>
 <span class="p">}</span>
@@ -1268,7 +1268,7 @@ API&rsquo;s.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Configuration.swift#L102">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Configuration.swift#L102">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1311,7 +1311,7 @@ API&rsquo;s.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Configuration.swift#L109">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Configuration.swift#L109">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1333,25 +1333,25 @@ API&rsquo;s.</p>
 end of a database access block.</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="kt">DatabaseQueue</span><span class="p">()</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="nf">DatabaseQueue</span><span class="p">()</span>
 
 <span class="c1">// fatal error: A transaction has been left opened at the end of a database access</span>
-<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">inDatabase</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">inDatabase</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">beginTransaction</span><span class="p">()</span>
 <span class="p">}</span>
 </code></pre>
 
 <p>If true, one can leave opened transaction at the end of database access
 blocks:</p>
-<pre class="highlight swift"><code><span class="k">var</span> <span class="nv">config</span> <span class="o">=</span> <span class="kt">Configuration</span><span class="p">()</span>
+<pre class="highlight swift"><code><span class="k">var</span> <span class="nv">config</span> <span class="o">=</span> <span class="nf">Configuration</span><span class="p">()</span>
 <span class="n">config</span><span class="o">.</span><span class="n">allowsUnsafeTransactions</span> <span class="o">=</span> <span class="kc">true</span>
-<span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="kt">DatabaseQueue</span><span class="p">(</span><span class="nv">configuration</span><span class="p">:</span> <span class="n">config</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="nf">DatabaseQueue</span><span class="p">(</span><span class="nv">configuration</span><span class="p">:</span> <span class="n">config</span><span class="p">)</span>
 
-<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">inDatabase</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">inDatabase</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">beginTransaction</span><span class="p">()</span>
 <span class="p">}</span>
 
-<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">inDatabase</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">inDatabase</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">commit</span><span class="p">()</span>
 <span class="p">}</span>
 </code></pre>
@@ -1371,7 +1371,7 @@ never allow leaving a transaction opened at the end of a read access.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Configuration.swift#L142">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Configuration.swift#L142">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1414,7 +1414,7 @@ never allow leaving a transaction opened at the end of a read access.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Configuration.swift#L149">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Configuration.swift#L149">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1447,7 +1447,7 @@ pools only).</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Configuration.swift#L155">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Configuration.swift#L155">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1481,7 +1481,7 @@ pools only).</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Configuration.swift#L162">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Configuration.swift#L162">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1513,7 +1513,7 @@ pools only).</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Configuration.swift#L167">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Configuration.swift#L167">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1554,7 +1554,7 @@ pools only).</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/Configuration.swift#L172-L178">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/Configuration.swift#L172-L178">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1564,7 +1564,7 @@ pools only).</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

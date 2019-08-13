@@ -14,7 +14,7 @@
     <a title="DatabaseMigrator Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1020,7 +1020,7 @@ applied in order, once and only once.</p>
 <p>When a user upgrades your application, only non-applied migration are run.</p>
 
 <p>Usage:</p>
-<pre class="highlight swift"><code><span class="k">var</span> <span class="nv">migrator</span> <span class="o">=</span> <span class="kt">DatabaseMigrator</span><span class="p">()</span>
+<pre class="highlight swift"><code><span class="k">var</span> <span class="nv">migrator</span> <span class="o">=</span> <span class="nf">DatabaseMigrator</span><span class="p">()</span>
 
 <span class="c1">// 1st migration</span>
 <span class="n">migrator</span><span class="o">.</span><span class="nf">registerMigration</span><span class="p">(</span><span class="s">"createLibrary"</span><span class="p">)</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
@@ -1089,7 +1089,7 @@ migrations, and the schema changes often.</p>
 <p>In this case, it is recommended that you make sure this flag does
 not ship in the distributed application, in order to avoid undesired
 data loss:</p>
-<pre class="highlight swift"><code><span class="k">var</span> <span class="nv">migrator</span> <span class="o">=</span> <span class="kt">DatabaseMigrator</span><span class="p">()</span>
+<pre class="highlight swift"><code><span class="k">var</span> <span class="nv">migrator</span> <span class="o">=</span> <span class="nf">DatabaseMigrator</span><span class="p">()</span>
 <span class="cp">#if DEBUG</span>
 <span class="c1">// Speed up development by nuking the database when migrations change</span>
 <span class="n">migrator</span><span class="o">.</span><span class="n">eraseDatabaseOnSchemaChange</span> <span class="o">=</span> <span class="kc">true</span>
@@ -1109,7 +1109,7 @@ for some downloaded data.</p></li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Migration/DatabaseMigrator.swift#L69">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Migration/DatabaseMigrator.swift#L69">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1139,7 +1139,7 @@ for some downloaded data.</p></li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Migration/DatabaseMigrator.swift#L73-L74">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Migration/DatabaseMigrator.swift#L73-L74">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1213,7 +1213,7 @@ for some downloaded data.</p></li>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Migration/DatabaseMigrator.swift#L90-L92">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Migration/DatabaseMigrator.swift#L90-L92">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1245,7 +1245,7 @@ for some downloaded data.</p></li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Migration/DatabaseMigrator.swift#L147-L152">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Migration/DatabaseMigrator.swift#L147-L152">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1302,7 +1302,7 @@ migrations should apply.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Migration/DatabaseMigrator.swift#L162-L167">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Migration/DatabaseMigrator.swift#L162-L167">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1360,7 +1360,7 @@ migrations should apply.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Migration/DatabaseMigrator.swift#L177-L230">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Migration/DatabaseMigrator.swift#L177-L230">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1390,7 +1390,7 @@ migrations should apply.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Migration/DatabaseMigrator.swift#L233-L235">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Migration/DatabaseMigrator.swift#L233-L235">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1400,7 +1400,7 @@ migrations should apply.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

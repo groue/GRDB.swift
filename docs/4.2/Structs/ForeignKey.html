@@ -14,7 +14,7 @@
     <a title="ForeignKey Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1032,10 +1032,10 @@ foreign key from book to person</q>, or <q>Could not infer foreign key from book
 to person</q>.</p>
 
 <p>Your help is needed. You have to instruct GRDB which foreign key to use:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="c1">// Define foreign keys</span>
-    <span class="kd">static</span> <span class="k">let</span> <span class="nv">authorForeignKey</span> <span class="o">=</span> <span class="kt">ForeignKey</span><span class="p">([</span><span class="s">"authorId"</span><span class="p">]))</span>
-    <span class="kd">static</span> <span class="k">let</span> <span class="nv">translatorForeignKey</span> <span class="o">=</span> <span class="kt">ForeignKey</span><span class="p">([</span><span class="s">"translatorId"</span><span class="p">]))</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">authorForeignKey</span> <span class="o">=</span> <span class="nf">ForeignKey</span><span class="p">([</span><span class="s">"authorId"</span><span class="p">]))</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">translatorForeignKey</span> <span class="o">=</span> <span class="nf">ForeignKey</span><span class="p">([</span><span class="s">"translatorId"</span><span class="p">]))</span>
 
     <span class="c1">// Use foreign keys to define associations:</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">author</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Person</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="n">authorForeignKey</span><span class="p">)</span>
@@ -1046,27 +1046,27 @@ to person</q>.</p>
 <p>Foreign keys are always defined from the table that contains the columns at
 the origin of the foreign key. Person&rsquo;s symmetric HasMany associations reuse
 Book&rsquo;s foreign keys:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Person</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Person</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">writtenBooks</span> <span class="o">=</span> <span class="nf">hasMany</span><span class="p">(</span><span class="kt">Book</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="kt">Book</span><span class="o">.</span><span class="n">authorForeignKey</span><span class="p">)</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">translatedBooks</span> <span class="o">=</span> <span class="nf">hasMany</span><span class="p">(</span><span class="kt">Book</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="kt">Book</span><span class="o">.</span><span class="n">translatorForeignKey</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
 
 <p>Foreign keys can also be defined from query interface columns:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
-    <span class="kd">enum</span> <span class="kt">Columns</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="kt">ColumnExpression</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
+    <span class="kd">enum</span> <span class="kt">Columns</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nf">ColumnExpression</span> <span class="p">{</span>
         <span class="k">case</span> <span class="n">id</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">authorId</span><span class="p">,</span> <span class="n">translatorId</span>
     <span class="p">}</span>
 
-    <span class="kd">static</span> <span class="k">let</span> <span class="nv">authorForeignKey</span> <span class="o">=</span> <span class="kt">ForeignKey</span><span class="p">([</span><span class="kt">Columns</span><span class="o">.</span><span class="n">authorId</span><span class="p">]))</span>
-    <span class="kd">static</span> <span class="k">let</span> <span class="nv">translatorForeignKey</span> <span class="o">=</span> <span class="kt">ForeignKey</span><span class="p">([</span><span class="kt">Columns</span><span class="o">.</span><span class="n">translatorId</span><span class="p">]))</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">authorForeignKey</span> <span class="o">=</span> <span class="nf">ForeignKey</span><span class="p">([</span><span class="kt">Columns</span><span class="o">.</span><span class="n">authorId</span><span class="p">]))</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">translatorForeignKey</span> <span class="o">=</span> <span class="nf">ForeignKey</span><span class="p">([</span><span class="kt">Columns</span><span class="o">.</span><span class="n">translatorId</span><span class="p">]))</span>
 <span class="p">}</span>
 </code></pre>
 
 <p>When the destination table of a foreign key does not define any primary key,
 you need to provide the full definition of a foreign key:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
-    <span class="kd">static</span> <span class="k">let</span> <span class="nv">authorForeignKey</span> <span class="o">=</span> <span class="kt">ForeignKey</span><span class="p">([</span><span class="s">"authorId"</span><span class="p">],</span> <span class="nv">to</span><span class="p">:</span> <span class="p">[</span><span class="s">"id"</span><span class="p">]))</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">authorForeignKey</span> <span class="o">=</span> <span class="nf">ForeignKey</span><span class="p">([</span><span class="s">"authorId"</span><span class="p">],</span> <span class="nv">to</span><span class="p">:</span> <span class="p">[</span><span class="s">"id"</span><span class="p">]))</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">author</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Person</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="n">authorForeignKey</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
@@ -1089,10 +1089,10 @@ you need to provide the full definition of a foreign key:</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a ForeignKey intended to define a record association.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="c1">// Define foreign keys</span>
-    <span class="kd">static</span> <span class="k">let</span> <span class="nv">authorForeignKey</span> <span class="o">=</span> <span class="kt">ForeignKey</span><span class="p">([</span><span class="s">"authorId"</span><span class="p">]))</span>
-    <span class="kd">static</span> <span class="k">let</span> <span class="nv">translatorForeignKey</span> <span class="o">=</span> <span class="kt">ForeignKey</span><span class="p">([</span><span class="s">"translatorId"</span><span class="p">]))</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">authorForeignKey</span> <span class="o">=</span> <span class="nf">ForeignKey</span><span class="p">([</span><span class="s">"authorId"</span><span class="p">]))</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">translatorForeignKey</span> <span class="o">=</span> <span class="nf">ForeignKey</span><span class="p">([</span><span class="s">"translatorId"</span><span class="p">]))</span>
 
     <span class="c1">// Use foreign keys to define associations:</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">author</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Person</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="n">authorForeignKey</span><span class="p">)</span>
@@ -1143,7 +1143,7 @@ primary key.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L500-L503">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L500-L503">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1162,15 +1162,15 @@ primary key.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates a ForeignKey intended to define a record association.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="c1">// Define columns</span>
-    <span class="kd">enum</span> <span class="kt">Columns</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="kt">ColumnExpression</span> <span class="p">{</span>
+    <span class="kd">enum</span> <span class="kt">Columns</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nf">ColumnExpression</span> <span class="p">{</span>
         <span class="k">case</span> <span class="n">id</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">authorId</span><span class="p">,</span> <span class="n">translatorId</span>
     <span class="p">}</span>
 
     <span class="c1">// Define foreign keys</span>
-    <span class="kd">static</span> <span class="k">let</span> <span class="nv">authorForeignKey</span> <span class="o">=</span> <span class="kt">ForeignKey</span><span class="p">([</span><span class="kt">Columns</span><span class="o">.</span><span class="n">authorId</span><span class="p">]))</span>
-    <span class="kd">static</span> <span class="k">let</span> <span class="nv">translatorForeignKey</span> <span class="o">=</span> <span class="kt">ForeignKey</span><span class="p">([</span><span class="kt">Columns</span><span class="o">.</span><span class="n">translatorId</span><span class="p">]))</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">authorForeignKey</span> <span class="o">=</span> <span class="nf">ForeignKey</span><span class="p">([</span><span class="kt">Columns</span><span class="o">.</span><span class="n">authorId</span><span class="p">]))</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">translatorForeignKey</span> <span class="o">=</span> <span class="nf">ForeignKey</span><span class="p">([</span><span class="kt">Columns</span><span class="o">.</span><span class="n">translatorId</span><span class="p">]))</span>
 
     <span class="c1">// Use foreign keys to define associations:</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">author</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Person</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="n">authorForeignKey</span><span class="p">)</span>
@@ -1221,7 +1221,7 @@ primary key.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L526-L528">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L526-L528">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1231,7 +1231,7 @@ primary key.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

@@ -14,7 +14,7 @@
     <a title="DatabaseQueue Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1045,12 +1045,12 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">configuration</span><span class="p">:</span> <span class="kt"><a href="../Structs/Configuration.html">Configuration</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">configuration</span><span class="p">:</span> <span class="nf">Configuration</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L17-L19">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L17-L19">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1075,12 +1075,12 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">path</span><span class="p">:</span> <span class="kt">String</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">path</span><span class="p">:</span> <span class="nf">String</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L22-L24">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L22-L24">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1110,7 +1110,7 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Opens the SQLite database at path <em>path</em>.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">DatabaseQueue</span><span class="p">(</span><span class="nv">path</span><span class="p">:</span> <span class="s">"/path/to/database.sqlite"</span><span class="p">)</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="k">try</span> <span class="nf">DatabaseQueue</span><span class="p">(</span><span class="nv">path</span><span class="p">:</span> <span class="s">"/path/to/database.sqlite"</span><span class="p">)</span>
 </code></pre>
 
 <p>Database connections get closed when the database queue gets deallocated.</p>
@@ -1125,7 +1125,7 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">path</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">configuration</span><span class="p">:</span> <span class="kt"><a href="../Structs/Configuration.html">Configuration</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/Configuration.html">Configuration</a></span><span class="p">())</span> <span class="k">throws</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">path</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="nv">configuration</span><span class="p">:</span> <span class="kt"><a href="../Structs/Configuration.html">Configuration</a></span> <span class="o">=</span> <span class="nf">Configuration</span><span class="p">())</span> <span class="k">throws</span></code></pre>
 
                         </div>
                       </div>
@@ -1161,7 +1161,7 @@
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L38-L44">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L38-L44">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1180,7 +1180,7 @@
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Opens an in-memory SQLite database.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="kt">DatabaseQueue</span><span class="p">()</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="nf">DatabaseQueue</span><span class="p">()</span>
 </code></pre>
 
 <p>Database memory is released when the database queue gets deallocated.</p>
@@ -1190,7 +1190,7 @@
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">configuration</span><span class="p">:</span> <span class="kt"><a href="../Structs/Configuration.html">Configuration</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/Configuration.html">Configuration</a></span><span class="p">())</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">configuration</span><span class="p">:</span> <span class="kt"><a href="../Structs/Configuration.html">Configuration</a></span> <span class="o">=</span> <span class="nf">Configuration</span><span class="p">())</span></code></pre>
 
                         </div>
                       </div>
@@ -1214,7 +1214,7 @@
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L53-L60">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L53-L60">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1259,7 +1259,7 @@
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L82-L84">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L82-L84">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1297,7 +1297,7 @@ enters background.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L94-L107">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L94-L107">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1328,7 +1328,7 @@ enters background.</li>
                       <div class="abstract">
                         <p>Synchronously executes a read-only block in a protected dispatch queue,
 and returns its result.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">players</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">players</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
@@ -1373,7 +1373,7 @@ DatabaseError of resultCode <code>SQLITE_READONLY</code>.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L168-L172">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L168-L172">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1392,11 +1392,11 @@ DatabaseError of resultCode <code>SQLITE_READONLY</code>.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Asynchronously executes a read-only block in a protected dispatch queue.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">players</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">asyncRead</span> <span class="p">{</span> <span class="n">result</span> <span class="k">in</span>
-    <span class="k">do</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">players</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">asyncRead</span> <span class="p">{</span> <span class="n">result</span> <span class="k">in</span>
+    <span class="nf">do</span> <span class="p">{</span>
         <span class="k">let</span> <span class="nv">db</span> <span class="o">=</span> <span class="k">try</span> <span class="n">result</span><span class="o">.</span><span class="nf">get</span><span class="p">()</span>
         <span class="k">let</span> <span class="nv">count</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchCount</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
-    <span class="p">}</span> <span class="k">catch</span> <span class="p">{</span>
+    <span class="p">}</span> <span class="nf">catch</span> <span class="p">{</span>
         <span class="c1">// Handle error</span>
     <span class="p">}</span>
 <span class="p">}</span>
@@ -1435,7 +1435,7 @@ DatabaseError of resultCode <code>SQLITE_READONLY</code>.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L191-L205">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L191-L205">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1464,7 +1464,7 @@ DatabaseError of resultCode <code>SQLITE_READONLY</code>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L240-L253">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L240-L253">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1504,7 +1504,7 @@ also rollbacked, but no error is thrown.</p>
 transaction has completed.</p>
 
 <p>This method is <em>not</em> reentrant.</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">writeInTransaction</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">writeInTransaction</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
     <span class="k">return</span> <span class="o">.</span><span class="n">commit</span>
 <span class="p">}</span>
@@ -1563,7 +1563,7 @@ for more information.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L307-L317">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L307-L317">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1623,7 +1623,7 @@ are completed.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L329-L331">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L329-L331">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1644,8 +1644,8 @@ are completed.</p>
                         <p>Synchronously executes database updates in a protected dispatch queue,
 outside of any transaction, and returns the result.</p>
 <pre class="highlight swift"><code><span class="c1">// INSERT INTO player ...</span>
-<span class="k">let</span> <span class="nv">players</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">inDatabase</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
-    <span class="k">try</span> <span class="kt">Player</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">players</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">inDatabase</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">try</span> <span class="nf">Player</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
 
@@ -1685,7 +1685,7 @@ outside of any transaction, and returns the result.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L345-L347">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L345-L347">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1706,8 +1706,8 @@ outside of any transaction, and returns the result.</p>
                         <p>Synchronously executes database updates in a protected dispatch queue, and
 returns the result.</p>
 <pre class="highlight swift"><code><span class="c1">// INSERT INTO player ...</span>
-<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">unsafeReentrantWrite</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
-    <span class="k">try</span> <span class="kt">Player</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">unsafeReentrantWrite</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">try</span> <span class="nf">Player</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
 
@@ -1724,7 +1724,7 @@ concurrency practices.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L359-L361">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L359-L361">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1755,7 +1755,7 @@ outside of any transaction.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L365-L367">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L365-L367">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1785,14 +1785,14 @@ outside of any transaction.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Add or redefine an SQL function.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">fn</span> <span class="o">=</span> <span class="kt">DatabaseFunction</span><span class="p">(</span><span class="s">"succ"</span><span class="p">,</span> <span class="nv">argumentCount</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span> <span class="n">dbValues</span> <span class="k">in</span>
-    <span class="k">guard</span> <span class="k">let</span> <span class="nv">int</span> <span class="o">=</span> <span class="kt">Int</span><span class="o">.</span><span class="nf">fromDatabaseValue</span><span class="p">(</span><span class="n">dbValues</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">else</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">fn</span> <span class="o">=</span> <span class="nf">DatabaseFunction</span><span class="p">(</span><span class="s">"succ"</span><span class="p">,</span> <span class="nv">argumentCount</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span> <span class="n">dbValues</span> <span class="k">in</span>
+    <span class="k">guard</span> <span class="k">let</span> <span class="nv">int</span> <span class="o">=</span> <span class="kt">Int</span><span class="o">.</span><span class="nf">fromDatabaseValue</span><span class="p">(</span><span class="n">dbValues</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="nf">else</span> <span class="p">{</span>
         <span class="k">return</span> <span class="kc">nil</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="n">int</span> <span class="o">+</span> <span class="mi">1</span>
 <span class="p">}</span>
 <span class="n">dbQueue</span><span class="o">.</span><span class="nf">add</span><span class="p">(</span><span class="nv">function</span><span class="p">:</span> <span class="n">fn</span><span class="p">)</span>
-<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">try</span> <span class="kt">Int</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT succ(1)"</span><span class="p">)</span> <span class="c1">// 2</span>
 <span class="p">}</span>
 </code></pre>
@@ -1807,7 +1807,7 @@ outside of any transaction.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L383-L385">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L383-L385">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1837,7 +1837,7 @@ outside of any transaction.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L388-L390">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L388-L390">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1867,11 +1867,11 @@ outside of any transaction.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Add or redefine a collation.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">collation</span> <span class="o">=</span> <span class="kt">DatabaseCollation</span><span class="p">(</span><span class="s">"localized_standard"</span><span class="p">)</span> <span class="p">{</span> <span class="p">(</span><span class="n">string1</span><span class="p">,</span> <span class="n">string2</span><span class="p">)</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">collation</span> <span class="o">=</span> <span class="nf">DatabaseCollation</span><span class="p">(</span><span class="s">"localized_standard"</span><span class="p">)</span> <span class="p">{</span> <span class="p">(</span><span class="n">string1</span><span class="p">,</span> <span class="n">string2</span><span class="p">)</span> <span class="k">in</span>
     <span class="nf">return</span> <span class="p">(</span><span class="n">string1</span> <span class="k">as</span> <span class="kt">NSString</span><span class="p">)</span><span class="o">.</span><span class="nf">localizedStandardCompare</span><span class="p">(</span><span class="n">string2</span><span class="p">)</span>
 <span class="p">}</span>
 <span class="n">dbQueue</span><span class="o">.</span><span class="nf">add</span><span class="p">(</span><span class="nv">collation</span><span class="p">:</span> <span class="n">collation</span><span class="p">)</span>
-<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD"</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
@@ -1886,7 +1886,7 @@ outside of any transaction.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L403-L405">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L403-L405">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1916,7 +1916,7 @@ outside of any transaction.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseQueue.swift#L408-L410">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseQueue.swift#L408-L410">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1926,7 +1926,7 @@ outside of any transaction.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

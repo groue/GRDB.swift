@@ -14,7 +14,7 @@
     <a title="ValueObservation Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1056,7 +1056,7 @@ observation is less efficient than a read-only observation.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation.swift#L96">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation.swift#L96">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1102,8 +1102,8 @@ value is also notified on the main queue, but asynchronously:</p>
 
 <p>When the database changes, fresh values are asynchronously notified:</p>
 <pre class="highlight swift"><code><span class="c1">// Eventually prints "fresh players" on the main queue</span>
-<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
-    <span class="k">try</span> <span class="kt">Player</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">try</span> <span class="nf">Player</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre></li>
 <li><p><code>.onQueue(_:startImmediately:)</code>: all values are asychronously notified
@@ -1140,7 +1140,7 @@ unspecified queues.</p></li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation.swift#L153">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation.swift#L153">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1227,7 +1227,7 @@ main queue.</li>
                         <p>a ValueObservation.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation+Count.swift#L96-L100">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation+Count.swift#L96-L100">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1261,7 +1261,7 @@ fresh values whenever the request is modified by a
 database transaction.</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">),</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">String</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">),</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">String</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">observation</span> <span class="o">=</span> <span class="kt">ValueObservation</span><span class="o">.</span><span class="nf">trackingAll</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
 
 <span class="k">let</span> <span class="nv">observer</span> <span class="o">=</span> <span class="k">try</span> <span class="n">observation</span><span class="o">.</span><span class="nf">start</span><span class="p">(</span><span class="nv">in</span><span class="p">:</span> <span class="n">dbQueue</span><span class="p">)</span> <span class="p">{</span> <span class="nv">names</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">]</span> <span class="k">in</span>
@@ -1316,7 +1316,7 @@ main queue.</li>
                         <p>a ValueObservation.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation+DatabaseValueConvertible.swift#L156-L161">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation+DatabaseValueConvertible.swift#L156-L161">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1338,7 +1338,7 @@ main queue.</li>
 fresh value whenever the request is modified by a database transaction.</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">max</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)),</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Int</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">max</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)),</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Int</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">observation</span> <span class="o">=</span> <span class="kt">ValueObservation</span><span class="o">.</span><span class="nf">trackingOne</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
 
 <span class="k">let</span> <span class="nv">observer</span> <span class="o">=</span> <span class="k">try</span> <span class="n">observation</span><span class="o">.</span><span class="nf">start</span><span class="p">(</span><span class="nv">in</span><span class="p">:</span> <span class="n">dbQueue</span><span class="p">)</span> <span class="p">{</span> <span class="nv">maxScore</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="k">in</span>
@@ -1393,7 +1393,7 @@ main queue.</li>
                         <p>a ValueObservation.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation+DatabaseValueConvertible.swift#L187-L192">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation+DatabaseValueConvertible.swift#L187-L192">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1416,7 +1416,7 @@ fresh values whenever the request is modified by a
 database transaction.</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">),</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Optional</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;.</span><span class="k">self</span><span class="p">)</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">),</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Optional</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;.</span><span class="k">self</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">observation</span> <span class="o">=</span> <span class="kt">ValueObservation</span><span class="o">.</span><span class="nf">trackingAll</span><span class="p">(</span><span class="n">request</span><span class="p">)</span>
 
 <span class="k">let</span> <span class="nv">observer</span> <span class="o">=</span> <span class="k">try</span> <span class="n">observation</span><span class="o">.</span><span class="nf">start</span><span class="p">(</span><span class="nv">in</span><span class="p">:</span> <span class="n">dbQueue</span><span class="p">)</span> <span class="p">{</span> <span class="nv">names</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">?]</span> <span class="k">in</span>
@@ -1472,7 +1472,7 @@ main queue.</li>
                         <p>a ValueObservation.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation+DatabaseValueConvertible.swift#L219-L225">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation+DatabaseValueConvertible.swift#L219-L225">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1561,7 +1561,7 @@ main queue.</li>
                         <p>a ValueObservation.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation+FetchableRecord.swift#L150-L155">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation+FetchableRecord.swift#L150-L155">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1638,7 +1638,7 @@ main queue.</li>
                         <p>a ValueObservation.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation+FetchableRecord.swift#L181-L186">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation+FetchableRecord.swift#L181-L186">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1674,7 +1674,7 @@ main queue.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation+MapReducer.swift#L5-L13">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation+MapReducer.swift#L5-L13">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1762,7 +1762,7 @@ main queue.</li>
                         <p>a ValueObservation.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation+Row.swift#L90-L95">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation+Row.swift#L90-L95">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1839,7 +1839,7 @@ main queue.</li>
                         <p>a ValueObservation.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation+Row.swift#L121-L126">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation+Row.swift#L121-L126">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1918,7 +1918,7 @@ a database queue or database pool), and returns a transaction observer.</p>
                         <p>a TransactionObserver</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation.swift#L166-L182">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation.swift#L166-L182">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2000,7 +2000,7 @@ happen during observation</p>
                         <p>a TransactionObserver</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation.swift#L192-L198">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation.swift#L192-L198">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2038,10 +2038,10 @@ regions is modified by a database transaction.</p>
 <p>For example, this observation counts the number of a times the player
 table is modified:</p>
 <pre class="highlight swift"><code><span class="k">var</span> <span class="nv">count</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="k">let</span> <span class="nv">reducer</span> <span class="o">=</span> <span class="kt">AnyValueReducer</span><span class="p">(</span>
+<span class="k">let</span> <span class="nv">reducer</span> <span class="o">=</span> <span class="nf">AnyValueReducer</span><span class="p">(</span>
     <span class="nv">fetch</span><span class="p">:</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="cm">/* don't fetch anything */</span> <span class="p">},</span>
     <span class="nv">value</span><span class="p">:</span> <span class="p">{</span> <span class="n">_</span> <span class="o">-&gt;</span> <span class="kt">Int</span><span class="p">?</span> <span class="k">in</span>
-        <span class="k">defer</span> <span class="p">{</span> <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span> <span class="p">}</span>
+        <span class="nf">defer</span> <span class="p">{</span> <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span> <span class="p">}</span>
         <span class="k">return</span> <span class="n">count</span> <span class="p">})</span>
 <span class="k">let</span> <span class="nv">observation</span> <span class="o">=</span> <span class="kt">ValueObservation</span><span class="o">.</span><span class="nf">tracking</span><span class="p">(</span><span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">(),</span> <span class="nv">reducer</span><span class="p">:</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span> <span class="n">reducer</span> <span class="p">})</span>
 <span class="k">let</span> <span class="nv">observer</span> <span class="o">=</span> <span class="n">observation</span><span class="o">.</span><span class="nf">start</span><span class="p">(</span><span class="nv">in</span><span class="p">:</span> <span class="n">dbQueue</span><span class="p">)</span> <span class="p">{</span> <span class="nv">count</span><span class="p">:</span> <span class="kt">Int</span> <span class="k">in</span>
@@ -2106,7 +2106,7 @@ the ValueReducer protocol are supported.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation.swift#L267-L273">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation.swift#L267-L273">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2133,10 +2133,10 @@ regions is modified by a database transaction.</p>
 <p>For example, this observation counts the number of a times the player
 table is modified:</p>
 <pre class="highlight swift"><code><span class="k">var</span> <span class="nv">count</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="k">let</span> <span class="nv">reducer</span> <span class="o">=</span> <span class="kt">AnyValueReducer</span><span class="p">(</span>
+<span class="k">let</span> <span class="nv">reducer</span> <span class="o">=</span> <span class="nf">AnyValueReducer</span><span class="p">(</span>
     <span class="nv">fetch</span><span class="p">:</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="cm">/* don't fetch anything */</span> <span class="p">},</span>
     <span class="nv">value</span><span class="p">:</span> <span class="p">{</span> <span class="n">_</span> <span class="o">-&gt;</span> <span class="kt">Int</span><span class="p">?</span> <span class="k">in</span>
-        <span class="k">defer</span> <span class="p">{</span> <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span> <span class="p">}</span>
+        <span class="nf">defer</span> <span class="p">{</span> <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span> <span class="p">}</span>
         <span class="k">return</span> <span class="n">count</span> <span class="p">})</span>
 <span class="k">let</span> <span class="nv">observation</span> <span class="o">=</span> <span class="kt">ValueObservation</span><span class="o">.</span><span class="nf">tracking</span><span class="p">([</span><span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">()],</span> <span class="nv">reducer</span><span class="p">:</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span> <span class="n">reducer</span> <span class="p">})</span>
 <span class="k">let</span> <span class="nv">observer</span> <span class="o">=</span> <span class="n">observation</span><span class="o">.</span><span class="nf">start</span><span class="p">(</span><span class="nv">in</span><span class="p">:</span> <span class="n">dbQueue</span><span class="p">)</span> <span class="p">{</span> <span class="nv">count</span><span class="p">:</span> <span class="kt">Int</span> <span class="k">in</span>
@@ -2201,7 +2201,7 @@ the ValueReducer protocol are supported.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation.swift#L308-L319">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation.swift#L308-L319">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2234,7 +2234,7 @@ the ValueReducer protocol are supported.</p>
 <em>fetch</em> closure whenever a database transaction changes them.</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">observation</span> <span class="o">=</span> <span class="kt">ValueObservation</span><span class="o">.</span><span class="n">tracking</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">observation</span> <span class="o">=</span> <span class="kt">ValueObservation</span><span class="o">.</span><span class="nf">tracking</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 <span class="p">}</span>
 
@@ -2285,7 +2285,7 @@ main queue.</li>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation.swift#L349-L359">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation.swift#L349-L359">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2372,7 +2372,7 @@ main queue.</li>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation.swift#L386-L392">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation.swift#L386-L392">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2459,7 +2459,7 @@ main queue.</li>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation.swift#L419-L430">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation.swift#L419-L430">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2505,7 +2505,7 @@ main queue.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/Combine.swift#L46-L65">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/Combine.swift#L46-L65">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2551,7 +2551,7 @@ main queue.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/Combine.swift#L69-L77">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/Combine.swift#L69-L77">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2599,7 +2599,7 @@ main queue.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/Combine.swift#L133-L158">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/Combine.swift#L133-L158">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2647,7 +2647,7 @@ main queue.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/Combine.swift#L162-L177">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/Combine.swift#L162-L177">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2697,7 +2697,7 @@ main queue.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/Combine.swift#L241-L272">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/Combine.swift#L241-L272">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2747,7 +2747,7 @@ main queue.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/Combine.swift#L276-L294">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/Combine.swift#L276-L294">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2799,7 +2799,7 @@ main queue.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/Combine.swift#L366-L403">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/Combine.swift#L366-L403">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2851,7 +2851,7 @@ main queue.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/Combine.swift#L407-L428">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/Combine.swift#L407-L428">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2905,7 +2905,7 @@ main queue.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/Combine.swift#L508-L551">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/Combine.swift#L508-L551">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2961,7 +2961,7 @@ main queue.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/Combine.swift#L639-L688">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/Combine.swift#L639-L688">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3019,7 +3019,7 @@ main queue.</li>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/Combine.swift#L785-L840">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/Combine.swift#L785-L840">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3056,7 +3056,7 @@ value observation.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/CompactMap.swift#L5-L9">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/CompactMap.swift#L5-L9">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3093,7 +3093,7 @@ value observation.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/Map.swift#L5-L9">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/Map.swift#L5-L9">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3129,7 +3129,7 @@ value observation.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/RemoveDuplicates.swift#L4-L8">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/RemoveDuplicates.swift#L4-L8">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3160,7 +3160,7 @@ value observation.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/RemoveDuplicates.swift#L11-L15">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/RemoveDuplicates.swift#L11-L15">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3170,7 +3170,7 @@ value observation.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

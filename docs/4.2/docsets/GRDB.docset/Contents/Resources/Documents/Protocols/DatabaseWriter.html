@@ -14,7 +14,7 @@
     <a title="DatabaseWriter Protocol Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1127,7 +1127,7 @@ wrapping transaction.
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseWriter.swift#L39">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseWriter.swift#L39">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1190,7 +1190,7 @@ in a transaction.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseWriter.swift#L54">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseWriter.swift#L54">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1303,7 +1303,7 @@ transaction error.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseWriter.swift#L79">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseWriter.swift#L79">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1337,7 +1337,7 @@ in a transaction.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseWriter.swift#L89">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseWriter.swift#L89">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1377,7 +1377,7 @@ dangerous concurrency practices.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseWriter.swift#L102">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseWriter.swift#L102">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1420,17 +1420,17 @@ returned future, on any dispatch queue.</p>
 
 <p>In the example below, the number of players is fetched concurrently with
 the player insertion. Yet the future is guaranteed to return zero:</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">writer</span><span class="o">.</span><span class="n">writeWithoutTransaction</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">writer</span><span class="o">.</span><span class="nf">writeWithoutTransaction</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="c1">// Delete all players</span>
     <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">deleteAll</span><span class="p">()</span>
 
     <span class="c1">// Count players concurrently</span>
-    <span class="k">let</span> <span class="nv">future</span> <span class="o">=</span> <span class="n">writer</span><span class="o">.</span><span class="n">concurrentRead</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="k">let</span> <span class="nv">future</span> <span class="o">=</span> <span class="n">writer</span><span class="o">.</span><span class="nf">concurrentRead</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
         <span class="k">return</span> <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchCount</span><span class="p">()</span>
     <span class="p">}</span>
 
     <span class="c1">// Insert a player</span>
-    <span class="k">try</span> <span class="kt">Player</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+    <span class="k">try</span> <span class="nf">Player</span><span class="p">(</span><span class="o">...</span><span class="p">)</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 
     <span class="c1">// Guaranteed to be zero</span>
     <span class="k">let</span> <span class="nv">count</span> <span class="o">=</span> <span class="k">try</span> <span class="n">future</span><span class="o">.</span><span class="nf">wait</span><span class="p">()</span>
@@ -1447,7 +1447,7 @@ the player insertion. Yet the future is guaranteed to return zero:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseWriter.swift#L136">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseWriter.swift#L136">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1529,7 +1529,7 @@ is deallocated).</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseWriter.swift#L263-L268">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseWriter.swift#L263-L268">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1579,7 +1579,7 @@ execution of this method.
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseWriter.swift#L282-L321">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseWriter.swift#L282-L321">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1626,7 +1626,7 @@ disk space.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseWriter.swift#L329-L331">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseWriter.swift#L329-L331">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1636,7 +1636,7 @@ disk space.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

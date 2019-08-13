@@ -14,7 +14,7 @@
     <a title="FetchedRecordsController Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1059,7 +1059,7 @@ its eventual arguments.</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="n">convenience</span> <span class="nf">init</span><span class="p">(</span>
     <span class="n">_</span> <span class="nv">databaseWriter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/DatabaseWriter.html">DatabaseWriter</a></span><span class="p">,</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">(),</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="nf">StatementArguments</span><span class="p">(),</span>
     <span class="nv">adapter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/RowAdapter.html">RowAdapter</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
     <span class="nv">queue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">,</span>
     <span class="nv">isSameRecord</span><span class="p">:</span> <span class="p">((</span><span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="p">,</span> <span class="kt"><a href="../Classes/Record.html">Record</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Bool</span><span class="p">)?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span> <span class="k">throws</span></code></pre>
@@ -1153,7 +1153,7 @@ same identity. For example, they have the same id.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L40-L53">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L40-L53">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1173,8 +1173,8 @@ same identity. For example, they have the same id.</p>
                       <div class="abstract">
                         <p>Creates a fetched records controller initialized from a fetch request
 from the <a href="https://github.com/groue/GRDB.swift#the-query-interface">Query Interface</a>.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Wine</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
-<span class="k">let</span> <span class="nv">controller</span> <span class="o">=</span> <span class="kt">FetchedRecordsController</span><span class="p">(</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Wine</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
+<span class="k">let</span> <span class="nv">controller</span> <span class="o">=</span> <span class="nf">FetchedRecordsController</span><span class="p">(</span>
     <span class="n">dbQueue</span><span class="p">,</span>
     <span class="nv">request</span><span class="p">:</span> <span class="n">request</span><span class="p">,</span>
     <span class="nv">isSameRecord</span><span class="p">:</span> <span class="p">{</span> <span class="p">(</span><span class="n">wine1</span><span class="p">,</span> <span class="n">wine2</span><span class="p">)</span> <span class="k">in</span> <span class="n">wine1</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">wine2</span><span class="o">.</span><span class="n">id</span> <span class="p">})</span>
@@ -1257,7 +1257,7 @@ same identity. For example, they have the same id.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L77-L96">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L77-L96">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1293,7 +1293,7 @@ main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L123-L144">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L123-L144">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1337,7 +1337,7 @@ to changes.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L153">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L153">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1369,7 +1369,7 @@ to changes.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L158">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L158">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1405,7 +1405,7 @@ main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L165-L195">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L165-L195">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1436,14 +1436,14 @@ main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
                           <p class="aside-title">Swift</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">setRequest</span><span class="p">(</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">(),</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="nf">StatementArguments</span><span class="p">(),</span>
     <span class="nv">adapter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/RowAdapter.html">RowAdapter</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span>
     <span class="k">throws</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L202-L209">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L202-L209">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1523,7 +1523,7 @@ removed, moved, or updated.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L221-L254">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L221-L254">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1621,7 +1621,7 @@ removed, moved, or updated.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L272-L323">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L272-L323">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1662,7 +1662,7 @@ main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L337-L339">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L337-L339">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1699,7 +1699,7 @@ after the <code>didChange</code> callback has completed.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L350-L352">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L350-L352">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1749,7 +1749,7 @@ main queue unless stated otherwise in the controller&rsquo;s initializer).</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L367-L372">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L367-L372">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1805,7 +1805,7 @@ has an <code>id</code> primary key, this initializer is equivalent to:</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="n">convenience</span> <span class="nf">init</span><span class="p">(</span>
     <span class="n">_</span> <span class="nv">databaseWriter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/DatabaseWriter.html">DatabaseWriter</a></span><span class="p">,</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">(),</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="nf">StatementArguments</span><span class="p">(),</span>
     <span class="nv">adapter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/RowAdapter.html">RowAdapter</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">,</span>
     <span class="nv">queue</span><span class="p">:</span> <span class="kt">DispatchQueue</span> <span class="o">=</span> <span class="o">.</span><span class="n">main</span><span class="p">)</span> <span class="k">throws</span></code></pre>
 
@@ -1883,7 +1883,7 @@ used from this queue.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L438-L449">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L438-L449">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1903,8 +1903,8 @@ used from this queue.</p>
                       <div class="abstract">
                         <p>Creates a fetched records controller initialized from a fetch request
 from the <a href="https://github.com/groue/GRDB.swift#the-query-interface">Query Interface</a>.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Wine</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
-<span class="k">let</span> <span class="nv">controller</span> <span class="o">=</span> <span class="kt">FetchedRecordsController</span><span class="p">(</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Wine</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
+<span class="k">let</span> <span class="nv">controller</span> <span class="o">=</span> <span class="nf">FetchedRecordsController</span><span class="p">(</span>
     <span class="n">dbQueue</span><span class="p">,</span>
     <span class="nv">request</span><span class="p">:</span> <span class="n">request</span><span class="p">)</span>
 </code></pre>
@@ -1980,7 +1980,7 @@ used from this queue.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L477-L514">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L477-L514">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2043,7 +2043,7 @@ records, a fatal error is raised.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L906-L912">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L906-L912">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2090,7 +2090,7 @@ records. In this case, there is a single empty section.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L924-L929">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L924-L929">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2136,7 +2136,7 @@ records. In this case, there is a single empty section.</p>
 if record could not be found.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L938-L947">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L938-L947">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2146,7 +2146,7 @@ if record could not be found.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

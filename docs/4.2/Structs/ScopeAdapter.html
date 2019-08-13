@@ -14,7 +14,7 @@
     <a title="ScopeAdapter Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1014,11 +1014,11 @@
               </div>
             <p>ScopeAdapter is a row adapter that lets you define scopes on rows.</p>
 <pre class="highlight swift"><code><span class="c1">// Two adapters</span>
-<span class="k">let</span> <span class="nv">fooAdapter</span> <span class="o">=</span> <span class="kt">ColumnMapping</span><span class="p">([</span><span class="s">"value"</span><span class="p">:</span> <span class="s">"foo"</span><span class="p">])</span>
-<span class="k">let</span> <span class="nv">barAdapter</span> <span class="o">=</span> <span class="kt">ColumnMapping</span><span class="p">([</span><span class="s">"value"</span><span class="p">:</span> <span class="s">"bar"</span><span class="p">])</span>
+<span class="k">let</span> <span class="nv">fooAdapter</span> <span class="o">=</span> <span class="nf">ColumnMapping</span><span class="p">([</span><span class="s">"value"</span><span class="p">:</span> <span class="s">"foo"</span><span class="p">])</span>
+<span class="k">let</span> <span class="nv">barAdapter</span> <span class="o">=</span> <span class="nf">ColumnMapping</span><span class="p">([</span><span class="s">"value"</span><span class="p">:</span> <span class="s">"bar"</span><span class="p">])</span>
 
 <span class="c1">// Define scopes</span>
-<span class="k">let</span> <span class="nv">adapter</span> <span class="o">=</span> <span class="kt">ScopeAdapter</span><span class="p">([</span>
+<span class="k">let</span> <span class="nv">adapter</span> <span class="o">=</span> <span class="nf">ScopeAdapter</span><span class="p">([</span>
     <span class="s">"foo"</span><span class="p">:</span> <span class="n">fooAdapter</span><span class="p">,</span>
     <span class="s">"bar"</span><span class="p">:</span> <span class="n">barAdapter</span><span class="p">])</span>
 
@@ -1055,7 +1055,7 @@
                         <p>Creates an adapter that preserves row contents and add scoped rows.</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">adapter</span> <span class="o">=</span> <span class="kt">ScopeAdapter</span><span class="p">([</span><span class="s">"suffix"</span><span class="p">:</span> <span class="kt">SuffixRowAdapter</span><span class="p">(</span><span class="nv">fromIndex</span><span class="p">:</span> <span class="mi">1</span><span class="p">)])</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">adapter</span> <span class="o">=</span> <span class="nf">ScopeAdapter</span><span class="p">([</span><span class="s">"suffix"</span><span class="p">:</span> <span class="nf">SuffixRowAdapter</span><span class="p">(</span><span class="nv">fromIndex</span><span class="p">:</span> <span class="mi">1</span><span class="p">)])</span>
 <span class="k">let</span> <span class="nv">row</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Row</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT 1, 2, 3"</span><span class="p">,</span> <span class="nv">adapter</span><span class="p">:</span> <span class="n">adapter</span><span class="p">)</span><span class="o">!</span>
 <span class="n">row</span>                  <span class="c1">// [1, 2, 3]</span>
 <span class="n">row</span><span class="o">.</span><span class="n">scopes</span><span class="p">[</span><span class="s">"suffix"</span><span class="p">]</span> <span class="c1">// [2, 3]</span>
@@ -1091,7 +1091,7 @@ row adapters.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/RowAdapter.swift#L403-L406">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/RowAdapter.swift#L403-L406">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1112,8 +1112,8 @@ row adapters.</p>
                         <p>Creates an adapter based on the base adapter, and add scoped rows.</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">baseAdapter</span> <span class="o">=</span> <span class="kt">RangeRowAdapter</span><span class="p">(</span><span class="mi">0</span><span class="o">..&lt;</span><span class="mi">1</span><span class="p">)</span>
-<span class="k">let</span> <span class="nv">adapter</span> <span class="o">=</span> <span class="kt">ScopeAdapter</span><span class="p">(</span><span class="nv">base</span><span class="p">:</span> <span class="n">baseAdapter</span><span class="p">,</span> <span class="nv">scopes</span><span class="p">:</span> <span class="p">[</span><span class="s">"suffix"</span><span class="p">:</span> <span class="kt">SuffixRowAdapter</span><span class="p">(</span><span class="nv">fromIndex</span><span class="p">:</span> <span class="mi">1</span><span class="p">)])</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">baseAdapter</span> <span class="o">=</span> <span class="nf">RangeRowAdapter</span><span class="p">(</span><span class="mi">0</span><span class="o">..&lt;</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">adapter</span> <span class="o">=</span> <span class="nf">ScopeAdapter</span><span class="p">(</span><span class="nv">base</span><span class="p">:</span> <span class="n">baseAdapter</span><span class="p">,</span> <span class="nv">scopes</span><span class="p">:</span> <span class="p">[</span><span class="s">"suffix"</span><span class="p">:</span> <span class="nf">SuffixRowAdapter</span><span class="p">(</span><span class="nv">fromIndex</span><span class="p">:</span> <span class="mi">1</span><span class="p">)])</span>
 <span class="k">let</span> <span class="nv">row</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Row</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT 1, 2, 3"</span><span class="p">,</span> <span class="nv">adapter</span><span class="p">:</span> <span class="n">adapter</span><span class="p">)</span><span class="o">!</span>
 <span class="n">row</span>                   <span class="c1">// [1]</span>
 <span class="n">row</span><span class="o">.</span><span class="n">scopes</span><span class="p">[</span><span class="s">"initial"</span><span class="p">]</span> <span class="c1">// [2, 3]</span>
@@ -1167,7 +1167,7 @@ row adapters.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/RowAdapter.swift#L427-L430">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/RowAdapter.swift#L427-L430">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1177,7 +1177,7 @@ row adapters.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

@@ -14,7 +14,7 @@
     <a title="QueryInterfaceRequest Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1015,10 +1015,10 @@
             <p>QueryInterfaceRequest is a request that generates SQL for you.</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span>
-        <span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">)</span>
-        <span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
+        <span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">)</span>
+        <span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
     <span class="k">let</span> <span class="nv">players</span> <span class="o">=</span> <span class="k">try</span> <span class="n">request</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">)</span> <span class="c1">// [Player]</span>
 <span class="p">}</span>
 </code></pre>
@@ -1066,7 +1066,7 @@
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest+Association.swift#L20-L22">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest+Association.swift#L20-L22">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1101,7 +1101,7 @@
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest+Association.swift#L30-L34">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest+Association.swift#L30-L34">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1138,7 +1138,7 @@ the eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest+Association.swift#L44-L47">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest+Association.swift#L44-L47">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1171,7 +1171,7 @@ the eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L50">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L50">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1203,14 +1203,14 @@ the eventual set of already applied predicates.</p>
                         <p>Creates a request which selects <em>selection</em>.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT id, email FROM player</span>
 <span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">()</span>
-<span class="n">request</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="kt">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)])</span>
+<span class="n">request</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)])</span>
 </code></pre>
 
 <p>Any previous selection is replaced:</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT email FROM player</span>
 <span class="n">request</span>
-    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="kt">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">)])</span>
-    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="kt">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)])</span>
+    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">)])</span>
+    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)])</span>
 </code></pre>
 
                       </div>
@@ -1223,7 +1223,7 @@ the eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L134-L136">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L134-L136">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1243,9 +1243,9 @@ the eventual set of already applied predicates.</p>
                       <div class="abstract">
                         <p>Creates a request which selects <em>selection</em>, and fetches values of
 type <em>type</em>.</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="c1">// SELECT max(score) FROM player</span>
-    <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">()</span><span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">max</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">))],</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Int</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
+    <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">()</span><span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">max</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">))],</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Int</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="k">let</span> <span class="nv">maxScore</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="o">=</span> <span class="k">try</span> <span class="n">request</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
@@ -1261,7 +1261,7 @@ type <em>type</em>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L146-L150">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L146-L150">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1281,9 +1281,9 @@ type <em>type</em>.</p>
                       <div class="abstract">
                         <p>Creates a request which selects <em>selection</em>, and fetches values of
 type <em>type</em>.</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="c1">// SELECT max(score) FROM player</span>
-    <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">()</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">max</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)),</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Int</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
+    <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">()</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">max</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)),</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Int</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="k">let</span> <span class="nv">maxScore</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="o">=</span> <span class="k">try</span> <span class="n">request</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
@@ -1299,7 +1299,7 @@ type <em>type</em>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L160-L164">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L160-L164">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1319,7 +1319,7 @@ type <em>type</em>.</p>
                       <div class="abstract">
                         <p>Creates a request which selects <em>sql</em>, and fetches values of
 type <em>type</em>.</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="c1">// SELECT max(score) FROM player</span>
     <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">()</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"max(score)"</span><span class="p">,</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Int</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="k">let</span> <span class="nv">maxScore</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="o">=</span> <span class="k">try</span> <span class="n">request</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
@@ -1333,14 +1333,14 @@ type <em>type</em>.</p>
                           <p class="aside-title">Swift</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="n">select</span><span class="o">&lt;</span><span class="kt"><a href="../Structs/QueryInterfaceRequest.html#/s:4GRDB12FetchRequestP10RowDecoderQa">RowDecoder</a></span><span class="o">&gt;</span><span class="p">(</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">(),</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="nf">StatementArguments</span><span class="p">(),</span>
     <span class="k">as</span> <span class="nv">type</span><span class="p">:</span> <span class="kt"><a href="../Structs/QueryInterfaceRequest.html#/s:4GRDB12FetchRequestP10RowDecoderQa">RowDecoder</a></span><span class="o">.</span><span class="k">Type</span><span class="p">)</span>
     <span class="o">-&gt;</span> <span class="kt">QueryInterfaceRequest</span><span class="o">&lt;</span><span class="kt"><a href="../Structs/QueryInterfaceRequest.html#/s:4GRDB12FetchRequestP10RowDecoderQa">RowDecoder</a></span><span class="o">&gt;</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L174-L181">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L174-L181">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1360,12 +1360,12 @@ type <em>type</em>.</p>
                       <div class="abstract">
                         <p>Creates a request which selects an SQL <em>literal</em>, and fetches values of
 type <em>type</em>.</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="c1">// SELECT IFNULL(name, 'Anonymous') FROM player WHERE id = 42</span>
     <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span>
         <span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="nv">primaryKey</span><span class="p">:</span> <span class="mi">42</span><span class="p">)</span>
         <span class="o">.</span><span class="nf">select</span><span class="p">(</span>
-            <span class="kt">SQLLiteral</span><span class="p">(</span>
+            <span class="nf">SQLLiteral</span><span class="p">(</span>
                 <span class="nv">sql</span><span class="p">:</span> <span class="s">"IFNULL(name, ?)"</span><span class="p">,</span>
                 <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"Anonymous"</span><span class="p">]),</span>
             <span class="nv">as</span><span class="p">:</span> <span class="kt">String</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
@@ -1375,7 +1375,7 @@ type <em>type</em>.</p>
 
 <p>With Swift 5, you can safely embed raw values in your SQL queries,
 without any risk of syntax errors or SQL injection:</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="c1">// SELECT IFNULL(name, 'Anonymous') FROM player WHERE id = 42</span>
     <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span>
         <span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="nv">primaryKey</span><span class="p">:</span> <span class="mi">42</span><span class="p">)</span>
@@ -1399,7 +1399,7 @@ without any risk of syntax errors or SQL injection:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L210-L216">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L210-L216">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1421,8 +1421,8 @@ without any risk of syntax errors or SQL injection:</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT id, email, name FROM player</span>
 <span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">()</span>
 <span class="n">request</span> <span class="o">=</span> <span class="n">request</span>
-    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="kt">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)])</span>
-    <span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)])</span>
+    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)])</span>
+    <span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="p">[</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)])</span>
 </code></pre>
 
                       </div>
@@ -1435,7 +1435,7 @@ without any risk of syntax errors or SQL injection:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L225-L236">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L225-L236">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1468,7 +1468,7 @@ without any risk of syntax errors or SQL injection:</p>
 eventual set of already applied predicates.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT * FROM player WHERE 1</span>
 <span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">()</span>
-<span class="n">request</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">filter</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span> <span class="kc">true</span> <span class="p">}</span>
+<span class="n">request</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="nf">filter</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span> <span class="kc">true</span> <span class="p">}</span>
 </code></pre>
 
                       </div>
@@ -1481,7 +1481,7 @@ eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L248-L250">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L248-L250">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1513,15 +1513,15 @@ eventual set of already applied predicates.</p>
                         <p>Creates a request with the provided <em>orderings promise</em>.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT * FROM player ORDER BY name</span>
 <span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">()</span>
-<span class="n">request</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">order</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)]</span> <span class="p">}</span>
+<span class="n">request</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="nf">order</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="p">[</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)]</span> <span class="p">}</span>
 </code></pre>
 
 <p>Any previous ordering is replaced:</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT * FROM player ORDER BY name</span>
 <span class="n">request</span>
-    <span class="o">.</span><span class="n">order</span><span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)]</span> <span class="p">}</span>
+    <span class="o">.</span><span class="nf">order</span><span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="p">[</span><span class="nf">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)]</span> <span class="p">}</span>
     <span class="o">.</span><span class="nf">reversed</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">order</span><span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)]</span> <span class="p">}</span>
+    <span class="o">.</span><span class="nf">order</span><span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="p">[</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)]</span> <span class="p">}</span>
 </code></pre>
 
                       </div>
@@ -1534,7 +1534,7 @@ eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L269-L271">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L269-L271">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1554,7 +1554,7 @@ eventual set of already applied predicates.</p>
                       <div class="abstract">
                         <p>Creates a request that reverses applied orderings.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT * FROM player ORDER BY name DESC</span>
-<span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">()</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
+<span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">()</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
 <span class="n">request</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="nf">reversed</span><span class="p">()</span>
 </code></pre>
 
@@ -1574,7 +1574,7 @@ eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L284-L286">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L284-L286">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1594,7 +1594,7 @@ eventual set of already applied predicates.</p>
                       <div class="abstract">
                         <p>Creates a request without any ordering.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT * FROM player</span>
-<span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">()</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
+<span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">all</span><span class="p">()</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
 <span class="n">request</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="nf">unordered</span><span class="p">()</span>
 </code></pre>
 
@@ -1608,7 +1608,7 @@ eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L293-L295">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L293-L295">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1649,7 +1649,7 @@ eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L302-L304">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L302-L304">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1680,7 +1680,7 @@ eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L308-L310">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L308-L310">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1715,7 +1715,7 @@ eventual set of already applied predicates.</p>
 <span class="n">request</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="nf">distinct</span><span class="p">()</span>
 
 <span class="c1">// SELECT DISTINCT name FROM player</span>
-<span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
+<span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
 <span class="n">request</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="nf">distinct</span><span class="p">()</span>
 </code></pre>
 
@@ -1729,7 +1729,7 @@ eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L355-L357">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L355-L357">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1765,7 +1765,7 @@ eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L378-L380">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L378-L380">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1788,17 +1788,17 @@ a specific database table.</p>
 
 <p>In the example below, the <q>team.avgScore < player.score</q> condition in
 the ON clause could be not achieved without table aliases.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">team</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1">// SELECT player.*, team.*</span>
 <span class="c1">// JOIN team ON ... AND team.avgScore &lt; player.score</span>
-<span class="k">let</span> <span class="nv">playerAlias</span> <span class="o">=</span> <span class="kt">TableAlias</span><span class="p">()</span>
+<span class="k">let</span> <span class="nv">playerAlias</span> <span class="o">=</span> <span class="nf">TableAlias</span><span class="p">()</span>
 <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span>
     <span class="o">.</span><span class="nf">all</span><span class="p">()</span>
     <span class="o">.</span><span class="nf">aliased</span><span class="p">(</span><span class="n">playerAlias</span><span class="p">)</span>
-    <span class="o">.</span><span class="nf">including</span><span class="p">(</span><span class="nv">required</span><span class="p">:</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"avgScore"</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">playerAlias</span><span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)])</span>
+    <span class="o">.</span><span class="nf">including</span><span class="p">(</span><span class="nv">required</span><span class="p">:</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"avgScore"</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">playerAlias</span><span class="p">[</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)])</span>
 </code></pre>
 
                       </div>
@@ -1811,7 +1811,7 @@ the ON clause could be not achieved without table aliases.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L399-L401">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L399-L401">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1873,7 +1873,7 @@ value, record).</p>
                         <p>A typed request bound to type Target.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L416-L418">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L416-L418">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1943,7 +1943,7 @@ value, record).</p>
                         <p>The number of deleted rows</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L489-L492">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift#L489-L492">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1953,7 +1953,7 @@ value, record).</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

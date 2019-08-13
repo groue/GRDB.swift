@@ -14,7 +14,7 @@
     <a title="MutablePersistableRecord Protocol Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1060,12 +1060,12 @@ updates, which has GRDB generate regular INSERT and UPDATE queries.</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">persistenceConflictPolicy</span><span class="p">:</span> <span class="kt"><a href="../Structs/PersistenceConflictPolicy.html">PersistenceConflictPolicy</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">persistenceConflictPolicy</span><span class="p">:</span> <span class="nf">PersistenceConflictPolicy</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L70">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L70">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1093,7 +1093,7 @@ dispatch queue, with the inserted RowID and the eventual
 INTEGER PRIMARY KEY column name.</p>
 
 <p>This method is optional: the default implementation does nothing.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span> <span class="p">:</span> <span class="kt">MutablePersistableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span> <span class="p">:</span> <span class="nf">MutablePersistableRecord</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">Int64</span><span class="p">?</span>
     <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span>
 
@@ -1151,7 +1151,7 @@ INTEGER PRIMARY KEY column name.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L92">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L92">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1238,7 +1238,7 @@ that they invoke the performInsert() method.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L112">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L112">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1345,7 +1345,7 @@ match any row in the database.
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L129">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L129">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1425,7 +1425,7 @@ the database.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L150">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L150">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1499,7 +1499,7 @@ that they invoke the performDelete() method.</p>
                         <p>Whether a database row was deleted.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L163">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L163">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1574,7 +1574,7 @@ the database.</p>
                         <p>Whether the primary key matches a row in the database.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L176">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L176">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1644,7 +1644,7 @@ match any row in the database.
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L248-L252">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L248-L252">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1739,7 +1739,7 @@ match any row in the database and record could not be updated.
                         <p>Whether the record had changes.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L278-L280">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L278-L280">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1830,7 +1830,7 @@ match any row in the database and record could not be updated.
                         <p>Whether the record had changes.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L306-L310">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L306-L310">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1881,7 +1881,7 @@ implementation of performInsert().</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L374-L382">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L374-L382">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1959,7 +1959,7 @@ match any row in the database.
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L398-L412">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L398-L412">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2001,7 +2001,7 @@ implementation of performSave().</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L424-L436">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L424-L436">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2041,7 +2041,7 @@ implementation of performDelete().</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L446-L453">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L446-L453">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2081,7 +2081,7 @@ implementation of performExists().</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L463-L469">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L463-L469">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2183,7 +2183,7 @@ match any row in the database and record could not be updated.
                         <p>Whether the record had changes.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L500-L504">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L500-L504">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2256,7 +2256,7 @@ match any row in the database and record could not be updated.
                         <p>The number of deleted rows</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L517-L519">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L517-L519">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2351,7 +2351,7 @@ deleted rows.</p>
                         <p>The number of deleted rows</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L546-L556">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L546-L556">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2435,7 +2435,7 @@ database row was deleted.</p>
                         <p>Whether a database row was deleted.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L578-L587">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L578-L587">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2518,7 +2518,7 @@ any key with a unique index on it); returns the number of deleted rows.</p>
                         <p>The number of deleted rows</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L604-L610">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L604-L610">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2590,7 +2590,7 @@ with a unique index on it); returns whether a database row was deleted.</p>
                         <p>Whether a database row was deleted.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L622-L624">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L622-L624">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2600,7 +2600,7 @@ with a unique index on it); returns whether a database row was deleted.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

@@ -14,7 +14,7 @@
     <a title="RowAdapter Protocol Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1025,7 +1025,7 @@ together.</p>
 </ul>
 
 <p>To use a row adapter, provide it to any method that fetches:</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">adapter</span> <span class="o">=</span> <span class="kt">SuffixRowAdapter</span><span class="p">(</span><span class="nv">fromIndex</span><span class="p">:</span> <span class="mi">2</span><span class="p">)</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">adapter</span> <span class="o">=</span> <span class="nf">SuffixRowAdapter</span><span class="p">(</span><span class="nv">fromIndex</span><span class="p">:</span> <span class="mi">2</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">sql</span> <span class="o">=</span> <span class="s">"SELECT 1 AS foo, 2 AS bar, 3 AS baz"</span>
 
 <span class="c1">// [baz:3]</span>
@@ -1061,14 +1061,14 @@ LayoutedColumnMapping.</p>
 <pre class="highlight swift"><code><span class="c1">// An adapter that turns any row to a row that contains a single</span>
 <span class="c1">// column named "foo" whose value is the leftmost value of the</span>
 <span class="c1">// base row.</span>
-<span class="kd">struct</span> <span class="kt">FirstColumnAdapter</span> <span class="p">:</span> <span class="kt">RowAdapter</span> <span class="p">{</span>
-    <span class="kd">func</span> <span class="nf">layoutedAdapter</span><span class="p">(</span><span class="n">from</span> <span class="nv">layout</span><span class="p">:</span> <span class="kt">RowLayout</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">LayoutedRowAdapter</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="kt">LayoutedColumnMapping</span><span class="p">(</span><span class="nv">layoutColumns</span><span class="p">:</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="s">"foo"</span><span class="p">)])</span>
+<span class="kd">struct</span> <span class="kt">FirstColumnAdapter</span> <span class="p">:</span> <span class="nf">RowAdapter</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">layoutedAdapter</span><span class="p">(</span><span class="n">from</span> <span class="nv">layout</span><span class="p">:</span> <span class="kt">RowLayout</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="nf">LayoutedRowAdapter</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nf">LayoutedColumnMapping</span><span class="p">(</span><span class="nv">layoutColumns</span><span class="p">:</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="s">"foo"</span><span class="p">)])</span>
     <span class="p">}</span>
 <span class="p">}</span>
 
 <span class="c1">// [foo:1]</span>
-<span class="k">try</span> <span class="kt">Row</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT 1, 2, 3"</span><span class="p">,</span> <span class="nv">adapter</span><span class="p">:</span> <span class="kt">FirstColumnAdapter</span><span class="p">())</span>
+<span class="k">try</span> <span class="kt">Row</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT 1, 2, 3"</span><span class="p">,</span> <span class="nv">adapter</span><span class="p">:</span> <span class="nf">FirstColumnAdapter</span><span class="p">())</span>
 </code></pre>
 
                       </div>
@@ -1081,7 +1081,7 @@ LayoutedColumnMapping.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/RowAdapter.swift#L228">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/RowAdapter.swift#L228">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1141,7 +1141,7 @@ row adapters.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/RowAdapter.swift#L239-L245">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/RowAdapter.swift#L239-L245">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1151,7 +1151,7 @@ row adapters.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

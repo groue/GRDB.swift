@@ -14,7 +14,7 @@
     <a title="Enumerations  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1046,7 +1046,7 @@ more information.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/TransactionObserver.swift#L873-L893">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/TransactionObserver.swift#L873-L893">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1088,7 +1088,7 @@ more information.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/SQL/SQLOperators.swift#L747-L749">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/SQL/SQLOperators.swift#L747-L749">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1121,7 +1121,7 @@ more information.</p>
 adopt the standard Encodable protocol encode their date properties.</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">EncodableRecord</span><span class="p">,</span> <span class="kt">Encodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">EncodableRecord</span><span class="p">,</span> <span class="nf">Encodable</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">databaseDateEncodingStrategy</span><span class="p">:</span> <span class="kt">DatabaseDateEncodingStrategy</span> <span class="o">=</span> <span class="o">.</span><span class="n">timeIntervalSince1970</span>
 
     <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
@@ -1140,7 +1140,7 @@ adopt the standard Encodable protocol encode their date properties.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/EncodableRecord.swift#L333-L365">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/EncodableRecord.swift#L333-L365">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1173,7 +1173,7 @@ adopt the standard Encodable protocol encode their date properties.</p>
 adopt the standard Encodable protocol encode their UUID properties.</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">EncodableProtocol</span><span class="p">,</span> <span class="kt">Encodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">EncodableProtocol</span><span class="p">,</span> <span class="nf">Encodable</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">databaseUUIDEncodingStrategy</span><span class="p">:</span> <span class="kt">DatabaseUUIDEncodingStrategy</span> <span class="o">=</span> <span class="o">.</span><span class="n">string</span>
 
     <span class="c1">// encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"</span>
@@ -1192,7 +1192,7 @@ adopt the standard Encodable protocol encode their UUID properties.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/EncodableRecord.swift#L380-L388">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/EncodableRecord.swift#L380-L388">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1225,7 +1225,7 @@ adopt the standard Encodable protocol encode their UUID properties.</p>
 adopt the standard Decodable protocol decode their date properties.</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="kt">Decodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="nf">Decodable</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">databaseDateDecodingStrategy</span><span class="p">:</span> <span class="kt">DatabaseDateDecodingStrategy</span> <span class="o">=</span> <span class="o">.</span><span class="n">timeIntervalSince1970</span>
 
     <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
@@ -1244,7 +1244,7 @@ adopt the standard Decodable protocol decode their date properties.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchableRecord.swift#L476-L519">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchableRecord.swift#L476-L519">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1289,7 +1289,7 @@ column names, and values the old values that have been changed.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/FetchedRecordsController.swift#L1007-L1024">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/FetchedRecordsController.swift#L1007-L1024">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1324,7 +1324,7 @@ column names, and values the old values that have been changed.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/PersistableRecord.swift#L14-L22">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/PersistableRecord.swift#L14-L22">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1367,7 +1367,7 @@ of fresh values to your application.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation.swift#L7-L62">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation.swift#L7-L62">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1402,7 +1402,7 @@ of fresh values to your application.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueReducer/ValueReducer.swift#L91">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueReducer/ValueReducer.swift#L91">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1412,7 +1412,7 @@ of fresh values to your application.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

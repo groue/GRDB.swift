@@ -14,7 +14,7 @@
     <a title="EncodableRecord Protocol Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1040,7 +1040,7 @@
 the columns of the database table (see databaseTableName()).</p>
 
 <p>Primary key columns, if any, must be included.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">EncodableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="nf">EncodableRecord</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">id</span><span class="p">:</span> <span class="kt">Int64</span><span class="p">?</span>
     <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span>
 
@@ -1069,7 +1069,7 @@ is considered undefined behavior.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/EncodableRecord.swift#L25">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/EncodableRecord.swift#L25">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1107,26 +1107,26 @@ into database rows.</p>
 
 <p>For example:</p>
 <pre class="highlight swift"><code><span class="c1">// A key that holds a encoder's name</span>
-<span class="k">let</span> <span class="nv">encoderName</span> <span class="o">=</span> <span class="kt">CodingUserInfoKey</span><span class="p">(</span><span class="nv">rawValue</span><span class="p">:</span> <span class="s">"encoderName"</span><span class="p">)</span><span class="o">!</span>
+<span class="k">let</span> <span class="nv">encoderName</span> <span class="o">=</span> <span class="nf">CodingUserInfoKey</span><span class="p">(</span><span class="nv">rawValue</span><span class="p">:</span> <span class="s">"encoderName"</span><span class="p">)</span><span class="o">!</span>
 
-<span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">PersistableRecord</span><span class="p">,</span> <span class="kt">Encodable</span> <span class="p">{</span>
+<span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">PersistableRecord</span><span class="p">,</span> <span class="nf">Encodable</span> <span class="p">{</span>
     <span class="c1">// Customize the encoder name when encoding a database row</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">databaseEncodingUserInfo</span><span class="p">:</span> <span class="p">[</span><span class="kt">CodingUserInfoKey</span><span class="p">:</span> <span class="kt">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nv">encoderName</span><span class="p">:</span> <span class="s">"Database"</span><span class="p">]</span>
 
-    <span class="kd">func</span> <span class="nf">encode</span><span class="p">(</span><span class="n">to</span> <span class="nv">encoder</span><span class="p">:</span> <span class="kt">Encoder</span><span class="p">)</span> <span class="k">throws</span> <span class="p">{</span>
+    <span class="kd">func</span> <span class="nf">encode</span><span class="p">(</span><span class="n">to</span> <span class="nv">encoder</span><span class="p">:</span> <span class="kt">Encoder</span><span class="p">)</span> <span class="nf">throws</span> <span class="p">{</span>
         <span class="c1">// Print the encoder name</span>
         <span class="nf">print</span><span class="p">(</span><span class="n">encoder</span><span class="o">.</span><span class="n">userInfo</span><span class="p">[</span><span class="n">encoderName</span><span class="p">])</span>
         <span class="o">...</span>
     <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="k">let</span> <span class="nv">player</span> <span class="o">=</span> <span class="kt">Player</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">player</span> <span class="o">=</span> <span class="nf">Player</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 
 <span class="c1">// prints "Database"</span>
 <span class="k">try</span> <span class="n">player</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 
 <span class="c1">// prints "JSON"</span>
-<span class="k">let</span> <span class="nv">encoder</span> <span class="o">=</span> <span class="kt">JSONEncoder</span><span class="p">()</span>
+<span class="k">let</span> <span class="nv">encoder</span> <span class="o">=</span> <span class="nf">JSONEncoder</span><span class="p">()</span>
 <span class="n">encoder</span><span class="o">.</span><span class="n">userInfo</span> <span class="o">=</span> <span class="p">[</span><span class="nv">encoderName</span><span class="p">:</span> <span class="s">"JSON"</span><span class="p">]</span>
 <span class="k">let</span> <span class="nv">data</span> <span class="o">=</span> <span class="k">try</span> <span class="n">encoder</span><span class="o">.</span><span class="nf">encode</span><span class="p">(</span><span class="n">player</span><span class="p">)</span>
 </code></pre>
@@ -1145,7 +1145,7 @@ into database rows.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/EncodableRecord.swift#L58">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/EncodableRecord.swift#L58">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1181,17 +1181,17 @@ following properties:</p>
 </ul>
 
 <p>You can override those defaults:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Achievement</span><span class="p">:</span> <span class="kt">Encodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Achievement</span><span class="p">:</span> <span class="nf">Encodable</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
     <span class="k">var</span> <span class="nv">date</span><span class="p">:</span> <span class="kt">Date</span>
 <span class="p">}</span>
 
-<span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">Encodable</span><span class="p">,</span> <span class="kt">PersistableRecord</span> <span class="p">{</span>
+<span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">Encodable</span><span class="p">,</span> <span class="nf">PersistableRecord</span> <span class="p">{</span>
     <span class="c1">// stored in a JSON column</span>
     <span class="k">var</span> <span class="nv">achievements</span><span class="p">:</span> <span class="p">[</span><span class="kt">Achievement</span><span class="p">]</span>
 
-    <span class="kd">static</span> <span class="kd">func</span> <span class="nf">databaseJSONEncoder</span><span class="p">(</span><span class="k">for</span> <span class="nv">column</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">JSONEncoder</span> <span class="p">{</span>
-        <span class="k">let</span> <span class="nv">encoder</span> <span class="o">=</span> <span class="kt">JSONEncoder</span><span class="p">()</span>
+    <span class="kd">static</span> <span class="kd">func</span> <span class="nf">databaseJSONEncoder</span><span class="p">(</span><span class="k">for</span> <span class="nv">column</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nf">JSONEncoder</span> <span class="p">{</span>
+        <span class="k">let</span> <span class="nv">encoder</span> <span class="o">=</span> <span class="nf">JSONEncoder</span><span class="p">()</span>
         <span class="n">encoder</span><span class="o">.</span><span class="n">dateEncodingStrategy</span> <span class="o">=</span> <span class="o">.</span><span class="n">iso8601</span>
         <span class="k">return</span> <span class="n">encoder</span>
     <span class="p">}</span>
@@ -1212,7 +1212,7 @@ following properties:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/EncodableRecord.swift#L89">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/EncodableRecord.swift#L89">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1239,7 +1239,7 @@ protocol, this property controls the encoding of date properties.</p>
 <p>Default value is .deferredToDate</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">PersistableRecord</span><span class="p">,</span> <span class="kt">Encodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">PersistableRecord</span><span class="p">,</span> <span class="nf">Encodable</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">databaseDateEncodingStrategy</span><span class="p">:</span> <span class="kt">DatabaseDateEncodingStrategy</span> <span class="o">=</span> <span class="o">.</span><span class="n">timeIntervalSince1970</span>
 
     <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
@@ -1256,12 +1256,12 @@ protocol, this property controls the encoding of date properties.</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">databaseDateEncodingStrategy</span><span class="p">:</span> <span class="kt"><a href="../Enums/DatabaseDateEncodingStrategy.html">DatabaseDateEncodingStrategy</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">databaseDateEncodingStrategy</span><span class="p">:</span> <span class="nf">DatabaseDateEncodingStrategy</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/EncodableRecord.swift#L104">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/EncodableRecord.swift#L104">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1288,7 +1288,7 @@ protocol, this property controls the encoding of UUID properties.</p>
 <p>Default value is .deferredToUUID</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">PersistableProtocol</span><span class="p">,</span> <span class="kt">Encodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">PersistableProtocol</span><span class="p">,</span> <span class="nf">Encodable</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">databaseUUIDEncodingStrategy</span><span class="p">:</span> <span class="kt">DatabaseUUIDEncodingStrategy</span> <span class="o">=</span> <span class="o">.</span><span class="n">string</span>
 
     <span class="c1">// encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"</span>
@@ -1305,12 +1305,12 @@ protocol, this property controls the encoding of UUID properties.</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">databaseUUIDEncodingStrategy</span><span class="p">:</span> <span class="kt"><a href="../Enums/DatabaseUUIDEncodingStrategy.html">DatabaseUUIDEncodingStrategy</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">databaseUUIDEncodingStrategy</span><span class="p">:</span> <span class="nf">DatabaseUUIDEncodingStrategy</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/EncodableRecord.swift#L119">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/EncodableRecord.swift#L119">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1347,7 +1347,7 @@ protocol, this property controls the encoding of UUID properties.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/EncodableRecord.swift#L150-L152">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/EncodableRecord.swift#L150-L152">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1392,7 +1392,7 @@ have the same database representation.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/EncodableRecord.swift#L161-L163">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/EncodableRecord.swift#L161-L163">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1432,7 +1432,7 @@ defined by the receiver record are considered.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/EncodableRecord.swift#L173-L176">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/EncodableRecord.swift#L173-L176">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1442,7 +1442,7 @@ defined by the receiver record are considered.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

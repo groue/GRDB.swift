@@ -14,7 +14,7 @@
     <a title="DatabaseValueConvertible Protocol Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1061,12 +1061,12 @@ arrays, or single values:</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="k">var</span> <span class="nv">databaseValue</span><span class="p">:</span> <span class="kt"><a href="../Structs/DatabaseValue.html">DatabaseValue</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+                          <pre class="highlight swift"><code><span class="k">var</span> <span class="nv">databaseValue</span><span class="p">:</span> <span class="nf">DatabaseValue</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseValueConvertible.swift#L29">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseValueConvertible.swift#L29">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1099,12 +1099,12 @@ arrays, or single values:</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="kd">func</span> <span class="nf">fromDatabaseValue</span><span class="p">(</span><span class="n">_</span> <span class="nv">dbValue</span><span class="p">:</span> <span class="kt"><a href="../Structs/DatabaseValue.html">DatabaseValue</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="err">`</span><span class="k">Self</span><span class="err">`</span><span class="p">?</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="kd">func</span> <span class="nf">fromDatabaseValue</span><span class="p">(</span><span class="n">_</span> <span class="nv">dbValue</span><span class="p">:</span> <span class="kt"><a href="../Structs/DatabaseValue.html">DatabaseValue</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">`</span><span class="nv">Self</span><span class="p">`?</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseValueConvertible.swift#L32">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseValueConvertible.swift#L32">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1215,7 +1215,7 @@ elements are undefined.</p>
                         <p>A cursor over fetched values.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseValueConvertible.swift#L191-L198">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseValueConvertible.swift#L191-L198">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1307,7 +1307,7 @@ elements are undefined.</p>
                         <p>An array.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseValueConvertible.swift#L211-L218">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseValueConvertible.swift#L211-L218">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1402,7 +1402,7 @@ extracted from the first row.</p>
                         <p>An optional value.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseValueConvertible.swift#L234-L243">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseValueConvertible.swift#L234-L243">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1459,7 +1459,7 @@ elements are undefined.</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">fetchCursor</span><span class="p">(</span>
     <span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">(),</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="nf">StatementArguments</span><span class="p">(),</span>
     <span class="nv">adapter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/RowAdapter.html">RowAdapter</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span>
     <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes.html#/s:4GRDB19DatabaseValueCursorC">DatabaseValueCursor</a></span><span class="o">&lt;</span><span class="k">Self</span><span class="o">&gt;</span></code></pre>
 
@@ -1525,7 +1525,7 @@ elements are undefined.</p>
                         <p>A cursor over fetched values.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseValueConvertible.swift#L269-L277">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseValueConvertible.swift#L269-L277">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1563,7 +1563,7 @@ elements are undefined.</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">fetchAll</span><span class="p">(</span>
     <span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">(),</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="nf">StatementArguments</span><span class="p">(),</span>
     <span class="nv">adapter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/RowAdapter.html">RowAdapter</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span>
     <span class="k">throws</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="k">Self</span><span class="p">]</span></code></pre>
 
@@ -1629,7 +1629,7 @@ elements are undefined.</p>
                         <p>An array.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseValueConvertible.swift#L290-L298">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseValueConvertible.swift#L290-L298">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1670,7 +1670,7 @@ extracted from the first row.</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">fetchOne</span><span class="p">(</span>
     <span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">(),</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="nf">StatementArguments</span><span class="p">(),</span>
     <span class="nv">adapter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/RowAdapter.html">RowAdapter</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span>
     <span class="k">throws</span> <span class="o">-&gt;</span> <span class="k">Self</span><span class="p">?</span></code></pre>
 
@@ -1736,7 +1736,7 @@ extracted from the first row.</p>
                         <p>An optional value.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseValueConvertible.swift#L314-L322">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseValueConvertible.swift#L314-L322">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1769,7 +1769,7 @@ extracted from the first row.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a cursor over values fetched from a fetch request.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
 <span class="k">let</span> <span class="nv">names</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchCursor</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span> <span class="c1">// Cursor of String</span>
 <span class="k">while</span> <span class="k">let</span> <span class="nv">name</span> <span class="o">=</span> <span class="k">try</span> <span class="n">name</span><span class="o">.</span><span class="nf">next</span><span class="p">()</span> <span class="p">{</span> <span class="c1">// String</span>
     <span class="o">...</span>
@@ -1831,7 +1831,7 @@ elements are undefined.</p>
                         <p>A cursor over fetched values.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseValueConvertible.swift#L347-L350">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseValueConvertible.swift#L347-L350">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1853,7 +1853,7 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an array of values fetched from a fetch request.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
 <span class="k">let</span> <span class="nv">names</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span> <span class="c1">// [String]</span>
 </code></pre>
 <div class="aside aside-throws">
@@ -1907,7 +1907,7 @@ elements are undefined.</p>
                         <p>An array.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseValueConvertible.swift#L362-L365">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseValueConvertible.swift#L362-L365">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1932,7 +1932,7 @@ elements are undefined.</p>
 
 <p>The result is nil if the query returns no row, or if no value can be
 extracted from the first row.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
 <span class="k">let</span> <span class="nv">name</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span> <span class="c1">// String?</span>
 </code></pre>
 <div class="aside aside-throws">
@@ -1986,7 +1986,7 @@ extracted from the first row.</p>
                         <p>An optional value.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/DatabaseValueConvertible.swift#L380-L383">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/DatabaseValueConvertible.swift#L380-L383">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2097,7 +2097,7 @@ elements are undefined.</p>
                         <p>A cursor over fetched values.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/StatementColumnConvertible.swift#L199-L206">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/StatementColumnConvertible.swift#L199-L206">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2189,7 +2189,7 @@ elements are undefined.</p>
                         <p>An array of values.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/StatementColumnConvertible.swift#L219-L226">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/StatementColumnConvertible.swift#L219-L226">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2281,7 +2281,7 @@ elements are undefined.</p>
                         <p>An optional value.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/StatementColumnConvertible.swift#L239-L251">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/StatementColumnConvertible.swift#L239-L251">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2338,7 +2338,7 @@ elements are undefined.</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">fetchCursor</span><span class="p">(</span>
     <span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">(),</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="nf">StatementArguments</span><span class="p">(),</span>
     <span class="nv">adapter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/RowAdapter.html">RowAdapter</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span>
     <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes.html#/s:4GRDB23FastDatabaseValueCursorC">FastDatabaseValueCursor</a></span><span class="o">&lt;</span><span class="k">Self</span><span class="o">&gt;</span></code></pre>
 
@@ -2404,7 +2404,7 @@ elements are undefined.</p>
                         <p>A cursor over fetched values.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/StatementColumnConvertible.swift#L277-L285">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/StatementColumnConvertible.swift#L277-L285">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2442,7 +2442,7 @@ elements are undefined.</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">fetchAll</span><span class="p">(</span>
     <span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">(),</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="nf">StatementArguments</span><span class="p">(),</span>
     <span class="nv">adapter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/RowAdapter.html">RowAdapter</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span>
     <span class="k">throws</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="k">Self</span><span class="p">]</span></code></pre>
 
@@ -2508,7 +2508,7 @@ elements are undefined.</p>
                         <p>An array of values.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/StatementColumnConvertible.swift#L298-L306">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/StatementColumnConvertible.swift#L298-L306">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2546,7 +2546,7 @@ elements are undefined.</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">fetchOne</span><span class="p">(</span>
     <span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">(),</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="nf">StatementArguments</span><span class="p">(),</span>
     <span class="nv">adapter</span><span class="p">:</span> <span class="kt"><a href="../Protocols/RowAdapter.html">RowAdapter</a></span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span>
     <span class="k">throws</span> <span class="o">-&gt;</span> <span class="k">Self</span><span class="p">?</span></code></pre>
 
@@ -2612,7 +2612,7 @@ elements are undefined.</p>
                         <p>An optional value.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/StatementColumnConvertible.swift#L319-L327">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/StatementColumnConvertible.swift#L319-L327">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2645,7 +2645,7 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a cursor over values fetched from a fetch request.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
 <span class="k">let</span> <span class="nv">names</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchCursor</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span> <span class="c1">// Cursor of String</span>
 <span class="k">while</span> <span class="k">let</span> <span class="nv">name</span> <span class="o">=</span> <span class="k">try</span> <span class="n">names</span><span class="o">.</span><span class="nf">next</span><span class="p">()</span> <span class="p">{</span> <span class="c1">// String</span>
     <span class="o">...</span>
@@ -2708,7 +2708,7 @@ elements are undefined.</p>
                         <p>A cursor over fetched values.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/StatementColumnConvertible.swift#L352-L357">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/StatementColumnConvertible.swift#L352-L357">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2730,7 +2730,7 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns an array of values fetched from a fetch request.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
 <span class="k">let</span> <span class="nv">names</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span> <span class="c1">// [String]</span>
 </code></pre>
 <div class="aside aside-throws">
@@ -2784,7 +2784,7 @@ elements are undefined.</p>
                         <p>An array of values.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/StatementColumnConvertible.swift#L369-L372">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/StatementColumnConvertible.swift#L369-L372">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2806,7 +2806,7 @@ elements are undefined.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Returns a single value fetched from a fetch request.</p>
-<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="nv">key</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
 <span class="k">let</span> <span class="nv">name</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span> <span class="c1">// String?</span>
 </code></pre>
 <div class="aside aside-throws">
@@ -2860,7 +2860,7 @@ elements are undefined.</p>
                         <p>An optional value.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Core/StatementColumnConvertible.swift#L384-L387">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Core/StatementColumnConvertible.swift#L384-L387">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2870,7 +2870,7 @@ elements are undefined.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

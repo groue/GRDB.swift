@@ -14,7 +14,7 @@
     <a title="TableRecord Protocol Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1044,7 +1044,7 @@ built-in methods that allow to fetch instances identified by key:</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>The name of the database table used to build requests.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span> <span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span> <span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">var</span> <span class="nv">databaseTableName</span> <span class="o">=</span> <span class="s">"player"</span>
 <span class="p">}</span>
 
@@ -1070,12 +1070,12 @@ built-in methods that allow to fetch instances identified by key:</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">databaseTableName</span><span class="p">:</span> <span class="kt">String</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">static</span> <span class="k">var</span> <span class="nv">databaseTableName</span><span class="p">:</span> <span class="nf">String</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/TableRecord.swift#L20">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/TableRecord.swift#L20">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1105,9 +1105,9 @@ built-in methods that allow to fetch instances identified by key:</p>
 
 <p>You can provide a custom implementation and provide an explicit list
 of columns:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">RestrictedPlayer</span> <span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">RestrictedPlayer</span> <span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">var</span> <span class="nv">databaseTableName</span> <span class="o">=</span> <span class="s">"player"</span>
-    <span class="kd">static</span> <span class="k">var</span> <span class="nv">databaseSelection</span> <span class="o">=</span> <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)]</span>
+    <span class="kd">static</span> <span class="k">var</span> <span class="nv">databaseSelection</span> <span class="o">=</span> <span class="p">[</span><span class="nf">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)]</span>
 <span class="p">}</span>
 
 <span class="c1">// SELECT id, name FROM player</span>
@@ -1115,9 +1115,9 @@ of columns:</p>
 </code></pre>
 
 <p>You can also add extra columns such as the <code>rowid</code> column:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">ExtendedPlayer</span> <span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">ExtendedPlayer</span> <span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">var</span> <span class="nv">databaseTableName</span> <span class="o">=</span> <span class="s">"player"</span>
-    <span class="kd">static</span> <span class="k">let</span> <span class="nv">databaseSelection</span><span class="p">:</span> <span class="p">[</span><span class="kt">SQLSelectable</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kt">AllColumns</span><span class="p">(),</span> <span class="kt">Column</span><span class="o">.</span><span class="n">rowID</span><span class="p">]</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">databaseSelection</span><span class="p">:</span> <span class="p">[</span><span class="kt">SQLSelectable</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nf">AllColumns</span><span class="p">(),</span> <span class="kt">Column</span><span class="o">.</span><span class="n">rowID</span><span class="p">]</span>
 <span class="p">}</span>
 
 <span class="c1">// SELECT *, rowid FROM player</span>
@@ -1139,7 +1139,7 @@ of columns:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/TableRecord.swift#L49">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/TableRecord.swift#L49">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1193,7 +1193,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/FTS3+QueryInterface.swift#L39-L41">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/FTS3+QueryInterface.swift#L39-L41">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1220,8 +1220,8 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                       <div class="abstract">
                         <p>Creates a <q>Belongs To</q> association between Self and the
 destination type.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Author</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
-<span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Author</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+<span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">author</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Author</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
@@ -1234,22 +1234,22 @@ and the destination type:</p>
 
 <p>To consume those requests, define a type that adopts both the
 FetchableRecord and Decodable protocols:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">BookInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="kt">Decodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">BookInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="nf">Decodable</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">book</span><span class="p">:</span> <span class="kt">Book</span>
     <span class="k">var</span> <span class="nv">author</span><span class="p">:</span> <span class="kt">Author</span><span class="p">?</span>
 <span class="p">}</span>
 
-<span class="k">let</span> <span class="nv">bookInfos</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<span class="k">let</span> <span class="nv">bookInfos</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">return</span> <span class="k">try</span> <span class="kt">BookInfo</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
 <span class="p">}</span>
-<span class="k">for</span> <span class="n">bookInfo</span> <span class="k">in</span> <span class="n">bookInfos</span> <span class="p">{</span>
+<span class="k">for</span> <span class="n">bookInfo</span> <span class="k">in</span> <span class="nf">bookInfos</span> <span class="p">{</span>
     <span class="nf">print</span><span class="p">(</span><span class="s">"</span><span class="se">\(</span><span class="n">bookInfo</span><span class="o">.</span><span class="n">book</span><span class="o">.</span><span class="n">title</span><span class="se">)</span><span class="s"> by </span><span class="se">\(</span><span class="n">bookInfo</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">name</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
 
 <p>It is recommended that you define, alongside the static association, a
 property with the same name:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="kt">TableRecord</span><span class="p">,</span> <span class="kt">EncodableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="kt">TableRecord</span><span class="p">,</span> <span class="nf">EncodableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">author</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Author</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="k">var</span> <span class="nv">author</span><span class="p">:</span> <span class="kt">QueryInterfaceRequest</span><span class="o">&lt;</span><span class="kt">Author</span><span class="o">&gt;</span> <span class="p">{</span>
         <span class="k">return</span> <span class="nf">request</span><span class="p">(</span><span class="nv">for</span><span class="p">:</span> <span class="kt">Book</span><span class="o">.</span><span class="n">author</span><span class="p">)</span>
@@ -1259,7 +1259,7 @@ property with the same name:</p>
 
 <p>This property will let you navigate from the source type to the
 destination type:</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">let</span> <span class="nv">book</span><span class="p">:</span> <span class="kt">Book</span> <span class="o">=</span> <span class="o">...</span>
     <span class="k">let</span> <span class="nv">author</span> <span class="o">=</span> <span class="k">try</span> <span class="n">book</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">)</span> <span class="c1">// Author?</span>
 <span class="p">}</span>
@@ -1327,7 +1327,7 @@ foreign keys to the destination table.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L58-L85">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L58-L85">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1350,8 +1350,8 @@ foreign keys to the destination table.</p>
                       <div class="abstract">
                         <p>Creates a <q>Has many</q> association between Self and the
 destination type.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
-<span class="kd">struct</span> <span class="kt">Author</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+<span class="kd">struct</span> <span class="kt">Author</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">books</span> <span class="o">=</span> <span class="nf">hasMany</span><span class="p">(</span><span class="kt">Book</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
@@ -1364,22 +1364,22 @@ and the destination type:</p>
 
 <p>To consume those requests, define a type that adopts both the
 FetchableRecord and Decodable protocols:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Authorship</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="kt">Decodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Authorship</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="nf">Decodable</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">author</span><span class="p">:</span> <span class="kt">Author</span>
     <span class="k">var</span> <span class="nv">book</span><span class="p">:</span> <span class="kt">Book</span>
 <span class="p">}</span>
 
-<span class="k">let</span> <span class="nv">authorships</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<span class="k">let</span> <span class="nv">authorships</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">return</span> <span class="k">try</span> <span class="kt">Authorship</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
 <span class="p">}</span>
-<span class="k">for</span> <span class="n">authorship</span> <span class="k">in</span> <span class="n">authorships</span> <span class="p">{</span>
+<span class="k">for</span> <span class="n">authorship</span> <span class="k">in</span> <span class="nf">authorships</span> <span class="p">{</span>
     <span class="nf">print</span><span class="p">(</span><span class="s">"</span><span class="se">\(</span><span class="n">authorship</span><span class="o">.</span><span class="n">author</span><span class="o">.</span><span class="n">name</span><span class="se">)</span><span class="s"> wrote </span><span class="se">\(</span><span class="n">authorship</span><span class="o">.</span><span class="n">book</span><span class="o">.</span><span class="n">title</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
 
 <p>It is recommended that you define, alongside the static association, a
 property with the same name:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Author</span><span class="p">:</span> <span class="kt">TableRecord</span><span class="p">,</span> <span class="kt">EncodableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Author</span><span class="p">:</span> <span class="kt">TableRecord</span><span class="p">,</span> <span class="nf">EncodableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">books</span> <span class="o">=</span> <span class="nf">hasMany</span><span class="p">(</span><span class="kt">Book</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="k">var</span> <span class="nv">books</span><span class="p">:</span> <span class="kt">QueryInterfaceRequest</span><span class="o">&lt;</span><span class="kt">Book</span><span class="o">&gt;</span> <span class="p">{</span>
         <span class="k">return</span> <span class="nf">request</span><span class="p">(</span><span class="nv">for</span><span class="p">:</span> <span class="kt">Author</span><span class="o">.</span><span class="n">books</span><span class="p">)</span>
@@ -1389,7 +1389,7 @@ property with the same name:</p>
 
 <p>This property will let you navigate from the source type to the
 destination type:</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">let</span> <span class="nv">author</span><span class="p">:</span> <span class="kt">Author</span> <span class="o">=</span> <span class="o">...</span>
     <span class="k">let</span> <span class="nv">books</span> <span class="o">=</span> <span class="k">try</span> <span class="n">author</span><span class="o">.</span><span class="n">books</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">)</span> <span class="c1">// [Book]</span>
 <span class="p">}</span>
@@ -1457,7 +1457,7 @@ foreign keys from the destination table.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L143-L170">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L143-L170">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1480,16 +1480,16 @@ foreign keys from the destination table.</p>
                       <div class="abstract">
                         <p>Creates a <q>Has Many Through</q> association between Self and the
 destination type.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Country</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Country</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">passports</span> <span class="o">=</span> <span class="nf">hasMany</span><span class="p">(</span><span class="kt">Passport</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">citizens</span> <span class="o">=</span> <span class="nf">hasMany</span><span class="p">(</span><span class="kt">Citizen</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">through</span><span class="p">:</span> <span class="n">passports</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="kt">Passport</span><span class="o">.</span><span class="n">citizen</span><span class="p">)</span>
 <span class="p">}</span>
 
-<span class="kd">struct</span> <span class="kt">Passport</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<span class="kd">struct</span> <span class="kt">Passport</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">citizen</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Citizen</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 
-<span class="kd">struct</span> <span class="kt">Citizen</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span> <span class="p">}</span>
+<span class="kd">struct</span> <span class="kt">Citizen</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span> <span class="p">}</span>
 </code></pre>
 
 <p>The association will let you define requests that load both the source
@@ -1500,22 +1500,22 @@ and the destination type:</p>
 
 <p>To consume those requests, define a type that adopts both the
 FetchableRecord and Decodable protocols:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Citizenship</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="kt">Decodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Citizenship</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="nf">Decodable</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">country</span><span class="p">:</span> <span class="kt">Country</span>
     <span class="k">var</span> <span class="nv">citizen</span><span class="p">:</span> <span class="kt">Citizen</span>
 <span class="p">}</span>
 
-<span class="k">let</span> <span class="nv">citizenships</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<span class="k">let</span> <span class="nv">citizenships</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">return</span> <span class="k">try</span> <span class="kt">Citizenship</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
 <span class="p">}</span>
-<span class="k">for</span> <span class="n">citizenship</span> <span class="k">in</span> <span class="n">citizenships</span> <span class="p">{</span>
+<span class="k">for</span> <span class="n">citizenship</span> <span class="k">in</span> <span class="nf">citizenships</span> <span class="p">{</span>
     <span class="nf">print</span><span class="p">(</span><span class="s">"</span><span class="se">\(</span><span class="n">citizenship</span><span class="o">.</span><span class="n">citizen</span><span class="o">.</span><span class="n">name</span><span class="se">)</span><span class="s"> is a citizen of </span><span class="se">\(</span><span class="n">citizenship</span><span class="o">.</span><span class="n">country</span><span class="o">.</span><span class="n">name</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
 
 <p>It is recommended that you define, alongside the static association, a
 property with the same name:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Country</span><span class="p">:</span> <span class="kt">TableRecord</span><span class="p">,</span> <span class="kt">EncodableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Country</span><span class="p">:</span> <span class="kt">TableRecord</span><span class="p">,</span> <span class="nf">EncodableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">passports</span> <span class="o">=</span> <span class="nf">hasMany</span><span class="p">(</span><span class="kt">Passport</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">citizens</span> <span class="o">=</span> <span class="nf">hasMany</span><span class="p">(</span><span class="kt">Citizen</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">through</span><span class="p">:</span> <span class="n">passports</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="kt">Passport</span><span class="o">.</span><span class="n">citizen</span><span class="p">)</span>
     <span class="k">var</span> <span class="nv">citizens</span><span class="p">:</span> <span class="kt">QueryInterfaceRequest</span><span class="o">&lt;</span><span class="kt">Citizen</span><span class="o">&gt;</span> <span class="p">{</span>
@@ -1526,7 +1526,7 @@ property with the same name:</p>
 
 <p>This property will let you navigate from the source type to the
 destination type:</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">let</span> <span class="nv">country</span><span class="p">:</span> <span class="kt">Country</span> <span class="o">=</span> <span class="o">...</span>
     <span class="k">let</span> <span class="nv">citizens</span> <span class="o">=</span> <span class="k">try</span> <span class="n">country</span><span class="o">.</span><span class="n">citizens</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">)</span> <span class="c1">// [Country]</span>
 <span class="p">}</span>
@@ -1608,7 +1608,7 @@ is the same key as the target.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L233-L252">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L233-L252">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1631,8 +1631,8 @@ is the same key as the target.</p>
                       <div class="abstract">
                         <p>Creates a <q>Has one</q> association between Self and the
 destination type.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Demographics</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
-<span class="kd">struct</span> <span class="kt">Country</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Demographics</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+<span class="kd">struct</span> <span class="kt">Country</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">demographics</span> <span class="o">=</span> <span class="nf">hasOne</span><span class="p">(</span><span class="kt">Demographics</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
@@ -1645,22 +1645,22 @@ and the destination type:</p>
 
 <p>To consume those requests, define a type that adopts both the
 FetchableRecord and Decodable protocols:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">CountryInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="kt">Decodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">CountryInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="nf">Decodable</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">country</span><span class="p">:</span> <span class="kt">Country</span>
     <span class="k">var</span> <span class="nv">demographics</span><span class="p">:</span> <span class="kt">Demographics</span><span class="p">?</span>
 <span class="p">}</span>
 
-<span class="k">let</span> <span class="nv">countryInfos</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<span class="k">let</span> <span class="nv">countryInfos</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">return</span> <span class="k">try</span> <span class="kt">CountryInfo</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
 <span class="p">}</span>
-<span class="k">for</span> <span class="n">countryInfo</span> <span class="k">in</span> <span class="n">countryInfos</span> <span class="p">{</span>
+<span class="k">for</span> <span class="n">countryInfo</span> <span class="k">in</span> <span class="nf">countryInfos</span> <span class="p">{</span>
     <span class="nf">print</span><span class="p">(</span><span class="s">"</span><span class="se">\(</span><span class="n">countryInfo</span><span class="o">.</span><span class="n">country</span><span class="o">.</span><span class="n">name</span><span class="se">)</span><span class="s"> has </span><span class="se">\(</span><span class="n">countryInfo</span><span class="o">.</span><span class="n">demographics</span><span class="o">.</span><span class="n">population</span><span class="se">)</span><span class="s"> citizens"</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
 
 <p>It is recommended that you define, alongside the static association, a
 property with the same name:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Country</span><span class="p">:</span> <span class="kt">TableRecord</span><span class="p">,</span> <span class="kt">EncodableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Country</span><span class="p">:</span> <span class="kt">TableRecord</span><span class="p">,</span> <span class="nf">EncodableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">demographics</span> <span class="o">=</span> <span class="nf">hasOne</span><span class="p">(</span><span class="kt">Demographics</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="k">var</span> <span class="nv">demographics</span><span class="p">:</span> <span class="kt">QueryInterfaceRequest</span><span class="o">&lt;</span><span class="kt">Demographics</span><span class="o">&gt;</span> <span class="p">{</span>
         <span class="k">return</span> <span class="nf">request</span><span class="p">(</span><span class="nv">for</span><span class="p">:</span> <span class="kt">Country</span><span class="o">.</span><span class="n">demographics</span><span class="p">)</span>
@@ -1670,7 +1670,7 @@ property with the same name:</p>
 
 <p>This property will let you navigate from the source type to the
 destination type:</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">let</span> <span class="nv">country</span><span class="p">:</span> <span class="kt">Country</span> <span class="o">=</span> <span class="o">...</span>
     <span class="k">let</span> <span class="nv">demographics</span> <span class="o">=</span> <span class="k">try</span> <span class="n">country</span><span class="o">.</span><span class="n">demographics</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">)</span> <span class="c1">// Demographics?</span>
 <span class="p">}</span>
@@ -1738,7 +1738,7 @@ foreign keys from the destination table.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L310-L337">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L310-L337">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1761,16 +1761,16 @@ foreign keys from the destination table.</p>
                       <div class="abstract">
                         <p>Creates a <q>Has One Through</q> association between Self and the
 destination type.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">library</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Library</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">returnAddress</span> <span class="o">=</span> <span class="nf">hasOne</span><span class="p">(</span><span class="kt">Address</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">through</span><span class="p">:</span> <span class="n">library</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="n">library</span><span class="o">.</span><span class="n">address</span><span class="p">)</span>
 <span class="p">}</span>
 
-<span class="kd">struct</span> <span class="kt">Library</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<span class="kd">struct</span> <span class="kt">Library</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">address</span> <span class="o">=</span> <span class="nf">hasOne</span><span class="p">(</span><span class="kt">Address</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 
-<span class="kd">struct</span> <span class="kt">Address</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+<span class="kd">struct</span> <span class="kt">Address</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
 </code></pre>
 
 <p>The association will let you define requests that load both the source
@@ -1781,22 +1781,22 @@ and the destination type:</p>
 
 <p>To consume those requests, define a type that adopts both the
 FetchableRecord and Decodable protocols:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Todo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="kt">Decodable</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Todo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="nf">Decodable</span> <span class="p">{</span>
     <span class="k">var</span> <span class="nv">book</span><span class="p">:</span> <span class="kt">Book</span>
     <span class="k">var</span> <span class="nv">address</span><span class="p">:</span> <span class="kt">Address</span>
 <span class="p">}</span>
 
-<span class="k">let</span> <span class="nv">todos</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<span class="k">let</span> <span class="nv">todos</span> <span class="o">=</span> <span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">return</span> <span class="k">try</span> <span class="kt">Todo</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
 <span class="p">}</span>
-<span class="k">for</span> <span class="n">todo</span> <span class="k">in</span> <span class="n">todos</span> <span class="p">{</span>
+<span class="k">for</span> <span class="n">todo</span> <span class="k">in</span> <span class="nf">todos</span> <span class="p">{</span>
     <span class="nf">print</span><span class="p">(</span><span class="s">"Please return </span><span class="se">\(</span><span class="n">todo</span><span class="o">.</span><span class="n">book</span><span class="se">)</span><span class="s"> to </span><span class="se">\(</span><span class="n">todo</span><span class="o">.</span><span class="n">address</span><span class="se">)</span><span class="s">"</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
 
 <p>It is recommended that you define, alongside the static association, a
 property with the same name:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="kt">TableRecord</span><span class="p">,</span> <span class="kt">EncodableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="kt">TableRecord</span><span class="p">,</span> <span class="nf">EncodableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">library</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Library</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">returnAddress</span> <span class="o">=</span> <span class="nf">hasOne</span><span class="p">(</span><span class="kt">Address</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">through</span><span class="p">:</span> <span class="n">library</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="n">library</span><span class="o">.</span><span class="n">address</span><span class="p">)</span>
     <span class="k">var</span> <span class="nv">returnAddress</span><span class="p">:</span> <span class="kt">QueryInterfaceRequest</span><span class="o">&lt;</span><span class="kt">Address</span><span class="o">&gt;</span> <span class="p">{</span>
@@ -1807,7 +1807,7 @@ property with the same name:</p>
 
 <p>This property will let you navigate from the source type to the
 destination type:</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">let</span> <span class="nv">book</span><span class="p">:</span> <span class="kt">Book</span> <span class="o">=</span> <span class="o">...</span>
     <span class="k">let</span> <span class="nv">address</span> <span class="o">=</span> <span class="k">try</span> <span class="n">book</span><span class="o">.</span><span class="n">returnAddress</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">)</span> <span class="c1">// Address?</span>
 <span class="p">}</span>
@@ -1889,7 +1889,7 @@ is the same key as the target.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L400-L419">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L400-L419">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1917,7 +1917,7 @@ is the same key as the target.</p>
                         <p>Creates a request that fetches the associated record(s).</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Team</span><span class="p">:</span> <span class="kt">TableRecord</span><span class="p">,</span> <span class="kt">EncodableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Team</span><span class="p">:</span> <span class="kt">TableRecord</span><span class="p">,</span> <span class="nf">EncodableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">players</span> <span class="o">=</span> <span class="nf">hasMany</span><span class="p">(</span><span class="kt">Player</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="k">var</span> <span class="nv">players</span><span class="p">:</span> <span class="kt">QueryInterfaceRequest</span><span class="o">&lt;</span><span class="kt">Player</span><span class="o">&gt;</span> <span class="p">{</span>
         <span class="k">return</span> <span class="nf">request</span><span class="p">(</span><span class="nv">for</span><span class="p">:</span> <span class="kt">Team</span><span class="o">.</span><span class="n">players</span><span class="p">)</span>
@@ -1940,7 +1940,7 @@ is the same key as the target.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L545-L553">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L545-L553">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1986,7 +1986,7 @@ is the same key as the target.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L561-L566">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L561-L566">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2023,7 +2023,7 @@ require that the associated database table contains a matching row.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L571-L576">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L571-L576">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2060,7 +2060,7 @@ that the associated database table contains a matching row.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L581-L586">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L581-L586">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2097,7 +2097,7 @@ require that the associated database table contains a matching row.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L591-L596">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L591-L596">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2134,7 +2134,7 @@ that the associated database table contains a matching row.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L601-L606">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L601-L606">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2182,7 +2182,7 @@ that the associated database table contains a matching row.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L615-L617">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L615-L617">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2219,7 +2219,7 @@ that the associated database table contains a matching row.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L624-L626">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L624-L626">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2262,7 +2262,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+Association.swift#L639-L641">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+Association.swift#L639-L641">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2313,7 +2313,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L13-L28">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L13-L28">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2346,7 +2346,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L31-L33">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L31-L33">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2369,7 +2369,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                       <div class="abstract">
                         <p>Creates a request which selects <em>selection</em>.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT id, email FROM player</span>
-<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">))</span>
+<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">))</span>
 </code></pre>
 
                       </div>
@@ -2382,7 +2382,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L39-L41">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L39-L41">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2405,7 +2405,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                       <div class="abstract">
                         <p>Creates a request which selects <em>selection</em>.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT id, email FROM player</span>
-<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="kt">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)])</span>
+<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)])</span>
 </code></pre>
 
                       </div>
@@ -2418,7 +2418,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L47-L49">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L47-L49">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2451,13 +2451,13 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                           <p class="aside-title">Swift</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">select</span><span class="p">(</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">())</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="nf">StatementArguments</span><span class="p">())</span>
     <span class="o">-&gt;</span> <span class="kt"><a href="../Structs/QueryInterfaceRequest.html">QueryInterfaceRequest</a></span><span class="o">&lt;</span><span class="k">Self</span><span class="o">&gt;</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L55-L61">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L55-L61">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2480,7 +2480,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                       <div class="abstract">
                         <p>Creates a request which selects an SQL <em>literal</em>.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT id, email FROM player</span>
-<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="kt">SQLLiteral</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"id, email"</span><span class="p">))</span>
+<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="nf">SQLLiteral</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"id, email"</span><span class="p">))</span>
 </code></pre>
 
                       </div>
@@ -2493,7 +2493,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L67-L69">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L67-L69">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2516,9 +2516,9 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                       <div class="abstract">
                         <p>Creates a request which selects <em>selection</em>, and fetches values of
 type <em>type</em>.</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="c1">// SELECT max(score) FROM player</span>
-    <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">max</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">))],</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Int</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
+    <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">max</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">))],</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Int</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="k">let</span> <span class="nv">maxScore</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="o">=</span> <span class="k">try</span> <span class="n">request</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
@@ -2536,7 +2536,7 @@ type <em>type</em>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L79-L85">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L79-L85">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2559,9 +2559,9 @@ type <em>type</em>.</p>
                       <div class="abstract">
                         <p>Creates a request which selects <em>selection</em>, and fetches values of
 type <em>type</em>.</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="c1">// SELECT max(score) FROM player</span>
-    <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">max</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)),</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Int</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
+    <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nf">max</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)),</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Int</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="k">let</span> <span class="nv">maxScore</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="o">=</span> <span class="k">try</span> <span class="n">request</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
@@ -2579,7 +2579,7 @@ type <em>type</em>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L95-L101">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L95-L101">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2602,7 +2602,7 @@ type <em>type</em>.</p>
                       <div class="abstract">
                         <p>Creates a request which selects <em>sql</em>, and fetches values of
 type <em>type</em>.</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="c1">// SELECT max(score) FROM player</span>
     <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"max(score)"</span><span class="p">,</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Int</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="k">let</span> <span class="nv">maxScore</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="o">=</span> <span class="k">try</span> <span class="n">request</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
@@ -2616,14 +2616,14 @@ type <em>type</em>.</p>
                           <p class="aside-title">Swift</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="n">select</span><span class="o">&lt;</span><span class="kt">RowDecoder</span><span class="o">&gt;</span><span class="p">(</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">(),</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="nf">StatementArguments</span><span class="p">(),</span>
     <span class="k">as</span> <span class="nv">type</span><span class="p">:</span> <span class="kt">RowDecoder</span><span class="o">.</span><span class="k">Type</span><span class="p">)</span>
     <span class="o">-&gt;</span> <span class="kt"><a href="../Structs/QueryInterfaceRequest.html">QueryInterfaceRequest</a></span><span class="o">&lt;</span><span class="kt">RowDecoder</span><span class="o">&gt;</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L111-L118">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L111-L118">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2646,9 +2646,9 @@ type <em>type</em>.</p>
                       <div class="abstract">
                         <p>Creates a request which selects an SQL <em>literal</em>, and fetches values of
 type <em>type</em>.</p>
-<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">read</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="c1">// SELECT max(score) FROM player</span>
-    <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="kt">SQLLiteral</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"max(score)"</span><span class="p">),</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Int</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
+    <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">select</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="nf">SQLLiteral</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"max(score)"</span><span class="p">),</span> <span class="nv">as</span><span class="p">:</span> <span class="kt">Int</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
     <span class="k">let</span> <span class="nv">maxScore</span><span class="p">:</span> <span class="kt">Int</span><span class="p">?</span> <span class="o">=</span> <span class="k">try</span> <span class="n">request</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 <span class="p">}</span>
 </code></pre>
@@ -2666,7 +2666,7 @@ type <em>type</em>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L128-L134">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L128-L134">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2690,8 +2690,8 @@ type <em>type</em>.</p>
                         <p>Creates a request which appends <em>selection</em>.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT id, email, name FROM player</span>
 <span class="n">le</span> <span class="n">request</span> <span class="o">=</span> <span class="kt">Player</span>
-    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="kt">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)])</span>
-    <span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)])</span>
+    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)])</span>
+    <span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="p">[</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)])</span>
 </code></pre>
 
                       </div>
@@ -2704,7 +2704,7 @@ type <em>type</em>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L142-L144">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L142-L144">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2728,8 +2728,8 @@ type <em>type</em>.</p>
                         <p>Creates a request which appends <em>selection</em>.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT id, email, name FROM player</span>
 <span class="n">le</span> <span class="n">request</span> <span class="o">=</span> <span class="kt">Player</span>
-    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="kt">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)])</span>
-    <span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
+    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">),</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)])</span>
+    <span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
 </code></pre>
 
                       </div>
@@ -2742,7 +2742,7 @@ type <em>type</em>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L152-L154">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L152-L154">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2765,7 +2765,7 @@ type <em>type</em>.</p>
                       <div class="abstract">
                         <p>Creates a request with the provided <em>predicate</em>.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT * FROM player WHERE email = 'arthur@example.com'</span>
-<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)</span> <span class="o">==</span> <span class="s">"arthur@example.com"</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"email"</span><span class="p">)</span> <span class="o">==</span> <span class="s">"arthur@example.com"</span><span class="p">)</span>
 </code></pre>
 
 <p>The selection defaults to all columns. This default can be changed for
@@ -2782,7 +2782,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L164-L166">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L164-L166">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2824,7 +2824,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L176-L181">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L176-L181">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2866,7 +2866,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L191-L196">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L191-L196">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2909,7 +2909,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L209-L211">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L209-L211">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2952,7 +2952,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L224-L226">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L224-L226">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2989,13 +2989,13 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                           <p class="aside-title">Swift</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">filter</span><span class="p">(</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">())</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="nf">StatementArguments</span><span class="p">())</span>
     <span class="o">-&gt;</span> <span class="kt"><a href="../Structs/QueryInterfaceRequest.html">QueryInterfaceRequest</a></span><span class="o">&lt;</span><span class="k">Self</span><span class="o">&gt;</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L236-L242">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L236-L242">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3018,7 +3018,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                       <div class="abstract">
                         <p>Creates a request with the provided <em>predicate</em>.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT * FROM player WHERE email = 'arthur@example.com'</span>
-<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="kt">SQLLiteral</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"email = ?"</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"arthur@example.com"</span><span class="p">]))</span>
+<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="nf">SQLLiteral</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"email = ?"</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"arthur@example.com"</span><span class="p">]))</span>
 </code></pre>
 
 <p>With Swift 5, you can safely embed raw values in your SQL queries,
@@ -3040,7 +3040,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L257-L260">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L257-L260">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3064,7 +3064,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         <p>Creates a request sorted according to the
 provided <em>orderings</em>.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT * FROM player ORDER BY name</span>
-<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
+<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span>
 </code></pre>
 
 <p>The selection defaults to all columns. This default can be changed for
@@ -3081,7 +3081,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L271-L273">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L271-L273">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3105,7 +3105,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         <p>Creates a request sorted according to the
 provided <em>orderings</em>.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT * FROM player ORDER BY name</span>
-<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">order</span><span class="p">([</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)])</span>
+<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">order</span><span class="p">([</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)])</span>
 </code></pre>
 
 <p>The selection defaults to all columns. This default can be changed for
@@ -3122,7 +3122,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L284-L286">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L284-L286">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3165,7 +3165,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L299-L301">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L299-L301">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3202,13 +3202,13 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                           <p class="aside-title">Swift</p>
                           <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">order</span><span class="p">(</span>
     <span class="nv">sql</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
-    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span><span class="p">())</span>
+    <span class="nv">arguments</span><span class="p">:</span> <span class="kt"><a href="../Structs/StatementArguments.html">StatementArguments</a></span> <span class="o">=</span> <span class="nf">StatementArguments</span><span class="p">())</span>
     <span class="o">-&gt;</span> <span class="kt"><a href="../Structs/QueryInterfaceRequest.html">QueryInterfaceRequest</a></span><span class="o">&lt;</span><span class="k">Self</span><span class="o">&gt;</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L311-L317">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L311-L317">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3231,7 +3231,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                       <div class="abstract">
                         <p>Creates a request sorted according to an SQL <em>literal</em>.</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT * FROM player ORDER BY name</span>
-<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="kt">SQLLiteral</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"name"</span><span class="p">))</span>
+<span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="nv">literal</span><span class="p">:</span> <span class="nf">SQLLiteral</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"name"</span><span class="p">))</span>
 </code></pre>
 
 <p>With Swift 5, you can safely embed raw values in your SQL queries,
@@ -3254,7 +3254,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L333-L335">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L333-L335">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3295,7 +3295,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L346-L348">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L346-L348">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3321,16 +3321,16 @@ a specific database table.</p>
 
 <p>In the example below, the <q>team.avgScore < player.score</q> condition in
 the ON clause could be not achieved without table aliases.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">team</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1">// SELECT player.*, team.*</span>
 <span class="c1">// JOIN team ON ... AND team.avgScore &lt; player.score</span>
-<span class="k">let</span> <span class="nv">playerAlias</span> <span class="o">=</span> <span class="kt">TableAlias</span><span class="p">()</span>
+<span class="k">let</span> <span class="nv">playerAlias</span> <span class="o">=</span> <span class="nf">TableAlias</span><span class="p">()</span>
 <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span>
     <span class="o">.</span><span class="nf">aliased</span><span class="p">(</span><span class="n">playerAlias</span><span class="p">)</span>
-    <span class="o">.</span><span class="nf">including</span><span class="p">(</span><span class="nv">required</span><span class="p">:</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"avgScore"</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">playerAlias</span><span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)])</span>
+    <span class="o">.</span><span class="nf">including</span><span class="p">(</span><span class="nv">required</span><span class="p">:</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"avgScore"</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">playerAlias</span><span class="p">[</span><span class="nf">Column</span><span class="p">(</span><span class="s">"score"</span><span class="p">)])</span>
 </code></pre>
 
                       </div>
@@ -3343,7 +3343,7 @@ the ON clause could be not achieved without table aliases.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L366-L368">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L366-L368">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3406,7 +3406,7 @@ the ON clause could be not achieved without table aliases.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/TableRecord.swift#L100-L102">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/TableRecord.swift#L100-L102">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3441,7 +3441,7 @@ the ON clause could be not achieved without table aliases.</p>
                         <p>The selection as an SQL String.</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">databaseTableName</span> <span class="o">=</span> <span class="s">"player"</span>
 <span class="p">}</span>
 
@@ -3462,7 +3462,7 @@ the ON clause could be not achieved without table aliases.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/TableRecord.swift#L122-L129">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/TableRecord.swift#L122-L129">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3486,11 +3486,11 @@ the ON clause could be not achieved without table aliases.</p>
                         <p>Returns the number of selected columns.</p>
 
 <p>For example:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">databaseTableName</span> <span class="o">=</span> <span class="s">"player"</span>
 <span class="p">}</span>
 
-<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="nf">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">create</span><span class="p">(</span><span class="nv">table</span><span class="p">:</span> <span class="s">"player"</span><span class="p">)</span> <span class="p">{</span> <span class="n">t</span> <span class="k">in</span>
         <span class="n">t</span><span class="o">.</span><span class="nf">autoIncrementedPrimaryKey</span><span class="p">(</span><span class="s">"id"</span><span class="p">)</span>
         <span class="n">t</span><span class="o">.</span><span class="nf">column</span><span class="p">(</span><span class="s">"name"</span><span class="p">,</span> <span class="o">.</span><span class="n">text</span><span class="p">)</span>
@@ -3512,7 +3512,7 @@ the ON clause could be not achieved without table aliases.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/Record/TableRecord.swift#L149-L154">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/Record/TableRecord.swift#L149-L154">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3581,7 +3581,7 @@ main queue.</li>
                         <p>a ValueObservation.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation+Count.swift#L61-L65">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation+Count.swift#L61-L65">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3650,7 +3650,7 @@ main queue.</li>
                         <p>a ValueObservation.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation+FetchableRecord.swift#L89-L91">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation+FetchableRecord.swift#L89-L91">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3708,7 +3708,7 @@ main queue.</li>
                         <p>a ValueObservation.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/ValueObservation/ValueObservation+FetchableRecord.swift#L115-L118">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/ValueObservation/ValueObservation+FetchableRecord.swift#L115-L118">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3718,7 +3718,7 @@ main queue.</li>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

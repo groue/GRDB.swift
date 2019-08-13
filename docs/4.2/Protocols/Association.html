@@ -14,7 +14,7 @@
     <a title="Association Protocol Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 4.2.0 Docs</a> (90% documented)</p>
+        <p><a href="../index.html">GRDB 4.2.1 Docs</a> (90% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue%2Egithub%2Eio%2FGRDB%2Eswift%2Fdocs%2F4%2E2%2Fdocsets%2FGRDB%2Exml"><img src="../img/dash.png"/>Install in Dash</a></p>
       </div>
@@ -1037,7 +1037,7 @@ record types.</p>
                         <p>The record type at the origin of the association.</p>
 
 <p>In the <code>belongsTo</code> association below, it is Book:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Book</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="c1">// BelongsToAssociation&lt;Book, Author&gt;</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">author</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Author</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
@@ -1053,7 +1053,7 @@ record types.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L21">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L21">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1078,7 +1078,7 @@ record types.</p>
 
 <p>This new key impacts how rows fetched from the resulting association
 should be consumed:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">team</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 
@@ -1096,11 +1096,11 @@ should be consumed:</p>
 
 <p>This new key helps Decodable records decode rows fetched from the
 resulting association:</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">team</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 
-<span class="kd">struct</span> <span class="kt">PlayerInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="kt">Decodable</span> <span class="p">{</span>
+<span class="kd">struct</span> <span class="kt">PlayerInfo</span><span class="p">:</span> <span class="kt">FetchableRecord</span><span class="p">,</span> <span class="nf">Decodable</span> <span class="p">{</span>
     <span class="k">let</span> <span class="nv">player</span><span class="p">:</span> <span class="kt">Player</span>
     <span class="k">let</span> <span class="nv">team</span><span class="p">:</span> <span class="kt">Team</span>
 
@@ -1125,7 +1125,7 @@ resulting association:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L40">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L40">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1151,14 +1151,14 @@ resulting association:</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates an association which selects <em>selection</em>.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">team</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1">// SELECT player.*, team.color</span>
 <span class="c1">// FROM player</span>
 <span class="c1">// JOIN team ON team.id = player.teamId</span>
-<span class="k">let</span> <span class="nv">association</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="kt">Column</span><span class="p">(</span><span class="s">"color"</span><span class="p">)])</span>
+<span class="k">let</span> <span class="nv">association</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">Column</span><span class="p">(</span><span class="s">"color"</span><span class="p">)])</span>
 <span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">including</span><span class="p">(</span><span class="nv">required</span><span class="p">:</span> <span class="n">association</span><span class="p">)</span>
 </code></pre>
 
@@ -1167,8 +1167,8 @@ resulting association:</p>
 <span class="c1">// FROM player</span>
 <span class="c1">// JOIN team ON team.id = player.teamId</span>
 <span class="k">let</span> <span class="nv">association</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span>
-    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="kt">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">)])</span>
-    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="kt">Column</span><span class="p">(</span><span class="s">"color"</span><span class="p">)])</span>
+    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">Column</span><span class="p">(</span><span class="s">"id"</span><span class="p">)])</span>
+    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">Column</span><span class="p">(</span><span class="s">"color"</span><span class="p">)])</span>
 <span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">including</span><span class="p">(</span><span class="nv">required</span><span class="p">:</span> <span class="n">association</span><span class="p">)</span>
 </code></pre>
 
@@ -1182,7 +1182,7 @@ resulting association:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L130-L132">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L130-L132">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1204,7 +1204,7 @@ resulting association:</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates an association which appends <em>selection</em>.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">team</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 
@@ -1212,8 +1212,8 @@ resulting association:</p>
 <span class="c1">// FROM player</span>
 <span class="c1">// JOIN team ON team.id = player.teamId</span>
 <span class="k">let</span> <span class="nv">association</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span>
-    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="kt">Column</span><span class="p">(</span><span class="s">"color"</span><span class="p">)])</span>
-    <span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)])</span>
+    <span class="o">.</span><span class="nf">select</span><span class="p">([</span><span class="nf">Column</span><span class="p">(</span><span class="s">"color"</span><span class="p">)])</span>
+    <span class="o">.</span><span class="nf">annotated</span><span class="p">(</span><span class="nv">with</span><span class="p">:</span> <span class="p">[</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)])</span>
 <span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">including</span><span class="p">(</span><span class="nv">required</span><span class="p">:</span> <span class="n">association</span><span class="p">)</span>
 </code></pre>
 
@@ -1227,7 +1227,7 @@ resulting association:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L147-L149">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L147-L149">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1250,14 +1250,14 @@ resulting association:</p>
                       <div class="abstract">
                         <p>Creates an association with the provided <em>predicate promise</em> added to
 the eventual set of already applied predicates.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">team</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1">// SELECT player.*, team.*</span>
 <span class="c1">// FROM player</span>
 <span class="c1">// JOIN team ON team.id = player.teamId AND 1</span>
-<span class="k">let</span> <span class="nv">association</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="n">filter</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span> <span class="kc">true</span> <span class="p">}</span>
+<span class="k">let</span> <span class="nv">association</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="nf">filter</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span> <span class="kc">true</span> <span class="p">}</span>
 <span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">including</span><span class="p">(</span><span class="nv">required</span><span class="p">:</span> <span class="n">association</span><span class="p">)</span>
 </code></pre>
 
@@ -1271,7 +1271,7 @@ the eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L163-L165">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L163-L165">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1293,7 +1293,7 @@ the eventual set of already applied predicates.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates an association with the provided <em>orderings promise</em>.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">team</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 
@@ -1301,7 +1301,7 @@ the eventual set of already applied predicates.</p>
 <span class="c1">// FROM player</span>
 <span class="c1">// JOIN team ON team.id = player.teamId</span>
 <span class="c1">// ORDER BY team.name</span>
-<span class="k">let</span> <span class="nv">association</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="n">order</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)]</span> <span class="p">}</span>
+<span class="k">let</span> <span class="nv">association</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="nf">order</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="p">[</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)]</span> <span class="p">}</span>
 <span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">including</span><span class="p">(</span><span class="nv">required</span><span class="p">:</span> <span class="n">association</span><span class="p">)</span>
 </code></pre>
 
@@ -1311,9 +1311,9 @@ the eventual set of already applied predicates.</p>
 <span class="c1">// JOIN team ON team.id = player.teamId</span>
 <span class="c1">// ORDER BY team.name</span>
 <span class="k">let</span> <span class="nv">association</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span>
-    <span class="o">.</span><span class="n">order</span><span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"color"</span><span class="p">)]</span> <span class="p">}</span>
+    <span class="o">.</span><span class="nf">order</span><span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="p">[</span><span class="nf">Column</span><span class="p">(</span><span class="s">"color"</span><span class="p">)]</span> <span class="p">}</span>
     <span class="o">.</span><span class="nf">reversed</span><span class="p">()</span>
-    <span class="o">.</span><span class="n">order</span><span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)]</span> <span class="p">}</span>
+    <span class="o">.</span><span class="nf">order</span><span class="p">{</span> <span class="n">_</span> <span class="k">in</span> <span class="p">[</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">)]</span> <span class="p">}</span>
 <span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">including</span><span class="p">(</span><span class="nv">required</span><span class="p">:</span> <span class="n">association</span><span class="p">)</span>
 </code></pre>
 
@@ -1327,7 +1327,7 @@ the eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L191-L193">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L191-L193">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1349,7 +1349,7 @@ the eventual set of already applied predicates.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates an association that reverses applied orderings.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">team</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 
@@ -1357,7 +1357,7 @@ the eventual set of already applied predicates.</p>
 <span class="c1">// FROM player</span>
 <span class="c1">// JOIN team ON team.id = player.teamId</span>
 <span class="c1">// ORDER BY team.name DESC</span>
-<span class="k">let</span> <span class="nv">association</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span><span class="o">.</span><span class="nf">reversed</span><span class="p">()</span>
+<span class="k">let</span> <span class="nv">association</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span><span class="o">.</span><span class="nf">reversed</span><span class="p">()</span>
 <span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">including</span><span class="p">(</span><span class="nv">required</span><span class="p">:</span> <span class="n">association</span><span class="p">)</span>
 </code></pre>
 
@@ -1379,7 +1379,7 @@ the eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L215-L217">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L215-L217">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1401,14 +1401,14 @@ the eventual set of already applied predicates.</p>
                       <div class="pointer"></div>
                       <div class="abstract">
                         <p>Creates an association without any ordering.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">team</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1">// SELECT player.*, team.*</span>
 <span class="c1">// FROM player</span>
 <span class="c1">// JOIN team ON team.id = player.teamId</span>
-<span class="k">let</span> <span class="nv">association</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="kt">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span><span class="o">.</span><span class="nf">unordered</span><span class="p">()</span>
+<span class="k">let</span> <span class="nv">association</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="nf">order</span><span class="p">(</span><span class="nf">Column</span><span class="p">(</span><span class="s">"name"</span><span class="p">))</span><span class="o">.</span><span class="nf">unordered</span><span class="p">()</span>
 <span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">including</span><span class="p">(</span><span class="nv">required</span><span class="p">:</span> <span class="n">association</span><span class="p">)</span>
 </code></pre>
 
@@ -1422,7 +1422,7 @@ the eventual set of already applied predicates.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L230-L232">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L230-L232">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1448,17 +1448,17 @@ a specific database table.</p>
 
 <p>In the example below, the <q>team.color = &lsquo;red&rsquo;</q> condition in the where
 clause could be not achieved without table aliases.</p>
-<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">TableRecord</span> <span class="p">{</span>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="nf">TableRecord</span> <span class="p">{</span>
     <span class="kd">static</span> <span class="k">let</span> <span class="nv">team</span> <span class="o">=</span> <span class="nf">belongsTo</span><span class="p">(</span><span class="kt">Team</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
 <span class="p">}</span>
 
 <span class="c1">// SELECT player.*, team.*</span>
 <span class="c1">// JOIN team ON ...</span>
 <span class="c1">// WHERE team.color = 'red'</span>
-<span class="k">let</span> <span class="nv">teamAlias</span> <span class="o">=</span> <span class="kt">TableAlias</span><span class="p">()</span>
+<span class="k">let</span> <span class="nv">teamAlias</span> <span class="o">=</span> <span class="nf">TableAlias</span><span class="p">()</span>
 <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span>
     <span class="o">.</span><span class="nf">including</span><span class="p">(</span><span class="nv">required</span><span class="p">:</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="nf">aliased</span><span class="p">(</span><span class="n">teamAlias</span><span class="p">))</span>
-    <span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="n">teamAlias</span><span class="p">[</span><span class="kt">Column</span><span class="p">(</span><span class="s">"color"</span><span class="p">)]</span> <span class="o">==</span> <span class="s">"red"</span><span class="p">)</span>
+    <span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="n">teamAlias</span><span class="p">[</span><span class="nf">Column</span><span class="p">(</span><span class="s">"color"</span><span class="p">)]</span> <span class="o">==</span> <span class="s">"red"</span><span class="p">)</span>
 </code></pre>
 
 <p>When you give a name to a table alias, you can reliably inject sql
@@ -1466,7 +1466,7 @@ snippets in your requests:</p>
 <pre class="highlight swift"><code><span class="c1">// SELECT player.*, custom.*</span>
 <span class="c1">// JOIN team custom ON ...</span>
 <span class="c1">// WHERE custom.color = 'red'</span>
-<span class="k">let</span> <span class="nv">teamAlias</span> <span class="o">=</span> <span class="kt">TableAlias</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"custom"</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">teamAlias</span> <span class="o">=</span> <span class="nf">TableAlias</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"custom"</span><span class="p">)</span>
 <span class="k">let</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Player</span>
     <span class="o">.</span><span class="nf">including</span><span class="p">(</span><span class="nv">required</span><span class="p">:</span> <span class="kt">Player</span><span class="o">.</span><span class="n">team</span><span class="o">.</span><span class="nf">aliased</span><span class="p">(</span><span class="n">teamAlias</span><span class="p">))</span>
     <span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"custom.color = ?"</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="s">"red"</span><span class="p">])</span>
@@ -1482,7 +1482,7 @@ snippets in your requests:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.0/GRDB/QueryInterface/Request/Association/Association.swift#L288-L290">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v4.2.1/GRDB/QueryInterface/Request/Association/Association.swift#L288-L290">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1492,7 +1492,7 @@ snippets in your requests:</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-06)</p>
+          <p>&copy; 2019 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2019-08-13)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.10.0</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
