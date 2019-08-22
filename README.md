@@ -7,7 +7,7 @@ GRDB 4 [![Swift 4.2](https://img.shields.io/badge/swift-4.2-orange.svg?style=fla
 
 **Latest release**: August 13, 2019 • version 4.2.1 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 3 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
 
-**Requirements**: iOS 9.0+ / macOS 10.9+ / watchOS 2.0+ &bull; Swift 4.2+ / Xcode 10.0+
+**Requirements**: iOS 9.0+ / macOS 10.9+ / tvOS 9.0+ / watchOS 2.0+ &bull; Swift 4.2+ / Xcode 10.0+
 
 | Swift version | GRDB version                                                |
 | ------------- | ----------------------------------------------------------- |
@@ -357,7 +357,7 @@ Note that Linux is not currently supported.
 
 2. Embed the `GRDB.xcodeproj` project in your own project.
 
-3. Add the `GRDBOSX`, `GRDBiOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target (extension target for WatchOS).
+3. Add the `GRDBOSX`, `GRDBiOS`, `GRDBtvOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target (extension target for WatchOS).
 
 4. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
 
@@ -2790,7 +2790,7 @@ protocol EncodableRecord {
 }
 ```
 
-> :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, and watchOS 4.0+. This option makes sure that the JSON output is stable. This stability is required for [Record Comparison] to work as expected, and database observation tools such as [ValueObservation] to accurately recognize changed records.
+> :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, tvOS 9.0+ and watchOS 4.0+. This option makes sure that the JSON output is stable. This stability is required for [Record Comparison] to work as expected, and database observation tools such as [ValueObservation] to accurately recognize changed records.
 
 
 ### Date and UUID Coding Strategies
@@ -4964,7 +4964,7 @@ Generally speaking, FTS5 is better than FTS4 which improves on FTS3. But this do
 
 - **The location of the indexed text in your database schema.** Only FTS4 and FTS5 support "contentless" and "external content" tables.
 
-- **The SQLite library integrated in your application.** The version of SQLite that ships with iOS, macOS and watchOS supports FTS3 and FTS4 out of the box, but not always FTS5. To use FTS5, see [Enabling FTS5 Support](#enabling-fts5-support).
+- **The SQLite library integrated in your application.** The version of SQLite that ships with iOS, macOS, tvOS and watchOS supports FTS3 and FTS4 out of the box, but not always FTS5. To use FTS5, see [Enabling FTS5 Support](#enabling-fts5-support).
 
 - See [FST3 vs. FTS4](https://www.sqlite.org/fts3.html#differences_between_fts3_and_fts4) and [FTS5 vs. FTS3/4](https://www.sqlite.org/fts5.html#appendix_a) for more differences.
 
@@ -5185,9 +5185,9 @@ let documents = try Document.filter(Column("content").match(pattern)).fetchAll(d
 
 When the FTS3 and FTS4 full-text engines don't suit your needs, you may want to use FTS5. See [Choosing the Full-Text Engine](#choosing-the-full-text-engine) to help you make a decision.
 
-The version of SQLite that ships with iOS, macOS and watchOS does not always support the FTS5 engine. To enable FTS5 support, you'll need to install GRDB with one of those installation techniques:
+The version of SQLite that ships with iOS, macOS, tvOS and watchOS does not always support the FTS5 engine. To enable FTS5 support, you'll need to install GRDB with one of those installation techniques:
 
-1. Use the GRDB.swift CocoaPod with a custom compilation option, as below. It uses the system SQLite, which is compiled with FTS5 support, but only on iOS 11.4+ / macOS 10.13+ / watchOS 4.3+:
+1. Use the GRDB.swift CocoaPod with a custom compilation option, as below. It uses the system SQLite, which is compiled with FTS5 support, but only on iOS 11.4+ / macOS 10.13+ / tvOS 11.4+ / watchOS 4.3+:
 
     ```ruby
     pod 'GRDB.swift'

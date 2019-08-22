@@ -54,19 +54,27 @@ ifeq ($(XCODEVERSION),10.3)
   MIN_SWIFT_VERSION = 4.2
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone X,OS=12.4"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
+  MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=12.4"
+  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=9.0"
 else ifeq ($(XCODEVERSION),10.2)
   MAX_SWIFT_VERSION = 5
   MIN_SWIFT_VERSION = 4.2
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone X,OS=12.2"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
+  MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=12.2"
+  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=9.0"
 else ifeq ($(XCODEVERSION),10.1)
   MAX_SWIFT_VERSION = 4.2
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone X,OS=12.1"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
+  MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=12.1"
+  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=9.0"
 else ifeq ($(XCODEVERSION),10.0)
   MAX_SWIFT_VERSION = 4.2
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=12.0"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
+  MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=12.0"
+  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=9.0"
 else
   # Swift 4.1 required: Xcode < 9.3 is not supported
 endif
@@ -105,7 +113,7 @@ test: test_framework test_install
 
 test_framework: test_framework_darwin
 test_framework_darwin: test_framework_GRDB test_framework_GRDBCustom test_framework_SQLCipher test_SPM
-test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_framework_GRDBiOS
+test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_framework_GRDBiOS test_framework_GRDBtvOS
 test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRDBCustomSQLiteiOS
 test_framework_SQLCipher: test_framework_SQLCipher3 test_framework_SQLCipher4
 test_install: test_install_manual test_install_SPM test_install_GRDB_CocoaPods test_CocoaPodsLint
@@ -176,6 +184,42 @@ test_framework_GRDBiOS_minTarget:
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBiOS \
 	  -destination $(MIN_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
+
+test_framework_GRDBtvOS: test_framework_GRDBtvOS_maxTarget test_framework_GRDBtvOS_minTarget
+test_framework_GRDBtvOS_maxTarget: test_framework_GRDBtvOS_maxTarget_maxSwift test_framework_GRDBtvOS_maxTarget_minSwift
+
+test_framework_GRDBtvOS_maxTarget_maxSwift:
+	# SQLITE_ENABLE_FTS5 requires iOS 11.4+
+	$(XCODEBUILD) \
+	  -project GRDB.xcodeproj \
+	  -scheme GRDBtvOS \
+	  -destination $(MAX_TVOS_DESTINATION) \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5' \
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
+
+test_framework_GRDBtvOS_maxTarget_minSwift:
+ifdef MIN_SWIFT_VERSION
+	# SQLITE_ENABLE_FTS5 requires iOS 11.4+
+	$(XCODEBUILD) \
+	  -project GRDB.xcodeproj \
+	  -scheme GRDBtvOS \
+	  -destination $(MAX_TVOS_DESTINATION) \
+	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5' \
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
+endif
+
+test_framework_GRDBtvOS_minTarget:
+	$(XCODEBUILD) \
+	  -project GRDB.xcodeproj \
+	  -scheme GRDBtvOS \
+	  -destination $(MIN_TVOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
