@@ -55,26 +55,26 @@ ifeq ($(XCODEVERSION),10.3)
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone X,OS=12.4"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=12.4"
-  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=9.0"
+  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.0"
 else ifeq ($(XCODEVERSION),10.2)
   MAX_SWIFT_VERSION = 5
   MIN_SWIFT_VERSION = 4.2
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone X,OS=12.2"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=12.2"
-  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=9.0"
+  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.0"
 else ifeq ($(XCODEVERSION),10.1)
   MAX_SWIFT_VERSION = 4.2
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone X,OS=12.1"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=12.1"
-  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=9.0"
+  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.0"
 else ifeq ($(XCODEVERSION),10.0)
   MAX_SWIFT_VERSION = 4.2
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=12.0"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=12.0"
-  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=9.0"
+  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.0"
 else
   # Swift 4.1 required: Xcode < 9.3 is not supported
 endif
