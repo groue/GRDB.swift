@@ -186,7 +186,7 @@ public struct FTS5: VirtualTableModule {
         // GRDB is linked against the system SQLite.
         //
         // Do we use SQLite 3.19.3 (iOS 11.4), or SQLite 3.24.0 (iOS 12.0)?
-        if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
+        if #available(iOS 12.0, OSX 10.14, tvOS 12.0, watchOS 5.0, *) {
             // SQLite 3.24.0 or more
             return api_v2(db, sqlite3_prepare_v3, sqlite3_bind_pointer)
         } else {

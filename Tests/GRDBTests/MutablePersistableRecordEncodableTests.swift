@@ -644,7 +644,7 @@ extension MutablePersistableRecordEncodableTests {
         }
     }
     
-    @available(OSX 10.13, iOS 11.0, *)
+    @available(OSX 10.13, iOS 11.0, tvOS 11.0, *)
     struct CustomizedRecord: Encodable, MutablePersistableRecord {
         var nestedKeyed: NestedKeyed
         var nestedSingle: NestedSingle
@@ -686,7 +686,7 @@ extension MutablePersistableRecordEncodableTests {
     // Used as a reference
     func testFoundationBehavior() throws {
         // This test relies on .sortedKeys option
-        if #available(OSX 10.13, iOS 11.0, *) {
+        if #available(OSX 10.13, iOS 11.0, tvOS 11.0, *) {
             do {
                 let record = Record(
                     nestedKeyed: NestedKeyed(name: "foo"),
@@ -774,7 +774,7 @@ extension MutablePersistableRecordEncodableTests {
     
     func testCustomizedRecord() throws {
         // This test relies on .sortedKeys option
-        if #available(OSX 10.13, iOS 11.0, *) {
+        if #available(OSX 10.13, iOS 11.0, tvOS 11.0, *) {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.write { db in
                 try db.create(table: "customizedRecord") { t in
