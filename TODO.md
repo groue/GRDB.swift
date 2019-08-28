@@ -7,6 +7,12 @@
 - [ ] deprecate ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
 - [ ] https://github.com/groue/GRDB.swift/issues/514
 - [ ] Test NOT TESTED methods
+- [ ] Cancellation of a started ValueObservation. Context: https://github.com/groue/GRDB.swift/issues/601#issuecomment-524733140
+
+
+## Documentation
+
+- [ ] Document that creating "too many" ValueObservation increases database contention. This also applies to database pools, because when observations create reader contention, they also create writer contention. Context: https://github.com/groue/GRDB.swift/issues/601#issuecomment-524615772
 
 
 ## Features
@@ -51,6 +57,7 @@
 - [ ] Cursor.underestimatedCount, which could speed up Array(cursor) and fetchAll()
 - [ ] Remove prefix from association keys when association name is namespaced: https://github.com/groue/GRDB.swift/issues/584#issuecomment-517658122
 - [ ] Alternative support for custom SQLite builds, wih CocoaPods: https://github.com/CocoaPods/CocoaPods/issues/9103
+- [ ] Introduce a ValueObservation "mode" which lifts the guarantee that all changes are notified, but allows it to perform its initial fetch immediately when supported by a DatabasePool. Context: https://github.com/groue/GRDB.swift/issues/601#issuecomment-524545056
 
 
 ## Unsure how
