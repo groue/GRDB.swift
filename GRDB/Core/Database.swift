@@ -963,7 +963,7 @@ extension Database {
     /// Call this method from Configuration.onConnect, as in the example below:
     ///
     ///     var config = Configuration()
-    ///     config.prepareDatabase = { db in
+    ///     config.onConnect { db in
     ///         try db.usePassphrase("secret")
     ///     }
     public func usePassphrase(_ passphrase: String) throws {
