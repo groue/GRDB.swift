@@ -222,6 +222,9 @@ class EncryptionTests: GRDBTestCase {
                 try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
             }
+            try dbPool.read { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
+            }
         }
         
         do {
@@ -336,6 +339,9 @@ class EncryptionTests: GRDBTestCase {
             try dbPool.change(passphrase: "newSecret")
             try dbPool.write { db in
                 try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
+            }
+            try dbPool.read { db in
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
             }
         }
