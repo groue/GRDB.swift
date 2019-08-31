@@ -46,9 +46,9 @@
         - [X] Introduce DatabaseConfiguration.onConnect { ... } as a replacement for DatabaseConfiguration.prepareDatabase
         - [ ] Consider introducing DatabaseConfiguration.onDisconnect { ... } 
     - [ ] Deprecate change(passphrase:), and provide a static function instead
-    - [ ] Introduce Database.usePassphrase(_:).
-    - [ ] Make Database.usePassphrase(_:) a no-op if DatabaseConfiguration._passphrase is not nil, as support for the deprecated change(passphrase:).
-    - [ ] Deprecate DatabaseConfiguration.passphrase
+    - [X] Introduce Database.usePassphrase(_:).
+    - [X] Make Database.usePassphrase(_:) a no-op if DatabaseConfiguration._passphrase is not nil, as support for the deprecated change(passphrase:).
+    - [X] Deprecate DatabaseConfiguration.passphrase
     - [ ] Remove SQLiteConnectionDidOpen and 
 
 
