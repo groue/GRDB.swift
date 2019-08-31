@@ -99,6 +99,7 @@ public struct Configuration {
     ///     config.prepareDatabase = { db in
     ///         try db.execute(sql: "PRAGMA kdf_iter = 10000")
     ///     }
+    @available(*, deprecated, message: "Register the database preparation function with Configuration.onConnect { db in ... } instead")
     public var prepareDatabase: ((Database) throws -> Void)?
     
     // MARK: - Transactions
