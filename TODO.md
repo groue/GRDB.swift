@@ -42,12 +42,13 @@
     ```
 - [ ] Database.decrypt(with:)
     - [ ] In order to allow SQLCipher tests to run all tests in an encrypted database, we need to make it possible to register several independent preparation blocks:
-        - [ ] Deprecate DatabaseConfiguration.prepareDatabase
-        - [ ] Introduce DatabaseConfiguration.onConnect { ... } as a replacement for DatabaseConfiguration.prepareDatabase
+        - [X] Deprecate DatabaseConfiguration.prepareDatabase
+        - [X] Introduce DatabaseConfiguration.onConnect { ... } as a replacement for DatabaseConfiguration.prepareDatabase
         - [ ] Consider introducing DatabaseConfiguration.onDisconnect { ... } 
     - [ ] Deprecate change(passphrase:), and provide a static function instead
-    - [ ] Introduce Database.decrypt(with:)
+    - [ ] Introduce Database.decrypt(with:). Make it a no-op if DatabaseConfiguration.passphrase is not nil.
     - [ ] Deprecate DatabaseConfiguration.passphrase
+    - [ ] Remove SQLiteConnectionDidOpen and 
 
 
 ## Unsure if necessary

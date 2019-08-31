@@ -329,7 +329,7 @@ class EncryptionTests: GRDBTestCase {
     func testCipherPageSize() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            dbConfiguration.prepareDatabase = { db in
+            dbConfiguration.onConnect { db in
                 try db.execute(sql: "PRAGMA cipher_page_size = 8192")
             }
             
@@ -341,7 +341,7 @@ class EncryptionTests: GRDBTestCase {
         
         do {
             dbConfiguration.passphrase = "secret"
-            dbConfiguration.prepareDatabase = { db in
+            dbConfiguration.onConnect { db in
                 try db.execute(sql: "PRAGMA cipher_page_size = 4096")
             }
             
@@ -362,7 +362,7 @@ class EncryptionTests: GRDBTestCase {
     func testCipherKDFIterations() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            dbConfiguration.prepareDatabase = { db in
+            dbConfiguration.onConnect { db in
                 try db.execute(sql: "PRAGMA kdf_iter = 128000")
             }
             
@@ -374,7 +374,7 @@ class EncryptionTests: GRDBTestCase {
 
         do {
             dbConfiguration.passphrase = "secret"
-            dbConfiguration.prepareDatabase = { db in
+            dbConfiguration.onConnect { db in
                 try db.execute(sql: "PRAGMA kdf_iter = 128000")
             }
 
@@ -395,7 +395,7 @@ class EncryptionTests: GRDBTestCase {
     func testCipherWithMismatchedKDFIterations() throws {
         do {
             dbConfiguration.passphrase = "secret"
-            dbConfiguration.prepareDatabase = { db in
+            dbConfiguration.onConnect { db in
                 try db.execute(sql: "PRAGMA kdf_iter = 128000")
             }
 
@@ -414,7 +414,7 @@ class EncryptionTests: GRDBTestCase {
 
         do {
             dbConfiguration.passphrase = "secret"
-            dbConfiguration.prepareDatabase = { db in
+            dbConfiguration.onConnect { db in
                 try db.execute(sql: "PRAGMA kdf_iter = 64000")
             }
 
@@ -488,7 +488,7 @@ class EncryptionTests: GRDBTestCase {
             let path = testBundle.url(forResource: "db", withExtension: "SQLCipher3")!.path
             var configuration = Configuration()
             configuration.passphrase = "secret"
-            configuration.prepareDatabase = { db in
+            configuration.onConnect { db in
                 try db.execute(sql: "PRAGMA cipher_compatibility = 3")
             }
             

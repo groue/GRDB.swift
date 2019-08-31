@@ -75,7 +75,6 @@ public struct Configuration {
     /// Default: nil
     public var trace: TraceFunction?
     
-    
     // MARK: - Encryption
     
     #if SQLITE_HAS_CODEC
@@ -83,15 +82,16 @@ public struct Configuration {
     ///
     /// Default: nil
     public var passphrase: String?
-    
     #endif
     
-    /// If set, allows custom configuration to be run every time
-    /// a new connection is opened.
-    ///
-    /// This block is run after the Database's connection has opened, but
-    /// before that connection has been made available to any read/write
-    /// API's.
+    // MARK: - Managing SQLite Connections
+    
+    // TODO: remove when the deprecated prepareDatabase turns unavailable.
+    private var _prepareDatabase: ((Database) throws -> Void)?
+    private var _databaseDidConnect: ((Database) throws -> Void)?
+    
+    /// A function that is run when an SQLite connection is opened, before the
+    /// connection is made available for database access methods.
     ///
     /// For example:
     ///
@@ -99,8 +99,39 @@ public struct Configuration {
     ///     config.prepareDatabase = { db in
     ///         try db.execute(sql: "PRAGMA kdf_iter = 10000")
     ///     }
-    @available(*, deprecated, message: "Register the database preparation function with Configuration.onConnect { db in ... } instead")
-    public var prepareDatabase: ((Database) throws -> Void)?
+    @available(*, deprecated, message: "Register the database preparation function with Configuration.onConnect { db in ... } instead") // swiftlint:disable:this line_length
+    public var prepareDatabase: ((Database) throws -> Void)? {
+        get { return _prepareDatabase }
+        set { _prepareDatabase = newValue }
+    }
+    
+    /// Registers a function that is run when an SQLite connection is opened,
+    /// before the connection is made available for database access methods.
+    ///
+    /// For example:
+    ///
+    ///     var config = Configuration()
+    ///     config.onConnect { db in
+    ///         try db.execute(sql: "PRAGMA kdf_iter = 10000")
+    ///     }
+    ///
+    /// You can call this method multiple times. All registered functions are
+    /// run, in the same order as their registration.
+    public mutating func onConnect(execute function: @escaping (Database) throws -> Void) {
+        if let old = _databaseDidConnect {
+            _databaseDidConnect = { db in
+                try old(db)
+                try function(db)
+            }
+        } else {
+            _databaseDidConnect = function
+        }
+    }
+    
+    func databaseDidConnect(_ db: Database) throws {
+        try _prepareDatabase?(db)
+        try _databaseDidConnect?(db)
+    }
     
     // MARK: - Transactions
     
