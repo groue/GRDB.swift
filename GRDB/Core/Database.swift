@@ -213,8 +213,8 @@ extension Database {
         
         #if SQLITE_HAS_CODEC
         try validateSQLCipher()
-        if let passphrase = configuration.passphrase {
-            try setCipherPassphrase(passphrase)
+        if let passphrase = configuration._passphrase {
+            try usePassphrase(passphrase)
         }
         #endif
         
@@ -382,22 +382,6 @@ extension Database {
                 GRDB is not linked against SQLCipher. \
                 Check https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
                 """)
-        }
-    }
-    
-    private func setCipherPassphrase(_ passphrase: String) throws {
-        let data = passphrase.data(using: .utf8)!
-        #if swift(>=5.0)
-        let code = data.withUnsafeBytes {
-            sqlite3_key(sqliteConnection, $0.baseAddress, Int32($0.count))
-        }
-        #else
-        let code = data.withUnsafeBytes {
-            sqlite3_key(sqliteConnection, $0, Int32(data.count))
-        }
-        #endif
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
     }
     #endif
@@ -973,6 +957,30 @@ extension Database {
 extension Database {
     
     // MARK: - Encryption
+    
+    /// Sets the passphrase used to crypt and decrypt an SQLCipher database.
+    ///
+    /// Call this method from Configuration.onConnect, as in the example below:
+    ///
+    ///     var config = Configuration()
+    ///     config.prepareDatabase = { db in
+    ///         try db.usePassphrase("secret")
+    ///     }
+    public func usePassphrase(_ passphrase: String) throws {
+        let data = passphrase.data(using: .utf8)!
+        #if swift(>=5.0)
+        let code = data.withUnsafeBytes {
+            sqlite3_key(sqliteConnection, $0.baseAddress, Int32($0.count))
+        }
+        #else
+        let code = data.withUnsafeBytes {
+            sqlite3_key(sqliteConnection, $0, Int32(data.count))
+        }
+        #endif
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+    }
     
     func change(passphrase: String) throws {
         // FIXME: sqlite3_rekey is discouraged.

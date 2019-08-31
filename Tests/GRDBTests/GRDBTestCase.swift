@@ -117,8 +117,10 @@ class GRDBTestCase: XCTestCase {
         }
         
         #if GRDBCIPHER_USE_ENCRYPTION
-            // We are testing encrypted databases.
-            dbConfiguration.passphrase = "secret"
+        // Encrypt all databases by default.
+        dbConfiguration.onConnect { db in
+            try db.usePassphrase("secret")
+        }
         #endif
         
         sqlQueries = []

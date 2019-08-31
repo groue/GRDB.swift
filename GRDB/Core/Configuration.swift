@@ -78,10 +78,17 @@ public struct Configuration {
     // MARK: - Encryption
     
     #if SQLITE_HAS_CODEC
+    // TODO: remove when the deprecated passphrase turns unavailable.
+    var _passphrase: String?
+    
     /// The passphrase for the encrypted database.
     ///
     /// Default: nil
-    public var passphrase: String?
+    @available(*, deprecated, message: "Use Database.usePassphrase(_:) in Configuration.onConnect(execute:) instead.")
+    public var passphrase: String? {
+        get { return _passphrase }
+        set { _passphrase = newValue }
+    }
     #endif
     
     // MARK: - Managing SQLite Connections
@@ -99,7 +106,7 @@ public struct Configuration {
     ///     config.prepareDatabase = { db in
     ///         try db.execute(sql: "PRAGMA kdf_iter = 10000")
     ///     }
-    @available(*, deprecated, message: "Register the database preparation function with Configuration.onConnect { db in ... } instead") // swiftlint:disable:this line_length
+    @available(*, deprecated, message: "Use onConnect instead")
     public var prepareDatabase: ((Database) throws -> Void)? {
         get { return _prepareDatabase }
         set { _prepareDatabase = newValue }

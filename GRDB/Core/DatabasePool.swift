@@ -246,7 +246,7 @@ extension DatabasePool {
         try readerPool.barrier {
             try writer.sync { try $0.change(passphrase: passphrase) }
             readerPool.removeAll()
-            readerConfig.passphrase = passphrase
+            readerConfig._passphrase = passphrase
         }
     }
 }
