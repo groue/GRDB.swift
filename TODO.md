@@ -40,6 +40,14 @@
     let players = Player.filter(...) // Returns a request that filters on column A or column B depending on the argument
     players.update(...)              // Runs the expected UPDATE statement
     ```
+- [ ] Database.decrypt(with:)
+    - [ ] In order to allow SQLCipher tests to run all tests in an encrypted database, we need to make it possible to register several independent preparation blocks:
+        - [ ] Deprecate DatabaseConfiguration.prepareDatabase
+        - [ ] Introduce DatabaseConfiguration.onConnect { ... } as a replacement for DatabaseConfiguration.prepareDatabase
+        - [ ] Consider introducing DatabaseConfiguration.onDisconnect { ... } 
+    - [ ] Deprecate change(passphrase:), and provide a static function instead
+    - [ ] Introduce Database.decrypt(with:)
+    - [ ] Deprecate DatabaseConfiguration.passphrase
 
 
 ## Unsure if necessary
