@@ -171,12 +171,17 @@ extension DatabasePool {
     
     /// Free as much memory as possible.
     ///
-    /// This method blocks the current thread until all database accesses are completed.
+    /// This method blocks the current thread until all database accesses
+    /// are completed.
     ///
     /// See also setupMemoryManagement(application:)
     public func releaseMemory() {
-        forEachConnection { $0.releaseMemory() }
-        readerPool.clear()
+        // Release writer memory
+        writer.sync { $0.releaseMemory() }
+        // Release readers memory by closing all connections
+        readerPool.barrier {
+            readerPool.removeAll()
+        }
     }
     
     

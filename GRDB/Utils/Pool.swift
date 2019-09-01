@@ -38,52 +38,52 @@ import Dispatch
 final class Pool<T> {
     private class Item {
         let element: T
-        var available: Bool
+        var isAvailable: Bool
         
-        init(element: T, available: Bool) {
+        init(element: T, isAvailable: Bool) {
             self.element = element
-            self.available = available
+            self.isAvailable = isAvailable
         }
     }
     
     private let makeElement: () throws -> T
     private var items: ReadWriteBox<[Item]> = ReadWriteBox([])
-    private let semaphore: DispatchSemaphore // limits the number of elements
+    private let itemsSemaphore: DispatchSemaphore // limits the number of elements
+    private let itemsGroup: DispatchGroup         // knows when no element is used
+    private let barrierQueue: DispatchQueue
     
     init(maximumCount: Int, makeElement: @escaping () throws -> T) {
         GRDBPrecondition(maximumCount > 0, "Pool size must be at least 1")
         self.makeElement = makeElement
-        self.semaphore = DispatchSemaphore(value: maximumCount)
+        self.itemsSemaphore = DispatchSemaphore(value: maximumCount)
+        self.itemsGroup = DispatchGroup()
+        self.barrierQueue = DispatchQueue(label: "GRDB.Pool.barrier", attributes: [.concurrent])
     }
     
     /// Returns a tuple (element, release)
-    /// Client MUST call release() after the element has been used.
-    func get() throws -> (T, () -> Void) {
-        _ = semaphore.wait(timeout: .distantFuture)
-        do {
-            let item = try items.write { items -> Item in
-                if let item = items.first(where: { $0.available }) {
-                    item.available = false
-                    return item
-                } else {
-                    let element = try makeElement()
-                    let item = Item(element: element, available: false)
-                    items.append(item)
-                    return item
+    /// Client must call release(), only once, after the element has been used.
+    func get() throws -> (element: T, release: () -> Void) {
+        return try barrierQueue.sync {
+            itemsSemaphore.wait()
+            itemsGroup.enter()
+            do {
+                let item = try items.write { items -> Item in
+                    if let item = items.first(where: { $0.isAvailable }) {
+                        item.isAvailable = false
+                        return item
+                    } else {
+                        let element = try makeElement()
+                        let item = Item(element: element, isAvailable: false)
+                        items.append(item)
+                        return item
+                    }
                 }
+                return (element: item.element, release: { self.release(item) })
+            } catch {
+                itemsSemaphore.signal()
+                itemsGroup.leave()
+                throw error
             }
-            let release = {
-                self.items.write { _ in
-                    // This is why Item is a class, not a struct: so that we can
-                    // release it without having to find in it the items array.
-                    item.available = true
-                }
-                self.semaphore.signal()
-            }
-            return (item.element, release)
-        } catch {
-            semaphore.signal()
-            throw error
         }
     }
     
@@ -93,6 +93,16 @@ final class Pool<T> {
         let (element, release) = try get()
         defer { release() }
         return try block(element)
+    }
+    
+    private func release(_ item: Item) {
+        items.write { _ in
+            // This is why Item is a class, not a struct: so that we can
+            // release it without having to find in it the items array.
+            item.isAvailable = true
+        }
+        itemsSemaphore.signal()
+        itemsGroup.leave()
     }
     
     /// Performs a block on each pool element, available or not.
@@ -105,17 +115,29 @@ final class Pool<T> {
         }
     }
     
-    /// Empty the pool. Currently used items won't be reused.
-    func clear() {
-        clear {}
+    /// Removes all elements from the pool.
+    /// Currently used elements won't be reused.
+    /// The `execute` function is executed before any other element is dequeued.
+    func removeAll() {
+        removeAll(andThen: {})
     }
     
-    /// Empty the pool. Currently used items won't be reused.
-    /// Eventual block is executed before any other element is dequeued.
-    func clear(andThen block: () throws -> Void) rethrows {
-        try items.write { items in
+    /// Removes all elements from the pool, and runs the `body` function before
+    /// any other element is dequeued.
+    /// Currently used elements won't be reused.
+    func removeAll<T>(andThen body: () throws -> T) rethrows -> T {
+        return try items.write { items in
             items.removeAll()
-            try block()
+            return try body()
+        }
+    }
+    
+    /// Blocks until no element is used, and runs the `barrier` function before
+    /// any other element is dequeued.
+    func barrier<T>(execute barrier: () throws -> T) rethrows -> T {
+        return try barrierQueue.sync(flags: [.barrier]) {
+            itemsGroup.wait()
+            return try barrier()
         }
     }
 }
