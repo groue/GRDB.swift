@@ -243,10 +243,11 @@ extension DatabasePool {
     
     /// Changes the passphrase of an encrypted database
     public func change(passphrase: String) throws {
-        try readerPool.clear(andThen: {
+        try readerPool.barrier {
             try writer.sync { try $0.change(passphrase: passphrase) }
+            readerPool.removeAll()
             readerConfig.passphrase = passphrase
-        })
+        }
     }
 }
 #endif
