@@ -84,7 +84,7 @@ public struct Configuration {
     /// The passphrase for the encrypted database.
     ///
     /// Default: nil
-    @available(*, deprecated, message: "Use Database.usePassphrase(_:) in Configuration.onConnect(execute:) instead.")
+    @available(*, deprecated, message: "Use Database.usePassphrase(_:) in Configuration.prepareDatabase instead.")
     public var passphrase: String? {
         get { return _passphrase }
         set { _passphrase = newValue }
@@ -92,10 +92,6 @@ public struct Configuration {
     #endif
     
     // MARK: - Managing SQLite Connections
-    
-    // TODO: remove when the deprecated prepareDatabase turns unavailable.
-    private var _prepareDatabase: ((Database) throws -> Void)?
-    private var _databaseDidConnect: ((Database) throws -> Void)?
     
     /// A function that is run when an SQLite connection is opened, before the
     /// connection is made available for database access methods.
@@ -106,39 +102,7 @@ public struct Configuration {
     ///     config.prepareDatabase = { db in
     ///         try db.execute(sql: "PRAGMA kdf_iter = 10000")
     ///     }
-    @available(*, deprecated, message: "Use onConnect instead")
-    public var prepareDatabase: ((Database) throws -> Void)? {
-        get { return _prepareDatabase }
-        set { _prepareDatabase = newValue }
-    }
-    
-    /// Registers a function that is run when an SQLite connection is opened,
-    /// before the connection is made available for database access methods.
-    ///
-    /// For example:
-    ///
-    ///     var config = Configuration()
-    ///     config.onConnect { db in
-    ///         try db.execute(sql: "PRAGMA kdf_iter = 10000")
-    ///     }
-    ///
-    /// You can call this method multiple times. All registered functions are
-    /// run, in the same order as their registration.
-    public mutating func onConnect(execute function: @escaping (Database) throws -> Void) {
-        if let old = _databaseDidConnect {
-            _databaseDidConnect = { db in
-                try old(db)
-                try function(db)
-            }
-        } else {
-            _databaseDidConnect = function
-        }
-    }
-    
-    func databaseDidConnect(_ db: Database) throws {
-        try _prepareDatabase?(db)
-        try _databaseDidConnect?(db)
-    }
+    public var prepareDatabase: ((Database) throws -> Void)?
     
     // MARK: - Transactions
     

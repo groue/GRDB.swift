@@ -41,15 +41,10 @@
     players.update(...)              // Runs the expected UPDATE statement
     ```
 - [ ] Database.usePassphrase(_:)
-    - [ ] In order to allow SQLCipher tests to run all tests in an encrypted database, we need to make it possible to register several independent preparation blocks:
-        - [X] Deprecate DatabaseConfiguration.prepareDatabase
-        - [X] Introduce DatabaseConfiguration.onConnect { ... } as a replacement for DatabaseConfiguration.prepareDatabase
-        - [ ] Consider introducing DatabaseConfiguration.onDisconnect { ... } 
-    - [ ] Deprecate change(passphrase:), and provide a static function instead
+    - [ ] Deprecate change(passphrase:), and provide an alternative solution
     - [X] Introduce Database.usePassphrase(_:).
     - [X] Make Database.usePassphrase(_:) a no-op if DatabaseConfiguration._passphrase is not nil, as support for the deprecated change(passphrase:).
     - [X] Deprecate DatabaseConfiguration.passphrase
-    - [ ] Remove SQLiteConnectionDidOpen and 
 
 
 ## Unsure if necessary
