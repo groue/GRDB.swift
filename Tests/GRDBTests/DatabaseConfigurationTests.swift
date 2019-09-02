@@ -25,5 +25,8 @@ class DatabaseConfigurationTests: GRDBTestCase {
         
         try pool.read { _ in }
         XCTAssertEqual(connectionCount, 4)
+        
+        try pool.makeSnapshot().read { _ in }
+        XCTAssertEqual(connectionCount, 5)
     }
 }
