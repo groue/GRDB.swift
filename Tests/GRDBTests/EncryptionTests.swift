@@ -586,37 +586,37 @@ class EncryptionTests: GRDBTestCase {
         }
     }
     
-//    func testDeprecatedPassphrase() throws {
-//        do {
-//            var config = Configuration()
-//            config.passphrase = "secret"
-//            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
-//            try dbQueue.inDatabase { db in
-//                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
-//                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
-//            }
-//        }
-//
-//        do {
-//            var config = Configuration()
-//            config.passphrase = "secret"
-//            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
-//            try dbQueue.inDatabase { db in
-//                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
-//            }
-//        }
-//
-//        do {
-//            var config = Configuration()
-//            config.passphrase = nil
-//            do {
-//                _ = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
-//                XCTFail("Expected error")
-//            } catch let error as DatabaseError {
-//                XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
-//                XCTAssertEqual(error.message!, "file is not a database")
-//            }
-//        }
-//    }
+    func testDeprecatedPassphrase() throws {
+        do {
+            var config = Configuration()
+            config.passphrase = "secret"
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
+            }
+        }
+
+        do {
+            var config = Configuration()
+            config.passphrase = "secret"
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+            try dbQueue.inDatabase { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
+            }
+        }
+
+        do {
+            var config = Configuration()
+            config.passphrase = nil
+            do {
+                _ = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+                XCTFail("Expected error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
+                XCTAssertEqual(error.message!, "file is not a database")
+            }
+        }
+    }
 }
 #endif
