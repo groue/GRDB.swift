@@ -242,9 +242,10 @@ extension DatabasePool {
     // MARK: - Encryption
     
     /// Changes the passphrase of an encrypted database
+    @available(*, deprecated, message: "Use Database.changePassphrase(_:) instead")
     public func change(passphrase: String) throws {
         try readerPool.barrier {
-            try writer.sync { try $0.change(passphrase: passphrase) }
+            try writer.sync { try $0.changePassphrase(passphrase) }
             readerPool.removeAll()
             readerConfig._passphrase = passphrase
         }
@@ -595,6 +596,17 @@ extension DatabasePool: DatabaseReader {
         _ = isolationSemaphore.wait(timeout: .distantFuture)
     }
     #endif
+    
+    /// Invalidates open read-only SQLite connections.
+    ///
+    /// After this method is called, read-only database access methods will use
+    /// new SQLite connections.
+    ///
+    /// Eventual concurrent read-only accesses are not invalidated: they will
+    /// proceed until completion.
+    public func invalidateReadOnlyConnections() {
+        readerPool.removeAll()
+    }
     
     /// Returns a reader that can be used from the current dispatch queue,
     /// if any.

@@ -140,8 +140,9 @@ extension DatabaseQueue {
     // MARK: - Encryption
     
     /// Changes the passphrase of an encrypted database
+    @available(*, deprecated, message: "Use Database.changePassphrase(_:) instead")
     public func change(passphrase: String) throws {
-        try writer.sync { try $0.change(passphrase: passphrase) }
+        try writer.sync { try $0.changePassphrase(passphrase) }
     }
 }
 #endif

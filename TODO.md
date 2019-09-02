@@ -41,7 +41,7 @@
     players.update(...)              // Runs the expected UPDATE statement
     ```
 - [ ] Database.usePassphrase(_:)
-    - [ ] Deprecate change(passphrase:), and provide an alternative solution
+    - [X] Deprecate change(passphrase:), and provide an alternative solution
     - [X] Introduce Database.usePassphrase(_:).
     - [X] Make Database.usePassphrase(_:) a no-op if DatabaseConfiguration._passphrase is not nil, as support for the deprecated change(passphrase:).
     - [X] Deprecate DatabaseConfiguration.passphrase

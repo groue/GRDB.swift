@@ -100,7 +100,12 @@ class EncryptionTests: GRDBTestCase {
                 try db.usePassphrase("secret")
             }
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
-            try dbQueue.change(passphrase: "newSecret")
+            try dbQueue.inDatabase { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
+            }
+            try dbQueue.write { db in
+                try db.changePassphrase("newSecret")
+            }
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
             }
@@ -212,12 +217,20 @@ class EncryptionTests: GRDBTestCase {
         }
         
         do {
+            var passphrase = "secret"
             var config = Configuration()
             config.prepareDatabase = { db in
-                try db.usePassphrase("secret")
+                try db.usePassphrase(passphrase)
             }
             let dbPool = try makeDatabasePool(filename: "test.sqlite", configuration: config)
-            try dbPool.change(passphrase: "newSecret")
+            try dbPool.read { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
+            }
+            try dbPool.barrierWriteWithoutTransaction { db in
+                passphrase = "newSecret"
+                try db.changePassphrase(passphrase)
+                dbPool.invalidateReadOnlyConnections()
+            }
             try dbPool.write { db in
                 try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
@@ -331,12 +344,20 @@ class EncryptionTests: GRDBTestCase {
         }
         
         do {
+            var passphrase = "secret"
             var config = Configuration()
             config.prepareDatabase = { db in
-                try db.usePassphrase("secret")
+                try db.usePassphrase(passphrase)
             }
             let dbPool = try makeDatabasePool(filename: "test.sqlite", configuration: config)
-            try dbPool.change(passphrase: "newSecret")
+            try dbPool.read { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
+            }
+            try dbPool.barrierWriteWithoutTransaction { db in
+                passphrase = "newSecret"
+                try db.changePassphrase(passphrase)
+                dbPool.invalidateReadOnlyConnections()
+            }
             try dbPool.write { db in
                 try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
@@ -586,6 +607,8 @@ class EncryptionTests: GRDBTestCase {
         }
     }
     
+    // MARK: - Deprecated
+    
     func testDeprecatedPassphrase() throws {
         do {
             var config = Configuration()
@@ -615,6 +638,129 @@ class EncryptionTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_NOTADB)
                 XCTAssertEqual(error.message!, "file is not a database")
+            }
+        }
+    }
+    
+    func testDeprecatedDatabaseQueueWithPassphraseToDatabaseQueueWithNewPassphrase() throws {
+        do {
+            var config = Configuration()
+            config.prepareDatabase = { db in
+                try db.usePassphrase("secret")
+            }
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
+            }
+        }
+        
+        do {
+            var config = Configuration()
+            config.prepareDatabase = { db in
+                try db.usePassphrase("secret")
+            }
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+            try dbQueue.change(passphrase: "newSecret")
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
+            }
+            try dbQueue.inDatabase { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
+            }
+        }
+        
+        do {
+            var config = Configuration()
+            config.prepareDatabase = { db in
+                try db.usePassphrase("newSecret")
+            }
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+            try dbQueue.inDatabase { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
+            }
+        }
+    }
+    
+    func testDeprecatedDatabaseQueueWithPassphraseToDatabasePoolWithNewPassphrase() throws {
+        do {
+            var config = Configuration()
+            config.prepareDatabase = { db in
+                try db.usePassphrase("secret")
+            }
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
+            }
+        }
+        
+        do {
+            var config = Configuration()
+            config.prepareDatabase = { db in
+                try db.usePassphrase("secret")
+            }
+            let dbPool = try makeDatabasePool(filename: "test.sqlite", configuration: config)
+            try dbPool.change(passphrase: "newSecret")
+            try dbPool.write { db in
+                try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
+            }
+            try dbPool.read { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
+            }
+        }
+        
+        do {
+            var config = Configuration()
+            config.prepareDatabase = { db in
+                try db.usePassphrase("newSecret")
+            }
+            let dbPool = try makeDatabasePool(filename: "test.sqlite", configuration: config)
+            try dbPool.read { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
+            }
+        }
+    }
+
+    func testDeprecatedDatabasePoolWithPassphraseToDatabasePoolWithNewPassphrase() throws {
+        
+        do {
+            var config = Configuration()
+            config.prepareDatabase = { db in
+                try db.usePassphrase("secret")
+            }
+            let dbPool = try makeDatabasePool(filename: "test.sqlite", configuration: config)
+            try dbPool.write { db in
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
+            }
+        }
+        
+        do {
+            var config = Configuration()
+            config.prepareDatabase = { db in
+                try db.usePassphrase("secret")
+            }
+            let dbPool = try makeDatabasePool(filename: "test.sqlite", configuration: config)
+            try dbPool.change(passphrase: "newSecret")
+            try dbPool.write { db in
+                try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
+            }
+            try dbPool.read { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
+            }
+        }
+        
+        do {
+            var config = Configuration()
+            config.prepareDatabase = { db in
+                try db.usePassphrase("newSecret")
+            }
+            let dbPool = try makeDatabasePool(filename: "test.sqlite", configuration: config)
+            try dbPool.read { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
             }
         }
     }
