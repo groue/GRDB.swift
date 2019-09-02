@@ -1244,29 +1244,36 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
             }
             
-            // Read
             let s1 = DispatchSemaphore(value: 0)
             let s2 = DispatchSemaphore(value: 0)
-            dbPool.asyncRead { _ in
-                s1.signal()
-                s2.wait()
+            let s3 = DispatchSemaphore(value: 0)
+            let s4 = DispatchSemaphore(value: 0)
+            
+            DispatchQueue.global().async {
+                try! dbPool.read { _ in
+                    s1.signal()
+                    s2.signal()
+                    s3.wait()
+                }
             }
             
-            let s3 = DispatchSemaphore(value: 0)
             DispatchQueue.global().async {
+                // Wait for read to start
+                s1.wait()
+
                 dbPool.barrierWriteWithoutTransaction { _ in }
                 expectation.fulfill()
-                s3.signal()
+                s4.signal()
             }
             
             // Assert that barrier is blocked
             waitForExpectations(timeout: 1)
             
             // Release read
-            s2.signal()
+            s3.signal()
             
             // Wait for barrier to complete
-            s3.wait()
+            s4.wait()
         }
     }
 }
