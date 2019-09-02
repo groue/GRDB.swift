@@ -1186,4 +1186,94 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
     }
     #endif
+    
+    // MARK: - Barrier
+    
+    func testBarrierLocksReads() throws {
+        if #available(OSX 10.10, *) {
+            let expectation = self.expectation(description: "lock")
+            expectation.isInverted = true
+            
+            let dbPool = try makeDatabasePool()
+            try dbPool.write { db in
+                try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            }
+            var fetchedValue: Int?
+            let s1 = DispatchSemaphore(value: 0)
+            let s2 = DispatchSemaphore(value: 0)
+            let s3 = DispatchSemaphore(value: 0)
+            
+            DispatchQueue.global().async {
+                try! dbPool.barrierWriteWithoutTransaction { db in
+                    try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
+                    s1.signal()
+                    s2.wait()
+                }
+            }
+            
+            DispatchQueue.global().async {
+                // Wait for barrier to start
+                s1.wait()
+                
+                fetchedValue = try! dbPool.read { db in
+                    try Int.fetchOne(db, sql: "SELECT id FROM items")!
+                }
+                expectation.fulfill()
+                s3.signal()
+            }
+            
+            // Assert that read is blocked
+            waitForExpectations(timeout: 1)
+            
+            // Release barrier
+            s2.signal()
+            
+            // Wait for read to complete
+            s3.wait()
+            XCTAssertEqual(fetchedValue, 1)
+        }
+    }
+    
+    func testBarrierIsLockedByOneUnfinishedRead() throws {
+        if #available(OSX 10.10, *) {
+            let expectation = self.expectation(description: "lock")
+            expectation.isInverted = true
+            
+            let dbPool = try makeDatabasePool()
+            try dbPool.write { db in
+                try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            }
+            
+            let s1 = DispatchSemaphore(value: 0)
+            let s2 = DispatchSemaphore(value: 0)
+            let s3 = DispatchSemaphore(value: 0)
+            let s4 = DispatchSemaphore(value: 0)
+            
+            DispatchQueue.global().async {
+                try! dbPool.read { _ in
+                    s1.signal()
+                    s2.signal()
+                    s3.wait()
+                }
+            }
+            
+            DispatchQueue.global().async {
+                // Wait for read to start
+                s1.wait()
+
+                dbPool.barrierWriteWithoutTransaction { _ in }
+                expectation.fulfill()
+                s4.signal()
+            }
+            
+            // Assert that barrier is blocked
+            waitForExpectations(timeout: 1)
+            
+            // Release read
+            s3.signal()
+            
+            // Wait for barrier to complete
+            s4.wait()
+        }
+    }
 }

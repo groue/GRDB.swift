@@ -8016,6 +8016,12 @@ For more information about database pools, grab information about SQLite [WAL mo
 
 ### Advanced DatabasePool
 
+- [The `concurrenRead` Method](#the-concurrenread-method)
+- [The `barrierWriteWithoutTransaction` Method](#the-barrierwritewithouttransaction-method)
+
+
+#### The `concurrenRead` Method
+
 [Database pools](#database-pools) are very concurrent, since all reads can run in parallel, and can even run during write operations. But writes are still serialized: at any given point in time, there is no more than a single thread that is writing into the database.
 
 When your application modifies the database, and then reads some value that depends on those modifications, you may want to avoid locking the writer queue longer than necessary:
@@ -8086,6 +8092,20 @@ try dbPool.writeWithoutTransaction { db in
 ```
 
 [Transaction Observers](#transactionobserver-protocol) can also use `concurrentRead` in their `databaseDidCommit` method in order to process database changes without blocking other threads that want to write into the database.
+
+
+#### The `barrierWriteWithoutTransaction` Method
+
+```swift
+try dbPool.barrierWriteWithoutTransaction { db in
+    // Exclusive database access
+}
+```
+
+The barrier write guarantees exclusive access to the database: the method blocks until all concurrent database accesses are completed, reads and writes, and postpones all other accesses until it completes.
+
+There is a known limitation: reads performed by [database snapshots](#database-snapshots) are out of scope, and may run concurrently with the barrier.
+
 
 
 ### Database Snapshots

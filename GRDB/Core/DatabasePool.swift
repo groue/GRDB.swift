@@ -171,12 +171,17 @@ extension DatabasePool {
     
     /// Free as much memory as possible.
     ///
-    /// This method blocks the current thread until all database accesses are completed.
+    /// This method blocks the current thread until all database accesses
+    /// are completed.
     ///
     /// See also setupMemoryManagement(application:)
     public func releaseMemory() {
-        forEachConnection { $0.releaseMemory() }
-        readerPool.clear()
+        // Release writer memory
+        writer.sync { $0.releaseMemory() }
+        // Release readers memory by closing all connections
+        readerPool.barrier {
+            readerPool.removeAll()
+        }
     }
     
     
@@ -238,10 +243,11 @@ extension DatabasePool {
     
     /// Changes the passphrase of an encrypted database
     public func change(passphrase: String) throws {
-        try readerPool.clear(andThen: {
+        try readerPool.barrier {
             try writer.sync { try $0.change(passphrase: passphrase) }
+            readerPool.removeAll()
             readerConfig.passphrase = passphrase
-        })
+        }
     }
 }
 #endif
@@ -629,6 +635,22 @@ extension DatabasePool: DatabaseReader {
     /// - throws: The error thrown by the updates.
     public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         return try writer.sync(updates)
+    }
+    
+    /// A barrier write ensures that no database access is executed until all
+    /// previous accesses have completed, and the specified updates have been
+    /// executed.
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - important: Reads executed by concurrent *database snapshots* are not
+    ///   considered: they can run concurrently with the barrier updates.
+    /// - parameter updates: The updates to the database.
+    /// - throws: The error thrown by the updates.
+    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
+        return try readerPool.barrier {
+            try writer.sync(updates)
+        }
     }
     
     /// Synchronously executes database updates in a protected dispatch queue,
