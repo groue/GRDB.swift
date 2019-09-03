@@ -7418,7 +7418,7 @@ In the sample code below, we assume the presence of two functions provided by th
 // 1. Open the database pool
 var config = Configuration()
 config.prepareDatabase = { db in
-    let passphrase = try loadPassphrase()
+    let passphrase = loadPassphrase()
     try db.usePassphrase(passphrase)
 }
 let dbPool = try DatabasePool(path: ..., configuration: config)
@@ -7426,8 +7426,8 @@ let dbPool = try DatabasePool(path: ..., configuration: config)
 // 2. Later on, change the passphrase
 try dbPool.barrierWriteWithoutTransaction { db in
     let newPassphrase = "newSecret"
-    try savePassphrase(newPassphrase)
     try db.changePassphrase(newPassphrase)
+    savePassphrase(newPassphrase)
     dbPool.invalidateReadOnlyConnections()
 }
 
@@ -7435,6 +7435,10 @@ try dbPool.barrierWriteWithoutTransaction { db in
 try dbPool.write { ... }
 try dbPool.read { ... }
 ```
+
+TODO: Explain that if the `loadPassphrase` function throws an error, it is rethrown.
+
+TODO: Explain that if the `savePassphrase` function may throw an error, then you have to take in account the risk of passphrase desynchronization. You may have to attempt *several* passphrases (see below).
 
 
 ### Encrypting a Clear-Text Database
