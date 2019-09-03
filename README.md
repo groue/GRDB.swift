@@ -7338,35 +7338,106 @@ pod 'GRDB.swift/SQLCipher'
 pod 'SQLCipher', '~> 3.4'
 ```
 
-> :warning: **Warning**: SQLCipher 4 is *not compatible** with SQLCipher 3.
->
-> When you want to open your existing SQLCipher 3 database with SQLCipher 4, you may want to run the `cipher_compatibility` pragma:
->
-> ```swift
-> // Open an SQLCipher 3 database with SQLCipher 4
-> var configuration = Configuration()
-> configuration.passphrase = "..."
-> configuration.prepareDatabase = { db in
->     try db.execute(sql: "PRAGMA cipher_compatibility = 3")
-> }
-> let dbQueue = try DatabaseQueue(path: dbPath, configuration: configuration)
-> ```
->
-> See [SQLCipher 4.0.0 Release](https://www.zetetic.net/blog/2018/11/30/sqlcipher-400-release/) and [Upgrading to SQLCipher 4](https://discuss.zetetic.net/t/upgrading-to-sqlcipher-4/3283) for more information. See also [Advanced configuration options for SQLCipher](#advanced-configuration-options-for-sqlcipher) below.
+- [Creating or Opening an Encrypted Database](#creating-or-opening-an-encrypted-database)
+- [Changing the Passphrase of an Encrypted Database](#changing-the-passphrase-of-an-encrypted-database)
+- [Encrypting a Clear-Text Database](#encrypting-a-clear-text-database)
+- [Attempting Several Passphrases](#attempting-several-passphrases)
+- [Security Considerations](#security-considerations)
+
+
+### Creating or Opening an Encrypted Database
 
 **You create and open an encrypted database** by providing a passphrase to your [database connection](#database-connections):
 
 ```swift
 var configuration = Configuration()
-configuration.passphrase = "secret"
+configuration.prepareDatabase = { db in
+    try db.usePassphrase("secret")
+}
 let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
 ```
 
-**You can change the passphrase** of an already encrypted database:
+After you have set the passphrase, you can perform other [SQLCipher configuration steps](https://www.zetetic.net/sqlcipher/sqlcipher-api/) that must happen very early in the database lifetime. For example:
 
 ```swift
-try dbQueue.change(passphrase: "newSecret")
+var configuration = Configuration()
+configuration.prepareDatabase = { db in
+    try db.usePassphrase("secret")
+    try db.execute(sql: "PRAGMA cipher_page_size = ...")
+    try db.execute(sql: "PRAGMA kdf_iter = ...")
+}
+let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
 ```
+
+When you want to open an existing SQLCipher 3 database with SQLCipher 4, you may want to run the `cipher_compatibility` pragma:
+
+```swift
+// Open an SQLCipher 3 database with SQLCipher 4
+var configuration = Configuration()
+configuration.prepareDatabase = { db in
+    try db.usePassphrase("secret")
+    try db.execute(sql: "PRAGMA cipher_compatibility = 3")
+}
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: configuration)
+```
+
+See [SQLCipher 4.0.0 Release](https://www.zetetic.net/blog/2018/11/30/sqlcipher-400-release/) and [Upgrading to SQLCipher 4](https://discuss.zetetic.net/t/upgrading-to-sqlcipher-4/3283) for more information.
+
+
+### Changing the Passphrase of an Encrypted Database
+
+**You can change the passphrase** of an already encrypted database.
+
+The technique to do so is not the same, depending on whether you are using a [database queue](#database-queues) or a [database pool](#database-pools).
+
+For database queues, first open the database with the old passphrase, and then apply the new passphrase:
+
+```swift
+// 1. Open the database queue
+var configuration = Configuration()
+configuration.prepareDatabase = { db in
+    try db.usePassphrase("oldSecret")
+}
+let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
+
+// 2. Later on, change the passphrase
+try dbQueue.write { db in
+    try db.changePassphrase("newSecret")
+}
+
+// 3. Keep using the database queue with the new passphrase
+try dbQueue.write { ... }
+try dbQueue.read { ... }
+```
+
+For database pools, it is a little bit more complicated. This is because pools create SQLite connections on demand. Your application must provide a storage for the passphrase, ready to be queried whenever a new SQLite connection should be created. This "storage" can be, for example, the system keychain.
+
+In the sample code below, we assume the presence of two functions provided by the application: `loadPassphrase()` and `savePassphrase(_:)`. The first loads the passphrase, and the second stores a new passphrase and makes it available to future calls to `loadPassphrase()`:
+
+```swift
+// 1. Open the database pool
+var config = Configuration()
+config.prepareDatabase = { db in
+    let passphrase = try loadPassphrase()
+    try db.usePassphrase(passphrase)
+}
+let dbPool = try DatabasePool(path: ..., configuration: config)
+
+// 2. Later on, change the passphrase
+try dbPool.barrierWriteWithoutTransaction { db in
+    let newPassphrase = "newSecret"
+    try savePassphrase(newPassphrase)
+    try db.changePassphrase(newPassphrase)
+    dbPool.invalidateReadOnlyConnections()
+}
+
+// 3. Keep using the database pool with the new passphrase
+try dbPool.write { ... }
+try dbPool.read { ... }
+```
+
+
+### Encrypting a Clear-Text Database
 
 Providing a passphrase won't encrypt a clear-text database that already exists, though. SQLCipher can't do that, and you will get an error instead: `SQLite error 26: file is encrypted or is not a database`.
 
@@ -7390,21 +7461,26 @@ try clearDBQueue.inDatabase { db in
 // Now the copy is done, and the clear-text database can be deleted.
 ```
 
-## Advanced configuration options for SQLCipher
+### Attempting Several Passphrases
 
-Some advanced SQLCipher configuration steps must happen very early in the database lifetime, and you will have to use the `configuration.prepareDatabase` property in order to run them correctly:
+TODO. Context: synchronizing the passphrase in the keychain, and the passphrase used by the database is tricky: one saving operation may succeed, and the other fail. It is possible that one has to try *two* passphrases:
 
 ```swift
-var configuration = Configuration()
-configuration.passphrase = "secret"
-configuration.prepareDatabase = { db in
-    try db.execute(sql: "PRAGMA cipher_page_size = 4096")
-    try db.execute(sql: "PRAGMA kdf_iter = 128000")
+var config = Configuration()
+config.prepareDatabase = { db in
+    do {
+        try db.usePassphrase(passphrase1)
+    } catch let error as DatabaseError where error.resultCode == .SQLITE_NOTADB {
+        try db.usePassphrase(passphrase2)
+    }
 }
-let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
 ```
 
-See [PRAGMA cipher_page_size](https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_page_size) and [PRAGMA kdf_iter](https://www.zetetic.net/sqlcipher/sqlcipher-api/#kdf_iter) for more information.
+
+### Security Considerations
+
+- TODO: Connections can be used after passphrase has turned unavailable
+- TODO: Advanced passphrase protection (use cases for the raw C SQLCioher functions)
 
 
 ## Backup
