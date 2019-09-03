@@ -56,9 +56,37 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 ## Next Release
 
-**New**
+### New
 
+- [#602](https://github.com/groue/GRDB.swift/pull/602): Don't keep the sqlCipher passphrase in memory longer than necessary
 - [#603](https://github.com/groue/GRDB.swift/pull/603): DatabasePool write barrier
+
+### API Diff
+
+```diff
+ class DatabaseQueue {
++    @available(*, deprecated)
+     func change(passphrase: String) throws
+ }
+ 
+ class DatabasePool {
++    func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T
++    func invalidateReadOnlyConnections()
+     
++    @available(*, deprecated)
+     func change(passphrase: String) throws
+ }
+ 
+ class Database {
++    func usePassphrase(_ passphrase: String) throws
++    func changePassphrase(_ passphrase: String) throws
+ }
+ 
+ struct Configuration {
++    @available(*, deprecated)
+     var passphrase: String? {
+ }
+```
 
 
 ## 4.3.0
