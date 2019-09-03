@@ -7436,6 +7436,8 @@ try dbPool.write { ... }
 try dbPool.read { ... }
 ```
 
+TODO: Explain that database snapshots are not managed and shold be invalidated.
+
 TODO: Explain that if the `loadPassphrase` function throws an error, it is rethrown.
 
 TODO: Explain that if the `savePassphrase` function may throw an error, then you have to take in account the risk of passphrase desynchronization. You may have to attempt *several* passphrases (see below).
