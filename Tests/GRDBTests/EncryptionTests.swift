@@ -80,35 +80,6 @@ class EncryptionTests: GRDBTestCase {
             }
         }
     }
-
-    func testDatabaseQueueWithPassphraseToDatabaseQueueWithWrongPassphraseAndRetry() throws {
-        do {
-            var config = Configuration()
-            config.prepareDatabase = { db in
-                try db.usePassphrase("secret")
-            }
-            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
-            try dbQueue.inDatabase { db in
-                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
-                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
-            }
-        }
-        
-        do {
-            var config = Configuration()
-            config.prepareDatabase = { db in
-                do {
-                    try db.usePassphrase("wrong")
-                } catch let error as DatabaseError where error.resultCode == .SQLITE_NOTADB {
-                    try db.usePassphrase("secret")
-                }
-            }
-            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
-            try dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
-            }
-        }
-    }
     
     func testDatabaseQueueWithPassphraseToDatabaseQueueWithNewPassphrase() throws {
         do {
