@@ -7404,10 +7404,26 @@ try dbPool.barrierWriteWithoutTransaction { db in
 }
 ```
 
-> :point_up: **Note**: When an application wants to keep on using a database queue or pool after the passphrase has changed, it is responsible for providing the correct passphrase to the `usePassphrase` method called in the database preparation function.
+> :point_up: **Note**: When an application wants to keep on using a database queue or pool after the passphrase has changed, it is responsible for providing the correct passphrase to the `usePassphrase` method called in the database preparation function. Consider:
 >
+> ```swift
+> // WRONG: this won't work across a passphrase change
+> let passphrase = try getPassphrase()
+> var config = Configuration()
+> config.prepareDatabase = { db in
+>     try db.usePassphrase(passphrase)
+> }
+>
+> // CORRECT: get the latest passphrase when it is needed
+> var config = Configuration()
+> config.prepareDatabase = { db in
+>     let passphrase = try getPassphrase()
+>     try db.usePassphrase(passphrase)
+> }
+> ```
+
 > :point_up: **Note**: The `DatabasePool.barrierWriteWithoutTransaction` method does not prevent [database snapshots](#database-snapshots) from accessing the database during the passphrase change, or after the new passphrase has been applied to the database. Those database accesses may throw errors. Applications should provide their own mechanism for invalidating open snapshots before the passphrase is changed.
->
+
 > :point_up: **Note**: Instead of changing the passphrase "in place" as described here, you can also export the database in a new encrypted database that uses the new passphrase. See [Exporting a Database to an Encrypted Database](#exporting-a-database-to-an-encrypted-database).
 
 
