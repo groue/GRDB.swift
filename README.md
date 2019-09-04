@@ -7524,7 +7524,7 @@ Because DatabasePool maintains a pool of long-lived SQLite connections, some dat
 
 For the same reason, a database queue, which also maintains a long-lived SQLite connection, will remain available even after the passphrase has turned unavailable.
 
-Applications that want to prevent any database access when the passphrase is unavailable are responsible for destroying their instances of database queue or pool when the passphrase becomes unavailable.
+Applications are thus responsible for protecting database accesses when the passphrase is unavailable. To this end, they can use [Data Protection](#data-protection). They can also destroy their instances of database queue or pool when the passphrase becomes unavailable.
 
 
 ## Backup
