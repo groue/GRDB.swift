@@ -7492,17 +7492,15 @@ let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 When the passphrase is securely stored in the system keychain, your application can protect it using the [`kSecAttrAccessible`](https://developer.apple.com/documentation/security/ksecattraccessible) attribute.
 
+Such protection prevents GRDB from creating SQLite connections when the passphrase is not available:
+
 ```swift
 var config = Configuration()
 config.prepareDatabase = { db in
     let passphrase = try loadPassphraseFromSystemKeychain()
     try db.usePassphrase(passphrase)
 }
-```
 
-Such protection prevents GRDB from creating SQLite connections when the passphrase is not available:
-
-```swift
 // Success if and only if the passphrase is available
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 ```
