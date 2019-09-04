@@ -7504,7 +7504,7 @@ try dbPool.read { ... }
 try dbPool.write { ... }
 ```
 
-Those eventual database pool failures are not predictable, because pools maintain a pool of long-lived SQLite connection(s). Some database accesses will use those existing connections, and succeed. Some other database accesses will fail, as soon as the pool wants to open a new connection.
+Because DatabasePool maintains a pool of long-lived SQLite connections, some database accesses will use an existing connection, and succeed. And some other database accesses will fail, as soon as the pool wants to open a new connection. It is impossible to predict which accesses will succeed or fail.
 
 For the same reason, a database queue, which also maintains a long-lived SQLite connection, will remain available even after the passphrase has turned unavailable.
 
