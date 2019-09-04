@@ -7395,7 +7395,7 @@ try dbQueue.write { db in
 }
 ```
 
-When you use a [database pool](#database-pools), make sure that no concurrent read can happen by changing the passphrase within the barrierWriteWithoutTransaction block. You must also ensure all future reads open a new database connection by calling the invalidateReadOnlyConnections method:
+When you use a [database pool](#database-pools), make sure that no concurrent read can happen by changing the passphrase within the `barrierWriteWithoutTransaction` block. You must also ensure all future reads open a new database connection by calling the invalidateReadOnlyConnections method:
 
 ```swift
 try dbPool.barrierWriteWithoutTransaction { db in
