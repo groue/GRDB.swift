@@ -7482,7 +7482,9 @@ config.prepareDatabase = { db in
     let code = sqlite3_key(db.sqliteConnection, /* passphrase bytes */)
     ... // Carefully dispose passphrase bytes
     guard code == SQLITE_OK else {
-        throw DatabaseError(resultCode: code, message: db.lastErrorMessage)
+        throw DatabaseError(
+            resultCode: ResultCode(rawValue: code), 
+            message: db.lastErrorMessage)
     }
 }
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
