@@ -7356,7 +7356,7 @@ config.prepareDatabase = { db in
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 ```
 
-It is also in the database preparation function that you perform other [SQLCipher configuration steps](https://www.zetetic.net/sqlcipher/sqlcipher-api/) that must happen early in the lifetime of a SQLCipher connection. For example:
+It is also in `prepareDatabase` that you perform other [SQLCipher configuration steps](https://www.zetetic.net/sqlcipher/sqlcipher-api/) that must happen early in the lifetime of a SQLCipher connection. For example:
 
 ```swift
 var config = Configuration()
