@@ -7474,7 +7474,7 @@ let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 #### Passphrase availability vs. Database availability
 
-When the passphrase is securely stored in the system keychain, your application can protect is using the [`kSecAttrAccessible`](https://developer.apple.com/documentation/security/ksecattraccessible) attribute.
+When the passphrase is securely stored in the system keychain, your application can protect it using the [`kSecAttrAccessible`](https://developer.apple.com/documentation/security/ksecattraccessible) attribute.
 
 ```swift
 var config = Configuration()
