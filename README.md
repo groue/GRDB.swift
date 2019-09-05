@@ -7464,7 +7464,30 @@ try existingDBQueue.inDatabase { db in
 
 ### Security Considerations
 
-#### Managing the lifetime of passphrase bytes
+#### Managing the lifetime of the passphrase string
+
+It is recommended to avoid keeping the passphrase in memory longer than necessary. To do this, make sure you load the passphrase from inside the `prepareDatabase` function:
+
+```swift
+// NOT RECOMMENDED: this keeps the passphrase in memory longer than necessary
+let passphrase = try getPassphrase()
+var config = Configuration()
+config.prepareDatabase = { db in
+    try db.usePassphrase(passphrase)
+}
+
+// RECOMMENDED: only load the passphrase when it is needed
+var config = Configuration()
+config.prepareDatabase = { db in
+    let passphrase = try getPassphrase()
+    try db.usePassphrase(passphrase)
+}
+```
+
+This technique manages the lifetime of the passphrase string. Some demanding users will want to go further, and manage the lifetime of the raw passphrase bytes. See below.
+
+
+#### Managing the lifetime of the passphrase bytes
 
 GRDB offers convenience methods for providing the database passphrases as Swift strings: `usePassphrase(_:)` and `changePassphrase(_:)`. Those methods don't keep the passphrase String in memory longer than necessary. But they are as secure as the standard String type: the lifetime of actual passphrase bytes in memory is not under control.
 
