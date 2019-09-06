@@ -40,11 +40,6 @@
     let players = Player.filter(...) // Returns a request that filters on column A or column B depending on the argument
     players.update(...)              // Runs the expected UPDATE statement
     ```
-- [ ] Database.usePassphrase(_:)
-    - [X] Deprecate change(passphrase:), and provide an alternative solution
-    - [X] Introduce Database.usePassphrase(_:).
-    - [X] Make Database.usePassphrase(_:) a no-op if DatabaseConfiguration._passphrase is not nil, as support for the deprecated change(passphrase:).
-    - [X] Deprecate DatabaseConfiguration.passphrase
 
 
 ## Unsure if necessary
