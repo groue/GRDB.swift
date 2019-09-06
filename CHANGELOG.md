@@ -71,6 +71,8 @@ The [Advanced DatabasePool](README.md#advanced-databasepool) chapter has been ex
 
 ### API Diff
 
+**Deprecations**
+
 ```diff
  class DatabaseQueue {
 +    @available(*, deprecated)
@@ -78,11 +80,22 @@ The [Advanced DatabasePool](README.md#advanced-databasepool) chapter has been ex
  }
  
  class DatabasePool {
-+    func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T
-+    func invalidateReadOnlyConnections()
-     
 +    @available(*, deprecated)
      func change(passphrase: String) throws
+ }
+ 
+ struct Configuration {
++    @available(*, deprecated)
+     var passphrase: String?
+ }
+```
+
+**New Methods**
+
+```diff 
+ class DatabasePool {
++    func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T
++    func invalidateReadOnlyConnections()
  }
  
  class Database {
@@ -90,11 +103,6 @@ The [Advanced DatabasePool](README.md#advanced-databasepool) chapter has been ex
 +    func changePassphrase(_ passphrase: String) throws
 +    var lastErrorCode: ResultCode
 +    var lastErrorMessage: String?
- }
- 
- struct Configuration {
-+    @available(*, deprecated)
-     var passphrase: String?
  }
 ```
 
