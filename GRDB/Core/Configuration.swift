@@ -75,23 +75,26 @@ public struct Configuration {
     /// Default: nil
     public var trace: TraceFunction?
     
-    
     // MARK: - Encryption
     
     #if SQLITE_HAS_CODEC
+    // TODO: remove when the deprecated passphrase turns unavailable.
+    var _passphrase: String?
+    
     /// The passphrase for the encrypted database.
     ///
     /// Default: nil
-    public var passphrase: String?
-    
+    @available(*, deprecated, message: "Use Database.usePassphrase(_:) in Configuration.prepareDatabase instead.")
+    public var passphrase: String? {
+        get { return _passphrase }
+        set { _passphrase = newValue }
+    }
     #endif
     
-    /// If set, allows custom configuration to be run every time
-    /// a new connection is opened.
-    ///
-    /// This block is run after the Database's connection has opened, but
-    /// before that connection has been made available to any read/write
-    /// API's.
+    // MARK: - Managing SQLite Connections
+    
+    /// A function that is run when an SQLite connection is opened, before the
+    /// connection is made available for database access methods.
     ///
     /// For example:
     ///

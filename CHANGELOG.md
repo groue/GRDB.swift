@@ -13,6 +13,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 #### 4.x Releases
 
+- `4.4.x` Releases - [4.4.0](#440)
 - `4.3.x` Releases - [4.3.0](#430)
 - `4.2.x` Releases - [4.2.0](#420) | [4.2.1](#421)
 - `4.1.x` Releases - [4.1.0](#410) | [4.1.1](#411)
@@ -59,6 +60,61 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 <!--
 ## Next Release
 -->
+
+## 4.4.0
+
+Released September 6, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.3.0...v4.4.0)
+
+
+### New
+
+- [#602](https://github.com/groue/GRDB.swift/pull/602): Don't keep the sqlCipher passphrase in memory longer than necessary
+- [#603](https://github.com/groue/GRDB.swift/pull/603): DatabasePool write barrier
+
+
+### Documentation Diff
+
+SQLCipher passphrase management has been refactored: you will get deprecation warnings. Check out the rewritten [Encryption](README.md#encryption) chapter in order to migrate your code and remove those warnings.
+
+The [Advanced DatabasePool](README.md#advanced-databasepool) chapter has been extended for the new `barrierWriteWithoutTransaction` method.
+
+
+### API Diff
+
+**Deprecations**
+
+```diff
+ class DatabaseQueue {
++    @available(*, deprecated)
+     func change(passphrase: String) throws
+ }
+ 
+ class DatabasePool {
++    @available(*, deprecated)
+     func change(passphrase: String) throws
+ }
+ 
+ struct Configuration {
++    @available(*, deprecated)
+     var passphrase: String?
+ }
+```
+
+**New Methods**
+
+```diff 
+ class DatabasePool {
++    func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T
++    func invalidateReadOnlyConnections()
+ }
+ 
+ class Database {
++    func usePassphrase(_ passphrase: String) throws
++    func changePassphrase(_ passphrase: String) throws
++    var lastErrorCode: ResultCode
++    var lastErrorMessage: String?
+ }
+```
 
 
 ## 4.3.0

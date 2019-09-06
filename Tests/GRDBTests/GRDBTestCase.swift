@@ -28,18 +28,28 @@ class GRDBTestCase: XCTestCase {
     
     // Builds a database queue based on dbConfiguration
     func makeDatabaseQueue(filename: String? = nil) throws -> DatabaseQueue {
+        return try makeDatabaseQueue(filename: filename, configuration: dbConfiguration)
+    }
+    
+    // Builds a database queue
+    func makeDatabaseQueue(filename: String? = nil, configuration: Configuration) throws -> DatabaseQueue {
         try FileManager.default.createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
         let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename ?? ProcessInfo.processInfo.globallyUniqueString)
-        let dbQueue = try DatabaseQueue(path: dbPath, configuration: dbConfiguration)
+        let dbQueue = try DatabaseQueue(path: dbPath, configuration: configuration)
         try setup(dbQueue)
         return dbQueue
     }
     
     // Builds a database pool based on dbConfiguration
     func makeDatabasePool(filename: String? = nil) throws -> DatabasePool {
+        return try makeDatabasePool(filename: filename, configuration: dbConfiguration)
+    }
+    
+    // Builds a database pool
+    func makeDatabasePool(filename: String? = nil, configuration: Configuration) throws -> DatabasePool {
         try FileManager.default.createDirectory(atPath: dbDirectoryPath, withIntermediateDirectories: true, attributes: nil)
         let dbPath = (dbDirectoryPath as NSString).appendingPathComponent(filename ?? ProcessInfo.processInfo.globallyUniqueString)
-        let dbPool = try DatabasePool(path: dbPath, configuration: dbConfiguration)
+        let dbPool = try DatabasePool(path: dbPath, configuration: configuration)
         try setup(dbPool)
         return dbPool
     }
@@ -107,8 +117,10 @@ class GRDBTestCase: XCTestCase {
         }
         
         #if GRDBCIPHER_USE_ENCRYPTION
-            // We are testing encrypted databases.
-            dbConfiguration.passphrase = "secret"
+        // Encrypt all databases by default.
+        dbConfiguration.prepareDatabase = { db in
+            try db.usePassphrase("secret")
+        }
         #endif
         
         sqlQueries = []

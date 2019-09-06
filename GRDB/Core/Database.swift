@@ -125,9 +125,11 @@ public final class Database {
     lazy var internalStatementCache = StatementCache(database: self)
     lazy var publicStatementCache = StatementCache(database: self)
     
-    // Errors
-    var lastErrorCode: ResultCode { return ResultCode(rawValue: sqlite3_errcode(sqliteConnection)) }
-    var lastErrorMessage: String? { return String(cString: sqlite3_errmsg(sqliteConnection)) }
+    /// The last error code
+    public var lastErrorCode: ResultCode { return ResultCode(rawValue: sqlite3_errcode(sqliteConnection)) }
+    
+    /// The last error message
+    public var lastErrorMessage: String? { return String(cString: sqlite3_errmsg(sqliteConnection)) }
     
     /// Statement authorizer. Use withAuthorizer(_:_:).
     fileprivate var _authorizer: StatementAuthorizer?
@@ -213,15 +215,14 @@ extension Database {
         
         #if SQLITE_HAS_CODEC
         try validateSQLCipher()
-        if let passphrase = configuration.passphrase {
-            try setCipherPassphrase(passphrase)
+        if let passphrase = configuration._passphrase {
+            try _usePassphrase(passphrase)
         }
         #endif
         
         // Last step before we can start accessing the database.
-        // This is the opportunity to run SQLCipher configuration
-        // pragmas such as cipher_page_size, for example.
         try configuration.prepareDatabase?(self)
+        
         try validateFormat()
         configuration.SQLiteConnectionDidOpen?()
     }
@@ -383,22 +384,6 @@ extension Database {
                 GRDB is not linked against SQLCipher. \
                 Check https://discuss.zetetic.net/t/important-advisory-sqlcipher-with-xcode-8-and-new-sdks/1688
                 """)
-        }
-    }
-    
-    private func setCipherPassphrase(_ passphrase: String) throws {
-        let data = passphrase.data(using: .utf8)!
-        #if swift(>=5.0)
-        let code = data.withUnsafeBytes {
-            sqlite3_key(sqliteConnection, $0.baseAddress, Int32($0.count))
-        }
-        #else
-        let code = data.withUnsafeBytes {
-            sqlite3_key(sqliteConnection, $0, Int32(data.count))
-        }
-        #endif
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
     }
     #endif
@@ -975,7 +960,43 @@ extension Database {
     
     // MARK: - Encryption
     
-    func change(passphrase: String) throws {
+    /// Sets the passphrase used to crypt and decrypt an SQLCipher database.
+    ///
+    /// Call this method from Configuration.prepareDatabase, as in the example below:
+    ///
+    ///     var config = Configuration()
+    ///     config.prepareDatabase = { db in
+    ///         try db.usePassphrase("secret")
+    ///     }
+    public func usePassphrase(_ passphrase: String) throws {
+        // Support for the deprecated method change(passphrase:).
+        // After it has been called, the passphrase used for opening the
+        // database must be ignored.
+        if configuration._passphrase != nil {
+            return
+        }
+        try _usePassphrase(passphrase)
+    }
+    
+    /// See usePassphrase(_:)
+    private func _usePassphrase(_ passphrase: String) throws {
+        let data = passphrase.data(using: .utf8)!
+        #if swift(>=5.0)
+        let code = data.withUnsafeBytes {
+            sqlite3_key(sqliteConnection, $0.baseAddress, Int32($0.count))
+        }
+        #else
+        let code = data.withUnsafeBytes {
+            sqlite3_key(sqliteConnection, $0, Int32(data.count))
+        }
+        #endif
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
+        }
+    }
+    
+    /// Changes the passphrase used by an SQLCipher encrypted database.
+    public func changePassphrase(_ passphrase: String) throws {
         // FIXME: sqlite3_rekey is discouraged.
         //
         // https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320

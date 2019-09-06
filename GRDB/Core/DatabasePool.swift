@@ -171,12 +171,17 @@ extension DatabasePool {
     
     /// Free as much memory as possible.
     ///
-    /// This method blocks the current thread until all database accesses are completed.
+    /// This method blocks the current thread until all database accesses
+    /// are completed.
     ///
     /// See also setupMemoryManagement(application:)
     public func releaseMemory() {
-        forEachConnection { $0.releaseMemory() }
-        readerPool.clear()
+        // Release writer memory
+        writer.sync { $0.releaseMemory() }
+        // Release readers memory by closing all connections
+        readerPool.barrier {
+            readerPool.removeAll()
+        }
     }
     
     
@@ -237,11 +242,13 @@ extension DatabasePool {
     // MARK: - Encryption
     
     /// Changes the passphrase of an encrypted database
+    @available(*, deprecated, message: "Use Database.changePassphrase(_:) instead")
     public func change(passphrase: String) throws {
-        try readerPool.clear(andThen: {
-            try writer.sync { try $0.change(passphrase: passphrase) }
-            readerConfig.passphrase = passphrase
-        })
+        try readerPool.barrier {
+            try writer.sync { try $0.changePassphrase(passphrase) }
+            readerPool.removeAll()
+            readerConfig._passphrase = passphrase
+        }
     }
 }
 #endif
@@ -590,6 +597,17 @@ extension DatabasePool: DatabaseReader {
     }
     #endif
     
+    /// Invalidates open read-only SQLite connections.
+    ///
+    /// After this method is called, read-only database access methods will use
+    /// new SQLite connections.
+    ///
+    /// Eventual concurrent read-only accesses are not invalidated: they will
+    /// proceed until completion.
+    public func invalidateReadOnlyConnections() {
+        readerPool.removeAll()
+    }
+    
     /// Returns a reader that can be used from the current dispatch queue,
     /// if any.
     private var currentReader: SerializedDatabase? {
@@ -629,6 +647,22 @@ extension DatabasePool: DatabaseReader {
     /// - throws: The error thrown by the updates.
     public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         return try writer.sync(updates)
+    }
+    
+    /// A barrier write ensures that no database access is executed until all
+    /// previous accesses have completed, and the specified updates have been
+    /// executed.
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - important: Reads executed by concurrent *database snapshots* are not
+    ///   considered: they can run concurrently with the barrier updates.
+    /// - parameter updates: The updates to the database.
+    /// - throws: The error thrown by the updates.
+    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
+        return try readerPool.barrier {
+            try writer.sync(updates)
+        }
     }
     
     /// Synchronously executes database updates in a protected dispatch queue,
