@@ -15,6 +15,8 @@
 		56057C692291D0AC00A7CB10 /* AssociationHasManyThroughRowScopeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56057C672291D0AB00A7CB10 /* AssociationHasManyThroughRowScopeTests.swift */; };
 		560714F0227DD1810091BB10 /* AssociationPrefetchingSQLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560714EF227DD1810091BB10 /* AssociationPrefetchingSQLTests.swift */; };
 		560714F1227DD1810091BB10 /* AssociationPrefetchingSQLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560714EF227DD1810091BB10 /* AssociationPrefetchingSQLTests.swift */; };
+		563DE4FB231A9212005081B7 /* DatabaseConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563DE4FA231A9212005081B7 /* DatabaseConfigurationTests.swift */; };
+		563DE4FC231A9212005081B7 /* DatabaseConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563DE4FA231A9212005081B7 /* DatabaseConfigurationTests.swift */; };
 		564A1FDE226B89E1001F64F1 /* MutablePersistableRecordDeleteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A1F27226B89CE001F64F1 /* MutablePersistableRecordDeleteTests.swift */; };
 		564A1FDF226B89E1001F64F1 /* AssociationHasOneThroughRowScopeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A1F28226B89CE001F64F1 /* AssociationHasOneThroughRowScopeTests.swift */; };
 		564A1FE0226B89E1001F64F1 /* RowCopiedFromStatementTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564A1F29226B89CF001F64F1 /* RowCopiedFromStatementTests.swift */; };
@@ -405,6 +407,7 @@
 		56057C5E2291B8E400A7CB10 /* AssociationHasManyRowScopeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationHasManyRowScopeTests.swift; sourceTree = "<group>"; };
 		56057C672291D0AB00A7CB10 /* AssociationHasManyThroughRowScopeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationHasManyThroughRowScopeTests.swift; sourceTree = "<group>"; };
 		560714EF227DD1810091BB10 /* AssociationPrefetchingSQLTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingSQLTests.swift; sourceTree = "<group>"; };
+		563DE4FA231A9212005081B7 /* DatabaseConfigurationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseConfigurationTests.swift; sourceTree = "<group>"; };
 		564A1F1D226B876D001F64F1 /* GRDBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		564A1F22226B876D001F64F1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		564A1F26226B89CD001F64F1 /* GRDBTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBTests-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -688,6 +691,7 @@
 				564A1FD7226B89E0001F64F1 /* DatabaseAfterNextTransactionCommitTests.swift */,
 				564A1F31226B89CF001F64F1 /* DatabaseAggregateTests.swift */,
 				564A1F53226B89D2001F64F1 /* DatabaseCollationTests.swift */,
+				563DE4FA231A9212005081B7 /* DatabaseConfigurationTests.swift */,
 				564A1F67226B89D5001F64F1 /* DatabaseCursorTests.swift */,
 				564A1F83226B89D8001F64F1 /* DatabaseDateDecodingStrategyTests.swift */,
 				564A1F54226B89D2001F64F1 /* DatabaseDateEncodingStrategyTests.swift */,
@@ -915,11 +919,14 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1020;
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1100;
 				TargetAttributes = {
 					564A1F1C226B876D001F64F1 = {
 						CreatedOnToolsVersion = 10.2.1;
-						LastSwiftMigration = 1020;
+						LastSwiftMigration = 1100;
+					};
+					564A2095226B8E18001F64F1 = {
+						LastSwiftMigration = 1100;
 					};
 				};
 			};
@@ -929,6 +936,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = 564A1F12226B8750001F64F1;
 			productRefGroup = 564A1F1E226B876D001F64F1 /* Products */;
@@ -1100,6 +1108,7 @@
 				564A201F226B89E1001F64F1 /* DatabaseQueueReleaseMemoryTests.swift in Sources */,
 				564A2000226B89E1001F64F1 /* PrefixCursorTests.swift in Sources */,
 				564A1FE1226B89E1001F64F1 /* SelectStatementTests.swift in Sources */,
+				563DE4FB231A9212005081B7 /* DatabaseConfigurationTests.swift in Sources */,
 				564A1FF8226B89E1001F64F1 /* QueryInterfaceExpressionsTests.swift in Sources */,
 				564A202E226B89E1001F64F1 /* RecordMinimalPrimaryKeyRowIDTests.swift in Sources */,
 				564A2078226B89E1001F64F1 /* ForeignKeyInfoTests.swift in Sources */,
@@ -1299,6 +1308,7 @@
 				564A20C9226B8E18001F64F1 /* DatabaseQueueReleaseMemoryTests.swift in Sources */,
 				564A20CA226B8E18001F64F1 /* PrefixCursorTests.swift in Sources */,
 				564A20CB226B8E18001F64F1 /* SelectStatementTests.swift in Sources */,
+				563DE4FC231A9212005081B7 /* DatabaseConfigurationTests.swift in Sources */,
 				564A20CC226B8E18001F64F1 /* QueryInterfaceExpressionsTests.swift in Sources */,
 				564A20CD226B8E18001F64F1 /* RecordMinimalPrimaryKeyRowIDTests.swift in Sources */,
 				564A20CE226B8E18001F64F1 /* ForeignKeyInfoTests.swift in Sources */,
@@ -1446,7 +1456,34 @@
 		564A1F17226B8750001F64F1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				ONLY_ACTIVE_ARCH = YES;
 				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
@@ -1454,6 +1491,31 @@
 		564A1F18226B8750001F64F1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
 				SWIFT_VERSION = 4.2;
 			};
