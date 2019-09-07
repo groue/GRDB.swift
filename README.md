@@ -7350,17 +7350,17 @@ pod 'SQLCipher', '~> 3.4'
 
 ```swift
 var config = Configuration()
-config.prepareDatabase = { db in
+config.onConnect { db in
     try db.usePassphrase("secret")
 }
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 ```
 
-It is also in `prepareDatabase` that you perform other [SQLCipher configuration steps](https://www.zetetic.net/sqlcipher/sqlcipher-api/) that must happen early in the lifetime of a SQLCipher connection. For example:
+It is also in `onConnect` that you perform other [SQLCipher configuration steps](https://www.zetetic.net/sqlcipher/sqlcipher-api/) that must happen early in the lifetime of a SQLCipher connection. For example:
 
 ```swift
 var config = Configuration()
-config.prepareDatabase = { db in
+config.onConnect { db in
     try db.usePassphrase("secret")
     try db.execute(sql: "PRAGMA cipher_page_size = ...")
     try db.execute(sql: "PRAGMA kdf_iter = ...")
@@ -7373,7 +7373,7 @@ When you want to open an existing SQLCipher 3 database with SQLCipher 4, you may
 ```swift
 // Open an SQLCipher 3 database with SQLCipher 4
 var config = Configuration()
-config.prepareDatabase = { db in
+config.onConnect { db in
     try db.usePassphrase("secret")
     try db.execute(sql: "PRAGMA cipher_compatibility = 3")
 }
@@ -7410,13 +7410,13 @@ try dbPool.barrierWriteWithoutTransaction { db in
 > // WRONG: this won't work across a passphrase change
 > let passphrase = try getPassphrase()
 > var config = Configuration()
-> config.prepareDatabase = { db in
+> config.onConnect { db in
 >     try db.usePassphrase(passphrase)
 > }
 >
 > // CORRECT: get the latest passphrase when it is needed
 > var config = Configuration()
-> config.prepareDatabase = { db in
+> config.onConnect { db in
 >     let passphrase = try getPassphrase()
 >     try db.usePassphrase(passphrase)
 > }
@@ -7443,7 +7443,7 @@ let existingDBQueue = try DatabaseQueue(path: "/path/to/existing.db")
 
 // The new encrypted database, at some distinct location:
 var config = Configuration()
-config.prepareDatabase = { db in
+config.onConnect { db in
     try db.usePassphrase("secret")
 }
 let newDBQueue = try DatabaseQueue(path: "/path/to/new.db", configuration: config)
@@ -7466,19 +7466,19 @@ try existingDBQueue.inDatabase { db in
 
 #### Managing the lifetime of the passphrase string
 
-It is recommended to avoid keeping the passphrase in memory longer than necessary. To do this, make sure you load the passphrase from inside the `prepareDatabase` function:
+It is recommended to avoid keeping the passphrase in memory longer than necessary. To do this, make sure you load the passphrase from inside the `onConnect` function:
 
 ```swift
 // NOT RECOMMENDED: this keeps the passphrase in memory longer than necessary
 let passphrase = try getPassphrase()
 var config = Configuration()
-config.prepareDatabase = { db in
+config.onConnect { db in
     try db.usePassphrase(passphrase)
 }
 
 // RECOMMENDED: only load the passphrase when it is needed
 var config = Configuration()
-config.prepareDatabase = { db in
+config.onConnect { db in
     let passphrase = try getPassphrase()
     try db.usePassphrase(passphrase)
 }
@@ -7500,7 +7500,7 @@ import GRDB
 import SQLCipher
 
 var config = Configuration()
-config.prepareDatabase = { db in
+config.onConnect { db in
     ... // Carefully load passphrase bytes
     let code = sqlite3_key(db.sqliteConnection, /* passphrase bytes */)
     ... // Carefully dispose passphrase bytes
@@ -7521,7 +7521,7 @@ Such protection prevents GRDB from creating SQLite connections when the passphra
 
 ```swift
 var config = Configuration()
-config.prepareDatabase = { db in
+config.onConnect { db in
     let passphrase = try loadPassphraseFromSystemKeychain()
     try db.usePassphrase(passphrase)
 }

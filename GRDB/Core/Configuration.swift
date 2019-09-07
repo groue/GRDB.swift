@@ -84,7 +84,7 @@ public struct Configuration {
     /// The passphrase for the encrypted database.
     ///
     /// Default: nil
-    @available(*, deprecated, message: "Use Database.usePassphrase(_:) in Configuration.prepareDatabase instead.")
+    @available(*, deprecated, message: "Use Database.usePassphrase(_:) in Configuration.onConnect instead.")
     public var passphrase: String? {
         get { return _passphrase }
         set { _passphrase = newValue }
