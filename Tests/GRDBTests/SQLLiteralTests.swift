@@ -245,7 +245,7 @@ extension SQLLiteralTests {
     
     func testQualifiedExpressionInterpolation() {
         let query: SQLLiteral = """
-            SELECT \(Column("name").aliased("foo"))
+            SELECT \(Column("name").forKey("foo"))
             FROM player
             """
         XCTAssertEqual(query.sql, """
