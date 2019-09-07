@@ -61,9 +61,18 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 ### New
 
 - [#605](https://github.com/groue/GRDB.swift/pull/605): Configuration.onConnect
+- [#606](https://github.com/groue/GRDB.swift/pull/606): Register functions, collations, and FTS5 tokenizers in the `onConnect` configuration function
 
 
 ### API Diff
+
+**New Method**
+
+```diff
+ struct Configuration {
++    mutating func onConnect(execute function: @escaping (Database) throws -> Void)
+ }
+```
 
 **Deprecations**
 
@@ -72,13 +81,26 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 +    @available(*, deprecated)
      var prepareDatabase: ((Database) throws -> Void)?
  }
-```
-
-**New Methods**
-
-```diff
- struct Configuration {
-+    mutating func onConnect(execute function: @escaping (Database) throws -> Void)
+ 
+ protocol DatabaseReader {
++    @available(*, deprecated)
+     func add(function: DatabaseFunction)
++    @available(*, deprecated)
+     func remove(function: DatabaseFunction)
++    @available(*, deprecated)
+     func add(collation: DatabaseCollation)
++    @available(*, deprecated)
+     func remove(collation: DatabaseCollation)
+ }
+ 
+ class DatabaseQueue {
++    @available(*, deprecated)
+     func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type)
+ }
+ 
+ class DatabasePool {
++    @available(*, deprecated)
+     func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type)
  }
 ```
 
