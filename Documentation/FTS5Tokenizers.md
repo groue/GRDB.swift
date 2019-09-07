@@ -61,12 +61,16 @@ GRDB lets you use and define FTS5 tokenizers through three protocols:
 
 Once you have a custom tokenizer type that adopts [FTS5CustomTokenizer](#fts5customtokenizer) or [FTS5WrapperTokenizer](#fts5wrappertokenizer), it can fuel the FTS5 engine.
 
-**Register the custom tokenizer into the database:**
+**Register the custom tokenizer** inside the `onConnect` configuration function:
 
 ```swift
 class MyTokenizer : FTS5CustomTokenizer { ... }
 
-dbQueue.add(tokenizer: MyTokenizer.self) // or dbPool.add
+var config = Configuration()
+config.onConnect { db in
+    db.add(tokenizer: MyTokenizer.self)
+}
+let dbQueue = try DatabaseQueue(path: "...", configuration: config)
 ```
 
 **Create [full-text tables](../../../#create-fts5-virtual-tables) that use the custom tokenizer:**
@@ -376,9 +380,13 @@ final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
 Remember to register LatinAsciiTokenizer before using it:
 
 ```swift
-dbQueue.add(tokenizer: LatinAsciiTokenizer.self) // or dbPool.add
+var config = Configuration()
+config.onConnect { db in
+    db.add(tokenizer: LatinAsciiTokenizer.self) // or dbPool.add
+}
+let dbQueue = try DatabaseQueue(path: "...", configuration: config)
 
-dbQueue.inDatabase { db in
+dbQueue.write { db in
     try db.create(virtualTable: "documents", using: FTS5()) { t in
         t.tokenizer = LatinAsciiTokenizer.tokenizerDescriptor()
         t.column("authors")

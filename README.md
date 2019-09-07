@@ -1764,20 +1764,18 @@ SELECT maxLength(name) FROM player; -- custom aggregate
 
 ### Custom SQL Functions
 
+You create a custom SQL function with the DatabaseFunction type:
+
 ```swift
+// A function that reverses its string argument:
+// SELECT reverse('foo') -> 'oof'
 let reverse = DatabaseFunction("reverse", argumentCount: 1, pure: true) { (values: [DatabaseValue]) in
     // Extract string value, if any...
     guard let string = String.fromDatabaseValue(values[0]) else {
         return nil
     }
-    // ... and return reversed string:
+    // ... and return a reversed string:
     return String(string.reversed())
-}
-dbQueue.add(function: reverse)   // Or dbPool.add(function: ...)
-
-try dbQueue.read { db in
-    // "oof"
-    try String.fetchOne(db, sql: "SELECT reverse('foo')")!
 }
 ```
 
@@ -1785,6 +1783,19 @@ The *function* argument takes an array of [DatabaseValue](#databasevalue), and r
 
 SQLite has the opportunity to perform additional optimizations when functions are "pure", which means that their result only depends on their arguments. So make sure to set the *pure* argument to true when possible.
 
+**You make a function available to your [database queues](#database-queues) and [pools](#database-pools)** by adding it inside the `onConnect` configuration function:
+
+```swift
+var config = Configuration()
+config.onConnect { db in
+    db.add(function: reverse)
+}
+let dbQueue = try DatabaseQueue(path: "...", configuration: config)
+
+try dbQueue.read { db in
+    try String.fetchOne(db, sql: "SELECT reverse('foo')")! // "oof"
+}
+```
 
 **Functions can take a variable number of arguments:**
 
@@ -1795,7 +1806,6 @@ let averageOf = DatabaseFunction("averageOf", pure: true) { (values: [DatabaseVa
     let doubles = values.compactMap { Double.fromDatabaseValue($0) }
     return doubles.reduce(0, +) / Double(doubles.count)
 }
-dbQueue.add(function: averageOf)
 
 try dbQueue.read { db in
     // 2.0
@@ -1816,7 +1826,6 @@ let sqrt = DatabaseFunction("sqrt", argumentCount: 1, pure: true) { (values: [Da
     }
     return sqrt(double)
 }
-dbQueue.add(function: sqrt)
 
 // SQLite error 1 with statement `SELECT sqrt(-1)`: invalid negative number
 try dbQueue.read { db in
@@ -1881,8 +1890,16 @@ let maxLength = DatabaseFunction(
     argumentCount: 1,
     pure: true,
     aggregate: MaxLength.self)
+```
 
-dbQueue.add(function: maxLength)   // Or dbPool.add(function: ...)
+Like custom functions, you register custom aggregates inside the `onConnect` configuration function:
+
+```swift
+var config = Configuration()
+config.onConnect { db in
+    db.add(function: maxLength)
+}
+let dbQueue = try DatabaseQueue(path: "...", configuration: config)
 
 try dbQueue.read { db in
     // Some Int
@@ -7924,13 +7941,22 @@ let players = try Player.order(nameColumn.collating(collation)).fetchAll(db)
 ```
 
 
-**You can also define your own collations**:
+**You can also define your own custom collations**:
 
 ```swift
 let collation = DatabaseCollation("customCollation") { (lhs, rhs) -> NSComparisonResult in
     // return the comparison of lhs and rhs strings.
 }
-dbQueue.add(collation: collation) // Or dbPool.add(collation: ...)
+```
+
+Register custom collations inside the `onConnect` configuration function:
+
+```swift
+var config = Configuration()
+config.onConnect { db in
+    db.add(collation: reverse)
+}
+let dbQueue = try DatabaseQueue(path: "...", configuration: config)
 ```
 
 

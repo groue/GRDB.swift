@@ -17,6 +17,7 @@ public final class DatabasePool: DatabaseWriter {
     private var readerConfig: Configuration
     private var readerPool: Pool<SerializedDatabase>!
     
+    // TODO: remove when add(function/collation/tokenizer:) are removed
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     var tokenizerRegistrations: [(Database) -> Void] = []
@@ -121,6 +122,7 @@ public final class DatabasePool: DatabaseWriter {
     }
     #endif
     
+    // TODO: remove when add(function/collation/tokenizer:) are removed
     private func setupDatabase(_ db: Database) {
         for function in functions {
             db.add(function: function)

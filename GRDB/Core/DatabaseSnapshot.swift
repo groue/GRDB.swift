@@ -96,11 +96,13 @@ extension DatabaseSnapshot {
     
     // MARK: - Functions
     
+    /// :nodoc:
     @available(*, deprecated, message: "Use Database.add(function:) instead")
     public func add(function: DatabaseFunction) {
         serializedDatabase.sync { $0.add(function: function) }
     }
     
+    /// :nodoc:
     @available(*, deprecated, message: "Use Database.remove(function:) instead")
     public func remove(function: DatabaseFunction) {
         serializedDatabase.sync { $0.remove(function: function) }
@@ -108,11 +110,13 @@ extension DatabaseSnapshot {
     
     // MARK: - Collations
     
+    /// :nodoc:
     @available(*, deprecated, message: "Use Database.add(collation:) instead")
     public func add(collation: DatabaseCollation) {
         serializedDatabase.sync { $0.add(collation: collation) }
     }
     
+    /// :nodoc:
     @available(*, deprecated, message: "Use Database.remove(collation:) instead")
     public func remove(collation: DatabaseCollation) {
         serializedDatabase.sync { $0.remove(collation: collation) }
@@ -120,6 +124,7 @@ extension DatabaseSnapshot {
     
     // MARK: - Value Observation
     
+    /// :nodoc:
     public func add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         onError: @escaping (Error) -> Void,
@@ -163,6 +168,7 @@ extension DatabaseSnapshot {
         return SnapshotValueObserver()
     }
     
+    /// :nodoc:
     public func remove(transactionObserver: TransactionObserver) {
         // Can't remove an observer which could not be added :-)
     }
