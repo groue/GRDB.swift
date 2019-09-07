@@ -162,6 +162,7 @@ public final class Database {
         self.sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
         self.configuration = configuration
         self.schemaCache = schemaCache
+        configuration.SQLiteConnectionDidOpen?()
     }
     
     deinit {
@@ -224,7 +225,6 @@ extension Database {
         try configuration.databaseDidConnect(self)
         
         try validateFormat()
-        configuration.SQLiteConnectionDidOpen?()
     }
     
     private func setupTrace() {
