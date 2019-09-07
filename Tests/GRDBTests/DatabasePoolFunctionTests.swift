@@ -7,7 +7,7 @@ import XCTest
 
 class DatabasePoolFunctionTests: GRDBTestCase {
     
-    func testFunctionIsSharedBetweenWriterAndReaders() throws {
+    func testDeprecatedFunctionIsSharedBetweenWriterAndReaders() throws {
         let dbPool = try makeDatabasePool()
         
         let function1 = DatabaseFunction("function1", argumentCount: 1, pure: true) { (dbValues: [DatabaseValue]) in

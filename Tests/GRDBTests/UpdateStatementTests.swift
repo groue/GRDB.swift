@@ -166,12 +166,14 @@ class UpdateStatementTests : GRDBTestCase {
     }
     
     func testUpdateStatementAcceptsSelectQueriesAndConsumeAllRows() throws {
-        let dbQueue = try makeDatabaseQueue()
         var index = 0
-        dbQueue.add(function: DatabaseFunction("seq", argumentCount: 0, pure: false) { _ in
-            defer { index += 1 }
-            return index
-        })
+        dbConfiguration.onConnect { db in
+            db.add(function: DatabaseFunction("seq", argumentCount: 0, pure: false) { _ in
+                defer { index += 1 }
+                return index
+            })
+        }
+        let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(sql: "SELECT seq() UNION ALL SELECT seq() UNION ALL SELECT seq()")
             let statement = try db.makeUpdateStatement(sql: "SELECT seq() UNION ALL SELECT seq() UNION ALL SELECT seq()")

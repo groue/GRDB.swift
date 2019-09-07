@@ -63,9 +63,11 @@ class RowFetchTests: GRDBTestCase {
     #endif
     
     func testFetchCursorStepFailure() throws {
-        let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        dbConfiguration.onConnect { db in
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        }
+        let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             func test(_ cursor: RowCursor, sql: String) throws {
                 do {
@@ -174,9 +176,11 @@ class RowFetchTests: GRDBTestCase {
     #endif
 
     func testFetchAllStepFailure() throws {
-        let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        dbConfiguration.onConnect { db in
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        }
+        let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             func test(_ array: @autoclosure () throws -> [Row], sql: String) throws {
                 do {
@@ -302,9 +306,11 @@ class RowFetchTests: GRDBTestCase {
     #endif
 
     func testFetchOneStepFailure() throws {
-        let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        dbConfiguration.onConnect { db in
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        }
+        let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             func test(_ value: @autoclosure () throws -> Row?, sql: String) throws {
                 do {

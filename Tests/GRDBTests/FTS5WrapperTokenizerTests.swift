@@ -101,8 +101,10 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
 class FTS5WrapperTokenizerTests: GRDBTestCase {
     
     func testStopWordsTokenizerDatabaseQueue() throws {
+        dbConfiguration.onConnect { db in
+            db.add(tokenizer: StopWordsTokenizer.self)
+        }
         let dbQueue = try makeDatabaseQueue()
-        dbQueue.add(tokenizer: StopWordsTokenizer.self)
         
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS5()) { t in
@@ -123,8 +125,10 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
     }
 
     func testStopWordsTokenizerDatabasePool() throws {
+        dbConfiguration.onConnect { db in
+            db.add(tokenizer: StopWordsTokenizer.self)
+        }
         let dbPool = try makeDatabaseQueue()
-        dbPool.add(tokenizer: StopWordsTokenizer.self)
         
         try dbPool.write { db in
             try db.create(virtualTable: "documents", using: FTS5()) { t in
@@ -154,8 +158,10 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
     }
 
     func testLatinAsciiTokenizer() throws {
+        dbConfiguration.onConnect { db in
+            db.add(tokenizer: LatinAsciiTokenizer.self)
+        }
         let dbQueue = try makeDatabaseQueue()
-        dbQueue.add(tokenizer: LatinAsciiTokenizer.self)
         
         // Without Latin ASCII conversion
         try dbQueue.inDatabase { db in
@@ -191,8 +197,10 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
     }
 
     func testSynonymsTokenizer() throws {
+        dbConfiguration.onConnect { db in
+            db.add(tokenizer: SynonymsTokenizer.self)
+        }
         let dbQueue = try makeDatabaseQueue()
-        dbQueue.add(tokenizer: SynonymsTokenizer.self)
         
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS5()) { t in

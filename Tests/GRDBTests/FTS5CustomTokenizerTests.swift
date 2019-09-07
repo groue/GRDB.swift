@@ -199,6 +199,30 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
 class FTS5CustomTokenizerTests: GRDBTestCase {
     
     func testStopWordsTokenizerDatabaseQueue() throws {
+        dbConfiguration.onConnect { db in
+            db.add(tokenizer: StopWordsTokenizer.self)
+        }
+        let dbQueue = try makeDatabaseQueue()
+        
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = StopWordsTokenizer.tokenizerDescriptor()
+                t.column("content")
+            }
+            
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["foo baz"])
+            
+            // foo is not ignored
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
+            // bar is ignored
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
+            // bar is ignored in queries too: the "foo bar baz" phrase matches the "foo baz" content
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
+        }
+    }
+
+    func testDeprecatedStopWordsTokenizerDatabaseQueue() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.add(tokenizer: StopWordsTokenizer.self)
         
@@ -221,6 +245,39 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
     }
 
     func testStopWordsTokenizerDatabasePool() throws {
+        dbConfiguration.onConnect { db in
+            db.add(tokenizer: StopWordsTokenizer.self)
+        }
+        let dbPool = try makeDatabasePool()
+        
+        try dbPool.write { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = StopWordsTokenizer.tokenizerDescriptor()
+                t.column("content")
+            }
+            
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["foo bar"])
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["foo baz"])
+            
+            // foo is not ignored
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
+            // bar is ignored
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
+            // bar is ignored in queries too: the "foo bar baz" phrase matches the "foo baz" content
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
+        }
+        
+        try dbPool.read { db in
+            // foo is not ignored
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["foo"]), 2)
+            // bar is ignored
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["bar"]), 0)
+            // bar is ignored in queries too: the "foo bar baz" phrase matches the "foo baz" content
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
+        }
+    }
+    
+    func testDeprecatedStopWordsTokenizerDatabasePool() throws {
         let dbPool = try makeDatabasePool()
         dbPool.add(tokenizer: StopWordsTokenizer.self)
         
@@ -252,8 +309,10 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
     }
 
     func testNFKCTokenizer() throws {
+        dbConfiguration.onConnect { db in
+            db.add(tokenizer: NFKCTokenizer.self)
+        }
         let dbQueue = try makeDatabaseQueue()
-        dbQueue.add(tokenizer: NFKCTokenizer.self)
         
         // Without NFKC conversion
         try dbQueue.inDatabase { db in
@@ -309,8 +368,10 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
     }
 
     func testSynonymTokenizer() throws {
+        dbConfiguration.onConnect { db in
+            db.add(tokenizer: SynonymsTokenizer.self)
+        }
         let dbQueue = try makeDatabaseQueue()
-        dbQueue.add(tokenizer: SynonymsTokenizer.self)
         
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS5()) { t in

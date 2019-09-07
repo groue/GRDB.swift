@@ -22,18 +22,22 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     var collation: DatabaseCollation!
     var customFunction: DatabaseFunction!
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setUp() {
+        super.setUp()
         collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
             return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
         }
-        dbWriter.add(collation: collation)
-        
         customFunction = DatabaseFunction("avgOf", pure: true) { dbValues in
             let sum = dbValues.compactMap { Int.fromDatabaseValue($0) }.reduce(0, +)
             return Double(sum) / Double(dbValues.count)
         }
-        dbWriter.add(function: self.customFunction)
-        
+        dbConfiguration.onConnect { [unowned self] db in
+            db.add(collation: self.collation)
+            db.add(function: self.customFunction)
+        }
+    }
+    
+    override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
             try db.execute(sql: """

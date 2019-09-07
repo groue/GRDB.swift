@@ -231,6 +231,11 @@ class TableDefinitionTests: GRDBTestCase {
     }
 
     func testColumnCollation() throws {
+        let collation = DatabaseCollation("foo") { (lhs, rhs) in .orderedSame }
+        dbConfiguration.onConnect { db in
+            db.add(collation: collation)
+        }
+        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
             try db.create(table: "test") { t in
@@ -244,8 +249,6 @@ class TableDefinitionTests: GRDBTestCase {
             return .rollback
         }
         
-        let collation = DatabaseCollation("foo") { (lhs, rhs) in .orderedSame }
-        dbQueue.add(collation: collation)
         try dbQueue.inTransaction { db in
             try db.create(table: "test") { t in
                 t.column("name", .text).collate(collation)

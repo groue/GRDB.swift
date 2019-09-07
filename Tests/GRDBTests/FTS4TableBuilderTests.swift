@@ -302,17 +302,18 @@ class FTS4TableBuilderTests: GRDBTestCase {
         // Based on https://github.com/groue/GRDB.swift/issues/369
         var compressCalled = false
         var uncompressCalled = false
+        dbConfiguration.onConnect { db in
+            db.add(function: DatabaseFunction("zipit", argumentCount: 1, pure: true, function: { dbValues in
+                compressCalled = true
+                return dbValues[0]
+            }))
+            db.add(function: DatabaseFunction("unzipit", argumentCount: 1, pure: true, function: { dbValues in
+                uncompressCalled = true
+                return dbValues[0]
+            }))
+        }
         
         let dbPool = try makeDatabasePool()
-        dbPool.add(function: DatabaseFunction("zipit", argumentCount: 1, pure: true, function: { dbValues in
-            compressCalled = true
-            return dbValues[0]
-        }))
-        dbPool.add(function: DatabaseFunction("unzipit", argumentCount: 1, pure: true, function: { dbValues in
-            uncompressCalled = true
-            return dbValues[0]
-        }))
-        
         try dbPool.write { db in
             try db.create(virtualTable: "documents", using: FTS4()) { t in
                 t.compress = "zipit"

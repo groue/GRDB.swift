@@ -58,7 +58,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         }
     }
     
-    func testSnapshotInheritPoolFunctions() throws {
+    func testDeprecatedSnapshotInheritPoolFunctions() throws {
         let dbPool = try makeDatabasePool()
         let function = DatabaseFunction("foo", argumentCount: 0, pure: true) { _ in return "foo" }
         dbPool.add(function: function)
@@ -69,7 +69,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         }
     }
     
-    func testSnapshotFunctions() throws {
+    func testDeprecatedSnapshotFunctions() throws {
         let dbPool = try makeDatabasePool()
         let snapshot = try dbPool.makeSnapshot()
         let function = DatabaseFunction("foo", argumentCount: 0, pure: true) { _ in return "foo" }
@@ -79,7 +79,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         }
     }
 
-    func testSnapshotInheritPoolCollations() throws {
+    func testDeprecatedSnapshotInheritPoolCollations() throws {
         let dbPool = try makeDatabasePool()
         let collation = DatabaseCollation("reverse") { (string1, string2) in
             return (string1 == string2) ? .orderedSame : ((string1 < string2) ? .orderedDescending : .orderedAscending)
@@ -99,7 +99,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         }
     }
 
-    func testSnapshotCollations() throws {
+    func testDeprecatedSnapshotCollations() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
             try db.execute(sql: "CREATE TABLE items (text TEXT)")

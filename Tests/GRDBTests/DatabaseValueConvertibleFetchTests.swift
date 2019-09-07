@@ -68,9 +68,11 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     #endif
 
     func testFetchCursorStepFailure() throws {
-        let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        dbConfiguration.onConnect { db in
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        }
+        let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             func test(_ cursor: DatabaseValueCursor<Fetched>, sql: String) throws {
                 do {
@@ -178,9 +180,11 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     #endif
     
     func testFetchAllStepFailure() throws {
-        let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        dbConfiguration.onConnect { db in
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        }
+        let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             func test(_ array: @autoclosure () throws -> [Fetched], sql: String) throws {
                 do {
@@ -327,9 +331,11 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     #endif
     
     func testFetchOneStepFailure() throws {
-        let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        dbConfiguration.onConnect { db in
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        }
+        let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             func test(_ value: @autoclosure () throws -> Fetched?, sql: String) throws {
                 do {
@@ -436,9 +442,11 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     #endif
     
     func testOptionalFetchCursorStepFailure() throws {
-        let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        dbConfiguration.onConnect { db in
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        }
+        let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             func test(_ cursor: NullableDatabaseValueCursor<Fetched>, sql: String) throws {
                 do {
@@ -548,9 +556,11 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
     #endif
     
     func testOptionalFetchAllStepFailure() throws {
-        let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        dbConfiguration.onConnect { db in
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        }
+        let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             func test(_ array: @autoclosure () throws -> [Fetched?], sql: String) throws {
                 do {

@@ -29,7 +29,7 @@ class DatabaseQueueTests: GRDBTestCase {
     }
     #endif
     
-    func testAddRemoveFunction() throws {
+    func testDeprecatedAddRemoveFunction() throws {
         // Adding a function and then removing it should succeed
         let dbQueue = try makeDatabaseQueue()
         let fn = DatabaseFunction("succ", argumentCount: 1) { dbValues in
@@ -59,7 +59,7 @@ class DatabaseQueueTests: GRDBTestCase {
         }
     }
 
-    func testAddRemoveCollation() throws {
+    func testDeprecatedAddRemoveCollation() throws {
         // Adding a collation and then removing it should succeed
         let dbQueue = try makeDatabaseQueue()
         let collation = DatabaseCollation("test_collation_foo") { (string1, string2) in

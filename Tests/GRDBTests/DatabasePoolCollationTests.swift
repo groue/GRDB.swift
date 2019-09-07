@@ -7,7 +7,7 @@ import XCTest
 
 class DatabasePoolCollationTests: GRDBTestCase {
     
-    func testCollationIsSharedBetweenWriterAndReaders() throws {
+    func testDeprecatedCollationIsSharedBetweenWriterAndReaders() throws {
         let dbPool = try makeDatabasePool()
         
         let collation1 = DatabaseCollation("collation1") { (string1, string2) in
