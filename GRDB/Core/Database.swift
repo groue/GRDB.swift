@@ -221,7 +221,7 @@ extension Database {
         #endif
         
         // Last step before we can start accessing the database.
-        try configuration.prepareDatabase?(self)
+        try configuration.databaseDidConnect(self)
         
         try validateFormat()
         configuration.SQLiteConnectionDidOpen?()
@@ -962,10 +962,10 @@ extension Database {
     
     /// Sets the passphrase used to crypt and decrypt an SQLCipher database.
     ///
-    /// Call this method from Configuration.prepareDatabase, as in the example below:
+    /// Call this method from Configuration.onConnect, as in the example below:
     ///
     ///     var config = Configuration()
-    ///     config.prepareDatabase = { db in
+    ///     config.onConnect { db in
     ///         try db.usePassphrase("secret")
     ///     }
     public func usePassphrase(_ passphrase: String) throws {
