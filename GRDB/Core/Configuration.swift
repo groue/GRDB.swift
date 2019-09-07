@@ -122,6 +122,9 @@ public struct Configuration {
     ///         try db.execute(sql: "PRAGMA kdf_iter = 10000")
     ///     }
     ///
+    /// The argument connection has been setup by GRDB: foreign keys, busy mode,
+    /// trace, database observation, etc. are configured.
+    ///
     /// You can call this method multiple times. All registered functions are
     /// run, in the same order as their registration.
     public mutating func onConnect(execute function: @escaping (Database) throws -> Void) {
