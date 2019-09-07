@@ -672,11 +672,13 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     // MARK: - Functions
     
     /// :nodoc:
+    @available(*, deprecated, message: "Use Database.add(function:) instead")
     public func add(function: DatabaseFunction) {
         base.add(function: function)
     }
     
     /// :nodoc:
+    @available(*, deprecated, message: "Use Database.remove(function:) instead")
     public func remove(function: DatabaseFunction) {
         base.remove(function: function)
     }
@@ -684,11 +686,13 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     // MARK: - Collations
     
     /// :nodoc:
+    @available(*, deprecated, message: "Use Database.add(collation:) instead")
     public func add(collation: DatabaseCollation) {
         base.add(collation: collation)
     }
     
     /// :nodoc:
+    @available(*, deprecated, message: "Use Database.remove(collation:) instead")
     public func remove(collation: DatabaseCollation) {
         base.remove(collation: collation)
     }

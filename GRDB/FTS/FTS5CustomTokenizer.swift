@@ -181,10 +181,29 @@ extension DatabaseQueue {
     ///
     ///     class MyTokenizer : FTS5CustomTokenizer { ... }
     ///     dbQueue.add(tokenizer: MyTokenizer.self)
+    @available(*, deprecated, message: "Use Database.add(tokenizer:) instead")
     public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
         inDatabase { db in
             db.add(tokenizer: Tokenizer.self)
         }
+    }
+}
+
+extension DatabasePool {
+    
+    // MARK: - Custom FTS5 Tokenizers
+    
+    /// Add a custom FTS5 tokenizer.
+    ///
+    ///     class MyTokenizer : FTS5CustomTokenizer { ... }
+    ///     dbPool.add(tokenizer: MyTokenizer.self)
+    @available(*, deprecated, message: "Use Database.add(tokenizer:) instead")
+    public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
+        func registerTokenizer(db: Database) {
+            db.add(tokenizer: Tokenizer.self)
+        }
+        tokenizerRegistrations.append(registerTokenizer)
+        forEachConnection(registerTokenizer)
     }
 }
 #endif

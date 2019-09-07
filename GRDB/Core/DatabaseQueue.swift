@@ -381,11 +381,13 @@ extension DatabaseQueue {
     ///     try dbQueue.read { db in
     ///         try Int.fetchOne(db, sql: "SELECT succ(1)") // 2
     ///     }
+    @available(*, deprecated, message: "Use Database.add(function:) instead")
     public func add(function: DatabaseFunction) {
         writer.sync { $0.add(function: function) }
     }
     
     /// Remove an SQL function.
+    @available(*, deprecated, message: "Use Database.remove(function:) instead")
     public func remove(function: DatabaseFunction) {
         writer.sync { $0.remove(function: function) }
     }
@@ -401,11 +403,13 @@ extension DatabaseQueue {
     ///     try dbQueue.write { db in
     ///         try db.execute(sql: "CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
+    @available(*, deprecated, message: "Use Database.add(collation:) instead")
     public func add(collation: DatabaseCollation) {
         writer.sync { $0.add(collation: collation) }
     }
     
     /// Remove a collation.
+    @available(*, deprecated, message: "Use Database.remove(collation:) instead")
     public func remove(collation: DatabaseCollation) {
         writer.sync { $0.remove(collation: collation) }
     }

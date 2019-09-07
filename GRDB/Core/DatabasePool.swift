@@ -19,7 +19,7 @@ public final class DatabasePool: DatabaseWriter {
     
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
-    private var tokenizerRegistrations: [(Database) -> Void] = []
+    var tokenizerRegistrations: [(Database) -> Void] = []
     
     var snapshotCount = ReadWriteBox(0)
     
@@ -133,9 +133,10 @@ public final class DatabasePool: DatabaseWriter {
         }
     }
     
+    // TODO: remove when it is no longer used
     /// Blocks the current thread until all database connections have
     /// executed the *body* block.
-    fileprivate func forEachConnection(_ body: (Database) -> Void) {
+    func forEachConnection(_ body: (Database) -> Void) {
         writer.sync(body)
         readerPool.forEach { $0.sync(body) }
     }
@@ -743,12 +744,14 @@ extension DatabasePool: DatabaseReader {
     ///     try dbPool.read { db in
     ///         try Int.fetchOne(db, sql: "SELECT succ(1)") // 2
     ///     }
+    @available(*, deprecated, message: "Use Database.add(function:) instead")
     public func add(function: DatabaseFunction) {
         functions.update(with: function)
         forEachConnection { $0.add(function: function) }
     }
     
     /// Remove an SQL function.
+    @available(*, deprecated, message: "Use Database.remove(function:) instead")
     public func remove(function: DatabaseFunction) {
         functions.remove(function)
         forEachConnection { $0.remove(function: function) }
@@ -765,32 +768,18 @@ extension DatabasePool: DatabaseReader {
     ///     try dbPool.write { db in
     ///         try db.execute(sql: "CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
     ///     }
+    @available(*, deprecated, message: "Use Database.add(collation:) instead")
     public func add(collation: DatabaseCollation) {
         collations.update(with: collation)
         forEachConnection { $0.add(collation: collation) }
     }
     
     /// Remove a collation.
+    @available(*, deprecated, message: "Use Database.remove(collation:) instead")
     public func remove(collation: DatabaseCollation) {
         collations.remove(collation)
         forEachConnection { $0.remove(collation: collation) }
     }
-    
-    // MARK: - Custom FTS5 Tokenizers
-    
-    #if SQLITE_ENABLE_FTS5
-    /// Add a custom FTS5 tokenizer.
-    ///
-    ///     class MyTokenizer : FTS5CustomTokenizer { ... }
-    ///     dbPool.add(tokenizer: MyTokenizer.self)
-    public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
-        func registerTokenizer(db: Database) {
-            db.add(tokenizer: Tokenizer.self)
-        }
-        tokenizerRegistrations.append(registerTokenizer)
-        forEachConnection(registerTokenizer)
-    }
-    #endif
 }
 
 extension DatabasePool {

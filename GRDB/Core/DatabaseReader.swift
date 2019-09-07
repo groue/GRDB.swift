@@ -162,9 +162,11 @@ public protocol DatabaseReader: AnyObject {
     ///     try reader.read { db in
     ///         try Int.fetchOne(db, sql: "SELECT succ(1)")! // 2
     ///     }
+    @available(*, deprecated, message: "Use Database.add(function:) instead")
     func add(function: DatabaseFunction)
     
     /// Remove an SQL function.
+    @available(*, deprecated, message: "Use Database.remove(function:) instead")
     func remove(function: DatabaseFunction)
     
     
@@ -177,9 +179,11 @@ public protocol DatabaseReader: AnyObject {
     ///     }
     ///     reader.add(collation: collation)
     ///     try reader.execute(sql: "SELECT * FROM file ORDER BY name COLLATE localized_standard")
+    @available(*, deprecated, message: "Use Database.add(collation:) instead")
     func add(collation: DatabaseCollation)
     
     /// Remove a collation.
+    @available(*, deprecated, message: "Use Database.remove(collation:) instead")
     func remove(collation: DatabaseCollation)
     
     // MARK: - Value Observation
@@ -277,11 +281,13 @@ public final class AnyDatabaseReader: DatabaseReader {
     // MARK: - Functions
     
     /// :nodoc:
+    @available(*, deprecated, message: "Use Database.add(function:) instead")
     public func add(function: DatabaseFunction) {
         base.add(function: function)
     }
     
     /// :nodoc:
+    @available(*, deprecated, message: "Use Database.remove(function:) instead")
     public func remove(function: DatabaseFunction) {
         base.remove(function: function)
     }
@@ -289,11 +295,13 @@ public final class AnyDatabaseReader: DatabaseReader {
     // MARK: - Collations
     
     /// :nodoc:
+    @available(*, deprecated, message: "Use Database.add(collation:) instead")
     public func add(collation: DatabaseCollation) {
         base.add(collation: collation)
     }
     
     /// :nodoc:
+    @available(*, deprecated, message: "Use Database.remove(collation:) instead")
     public func remove(collation: DatabaseCollation) {
         base.remove(collation: collation)
     }
