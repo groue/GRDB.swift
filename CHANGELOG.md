@@ -64,6 +64,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#606](https://github.com/groue/GRDB.swift/pull/606): Register functions, collations, and FTS5 tokenizers in the `onConnect` configuration function
 
 
+### Documentation Diff
+
+The [Custom SQL Functions and Aggregates](README.md#custom-sql-functions-and-aggregates), [String Comparison](README.md#string-comparison) and [FTS5 Tokenizers](Documentation/FTS5Tokenizers.md) chapters show how to use the `onConnect` configuration function in order to register SQL functions, collations, and custom FTS5 tokenizers.
+
+
 ### API Diff
 
 **New Method**
