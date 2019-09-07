@@ -7373,7 +7373,7 @@ config.onConnect { db in
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 ```
 
-It is also in `onConnect` that you perform other [SQLCipher configuration steps](https://www.zetetic.net/sqlcipher/sqlcipher-api/) that must happen early in the lifetime of a SQLCipher connection. For example:
+It is also in the `onConnect` configuration function that you perform other [SQLCipher configuration steps](https://www.zetetic.net/sqlcipher/sqlcipher-api/) that must happen early in the lifetime of a SQLCipher connection. For example:
 
 ```swift
 var config = Configuration()
@@ -7421,7 +7421,7 @@ try dbPool.barrierWriteWithoutTransaction { db in
 }
 ```
 
-> :point_up: **Note**: When an application wants to keep on using a database queue or pool after the passphrase has changed, it is responsible for providing the correct passphrase to the `usePassphrase` method called in the database preparation function. Consider:
+> :point_up: **Note**: When an application wants to keep on using a database queue or pool after the passphrase has changed, it is responsible for providing the correct passphrase to the `usePassphrase` method called in the `onConnect` configuration function. Consider:
 >
 > ```swift
 > // WRONG: this won't work across a passphrase change
@@ -7483,7 +7483,7 @@ try existingDBQueue.inDatabase { db in
 
 #### Managing the lifetime of the passphrase string
 
-It is recommended to avoid keeping the passphrase in memory longer than necessary. To do this, make sure you load the passphrase from inside the `onConnect` function:
+It is recommended to avoid keeping the passphrase in memory longer than necessary. To do this, make sure you load the passphrase from inside the `onConnect` configuration function:
 
 ```swift
 // NOT RECOMMENDED: this keeps the passphrase in memory longer than necessary

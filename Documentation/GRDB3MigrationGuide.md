@@ -141,7 +141,7 @@ The integration of GRDB with SQLCipher has changed.
 
 2. The default SQLCipher version which comes with GRDB 4 is now SQLCipher 4, which is incompatible with SQLCipher 3. SQLCipher 3 is still supported, though. See [Encryption] for more details.
 
-3. The `cipherPageSize` and `kdfIterations` configuration properties are discontinued. With GRDB 4, run sql pragmas in the `onConnect` method of the configuration:
+3. The `cipherPageSize` and `kdfIterations` configuration properties are discontinued. With GRDB 4, run sql pragmas in the `onConnect` configuration function:
     
     ```swift
     var configuration = Configuration()
