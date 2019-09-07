@@ -17,6 +17,7 @@
 
 ## Features
 
+- [ ] Xcode 10.3 and Xcode 11 Travis tests
 - [ ] Alternative technique for custom SQLite builds: see the Podfile at https://github.com/CocoaPods/CocoaPods/issues/9104, and https://github.com/clemensg/sqlite3pod
 - [ ] Attach databases. Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] SQL Generation
