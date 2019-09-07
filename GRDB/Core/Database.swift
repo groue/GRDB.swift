@@ -221,7 +221,7 @@ extension Database {
         #endif
         
         // Last step before we can start accessing the database.
-        try configuration.prepareDatabase?(self)
+        try configuration.databaseDidConnect(self)
         
         try validateFormat()
         configuration.SQLiteConnectionDidOpen?()
