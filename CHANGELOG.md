@@ -60,7 +60,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 ### New
 
-- [#604](https://github.com/groue/GRDB.swift/pull/604): Configuration.onConnect
+- [#605](https://github.com/groue/GRDB.swift/pull/605): Configuration.onConnect
 
 
 ### API Diff
