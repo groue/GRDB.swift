@@ -10,6 +10,8 @@ class InflectionsTests: GRDBTestCase {
     private var originalInflections: Inflections?
     
     override func setUp() {
+        super.setUp()
+        
         // Dups the singleton before each test, restoring the original inflections later.
         originalInflections = Inflections.default
     }
