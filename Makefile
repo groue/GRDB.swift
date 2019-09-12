@@ -60,7 +60,7 @@ else ifeq ($(XCODEVERSION),10.3)
   MAX_SWIFT_VERSION = 5
   MIN_SWIFT_VERSION = 4.2
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone X,OS=12.4"
-  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 4s,OS=9.0"
+  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5,OS=10.3.1"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=12.4"
   MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.0"
 else ifeq ($(XCODEVERSION),10.2)
