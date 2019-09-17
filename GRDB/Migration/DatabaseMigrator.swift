@@ -178,7 +178,7 @@ public struct DatabaseMigrator {
         if eraseDatabaseOnSchemaChange {
             // Create a temporary witness database, on disk, just in case
             // migrations would involve a lot of data.
-            let witness = try DatabaseQueue(path: "")
+            let witness = try DatabaseQueue(path: "", configuration: writer.configuration)
             
             // Erase database if we detect a change in the current schema.
             let (currentIdentifier, currentSchema) = try writer.writeWithoutTransaction { db -> (String?, SchemaInfo) in
