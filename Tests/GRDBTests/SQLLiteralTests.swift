@@ -112,6 +112,18 @@ class SQLLiteralTests: GRDBTestCase {
 
 #if swift(>=5.0)
 extension SQLLiteralTests {
+    func testLiteralInitializer() {
+        let query = SQLLiteral("""
+            SELECT * FROM player
+            WHERE id = \(1)
+            """)
+        XCTAssertEqual(query.sql, """
+            SELECT * FROM player
+            WHERE id = ?
+            """)
+        XCTAssertEqual(query.arguments, [1])
+    }
+    
     func testRawSQLInterpolation() {
         let query: SQLLiteral = """
             SELECT *

@@ -100,6 +100,20 @@ class SQLRequestTests: GRDBTestCase {
     }
     
     #if swift(>=5.0)
+    func testLiteralInitializer() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = SQLRequest<String>("""
+                SELECT \("O'Brien")
+                """)
+            XCTAssertEqual(request.sql, """
+                SELECT ?
+                """)
+            let string = try request.fetchOne(db)!
+            XCTAssertEqual(string, "O'Brien")
+        }
+    }
+    
     func testSQLLiteralInitializerWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
