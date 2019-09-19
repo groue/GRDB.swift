@@ -650,6 +650,10 @@
 		56BB6EA91D3009B100A1CA52 /* SchedulingWatchdog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BB6EA81D3009B100A1CA52 /* SchedulingWatchdog.swift */; };
 		56BB6EAC1D3009B100A1CA52 /* SchedulingWatchdog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BB6EA81D3009B100A1CA52 /* SchedulingWatchdog.swift */; };
 		56C3F7561CF9F12400F6A361 /* DatabaseSavepointTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56C3F7521CF9F12400F6A361 /* DatabaseSavepointTests.swift */; };
+		56CAD2362333906F0057559A /* SharedDatabaseSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CAD2352333906F0057559A /* SharedDatabaseSnapshot.swift */; };
+		56CAD2372333906F0057559A /* SharedDatabaseSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CAD2352333906F0057559A /* SharedDatabaseSnapshot.swift */; };
+		56CAD2382333906F0057559A /* SharedDatabaseSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CAD2352333906F0057559A /* SharedDatabaseSnapshot.swift */; };
+		56CAD2392333906F0057559A /* SharedDatabaseSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CAD2352333906F0057559A /* SharedDatabaseSnapshot.swift */; };
 		56CC922C201DFFB900CB597E /* DropWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC922B201DFFB900CB597E /* DropWhileCursorTests.swift */; };
 		56CC922D201DFFB900CB597E /* DropWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC922B201DFFB900CB597E /* DropWhileCursorTests.swift */; };
 		56CC9243201E034D00CB597E /* PrefixWhileCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CC9242201E034D00CB597E /* PrefixWhileCursorTests.swift */; };
@@ -1604,6 +1608,7 @@
 		56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = GRDBDeploymentTarget.xcconfig; sourceTree = "<group>"; };
 		56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = SQLite.swift/SQLite.xcodeproj; sourceTree = "<group>"; };
 		56CA22211BB41565009A04C5 /* PerformanceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
+		56CAD2352333906F0057559A /* SharedDatabaseSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDatabaseSnapshot.swift; sourceTree = "<group>"; };
 		56CC922B201DFFB900CB597E /* DropWhileCursorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropWhileCursorTests.swift; sourceTree = "<group>"; };
 		56CC9242201E034D00CB597E /* PrefixWhileCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrefixWhileCursorTests.swift; sourceTree = "<group>"; };
 		56CC9245201E058000CB597E /* DropFirstCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropFirstCursorTests.swift; sourceTree = "<group>"; };
@@ -2319,9 +2324,10 @@
 				567404871CEF84C8003ED5CC /* RowAdapter.swift */,
 				56BB6EA81D3009B100A1CA52 /* SchedulingWatchdog.swift */,
 				560A37A61C8FF6E500949E71 /* SerializedDatabase.swift */,
+				56CAD2352333906F0057559A /* SharedDatabaseSnapshot.swift */,
 				569D6DDD220EF9E100A058A9 /* SQLInterpolation.swift */,
-				56FBFED82210731A00945324 /* SQLRequest.swift */,
 				56E9FAD7221053DC00C703A8 /* SQLLiteral.swift */,
+				56FBFED82210731A00945324 /* SQLRequest.swift */,
 				56A238781B9C75030082EB20 /* Statement.swift */,
 				566B912A1FA4D0CC0012D5B0 /* StatementAuthorizer.swift */,
 				560D923F1C672C3E00F4F92B /* StatementColumnConvertible.swift */,
@@ -3177,6 +3183,7 @@
 				5653EB0E20944C7C00F46237 /* HasManyAssociation.swift in Sources */,
 				565490DA1D5AE252005622CB /* QueryInterfaceRequest.swift in Sources */,
 				565490CA1D5AE252005622CB /* DatabaseDateComponents.swift in Sources */,
+				56CAD2382333906F0057559A /* SharedDatabaseSnapshot.swift in Sources */,
 				565490D01D5AE252005622CB /* NSString.swift in Sources */,
 				565490DF1D5AE252005622CB /* TableDefinition.swift in Sources */,
 				565490B71D5AE236005622CB /* Database.swift in Sources */,
@@ -3333,6 +3340,7 @@
 				569531201C907A8C00CF1A2B /* DatabaseSchemaCache.swift in Sources */,
 				5605F15E1C672E4000235C62 /* DatabaseDateComponents.swift in Sources */,
 				5695962A222C462D002CB7C9 /* HasManyThroughAssociation.swift in Sources */,
+				56CAD2372333906F0057559A /* SharedDatabaseSnapshot.swift in Sources */,
 				563363C11C942C04000BE133 /* DatabaseReader.swift in Sources */,
 				5659F4A31EA8D997004A4992 /* DatabaseResult.swift in Sources */,
 				56B964BC1DA51D0A0002DA19 /* FTS5Pattern.swift in Sources */,
@@ -3869,6 +3877,7 @@
 				AAA4DCC3230F1E0600C74B15 /* DatabaseSchemaCache.swift in Sources */,
 				AAA4DCC4230F1E0600C74B15 /* DatabaseDateComponents.swift in Sources */,
 				AAA4DCC5230F1E0600C74B15 /* HasManyThroughAssociation.swift in Sources */,
+				56CAD2392333906F0057559A /* SharedDatabaseSnapshot.swift in Sources */,
 				AAA4DCC6230F1E0600C74B15 /* DatabaseReader.swift in Sources */,
 				AAA4DCC7230F1E0600C74B15 /* DatabaseResult.swift in Sources */,
 				AAA4DCC8230F1E0600C74B15 /* FTS5Pattern.swift in Sources */,
@@ -4203,6 +4212,7 @@
 				5674A6EB1F307F0E0095F066 /* DatabaseValueConvertible+Encodable.swift in Sources */,
 				56D91AA92205F2F100770D8D /* DatabasePromise.swift in Sources */,
 				56959629222C462D002CB7C9 /* HasManyThroughAssociation.swift in Sources */,
+				56CAD2362333906F0057559A /* SharedDatabaseSnapshot.swift in Sources */,
 				560A37A41C8F625000949E71 /* DatabasePool.swift in Sources */,
 				56B7F43A1BEB42D500E39BBF /* Migration.swift in Sources */,
 				5613ED3521A95A5C00DC7A68 /* Map.swift in Sources */,
@@ -4479,6 +4489,7 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				OTHER_SWIFT_FLAGS = "-D SQLITE_ENABLE_SNAPSHOT";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -4505,6 +4516,7 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				OTHER_SWIFT_FLAGS = "-D SQLITE_ENABLE_SNAPSHOT";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";

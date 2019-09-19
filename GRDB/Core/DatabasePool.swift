@@ -873,4 +873,10 @@ extension DatabasePool {
         snapshot.read { setupDatabase($0) }
         return snapshot
     }
+    
+    #if SQLITE_ENABLE_SNAPSHOT
+    public func makeSharedSnapshot() throws -> SharedDatabaseSnapshot {
+        return try SharedDatabaseSnapshot(databasePool: self)
+    }
+    #endif
 }
