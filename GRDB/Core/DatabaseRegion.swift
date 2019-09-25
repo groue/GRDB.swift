@@ -191,17 +191,27 @@ extension DatabaseRegion {
             // performed in observes(eventsOfKind:), the event argument is
             // guaranteed to be about the fetched table. We thus only have to
             // check for rowIds.
-            assert(event.tableName == tableRegions[tableRegions.startIndex].key) // sanity check in debug mode
-            let tableRegion = tableRegions[tableRegions.startIndex].value
-            return tableRegion.contains(rowID: event.rowID)
+            
+            let (tableName, tableRegion) = tableRegions[tableRegions.startIndex]
+            if event.tableName == tableName {
+                return tableRegion.contains(rowID: event.rowID)
+            } else {
+                // Shouldn't happen if the precondition is met.
+                // But FTS4 (and maybe other virtual tables) perform
+                // unadvertised changes. So let's assume the region is modified,
+                // just is case.
+                // See https://github.com/groue/GRDB.swift/issues/620
+                return true
+            }
         } else {
             // Slow path when several tables are observed.
             guard let tableRegion = tableRegions[event.tableName] else {
                 // Shouldn't happen if the precondition is met.
-                fatalError("""
-                    precondition failure: event was not filtered out in observes(eventsOfKind:) \
-                    by region.isModified(byEventsOfKind:)
-                    """)
+                // But FTS4 (and maybe other virtual tables) perform
+                // unadvertised changes. So let's assume the region is modified,
+                // just is case.
+                // See https://github.com/groue/GRDB.swift/issues/620
+                return true
             }
             return tableRegion.contains(rowID: event.rowID)
         }
