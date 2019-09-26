@@ -61,6 +61,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 - The `DatabaseMigrator.eraseDatabaseOnSchemaChange` option no longer fails when migrations depend on database configuration.
 
+**New**
+
+- [#622](https://github.com/groue/GRDB.swift/pull/622): Allow observation of FTS4 virtual tables
+
 
 ## 4.4.0
 
