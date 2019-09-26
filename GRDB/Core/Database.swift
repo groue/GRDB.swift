@@ -13,8 +13,10 @@ public typealias SQLiteConnection = OpaquePointer
 /// A raw SQLite function argument.
 typealias SQLiteValue = OpaquePointer
 
+#if SQLITE_ENABLE_SNAPSHOT
 /// A raw SQLite snapshot
 typealias SQLiteSnapshot = UnsafeMutablePointer<sqlite3_snapshot>
+#endif
 
 let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_destructor_type.self)
 

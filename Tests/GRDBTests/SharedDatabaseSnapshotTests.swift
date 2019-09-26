@@ -1,3 +1,4 @@
+#if SQLITE_ENABLE_SNAPSHOT
 import XCTest
 #if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
@@ -214,3 +215,4 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         }
     }
 }
+#endif
