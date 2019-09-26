@@ -633,7 +633,8 @@ extension Database {
 
 extension Database {
     
-    // MARK: - Transactions & Savepoint
+    #if SQLITE_ENABLE_SNAPSHOT
+    // MARK: - Snapshots
     
     func makeSQLiteSnapshot() throws -> SQLiteSnapshot {
         var sqliteSnapshot: SQLiteSnapshot?
@@ -648,6 +649,17 @@ extension Database {
         }
         return snapshot
     }
+    
+    func openSQLiteSnapshot(_ snapshot: SQLiteSnapshot) throws {
+        // TODO: carefully handle errors (https://www.sqlite.org/c3ref/snapshot_open.html)
+        let code = sqlite3_snapshot_open(sqliteConnection, "main", snapshot)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: lastErrorMessage)
+        }
+    }
+    #endif
+    
+    // MARK: - Transactions & Savepoint
     
     /// Executes a block inside a database transaction.
     ///
@@ -792,39 +804,6 @@ extension Database {
         if let firstError = firstError {
             throw firstError
         }
-    }
-    
-    func inSnapshot<T>(_ snapshot: SQLiteSnapshot, _ block: () throws -> T) throws -> T {
-        // Begin snapshot
-        // TODO: carefully handle errors (https://www.sqlite.org/c3ref/snapshot_open.html)
-        let code = sqlite3_snapshot_open(sqliteConnection, "main", snapshot)
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: lastErrorMessage)
-        }
-        
-        // Execute block
-        var result: T? = nil
-        var firstError: Error? = nil
-        do {
-            result = try block()
-        } catch {
-            firstError = error
-        }
-        
-        // Leave snapshot
-        do {
-            try commit()
-        } catch {
-            if firstError == nil {
-                firstError = error
-            }
-        }
-        
-        if let firstError = firstError {
-            throw firstError
-        }
-        
-        return result!
     }
     
     /// Begins a database transaction.

@@ -27,13 +27,20 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
             try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             let snapshot = try dbPool.makeSharedSnapshot(db)
-            try snapshot.read { db in
-                try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-            }
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
             try snapshot.read { db in
                 try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
+            }
+            try dbPool.read { db in
+                try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
+            }
+            try snapshot.read { db in
+                try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
+            }
+            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
+            try dbPool.read { db in
+                try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
             }
         }
     }
@@ -128,7 +135,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
             let label = String(utf8String: __dispatch_queue_get_label(nil))
-            XCTAssertEqual(label, "GRDB.DatabasePool.snapshot.1")
+            XCTAssertEqual(label, "GRDB.DatabasePool.reader.1")
         }
         
         let snapshot2 = try dbPool.makeSharedSnapshot()
@@ -138,7 +145,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
             let label = String(utf8String: __dispatch_queue_get_label(nil))
-            XCTAssertEqual(label, "GRDB.DatabasePool.snapshot.2")
+            XCTAssertEqual(label, "GRDB.DatabasePool.reader.1")
         }
     }
     
@@ -153,7 +160,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
             let label = String(utf8String: __dispatch_queue_get_label(nil))
-            XCTAssertEqual(label, "Toreador.snapshot.1")
+            XCTAssertEqual(label, "Toreador.reader.1")
         }
         
         let snapshot2 = try dbPool.makeSharedSnapshot()
@@ -163,7 +170,9 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
             let label = String(utf8String: __dispatch_queue_get_label(nil))
-            XCTAssertEqual(label, "Toreador.snapshot.2")
+            XCTAssertEqual(label, "Toreador.reader.1")
         }
     }
+    
+    // TODO: test cache, concurrent reads...
 }

@@ -27,13 +27,20 @@ class DatabaseSnapshotTests: GRDBTestCase {
             try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             let snapshot = try dbPool.makeSnapshot()
-            try snapshot.read { db in
-                try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-            }
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
             try snapshot.read { db in
                 try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
+            }
+            try dbPool.read { db in
+                try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
+            }
+            try snapshot.read { db in
+                try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
+            }
+            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
+            try dbPool.read { db in
+                try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
             }
         }
     }

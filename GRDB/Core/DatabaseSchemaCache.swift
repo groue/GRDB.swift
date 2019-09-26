@@ -66,6 +66,52 @@ struct SimpleDatabaseSchemaCache: DatabaseSchemaCache {
     }
 }
 
+/// A thread-unsafe database schema cache
+class SharedDatabaseSchemaCache: DatabaseSchemaCache {
+    private var _cache = SimpleDatabaseSchemaCache()
+    
+    var schemaInfo: SchemaInfo? {
+        get { return _cache.schemaInfo }
+        set { _cache.schemaInfo = newValue }
+    }
+    
+    func clear() {
+        _cache.clear()
+    }
+    
+    func primaryKey(_ table: String) -> PrimaryKeyInfo? {
+        return _cache.primaryKey(table)
+    }
+    
+    func set(primaryKey: PrimaryKeyInfo, forTable table: String) {
+        _cache.set(primaryKey: primaryKey, forTable: table)
+    }
+    
+    func columns(in table: String) -> [ColumnInfo]? {
+        return _cache.columns(in: table)
+    }
+    
+    func set(columns: [ColumnInfo], forTable table: String) {
+        _cache.set(columns: columns, forTable: table)
+    }
+    
+    func indexes(on table: String) -> [IndexInfo]? {
+        return _cache.indexes(on: table)
+    }
+    
+    func set(indexes: [IndexInfo], forTable table: String) {
+        _cache.set(indexes: indexes, forTable: table)
+    }
+    
+    func foreignKeys(on table: String) -> [ForeignKeyInfo]? {
+        return _cache.foreignKeys(on: table)
+    }
+    
+    func set(foreignKeys: [ForeignKeyInfo], forTable table: String) {
+        _cache.set(foreignKeys: foreignKeys, forTable: table)
+    }
+}
+
 /// An always empty database schema cache
 struct EmptyDatabaseSchemaCache: DatabaseSchemaCache {
     func clear() { }
