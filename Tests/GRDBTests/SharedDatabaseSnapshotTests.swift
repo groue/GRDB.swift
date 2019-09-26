@@ -177,4 +177,40 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     // TODO: test cache, concurrent reads...
     // TODO: test if checkpoints can invalidate snapshots, and if snapshots can
     // prevent checkpoints
+    
+    func testCheckpoint() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.write { db in
+            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        }
+        let snapshot = try dbPool.makeSharedSnapshot()
+        try withExtendedLifetime(snapshot) {
+            try dbPool.checkpoint(.passive)
+            try dbPool.checkpoint(.full)
+            try dbPool.checkpoint(.restart)
+            try dbPool.checkpoint(.truncate)
+        }
+        try snapshot.read { db in
+            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
+        }
+    }
+    
+    func testCheckpoint2() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.write { db in
+            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        }
+        let snapshot = try dbPool.makeSnapshot()
+        try withExtendedLifetime(snapshot) {
+            try dbPool.checkpoint(.passive)
+            try dbPool.checkpoint(.full)
+            try dbPool.checkpoint(.restart)
+            try dbPool.checkpoint(.truncate)
+        }
+        try snapshot.read { db in
+            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
+        }
+    }
 }
