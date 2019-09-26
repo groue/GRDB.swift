@@ -175,4 +175,6 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     }
     
     // TODO: test cache, concurrent reads...
+    // TODO: test if checkpoints can invalidate snapshots, and if snapshots can
+    // prevent checkpoints
 }
