@@ -184,37 +184,14 @@ extension DatabaseRegion {
             return true
         }
         
-        if tableRegions.count == 1 {
-            // Fast path when the region contains a single table.
-            //
-            // We can apply the precondition: due to the filtering of events
-            // performed in observes(eventsOfKind:), the event argument is
-            // guaranteed to be about the fetched table. We thus only have to
-            // check for rowIds.
-            
-            let (tableName, tableRegion) = tableRegions[tableRegions.startIndex]
-            if event.tableName == tableName {
-                return tableRegion.contains(rowID: event.rowID)
-            } else {
-                // Shouldn't happen if the precondition is met.
-                // But FTS4 (and maybe other virtual tables) perform
-                // unadvertised changes. So let's assume the region is modified,
-                // just is case.
-                // See https://github.com/groue/GRDB.swift/issues/620
-                return true
-            }
-        } else {
-            // Slow path when several tables are observed.
-            guard let tableRegion = tableRegions[event.tableName] else {
-                // Shouldn't happen if the precondition is met.
-                // But FTS4 (and maybe other virtual tables) perform
-                // unadvertised changes. So let's assume the region is modified,
-                // just is case.
-                // See https://github.com/groue/GRDB.swift/issues/620
-                return true
-            }
-            return tableRegion.contains(rowID: event.rowID)
+        guard let tableRegion = tableRegions[event.tableName] else {
+            // FTS4 (and maybe other virtual tables) perform unadvertised
+            // changes. So let's assume the precondition is fulfilled, and
+            // the region is modified, just in case.
+            // See https://github.com/groue/GRDB.swift/issues/620
+            return true
         }
+        return tableRegion.contains(rowID: event.rowID)
     }
 }
 
