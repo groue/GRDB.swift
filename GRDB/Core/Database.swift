@@ -13,6 +13,9 @@ public typealias SQLiteConnection = OpaquePointer
 /// A raw SQLite function argument.
 typealias SQLiteValue = OpaquePointer
 
+/// A raw SQLite snapshot
+typealias SQLiteSnapshot = UnsafeMutablePointer<sqlite3_snapshot>
+
 let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_destructor_type.self)
 
 /// A Database connection.
@@ -632,6 +635,20 @@ extension Database {
     
     // MARK: - Transactions & Savepoint
     
+    func makeSQLiteSnapshot() throws -> SQLiteSnapshot {
+        var sqliteSnapshot: SQLiteSnapshot?
+        let code = withUnsafeMutablePointer(to: &sqliteSnapshot) {
+            sqlite3_snapshot_get(sqliteConnection, "main", $0)
+        }
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: lastErrorMessage)
+        }
+        guard let snapshot = sqliteSnapshot else {
+            throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
+        }
+        return snapshot
+    }
+    
     /// Executes a block inside a database transaction.
     ///
     ///     try dbQueue.inDatabase do {
@@ -775,6 +792,39 @@ extension Database {
         if let firstError = firstError {
             throw firstError
         }
+    }
+    
+    func inSnapshot<T>(_ snapshot: SQLiteSnapshot, _ block: () throws -> T) throws -> T {
+        // Begin snapshot
+        // TODO: carefully handle errors (https://www.sqlite.org/c3ref/snapshot_open.html)
+        let code = sqlite3_snapshot_open(sqliteConnection, "main", snapshot)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: lastErrorMessage)
+        }
+        
+        // Execute block
+        var result: T? = nil
+        var firstError: Error? = nil
+        do {
+            result = try block()
+        } catch {
+            firstError = error
+        }
+        
+        // Leave snapshot
+        do {
+            try commit()
+        } catch {
+            if firstError == nil {
+                firstError = error
+            }
+        }
+        
+        if let firstError = firstError {
+            throw firstError
+        }
+        
+        return result!
     }
     
     /// Begins a database transaction.

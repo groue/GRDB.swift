@@ -8,82 +8,95 @@ import SQLite3
 #endif
 
 public class SharedDatabaseSnapshot {
+    private struct Context {
+        let snapshot: SQLiteSnapshot
+        var schemaCache: SimpleDatabaseSchemaCache
+    }
     private let databasePool: DatabasePool
-    private var sqliteSnapshot: UnsafeMutablePointer<sqlite3_snapshot>
+    private var context: ReadWriteBox<Context>
     
-    init(databasePool: DatabasePool) throws {
-        var sqliteSnapshot: UnsafeMutablePointer<sqlite3_snapshot>?
-        try databasePool.unsafeReentrantWrite { db in
-            let code = withUnsafeMutablePointer(to: &sqliteSnapshot) {
-                sqlite3_snapshot_get(db.sqliteConnection, "main", $0)
-            }
-            guard code == SQLITE_OK else {
-                throw DatabaseError(resultCode: code, message: db.lastErrorMessage)
-            }
-        }
-        
+    convenience init(databasePool: DatabasePool, database: Database) throws {
+        let sqliteSnapshot = try database.makeSQLiteSnapshot()
+        self.init(databasePool: databasePool, sqliteSnapshot: sqliteSnapshot)
+    }
+    
+    private init(databasePool: DatabasePool, sqliteSnapshot: SQLiteSnapshot){
         self.databasePool = databasePool
-        if let sqliteSnapshot = sqliteSnapshot {
-            self.sqliteSnapshot = sqliteSnapshot
-        } else {
-            throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
-        }
+        self.context = ReadWriteBox(Context(snapshot: sqliteSnapshot, schemaCache: SimpleDatabaseSchemaCache()))
     }
     
     deinit {
-        sqlite3_snapshot_free(sqliteSnapshot)
+        sqlite3_snapshot_free(context.value.snapshot)
     }
 }
 
 extension SharedDatabaseSnapshot: DatabaseReader {
     // :nodoc:
     public var configuration: Configuration {
-        var configuration = databasePool.configuration
-        configuration.readonly = true
-        return configuration
+        return databasePool.readerConfiguration
     }
     
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
+        let context = self.context.value
         return try databasePool.unsafeRead { db in
-            // TODO: carefully handle errors (https://www.sqlite.org/c3ref/snapshot_open.html)
-            let code = sqlite3_snapshot_open(db.sqliteConnection, "main", sqliteSnapshot)
-            guard code == SQLITE_OK else {
-                throw DatabaseError(resultCode: code, message: db.lastErrorMessage)
+            try db.inSnapshot(context.snapshot) {
+                db.schemaCache = context.schemaCache
+                return try block(db)
             }
-            
-            
         }
     }
     
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
-        fatalError("Not implemented")
+        // Use current context, regardless of self's context when the async read
+        // eventually happens.
+        let context = self.context.value
+        
+        databasePool.asyncUnsafeRead { db in
+            do {
+                let db = try db.get()
+                // Ignore error because we can not notify it.
+                try? db.inSnapshot(context.snapshot) {
+                    db.schemaCache = context.schemaCache
+                    block(.success(db))
+                }
+            } catch {
+                block(.failure(error))
+            }
+        }
     }
     
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
-        fatalError("Not implemented")
+        return try read(block)
     }
     
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
+        // The difficulty is to have a reentrant `db.inSnapshot`.
         fatalError("Not implemented")
     }
     
     public func add(function: DatabaseFunction) {
-        fatalError("Not implemented")
+        databasePool.add(function: function)
     }
     
     public func remove(function: DatabaseFunction) {
-        fatalError("Not implemented")
+        databasePool.remove(function: function)
     }
     
     public func add(collation: DatabaseCollation) {
-        fatalError("Not implemented")
+        databasePool.add(collation: collation)
     }
     
     public func remove(collation: DatabaseCollation) {
-        fatalError("Not implemented")
+        databasePool.add(collation: collation)
     }
     
-    public func add<Reducer>(observation: ValueObservation<Reducer>, onError: @escaping (Error) -> Void, onChange: @escaping (Reducer.Value) -> Void) -> TransactionObserver where Reducer : ValueReducer {
+    public func add<Reducer>(
+        observation: ValueObservation<Reducer>,
+        onError: @escaping (Error) -> Void,
+        onChange: @escaping (Reducer.Value) -> Void)
+        -> TransactionObserver
+        where Reducer: ValueReducer
+    {
         fatalError("Not implemented")
     }
     

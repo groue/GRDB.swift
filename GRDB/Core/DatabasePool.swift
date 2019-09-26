@@ -14,9 +14,9 @@ import UIKit
 /// A DatabasePool grants concurrent accesses to an SQLite database.
 public final class DatabasePool: DatabaseWriter {
     private let writer: SerializedDatabase
-    private var readerConfig: Configuration
     private var readerPool: Pool<SerializedDatabase>!
-    
+    var readerConfiguration: Configuration
+
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     private var tokenizerRegistrations: [(Database) -> Void] = []
@@ -88,21 +88,21 @@ public final class DatabasePool: DatabaseWriter {
         }
         
         // Readers
-        readerConfig = configuration
-        readerConfig.readonly = true
+        readerConfiguration = configuration
+        readerConfiguration.readonly = true
         // Readers use deferred transactions by default.
         // Other transaction kinds are forbidden by SQLite in read-only connections.
-        readerConfig.defaultTransactionKind = .deferred
+        readerConfiguration.defaultTransactionKind = .deferred
         // Readers can't allow dangling transactions because there's no
         // guarantee that one can get the same reader later in order to close
         // an opened transaction.
-        readerConfig.allowsUnsafeTransactions = false
+        readerConfiguration.allowsUnsafeTransactions = false
         var readerCount = 0
         readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
             readerCount += 1 // protected by pool's ReadWriteBox (undocumented behavior and protection)
             let reader = try SerializedDatabase(
                 path: path,
-                configuration: self.readerConfig,
+                configuration: self.readerConfiguration,
                 schemaCache: SimpleDatabaseSchemaCache(),
                 defaultLabel: "GRDB.DatabasePool",
                 purpose: "reader.\(readerCount)")
@@ -247,7 +247,7 @@ extension DatabasePool {
         try readerPool.barrier {
             try writer.sync { try $0.changePassphrase(passphrase) }
             readerPool.removeAll()
-            readerConfig._passphrase = passphrase
+            readerConfiguration._passphrase = passphrase
         }
     }
 }
@@ -346,6 +346,31 @@ extension DatabasePool: DatabaseReader {
                         } catch {
                             block(.failure(error))
                         }
+                    }
+                } catch {
+                    block(.failure(error))
+                }
+        }
+    }
+    
+    func asyncUnsafeRead(_ block: @escaping (Result<Database, Error>) -> Void) {
+        // First async jump in order to grab a reader connection.
+        // Honor configuration dispatching (qos/targetQueue).
+        configuration
+            .makeDispatchQueue(defaultLabel: "GRDB.DatabasePool", purpose: "asyncRead")
+            .async {
+                do {
+                    let (reader, releaseReader) = try self.readerPool.get()
+                    
+                    // Second async jump because sync could deadlock if
+                    // configuration has a serial targetQueue.
+                    reader.async { db in
+                        defer {
+                            releaseReader()
+                        }
+                        // No schema cache when snapshot isolation is not established
+                        db.schemaCache = EmptyDatabaseSchemaCache()
+                        block(.success(db))
                     }
                 } catch {
                     block(.failure(error))
@@ -875,8 +900,24 @@ extension DatabasePool {
     }
     
     #if SQLITE_ENABLE_SNAPSHOT
+    /// TODO
     public func makeSharedSnapshot() throws -> SharedDatabaseSnapshot {
-        return try SharedDatabaseSnapshot(databasePool: self)
+        return try readerPool.get { reader in
+            try reader.sync { db in
+                try makeSharedSnapshot(db)
+            }
+        }
+    }
+    
+    /// TODO
+    /// Precondition: no transaction is currently open
+    public func makeSharedSnapshot(_ db: Database) throws -> SharedDatabaseSnapshot {
+        var snapshot: SharedDatabaseSnapshot?
+        try db.inTransaction(.deferred) {
+            snapshot = try SharedDatabaseSnapshot(databasePool: self, database: db)
+            return .commit
+        }
+        return snapshot!
     }
     #endif
 }
