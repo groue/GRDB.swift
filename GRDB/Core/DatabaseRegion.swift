@@ -186,8 +186,11 @@ extension DatabaseRegion {
         
         guard let tableRegion = tableRegions[event.tableName] else {
             // FTS4 (and maybe other virtual tables) perform unadvertised
-            // changes. So let's assume the precondition is fulfilled, and
-            // the region is modified, just in case.
+            // changes. For example, an "INSERT INTO document ..." statement
+            // advertises an insertion in the `document` table, but the
+            // actual change events happen in the `document_content` shadow
+            // table. When such a non-advertised event happens, assume that
+            // the region is modified.
             // See https://github.com/groue/GRDB.swift/issues/620
             return true
         }
