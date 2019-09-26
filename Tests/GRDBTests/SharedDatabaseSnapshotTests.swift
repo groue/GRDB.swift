@@ -26,7 +26,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         try dbPool.writeWithoutTransaction { db in
             try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-            let snapshot = try dbPool.makeSharedSnapshot(db)
+            let snapshot = try dbPool.makeSharedSnapshot()
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
             try snapshot.read { db in

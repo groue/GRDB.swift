@@ -875,18 +875,29 @@ extension DatabasePool {
     }
     
     #if SQLITE_ENABLE_SNAPSHOT
-    /// TODO
+    // TODO: eventually provide two factory methods, one which accepts a writer
+    // database connection (for controlled snapshot), and one that always grabs
+    // a reader (for uncontrolled snapshot). We don't do this now, because we
+    // want not to break the DatabaseSnapshot API.
+    /// TODO: documentation
     public func makeSharedSnapshot() throws -> SharedDatabaseSnapshot {
-        return try readerPool.get { reader in
-            try reader.sync { db in
+        if writer.onValidQueue {
+            return try writer.execute { db in
+                try makeSharedSnapshot(db)
+            }
+        } else {
+            return try unsafeReentrantRead { db in
                 try makeSharedSnapshot(db)
             }
         }
     }
     
-    /// TODO
+    /// TODO: documentation
     /// Precondition: no transaction is currently open
-    public func makeSharedSnapshot(_ db: Database) throws -> SharedDatabaseSnapshot {
+    private func makeSharedSnapshot(_ db: Database) throws -> SharedDatabaseSnapshot {
+        GRDBPrecondition(
+            !db.isInsideTransaction,
+            "Snapshots must not be created from inside a transaction.")
         var snapshot: SharedDatabaseSnapshot?
         try db.inTransaction(.deferred) {
             snapshot = try SharedDatabaseSnapshot(databasePool: self, database: db)
