@@ -8,10 +8,67 @@ import SQLite3
 #endif
 
 public class SharedDatabaseSnapshot {
-    private struct Context {
-        let snapshot: SQLiteSnapshot
-        var schemaCache: SharedDatabaseSchemaCache
+    /// A reference-type cache
+    private class SchemaCache: DatabaseSchemaCache {
+        private var _cache = SimpleDatabaseSchemaCache()
+        
+        var schemaInfo: SchemaInfo? {
+            get { return _cache.schemaInfo }
+            set { _cache.schemaInfo = newValue }
+        }
+        
+        func clear() {
+            _cache.clear()
+        }
+        
+        func primaryKey(_ table: String) -> PrimaryKeyInfo? {
+            return _cache.primaryKey(table)
+        }
+        
+        func set(primaryKey: PrimaryKeyInfo, forTable table: String) {
+            _cache.set(primaryKey: primaryKey, forTable: table)
+        }
+        
+        func columns(in table: String) -> [ColumnInfo]? {
+            return _cache.columns(in: table)
+        }
+        
+        func set(columns: [ColumnInfo], forTable table: String) {
+            _cache.set(columns: columns, forTable: table)
+        }
+        
+        func indexes(on table: String) -> [IndexInfo]? {
+            return _cache.indexes(on: table)
+        }
+        
+        func set(indexes: [IndexInfo], forTable table: String) {
+            _cache.set(indexes: indexes, forTable: table)
+        }
+        
+        func foreignKeys(on table: String) -> [ForeignKeyInfo]? {
+            return _cache.foreignKeys(on: table)
+        }
+        
+        func set(foreignKeys: [ForeignKeyInfo], forTable table: String) {
+            _cache.set(foreignKeys: foreignKeys, forTable: table)
+        }
     }
+    
+    /// An SQLite snapshot and the associated schema cache
+    private class Context {
+        let snapshot: SQLiteSnapshot
+        let schemaCache: SchemaCache
+        
+        init(snapshot: SQLiteSnapshot, schemaCache: SchemaCache) {
+            self.snapshot = snapshot
+            self.schemaCache = schemaCache
+        }
+        
+        deinit {
+            sqlite3_snapshot_free(snapshot)
+        }
+    }
+    
     private let databasePool: DatabasePool
     private var context: ReadWriteBox<Context>
     
@@ -22,11 +79,7 @@ public class SharedDatabaseSnapshot {
     
     private init(databasePool: DatabasePool, sqliteSnapshot: SQLiteSnapshot){
         self.databasePool = databasePool
-        self.context = ReadWriteBox(Context(snapshot: sqliteSnapshot, schemaCache: SharedDatabaseSchemaCache()))
-    }
-    
-    deinit {
-        sqlite3_snapshot_free(context.value.snapshot)
+        self.context = ReadWriteBox(Context(snapshot: sqliteSnapshot, schemaCache: SchemaCache()))
     }
 }
 
@@ -57,7 +110,7 @@ extension SharedDatabaseSnapshot: DatabaseReader {
                 // Ignore error because we can not notify it.
                 try db.openSQLiteSnapshot(context.snapshot)
                 db.schemaCache = context.schemaCache
-                    block(.success(db))
+                block(.success(db))
             } catch {
                 block(.failure(error))
             }
