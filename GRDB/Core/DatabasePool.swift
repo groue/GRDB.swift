@@ -420,6 +420,7 @@ extension DatabasePool: DatabaseReader {
     ///   happen while establishing the read access to the database.
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
         if let reader = currentReader {
+            // TODO: what if the current reader has a current snapshot?
             return try reader.reentrantSync(block)
         } else {
             return try readerPool.get { reader in
