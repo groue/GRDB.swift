@@ -173,4 +173,34 @@ class DatabaseSnapshotTests: GRDBTestCase {
             XCTAssertEqual(label, "Toreador.snapshot.2")
         }
     }
+    
+    func testPassiveCheckpointDoesNotInvalidateSnapshot() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.write { db in
+            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        }
+        let snapshot = try dbPool.makeSnapshot()
+        try dbPool.checkpoint(.passive)
+        try snapshot.read { db in
+            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
+        }
+    }
+    
+    func testTruncateCheckpointAndSnapshotDontMatch() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.write { db in
+            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        }
+        do {
+            let snapshot = try dbPool.makeSnapshot()
+            try dbPool.checkpoint(.truncate)
+            try snapshot.read { db in
+                _ = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
+            }
+            // Don't care if checkpoint or snapshot error. We just want an error.
+            XCTFail("Expected error")
+        } catch { }
+    }
 }
