@@ -190,7 +190,7 @@ final class TruncateOptimizationBlocker: StatementAuthorizer {
     }
 }
 
-fileprivate struct AuthorizerActionCode: RawRepresentable, CustomStringConvertible {
+private struct AuthorizerActionCode: RawRepresentable, CustomStringConvertible {
     let rawValue: Int32
     init(rawValue: Int32) {
         self.rawValue = rawValue
