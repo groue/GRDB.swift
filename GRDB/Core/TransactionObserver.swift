@@ -436,6 +436,7 @@ class DatabaseObservationBroker {
     
     // Called from updateStatementDidExecute
     private func databaseDidCommit() {
+        database.didEndTransaction()
         savepointStack.clear()
         
         for observation in transactionObservations {
@@ -489,6 +490,7 @@ class DatabaseObservationBroker {
     
     // Called from updateStatementDidExecute or updateStatementDidFails
     private func databaseDidRollback(notifyTransactionObservers: Bool) {
+        database.didEndTransaction()
         savepointStack.clear()
         
         if notifyTransactionObservers {

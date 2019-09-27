@@ -160,7 +160,10 @@ public final class Database {
     private var collations = Set<DatabaseCollation>()
     private var _readOnlyDepth = 0 // Modify with beginReadOnly/endReadOnly
     private var isClosed: Bool = false
-    
+    #if SQLITE_ENABLE_SNAPSHOT
+    var currentSnapshot: SQLiteSnapshot?
+    #endif
+
     // MARK: - Initializer
     
     init(path: String, configuration: Configuration, schemaCache: DatabaseSchemaCache) throws {
@@ -658,6 +661,9 @@ extension Database {
         guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: lastErrorMessage)
         }
+        
+        // Reset in didEndTransaction
+        currentSnapshot = snapshot
     }
     #endif
     
@@ -922,6 +928,12 @@ extension Database {
     public func commit() throws {
         try execute(sql: "COMMIT TRANSACTION")
         assert(!isInsideTransaction)
+    }
+    
+    func didEndTransaction() {
+        #if SQLITE_ENABLE_SNAPSHOT
+        currentSnapshot = nil
+        #endif
     }
 }
 
