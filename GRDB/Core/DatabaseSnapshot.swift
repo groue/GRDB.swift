@@ -116,6 +116,7 @@ extension DatabaseSnapshot {
     
     // MARK: - Value Observation
     
+    // TODO: will we have to refresh the observation when we implement snapshot refresh?
     public func add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         onError: @escaping (Error) -> Void,

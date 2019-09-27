@@ -55,31 +55,22 @@ public class SharedDatabaseSnapshot {
     }
     
     /// An SQLite snapshot and the associated schema cache
-    private class Context {
-        let snapshot: SQLiteSnapshot
+    private struct State {
+        let snapshot: Database.Snapshot
         let schemaCache: SchemaCache
-        
-        init(snapshot: SQLiteSnapshot, schemaCache: SchemaCache) {
-            self.snapshot = snapshot
-            self.schemaCache = schemaCache
-        }
-        
-        deinit {
-            sqlite3_snapshot_free(snapshot)
-        }
     }
     
     private let databasePool: DatabasePool
-    private var context: ReadWriteBox<Context>
+    private var state: ReadWriteBox<State>
     
     convenience init(databasePool: DatabasePool, database: Database) throws {
-        let sqliteSnapshot = try database.makeSQLiteSnapshot()
-        self.init(databasePool: databasePool, sqliteSnapshot: sqliteSnapshot)
+        let snapshot = try Database.Snapshot(from: database)
+        self.init(databasePool: databasePool, snapshot: snapshot)
     }
     
-    private init(databasePool: DatabasePool, sqliteSnapshot: SQLiteSnapshot){
+    private init(databasePool: DatabasePool, snapshot: Database.Snapshot) {
         self.databasePool = databasePool
-        self.context = ReadWriteBox(Context(snapshot: sqliteSnapshot, schemaCache: SchemaCache()))
+        self.state = ReadWriteBox(State(snapshot: snapshot, schemaCache: SchemaCache()))
     }
 }
 
@@ -90,26 +81,26 @@ extension SharedDatabaseSnapshot: DatabaseReader {
     }
     
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
-        let context = self.context.value
+        let state = self.state.value
         return try databasePool.read { db in
-            try db.openSQLiteSnapshot(context.snapshot)
-            db.schemaCache = context.schemaCache
+            try db.openSnapshot(state.snapshot)
+            db.schemaCache = state.schemaCache
             return try block(db)
         }
     }
     
     #if compiler(>=5.0)
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
-        // Use current context, regardless of self's context when the async read
+        // Use current state, regardless of self's state when the async read
         // eventually happens.
-        let context = self.context.value
+        let state = self.state.value
         
         databasePool.asyncRead { db in
             do {
                 let db = try db.get()
                 // Ignore error because we can not notify it.
-                try db.openSQLiteSnapshot(context.snapshot)
-                db.schemaCache = context.schemaCache
+                try db.openSnapshot(state.snapshot)
+                db.schemaCache = state.schemaCache
                 block(.success(db))
             } catch {
                 block(.failure(error))
@@ -143,6 +134,7 @@ extension SharedDatabaseSnapshot: DatabaseReader {
         databasePool.add(collation: collation)
     }
     
+    // TODO: will we have to refresh the observation when we implement snapshot refresh?
     public func add<Reducer>(
         observation: ValueObservation<Reducer>,
         onError: @escaping (Error) -> Void,

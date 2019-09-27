@@ -161,7 +161,7 @@ public final class Database {
     private var _readOnlyDepth = 0 // Modify with beginReadOnly/endReadOnly
     private var isClosed: Bool = false
     #if SQLITE_ENABLE_SNAPSHOT
-    var currentSnapshot: SQLiteSnapshot?
+    var currentSnapshot: Snapshot?
     #endif
 
     // MARK: - Initializer
@@ -641,23 +641,9 @@ extension Database {
     #if SQLITE_ENABLE_SNAPSHOT
     // MARK: - Snapshots
     
-    func makeSQLiteSnapshot() throws -> SQLiteSnapshot {
-        var sqliteSnapshot: SQLiteSnapshot?
-        let code = withUnsafeMutablePointer(to: &sqliteSnapshot) {
-            sqlite3_snapshot_get(sqliteConnection, "main", $0)
-        }
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: lastErrorMessage)
-        }
-        guard let snapshot = sqliteSnapshot else {
-            throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
-        }
-        return snapshot
-    }
-    
-    func openSQLiteSnapshot(_ snapshot: SQLiteSnapshot) throws {
+    func openSnapshot(_ snapshot: Snapshot) throws {
         // TODO: carefully handle errors (https://www.sqlite.org/c3ref/snapshot_open.html)
-        let code = sqlite3_snapshot_open(sqliteConnection, "main", snapshot)
+        let code = sqlite3_snapshot_open(sqliteConnection, "main", snapshot.sqliteSnapshot)
         guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: lastErrorMessage)
         }
@@ -1216,6 +1202,32 @@ extension Database {
     /// log function that takes an error message.
     public typealias LogErrorFunction = (_ resultCode: ResultCode, _ message: String) -> Void
     
+    #if SQLITE_ENABLE_SNAPSHOT
+    /// A managed SQLite snapshot and the associated schema cache
+    class Snapshot {
+        let sqliteSnapshot: SQLiteSnapshot
+        
+        init(from db: Database) throws {
+            var sqliteSnapshot: SQLiteSnapshot?
+            let code = withUnsafeMutablePointer(to: &sqliteSnapshot) {
+                sqlite3_snapshot_get(db.sqliteConnection, "main", $0)
+            }
+            guard code == SQLITE_OK else {
+                throw DatabaseError(resultCode: code, message: db.lastErrorMessage)
+            }
+            if let sqliteSnapshot = sqliteSnapshot {
+                self.sqliteSnapshot = sqliteSnapshot
+            } else {
+                throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
+            }
+        }
+        
+        deinit {
+            sqlite3_snapshot_free(sqliteSnapshot)
+        }
+    }
+    #endif
+
     /// The end of a transaction: Commit, or Rollback
     public enum TransactionCompletion {
         case commit
