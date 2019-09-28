@@ -61,12 +61,11 @@ extension SharedDatabaseSnapshot: DatabaseReader {
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
         return try databasePool.unsafeReentrantRead { db in
             if db.isInsideTransaction {
-                if db.currentSnapshot == self.snapshot {
-                    return try db.withSchemaCache(schemaCache) {
-                        try block(db)
-                    }
-                } else {
-                    fatalError("unsafeReentrantRead misuse: ")
+                guard db.currentSnapshot == self.snapshot else {
+                    fatalError("unsafeReentrantRead misuse: this connection runs in a different snapshot")
+                }
+                return try db.withSchemaCache(schemaCache) {
+                    try block(db)
                 }
             } else {
                 var result: T? = nil
