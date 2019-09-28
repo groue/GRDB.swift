@@ -1214,7 +1214,7 @@ extension Database {
     public typealias LogErrorFunction = (_ resultCode: ResultCode, _ message: String) -> Void
     
     #if SQLITE_ENABLE_SNAPSHOT
-    /// A managed SQLite snapshot and the associated schema cache
+    /// A managed SQLite snapshot
     class Snapshot: Comparable {
         let sqliteSnapshot: SQLiteSnapshot
         

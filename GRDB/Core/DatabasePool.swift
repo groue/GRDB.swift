@@ -192,7 +192,7 @@ extension DatabasePool {
     
     // MARK: - WAL Checkpoints
     
-    /// Runs a WAL checkpoint.
+    /// Runs a WAL checkpoint
     ///
     /// See https://www.sqlite.org/wal.html and
     /// https://www.sqlite.org/c3ref/wal_checkpoint_v2.html) for
@@ -957,6 +957,7 @@ extension DatabasePool {
         // See checkpoint(_:)
         try sharedSnapshotCount.write { sharedSnapshotCount in
             let snapshot: SharedDatabaseSnapshot
+            // TODO: this test is always false
             if writer.onValidQueue {
                 snapshot = try writer.execute { db in
                     try makeSharedSnapshot(db)
