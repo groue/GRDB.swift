@@ -21,7 +21,13 @@ public final class DatabasePool: DatabaseWriter {
     private var collations = Set<DatabaseCollation>()
     private var tokenizerRegistrations: [(Database) -> Void] = []
     
-    var snapshotCount = ReadWriteBox(0)
+    var snapshotCount = ReadWriteBox(value: 0)
+    
+    #if SQLITE_ENABLE_SNAPSHOT
+    /// The number of existing shared snapshot instances. Acts as a mutex for
+    /// shared snapshots and checkpoints.
+    var sharedSnapshotCount = ReadWriteBox(value: 0)
+    #endif
     
     #if os(iOS)
     private weak var application: UIApplication?
@@ -145,7 +151,7 @@ extension DatabasePool {
     
     // MARK: - WAL Checkpoints
     
-    /// Runs a WAL checkpoint
+    /// Runs a WAL checkpoint.
     ///
     /// See https://www.sqlite.org/wal.html and
     /// https://www.sqlite.org/c3ref/wal_checkpoint_v2.html) for
@@ -153,13 +159,22 @@ extension DatabasePool {
     ///
     /// - parameter kind: The checkpoint mode (default passive)
     public func checkpoint(_ kind: Database.CheckpointMode = .passive) throws {
-        try writer.sync { db in
-            // TODO: read https://www.sqlite.org/c3ref/wal_checkpoint_v2.html and
-            // check whether we need a busy handler on writer and/or readers
-            // when kind is not .Passive.
-            let code = sqlite3_wal_checkpoint_v2(db.sqliteConnection, nil, kind.rawValue, nil, nil)
-            guard code == SQLITE_OK else {
-                throw DatabaseError(resultCode: code, message: db.lastErrorMessage)
+        // Stop the shared snapshot world as the checkpoint is running
+        try sharedSnapshotCount.write { sharedSnapshotCount in
+            guard sharedSnapshotCount == 0 else {
+                // It looks like there is no way to protect snapshots from
+                // checkpoints of all kinds.
+                //
+                // Our priority is snapshot protection.
+                //
+                // http://mailinglists.sqlite.org/cgi-bin/mailman/private/sqlite-users/2019-September/086109.html
+                // http://mailinglists.sqlite.org/cgi-bin/mailman/private/sqlite-users/2019-September/086129.html
+                throw DatabaseError(
+                    resultCode: .SQLITE_BUSY,
+                    message: "Checkpoint can't run when there exist snapshots.")
+            }
+            try writer.sync { db in
+                try db.checkpoint(kind)
             }
         }
     }
@@ -293,8 +308,9 @@ extension DatabasePool: DatabaseReader {
                 // See DatabasePoolTests.testReadMethodIsolationOfBlock().
                 try db.inTransaction(.deferred) {
                     // Reset the schema cache before running user code in snapshot isolation
-                    db.schemaCache = SimpleDatabaseSchemaCache()
-                    result = try block(db)
+                    result = try db.withSchemaCache(SimpleDatabaseSchemaCache()) {
+                        try block(db)
+                    }
                     return .commit
                 }
                 return result!
@@ -340,9 +356,9 @@ extension DatabasePool: DatabaseReader {
                             try db.beginTransaction(.deferred)
                             
                             // Reset the schema cache before running user code in snapshot isolation
-                            db.schemaCache = SimpleDatabaseSchemaCache()
-                            
-                            block(.success(db))
+                            db.withSchemaCache(SimpleDatabaseSchemaCache()) {
+                                block(.success(db))
+                            }
                         } catch {
                             block(.failure(error))
                         }
@@ -385,8 +401,9 @@ extension DatabasePool: DatabaseReader {
         return try readerPool.get { reader in
             try reader.sync { db in
                 // No schema cache when snapshot isolation is not established
-                db.schemaCache = EmptyDatabaseSchemaCache()
-                return try block(db)
+                try db.withSchemaCache(EmptyDatabaseSchemaCache()) {
+                    try block(db)
+                }
             }
         }
     }
@@ -426,8 +443,9 @@ extension DatabasePool: DatabaseReader {
             return try readerPool.get { reader in
                 try reader.sync { db in
                     // No schema cache when snapshot isolation is not established
-                    db.schemaCache = EmptyDatabaseSchemaCache()
-                    return try block(db)
+                    try db.withSchemaCache(EmptyDatabaseSchemaCache()) {
+                        try block(db)
+                    }
                 }
             }
         }
@@ -572,7 +590,7 @@ extension DatabasePool: DatabaseReader {
                     releaseReader()
                 }
                 do {
-                    try db.beginSnapshotIsolation()
+                    try db.beginSnapshotTransaction()
                 } catch {
                     isolationSemaphore.signal()
                     block(.failure(error))
@@ -583,10 +601,10 @@ extension DatabasePool: DatabaseReader {
                 isolationSemaphore.signal()
                 
                 // Reset the schema cache before running user code in snapshot isolation
-                db.schemaCache = SimpleDatabaseSchemaCache()
-                
-                // Fetch and release the future
-                block(.success(db))
+                db.withSchemaCache(SimpleDatabaseSchemaCache()) {
+                    // Fetch and release the future
+                    block(.success(db))
+                }
             }
         } catch {
             isolationSemaphore.signal()
@@ -882,28 +900,40 @@ extension DatabasePool {
     // want not to break the DatabaseSnapshot API.
     /// TODO: documentation
     public func makeSharedSnapshot() throws -> SharedDatabaseSnapshot {
-        if writer.onValidQueue {
-            return try writer.execute { db in
-                try makeSharedSnapshot(db)
+        // Stop the shared snapshot world as the snapshot is created.
+        // See checkpoint(_:)
+        try sharedSnapshotCount.write { sharedSnapshotCount in
+            let snapshot: SharedDatabaseSnapshot
+            if writer.onValidQueue {
+                snapshot = try writer.execute { db in
+                    try makeSharedSnapshot(db)
+                }
+            } else {
+                snapshot = try unsafeReentrantRead { db in
+                    try makeSharedSnapshot(db)
+                }
             }
-        } else {
-            return try unsafeReentrantRead { db in
-                try makeSharedSnapshot(db)
-            }
+            
+            // decremented in SharedDatabaseSnapshot.deinit
+            sharedSnapshotCount += 1
+            
+            return snapshot
         }
     }
     
-    /// TODO: documentation
-    /// Precondition: no transaction is currently open
     private func makeSharedSnapshot(_ db: Database) throws -> SharedDatabaseSnapshot {
         GRDBPrecondition(
             !db.isInsideTransaction,
             "Snapshots must not be created from inside a transaction.")
         var snapshot: SharedDatabaseSnapshot?
+        
         try db.inTransaction(.deferred) {
-            snapshot = try SharedDatabaseSnapshot(databasePool: self, database: db)
+            snapshot = try SharedDatabaseSnapshot(
+                databasePool: self,
+                snapshot: Database.Snapshot(from: db))
             return .commit
         }
+        
         return snapshot!
     }
     #endif

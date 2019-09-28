@@ -182,7 +182,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
         let snapshot = try dbPool.makeSharedSnapshot()
-        try dbPool.checkpoint(.passive)
+        try? dbPool.checkpoint(.passive) // ignore if error or not, that's not the point
         try snapshot.read { db in
             try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
         }
@@ -201,7 +201,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
         let snapshot = try dbPool.makeSharedSnapshot()
-        try dbPool.checkpoint(.full)
+        try? dbPool.checkpoint(.full) // ignore if error or not, that's not the point
         try snapshot.read { db in
             try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
         }

@@ -637,8 +637,17 @@ extension Database {
 }
 
 extension Database {
+    func checkpoint(_ kind: Database.CheckpointMode) throws {
+        let code = sqlite3_wal_checkpoint_v2(sqliteConnection, nil, kind.rawValue, nil, nil)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: lastErrorMessage)
+        }
+    }
+}
+
+#if SQLITE_ENABLE_SNAPSHOT
+extension Database {
     
-    #if SQLITE_ENABLE_SNAPSHOT
     // MARK: - Snapshots
     
     func openSnapshot(_ snapshot: Snapshot) throws {
@@ -651,8 +660,10 @@ extension Database {
         // Reset in didEndTransaction
         currentSnapshot = snapshot
     }
-    #endif
-    
+}
+#endif
+
+extension Database {
     // MARK: - Transactions & Savepoint
     
     /// Executes a block inside a database transaction.
@@ -815,7 +826,7 @@ extension Database {
     
     /// Begins a database transaction and take a snapshot of the last committed
     /// database state.
-    func beginSnapshotIsolation() throws {
+    func beginSnapshotTransaction() throws {
         // https://www.sqlite.org/isolation.html
         //
         // > In WAL mode, SQLite exhibits "snapshot isolation". When a read
@@ -1204,7 +1215,7 @@ extension Database {
     
     #if SQLITE_ENABLE_SNAPSHOT
     /// A managed SQLite snapshot and the associated schema cache
-    class Snapshot {
+    class Snapshot: Comparable {
         let sqliteSnapshot: SQLiteSnapshot
         
         init(from db: Database) throws {
@@ -1224,6 +1235,15 @@ extension Database {
         
         deinit {
             sqlite3_snapshot_free(sqliteSnapshot)
+        }
+        
+        static func == (lhs: Snapshot, rhs: Snapshot) -> Bool {
+            return sqlite3_snapshot_cmp(lhs.sqliteSnapshot, rhs.sqliteSnapshot) == 0
+        }
+        
+        /// True iff lhs is older than rhs
+        static func < (lhs: Database.Snapshot, rhs: Database.Snapshot) -> Bool {
+            return sqlite3_snapshot_cmp(lhs.sqliteSnapshot, rhs.sqliteSnapshot) < 0
         }
     }
     #endif

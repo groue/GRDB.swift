@@ -921,7 +921,7 @@ private struct InsertQuery: Hashable {
 }
 
 extension InsertQuery {
-    static let sqlCache = ReadWriteBox([InsertQuery: String]())
+    static let sqlCache = ReadWriteBox(value: [InsertQuery: String]())
     var sql: String {
         if let sql = InsertQuery.sqlCache.read({ $0[self] }) {
             return sql
@@ -958,7 +958,7 @@ private struct UpdateQuery: Hashable {
 }
 
 extension UpdateQuery {
-    static let sqlCache = ReadWriteBox([UpdateQuery: String]())
+    static let sqlCache = ReadWriteBox(value: [UpdateQuery: String]())
     var sql: String {
         if let sql = UpdateQuery.sqlCache.read({ $0[self] }) {
             return sql

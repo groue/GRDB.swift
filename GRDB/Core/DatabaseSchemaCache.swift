@@ -87,3 +87,49 @@ struct EmptyDatabaseSchemaCache: DatabaseSchemaCache {
     func foreignKeys(on table: String) -> [ForeignKeyInfo]? { return nil }
     func set(foreignKeys: [ForeignKeyInfo], forTable table: String) { }
 }
+
+/// A thread-safe reference-type cache
+class SharedDatabaseSchemaCache: DatabaseSchemaCache {
+    private var cache = ReadWriteBox(value: SimpleDatabaseSchemaCache())
+    
+    var schemaInfo: SchemaInfo? {
+        get { return cache.read { $0.schemaInfo } }
+        set { cache.write { $0.schemaInfo = newValue } }
+    }
+    
+    func clear() {
+        cache.write { $0.clear() }
+    }
+    
+    func primaryKey(_ table: String) -> PrimaryKeyInfo? {
+        return cache.read { $0.primaryKey(table) }
+    }
+    
+    func set(primaryKey: PrimaryKeyInfo, forTable table: String) {
+        cache.write { $0.set(primaryKey: primaryKey, forTable: table) }
+    }
+    
+    func columns(in table: String) -> [ColumnInfo]? {
+        return cache.read { $0.columns(in: table) }
+    }
+    
+    func set(columns: [ColumnInfo], forTable table: String) {
+        cache.write { $0.set(columns: columns, forTable: table) }
+    }
+    
+    func indexes(on table: String) -> [IndexInfo]? {
+        return cache.read { $0.indexes(on: table) }
+    }
+    
+    func set(indexes: [IndexInfo], forTable table: String) {
+        cache.write { $0.set(indexes: indexes, forTable: table) }
+    }
+    
+    func foreignKeys(on table: String) -> [ForeignKeyInfo]? {
+        return cache.read { $0.foreignKeys(on: table) }
+    }
+    
+    func set(foreignKeys: [ForeignKeyInfo], forTable table: String) {
+        cache.write { $0.set(foreignKeys: foreignKeys, forTable: table) }
+    }
+}

@@ -47,7 +47,7 @@ final class Pool<T> {
     }
     
     private let makeElement: () throws -> T
-    private var items: ReadWriteBox<[Item]> = ReadWriteBox([])
+    private var items: ReadWriteBox<[Item]> = ReadWriteBox(value: [])
     private let itemsSemaphore: DispatchSemaphore // limits the number of elements
     private let itemsGroup: DispatchGroup         // knows when no element is used
     private let barrierQueue: DispatchQueue

@@ -8,7 +8,7 @@ import XCTest
 class PoolTests: XCTestCase {
     /// Returns a Pool whose elements are incremented integers: 1, 2, 3...
     private func makeCounterPool(maximumCount: Int) -> Pool<Int> {
-        let count = ReadWriteBox(0)
+        let count = ReadWriteBox(value: 0)
         return Pool(maximumCount: maximumCount, makeElement: count.increment)
     }
     

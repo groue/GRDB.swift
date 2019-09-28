@@ -7,70 +7,19 @@ import SQLCipher
 import SQLite3
 #endif
 
-public class SharedDatabaseSnapshot {
-    /// A reference-type cache
-    private class SchemaCache: DatabaseSchemaCache {
-        private var _cache = SimpleDatabaseSchemaCache()
-        
-        var schemaInfo: SchemaInfo? {
-            get { return _cache.schemaInfo }
-            set { _cache.schemaInfo = newValue }
-        }
-        
-        func clear() {
-            _cache.clear()
-        }
-        
-        func primaryKey(_ table: String) -> PrimaryKeyInfo? {
-            return _cache.primaryKey(table)
-        }
-        
-        func set(primaryKey: PrimaryKeyInfo, forTable table: String) {
-            _cache.set(primaryKey: primaryKey, forTable: table)
-        }
-        
-        func columns(in table: String) -> [ColumnInfo]? {
-            return _cache.columns(in: table)
-        }
-        
-        func set(columns: [ColumnInfo], forTable table: String) {
-            _cache.set(columns: columns, forTable: table)
-        }
-        
-        func indexes(on table: String) -> [IndexInfo]? {
-            return _cache.indexes(on: table)
-        }
-        
-        func set(indexes: [IndexInfo], forTable table: String) {
-            _cache.set(indexes: indexes, forTable: table)
-        }
-        
-        func foreignKeys(on table: String) -> [ForeignKeyInfo]? {
-            return _cache.foreignKeys(on: table)
-        }
-        
-        func set(foreignKeys: [ForeignKeyInfo], forTable table: String) {
-            _cache.set(foreignKeys: foreignKeys, forTable: table)
-        }
-    }
-    
-    /// An SQLite snapshot and the associated schema cache
-    private struct State {
-        let snapshot: Database.Snapshot
-        let schemaCache: SchemaCache
-    }
-    
+public class SharedDatabaseSnapshot {    
     private let databasePool: DatabasePool
-    private var state: ReadWriteBox<State>
+    private let snapshot: Database.Snapshot
+    private let schemaCache: SharedDatabaseSchemaCache
     
-    convenience init(databasePool: DatabasePool, database: Database) throws {
-        let snapshot = try Database.Snapshot(from: database)
-        self.init(databasePool: databasePool, snapshot: snapshot)
+    init(databasePool: DatabasePool, snapshot: Database.Snapshot) {
+        self.databasePool = databasePool
+        self.snapshot = snapshot
+        self.schemaCache = SharedDatabaseSchemaCache()
     }
     
-    private init(databasePool: DatabasePool, snapshot: Database.Snapshot) {
-        self.databasePool = databasePool
-        self.state = ReadWriteBox(State(snapshot: snapshot, schemaCache: SchemaCache()))
+    deinit {
+        databasePool.sharedSnapshotCount.decrement()
     }
 }
 
@@ -81,27 +30,23 @@ extension SharedDatabaseSnapshot: DatabaseReader {
     }
     
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
-        let state = self.state.value
         return try databasePool.read { db in
-            try db.openSnapshot(state.snapshot)
-            db.schemaCache = state.schemaCache
-            return try block(db)
+            try db.openSnapshot(snapshot)
+            return try db.withSchemaCache(schemaCache) {
+                try block(db)
+            }
         }
     }
     
     #if compiler(>=5.0)
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
-        // Use current state, regardless of self's state when the async read
-        // eventually happens.
-        let state = self.state.value
-        
         databasePool.asyncRead { db in
             do {
                 let db = try db.get()
-                // Ignore error because we can not notify it.
-                try db.openSnapshot(state.snapshot)
-                db.schemaCache = state.schemaCache
-                block(.success(db))
+                try db.openSnapshot(self.snapshot)
+                db.withSchemaCache(self.schemaCache) {
+                    block(.success(db))
+                }
             } catch {
                 block(.failure(error))
             }
@@ -114,8 +59,27 @@ extension SharedDatabaseSnapshot: DatabaseReader {
     }
     
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
-        // The difficulty is to have a reentrant `db.inSnapshot`.
-        fatalError("Not implemented")
+        return try databasePool.unsafeReentrantRead { db in
+            if db.isInsideTransaction {
+                if db.currentSnapshot == self.snapshot {
+                    return try db.withSchemaCache(schemaCache) {
+                        try block(db)
+                    }
+                } else {
+                    fatalError("unsafeReentrantRead misuse: ")
+                }
+            } else {
+                var result: T? = nil
+                try db.inTransaction(.deferred) {
+                    try db.openSnapshot(snapshot)
+                    result = try db.withSchemaCache(schemaCache) {
+                        try block(db)
+                    }
+                    return .commit
+                }
+                return result!
+            }
+        }
     }
     
     public func add(function: DatabaseFunction) {

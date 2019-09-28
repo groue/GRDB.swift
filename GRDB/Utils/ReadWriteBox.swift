@@ -7,7 +7,7 @@ final class ReadWriteBox<T> {
         set { write { $0 = newValue } }
     }
     
-    init(_ value: T) {
+    init(value: T) {
         _value = value
         queue = DispatchQueue(label: "GRDB.ReadWriteBox", attributes: [.concurrent])
     }
@@ -33,6 +33,14 @@ extension ReadWriteBox where T: Numeric {
     func increment() -> T {
         return write { n in
             n += 1
+            return n
+        }
+    }
+    
+    @discardableResult
+    func decrement() -> T {
+        return write { n in
+            n -= 1
             return n
         }
     }
