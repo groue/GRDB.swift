@@ -175,6 +175,38 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         }
     }
     
+    func testAutomaticCheckpointDoesNotInvalidatesSnapshot() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.write { db in
+            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        }
+        let snapshot = try dbPool.makeSharedSnapshot()
+        try snapshot.read { db in
+            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
+        }
+        try dbPool.writeWithoutTransaction { db in
+            for _ in 0..<1000 {
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            }
+        }
+        try snapshot.read { db in
+            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
+        }
+    }
+    
+    func testAutomaticCheckpointCanRunWithoutSnapshot() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.write { db in
+            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
+        }
+        try dbPool.writeWithoutTransaction { db in
+            for _ in 0..<1000 {
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            }
+        }
+    }
+    
     func testPassiveCheckpointDoesNotInvalidatesSnapshot() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in

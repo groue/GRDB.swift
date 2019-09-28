@@ -27,6 +27,7 @@ public final class DatabasePool: DatabaseWriter {
     /// The number of existing shared snapshot instances. Acts as a mutex for
     /// shared snapshots and checkpoints.
     var sharedSnapshotCount = ReadWriteBox(value: 0)
+    var walAutocheckpoint: CInt = 1000 // See installWalHook
     #endif
     
     #if os(iOS)
@@ -67,6 +68,29 @@ public final class DatabasePool: DatabaseWriter {
             defaultLabel: "GRDB.DatabasePool",
             purpose: "writer")
         
+        // Readers
+        readerConfiguration = configuration
+        readerConfiguration.readonly = true
+        // Readers use deferred transactions by default.
+        // Other transaction kinds are forbidden by SQLite in read-only connections.
+        readerConfiguration.defaultTransactionKind = .deferred
+        // Readers can't allow dangling transactions because there's no
+        // guarantee that one can get the same reader later in order to close
+        // an opened transaction.
+        readerConfiguration.allowsUnsafeTransactions = false
+        var readerCount = 0
+        readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
+            readerCount += 1 // protected by pool's ReadWriteBox (undocumented behavior and protection)
+            let reader = try SerializedDatabase(
+                path: path,
+                configuration: self.readerConfiguration,
+                schemaCache: SimpleDatabaseSchemaCache(),
+                defaultLabel: "GRDB.DatabasePool",
+                purpose: "reader.\(readerCount)")
+            reader.sync { self.setupDatabase($0) }
+            return reader
+        })
+        
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
             try writer.sync { db in
@@ -93,31 +117,12 @@ public final class DatabasePool: DatabaseWriter {
                         return .commit
                     }
                 }
+                
+                #if SQLITE_ENABLE_SNAPSHOT
+                try installWalHook(db)
+                #endif
             }
         }
-        
-        // Readers
-        readerConfiguration = configuration
-        readerConfiguration.readonly = true
-        // Readers use deferred transactions by default.
-        // Other transaction kinds are forbidden by SQLite in read-only connections.
-        readerConfiguration.defaultTransactionKind = .deferred
-        // Readers can't allow dangling transactions because there's no
-        // guarantee that one can get the same reader later in order to close
-        // an opened transaction.
-        readerConfiguration.allowsUnsafeTransactions = false
-        var readerCount = 0
-        readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
-            readerCount += 1 // protected by pool's ReadWriteBox (undocumented behavior and protection)
-            let reader = try SerializedDatabase(
-                path: path,
-                configuration: self.readerConfiguration,
-                schemaCache: SimpleDatabaseSchemaCache(),
-                defaultLabel: "GRDB.DatabasePool",
-                purpose: "reader.\(readerCount)")
-            reader.sync { self.setupDatabase($0) }
-            return reader
-        })
     }
     
     #if os(iOS)
@@ -148,6 +153,39 @@ public final class DatabasePool: DatabaseWriter {
         writer.sync(body)
         readerPool.forEach { $0.sync(body) }
     }
+    
+    #if SQLITE_ENABLE_SNAPSHOT
+    /// Install a WAL hook so that we can prevent automatic checkpoints that
+    /// would invalidate snapshots.
+    private func installWalHook(_ db: Database) throws {
+        // When should we run automatic checkpoint?
+        walAutocheckpoint = try CInt.fetchOne(db, sql: "PRAGMA wal_autocheckpoint")!
+        let dbPoolPointer = Unmanaged.passUnretained(self).toOpaque()
+        let result = sqlite3_wal_hook(db.sqliteConnection, { dbPoolPointer, sqliteConnection, zSchema, pageCount in
+            let dbPool = Unmanaged<DatabasePool>.fromOpaque(dbPoolPointer!).takeUnretainedValue()
+            if pageCount >= dbPool.walAutocheckpoint {
+                // Automatic checkpoint.
+                // We don't run dbPool.checkpoint(.passive) due to
+                // dispatch queue reentrancy issues. But this is equivalent.
+                //
+                // Stop the shared snapshot world as the checkpoint is running
+                dbPool.sharedSnapshotCount.write { sharedSnapshotCount in
+                    if sharedSnapshotCount > 0 {
+                        // Don't invalidate snapshots!
+                        return
+                    }
+                    // Run checkpoint, ignoring errors, just as SQLite does.
+                    _ = sqlite3_wal_checkpoint_v2(sqliteConnection, zSchema, SQLITE_CHECKPOINT_PASSIVE, nil, nil)
+                }
+            }
+            return SQLITE_OK
+        }, dbPoolPointer)
+        
+        // The result of sqlite3_wal_hook is not documented. Source code reveals
+        // that it is nil on failure.
+        assert(result != nil)
+    }
+    #endif
 }
 
 extension DatabasePool {
@@ -162,6 +200,7 @@ extension DatabasePool {
     ///
     /// - parameter kind: The checkpoint mode (default passive)
     public func checkpoint(_ kind: Database.CheckpointMode = .passive) throws {
+        #if SQLITE_ENABLE_SNAPSHOT
         // Stop the shared snapshot world as the checkpoint is running
         try sharedSnapshotCount.write { sharedSnapshotCount in
             guard sharedSnapshotCount == 0 else {
@@ -180,6 +219,11 @@ extension DatabasePool {
                 try db.checkpoint(kind)
             }
         }
+        #else
+        try writer.sync { db in
+            try db.checkpoint(kind)
+        }
+        #endif
     }
 }
 
