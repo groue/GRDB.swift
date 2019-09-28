@@ -64,6 +64,8 @@ extension SharedDatabaseSnapshot: DatabaseReader {
                 guard db.currentSnapshot == self.snapshot else {
                     fatalError("unsafeReentrantRead misuse: this connection runs in a different snapshot")
                 }
+                // db.schemaCache is likely to already be self.schemaCache, but
+                // we do not harm by forcing it.
                 return try db.withSchemaCache(schemaCache) {
                     try block(db)
                 }
