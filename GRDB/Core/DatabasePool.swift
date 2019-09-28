@@ -485,9 +485,11 @@ extension DatabasePool: DatabaseReader {
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
         if let reader = currentReader {
             return try reader.reentrantSync { db in
+                #if SQLITE_ENABLE_SNAPSHOT
                 guard db.currentSnapshot == nil else {
                     fatalError("unsafeReentrantRead misuse: this connection runs in a snapshot")
                 }
+                #endif
                 return try block(db)
             }
         } else {
