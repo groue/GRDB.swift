@@ -955,7 +955,7 @@ extension DatabasePool {
     public func makeSharedSnapshot() throws -> SharedDatabaseSnapshot {
         // Stop the shared snapshot world as the snapshot is created.
         // See checkpoint(_:)
-        try sharedSnapshotCount.write { sharedSnapshotCount in
+        return try sharedSnapshotCount.write { sharedSnapshotCount in
             let snapshot: SharedDatabaseSnapshot
             // TODO: this test is always false
             if writer.onValidQueue {
