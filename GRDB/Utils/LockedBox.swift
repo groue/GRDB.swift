@@ -1,9 +1,9 @@
-import Dispatch
+import Foundation
 
-/// A ReadWriteBox grants multiple readers and single-writer guarantees on a value.
-final class ReadWriteBox<T> {
+/// A LockedBox protects a value with an NSLock.
+final class LockedBox<T> {
     private var _value: T
-    private var queue: DispatchQueue
+    private var lock = NSLock()
     
     var value: T {
         get { return read { $0 } }
@@ -12,23 +12,22 @@ final class ReadWriteBox<T> {
     
     init(value: T) {
         _value = value
-        queue = DispatchQueue(label: "GRDB.ReadWriteBox", attributes: [.concurrent])
     }
     
     func read<U>(_ block: (T) throws -> U) rethrows -> U {
-        return try queue.sync {
-            try block(_value)
-        }
+        lock.lock()
+        defer { lock.unlock() }
+        return try block(_value)
     }
     
     func write<U>(_ block: (inout T) throws -> U) rethrows -> U {
-        return try queue.sync(flags: [.barrier]) {
-            try block(&_value)
-        }
+        lock.lock()
+        defer { lock.unlock() }
+        return try block(&_value)
     }
 }
 
-extension ReadWriteBox where T: Numeric {
+extension LockedBox where T: Numeric {
     @discardableResult
     func increment() -> T {
         return write { n in
@@ -36,7 +35,7 @@ extension ReadWriteBox where T: Numeric {
             return n
         }
     }
-    
+
     @discardableResult
     func decrement() -> T {
         return write { n in
