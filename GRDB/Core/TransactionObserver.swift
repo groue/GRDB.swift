@@ -167,6 +167,7 @@ extension Database {
 class DatabaseObservationBroker {
     private unowned var database: Database
     private var savepointStack = SavepointStack()
+    private var ignoresEmptyDeferredTransaction = false
     private var transactionState: TransactionState = .none
     private var transactionObservations: [TransactionObservation] = []
     private var statementObservations: [StatementObservation] = [] {
@@ -185,6 +186,13 @@ class DatabaseObservationBroker {
     
     init(_ database: Database) {
         self.database = database
+    }
+    
+    func ignoringEmptyDeferredTransaction<T>(_ block: () throws -> T) rethrows -> T {
+        var old = ignoresEmptyDeferredTransaction
+        ignoresEmptyDeferredTransaction = true
+        defer { ignoresEmptyDeferredTransaction = old }
+        return try block()
     }
     
     // MARK: - Transaction observers
@@ -449,6 +457,10 @@ class DatabaseObservationBroker {
     
     // Called from updateStatementDidExecute
     private func databaseDidCommitEmptyDeferredTransaction() throws {
+        if ignoresEmptyDeferredTransaction {
+            return
+        }
+        
         // A statement that ends a transaction has been executed. But for
         // SQLite, no transaction at all has started, and sqlite3_commit_hook
         // was not triggered:

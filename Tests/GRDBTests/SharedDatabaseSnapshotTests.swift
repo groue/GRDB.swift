@@ -8,7 +8,7 @@ import XCTest
 
 class SharedDatabaseSnapshotTests: GRDBTestCase {
     
-    class Counter {
+    private class Counter {
         let dbPool: DatabasePool
         init(dbPool: DatabasePool) throws {
             self.dbPool = dbPool

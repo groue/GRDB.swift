@@ -947,10 +947,6 @@ extension DatabasePool {
     }
     
     #if SQLITE_ENABLE_SNAPSHOT
-    // TODO: eventually provide two factory methods, one which accepts a writer
-    // database connection (for controlled snapshot), and one that always grabs
-    // a reader (for uncontrolled snapshot). We don't do this now, because we
-    // want not to break the DatabaseSnapshot API.
     /// TODO: documentation
     public func makeSharedSnapshot() throws -> SharedDatabaseSnapshot {
         // Stop the shared snapshot/checkpoint world as the snapshot is created.
@@ -979,12 +975,15 @@ extension DatabasePool {
             "Snapshots must not be created from inside a transaction.")
         var snapshot: SharedDatabaseSnapshot?
         
-        // TODO: don't notify this transaction to transaction observers
-        try db.inTransaction(.deferred) {
-            snapshot = try SharedDatabaseSnapshot(
-                databasePool: self,
-                snapshot: Database.Snapshot(from: db))
-            return .commit
+        // Avoid reentrancy issues when a snapshot is created from a transaction
+        // observer: don't notify this empty deferred transaction.
+        try db.observationBroker.ignoringEmptyDeferredTransaction {
+            try db.inTransaction(.deferred) {
+                snapshot = try SharedDatabaseSnapshot(
+                    databasePool: self,
+                    snapshot: Database.Snapshot(from: db))
+                return .commit
+            }
         }
         
         return snapshot!
