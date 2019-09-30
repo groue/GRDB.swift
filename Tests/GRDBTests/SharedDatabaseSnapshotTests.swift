@@ -8,12 +8,30 @@ import XCTest
 
 class SharedDatabaseSnapshotTests: GRDBTestCase {
     
+    class Counter {
+        let dbPool: DatabasePool
+        init(dbPool: DatabasePool) throws {
+            self.dbPool = dbPool
+            try dbPool.write { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY)")
+            }
+        }
+        
+        func increment(_ db: Database) throws {
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        }
+        
+        func fetch(_ db: Database) throws -> Int {
+            return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!
+        }
+    }
+    
     func testSnapshotIsReadOnly() throws {
         let dbPool = try makeDatabasePool()
         let snapshot = try dbPool.makeSharedSnapshot()
         do {
             try snapshot.read { db in
-                try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY")
             }
             XCTFail("Expected error")
         } catch is DatabaseError {
@@ -24,48 +42,63 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     
     func testSnapshotSeesLatestTransaction() throws {
         let dbPool = try makeDatabasePool()
+        let counter = try Counter(dbPool: dbPool)
         try dbPool.writeWithoutTransaction { db in
-            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            try counter.increment(db)
             let snapshot = try dbPool.makeSharedSnapshot()
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
-            try snapshot.read { db in
-                try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-            }
-            try dbPool.read { db in
-                try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
-            }
-            try snapshot.read { db in
-                try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-            }
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
-            try dbPool.read { db in
-                try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
-            }
+            try counter.increment(db)
+            try XCTAssertEqual(counter.fetch(db), 2)
+            try XCTAssertEqual(snapshot.read(counter.fetch), 1)
+            try XCTAssertEqual(dbPool.read(counter.fetch), 2)
+            try XCTAssertEqual(snapshot.read(counter.fetch), 1)
+            try XCTAssertEqual(counter.fetch(db), 2)
+            try XCTAssertEqual(dbPool.read(counter.fetch), 2)
         }
     }
     
     func testSnapshotCreatedOutsideOfWriterQueue() throws {
         let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
-            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-        }
-        
+        let counter = try Counter(dbPool: dbPool)
+        try dbPool.write(counter.increment)
         let snapshot = try dbPool.makeSharedSnapshot()
-        try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-        }
+        try XCTAssertEqual(snapshot.read(counter.fetch), 1)
         try dbPool.write { db in
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 2)
+            try counter.increment(db)
+            try XCTAssertEqual(counter.fetch(db), 2)
         }
-        try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-        }
+        try XCTAssertEqual(snapshot.read(counter.fetch), 1)
     }
     
+    func testCreateSharedSnapshotFromTransactionObserver() throws {
+        class Observer: TransactionObserver {
+            let dbPool: DatabasePool
+            var snapshot: SharedDatabaseSnapshot
+            init(dbPool: DatabasePool, snapshot: SharedDatabaseSnapshot) {
+                self.dbPool = dbPool
+                self.snapshot = snapshot
+            }
+            
+            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return false }
+            func databaseDidChange(with event: DatabaseEvent) { }
+            func databaseDidCommit(_ db: Database) {
+                // Creating a snapshot from a didCommit callback is an important
+                // use case. But we know SQLite snapshots created with
+                // sqlite3_snapshot_get() require a transaction. This means that
+                // creating a snapshot will open a transaction. We must make
+                // sure it does not create any deadlock of reentrancy issue.
+                snapshot = try! dbPool.makeSharedSnapshot()
+            }
+            func databaseDidRollback(_ db: Database) { }
+        }
+        let dbPool = try makeDatabasePool()
+        let counter = try Counter(dbPool: dbPool)
+        let observer = try Observer(dbPool: dbPool, snapshot: dbPool.makeSharedSnapshot())
+        dbPool.add(transactionObserver: observer)
+        try XCTAssertEqual(observer.snapshot.read(counter.fetch), 0)
+        try dbPool.write(counter.increment)
+        try XCTAssertEqual(observer.snapshot.read(counter.fetch), 1)
+    }
+
     func testSnapshotInheritPoolFunctions() throws {
         let dbPool = try makeDatabasePool()
         let function = DatabaseFunction("foo", argumentCount: 0, pure: true) { _ in return "foo" }
@@ -177,80 +210,54 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     
     func testAutomaticCheckpointDoesNotInvalidatesSnapshot() throws {
         let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
-            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-        }
+        let counter = try Counter(dbPool: dbPool)
+        try dbPool.write(counter.increment)
         let snapshot = try dbPool.makeSharedSnapshot()
-        try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-        }
+        try XCTAssertEqual(snapshot.read(counter.fetch), 1)
         try dbPool.writeWithoutTransaction { db in
             for _ in 0..<1000 {
-                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try counter.increment(db)
             }
         }
-        try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-        }
+        try XCTAssertEqual(snapshot.read(counter.fetch), 1)
     }
     
     func testAutomaticCheckpointCanRunWithoutSnapshot() throws {
         let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
-            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
-        }
+        let counter = try Counter(dbPool: dbPool)
         try dbPool.writeWithoutTransaction { db in
             for _ in 0..<1000 {
-                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try counter.increment(db)
             }
         }
     }
     
     func testPassiveCheckpointDoesNotInvalidatesSnapshot() throws {
         let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
-            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-        }
+        let counter = try Counter(dbPool: dbPool)
+        try dbPool.write(counter.increment)
         let snapshot = try dbPool.makeSharedSnapshot()
         try? dbPool.checkpoint(.passive) // ignore if error or not, that's not the point
-        try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-        }
-        try dbPool.write { db in
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-        }
-        try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-        }
+        try XCTAssertEqual(snapshot.read(counter.fetch), 1)
+        try dbPool.write(counter.increment)
+        try XCTAssertEqual(snapshot.read(counter.fetch), 1)
     }
     
     func testFullCheckpointDoesNotInvalidatesSnapshot() throws {
         let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
-            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-        }
+        let counter = try Counter(dbPool: dbPool)
+        try dbPool.write(counter.increment)
         let snapshot = try dbPool.makeSharedSnapshot()
         try? dbPool.checkpoint(.full) // ignore if error or not, that's not the point
-        try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-        }
-        try dbPool.write { db in
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-        }
-        try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-        }
+        try XCTAssertEqual(snapshot.read(counter.fetch), 1)
+        try dbPool.write(counter.increment)
+        try XCTAssertEqual(snapshot.read(counter.fetch), 1)
     }
     
     func testRestartCheckpointDoesNotInvalidatesSnapshot() throws {
         let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
-            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-        }
+        let counter = try Counter(dbPool: dbPool)
+        try dbPool.write(counter.increment)
         let snapshot = try dbPool.makeSharedSnapshot()
         do {
             try dbPool.checkpoint(.restart)
@@ -258,23 +265,15 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_BUSY)
         }
-        try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-        }
-        try dbPool.write { db in
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-        }
-        try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-        }
+        try XCTAssertEqual(snapshot.read(counter.fetch), 1)
+        try dbPool.write(counter.increment)
+        try XCTAssertEqual(snapshot.read(counter.fetch), 1)
     }
     
     func testTruncateCheckpointDoesNotInvalidatesSnapshot() throws {
         let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
-            try db.create(table: "t") { $0.column("id", .integer).primaryKey() }
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-        }
+        let counter = try Counter(dbPool: dbPool)
+        try dbPool.write(counter.increment)
         let snapshot = try dbPool.makeSharedSnapshot()
         do {
             try dbPool.checkpoint(.truncate)
@@ -282,15 +281,9 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_BUSY)
         }
-        try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-        }
-        try dbPool.write { db in
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-        }
-        try snapshot.read { db in
-            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 1)
-        }
+        try XCTAssertEqual(snapshot.read(counter.fetch), 1)
+        try dbPool.write(counter.increment)
+        try XCTAssertEqual(snapshot.read(counter.fetch), 1)
     }
 
     // TODO: test cache, concurrent reads...

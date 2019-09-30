@@ -21,12 +21,12 @@ public final class DatabasePool: DatabaseWriter {
     private var collations = Set<DatabaseCollation>()
     private var tokenizerRegistrations: [(Database) -> Void] = []
     
-    var snapshotCount = ReadWriteBox(value: 0)
+    var databaseSnapshotCount = LockedBox(value: 0)
     
     #if SQLITE_ENABLE_SNAPSHOT
     /// The number of existing shared snapshot instances. Acts as a mutex for
     /// shared snapshots and checkpoints.
-    var sharedSnapshotCount = ReadWriteBox(value: 0)
+    var sharedSnapshotCount = LockedBox(value: 0)
     var walAutocheckpoint: CInt = 1000 // See installWalHook
     #endif
     
@@ -80,7 +80,7 @@ public final class DatabasePool: DatabaseWriter {
         readerConfiguration.allowsUnsafeTransactions = false
         var readerCount = 0
         readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
-            readerCount += 1 // protected by pool's ReadWriteBox (undocumented behavior and protection)
+            readerCount += 1 // protected by pool's LockedBox (undocumented behavior and protection)
             let reader = try SerializedDatabase(
                 path: path,
                 configuration: self.readerConfiguration,
@@ -168,7 +168,7 @@ public final class DatabasePool: DatabaseWriter {
                 // We don't run dbPool.checkpoint(.passive) due to
                 // dispatch queue reentrancy issues. But this is equivalent.
                 //
-                // Stop the shared snapshot world as the checkpoint is running
+                // Stop the shared snapshot/checkpoint world as the checkpoint is running
                 dbPool.sharedSnapshotCount.write { sharedSnapshotCount in
                     if sharedSnapshotCount > 0 {
                         // Don't invalidate snapshots!
@@ -201,7 +201,7 @@ extension DatabasePool {
     /// - parameter kind: The checkpoint mode (default passive)
     public func checkpoint(_ kind: Database.CheckpointMode = .passive) throws {
         #if SQLITE_ENABLE_SNAPSHOT
-        // Stop the shared snapshot world as the checkpoint is running
+        // Stop the shared snapshot/checkpoint world as the checkpoint is running
         try sharedSnapshotCount.write { sharedSnapshotCount in
             guard sharedSnapshotCount == 0 else {
                 // It looks like there is no way to protect snapshots from
@@ -941,7 +941,7 @@ extension DatabasePool {
             path: path,
             configuration: writer.configuration,
             defaultLabel: "GRDB.DatabasePool",
-            purpose: "snapshot.\(snapshotCount.increment())")
+            purpose: "snapshot.\(databaseSnapshotCount.increment())")
         snapshot.read { setupDatabase($0) }
         return snapshot
     }
@@ -953,11 +953,9 @@ extension DatabasePool {
     // want not to break the DatabaseSnapshot API.
     /// TODO: documentation
     public func makeSharedSnapshot() throws -> SharedDatabaseSnapshot {
-        // Stop the shared snapshot world as the snapshot is created.
-        // See checkpoint(_:)
+        // Stop the shared snapshot/checkpoint world as the snapshot is created.
         return try sharedSnapshotCount.write { sharedSnapshotCount in
             let snapshot: SharedDatabaseSnapshot
-            // TODO: this test is always false
             if writer.onValidQueue {
                 snapshot = try writer.execute { db in
                     try makeSharedSnapshot(db)
@@ -981,6 +979,7 @@ extension DatabasePool {
             "Snapshots must not be created from inside a transaction.")
         var snapshot: SharedDatabaseSnapshot?
         
+        // TODO: don't notify this transaction to transaction observers
         try db.inTransaction(.deferred) {
             snapshot = try SharedDatabaseSnapshot(
                 databasePool: self,
