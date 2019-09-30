@@ -286,6 +286,58 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         try XCTAssertEqual(snapshot.read(counter.fetch), 1)
     }
 
-    // TODO: test cache, concurrent reads...
+    func testConcurrentRead() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.write { db in
+            try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            for _ in 0..<3 {
+                try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
+            }
+        }
+        let snapshot = try dbPool.makeSharedSnapshot()
+        
+        // Block 1                      Block 2
+        // snapshot.read {              snapshot.read {
+        // SELECT * FROM items          SELECT * FROM items
+        // step                         step
+        // >
+        let s1 = DispatchSemaphore(value: 0)
+        //                              step
+        //                              <
+        let s2 = DispatchSemaphore(value: 0)
+        // step                         step
+        // step                         end
+        // end                          }
+        // }
+        
+        let block1 = { () in
+            try! snapshot.read { db in
+                let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
+                XCTAssertTrue(try cursor.next() != nil)
+                s1.signal()
+                _ = s2.wait(timeout: .distantFuture)
+                XCTAssertTrue(try cursor.next() != nil)
+                XCTAssertTrue(try cursor.next() != nil)
+                XCTAssertTrue(try cursor.next() == nil)
+            }
+        }
+        let block2 = { () in
+            try! snapshot.read { db in
+                let cursor = try Row.fetchCursor(db, sql: "SELECT * FROM items")
+                XCTAssertTrue(try cursor.next() != nil)
+                _ = s1.wait(timeout: .distantFuture)
+                XCTAssertTrue(try cursor.next() != nil)
+                s2.signal()
+                XCTAssertTrue(try cursor.next() != nil)
+                XCTAssertTrue(try cursor.next() == nil)
+            }
+        }
+        let blocks = [block1, block2]
+        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+            blocks[index]()
+        }
+    }
+    
+    // TODO: test cache...
 }
 #endif
