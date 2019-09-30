@@ -7,64 +7,43 @@ import XCTest
 
 class DatabaseReaderTests : GRDBTestCase {
     
-    func testDatabaseQueueReadPreventsDatabaseModification() throws {
-        // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
+    func testReadPreventsDatabaseModification() throws {
+        func test(_ dbReader: DatabaseReader) throws {
+            do {
+                try dbReader.read {
+                    try $0.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+                }
+                XCTFail("Expected error")
+            } catch let error as DatabaseError where error.resultCode == .SQLITE_READONLY {
             }
-        #endif
+        }
         
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            try db.create(table: "table1") { t in
-                t.column("id", .integer).primaryKey()
-            }
-        }
-        do {
-            try dbQueue.read { try $0.execute(sql: "INSERT INTO table1 DEFAULT VALUES") }
-            XCTFail()
-        } catch let error as DatabaseError where error.resultCode == .SQLITE_READONLY {
-        }
-    }
-    
-    func testDatabasePoolReadPreventsDatabaseModification() throws {
-        let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
-            try db.create(table: "table1") { t in
-                t.column("id", .integer).primaryKey()
-            }
-        }
-        do {
-            try dbPool.read { try $0.execute(sql: "INSERT INTO table1 DEFAULT VALUES") }
-            XCTFail()
-        } catch let error as DatabaseError where error.resultCode == .SQLITE_READONLY {
-        }
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+        try test(makeDatabasePool().makeSnapshot())
+        #if SQLITE_ENABLE_SNAPSHOT
+        try test(makeDatabasePool().makeSharedSnapshot())
+        #endif
     }
 
-    func testDatabaseQueueUnsafeReentrantRead() throws {
-        let dbQueue = try makeDatabaseQueue()
-        dbQueue.unsafeReentrantRead { db1 in
-            dbQueue.unsafeReentrantRead { db2 in
-                dbQueue.unsafeReentrantRead { db3 in
-                    XCTAssertTrue(db1 === db2)
-                    XCTAssertTrue(db2 === db3)
+    func testUnsafeReentrantRead() throws {
+        func test(_ dbReader: DatabaseReader) throws {
+            try dbReader.unsafeReentrantRead { db1 in
+                try dbReader.unsafeReentrantRead { db2 in
+                    try dbReader.unsafeReentrantRead { db3 in
+                        XCTAssertTrue(db1 === db2)
+                        XCTAssertTrue(db2 === db3)
+                    }
                 }
             }
         }
-    }
-    
-    func testDatabasePoolUnsafeReentrantRead() throws {
-        let dbPool = try makeDatabasePool()
-        try dbPool.unsafeReentrantRead { db1 in
-            try dbPool.unsafeReentrantRead { db2 in
-                try dbPool.unsafeReentrantRead { db3 in
-                    XCTAssertTrue(db1 === db2)
-                    XCTAssertTrue(db2 === db3)
-                }
-            }
-        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+        try test(makeDatabasePool().makeSnapshot())
+        #if SQLITE_ENABLE_SNAPSHOT
+        try test(makeDatabasePool().makeSharedSnapshot())
+        #endif
     }
     
     func testAnyDatabaseReader() {
@@ -98,6 +77,9 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+        #if SQLITE_ENABLE_SNAPSHOT
+        try test(makeDatabasePool().makeSharedSnapshot())
+        #endif
     }
     #endif
     
@@ -126,6 +108,9 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
+        #if SQLITE_ENABLE_SNAPSHOT
+        try test(makeDatabasePool().makeSharedSnapshot())
+        #endif
     }
     #endif
 }
