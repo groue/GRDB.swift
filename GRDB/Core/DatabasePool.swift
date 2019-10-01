@@ -24,6 +24,8 @@ public final class DatabasePool: DatabaseWriter {
     var databaseSnapshotCount = LockedBox(value: 0)
     
     #if SQLITE_ENABLE_SNAPSHOT
+    /// Unused if configuration.fragileSnaredSnapshots is true.
+    /// 
     /// The number of existing shared snapshot instances. Acts as a mutex for
     /// shared snapshots and checkpoints.
     var sharedSnapshotCount = LockedBox(value: 0)
@@ -119,7 +121,9 @@ public final class DatabasePool: DatabaseWriter {
                 }
                 
                 #if SQLITE_ENABLE_SNAPSHOT
-                try installWalHook(db)
+                if configuration.fragileSnaredSnapshots == false {
+                    try installWalHook(db)
+                }
                 #endif
             }
         }
@@ -201,22 +205,28 @@ extension DatabasePool {
     /// - parameter kind: The checkpoint mode (default passive)
     public func checkpoint(_ kind: Database.CheckpointMode = .passive) throws {
         #if SQLITE_ENABLE_SNAPSHOT
-        // Stop the shared snapshot/checkpoint world as the checkpoint is running
-        try sharedSnapshotCount.write { sharedSnapshotCount in
-            guard sharedSnapshotCount == 0 else {
-                // It looks like there is no way to protect snapshots from
-                // checkpoints of all kinds.
-                //
-                // Our priority is snapshot protection.
-                //
-                // http://mailinglists.sqlite.org/cgi-bin/mailman/private/sqlite-users/2019-September/086109.html
-                // http://mailinglists.sqlite.org/cgi-bin/mailman/private/sqlite-users/2019-September/086129.html
-                throw DatabaseError(
-                    resultCode: .SQLITE_BUSY,
-                    message: "Checkpoint can't run when there exist snapshots.")
-            }
+        if configuration.fragileSnaredSnapshots {
             try writer.sync { db in
                 try db.checkpoint(kind)
+            }
+        } else {
+            // Stop the shared snapshot/checkpoint world as the checkpoint is running
+            try sharedSnapshotCount.write { sharedSnapshotCount in
+                guard sharedSnapshotCount == 0 else {
+                    // It looks like there is no way to protect snapshots from
+                    // checkpoints of all kinds.
+                    //
+                    // Our priority is snapshot protection.
+                    //
+                    // http://mailinglists.sqlite.org/cgi-bin/mailman/private/sqlite-users/2019-September/086109.html
+                    // http://mailinglists.sqlite.org/cgi-bin/mailman/private/sqlite-users/2019-September/086129.html
+                    throw DatabaseError(
+                        resultCode: .SQLITE_BUSY,
+                        message: "Checkpoint can't run when there exist snapshots.")
+                }
+                try writer.sync { db in
+                    try db.checkpoint(kind)
+                }
             }
         }
         #else
@@ -953,23 +963,35 @@ extension DatabasePool {
     #if SQLITE_ENABLE_SNAPSHOT
     /// TODO: documentation
     public func makeSharedSnapshot() throws -> SharedDatabaseSnapshot {
-        // Stop the shared snapshot/checkpoint world as the snapshot is created.
-        return try sharedSnapshotCount.write { sharedSnapshotCount in
-            let snapshot: SharedDatabaseSnapshot
+        if configuration.fragileSnaredSnapshots {
             if writer.onValidQueue {
-                snapshot = try writer.execute { db in
+                return try writer.execute { db in
                     try makeSharedSnapshot(db)
                 }
             } else {
-                snapshot = try unsafeReentrantRead { db in
+                return try unsafeReentrantRead { db in
                     try makeSharedSnapshot(db)
                 }
             }
-            
-            // decremented in SharedDatabaseSnapshot.deinit
-            sharedSnapshotCount += 1
-            
-            return snapshot
+        } else {
+            // Stop the shared snapshot/checkpoint world as the snapshot is created.
+            return try sharedSnapshotCount.write { sharedSnapshotCount in
+                let snapshot: SharedDatabaseSnapshot
+                if writer.onValidQueue {
+                    snapshot = try writer.execute { db in
+                        try makeSharedSnapshot(db)
+                    }
+                } else {
+                    snapshot = try unsafeReentrantRead { db in
+                        try makeSharedSnapshot(db)
+                    }
+                }
+                
+                // decremented in SharedDatabaseSnapshot.deinit
+                sharedSnapshotCount += 1
+                
+                return snapshot
+            }
         }
     }
     
