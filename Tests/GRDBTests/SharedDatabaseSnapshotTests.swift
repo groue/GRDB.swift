@@ -115,10 +115,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY")
             }
             XCTFail("Expected error")
-        } catch is DatabaseError {
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
+        } catch is DatabaseError { }
     }
     
     func testSnapshotIsImmutable() throws {
@@ -325,7 +322,24 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         try dbPool.checkpoint(.truncate)
     }
     
-    func testAutomaticCheckpointDoesNotInvalidatesSnapshot() throws {
+    func testAutomaticCheckpointInvalidatesFragileSnapshot() throws {
+        dbConfiguration.fragileSnaredSnapshots = true
+        let dbPool = try makeDatabasePool()
+        let counter = try Counter(dbPool: dbPool)
+        let snapshot = try dbPool.makeSharedSnapshot()
+        try dbPool.writeWithoutTransaction { db in
+            // 1000 is enough to trigger automatic snapshot
+            for _ in 0..<1000 {
+                try counter.increment(db)
+            }
+        }
+        do {
+            _ = try snapshot.read(counter.value)
+            XCTFail("Expected error")
+        } catch is DatabaseError { }
+    }
+
+    func testAutomaticCheckpointDoesNotInvalidateSnapshot() throws {
         dbConfiguration.fragileSnaredSnapshots = false
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
@@ -340,8 +354,8 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         }
         try XCTAssertEqual(snapshot.read(counter.value), 1)
     }
-    
-    func testPassiveCheckpointDoesNotInvalidatesSnapshot() throws {
+
+    func testPassiveCheckpointDoesNotInvalidateSnapshot() throws {
         dbConfiguration.fragileSnaredSnapshots = false
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
@@ -353,7 +367,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         try XCTAssertEqual(snapshot.read(counter.value), 1)
     }
     
-    func testFullCheckpointDoesNotInvalidatesSnapshot() throws {
+    func testFullCheckpointDoesNotInvalidateSnapshot() throws {
         dbConfiguration.fragileSnaredSnapshots = false
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
@@ -365,7 +379,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         try XCTAssertEqual(snapshot.read(counter.value), 1)
     }
     
-    func testRestartCheckpointDoesNotInvalidatesSnapshot() throws {
+    func testRestartCheckpointDoesNotInvalidateSnapshot() throws {
         dbConfiguration.fragileSnaredSnapshots = false
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
@@ -377,7 +391,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         try XCTAssertEqual(snapshot.read(counter.value), 1)
     }
     
-    func testTruncateCheckpointDoesNotInvalidatesSnapshot() throws {
+    func testTruncateCheckpointDoesNotInvalidateSnapshot() throws {
         dbConfiguration.fragileSnaredSnapshots = false
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)

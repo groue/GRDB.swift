@@ -114,10 +114,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY")
             }
             XCTFail("Expected error")
-        } catch is DatabaseError {
-        } catch {
-            XCTFail("Unexpected error: \(error)")
-        }
+        } catch is DatabaseError { }
     }
     
     func testSnapshotIsImmutable() throws {
@@ -253,7 +250,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
     
     // MARK: - Checkpoints
     
-    func testAutomaticCheckpointDoesNotInvalidatesSnapshot() throws {
+    func testAutomaticCheckpointDoesNotInvalidateSnapshot() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
@@ -268,7 +265,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         try XCTAssertEqual(snapshot.read(counter.value), 1)
     }
     
-    func testPassiveCheckpointDoesNotInvalidatesSnapshot() throws {
+    func testPassiveCheckpointDoesNotInvalidateSnapshot() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
@@ -279,7 +276,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         try XCTAssertEqual(snapshot.read(counter.value), 1)
     }
     
-    func testFullCheckpointDoesNotInvalidatesSnapshot() throws {
+    func testFullCheckpointDoesNotInvalidateSnapshot() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
@@ -290,7 +287,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         try XCTAssertEqual(snapshot.read(counter.value), 1)
     }
     
-    func testRestartCheckpointDoesNotInvalidatesSnapshot() throws {
+    func testRestartCheckpointDoesNotInvalidateSnapshot() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
@@ -301,7 +298,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         try XCTAssertEqual(snapshot.read(counter.value), 1)
     }
     
-    func testTruncateCheckpointDoesNotInvalidatesSnapshot() throws {
+    func testTruncateCheckpointDoesNotInvalidateSnapshot() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
