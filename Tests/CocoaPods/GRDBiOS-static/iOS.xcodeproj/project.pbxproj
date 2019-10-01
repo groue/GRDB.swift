@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		561DCFF12343C4B200BF2235 /* Extra.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561DCFF02343C4B200BF2235 /* Extra.swift */; };
 		562697512110308F0066800A /* PlayersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5626974C2110308E0066800A /* PlayersViewController.swift */; };
 		562697522110308F0066800A /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5626974D2110308E0066800A /* Player.swift */; };
 		562697532110308F0066800A /* PlayerEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5626974E2110308E0066800A /* PlayerEditionViewController.swift */; };
@@ -32,6 +33,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		561DCFF02343C4B200BF2235 /* Extra.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extra.swift; sourceTree = SOURCE_ROOT; };
 		5626974C2110308E0066800A /* PlayersViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayersViewController.swift; sourceTree = "<group>"; };
 		5626974D2110308E0066800A /* Player.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 		5626974E2110308E0066800A /* PlayerEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerEditionViewController.swift; sourceTree = "<group>"; };
@@ -82,6 +84,7 @@
 			children = (
 				5626974F2110308E0066800A /* AppDatabase.swift */,
 				562697502110308E0066800A /* AppDelegate.swift */,
+				561DCFF02343C4B200BF2235 /* Extra.swift */,
 				5626974D2110308E0066800A /* Player.swift */,
 				5626974E2110308E0066800A /* PlayerEditionViewController.swift */,
 				5626974C2110308E0066800A /* PlayersViewController.swift */,
@@ -140,19 +143,19 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0730;
-				LastUpgradeCheck = 0940;
+				LastUpgradeCheck = 1110;
 				ORGANIZATIONNAME = "Gwendal Roué";
 				TargetAttributes = {
 					567374371B4D46600089DE44 = {
 						CreatedOnToolsVersion = 7.0;
 						DevelopmentTeam = AMD8W895CT;
-						LastSwiftMigration = 0940;
+						LastSwiftMigration = 1110;
 					};
 				};
 			};
 			buildConfigurationList = 567374331B4D46600089DE44 /* Build configuration list for PBXProject "iOS" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
@@ -209,6 +212,7 @@
 			files = (
 				562697522110308F0066800A /* Player.swift in Sources */,
 				562697532110308F0066800A /* PlayerEditionViewController.swift in Sources */,
+				561DCFF12343C4B200BF2235 /* Extra.swift in Sources */,
 				562697542110308F0066800A /* AppDatabase.swift in Sources */,
 				562697552110308F0066800A /* AppDelegate.swift in Sources */,
 				562697512110308F0066800A /* PlayersViewController.swift in Sources */,
@@ -241,6 +245,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -295,6 +300,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
