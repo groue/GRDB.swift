@@ -158,19 +158,20 @@ public struct Configuration {
     public var maximumReaderCount: Int = 5
     
     #if SQLITE_ENABLE_SNAPSHOT
-    /// When true, WAL checkpoints invalidate shared snapshots created by
+    /// When true, WAL checkpoints invalidate historical snapshots created by
     /// database pools. Any attempt to read from an invalidated snapshot throws
     /// an error.
     ///
-    /// When false, shared snapshots prevent the database pool from performing
-    /// WAL checkpoints, so that they do not turn invalid. You must make sure
-    /// that you allow explicit or automatic checkpoings regularly, or the WAL
-    /// file will grow without bounds. You must make sure that absolutely no
-    /// write or checkpoint is performed by an external connection, or shared
-    /// snapshots will become invalid regardless of this setting.
+    /// When false, historical snapshots prevent the database pool from
+    /// performing WAL checkpoints, so that they do not turn invalid. You must
+    /// make sure that you allow explicit or automatic checkpoings regularly, or
+    /// the WAL file will grow without bounds. You must make sure that
+    /// absolutely no write or checkpoint is performed by an external
+    /// connection, or historical snapshots will become invalid regardless of
+    /// this setting.
     ///
     /// Default: true.
-    public var fragileSnaredSnapshots = true
+    public var fragileHistoricalSnapshots = true
     #endif
     
     /// The quality of service class for the work performed by the database.

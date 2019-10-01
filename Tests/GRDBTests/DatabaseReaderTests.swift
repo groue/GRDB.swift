@@ -33,7 +33,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabasePool()))
         try test(setup(makeDatabasePool()).makeSnapshot())
         #if SQLITE_ENABLE_SNAPSHOT
-        try test(setup(makeDatabasePool()).makeSharedSnapshot())
+        try test(setup(makeDatabasePool()).makeHistoricalSnapshot())
         #endif
     }
     
@@ -52,7 +52,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
         #if SQLITE_ENABLE_SNAPSHOT
-        try test(makeDatabasePool().makeSharedSnapshot())
+        try test(makeDatabasePool().makeHistoricalSnapshot())
         #endif
     }
     
@@ -76,7 +76,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabasePool()))
         try test(setup(makeDatabasePool()).makeSnapshot())
         #if SQLITE_ENABLE_SNAPSHOT
-        try test(setup(makeDatabasePool()).makeSharedSnapshot())
+        try test(setup(makeDatabasePool()).makeHistoricalSnapshot())
         #endif
     }
     
@@ -100,7 +100,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabasePool()))
         try test(setup(makeDatabasePool()).makeSnapshot())
         #if SQLITE_ENABLE_SNAPSHOT
-        try test(setup(makeDatabasePool()).makeSharedSnapshot())
+        try test(setup(makeDatabasePool()).makeHistoricalSnapshot())
         #endif
     }
     
@@ -120,7 +120,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
         #if SQLITE_ENABLE_SNAPSHOT
-        try test(makeDatabasePool().makeSharedSnapshot())
+        try test(makeDatabasePool().makeHistoricalSnapshot())
         #endif
     }
     
@@ -152,7 +152,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
         #if SQLITE_ENABLE_SNAPSHOT
-        try test(makeDatabasePool().makeSharedSnapshot())
+        try test(makeDatabasePool().makeHistoricalSnapshot())
         #endif
     }
     #endif
@@ -183,7 +183,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
         #if SQLITE_ENABLE_SNAPSHOT
-        try test(makeDatabasePool().makeSharedSnapshot())
+        try test(makeDatabasePool().makeHistoricalSnapshot())
         #endif
     }
     #endif
@@ -204,7 +204,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
         #if SQLITE_ENABLE_SNAPSHOT
-        try test(makeDatabasePool().makeSharedSnapshot())
+        try test(makeDatabasePool().makeHistoricalSnapshot())
         #endif
     }
     
@@ -224,7 +224,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
         #if SQLITE_ENABLE_SNAPSHOT
-        try test(makeDatabasePool().makeSharedSnapshot())
+        try test(makeDatabasePool().makeHistoricalSnapshot())
         #endif
     }
     
@@ -251,7 +251,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabasePool(configuration: Configuration())))
         try test(setup(makeDatabasePool(configuration: Configuration())).makeSnapshot())
         #if SQLITE_ENABLE_SNAPSHOT
-        try test(setup(makeDatabasePool(configuration: Configuration())).makeSharedSnapshot())
+        try test(setup(makeDatabasePool(configuration: Configuration())).makeHistoricalSnapshot())
         #endif
     }
 }

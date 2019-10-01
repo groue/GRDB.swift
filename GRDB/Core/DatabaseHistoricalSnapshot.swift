@@ -7,7 +7,7 @@ import SQLCipher
 import SQLite3
 #endif
 
-public class SharedDatabaseSnapshot {    
+public class DatabaseHistoricalSnapshot {    
     private let databasePool: DatabasePool
     private let snapshot: Database.Snapshot
     private let schemaCache: SharedDatabaseSchemaCache
@@ -19,13 +19,13 @@ public class SharedDatabaseSnapshot {
     }
     
     deinit {
-        if databasePool.configuration.fragileSnaredSnapshots == false {
-            databasePool.sharedSnapshotCount.decrement()
+        if databasePool.configuration.fragileHistoricalSnapshots == false {
+            databasePool.historicalSnapshotCount.decrement()
         }
     }
 }
 
-extension SharedDatabaseSnapshot: DatabaseReader {
+extension DatabaseHistoricalSnapshot: DatabaseReader {
     // :nodoc:
     public var configuration: Configuration {
         return databasePool.readerConfiguration
@@ -101,7 +101,6 @@ extension SharedDatabaseSnapshot: DatabaseReader {
         databasePool.add(collation: collation)
     }
     
-    // TODO: will we have to refresh the observation when we implement snapshot refresh?
     public func add<Reducer>(
         observation: ValueObservation<Reducer>,
         onError: @escaping (Error) -> Void,

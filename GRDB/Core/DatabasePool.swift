@@ -26,9 +26,9 @@ public final class DatabasePool: DatabaseWriter {
     #if SQLITE_ENABLE_SNAPSHOT
     /// Unused if configuration.fragileSnaredSnapshots is true.
     /// 
-    /// The number of existing shared snapshot instances. Acts as a mutex for
-    /// shared snapshots and checkpoints.
-    var sharedSnapshotCount = LockedBox(value: 0)
+    /// The number of existing historical snapshot instances. Acts as a mutex
+    /// for historical snapshots and checkpoints.
+    var historicalSnapshotCount = LockedBox(value: 0)
     var walAutocheckpoint: CInt = 1000 // See installWalHook
     #endif
     
@@ -121,7 +121,7 @@ public final class DatabasePool: DatabaseWriter {
                 }
                 
                 #if SQLITE_ENABLE_SNAPSHOT
-                if configuration.fragileSnaredSnapshots == false {
+                if configuration.fragileHistoricalSnapshots == false {
                     try installWalHook(db)
                 }
                 #endif
@@ -172,9 +172,9 @@ public final class DatabasePool: DatabaseWriter {
                 // We don't run dbPool.checkpoint(.passive) due to
                 // dispatch queue reentrancy issues. But this is equivalent.
                 //
-                // Stop the shared snapshot/checkpoint world as the checkpoint is running
-                dbPool.sharedSnapshotCount.write { sharedSnapshotCount in
-                    if sharedSnapshotCount > 0 {
+                // Stop the historical snapshot/checkpoint world as the checkpoint is running
+                dbPool.historicalSnapshotCount.write { historicalSnapshotCount in
+                    if historicalSnapshotCount > 0 {
                         // Don't invalidate snapshots!
                         return
                     }
@@ -205,14 +205,14 @@ extension DatabasePool {
     /// - parameter kind: The checkpoint mode (default passive)
     public func checkpoint(_ kind: Database.CheckpointMode = .passive) throws {
         #if SQLITE_ENABLE_SNAPSHOT
-        if configuration.fragileSnaredSnapshots {
+        if configuration.fragileHistoricalSnapshots {
             try writer.sync { db in
                 try db.checkpoint(kind)
             }
         } else {
-            // Stop the shared snapshot/checkpoint world as the checkpoint is running
-            try sharedSnapshotCount.write { sharedSnapshotCount in
-                guard sharedSnapshotCount == 0 else {
+            // Stop the historical snapshot/checkpoint world as the checkpoint is running
+            try historicalSnapshotCount.write { historicalSnapshotCount in
+                guard historicalSnapshotCount == 0 else {
                     // It looks like there is no way to protect snapshots from
                     // checkpoints of all kinds.
                     //
@@ -962,50 +962,50 @@ extension DatabasePool {
     
     #if SQLITE_ENABLE_SNAPSHOT
     /// TODO: documentation
-    public func makeSharedSnapshot() throws -> SharedDatabaseSnapshot {
-        if configuration.fragileSnaredSnapshots {
-            return try _makeSharedSnapshot()
+    public func makeHistoricalSnapshot() throws -> DatabaseHistoricalSnapshot {
+        if configuration.fragileHistoricalSnapshots {
+            return try _makeHistoricalSnapshot()
         } else {
-            // Stop the shared snapshot/checkpoint world as the snapshot is created.
-            return try sharedSnapshotCount.write { sharedSnapshotCount in
-                let snapshot = try _makeSharedSnapshot()
-                // decremented in SharedDatabaseSnapshot.deinit
-                sharedSnapshotCount += 1
+            // Stop the historical snapshot/checkpoint world as the snapshot is created.
+            return try historicalSnapshotCount.write { historicalSnapshotCount in
+                let snapshot = try _makeHistoricalSnapshot()
+                // decremented in DatabaseHistoricalSnapshot.deinit
+                historicalSnapshotCount += 1
                 return snapshot
             }
         }
     }
     
-    private func _makeSharedSnapshot() throws -> SharedDatabaseSnapshot {
+    private func _makeHistoricalSnapshot() throws -> DatabaseHistoricalSnapshot {
         if writer.onValidQueue {
             return try writer.execute { db in
-                try makeSharedSnapshotInTransaction(db)
+                try makeHistoricalSnapshotInTransaction(db)
             }
         } else {
             return try unsafeReentrantRead { db in
                 if db.isInsideTransaction {
-                    return try SharedDatabaseSnapshot(
+                    return try DatabaseHistoricalSnapshot(
                         databasePool: self,
                         snapshot: Database.Snapshot(from: db))
                 } else {
-                    return try makeSharedSnapshotInTransaction(db)
+                    return try makeHistoricalSnapshotInTransaction(db)
                 }
             }
         }
     }
     
-    private func makeSharedSnapshotInTransaction(_ db: Database) throws -> SharedDatabaseSnapshot {
+    private func makeHistoricalSnapshotInTransaction(_ db: Database) throws -> DatabaseHistoricalSnapshot {
         GRDBPrecondition(
             !db.isInsideTransaction,
             "Snapshots must not be created from inside a transaction.")
         
-        var snapshot: SharedDatabaseSnapshot?
+        var snapshot: DatabaseHistoricalSnapshot?
         
         // Avoid reentrancy issues when a snapshot is created from a transaction
         // observer: don't notify this empty deferred transaction.
         try db.observationBroker.ignoringEmptyDeferredTransaction {
             try db.inTransaction(.deferred) {
-                snapshot = try SharedDatabaseSnapshot(
+                snapshot = try DatabaseHistoricalSnapshot(
                     databasePool: self,
                     snapshot: Database.Snapshot(from: db))
                 return .commit

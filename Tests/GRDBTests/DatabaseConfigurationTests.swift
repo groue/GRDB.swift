@@ -28,6 +28,11 @@ class DatabaseConfigurationTests: GRDBTestCase {
         
         try pool.makeSnapshot().read { _ in }
         XCTAssertEqual(connectionCount, 5)
+        
+        #if SQLITE_ENABLE_SNAPSHOT
+        try pool.makeHistoricalSnapshot().read { _ in }
+        XCTAssertEqual(connectionCount, 5) // already open by pool.read
+        #endif
     }
     
     func testPrepareDatabaseError() throws {
@@ -70,6 +75,14 @@ class DatabaseConfigurationTests: GRDBTestCase {
                 _ = try pool.makeSnapshot()
                 XCTFail("Expected TestError")
             } catch is TestError { }
+            
+            #if SQLITE_ENABLE_SNAPSHOT
+            do {
+                error = TestError()
+                _ = try pool.makeHistoricalSnapshot()
+                XCTFail("Expected TestError")
+            } catch is TestError { }
+            #endif
         }
     }
 }

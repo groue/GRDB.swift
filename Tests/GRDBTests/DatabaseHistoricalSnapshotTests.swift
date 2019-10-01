@@ -6,7 +6,7 @@ import XCTest
 @testable import GRDB
 #endif
 
-class SharedDatabaseSnapshotTests: GRDBTestCase {
+class DatabaseHistoricalSnapshotTests: GRDBTestCase {
     
     /// A helper class
     private class Counter {
@@ -31,23 +31,23 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     
     func testSnapshotCanReadBeforeDatabaseModification() throws {
         let dbPool = try makeDatabasePool()
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         try XCTAssertEqual(snapshot.read { try $0.tableExists("foo") }, false)
     }
     
     func testSnapshotCreatedFromMainQueueCanRead() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         try XCTAssertEqual(snapshot.read(counter.value), 0)
     }
     
     func testSnapshotCreatedFromWriterOutsideOfTransactionCanRead() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
-        let snapshot = try dbPool.writeWithoutTransaction { db -> SharedDatabaseSnapshot in
+        let snapshot = try dbPool.writeWithoutTransaction { db -> DatabaseHistoricalSnapshot in
             XCTAssertFalse(db.isInsideTransaction)
-            let snapshot = try dbPool.makeSharedSnapshot()
+            let snapshot = try dbPool.makeHistoricalSnapshot()
             try counter.increment(db)
             return snapshot
         }
@@ -57,9 +57,9 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     func testSnapshotCreatedFromReaderTransactionCanRead() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
-        let snapshot = try dbPool.read { db -> SharedDatabaseSnapshot in
+        let snapshot = try dbPool.read { db -> DatabaseHistoricalSnapshot in
             XCTAssertTrue(db.isInsideTransaction)
-            return try dbPool.makeSharedSnapshot()
+            return try dbPool.makeHistoricalSnapshot()
         }
         try XCTAssertEqual(snapshot.read(counter.value), 0)
     }
@@ -67,9 +67,9 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     func testSnapshotCreatedFromReaderOutsideOfTransactionCanRead() throws {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
-        let snapshot = try dbPool.unsafeRead { db -> SharedDatabaseSnapshot in
+        let snapshot = try dbPool.unsafeRead { db -> DatabaseHistoricalSnapshot in
             XCTAssertFalse(db.isInsideTransaction)
-            return try dbPool.makeSharedSnapshot()
+            return try dbPool.makeHistoricalSnapshot()
         }
         try XCTAssertEqual(snapshot.read(counter.value), 0)
     }
@@ -83,8 +83,8 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         // transaction observers.
         class Observer: TransactionObserver {
             let dbPool: DatabasePool
-            var snapshot: SharedDatabaseSnapshot
-            init(dbPool: DatabasePool, snapshot: SharedDatabaseSnapshot) {
+            var snapshot: DatabaseHistoricalSnapshot
+            init(dbPool: DatabasePool, snapshot: DatabaseHistoricalSnapshot) {
                 self.dbPool = dbPool
                 self.snapshot = snapshot
             }
@@ -92,13 +92,13 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
             func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return false }
             func databaseDidChange(with event: DatabaseEvent) { }
             func databaseDidCommit(_ db: Database) {
-                snapshot = try! dbPool.makeSharedSnapshot()
+                snapshot = try! dbPool.makeHistoricalSnapshot()
             }
             func databaseDidRollback(_ db: Database) { }
         }
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
-        let observer = try Observer(dbPool: dbPool, snapshot: dbPool.makeSharedSnapshot())
+        let observer = try Observer(dbPool: dbPool, snapshot: dbPool.makeHistoricalSnapshot())
         dbPool.add(transactionObserver: observer)
         try XCTAssertEqual(observer.snapshot.read(counter.value), 0)
         try dbPool.write(counter.increment)
@@ -109,7 +109,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     
     func testSnapshotIsReadOnly() throws {
         let dbPool = try makeDatabasePool()
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         do {
             try snapshot.read { db in
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY")
@@ -123,7 +123,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         let counter = try Counter(dbPool: dbPool)
         try dbPool.writeWithoutTransaction { db in
             try counter.increment(db)
-            let snapshot = try dbPool.makeSharedSnapshot()
+            let snapshot = try dbPool.makeHistoricalSnapshot()
             try counter.increment(db)
             try XCTAssertEqual(counter.value(db), 2)
             try XCTAssertEqual(snapshot.read(counter.value), 1)
@@ -141,7 +141,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         let function = DatabaseFunction("foo", argumentCount: 0, pure: true) { _ in return "foo" }
         dbPool.add(function: function)
         
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         try snapshot.read { db in
             try XCTAssertEqual(String.fetchOne(db, sql: "SELECT foo()")!, "foo")
         }
@@ -149,7 +149,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     
     func testSnapshotFunctions() throws {
         let dbPool = try makeDatabasePool()
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         let function = DatabaseFunction("foo", argumentCount: 0, pure: true) { _ in return "foo" }
         snapshot.add(function: function)
         try snapshot.read { db in
@@ -173,7 +173,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
             try db.execute(sql: "INSERT INTO items (text) VALUES ('c')")
         }
         
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         try snapshot.read { db in
             XCTAssertEqual(try String.fetchAll(db, sql: "SELECT text FROM items ORDER BY text COLLATE reverse"), ["c", "b", "a"])
         }
@@ -188,7 +188,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
             try db.execute(sql: "INSERT INTO items (text) VALUES ('c')")
         }
         
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         let collation = DatabaseCollation("reverse") { (string1, string2) in
             return (string1 == string2) ? .orderedSame : ((string1 < string2) ? .orderedDescending : .orderedAscending)
         }
@@ -208,7 +208,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
                 try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
             }
         }
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         
         // Block 1                      Block 2
         // snapshot.read {              snapshot.read {
@@ -255,7 +255,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     func testDefaultLabel() throws {
         let dbPool = try makeDatabasePool()
         
-        let snapshot1 = try dbPool.makeSharedSnapshot()
+        let snapshot1 = try dbPool.makeHistoricalSnapshot()
         try snapshot1.unsafeRead { db in
             XCTAssertEqual(db.configuration.label, nil)
             
@@ -265,7 +265,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
             XCTAssertEqual(label, "GRDB.DatabasePool.reader.1")
         }
         
-        let snapshot2 = try dbPool.makeSharedSnapshot()
+        let snapshot2 = try dbPool.makeHistoricalSnapshot()
         try snapshot2.unsafeRead { db in
             XCTAssertEqual(db.configuration.label, nil)
             
@@ -280,7 +280,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         dbConfiguration.label = "Toreador"
         let dbPool = try makeDatabasePool()
         
-        let snapshot1 = try dbPool.makeSharedSnapshot()
+        let snapshot1 = try dbPool.makeHistoricalSnapshot()
         try snapshot1.unsafeRead { db in
             XCTAssertEqual(db.configuration.label, "Toreador")
             
@@ -290,7 +290,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
             XCTAssertEqual(label, "Toreador.reader.1")
         }
         
-        let snapshot2 = try dbPool.makeSharedSnapshot()
+        let snapshot2 = try dbPool.makeHistoricalSnapshot()
         try snapshot2.unsafeRead { db in
             XCTAssertEqual(db.configuration.label, "Toreador")
             
@@ -323,10 +323,10 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     }
     
     func testAutomaticCheckpointInvalidatesFragileSnapshot() throws {
-        dbConfiguration.fragileSnaredSnapshots = true
+        dbConfiguration.fragileHistoricalSnapshots = true
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         try dbPool.writeWithoutTransaction { db in
             // 1000 is enough to trigger automatic snapshot
             for _ in 0..<1000 {
@@ -340,11 +340,11 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     }
 
     func testAutomaticCheckpointDoesNotInvalidateSnapshot() throws {
-        dbConfiguration.fragileSnaredSnapshots = false
+        dbConfiguration.fragileHistoricalSnapshots = false
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         try XCTAssertEqual(snapshot.read(counter.value), 1)
         try dbPool.writeWithoutTransaction { db in
             // 1000 is enough to trigger automatic snapshot
@@ -356,11 +356,11 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     }
 
     func testPassiveCheckpointDoesNotInvalidateSnapshot() throws {
-        dbConfiguration.fragileSnaredSnapshots = false
+        dbConfiguration.fragileHistoricalSnapshots = false
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         try? dbPool.checkpoint(.passive) // ignore if error or not, that's not the point
         try XCTAssertEqual(snapshot.read(counter.value), 1)
         try dbPool.write(counter.increment)
@@ -368,11 +368,11 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     }
     
     func testFullCheckpointDoesNotInvalidateSnapshot() throws {
-        dbConfiguration.fragileSnaredSnapshots = false
+        dbConfiguration.fragileHistoricalSnapshots = false
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         try? dbPool.checkpoint(.full) // ignore if error or not, that's not the point
         try XCTAssertEqual(snapshot.read(counter.value), 1)
         try dbPool.write(counter.increment)
@@ -380,11 +380,11 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     }
     
     func testRestartCheckpointDoesNotInvalidateSnapshot() throws {
-        dbConfiguration.fragileSnaredSnapshots = false
+        dbConfiguration.fragileHistoricalSnapshots = false
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         try? dbPool.checkpoint(.restart) // ignore if error or not, that's not the point
         try XCTAssertEqual(snapshot.read(counter.value), 1)
         try dbPool.write(counter.increment)
@@ -392,11 +392,11 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
     }
     
     func testTruncateCheckpointDoesNotInvalidateSnapshot() throws {
-        dbConfiguration.fragileSnaredSnapshots = false
+        dbConfiguration.fragileHistoricalSnapshots = false
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         try? dbPool.checkpoint(.truncate) // ignore if error or not, that's not the point
         try XCTAssertEqual(snapshot.read(counter.value), 1)
         try dbPool.write(counter.increment)
@@ -410,7 +410,7 @@ class SharedDatabaseSnapshotTests: GRDBTestCase {
         try dbPool.write { db in
             try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY)")
         }
-        let snapshot = try dbPool.makeSharedSnapshot()
+        let snapshot = try dbPool.makeHistoricalSnapshot()
         try snapshot.read { db in
             // Schema cache is updated
             XCTAssertNil(db.schemaCache.primaryKey("t"))
