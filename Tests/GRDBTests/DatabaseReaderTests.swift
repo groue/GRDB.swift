@@ -237,20 +237,21 @@ class DatabaseReaderTests : GRDBTestCase {
             }
             return dbWriter
         }
-        func test(_ dbReader: DatabaseReader) throws {
-            let dbQueue = try makeDatabaseQueue()
-            try dbReader.backup(to: dbQueue)
-            let count = try dbReader.read { db in
+        func test(_ source: DatabaseReader) throws {
+            let dest = try makeDatabaseQueue(configuration: Configuration())
+            try source.backup(to: dest)
+            let count = try dest.read { db in
                 try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
             }
             XCTAssertEqual(count, 0)
         }
         
-        try test(setup(makeDatabaseQueue()))
-        try test(setup(makeDatabasePool()))
-        try test(setup(makeDatabasePool()).makeSnapshot())
+        // SQLCipher can't backup encrypted databases: use a pristine Configuration
+        try test(setup(makeDatabaseQueue(configuration: Configuration())))
+        try test(setup(makeDatabasePool(configuration: Configuration())))
+        try test(setup(makeDatabasePool(configuration: Configuration())).makeSnapshot())
         #if SQLITE_ENABLE_SNAPSHOT
-        try test(setup(makeDatabasePool()).makeSharedSnapshot())
+        try test(setup(makeDatabasePool(configuration: Configuration())).makeSharedSnapshot())
         #endif
     }
 }
