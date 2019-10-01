@@ -19,7 +19,9 @@ public class SharedDatabaseSnapshot {
     }
     
     deinit {
-        databasePool.sharedSnapshotCount.decrement()
+        if databasePool.configuration.fragileSnaredSnapshots == false {
+            databasePool.sharedSnapshotCount.decrement()
+        }
     }
 }
 

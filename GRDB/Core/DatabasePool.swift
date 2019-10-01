@@ -964,41 +964,41 @@ extension DatabasePool {
     /// TODO: documentation
     public func makeSharedSnapshot() throws -> SharedDatabaseSnapshot {
         if configuration.fragileSnaredSnapshots {
-            if writer.onValidQueue {
-                return try writer.execute { db in
-                    try makeSharedSnapshot(db)
-                }
-            } else {
-                return try unsafeReentrantRead { db in
-                    try makeSharedSnapshot(db)
-                }
-            }
+            return try _makeSharedSnapshot()
         } else {
             // Stop the shared snapshot/checkpoint world as the snapshot is created.
             return try sharedSnapshotCount.write { sharedSnapshotCount in
-                let snapshot: SharedDatabaseSnapshot
-                if writer.onValidQueue {
-                    snapshot = try writer.execute { db in
-                        try makeSharedSnapshot(db)
-                    }
-                } else {
-                    snapshot = try unsafeReentrantRead { db in
-                        try makeSharedSnapshot(db)
-                    }
-                }
-                
+                let snapshot = try _makeSharedSnapshot()
                 // decremented in SharedDatabaseSnapshot.deinit
                 sharedSnapshotCount += 1
-                
                 return snapshot
             }
         }
     }
     
-    private func makeSharedSnapshot(_ db: Database) throws -> SharedDatabaseSnapshot {
+    private func _makeSharedSnapshot() throws -> SharedDatabaseSnapshot {
+        if writer.onValidQueue {
+            return try writer.execute { db in
+                try makeSharedSnapshotInTransaction(db)
+            }
+        } else {
+            return try unsafeReentrantRead { db in
+                if db.isInsideTransaction {
+                    return try SharedDatabaseSnapshot(
+                        databasePool: self,
+                        snapshot: Database.Snapshot(from: db))
+                } else {
+                    return try makeSharedSnapshotInTransaction(db)
+                }
+            }
+        }
+    }
+    
+    private func makeSharedSnapshotInTransaction(_ db: Database) throws -> SharedDatabaseSnapshot {
         GRDBPrecondition(
             !db.isInsideTransaction,
             "Snapshots must not be created from inside a transaction.")
+        
         var snapshot: SharedDatabaseSnapshot?
         
         // Avoid reentrancy issues when a snapshot is created from a transaction
