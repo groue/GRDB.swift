@@ -27,7 +27,6 @@ let package = Package(
                 "Crash",
                 "Performance",
                 "SPM",
-                "XCode+SPM",
             ])
     ],
     swiftLanguageVersions: [.v4_2, .version("5")]

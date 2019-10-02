@@ -324,16 +324,26 @@ test_install_manual:
 	  clean build \
 	  $(XCPRETTY)
 
-test_install_SPM:
-	cd Tests/SPM && \
+test_install_SPM: test_install_SPM_Package test_install_SPM_Project
+
+test_install_SPM_Package:
+	cd Tests/SPM/PlainPackage && \
 	( if [ -a .build ] && [ -a Package.resolved ]; then $(SWIFT) package reset; fi ) && \
 	rm -rf Packages/GRDB && \
 	$(SWIFT) package edit GRDB --revision master && \
 	rm -rf Packages/GRDB && \
-	ln -s ../../.. Packages/GRDB && \
+	ln -s ../../../.. Packages/GRDB && \
 	$(SWIFT) build && \
 	./.build/debug/SPM && \
 	$(SWIFT) package unedit --force GRDB
+
+test_install_SPM_Project:
+	$(XCODEBUILD) \
+	  -project Tests/SPM/PlainProject/Plain.xcodeproj \
+	  -scheme Plain \
+	  -configuration Release \
+	  clean build \
+	  $(XCPRETTY)
 
 test_install_GRDB_CocoaPods: test_install_GRDB_CocoaPods_framework test_install_GRDB_CocoaPods_static
 
