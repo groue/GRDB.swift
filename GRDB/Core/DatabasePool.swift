@@ -222,7 +222,7 @@ extension DatabasePool {
                     // http://mailinglists.sqlite.org/cgi-bin/mailman/private/sqlite-users/2019-September/086129.html
                     throw DatabaseError(
                         resultCode: .SQLITE_BUSY,
-                        message: "Checkpoint can't run when there exist snapshots.")
+                        message: "Checkpoint can't run when there exist historical snapshots.")
                 }
                 try writer.sync { db in
                     try db.checkpoint(kind)
@@ -360,6 +360,9 @@ extension DatabasePool: DatabaseReader {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         return try readerPool.get { reader in
             try reader.sync { db in
+                #if SQLITE_ENABLE_SNAPSHOT
+                assert(db.currentSnapshot == nil)
+                #endif
                 var result: T? = nil
                 // The block isolation comes from the DEFERRED transaction.
                 // See DatabasePoolTests.testReadMethodIsolationOfBlock().
@@ -404,6 +407,9 @@ extension DatabasePool: DatabaseReader {
                     // Second async jump because sync could deadlock if
                     // configuration has a serial targetQueue.
                     reader.async { db in
+                        #if SQLITE_ENABLE_SNAPSHOT
+                        assert(db.currentSnapshot == nil)
+                        #endif
                         defer {
                             try? db.commit() // Ignore commit error
                             releaseReader()
@@ -457,8 +463,11 @@ extension DatabasePool: DatabaseReader {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         return try readerPool.get { reader in
             try reader.sync { db in
+                #if SQLITE_ENABLE_SNAPSHOT
+                assert(db.currentSnapshot == nil)
+                #endif
                 // No schema cache when snapshot isolation is not established
-                try db.withSchemaCache(EmptyDatabaseSchemaCache()) {
+                return try db.withSchemaCache(EmptyDatabaseSchemaCache()) {
                     try block(db)
                 }
             }
@@ -509,8 +518,11 @@ extension DatabasePool: DatabaseReader {
         } else {
             return try readerPool.get { reader in
                 try reader.sync { db in
+                    #if SQLITE_ENABLE_SNAPSHOT
+                    assert(db.currentSnapshot == nil)
+                    #endif
                     // No schema cache when snapshot isolation is not established
-                    try db.withSchemaCache(EmptyDatabaseSchemaCache()) {
+                    return try db.withSchemaCache(EmptyDatabaseSchemaCache()) {
                         try block(db)
                     }
                 }
@@ -548,6 +560,9 @@ extension DatabasePool: DatabaseReader {
         do {
             let (reader, releaseReader) = try readerPool.get()
             reader.async { db in
+                #if SQLITE_ENABLE_SNAPSHOT
+                assert(db.currentSnapshot == nil)
+                #endif
                 defer {
                     try? db.commit() // Ignore commit error
                     releaseReader()
@@ -652,6 +667,9 @@ extension DatabasePool: DatabaseReader {
         do {
             let (reader, releaseReader) = try readerPool.get()
             reader.async { db in
+                #if SQLITE_ENABLE_SNAPSHOT
+                assert(db.currentSnapshot == nil)
+                #endif
                 defer {
                     try? db.commit() // Ignore commit error
                     releaseReader()
