@@ -8013,11 +8013,12 @@ You can catch those errors and wait for [UIApplicationDelegate.applicationProtec
 
 ### Guarantees and Rules
 
-GRDB ships with three concurrency modes:
+GRDB ships with four concurrency modes:
 
 - [DatabaseQueue](#database-queues) opens a single database connection, and serializes all database accesses.
 - [DatabasePool](#database-pools) manages a pool of several database connections, and allows concurrent reads and writes.
-- [DatabaseSnapshot](#database-snapshots) opens a single read-only database connection on an unchanging database content, and (currently) serializes all database accesses
+- [DatabaseSnapshot](#database-snapshots) opens a single read-only database connection on an unchanging database content, and serializes all database accesses
+- [DatabaseHistoricalSnapshot](#database-snapshots) uses the read-only connections of a database pool, and allows concurrent reads.
 
 **All foster application safety**: regardless of the concurrency mode you choose, GRDB provides you with the same guarantees, as long as you follow three rules.
 
@@ -8025,7 +8026,7 @@ GRDB ships with three concurrency modes:
     
     > Database writes always happen in a unique serial dispatch queue, named the *writer protected dispatch queue*.
 
-- :bowtie: **Guarantee 2: reads are always isolated**. This means that they are guaranteed an immutable view of the last committed state of the database, and that you can perform subsequent fetches without fearing eventual concurrent writes to mess with your application logic:
+- :bowtie: **Guarantee 2: reads are always isolated**. This means that they are guaranteed an immutable view of the database, and that you can perform subsequent fetches without fearing eventual concurrent writes to mess with your application logic:
     
     ```swift
     try dbPool.read { db in // or dbQueue.read
@@ -8247,25 +8248,36 @@ try dbPool.barrierWriteWithoutTransaction { db in
 
 The barrier write guarantees exclusive access to the database: the method blocks until all concurrent database accesses are completed, reads and writes, and postpones all other accesses until it completes.
 
-There is a known limitation: reads performed by [database snapshots](#database-snapshots) are out of scope, and may run concurrently with the barrier.
+There is a known limitation: reads performed by [DatabaseSnapshot](#database-snapshots) are out of scope, and may run concurrently with the barrier.
 
 
 
 ### Database Snapshots
 
-**A database snapshot sees an unchanging database content, as it existed at the moment it was created.**
+**[Database pool](#database-pools) can take snapshots.** A database snapshot sees an unchanging database content, as it existed at the moment it was created.
 
 "Unchanging" means that a snapshot never sees any database modifications during all its lifetime. And yet it doesn't prevent database updates. This "magic" is made possible by SQLite's WAL mode (see [Isolation In SQLite](https://sqlite.org/isolation.html)).
 
-You create snapshots from a [database pool](#database-pools):
+GRDB provides two classes for accessing a snapshot: `DatabaseSnapshot` and `DatabaseHistoricalSnapshot`:
 
 ```swift
+// Pick one:
 let snapshot = try dbPool.makeSnapshot()
+let snapshot = try dbPool.makeHistoricalSnapshot()
 ```
 
-You can create as many snapshots as you need, regardless of the [maximum number of readers](#databasepool-configuration) in the pool. A snapshot database connection is closed when the snapshot gets deallocated.
+The differences are:
 
-**A snapshot can be used from any thread.** Its `read` methods is synchronous, and blocks the current thread until your database statements are executed:
+- DatabaseHistoricalSnapshot is based on [SQLite historical snapshots](https://www.sqlite.org/c3ref/snapshot.html) and are only available when SQLite has been compiled with the `SQLITE_ENABLE_SNAPSHOT` option.
+- Each DatabaseSnapshot opens its own SQLite connection, when a DatabaseHistoricalSnapshot uses the connections of its database pool: DatabaseSnapshot consumes more memory, is slower to create, and does not honor the [maximum number of readers](#databasepool-configuration) in the pool.
+- DatabaseSnapshot serializes all database accesses, when DatabaseHistoricalSnapshot allows concurrent database accesses.
+- DatabaseHistoricalSnapshot are invalidated by [WAL checkpointing](https://www.sqlite.org/wal.html#checkpointing) by default.
+
+**If you are not sure, choose DatabaseSnapshot.** You will always be able to switch to DatabaseHistoricalSnapshot later.
+
+You can create as many snapshots as you need.
+
+**Snapshots can be used from any thread.** Their `read` methods is synchronous, and blocks the current thread until your database statements are executed:
 
 ```swift
 // Read values:
@@ -8280,7 +8292,7 @@ let playerCount = try snapshot.read { db in
 }
 ```
 
-When you want to control the latest committed changes seen by a snapshot, create it from the pool's writer protected dispatch queue, outside of any transaction:
+When you want to control the latest committed changes seen by a snapshot, create the snapshot from the pool's writer protected dispatch queue, outside of any transaction:
 
 ```swift
 let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshot in
@@ -8291,10 +8303,10 @@ let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshot in
     }
     
     // <- not in a transaction here
-    return dbPool.makeSnapshot()
+    return dbPool.makeSnapshot()          // or makeHistoricalSnapshot()
 }
 // <- Other threads may modify the database here
-let snapshot2 = try dbPool.makeSnapshot()
+let snapshot2 = try dbPool.makeSnapshot() // or makeHistoricalSnapshot()
 
 try snapshot1.read { db in
     // Guaranteed to be zero
@@ -8306,8 +8318,6 @@ try snapshot2.read { db in
     try Player.fetchCount(db)
 }
 ```
-
-> :point_up: **Note**: snapshots currently serialize all database accesses. In the future, snapshots may allow concurrent reads.
 
 
 ### DatabaseWriter and DatabaseReader Protocols
