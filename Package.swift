@@ -9,10 +9,15 @@ let package = Package(
         .library(name: "GRDB", targets: ["GRDB"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/groue/CSQLite.git", from: "0.2.0"),
     ],
     targets: [
-        .target(name: "GRDB", path: "GRDB"),
+        .systemLibrary(
+            name: "sqlite3",
+            providers: [.apt(["libsqlite3-dev"])]),
+        .target(
+            name: "GRDB",
+            dependencies: ["sqlite3"],
+            path: "GRDB"),
         .testTarget(
             name: "GRDBTests",
             dependencies: ["GRDB"],
@@ -21,7 +26,8 @@ let package = Package(
                 "CocoaPods",
                 "Crash",
                 "Performance",
-                "SPM"
+                "SPM",
+                "XCode+SPM",
             ])
     ],
     swiftLanguageVersions: [.v4_2, .version("5")]

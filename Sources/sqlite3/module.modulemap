@@ -1,0 +1,5 @@
+module CSQLite {
+    header "shim.h"
+    link "sqlite3"
+    export *
+}
