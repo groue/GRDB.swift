@@ -183,8 +183,16 @@ jobs:
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode11
       env:
-        - TID=SPM
-      script: make test_install_SPM
+        - TID=SPM Package
+      script: make test_install_SPM_Package
+    
+    # SPM Install
+    - stage: Test Installation Xcode 11
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11
+      env:
+        - TID=SPM Package in Xcode Project
+      script: make test_install_SPM_Project
     
     ###########################################
     ## Test GRDB Xcode 10.3
