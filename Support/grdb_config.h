@@ -8,9 +8,7 @@
         #include <sqlite3.h>
     #endif
 #else
-    #if defined(GRDBCUSTOMSQLITE)
-        #include <GRDBCustom/sqlite3.h>
-    #else
+    #if !defined(GRDBCUSTOMSQLITE)
         #include <sqlite3.h>
     #endif
 #endif
