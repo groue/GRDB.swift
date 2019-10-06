@@ -64,6 +64,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 **New**
 
 - [#622](https://github.com/groue/GRDB.swift/pull/622): Allow observation of FTS4 virtual tables
+- [#627](https://github.com/groue/GRDB.swift/pull/627): Swift Package Manager: define SQLite as a system library target
 
 
 ## 4.4.0
