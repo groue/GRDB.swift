@@ -1978,7 +1978,7 @@
 					};
 					F3BA80591CFB2BB2003DC1BA = {
 						CreatedOnToolsVersion = 7.3.1;
-						LastSwiftMigration = 1020;
+						LastSwiftMigration = 1110;
 					};
 					F3BA809A1CFB2F6F003DC1BA = {
 						CreatedOnToolsVersion = 7.3.1;
