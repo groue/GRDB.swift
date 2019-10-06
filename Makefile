@@ -130,7 +130,7 @@ test_framework_darwin: test_framework_GRDB test_framework_GRDBCustom test_framew
 test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_framework_GRDBiOS test_framework_GRDBtvOS
 test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRDBCustomSQLiteiOS
 test_framework_SQLCipher: test_framework_SQLCipher3 test_framework_SQLCipher4
-test_install: test_install_manual test_install_SPM test_install_GRDB_CocoaPods test_CocoaPodsLint
+test_install: test_install_manual test_install_SPM test_install_customSQLite test_install_GRDB_CocoaPods test_CocoaPodsLint
 test_CocoaPodsLint: test_CocoaPodsLint_GRDB
 
 test_framework_GRDBOSX: test_framework_GRDBOSX_maxSwift test_framework_GRDBOSX_minSwift
@@ -341,6 +341,14 @@ test_install_SPM_Project:
 	$(XCODEBUILD) \
 	  -project Tests/SPM/PlainProject/Plain.xcodeproj \
 	  -scheme Plain \
+	  -configuration Release \
+	  clean build \
+	  $(XCPRETTY)
+
+test_install_customSQLite: SQLiteCustom
+	$(XCODEBUILD) \
+	  -project Tests/CustomSQLite/CustomSQLite.xcodeproj \
+	  -scheme CustomSQLite \
 	  -configuration Release \
 	  clean build \
 	  $(XCPRETTY)

@@ -24,6 +24,7 @@ let package = Package(
             path: "Tests",
             exclude: [
                 "CocoaPods",
+                "CustomSQLite",
                 "Crash",
                 "Performance",
                 "SPM",
