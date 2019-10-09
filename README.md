@@ -1476,7 +1476,7 @@ GRDB generally opens transactions for you, as a way to enforce its [concurrency 
 // INSERT INTO debit ...
 // COMMIT
 try dbQueue.write { db in
-    try Credit(destinationAccout, amount).insert(db)
+    try Credit(destinationAccount, amount).insert(db)
     try Debit(sourceAccount, amount).insert(db)
 }
 
@@ -1485,7 +1485,7 @@ try dbQueue.write { db in
 // INSERT INTO debit ...
 // COMMIT
 try dbPool.write { db in
-    try Credit(destinationAccout, amount).insert(db)
+    try Credit(destinationAccount, amount).insert(db)
     try Debit(sourceAccount, amount).insert(db)
 }
 ```
@@ -1501,14 +1501,14 @@ Yet you may need to exactly control when transactions take place:
 // INSERT INTO credit ...
 // INSERT INTO debit ...
 try dbQueue.inDatabase { db in
-    try Credit(destinationAccout, amount).insert(db)
+    try Credit(destinationAccount, amount).insert(db)
     try Debit(sourceAccount, amount).insert(db)
 }
 
 // INSERT INTO credit ...
 // INSERT INTO debit ...
 try dbPool.writeWithoutTransaction { db in
-    try Credit(destinationAccout, amount).insert(db)
+    try Credit(destinationAccount, amount).insert(db)
     try Debit(sourceAccount, amount).insert(db)
 }
 ```
@@ -1520,7 +1520,7 @@ try dbPool.writeWithoutTransaction { db in
     ```swift
     // UNSAFE DATABASE INTEGRITY
     try dbQueue.inDatabase { db in // or dbPool.writeWithoutTransaction
-        try Credit(destinationAccout, amount).insert(db) // may succeed
+        try Credit(destinationAccount, amount).insert(db) // may succeed
         try Debit(sourceAccount, amount).insert(db)      // may fail
     }
     ```
@@ -1532,7 +1532,7 @@ try dbPool.writeWithoutTransaction { db in
     ```swift
     // UNSAFE CONCURRENCY
     try dbPool.writeWithoutTransaction { db in
-        try Credit(destinationAccout, amount).insert(db)
+        try Credit(destinationAccount, amount).insert(db)
         // <- Concurrent dbPool.read sees a partial db update here
         try Debit(sourceAccount, amount).insert(db)
     }
@@ -1549,7 +1549,7 @@ To open explicit transactions, use one of the `Database.inTransaction`, `Databas
 // COMMIT
 try dbQueue.inDatabase { db in  // or dbPool.writeWithoutTransaction
     try db.inTransaction {
-        try Credit(destinationAccout, amount).insert(db)
+        try Credit(destinationAccount, amount).insert(db)
         try Debit(sourceAccount, amount).insert(db)
         return .commit
     }
@@ -1560,7 +1560,7 @@ try dbQueue.inDatabase { db in  // or dbPool.writeWithoutTransaction
 // INSERT INTO debit ...
 // COMMIT
 try dbQueue.inTransaction { db in  // or dbPool.writeInTransaction
-    try Credit(destinationAccout, amount).insert(db)
+    try Credit(destinationAccount, amount).insert(db)
     try Debit(sourceAccount, amount).insert(db)
     return .commit
 }
@@ -1621,7 +1621,7 @@ func myCriticalMethod(_ db: Database) throws {
 try dbQueue.write { db in
     // Makes sure both inserts succeed, or none:
     try db.inSavepoint {
-        try Credit(destinationAccout, amount).insert(db)
+        try Credit(destinationAccount, amount).insert(db)
         try Debit(sourceAccount, amount).insert(db)
         return .commit
     }
@@ -8116,20 +8116,20 @@ Those guarantees hold as long as you follow three rules:
     ```swift
     // SAFE CONCURRENCY
     try dbPool.write { db in               // or dbQueue.write
-        try Credit(destinationAccout, amount).insert(db)
+        try Credit(destinationAccount, amount).insert(db)
         try Debit(sourceAccount, amount).insert(db)
     }
     
     // SAFE CONCURRENCY
     try dbPool.writeInTransaction { db in  // or dbQueue.inTransaction
-        try Credit(destinationAccout, amount).insert(db)
+        try Credit(destinationAccount, amount).insert(db)
         try Debit(sourceAccount, amount).insert(db)
         return .commit
     }
     
     // UNSAFE CONCURRENCY
     try dbPool.writeWithoutTransaction { db in
-        try Credit(destinationAccout, amount).insert(db)
+        try Credit(destinationAccount, amount).insert(db)
         // <- Concurrent dbPool.read sees a partial db update here
         try Debit(sourceAccount, amount).insert(db)
     }
