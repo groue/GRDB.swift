@@ -3780,7 +3780,7 @@ SQLite itself has many reference documents about table creation: [CREATE TABLE](
 try db.create(table: "example") { t in ... }
     
 // CREATE TEMPORARY TABLE example IF NOT EXISTS (
-try db.create(table: "example", temporary: true, ifNotExists: true) { t in
+try db.create(table: "example", temporary: true, ifNotExists: true) { t in ... }
 ```
 
 > :bulb: **Tip**: database table names should be singular, and camel-cased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`, 'httpRequest'.
