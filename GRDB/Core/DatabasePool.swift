@@ -21,7 +21,7 @@ public final class DatabasePool: DatabaseWriter {
     private var collations = Set<DatabaseCollation>()
     private var tokenizerRegistrations: [(Database) -> Void] = []
     
-    var snapshotCount = ReadWriteBox(0)
+    var databaseSnapshotCount = LockedBox(value: 0)
     
     #if os(iOS)
     private weak var application: UIApplication?
@@ -869,7 +869,7 @@ extension DatabasePool {
             path: path,
             configuration: writer.configuration,
             defaultLabel: "GRDB.DatabasePool",
-            purpose: "snapshot.\(snapshotCount.increment())")
+            purpose: "snapshot.\(databaseSnapshotCount.increment())")
         snapshot.read { setupDatabase($0) }
         return snapshot
     }
