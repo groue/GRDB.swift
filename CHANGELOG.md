@@ -61,6 +61,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 - The `DatabaseMigrator.eraseDatabaseOnSchemaChange` option no longer fails when migrations depend on database configuration.
 - [#631](https://github.com/groue/GRDB.swift/pull/631): Fix custom SQLite builds
+- [#632](https://github.com/groue/GRDB.swift/pull/632) by [@runhum](https://github.com/runhum): Fix documentation typo
 
 **New**
 
