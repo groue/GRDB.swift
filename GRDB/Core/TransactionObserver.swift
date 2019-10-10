@@ -340,7 +340,8 @@ class DatabaseObservationBroker {
                     //   BEGIN DEFERRED TRANSACTION; COMMIT
                     //
                     // This special case has a dedicated handling:
-                    return try databaseDidCommitEmptyDeferredTransaction()
+                    try databaseDidCommitEmptyDeferredTransaction()
+                    return
                 }
                 
             case .rollbackTransaction:
@@ -360,7 +361,8 @@ class DatabaseObservationBroker {
                     //   SAVEPOINT foo; RELEASE SAVEPOINT foo
                     //
                     // This special case has a dedicated handling:
-                    return try databaseDidCommitEmptyDeferredTransaction()
+                    try databaseDidCommitEmptyDeferredTransaction()
+                    return
                 }
                 
                 if savepointStack.isEmpty {
