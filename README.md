@@ -8025,7 +8025,7 @@ GRDB ships with three concurrency modes:
     
     > Database writes always happen in a unique serial dispatch queue, named the *writer protected dispatch queue*.
 
-- :bowtie: **Guarantee 2: reads are always isolated**. This means that they are guaranteed an immutable view of the last committed state of the database, and that you can perform subsequent fetches without fearing eventual concurrent writes to mess with your application logic:
+- :bowtie: **Guarantee 2: reads are always isolated**. This means that they are guaranteed an immutable view of the database, and that you can perform subsequent fetches without fearing eventual concurrent writes to mess with your application logic:
     
     ```swift
     try dbPool.read { db in // or dbQueue.read
@@ -8253,7 +8253,7 @@ There is a known limitation: reads performed by [database snapshots](#database-s
 
 ### Database Snapshots
 
-**A database snapshot sees an unchanging database content, as it existed at the moment it was created.**
+**[Database pool](#database-pools) can take snapshots.** A database snapshot sees an unchanging database content, as it existed at the moment it was created.
 
 "Unchanging" means that a snapshot never sees any database modifications during all its lifetime. And yet it doesn't prevent database updates. This "magic" is made possible by SQLite's WAL mode (see [Isolation In SQLite](https://sqlite.org/isolation.html)).
 
@@ -8280,7 +8280,7 @@ let playerCount = try snapshot.read { db in
 }
 ```
 
-When you want to control the latest committed changes seen by a snapshot, create it from the pool's writer protected dispatch queue, outside of any transaction:
+When you want to control the latest committed changes seen by a snapshot, create the snapshot from the pool's writer protected dispatch queue, outside of any transaction:
 
 ```swift
 let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshot in
