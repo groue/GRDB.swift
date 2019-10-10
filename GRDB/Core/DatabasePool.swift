@@ -154,13 +154,7 @@ extension DatabasePool {
     /// - parameter kind: The checkpoint mode (default passive)
     public func checkpoint(_ kind: Database.CheckpointMode = .passive) throws {
         try writer.sync { db in
-            // TODO: read https://www.sqlite.org/c3ref/wal_checkpoint_v2.html and
-            // check whether we need a busy handler on writer and/or readers
-            // when kind is not .Passive.
-            let code = sqlite3_wal_checkpoint_v2(db.sqliteConnection, nil, kind.rawValue, nil, nil)
-            guard code == SQLITE_OK else {
-                throw DatabaseError(resultCode: code, message: db.lastErrorMessage)
-            }
+            try db.checkpoint(kind)
         }
     }
 }

@@ -629,7 +629,15 @@ extension Database {
 }
 
 extension Database {
-    
+    func checkpoint(_ kind: Database.CheckpointMode) throws {
+        let code = sqlite3_wal_checkpoint_v2(sqliteConnection, nil, kind.rawValue, nil, nil)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: lastErrorMessage)
+        }
+    }
+}
+
+extension Database {
     // MARK: - Transactions & Savepoint
     
     /// Executes a block inside a database transaction.
