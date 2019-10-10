@@ -290,8 +290,9 @@ extension DatabasePool: DatabaseReader {
                 // See DatabasePoolTests.testReadMethodIsolationOfBlock().
                 try db.inTransaction(.deferred) {
                     // Reset the schema cache before running user code in snapshot isolation
-                    db.schemaCache = SimpleDatabaseSchemaCache()
-                    result = try block(db)
+                    result = try db.withSchemaCache(SimpleDatabaseSchemaCache()) {
+                        try block(db)
+                    }
                     return .commit
                 }
                 return result!
@@ -337,9 +338,9 @@ extension DatabasePool: DatabaseReader {
                             try db.beginTransaction(.deferred)
                             
                             // Reset the schema cache before running user code in snapshot isolation
-                            db.schemaCache = SimpleDatabaseSchemaCache()
-                            
-                            block(.success(db))
+                            db.withSchemaCache(SimpleDatabaseSchemaCache()) {
+                                block(.success(db))
+                            }
                         } catch {
                             block(.failure(error))
                         }
@@ -382,8 +383,9 @@ extension DatabasePool: DatabaseReader {
         return try readerPool.get { reader in
             try reader.sync { db in
                 // No schema cache when snapshot isolation is not established
-                db.schemaCache = EmptyDatabaseSchemaCache()
-                return try block(db)
+                return try db.withSchemaCache(EmptyDatabaseSchemaCache()) {
+                    try block(db)
+                }
             }
         }
     }
@@ -422,8 +424,9 @@ extension DatabasePool: DatabaseReader {
             return try readerPool.get { reader in
                 try reader.sync { db in
                     // No schema cache when snapshot isolation is not established
-                    db.schemaCache = EmptyDatabaseSchemaCache()
-                    return try block(db)
+                    return try db.withSchemaCache(EmptyDatabaseSchemaCache()) {
+                        try block(db)
+                    }
                 }
             }
         }
@@ -579,10 +582,10 @@ extension DatabasePool: DatabaseReader {
                 isolationSemaphore.signal()
                 
                 // Reset the schema cache before running user code in snapshot isolation
-                db.schemaCache = SimpleDatabaseSchemaCache()
-                
-                // Fetch and release the future
-                block(.success(db))
+                db.withSchemaCache(SimpleDatabaseSchemaCache()) {
+                    // Fetch and release the future
+                    block(.success(db))
+                }
             }
         } catch {
             isolationSemaphore.signal()
