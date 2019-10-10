@@ -102,10 +102,13 @@ public final class DatabasePool: DatabaseWriter {
                     // opens a pool to an existing non-WAL database, and
                     // attempts to read from it.
                     // See https://github.com/groue/GRDB.swift/issues/102
-                    try db.execute(sql: """
-                        CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY);
-                        DROP TABLE grdb_issue_102;
-                        """)
+                    try db.inSavepoint {
+                        try db.execute(sql: """
+                            CREATE TABLE grdb_issue_102 (id INTEGER PRIMARY KEY);
+                            DROP TABLE grdb_issue_102;
+                            """)
+                        return .commit
+                    }
                 }
             }
         }
