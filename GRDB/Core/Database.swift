@@ -792,7 +792,7 @@ extension Database {
     
     /// Begins a database transaction and take a snapshot of the last committed
     /// database state.
-    func beginSnapshotIsolation() throws {
+    func beginSnapshotTransaction() throws {
         // https://www.sqlite.org/isolation.html
         //
         // > In WAL mode, SQLite exhibits "snapshot isolation". When a read

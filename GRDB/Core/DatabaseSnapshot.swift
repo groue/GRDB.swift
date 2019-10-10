@@ -32,7 +32,7 @@ public class DatabaseSnapshot: DatabaseReader {
             guard journalMode == "wal" else {
                 throw DatabaseError(message: "WAL mode is not activated at path: \(path)")
             }
-            try db.beginSnapshotIsolation()
+            try db.beginSnapshotTransaction()
         }
     }
     

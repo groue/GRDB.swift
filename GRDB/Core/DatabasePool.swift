@@ -467,7 +467,7 @@ extension DatabasePool: DatabaseReader {
                     releaseReader()
                 }
                 do {
-                    try db.beginSnapshotIsolation()
+                    try db.beginSnapshotTransaction()
                 } catch {
                     futureResult = .failure(error)
                     isolationSemaphore.signal()
@@ -571,7 +571,7 @@ extension DatabasePool: DatabaseReader {
                     releaseReader()
                 }
                 do {
-                    try db.beginSnapshotIsolation()
+                    try db.beginSnapshotTransaction()
                 } catch {
                     isolationSemaphore.signal()
                     block(.failure(error))
