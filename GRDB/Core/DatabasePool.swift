@@ -14,8 +14,8 @@ import UIKit
 /// A DatabasePool grants concurrent accesses to an SQLite database.
 public final class DatabasePool: DatabaseWriter {
     private let writer: SerializedDatabase
-    private var readerConfig: Configuration
     private var readerPool: Pool<SerializedDatabase>!
+    var readerConfiguration: Configuration
     
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
@@ -61,6 +61,29 @@ public final class DatabasePool: DatabaseWriter {
             defaultLabel: "GRDB.DatabasePool",
             purpose: "writer")
         
+        // Readers
+        readerConfiguration = configuration
+        readerConfiguration.readonly = true
+        // Readers use deferred transactions by default.
+        // Other transaction kinds are forbidden by SQLite in read-only connections.
+        readerConfiguration.defaultTransactionKind = .deferred
+        // Readers can't allow dangling transactions because there's no
+        // guarantee that one can get the same reader later in order to close
+        // an opened transaction.
+        readerConfiguration.allowsUnsafeTransactions = false
+        var readerCount = 0
+        readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
+            readerCount += 1 // protected by pool (TODO: documented this protection behavior)
+            let reader = try SerializedDatabase(
+                path: path,
+                configuration: self.readerConfiguration,
+                schemaCache: SimpleDatabaseSchemaCache(),
+                defaultLabel: "GRDB.DatabasePool",
+                purpose: "reader.\(readerCount)")
+            reader.sync { self.setupDatabase($0) }
+            return reader
+        })
+        
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
             try writer.sync { db in
@@ -86,29 +109,6 @@ public final class DatabasePool: DatabaseWriter {
                 }
             }
         }
-        
-        // Readers
-        readerConfig = configuration
-        readerConfig.readonly = true
-        // Readers use deferred transactions by default.
-        // Other transaction kinds are forbidden by SQLite in read-only connections.
-        readerConfig.defaultTransactionKind = .deferred
-        // Readers can't allow dangling transactions because there's no
-        // guarantee that one can get the same reader later in order to close
-        // an opened transaction.
-        readerConfig.allowsUnsafeTransactions = false
-        var readerCount = 0
-        readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
-            readerCount += 1 // protected by pool's ReadWriteBox (undocumented behavior and protection)
-            let reader = try SerializedDatabase(
-                path: path,
-                configuration: self.readerConfig,
-                schemaCache: SimpleDatabaseSchemaCache(),
-                defaultLabel: "GRDB.DatabasePool",
-                purpose: "reader.\(readerCount)")
-            reader.sync { self.setupDatabase($0) }
-            return reader
-        })
     }
     
     #if os(iOS)
@@ -241,7 +241,7 @@ extension DatabasePool {
         try readerPool.barrier {
             try writer.sync { try $0.changePassphrase(passphrase) }
             readerPool.removeAll()
-            readerConfig._passphrase = passphrase
+            readerConfiguration._passphrase = passphrase
         }
     }
 }
