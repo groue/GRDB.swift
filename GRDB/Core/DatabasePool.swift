@@ -168,12 +168,8 @@ public final class DatabasePool: DatabaseWriter {
         let result = sqlite3_wal_hook(db.sqliteConnection, { dbPoolPointer, sqliteConnection, zSchema, pageCount in
             let dbPool = Unmanaged<DatabasePool>.fromOpaque(dbPoolPointer!).takeUnretainedValue()
             if pageCount >= dbPool.walAutocheckpoint {
-                // Automatic checkpoint.
-                // We don't run dbPool.checkpoint(.passive) due to
-                // dispatch queue reentrancy issues. But this is equivalent.
-                //
-                // Stop the historical snapshot/checkpoint world as the checkpoint is running
-                dbPool.historicalSnapshotCount.write { historicalSnapshotCount in
+                // Automatic checkpoint?
+                dbPool.historicalSnapshotCount.read { historicalSnapshotCount in
                     if historicalSnapshotCount > 0 {
                         // Don't invalidate snapshots!
                         return
@@ -204,36 +200,9 @@ extension DatabasePool {
     ///
     /// - parameter kind: The checkpoint mode (default passive)
     public func checkpoint(_ kind: Database.CheckpointMode = .passive) throws {
-        #if SQLITE_ENABLE_SNAPSHOT
-        if configuration.historicalSnapshotsPreventAutomatickCheckpointing {
-            // Stop the historical snapshot/checkpoint world as the checkpoint is running
-            try historicalSnapshotCount.write { historicalSnapshotCount in
-                guard historicalSnapshotCount == 0 else {
-                    // It looks like there is no way to protect snapshots from
-                    // checkpoints of all kinds.
-                    //
-                    // Our priority is snapshot protection.
-                    //
-                    // http://mailinglists.sqlite.org/cgi-bin/mailman/private/sqlite-users/2019-September/086109.html
-                    // http://mailinglists.sqlite.org/cgi-bin/mailman/private/sqlite-users/2019-September/086129.html
-                    throw DatabaseError(
-                        resultCode: .SQLITE_BUSY,
-                        message: "Checkpoint can't run when there exist historical snapshots.")
-                }
-                try writer.sync { db in
-                    try db.checkpoint(kind)
-                }
-            }
-        } else {
-            try writer.sync { db in
-                try db.checkpoint(kind)
-            }
-        }
-        #else
         try writer.sync { db in
             try db.checkpoint(kind)
         }
-        #endif
     }
 }
 
@@ -982,7 +951,6 @@ extension DatabasePool {
     /// TODO: documentation
     public func makeHistoricalSnapshot() throws -> DatabaseHistoricalSnapshot {
         if configuration.historicalSnapshotsPreventAutomatickCheckpointing {
-            // Stop the historical snapshot/checkpoint world as the snapshot is created.
             return try historicalSnapshotCount.write { historicalSnapshotCount in
                 let snapshot = try _makeHistoricalSnapshot()
                 // decremented in DatabaseHistoricalSnapshot.deinit

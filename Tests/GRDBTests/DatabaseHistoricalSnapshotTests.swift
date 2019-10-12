@@ -307,7 +307,7 @@ class DatabaseHistoricalSnapshotTests: GRDBTestCase {
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.writeWithoutTransaction { db in
-            // 1000 is enough to trigger automatic snapshot
+            // 1000 is enough to trigger automatic checkpoint
             for _ in 0..<1000 {
                 try counter.increment(db)
             }
@@ -322,13 +322,37 @@ class DatabaseHistoricalSnapshotTests: GRDBTestCase {
         try dbPool.checkpoint(.truncate)
     }
     
+    func testCheckpointCanRunWithSnapshot() throws {
+        let dbPool = try makeDatabasePool()
+        let counter = try Counter(dbPool: dbPool)
+        let snapshot = try dbPool.makeHistoricalSnapshot()
+        try withExtendedLifetime(snapshot) {
+            try dbPool.writeWithoutTransaction { db in
+                // 1000 is enough to trigger eventual automatic checkpoint
+                // Here we don't test that automatic checkpoint runs, but
+                // that we don't throw any error.
+                for _ in 0..<1000 {
+                    try counter.increment(db)
+                }
+            }
+            try dbPool.write(counter.increment)
+            try dbPool.checkpoint(.passive)
+            try dbPool.write(counter.increment)
+            try dbPool.checkpoint(.full)
+            try dbPool.write(counter.increment)
+            try dbPool.checkpoint(.restart)
+            try dbPool.write(counter.increment)
+            try dbPool.checkpoint(.truncate)
+        }
+    }
+
     func testAutomaticCheckpointInvalidatesFragileSnapshot() throws {
         dbConfiguration.historicalSnapshotsPreventAutomatickCheckpointing = false
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         let snapshot = try dbPool.makeHistoricalSnapshot()
         try dbPool.writeWithoutTransaction { db in
-            // 1000 is enough to trigger automatic snapshot
+            // 1000 is enough to trigger automatic checkpoint
             for _ in 0..<1000 {
                 try counter.increment(db)
             }
@@ -339,7 +363,7 @@ class DatabaseHistoricalSnapshotTests: GRDBTestCase {
         } catch is DatabaseError { }
     }
 
-    func testAutomaticCheckpointDoesNotInvalidateSnapshot() throws {
+    func testAutomaticCheckpointPreventionDoesNotInvalidateSnapshot() throws {
         dbConfiguration.historicalSnapshotsPreventAutomatickCheckpointing = true
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
@@ -347,7 +371,7 @@ class DatabaseHistoricalSnapshotTests: GRDBTestCase {
         let snapshot = try dbPool.makeHistoricalSnapshot()
         try XCTAssertEqual(snapshot.read(counter.value), 1)
         try dbPool.writeWithoutTransaction { db in
-            // 1000 is enough to trigger automatic snapshot
+            // 1000 is enough to trigger automatic checkpoint
             for _ in 0..<1000 {
                 try counter.increment(db)
             }
@@ -355,52 +379,64 @@ class DatabaseHistoricalSnapshotTests: GRDBTestCase {
         try XCTAssertEqual(snapshot.read(counter.value), 1)
     }
 
-    func testPassiveCheckpointDoesNotInvalidateSnapshot() throws {
+    func testPassiveCheckpointInvalidatesSnapshot() throws {
         dbConfiguration.historicalSnapshotsPreventAutomatickCheckpointing = true
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
         let snapshot = try dbPool.makeHistoricalSnapshot()
-        try? dbPool.checkpoint(.passive) // ignore if error or not, that's not the point
-        try XCTAssertEqual(snapshot.read(counter.value), 1)
-        try dbPool.write(counter.increment)
-        try XCTAssertEqual(snapshot.read(counter.value), 1)
+        try dbPool.checkpoint(.passive)
+        do {
+            _ = try snapshot.read(counter.value)
+            try dbPool.write(counter.increment)
+            _ = try snapshot.read(counter.value)
+            XCTFail("Expected error")
+        } catch is DatabaseError { }
     }
     
-    func testFullCheckpointDoesNotInvalidateSnapshot() throws {
+    func testFullCheckpointInvalidatesSnapshot() throws {
         dbConfiguration.historicalSnapshotsPreventAutomatickCheckpointing = true
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
         let snapshot = try dbPool.makeHistoricalSnapshot()
-        try? dbPool.checkpoint(.full) // ignore if error or not, that's not the point
-        try XCTAssertEqual(snapshot.read(counter.value), 1)
-        try dbPool.write(counter.increment)
-        try XCTAssertEqual(snapshot.read(counter.value), 1)
+        try dbPool.checkpoint(.full)
+        do {
+            _ = try snapshot.read(counter.value)
+            try dbPool.write(counter.increment)
+            _ = try snapshot.read(counter.value)
+            XCTFail("Expected error")
+        } catch is DatabaseError { }
     }
     
-    func testRestartCheckpointDoesNotInvalidateSnapshot() throws {
+    func testRestartCheckpointInvalidatesSnapshot() throws {
         dbConfiguration.historicalSnapshotsPreventAutomatickCheckpointing = true
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
         let snapshot = try dbPool.makeHistoricalSnapshot()
-        try? dbPool.checkpoint(.restart) // ignore if error or not, that's not the point
-        try XCTAssertEqual(snapshot.read(counter.value), 1)
-        try dbPool.write(counter.increment)
-        try XCTAssertEqual(snapshot.read(counter.value), 1)
+        try dbPool.checkpoint(.restart)
+        do {
+            _ = try snapshot.read(counter.value)
+            try dbPool.write(counter.increment)
+            _ = try snapshot.read(counter.value)
+            XCTFail("Expected error")
+        } catch is DatabaseError { }
     }
     
-    func testTruncateCheckpointDoesNotInvalidateSnapshot() throws {
+    func testTruncateCheckpointInvalidatesSnapshot() throws {
         dbConfiguration.historicalSnapshotsPreventAutomatickCheckpointing = true
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
         let snapshot = try dbPool.makeHistoricalSnapshot()
-        try? dbPool.checkpoint(.truncate) // ignore if error or not, that's not the point
-        try XCTAssertEqual(snapshot.read(counter.value), 1)
-        try dbPool.write(counter.increment)
-        try XCTAssertEqual(snapshot.read(counter.value), 1)
+        try dbPool.checkpoint(.truncate)
+        do {
+            _ = try snapshot.read(counter.value)
+            try dbPool.write(counter.increment)
+            _ = try snapshot.read(counter.value)
+            XCTFail("Expected error")
+        } catch is DatabaseError { }
     }
     
     // MARK: - Schema Cache
