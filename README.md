@@ -1476,7 +1476,7 @@ GRDB generally opens transactions for you, as a way to enforce its [concurrency 
 // INSERT INTO debit ...
 // COMMIT
 try dbQueue.write { db in
-    try Credit(destinationAccout, amount).insert(db)
+    try Credit(destinationAccount, amount).insert(db)
     try Debit(sourceAccount, amount).insert(db)
 }
 
@@ -1485,7 +1485,7 @@ try dbQueue.write { db in
 // INSERT INTO debit ...
 // COMMIT
 try dbPool.write { db in
-    try Credit(destinationAccout, amount).insert(db)
+    try Credit(destinationAccount, amount).insert(db)
     try Debit(sourceAccount, amount).insert(db)
 }
 ```
@@ -1501,14 +1501,14 @@ Yet you may need to exactly control when transactions take place:
 // INSERT INTO credit ...
 // INSERT INTO debit ...
 try dbQueue.inDatabase { db in
-    try Credit(destinationAccout, amount).insert(db)
+    try Credit(destinationAccount, amount).insert(db)
     try Debit(sourceAccount, amount).insert(db)
 }
 
 // INSERT INTO credit ...
 // INSERT INTO debit ...
 try dbPool.writeWithoutTransaction { db in
-    try Credit(destinationAccout, amount).insert(db)
+    try Credit(destinationAccount, amount).insert(db)
     try Debit(sourceAccount, amount).insert(db)
 }
 ```
@@ -1520,7 +1520,7 @@ try dbPool.writeWithoutTransaction { db in
     ```swift
     // UNSAFE DATABASE INTEGRITY
     try dbQueue.inDatabase { db in // or dbPool.writeWithoutTransaction
-        try Credit(destinationAccout, amount).insert(db) // may succeed
+        try Credit(destinationAccount, amount).insert(db) // may succeed
         try Debit(sourceAccount, amount).insert(db)      // may fail
     }
     ```
@@ -1532,7 +1532,7 @@ try dbPool.writeWithoutTransaction { db in
     ```swift
     // UNSAFE CONCURRENCY
     try dbPool.writeWithoutTransaction { db in
-        try Credit(destinationAccout, amount).insert(db)
+        try Credit(destinationAccount, amount).insert(db)
         // <- Concurrent dbPool.read sees a partial db update here
         try Debit(sourceAccount, amount).insert(db)
     }
@@ -1549,7 +1549,7 @@ To open explicit transactions, use one of the `Database.inTransaction`, `Databas
 // COMMIT
 try dbQueue.inDatabase { db in  // or dbPool.writeWithoutTransaction
     try db.inTransaction {
-        try Credit(destinationAccout, amount).insert(db)
+        try Credit(destinationAccount, amount).insert(db)
         try Debit(sourceAccount, amount).insert(db)
         return .commit
     }
@@ -1560,7 +1560,7 @@ try dbQueue.inDatabase { db in  // or dbPool.writeWithoutTransaction
 // INSERT INTO debit ...
 // COMMIT
 try dbQueue.inTransaction { db in  // or dbPool.writeInTransaction
-    try Credit(destinationAccout, amount).insert(db)
+    try Credit(destinationAccount, amount).insert(db)
     try Debit(sourceAccount, amount).insert(db)
     return .commit
 }
@@ -1621,7 +1621,7 @@ func myCriticalMethod(_ db: Database) throws {
 try dbQueue.write { db in
     // Makes sure both inserts succeed, or none:
     try db.inSavepoint {
-        try Credit(destinationAccout, amount).insert(db)
+        try Credit(destinationAccount, amount).insert(db)
         try Debit(sourceAccount, amount).insert(db)
         return .commit
     }
@@ -3780,7 +3780,7 @@ SQLite itself has many reference documents about table creation: [CREATE TABLE](
 try db.create(table: "example") { t in ... }
     
 // CREATE TEMPORARY TABLE example IF NOT EXISTS (
-try db.create(table: "example", temporary: true, ifNotExists: true) { t in
+try db.create(table: "example", temporary: true, ifNotExists: true) { t in ... }
 ```
 
 > :bulb: **Tip**: database table names should be singular, and camel-cased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`, 'httpRequest'.
@@ -7304,7 +7304,7 @@ Use this protocol when you want to encapsulate your complex requests in a dedica
 
 ### Support for SQLite Pre-Update Hooks
 
-A [custom SQLite build] can activate [SQLite "preupdate hooks"](https://sqlite.org/c3ref/preupdate_count.html). In this case, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
+When SQLite is built with the SQLITE_ENABLE_PREUPDATE_HOOK option, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
 
 ```swift
 protocol TransactionObserverType : class {
@@ -7319,6 +7319,32 @@ protocol TransactionObserverType : class {
     #endif
 }
 ```
+
+This extra API can be activated in two ways:
+
+1. Use the GRDB.swift CocoaPod with a custom compilation option, as below. It uses the system SQLite, which is compiled with SQLITE_ENABLE_PREUPDATE_HOOK support, but only on iOS 11.0+ (we don't know the minimum version of macOS, tvOS, watchOS):
+
+    ```ruby
+    pod 'GRDB.swift'
+    platform :ios, '11.0' # or above
+    
+    post_install do |installer|
+      installer.pods_project.targets.select { |target| target.name == "GRDB.swift" }.each do |target|
+        target.build_configurations.each do |config|
+          # Enable extra GRDB APIs
+          config.build_settings['OTHER_SWIFT_FLAGS'] = "$(inherited) -D SQLITE_ENABLE_PREUPDATE_HOOK"
+          # Enable extra SQLite APIs
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = "$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1"
+        end
+      end
+    end
+    ```
+    
+    > :warning: **Warning**: make sure you use the right platform version! You will get runtime errors on devices with a lower version.
+    
+    > :point_up: **Note**: the `GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1` option in `GCC_PREPROCESSOR_DEFINITIONS` defines some C function prototypes that are lacking from the system `<sqlite3.h>` header. When Xcode eventually ships with an SDK that includes a complete header, you may get a compiler error about duplicate function definitions. When this happens, just remove this `GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1` option.
+    
+2. Use a [custom SQLite build] and activate the `SQLITE_ENABLE_PREUPDATE_HOOK` compilation option.
 
 
 Encryption
@@ -8117,20 +8143,20 @@ Those guarantees hold as long as you follow three rules:
     ```swift
     // SAFE CONCURRENCY
     try dbPool.write { db in               // or dbQueue.write
-        try Credit(destinationAccout, amount).insert(db)
+        try Credit(destinationAccount, amount).insert(db)
         try Debit(sourceAccount, amount).insert(db)
     }
     
     // SAFE CONCURRENCY
     try dbPool.writeInTransaction { db in  // or dbQueue.inTransaction
-        try Credit(destinationAccout, amount).insert(db)
+        try Credit(destinationAccount, amount).insert(db)
         try Debit(sourceAccount, amount).insert(db)
         return .commit
     }
     
     // UNSAFE CONCURRENCY
     try dbPool.writeWithoutTransaction { db in
-        try Credit(destinationAccout, amount).insert(db)
+        try Credit(destinationAccount, amount).insert(db)
         // <- Concurrent dbPool.read sees a partial db update here
         try Debit(sourceAccount, amount).insert(db)
     }
@@ -9025,7 +9051,7 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [@alextrob](https://github.com/alextrob), [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@charlesmchen-signal](https://github.com/charlesmchen-signal), [@Chiliec](https://github.com/Chiliec), [@chrisballinger](https://github.com/chrisballinger), [@darrenclark](https://github.com/darrenclark), [@davidkraus](https://github.com/davidkraus), [@fpillet](http://github.com/fpillet), [@gusrota](https://github.com/gusrota), [@hartbit](https://github.com/hartbit), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@KyleLeneau](https://github.com/KyleLeneau), [@Marus](https://github.com/Marus), [@michaelkirk-signal](https://github.com/michaelkirk-signal), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@robcas3](https://github.com/robcas3), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@swiftlyfalling](https://github.com/swiftlyfalling), [@Timac](https://github.com/Timac), [@valexa](https://github.com/valexa), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
+- [@alextrob](https://github.com/alextrob), [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@charlesmchen-signal](https://github.com/charlesmchen-signal), [@Chiliec](https://github.com/Chiliec), [@chrisballinger](https://github.com/chrisballinger), [@darrenclark](https://github.com/darrenclark), [@davidkraus](https://github.com/davidkraus), [@fpillet](http://github.com/fpillet), [@gusrota](https://github.com/gusrota), [@hartbit](https://github.com/hartbit), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@KyleLeneau](https://github.com/KyleLeneau), [@Marus](https://github.com/Marus), [@michaelkirk-signal](https://github.com/michaelkirk-signal), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@robcas3](https://github.com/robcas3), [@runhum](https://github.com/runhum), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@swiftlyfalling](https://github.com/swiftlyfalling), [@Timac](https://github.com/Timac), [@valexa](https://github.com/valexa), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [@kali](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
 

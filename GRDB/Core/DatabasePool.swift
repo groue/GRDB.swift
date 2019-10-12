@@ -16,7 +16,7 @@ public final class DatabasePool: DatabaseWriter {
     private let writer: SerializedDatabase
     private var readerPool: Pool<SerializedDatabase>!
     var readerConfiguration: Configuration
-
+    
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     private var tokenizerRegistrations: [(Database) -> Void] = []
@@ -82,7 +82,7 @@ public final class DatabasePool: DatabaseWriter {
         readerConfiguration.allowsUnsafeTransactions = false
         var readerCount = 0
         readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
-            readerCount += 1 // protected by pool's LockedBox (undocumented behavior and protection)
+            readerCount += 1 // protected by pool (TODO: documented this protection behavior)
             let reader = try SerializedDatabase(
                 path: path,
                 configuration: self.readerConfiguration,

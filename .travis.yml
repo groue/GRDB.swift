@@ -183,8 +183,24 @@ jobs:
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode11
       env:
-        - TID=SPM
-      script: make test_install_SPM
+        - TID=SPM Package
+      script: make test_install_SPM_Package
+    
+    # SPM Install
+    - stage: Test Installation Xcode 11
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11
+      env:
+        - TID=SPM Package in Xcode Project
+      script: make test_install_SPM_Project
+    
+    # Custom SQLite Install
+    - stage: Test Installation Xcode 11
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11
+      env:
+        - TID=Custom SQLite
+      script: make test_install_customSQLite
     
     ###########################################
     ## Test GRDB Xcode 10.3
@@ -409,3 +425,11 @@ jobs:
       env:
         - TID=CocoaPods GRDB (static)
       script: make test_install_GRDB_CocoaPods_static
+
+    # Custom SQLite Install
+    - stage: Test Installation Xcode 10
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode10
+      env:
+        - TID=Custom SQLite
+      script: make test_install_customSQLite

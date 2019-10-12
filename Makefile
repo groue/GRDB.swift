@@ -130,7 +130,7 @@ test_framework_darwin: test_framework_GRDB test_framework_GRDBCustom test_framew
 test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_framework_GRDBiOS test_framework_GRDBtvOS
 test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRDBCustomSQLiteiOS
 test_framework_SQLCipher: test_framework_SQLCipher3 test_framework_SQLCipher4
-test_install: test_install_manual test_install_SPM test_install_GRDB_CocoaPods test_CocoaPodsLint
+test_install: test_install_manual test_install_SPM test_install_customSQLite test_install_GRDB_CocoaPods test_CocoaPodsLint
 test_CocoaPodsLint: test_CocoaPodsLint_GRDB
 
 test_framework_GRDBOSX: test_framework_GRDBOSX_maxSwift test_framework_GRDBOSX_minSwift
@@ -140,8 +140,8 @@ test_framework_GRDBOSX_maxSwift:
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBOSX \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_SNAPSHOT -D SQLITE_ENABLE_PREUPDATE_HOOK' \
-	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_NEEDS_MISSING_APIS=1 SQLITE_ENABLE_FTS5=1 SQLITE_ENABLE_SNAPSHOT=1 SQLITE_ENABLE_PREUPDATE_HOOK=1' \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK -D SQLITE_ENABLE_SNAPSHOT' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1 GRDB_SQLITE_ENABLE_SNAPSHOT=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
@@ -151,8 +151,8 @@ ifdef MIN_SWIFT_VERSION
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBOSX \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
-	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_SNAPSHOT -D SQLITE_ENABLE_PREUPDATE_HOOK' \
-	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_NEEDS_MISSING_APIS=1 SQLITE_ENABLE_FTS5=1 SQLITE_ENABLE_SNAPSHOT=1 SQLITE_ENABLE_PREUPDATE_HOOK=1' \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK -D SQLITE_ENABLE_SNAPSHOT' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1 GRDB_SQLITE_ENABLE_SNAPSHOT=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 endif
@@ -175,8 +175,8 @@ test_framework_GRDBiOS_maxTarget_maxSwift:
 	  -scheme GRDBiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_SNAPSHOT -D SQLITE_ENABLE_PREUPDATE_HOOK' \
-	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_NEEDS_MISSING_APIS=1 SQLITE_ENABLE_FTS5=1 SQLITE_ENABLE_SNAPSHOT=1 SQLITE_ENABLE_PREUPDATE_HOOK=1' \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK -D SQLITE_ENABLE_SNAPSHOT' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1 GRDB_SQLITE_ENABLE_SNAPSHOT=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
@@ -187,8 +187,8 @@ ifdef MIN_SWIFT_VERSION
 	  -scheme GRDBiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
-	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_SNAPSHOT -D SQLITE_ENABLE_PREUPDATE_HOOK' \
-	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_NEEDS_MISSING_APIS=1 SQLITE_ENABLE_FTS5=1 SQLITE_ENABLE_SNAPSHOT=1 SQLITE_ENABLE_PREUPDATE_HOOK=1' \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK -D SQLITE_ENABLE_SNAPSHOT' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1 GRDB_SQLITE_ENABLE_SNAPSHOT=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 endif
@@ -211,8 +211,8 @@ test_framework_GRDBtvOS_maxTarget_maxSwift:
 	  -scheme GRDBtvOS \
 	  -destination $(MAX_TVOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_SNAPSHOT -D SQLITE_ENABLE_PREUPDATE_HOOK' \
-	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_NEEDS_MISSING_APIS=1 SQLITE_ENABLE_FTS5=1 SQLITE_ENABLE_SNAPSHOT=1 SQLITE_ENABLE_PREUPDATE_HOOK=1' \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK -D SQLITE_ENABLE_SNAPSHOT' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1 GRDB_SQLITE_ENABLE_SNAPSHOT=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
@@ -223,8 +223,8 @@ ifdef MIN_SWIFT_VERSION
 	  -scheme GRDBtvOS \
 	  -destination $(MAX_TVOS_DESTINATION) \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
-	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_SNAPSHOT -D SQLITE_ENABLE_PREUPDATE_HOOK' \
-	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_NEEDS_MISSING_APIS=1 SQLITE_ENABLE_FTS5=1 SQLITE_ENABLE_SNAPSHOT=1 SQLITE_ENABLE_PREUPDATE_HOOK=1' \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK -D SQLITE_ENABLE_SNAPSHOT' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1 GRDB_SQLITE_ENABLE_SNAPSHOT=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 endif
@@ -324,16 +324,34 @@ test_install_manual:
 	  clean build \
 	  $(XCPRETTY)
 
-test_install_SPM:
-	cd Tests/SPM && \
+test_install_SPM: test_install_SPM_Package test_install_SPM_Project
+
+test_install_SPM_Package:
+	cd Tests/SPM/PlainPackage && \
 	( if [ -a .build ] && [ -a Package.resolved ]; then $(SWIFT) package reset; fi ) && \
 	rm -rf Packages/GRDB && \
 	$(SWIFT) package edit GRDB --revision master && \
 	rm -rf Packages/GRDB && \
-	ln -s ../../.. Packages/GRDB && \
+	ln -s ../../../.. Packages/GRDB && \
 	$(SWIFT) build && \
 	./.build/debug/SPM && \
 	$(SWIFT) package unedit --force GRDB
+
+test_install_SPM_Project:
+	$(XCODEBUILD) \
+	  -project Tests/SPM/PlainProject/Plain.xcodeproj \
+	  -scheme Plain \
+	  -configuration Release \
+	  clean build \
+	  $(XCPRETTY)
+
+test_install_customSQLite: SQLiteCustom
+	$(XCODEBUILD) \
+	  -project Tests/CustomSQLite/CustomSQLite.xcodeproj \
+	  -scheme CustomSQLite \
+	  -configuration Release \
+	  clean build \
+	  $(XCPRETTY)
 
 test_install_GRDB_CocoaPods: test_install_GRDB_CocoaPods_framework test_install_GRDB_CocoaPods_static
 

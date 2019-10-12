@@ -8,9 +8,9 @@ post_install do |installer|
   installer.pods_project.targets.select { |target| target.name == "GRDB.swift" }.each do |target|
     target.build_configurations.each do |config|
       # Enable extra GRDB APIs
-      config.build_settings['OTHER_SWIFT_FLAGS'] = "$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_SNAPSHOT -D SQLITE_ENABLE_PREUPDATE_HOOK"
+      config.build_settings['OTHER_SWIFT_FLAGS'] = "$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK -D SQLITE_ENABLE_SNAPSHOT"
       # Enable extra SQLite APIs
-      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = "$(inherited) GRDB_NEEDS_MISSING_APIS=1 SQLITE_ENABLE_FTS5=1 SQLITE_ENABLE_SNAPSHOT=1 SQLITE_ENABLE_PREUPDATE_HOOK=1"
+      config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = "$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1 GRDB_SQLITE_ENABLE_SNAPSHOT=1"
     end
   end
 end

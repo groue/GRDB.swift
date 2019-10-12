@@ -60,10 +60,19 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 **Fixed**
 
 - The `DatabaseMigrator.eraseDatabaseOnSchemaChange` option no longer fails when migrations depend on database configuration.
+- Fixed `DatabasePool.reentrantRead` which was not actually reentrant.
+- [#631](https://github.com/groue/GRDB.swift/pull/631): Fix custom SQLite builds
+- [#632](https://github.com/groue/GRDB.swift/pull/632) by [@runhum](https://github.com/runhum): Fix documentation typo
 
 **New**
 
 - [#622](https://github.com/groue/GRDB.swift/pull/622): Allow observation of FTS4 virtual tables
+- [#627](https://github.com/groue/GRDB.swift/pull/627): Swift Package Manager: define SQLite as a system library target
+- [#633](https://github.com/groue/GRDB.swift/pull/633): SQLITE_ENABLE_PREUPDATE_HOOK support with CocoaPods
+
+### Documentation Diff
+
+The [Support for SQLite Pre-Update Hooks](README.md#support-for-sqlite-pre-update-hooks) chapter has been updated with a way to enable extra GRDB APIs for the SQLITE_ENABLE_PREUPDATE_HOOK option with CocoaPods.
 
 
 ## 4.4.0

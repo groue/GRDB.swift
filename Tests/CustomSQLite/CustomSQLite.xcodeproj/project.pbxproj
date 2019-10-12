@@ -1,0 +1,454 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		56F5F6C62349F11E00C4D9F7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F5F6C52349F11E00C4D9F7 /* AppDelegate.swift */; };
+		56F5F6C82349F11E00C4D9F7 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F5F6C72349F11E00C4D9F7 /* ViewController.swift */; };
+		56F5F6CA2349F11F00C4D9F7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 56F5F6C92349F11F00C4D9F7 /* Assets.xcassets */; };
+		56F5F6CD2349F11F00C4D9F7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56F5F6CB2349F11F00C4D9F7 /* Main.storyboard */; };
+		56F5F6E82349F26400C4D9F7 /* GRDBCustomSQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56F5F6DE2349F22A00C4D9F7 /* GRDBCustomSQLite.framework */; };
+		56F5F6E92349F26500C4D9F7 /* GRDBCustomSQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 56F5F6DE2349F22A00C4D9F7 /* GRDBCustomSQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		56F5F6DD2349F22A00C4D9F7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F3BA805A1CFB2BB2003DC1BA;
+			remoteInfo = GRDBCustomSQLiteOSX;
+		};
+		56F5F6DF2349F22A00C4D9F7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F3BA809B1CFB2F6F003DC1BA;
+			remoteInfo = GRDBCustomSQLiteOSXTests;
+		};
+		56F5F6E12349F22A00C4D9F7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F3BA7FFE1CFB25E4003DC1BA;
+			remoteInfo = GRDBCustomSQLiteiOS;
+		};
+		56F5F6E32349F22A00C4D9F7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = F3BA80411CFB2AD7003DC1BA;
+			remoteInfo = GRDBCustomSQLiteiOSTests;
+		};
+		56F5F6E52349F24D00C4D9F7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = F3BA80591CFB2BB2003DC1BA;
+			remoteInfo = GRDBCustomSQLiteOSX;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		56F5F6EA2349F26500C4D9F7 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				56F5F6E92349F26500C4D9F7 /* GRDBCustomSQLite.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		56F5F6C22349F11E00C4D9F7 /* CustomSQLite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CustomSQLite.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		56F5F6C52349F11E00C4D9F7 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		56F5F6C72349F11E00C4D9F7 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		56F5F6C92349F11F00C4D9F7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		56F5F6CC2349F11F00C4D9F7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		56F5F6CE2349F11F00C4D9F7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		56F5F6CF2349F11F00C4D9F7 /* CustomSQLite.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CustomSQLite.entitlements; sourceTree = "<group>"; };
+		56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDBCustom.xcodeproj; path = ../../GRDBCustom.xcodeproj; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		56F5F6BF2349F11E00C4D9F7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56F5F6E82349F26400C4D9F7 /* GRDBCustomSQLite.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		56F5F6B92349F11E00C4D9F7 = {
+			isa = PBXGroup;
+			children = (
+				56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */,
+				56F5F6C42349F11E00C4D9F7 /* CustomSQLite */,
+				56F5F6C32349F11E00C4D9F7 /* Products */,
+				56F5F6E72349F26400C4D9F7 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		56F5F6C32349F11E00C4D9F7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				56F5F6C22349F11E00C4D9F7 /* CustomSQLite.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		56F5F6C42349F11E00C4D9F7 /* CustomSQLite */ = {
+			isa = PBXGroup;
+			children = (
+				56F5F6C52349F11E00C4D9F7 /* AppDelegate.swift */,
+				56F5F6C72349F11E00C4D9F7 /* ViewController.swift */,
+				56F5F6C92349F11F00C4D9F7 /* Assets.xcassets */,
+				56F5F6CB2349F11F00C4D9F7 /* Main.storyboard */,
+				56F5F6CE2349F11F00C4D9F7 /* Info.plist */,
+				56F5F6CF2349F11F00C4D9F7 /* CustomSQLite.entitlements */,
+			);
+			path = CustomSQLite;
+			sourceTree = "<group>";
+		};
+		56F5F6D62349F22A00C4D9F7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				56F5F6DE2349F22A00C4D9F7 /* GRDBCustomSQLite.framework */,
+				56F5F6E02349F22A00C4D9F7 /* GRDBCustomSQLiteOSXTests.xctest */,
+				56F5F6E22349F22A00C4D9F7 /* GRDBCustomSQLite.framework */,
+				56F5F6E42349F22A00C4D9F7 /* GRDBCustomSQLiteiOSTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		56F5F6E72349F26400C4D9F7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		56F5F6C12349F11E00C4D9F7 /* CustomSQLite */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 56F5F6D22349F11F00C4D9F7 /* Build configuration list for PBXNativeTarget "CustomSQLite" */;
+			buildPhases = (
+				56F5F6BE2349F11E00C4D9F7 /* Sources */,
+				56F5F6BF2349F11E00C4D9F7 /* Frameworks */,
+				56F5F6C02349F11E00C4D9F7 /* Resources */,
+				56F5F6EA2349F26500C4D9F7 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				56F5F6E62349F24D00C4D9F7 /* PBXTargetDependency */,
+			);
+			name = CustomSQLite;
+			productName = CustomSQLite;
+			productReference = 56F5F6C22349F11E00C4D9F7 /* CustomSQLite.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		56F5F6BA2349F11E00C4D9F7 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1110;
+				LastUpgradeCheck = 1110;
+				ORGANIZATIONNAME = "Gwendal Roué";
+				TargetAttributes = {
+					56F5F6C12349F11E00C4D9F7 = {
+						CreatedOnToolsVersion = 11.1;
+						LastSwiftMigration = 1110;
+					};
+				};
+			};
+			buildConfigurationList = 56F5F6BD2349F11E00C4D9F7 /* Build configuration list for PBXProject "CustomSQLite" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 56F5F6B92349F11E00C4D9F7;
+			productRefGroup = 56F5F6C32349F11E00C4D9F7 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 56F5F6D62349F22A00C4D9F7 /* Products */;
+					ProjectRef = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				56F5F6C12349F11E00C4D9F7 /* CustomSQLite */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		56F5F6DE2349F22A00C4D9F7 /* GRDBCustomSQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDBCustomSQLite.framework;
+			remoteRef = 56F5F6DD2349F22A00C4D9F7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56F5F6E02349F22A00C4D9F7 /* GRDBCustomSQLiteOSXTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBCustomSQLiteOSXTests.xctest;
+			remoteRef = 56F5F6DF2349F22A00C4D9F7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56F5F6E22349F22A00C4D9F7 /* GRDBCustomSQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDBCustomSQLite.framework;
+			remoteRef = 56F5F6E12349F22A00C4D9F7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		56F5F6E42349F22A00C4D9F7 /* GRDBCustomSQLiteiOSTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBCustomSQLiteiOSTests.xctest;
+			remoteRef = 56F5F6E32349F22A00C4D9F7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		56F5F6C02349F11E00C4D9F7 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56F5F6CA2349F11F00C4D9F7 /* Assets.xcassets in Resources */,
+				56F5F6CD2349F11F00C4D9F7 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		56F5F6BE2349F11E00C4D9F7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56F5F6C82349F11E00C4D9F7 /* ViewController.swift in Sources */,
+				56F5F6C62349F11E00C4D9F7 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		56F5F6E62349F24D00C4D9F7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GRDBCustomSQLiteOSX;
+			targetProxy = 56F5F6E52349F24D00C4D9F7 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		56F5F6CB2349F11F00C4D9F7 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				56F5F6CC2349F11F00C4D9F7 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		56F5F6D02349F11F00C4D9F7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		56F5F6D12349F11F00C4D9F7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		56F5F6D32349F11F00C4D9F7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CustomSQLite/CustomSQLite.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = CustomSQLite/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.CustomSQLite;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+			};
+			name = Debug;
+		};
+		56F5F6D42349F11F00C4D9F7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CustomSQLite/CustomSQLite.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = CustomSQLite/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.CustomSQLite;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		56F5F6BD2349F11E00C4D9F7 /* Build configuration list for PBXProject "CustomSQLite" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56F5F6D02349F11F00C4D9F7 /* Debug */,
+				56F5F6D12349F11F00C4D9F7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		56F5F6D22349F11F00C4D9F7 /* Build configuration list for PBXNativeTarget "CustomSQLite" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56F5F6D32349F11F00C4D9F7 /* Debug */,
+				56F5F6D42349F11F00C4D9F7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 56F5F6BA2349F11E00C4D9F7 /* Project object */;
+}
