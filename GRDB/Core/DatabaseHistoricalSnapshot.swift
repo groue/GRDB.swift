@@ -19,7 +19,7 @@ public class DatabaseHistoricalSnapshot {
     }
     
     deinit {
-        if databasePool.configuration.fragileHistoricalSnapshots == false {
+        if databasePool.configuration.historicalSnapshotsPreventAutomatickCheckpointing {
             databasePool.historicalSnapshotCount.decrement()
         }
     }

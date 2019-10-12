@@ -323,7 +323,7 @@ class DatabaseHistoricalSnapshotTests: GRDBTestCase {
     }
     
     func testAutomaticCheckpointInvalidatesFragileSnapshot() throws {
-        dbConfiguration.fragileHistoricalSnapshots = true
+        dbConfiguration.historicalSnapshotsPreventAutomatickCheckpointing = false
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         let snapshot = try dbPool.makeHistoricalSnapshot()
@@ -340,7 +340,7 @@ class DatabaseHistoricalSnapshotTests: GRDBTestCase {
     }
 
     func testAutomaticCheckpointDoesNotInvalidateSnapshot() throws {
-        dbConfiguration.fragileHistoricalSnapshots = false
+        dbConfiguration.historicalSnapshotsPreventAutomatickCheckpointing = true
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
@@ -356,7 +356,7 @@ class DatabaseHistoricalSnapshotTests: GRDBTestCase {
     }
 
     func testPassiveCheckpointDoesNotInvalidateSnapshot() throws {
-        dbConfiguration.fragileHistoricalSnapshots = false
+        dbConfiguration.historicalSnapshotsPreventAutomatickCheckpointing = true
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
@@ -368,7 +368,7 @@ class DatabaseHistoricalSnapshotTests: GRDBTestCase {
     }
     
     func testFullCheckpointDoesNotInvalidateSnapshot() throws {
-        dbConfiguration.fragileHistoricalSnapshots = false
+        dbConfiguration.historicalSnapshotsPreventAutomatickCheckpointing = true
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
@@ -380,7 +380,7 @@ class DatabaseHistoricalSnapshotTests: GRDBTestCase {
     }
     
     func testRestartCheckpointDoesNotInvalidateSnapshot() throws {
-        dbConfiguration.fragileHistoricalSnapshots = false
+        dbConfiguration.historicalSnapshotsPreventAutomatickCheckpointing = true
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
@@ -392,7 +392,7 @@ class DatabaseHistoricalSnapshotTests: GRDBTestCase {
     }
     
     func testTruncateCheckpointDoesNotInvalidateSnapshot() throws {
-        dbConfiguration.fragileHistoricalSnapshots = false
+        dbConfiguration.historicalSnapshotsPreventAutomatickCheckpointing = true
         let dbPool = try makeDatabasePool()
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)

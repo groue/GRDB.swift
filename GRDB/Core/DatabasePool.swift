@@ -121,7 +121,7 @@ public final class DatabasePool: DatabaseWriter {
                 }
                 
                 #if SQLITE_ENABLE_SNAPSHOT
-                if configuration.fragileHistoricalSnapshots == false {
+                if configuration.historicalSnapshotsPreventAutomatickCheckpointing {
                     try installWalHook(db)
                 }
                 #endif
@@ -205,11 +205,7 @@ extension DatabasePool {
     /// - parameter kind: The checkpoint mode (default passive)
     public func checkpoint(_ kind: Database.CheckpointMode = .passive) throws {
         #if SQLITE_ENABLE_SNAPSHOT
-        if configuration.fragileHistoricalSnapshots {
-            try writer.sync { db in
-                try db.checkpoint(kind)
-            }
-        } else {
+        if configuration.historicalSnapshotsPreventAutomatickCheckpointing {
             // Stop the historical snapshot/checkpoint world as the checkpoint is running
             try historicalSnapshotCount.write { historicalSnapshotCount in
                 guard historicalSnapshotCount == 0 else {
@@ -227,6 +223,10 @@ extension DatabasePool {
                 try writer.sync { db in
                     try db.checkpoint(kind)
                 }
+            }
+        } else {
+            try writer.sync { db in
+                try db.checkpoint(kind)
             }
         }
         #else
@@ -981,9 +981,7 @@ extension DatabasePool {
     #if SQLITE_ENABLE_SNAPSHOT
     /// TODO: documentation
     public func makeHistoricalSnapshot() throws -> DatabaseHistoricalSnapshot {
-        if configuration.fragileHistoricalSnapshots {
-            return try _makeHistoricalSnapshot()
-        } else {
+        if configuration.historicalSnapshotsPreventAutomatickCheckpointing {
             // Stop the historical snapshot/checkpoint world as the snapshot is created.
             return try historicalSnapshotCount.write { historicalSnapshotCount in
                 let snapshot = try _makeHistoricalSnapshot()
@@ -991,6 +989,8 @@ extension DatabasePool {
                 historicalSnapshotCount += 1
                 return snapshot
             }
+        } else {
+            return try _makeHistoricalSnapshot()
         }
     }
     

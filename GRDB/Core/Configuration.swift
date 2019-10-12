@@ -158,20 +158,25 @@ public struct Configuration {
     public var maximumReaderCount: Int = 5
     
     #if SQLITE_ENABLE_SNAPSHOT
-    /// When true, WAL checkpoints invalidate historical snapshots created by
-    /// database pools. Any attempt to read from an invalidated snapshot throws
-    /// an error.
+    /// [WAL checkpoints](https://www.sqlite.org/wal.html#checkpointing)
+    /// invalidate historical snapshots created by
+    /// `DatabasePool.makeHistoricalSnapshot()`. Any attempt to read from an
+    /// invalidated snapshot throws an error.
     ///
-    /// When false, historical snapshots prevent the database pool from
-    /// performing WAL checkpoints, so that they do not turn invalid. You must
-    /// make sure that you allow explicit or automatic checkpoings regularly, or
-    /// the WAL file will grow without bounds. You must make sure that
-    /// absolutely no write or checkpoint is performed by an external
-    /// connection, or historical snapshots will become invalid regardless of
-    /// this setting.
+    /// When this flag is false, automatic SQLite WAL checkpoints are run
+    /// independently of existing historical snapshots.
     ///
-    /// Default: true.
-    public var fragileHistoricalSnapshots = true
+    /// When this flag is true, automatic SQLite WAL checkpoints are not run if
+    /// there exist historical snapshots. Checkpoints can still be performed
+    /// explicitely, or by external database connections. You must make sure
+    /// that checkpoings are performed regularly, or the WAL file will grow
+    /// without bounds. If you want historical snapshots to remain valid for
+    /// there all life time, you must make sure that absolutely no checkpoint is
+    /// performed, explicitely, or automatically by an external connection,
+    /// regardless of this setting.
+    ///
+    /// Default: false.
+    public var historicalSnapshotsPreventAutomatickCheckpointing = false
     #endif
     
     /// The quality of service class for the work performed by the database.
