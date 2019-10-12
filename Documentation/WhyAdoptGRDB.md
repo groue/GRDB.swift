@@ -117,7 +117,7 @@ let players = try Player.fetchAll(db)
 
 **Fetched records behave just like an in-memory cache of the database content.** Your application is free to decide, on its own, how it should handle the lifetime of those cached values: by ignoring future database changes, by observing database changes and react accordingly, or in any way deemed relevant.
 
-There are several ways to be notified of database changes. You can build on top of the fundamental but low-level [TransactionObserver] protocol. Usually, you'll use [ValueObservation], which notifies fresh values after each database change, or [FetchedRecordsController], which animates table and collection views. And don't forget [GRDBCombine] and [RxGRDB], two sets of reactive extensions based on [Combine] and [RxSwift]:
+There are several ways to be notified of database changes. You can build on top of the fundamental but low-level [TransactionObserver] protocol. Usually, you'll use [ValueObservation], which notifies fresh values after each database change. And don't forget [GRDBCombine] and [RxGRDB], two sets of reactive extensions based on [Combine] and [RxSwift]:
 
 ```swift
 Player.all().rx
@@ -292,7 +292,6 @@ Happy GRDB! :gift:
 [Diesel]: http://diesel.rs
 [FCModel]: https://github.com/marcoarment/FCModel
 [ValueObservation]: ../README.md#valueobservation
-[FetchedRecordsController]: ../README.md#fetchedrecordscontroller
 [Fluent]: https://github.com/vapor/fluent
 [FMDB]: http://github.com/ccgus/fmdb
 [GRDB]: http://github.com/groue/GRDB.swift
