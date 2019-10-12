@@ -136,23 +136,23 @@ test_CocoaPodsLint: test_CocoaPodsLint_GRDB
 test_framework_GRDBOSX: test_framework_GRDBOSX_maxSwift test_framework_GRDBOSX_minSwift
 
 test_framework_GRDBOSX_maxSwift:
-	# SQLITE_ENABLE_FTS5 requires macOS 10.13+
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBOSX \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5' \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
 test_framework_GRDBOSX_minSwift:
 ifdef MIN_SWIFT_VERSION
-	# SQLITE_ENABLE_FTS5 requires macOS 10.13+
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBOSX \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
-	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5' \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 endif
@@ -170,25 +170,25 @@ test_framework_GRDBiOS: test_framework_GRDBiOS_maxTarget test_framework_GRDBiOS_
 test_framework_GRDBiOS_maxTarget: test_framework_GRDBiOS_maxTarget_maxSwift test_framework_GRDBiOS_maxTarget_minSwift
 
 test_framework_GRDBiOS_maxTarget_maxSwift:
-	# SQLITE_ENABLE_FTS5 requires iOS 11.4+
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5' \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
 test_framework_GRDBiOS_maxTarget_minSwift:
 ifdef MIN_SWIFT_VERSION
-	# SQLITE_ENABLE_FTS5 requires iOS 11.4+
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
-	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5' \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 endif
@@ -206,25 +206,25 @@ test_framework_GRDBtvOS: test_framework_GRDBtvOS_maxTarget test_framework_GRDBtv
 test_framework_GRDBtvOS_maxTarget: test_framework_GRDBtvOS_maxTarget_maxSwift test_framework_GRDBtvOS_maxTarget_minSwift
 
 test_framework_GRDBtvOS_maxTarget_maxSwift:
-	# SQLITE_ENABLE_FTS5 requires iOS 11.4+
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBtvOS \
 	  -destination $(MAX_TVOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
-	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5' \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
 test_framework_GRDBtvOS_maxTarget_minSwift:
 ifdef MIN_SWIFT_VERSION
-	# SQLITE_ENABLE_FTS5 requires iOS 11.4+
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBtvOS \
 	  -destination $(MAX_TVOS_DESTINATION) \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
-	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5' \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 endif
@@ -420,8 +420,7 @@ SQLite.swift: Tests/Performance/SQLite.swift/SQLite.xcodeproj
 Tests/Performance/SQLite.swift/SQLite.xcodeproj:
 	$(GIT) submodule update --init Tests/Performance/SQLite.swift
 
-# Target that setups SQLite custom builds with SQLITE_ENABLE_PREUPDATE_HOOK and
-# SQLITE_ENABLE_FTS5 extra compilation options.
+# Target that setups SQLite custom builds with extra compilation options.
 SQLiteCustom: SQLiteCustom/src/sqlite3.h
 	echo '/* Makefile generated */' > SQLiteCustom/GRDBCustomSQLite-USER.h
 	echo '#define SQLITE_ENABLE_PREUPDATE_HOOK' >> SQLiteCustom/GRDBCustomSQLite-USER.h

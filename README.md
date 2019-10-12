@@ -7304,7 +7304,7 @@ Use this protocol when you want to encapsulate your complex requests in a dedica
 
 ### Support for SQLite Pre-Update Hooks
 
-A [custom SQLite build] can activate [SQLite "preupdate hooks"](https://sqlite.org/c3ref/preupdate_count.html). In this case, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
+When SQLite is built with the SQLITE_ENABLE_PREUPDATE_HOOK option, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
 
 ```swift
 protocol TransactionObserverType : class {
@@ -7319,6 +7319,32 @@ protocol TransactionObserverType : class {
     #endif
 }
 ```
+
+This extra API can be activated in two ways:
+
+1. Use the GRDB.swift CocoaPod with a custom compilation option, as below. It uses the system SQLite, which is compiled with SQLITE_ENABLE_PREUPDATE_HOOK support, but only on iOS 11.0+ (we don't know the minimum version of macOS, tvOS, watchOS):
+
+    ```ruby
+    pod 'GRDB.swift'
+    platform :ios, '11.0' # or above
+    
+    post_install do |installer|
+      installer.pods_project.targets.select { |target| target.name == "GRDB.swift" }.each do |target|
+        target.build_configurations.each do |config|
+          # Enable extra GRDB APIs
+          config.build_settings['OTHER_SWIFT_FLAGS'] = "$(inherited) -D SQLITE_ENABLE_PREUPDATE_HOOK"
+          # Enable extra SQLite APIs
+          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = "$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1"
+        end
+      end
+    end
+    ```
+    
+    > :warning: **Warning**: make sure you use the right platform version! You will get runtime errors on devices with a lower version.
+    
+    > :point_up: **Note**: the `GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1` option in `GCC_PREPROCESSOR_DEFINITIONS` defines some C function prototypes that are lacking from the system `<sqlite3.h>` header. When Xcode eventually ships with an SDK that includes a complete header, you may get a compiler error about duplicate function definitions. When this happens, just remove this `GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1` option.
+    
+2. Use a [custom SQLite build] and activate the `SQLITE_ENABLE_PREUPDATE_HOOK` compilation option.
 
 
 Encryption
