@@ -69,10 +69,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 - [#622](https://github.com/groue/GRDB.swift/pull/622): Allow observation of FTS4 virtual tables
 - [#627](https://github.com/groue/GRDB.swift/pull/627): Swift Package Manager: define SQLite as a system library target
 - [#633](https://github.com/groue/GRDB.swift/pull/633): SQLITE_ENABLE_PREUPDATE_HOOK support with CocoaPods
+- [#635](https://github.com/groue/GRDB.swift/pull/635): Sunset FetchedRecordsController
 
 ### Documentation Diff
 
 The [Support for SQLite Pre-Update Hooks](README.md#support-for-sqlite-pre-update-hooks) chapter has been updated with a way to enable extra GRDB APIs for the SQLITE_ENABLE_PREUPDATE_HOOK option with CocoaPods.
+
+The [Demo Application](DemoApps/GRDBDemoiOS) no longer uses [FetchedRecordsController](Documentation/FetchedRecordsController.md), which has been sunsetted. Instead, it tracks database changes with [ValueObservation](README.md#valueobservation), and animates its table view with the Swift built-in [difference(from:)](https://developer.apple.com/documentation/swift/bidirectionalcollection/3200721-difference) method.
 
 
 ## 4.4.0
