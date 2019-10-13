@@ -23,7 +23,6 @@ static inline void registerErrorLogCallback(errorLogCallback callback) {
 
 // Expose APIs that are missing from system <sqlite3.h>
 #ifdef GRDB_SQLITE_ENABLE_PREUPDATE_HOOK
->>>>>>> development
 SQLITE_API void *sqlite3_preupdate_hook(
   sqlite3 *db,
   void(*xPreUpdate)(
