@@ -9,12 +9,13 @@ class PlayersViewController: UITableViewController {
     }
     
     @IBOutlet private weak var newPlayerButtonItem: UIBarButtonItem!
-    private var playersController: FetchedRecordsController<Player>!
+    private var players: [Player] = []
+    private var playersObserver: TransactionObserver?
     private var playerCountObserver: TransactionObserver?
     private var playerOrdering: PlayerOrdering = .byScore {
         didSet {
-            try! playersController.setRequest(playersRequest)
             configureOrderingBarButtonItem()
+            configureTableView()
         }
     }
     private var playersRequest: QueryInterfaceRequest<Player> {
@@ -79,7 +80,8 @@ class PlayersViewController: UITableViewController {
             onError: { error in
                 fatalError("Unexpected error: \(error)")
         },
-            onChange: { [unowned self] count in
+            onChange: { [weak self] count in
+                guard let self = self else { return }
                 switch count {
                 case 0: self.navigationItem.title = "No Player"
                 case 1: self.navigationItem.title = "1 Player"
@@ -89,46 +91,49 @@ class PlayersViewController: UITableViewController {
     }
     
     private func configureTableView() {
-        // Track changes in the database players
-        playersController = try! FetchedRecordsController(dbQueue, request: playersRequest)
-        
-        // Animate changes in the table view
-        playersController.trackChanges(
-            willChange: { [unowned self] _ in
-                self.tableView.beginUpdates()
-            },
-            onChange: { [unowned self] (controller, record, change) in
-                switch change {
-                case .insertion(let indexPath):
-                    self.tableView.insertRows(at: [indexPath], with: .fade)
-                    
-                case .deletion(let indexPath):
-                    self.tableView.deleteRows(at: [indexPath], with: .fade)
-                    
-                case .update(let indexPath, _):
-                    if let cell = self.tableView.cellForRow(at: indexPath) {
-                        self.configure(cell, at: indexPath)
+        // Track changes in the list of players
+        let request = self.playersRequest
+        let observation = ValueObservation.tracking { db in
+            try request.fetchAll(db)
+        }
+        playersObserver = observation.start(
+            in: dbQueue,
+            onError: { error in
+                fatalError("Unexpected error: \(error)")
+        },
+            onChange: { [weak self] players in
+                guard let self = self else { return }
+                
+                // Compute difference between current and new list of players
+                let difference = players
+                    .difference(from: self.players)
+                    .inferringMoves()
+                
+                // Apply those changes to the table view
+                self.tableView.performBatchUpdates({
+                    self.players = players
+                    for change in difference {
+                        switch change {
+                        case let .remove(offset, _, associatedWith):
+                            if let associatedWith = associatedWith {
+                                self.tableView.moveRow(
+                                    at: IndexPath(row: offset, section: 0),
+                                    to: IndexPath(row: associatedWith, section: 0))
+                            } else {
+                                self.tableView.deleteRows(
+                                    at: [IndexPath(row: offset, section: 0)],
+                                    with: .fade)
+                            }
+                        case let .insert(offset, _, associatedWith):
+                            if associatedWith == nil {
+                                self.tableView.insertRows(
+                                    at: [IndexPath(row: offset, section: 0)],
+                                    with: .fade)
+                            }
+                        }
                     }
-                    
-                case .move(let indexPath, let newIndexPath, _):
-                    // Actually move cells around for more demo effect :-)
-                    let cell = self.tableView.cellForRow(at: indexPath)
-                    self.tableView.moveRow(at: indexPath, to: newIndexPath)
-                    if let cell = cell {
-                        self.configure(cell, at: newIndexPath)
-                    }
-                    
-                    // A quieter animation:
-                    // self.tableView.deleteRows(at: [indexPath], with: .fade)
-                    // self.tableView.insertRows(at: [newIndexPath], with: .fade)
-                }
-            },
-            didChange: { [unowned self] _ in
-                self.tableView.endUpdates()
+                }, completion: nil)
         })
-        
-        // Initial fetch
-        try! playersController.performFetch()
     }
 }
 
@@ -139,7 +144,7 @@ extension PlayersViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "Edit" {
-            let player = playersController.record(at: tableView.indexPathForSelectedRow!)
+            let player = players[tableView.indexPathForSelectedRow!.row]
             let controller = segue.destination as! PlayerEditionViewController
             controller.title = player.name
             controller.player = player
@@ -168,12 +173,8 @@ extension PlayersViewController {
 // MARK: - UITableViewDataSource
 
 extension PlayersViewController {
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        return playersController.sections.count
-    }
-    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return playersController.sections[section].numberOfRecords
+        return players.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -184,14 +185,14 @@ extension PlayersViewController {
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         // Delete the player
-        let player = playersController.record(at: indexPath)
+        let player = players[indexPath.row]
         try! dbQueue.write { db in
             _ = try player.delete(db)
         }
     }
     
     private func configure(_ cell: UITableViewCell, at indexPath: IndexPath) {
-        let player = playersController.record(at: indexPath)
+        let player = players[indexPath.row]
         if player.name.isEmpty {
             cell.textLabel?.text = "-"
         } else {

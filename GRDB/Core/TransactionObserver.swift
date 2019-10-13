@@ -735,7 +735,6 @@ public protocol TransactionObserver: AnyObject {
     ///
     /// The databaseDidChangeWithEvent callback is always available,
     /// and may provide most/all of what you need.
-    /// (For example, FetchedRecordsController is built without databaseWillChange)
     func databaseWillChange(with event: DatabasePreUpdateEvent)
     #endif
 }

@@ -78,9 +78,6 @@ The ideas, in alphabetical order:
 - [Date and Time Functions]
 - [Decode NSDecimalNumber from Text Columns]
 - [Documentation]
-- [FetchedRecordsController Diffing Algorithm]
-- [FetchedRecordsController Support for Any Request]
-- [FetchedRecordsController Support for Sections]
 - [Full Text Search Demo Application]
 - [JSON]
 - [Linux]
@@ -205,50 +202,6 @@ Inline documentation, the one which is embedded right into the source code and i
 If you are a good writer, your help will be very warmly welcomed.
 
 
-### FetchedRecordsController Diffing Algorithm
-
-:muscle: Hard
-
-[FetchedRecordsController] uses a Levenshtein-based diffing algorithm which has a terrible algorithmic complexity. This makes this very useful class unable to deal with more than hundreds of elements.
-
-There exists much more efficient O(n) diffing algorithms that would lift this limitation.
-
-Starting points:
-
-- [RxSwiftCommunity/RxDataSources](https://github.com/RxSwiftCommunity/RxDataSources)
-- [ra1028/DifferenceKit](https://github.com/ra1028/DifferenceKit)
-- [tonyarnold/Differ](https://github.com/tonyarnold/Differ)
-- [onmyway133/DeepDiff](https://github.com/onmyway133/DeepDiff)
-- [mcudich/HeckelDiff](https://github.com/mcudich/HeckelDiff)
-
-
-### FetchedRecordsController Support for Any Request
-
-:muscle: Hard
-
-[FetchedRecordsController] is able to deal with records, but not with raw rows or values:
-
-```swift
-// Supported by FetchedRecordsController
-let recordRequest = Player.all()
-
-// Not supported by FetchedRecordsController
-let stringRequest = Player.select(Column("name"), as: String.self)
-let rowRequest = SQLRequest<Row>("SELECT ...")
-```
-
-This limitation does not apply to [ValueObservation] and [RxGRDB]. It would be nice if FetchedRecordsController would become just as versatile.
-
-
-### FetchedRecordsController Support for Sections
-
-:muscle: Hard
-
-[FetchedRecordsController] mimics the API of Core Data's [NSFetchedResultsController](https://developer.apple.com/documentation/coredata/nsfetchedresultscontroller), but does not yet support table and collection view sections.
-
-This improvement most certainly depends on a refreshing of the [FetchedRecordsController Diffing Algorithm].
-
-
 ### Full Text Search Demo Application
 
 :baby: Starter Task :pencil: Documentation
@@ -360,10 +313,6 @@ Features that blur this focus are non-goals:
 [Date and Time Functions]: #date-and-time-functions
 [Decode NSDecimalNumber from Text Columns]: #decode-nsdecimalnumber-from-text-columns
 [Documentation]: #documentation
-[FetchedRecordsController]: README.md#fetchedrecordscontroller
-[FetchedRecordsController Diffing Algorithm]: #fetchedrecordscontroller-diffing-algorithm
-[FetchedRecordsController Support for Any Request]: #fetchedrecordscontroller-support-for-any-request
-[FetchedRecordsController Support for Sections]: #fetchedrecordscontroller-support-for-sections
 [Full Text Search Demo Application]: #full-text-search-demo-application
 [How is the Library Organized?]: Documentation/LibraryOrganization.md
 [How is the Repository Organized?]: Documentation/RepositoryOrganization.md

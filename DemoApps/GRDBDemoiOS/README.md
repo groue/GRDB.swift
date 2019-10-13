@@ -7,7 +7,7 @@ Demo Application
 
 - how to setup a database in an iOS app
 - how to define a simple [Codable Record](../../README.md#codable-records)
-- how to track database changes and animate a table view with [FetchedRecordsController](../../README.md#fetchedrecordscontroller).
+- how to track database changes and animate a table view with [ValueObservation](../../README.md#valueobservation).
 
 **Files of interest:**
 
@@ -25,7 +25,7 @@ Demo Application
 
 - [PlayersViewController.swift](GRDBDemoiOS/PlayersViewController.swift)
     
-    `PlayersViewController` displays a list of players. It keeps its title up-to-date with [ValueObservation](../../README.md#valueobservation), and animates its table view according to database changes with [FetchedRecordsController](../../README.md#fetchedrecordscontroller).
+    `PlayersViewController` displays a list of players. It keeps its view up-to-date with [ValueObservation](../../README.md#valueobservation).
 
 - [PlayerEditionViewController.swift](GRDBDemoiOS/PlayerEditionViewController.swift)
     
