@@ -3066,7 +3066,7 @@ player.hasDatabaseChanges // true
 player.databaseChanges    // ["score": 750]
 ```
 
-For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift).
+For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [JSONSynchronization.playground](Documentation/Playgrounds/JSONSynchronization.playground/Contents.swift).
 
 
 ## Record Customization Options
@@ -3292,7 +3292,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](#fu
 
 Since those use cases are not well handled by FetchableRecord, don't try to implement them on top of this protocol: you'll just fight the framework.
 
-Instead, please have a look at the [CustomizedDecodingOfDatabaseRows](Playgrounds/CustomizedDecodingOfDatabaseRows.playground/Contents.swift) playground. You'll run some sample code, and learn how to escape FetchableRecord when you need. And remember that leaving FetchableRecord will not deprive you of [query interface requests](#requests) and generally all SQL generation features of the [TableRecord] and [PersistableRecord] protocols.
+Instead, please have a look at the [CustomizedDecodingOfDatabaseRows](Documentation/Playgrounds/CustomizedDecodingOfDatabaseRows.playground/Contents.swift) playground. You'll run some sample code, and learn how to escape FetchableRecord when you need. And remember that leaving FetchableRecord will not deprive you of [query interface requests](#requests) and generally all SQL generation features of the [TableRecord] and [PersistableRecord] protocols.
 
 
 ## Examples of Record Definitions
@@ -8691,7 +8691,7 @@ Sample Code
 - [Demo Application]: A sample iOS application.
 - [WWDC Companion](https://github.com/groue/WWDCCompanion): A sample iOS application.
 - Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
-- How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Playgrounds/JSONSynchronization.playground/Contents.swift)
+- How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Documentation/Playgrounds/JSONSynchronization.playground/Contents.swift)
 
 
 ---
