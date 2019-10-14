@@ -75,7 +75,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 The [Support for SQLite Pre-Update Hooks](README.md#support-for-sqlite-pre-update-hooks) chapter has been updated with a way to enable extra GRDB APIs for the SQLITE_ENABLE_PREUPDATE_HOOK option with CocoaPods.
 
-The [Demo Application](DemoApps/GRDBDemoiOS) no longer uses [FetchedRecordsController](Documentation/FetchedRecordsController.md), which has been sunsetted. Instead, it tracks database changes with [ValueObservation](README.md#valueobservation), and animates its table view with the Swift built-in [difference(from:)](https://developer.apple.com/documentation/swift/bidirectionalcollection/3200721-difference) method.
+The [Demo Application](Documentation/DemoApps/GRDBDemoiOS) no longer uses [FetchedRecordsController](Documentation/FetchedRecordsController.md), which has been sunsetted. Instead, it tracks database changes with [ValueObservation](README.md#valueobservation), and animates its table view with the Swift built-in [difference(from:)](https://developer.apple.com/documentation/swift/bidirectionalcollection/3200721-difference) method.
 
 
 ## 4.4.0
@@ -1248,7 +1248,7 @@ Released September 23, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/co
 
 ### Documentation Diff
 
-- Enhanced visibility of the [Demo Application](DemoApps/GRDBDemoiOS)
+- Enhanced visibility of the [Demo Application](Documentation/DemoApps/GRDBDemoiOS)
 
 
 ## 3.3.0

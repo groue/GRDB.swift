@@ -317,7 +317,7 @@ test_SPM:
 
 test_install_manual:
 	$(XCODEBUILD) \
-	  -project DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
+	  -project Documentation/DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
 	  -scheme GRDBDemoiOS \
 	  -configuration Release \
 	  -destination $(MAX_IOS_DESTINATION) \
