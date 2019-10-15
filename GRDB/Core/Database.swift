@@ -114,7 +114,7 @@ public final class Database {
         // > connection while this routine is running, then the return value
         // > is undefined.
         SchedulingWatchdog.preconditionValidQueue(self)
-        if isClosed { return false } // Support for SerializedDatabasae.deinit
+        if isClosed { return false } // Support for SerializedDatabase.deinit
         return sqlite3_get_autocommit(sqliteConnection) == 0
     }
     
@@ -629,7 +629,15 @@ extension Database {
 }
 
 extension Database {
-    
+    func checkpoint(_ kind: Database.CheckpointMode) throws {
+        let code = sqlite3_wal_checkpoint_v2(sqliteConnection, nil, kind.rawValue, nil, nil)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: lastErrorMessage)
+        }
+    }
+}
+
+extension Database {
     // MARK: - Transactions & Savepoint
     
     /// Executes a block inside a database transaction.
@@ -792,7 +800,7 @@ extension Database {
     
     /// Begins a database transaction and take a snapshot of the last committed
     /// database state.
-    func beginSnapshotIsolation() throws {
+    func beginSnapshotTransaction() throws {
         // https://www.sqlite.org/isolation.html
         //
         // > In WAL mode, SQLite exhibits "snapshot isolation". When a read

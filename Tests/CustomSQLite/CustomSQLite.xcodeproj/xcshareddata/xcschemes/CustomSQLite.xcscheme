@@ -1,10 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1030"
-   version = "1.3">
+   LastUpgradeVersion = "1110"
+   version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Run Script"
+               scriptText = "source &quot;${PROJECT_DIR}/GRDBCustomSQLite/GRDBCustomSQLite-INSTALL.sh&quot;&#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "56F5F6C12349F11E00C4D9F7"
+                     BuildableName = "CustomSQLite.app"
+                     BlueprintName = "CustomSQLite"
+                     ReferencedContainer = "container:CustomSQLite.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
@@ -14,10 +32,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "56B036021E8D9EBE003B6DA4"
-               BuildableName = "GRDBDemoiOS.app"
-               BlueprintName = "GRDBDemoiOS"
-               ReferencedContainer = "container:GRDBDemoiOS.xcodeproj">
+               BlueprintIdentifier = "56F5F6C12349F11E00C4D9F7"
+               BuildableName = "CustomSQLite.app"
+               BlueprintName = "CustomSQLite"
+               ReferencedContainer = "container:CustomSQLite.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -29,20 +47,9 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "56B036021E8D9EBE003B6DA4"
-            BuildableName = "GRDBDemoiOS.app"
-            BlueprintName = "GRDBDemoiOS"
-            ReferencedContainer = "container:GRDBDemoiOS.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Release"
+      buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -55,14 +62,12 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "56B036021E8D9EBE003B6DA4"
-            BuildableName = "GRDBDemoiOS.app"
-            BlueprintName = "GRDBDemoiOS"
-            ReferencedContainer = "container:GRDBDemoiOS.xcodeproj">
+            BlueprintIdentifier = "56F5F6C12349F11E00C4D9F7"
+            BuildableName = "CustomSQLite.app"
+            BlueprintName = "CustomSQLite"
+            ReferencedContainer = "container:CustomSQLite.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -74,10 +79,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "56B036021E8D9EBE003B6DA4"
-            BuildableName = "GRDBDemoiOS.app"
-            BlueprintName = "GRDBDemoiOS"
-            ReferencedContainer = "container:GRDBDemoiOS.xcodeproj">
+            BlueprintIdentifier = "56F5F6C12349F11E00C4D9F7"
+            BuildableName = "CustomSQLite.app"
+            BlueprintName = "CustomSQLite"
+            ReferencedContainer = "container:CustomSQLite.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

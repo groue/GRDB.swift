@@ -2,7 +2,7 @@
 <Workspace
    version = "1.0">
    <Group
-      location = "group:Playgrounds"
+      location = "group:Documentation/Playgrounds"
       name = "Playgrounds">
       <FileRef
          location = "group:Tour.playground">
@@ -51,6 +51,6 @@
       location = "group:Tests/Performance/GRDBProfiling/GRDBProfiling.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj">
+      location = "group:Documentation/DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj">
    </FileRef>
 </Workspace>

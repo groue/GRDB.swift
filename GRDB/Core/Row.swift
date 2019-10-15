@@ -21,16 +21,8 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
     ///
     ///     let rows = try Row.fetchCursor(db, sql: "SELECT ...")
     ///     let players = try Player.fetchAll(db, sql: "SELECT ...")
-    ///
-    /// This row keeps an unmanaged reference to the statement, and a handle to
-    /// the sqlite statement, so that we avoid many retain/release invocations.
-    ///
-    /// The statementRef is released in deinit.
-    let statementRef: Unmanaged<SelectStatement>?
+    @usableFromInline let statement: SelectStatement?
     @usableFromInline let sqliteStatement: SQLiteStatement?
-    var statement: SelectStatement? {
-        return statementRef?.takeUnretainedValue()
-    }
     
     /// The number of columns in the row.
     public let count: Int
@@ -96,10 +88,6 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
         return impl.isFetched
     }
     
-    deinit {
-        statementRef?.release()
-    }
-    
     /// Creates a row that maps an SQLite statement. Further calls to
     /// sqlite3_step() modify the row.
     ///
@@ -107,18 +95,17 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
     /// access to the SQLite statement. Iteration of the statement does modify
     /// the row.
     init(statement: SelectStatement) {
-        let statementRef = Unmanaged.passRetained(statement) // released in deinit
-        self.statementRef = statementRef
+        self.statement = statement
         self.sqliteStatement = statement.sqliteStatement
-        self.impl = StatementRowImpl(sqliteStatement: statement.sqliteStatement, statementRef: statementRef)
+        self.impl = StatementRowImpl(sqliteStatement: statement.sqliteStatement, statement: statement)
         self.count = Int(sqlite3_column_count(sqliteStatement))
     }
     
     /// Creates a row that maps an SQLite statement. Further calls to
     /// sqlite3_step() modify the row.
     init(sqliteStatement: SQLiteStatement) {
+        self.statement = nil
         self.sqliteStatement = sqliteStatement
-        self.statementRef = nil
         self.impl = SQLiteStatementRowImpl(sqliteStatement: sqliteStatement)
         self.count = Int(sqlite3_column_count(sqliteStatement))
     }
@@ -131,18 +118,18 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
     /// statement does not modify the row.
     convenience init(
         copiedFromSQLiteStatement sqliteStatement: SQLiteStatement,
-        statementRef: Unmanaged<SelectStatement>)
+        statement: SelectStatement)
     {
         self.init(impl: StatementCopyRowImpl(
             sqliteStatement: sqliteStatement,
-            columnNames: statementRef.takeUnretainedValue().columnNames))
+            columnNames: statement.columnNames))
     }
     
     init(impl: RowImpl) {
+        self.statement = nil
+        self.sqliteStatement = nil
         self.impl = impl
         self.count = impl.count
-        self.statementRef = nil
-        self.sqliteStatement = nil
     }
 }
 
@@ -1750,12 +1737,12 @@ private struct StatementCopyRowImpl: RowImpl {
 
 /// See Row.init(statement:)
 private struct StatementRowImpl: RowImpl {
-    let statementRef: Unmanaged<SelectStatement>
+    let statement: SelectStatement
     let sqliteStatement: SQLiteStatement
     let lowercaseColumnIndexes: [String: Int]
     
-    init(sqliteStatement: SQLiteStatement, statementRef: Unmanaged<SelectStatement>) {
-        self.statementRef = statementRef
+    init(sqliteStatement: SQLiteStatement, statement: SelectStatement) {
+        self.statement = statement
         self.sqliteStatement = sqliteStatement
         // Optimize row[columnName]
         let lowercaseColumnNames = (0..<sqlite3_column_count(sqliteStatement))
@@ -1810,7 +1797,7 @@ private struct StatementRowImpl: RowImpl {
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {
-        return statementRef.takeUnretainedValue().columnNames[index]
+        return statement.columnNames[index]
     }
     
     func index(ofColumn name: String) -> Int? {
@@ -1821,7 +1808,7 @@ private struct StatementRowImpl: RowImpl {
     }
     
     func copiedRow(_ row: Row) -> Row {
-        return Row(copiedFromSQLiteStatement: sqliteStatement, statementRef: statementRef)
+        return Row(copiedFromSQLiteStatement: sqliteStatement, statement: statement)
     }
 }
 
@@ -1837,6 +1824,17 @@ private struct SQLiteStatementRowImpl: RowImpl {
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
         return DatabaseValue(sqliteStatement: sqliteStatement, index: Int32(index))
+    }
+    
+    func dataNoCopy(atUncheckedIndex index: Int) -> Data? {
+        guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
+            return nil
+        }
+        guard let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) else {
+            return Data()
+        }
+        let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
+        return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)
     }
     
     func index(ofColumn name: String) -> Int? {

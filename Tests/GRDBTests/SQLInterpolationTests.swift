@@ -117,8 +117,8 @@ class SQLInterpolationTests: GRDBTestCase {
     func testQualifiedExpressionInterpolation() {
         var sql = SQLInterpolation(literalCapacity: 0, interpolationCount: 1)
         
-        sql.appendInterpolation(Column("name").aliased("foo")); sql.appendLiteral("\n")
-        sql.appendInterpolation(1.databaseValue.aliased("bar"))
+        sql.appendInterpolation(Column("name").forKey("foo")); sql.appendLiteral("\n")
+        sql.appendInterpolation(1.databaseValue.forKey("bar"))
         
         XCTAssertEqual(sql.sql, """
             "name" AS "foo"

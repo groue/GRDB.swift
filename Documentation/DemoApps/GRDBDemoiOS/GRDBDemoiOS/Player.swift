@@ -8,6 +8,9 @@ struct Player {
     var score: Int
 }
 
+// Hashable conformance supports tableView diffing
+extension Player: Hashable { }
+
 // MARK: - Persistence
 
 // Turn Player into a Codable Record.

@@ -505,7 +505,6 @@ If you have time, you may dig deeper in GRDB 3 with those updated documentation 
 [If You Use Custom Requests]: #if-you-use-custom-requests
 [If You Use RxGRDB]: #if-you-use-rxgrdb
 [Notable Documentation Updates]: #notable-documentation-updates
-[FetchedRecordsController]: ../README.md#fetchedrecordscontroller
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
 [Associations]: AssociationsBasics.md
 [DatabaseMigrator]: ../README.md#migrations

@@ -279,6 +279,8 @@
 		566B91301FA4D0CC0012D5B0 /* StatementAuthorizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B912A1FA4D0CC0012D5B0 /* StatementAuthorizer.swift */; };
 		566B91351FA4D3810012D5B0 /* TransactionObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B91321FA4D3810012D5B0 /* TransactionObserver.swift */; };
 		566B91381FA4D3810012D5B0 /* TransactionObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B91321FA4D3810012D5B0 /* TransactionObserver.swift */; };
+		566BE7152342541F00A8254B /* LockedBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566BE7132342541F00A8254B /* LockedBox.swift */; };
+		566BE7162342541F00A8254B /* LockedBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566BE7132342541F00A8254B /* LockedBox.swift */; };
 		5670329B212B5462007D270F /* DatabaseUUIDEncodingStrategyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56703299212B5461007D270F /* DatabaseUUIDEncodingStrategyTests.swift */; };
 		5670329C212B5462007D270F /* DatabaseUUIDEncodingStrategyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56703299212B5461007D270F /* DatabaseUUIDEncodingStrategyTests.swift */; };
 		567071F4208A00BE006AD95A /* SQLiteDateParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567071F2208A00BE006AD95A /* SQLiteDateParser.swift */; };
@@ -875,6 +877,7 @@
 		566B91221FA4CF810012D5B0 /* Database+Schema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Database+Schema.swift"; sourceTree = "<group>"; };
 		566B912A1FA4D0CC0012D5B0 /* StatementAuthorizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatementAuthorizer.swift; sourceTree = "<group>"; };
 		566B91321FA4D3810012D5B0 /* TransactionObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionObserver.swift; sourceTree = "<group>"; };
+		566BE7132342541F00A8254B /* LockedBox.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LockedBox.swift; sourceTree = "<group>"; };
 		56703299212B5461007D270F /* DatabaseUUIDEncodingStrategyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseUUIDEncodingStrategyTests.swift; sourceTree = "<group>"; };
 		567071F2208A00BE006AD95A /* SQLiteDateParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLiteDateParser.swift; sourceTree = "<group>"; };
 		567156151CB142AA007DC145 /* DatabaseQueueReadOnlyTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseQueueReadOnlyTests.swift; sourceTree = "<group>"; };
@@ -1453,6 +1456,7 @@
 				5659F49F1EA8D997004A4992 /* DatabaseResult.swift */,
 				563EF44C2161F196007DAACD /* Inflections.swift */,
 				569BBA4B229170B300478429 /* Inflections+English.swift */,
+				566BE7132342541F00A8254B /* LockedBox.swift */,
 				563EF41E215F8A76007DAACD /* OrderedDictionary.swift */,
 				5659F4971EA8D989004A4992 /* Pool.swift */,
 				5659F48F1EA8D964004A4992 /* ReadWriteBox.swift */,
@@ -1978,7 +1982,7 @@
 					};
 					F3BA80591CFB2BB2003DC1BA = {
 						CreatedOnToolsVersion = 7.3.1;
-						LastSwiftMigration = 1020;
+						LastSwiftMigration = 1110;
 					};
 					F3BA809A1CFB2F6F003DC1BA = {
 						CreatedOnToolsVersion = 7.3.1;
@@ -2224,6 +2228,7 @@
 				5690C3451D23E82A00E59934 /* Data.swift in Sources */,
 				5656A8A82295BF44001FF3FF /* DatabasePromise.swift in Sources */,
 				5656A86E2295BD56001FF3FF /* HasManyThroughAssociation.swift in Sources */,
+				566BE7162342541F00A8254B /* LockedBox.swift in Sources */,
 				F3BA80111CFB2876003DC1BA /* DatabaseSchemaCache.swift in Sources */,
 				F3BA80281CFB2891003DC1BA /* StandardLibrary.swift in Sources */,
 				F3BA80331CFB28A4003DC1BA /* PersistableRecord.swift in Sources */,
@@ -2558,6 +2563,7 @@
 				5690C3421D23E82A00E59934 /* Data.swift in Sources */,
 				5656A8A72295BF44001FF3FF /* DatabasePromise.swift in Sources */,
 				5656A86D2295BD56001FF3FF /* HasManyThroughAssociation.swift in Sources */,
+				566BE7152342541F00A8254B /* LockedBox.swift in Sources */,
 				F3BA806D1CFB2E55003DC1BA /* DatabaseSchemaCache.swift in Sources */,
 				F3BA80841CFB2E67003DC1BA /* StandardLibrary.swift in Sources */,
 				F3BA808F1CFB2E7A003DC1BA /* PersistableRecord.swift in Sources */,

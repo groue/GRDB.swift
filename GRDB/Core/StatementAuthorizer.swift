@@ -47,11 +47,11 @@ final class StatementCompilationAuthorizer: StatementAuthorizer {
         _ cString4: UnsafePointer<Int8>?)
         -> Int32
     {
-         // print("""
-         //    StatementCompilationAuthorizer: \
-         //    \(actionCode) \
-         //    \([cString1, cString2, cString3, cString4].compactMap { $0.map(String.init) })
-         //    """)
+//        print("""
+//            StatementCompilationAuthorizer: \
+//            \(AuthorizerActionCode(rawValue: actionCode)) \
+//            \([cString1, cString2, cString3, cString4].compactMap { $0.map(String.init) })
+//            """)
         
         switch actionCode {
         case SQLITE_DROP_TABLE, SQLITE_DROP_VTABLE, SQLITE_DROP_TEMP_TABLE,
@@ -181,11 +181,58 @@ final class TruncateOptimizationBlocker: StatementAuthorizer {
         _ cString4: UnsafePointer<Int8>?)
         -> Int32
     {
-        // print("""
-        //    TruncateOptimizationBlocker: \
-        //    \(actionCode) \
-        //    \([cString1, cString2, cString3, cString4].compactMap { $0.map(String.init) })
-        //    """)
+//        print("""
+//            TruncateOptimizationBlocker: \
+//            \(AuthorizerActionCode(rawValue: actionCode)) \
+//            \([cString1, cString2, cString3, cString4].compactMap { $0.map(String.init) })
+//            """)
         return (actionCode == SQLITE_DELETE) ? SQLITE_IGNORE : SQLITE_OK
+    }
+}
+
+private struct AuthorizerActionCode: RawRepresentable, CustomStringConvertible {
+    let rawValue: Int32
+    init(rawValue: Int32) {
+        self.rawValue = rawValue
+    }
+    
+    var description: String {
+        switch rawValue {
+        case 1: return "SQLITE_CREATE_INDEX"
+        case 2: return "SQLITE_CREATE_TABLE"
+        case 3: return "SQLITE_CREATE_TEMP_INDEX"
+        case 4: return "SQLITE_CREATE_TEMP_TABLE"
+        case 5: return "SQLITE_CREATE_TEMP_TRIGGER"
+        case 6: return "SQLITE_CREATE_TEMP_VIEW"
+        case 7: return "SQLITE_CREATE_TRIGGER"
+        case 8: return "SQLITE_CREATE_VIEW"
+        case 9: return "SQLITE_DELETE"
+        case 10: return "SQLITE_DROP_INDEX"
+        case 11: return "SQLITE_DROP_TABLE"
+        case 12: return "SQLITE_DROP_TEMP_INDEX"
+        case 13: return "SQLITE_DROP_TEMP_TABLE"
+        case 14: return "SQLITE_DROP_TEMP_TRIGGER"
+        case 15: return "SQLITE_DROP_TEMP_VIEW"
+        case 16: return "SQLITE_DROP_TRIGGER"
+        case 17: return "SQLITE_DROP_VIEW"
+        case 18: return "SQLITE_INSERT"
+        case 19: return "SQLITE_PRAGMA"
+        case 20: return "SQLITE_READ"
+        case 21: return "SQLITE_SELECT"
+        case 22: return "SQLITE_TRANSACTION"
+        case 23: return "SQLITE_UPDATE"
+        case 24: return "SQLITE_ATTACH"
+        case 25: return "SQLITE_DETACH"
+        case 26: return "SQLITE_ALTER_TABLE"
+        case 27: return "SQLITE_REINDEX"
+        case 28: return "SQLITE_ANALYZE"
+        case 29: return "SQLITE_CREATE_VTABLE"
+        case 30: return "SQLITE_DROP_VTABLE"
+        case 31: return "SQLITE_FUNCTION"
+        case 32: return "SQLITE_SAVEPOINT"
+        case 0: return "SQLITE_COPY"
+        case 33: return "SQLITE_RECURSIVE"
+        default: return "\(rawValue)"
+        }
     }
 }

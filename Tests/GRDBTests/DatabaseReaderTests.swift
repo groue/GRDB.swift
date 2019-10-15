@@ -1,77 +1,115 @@
 import XCTest
 #if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
+import GRDBCustomSQLite
 #else
-    import GRDB
+import GRDB
 #endif
 
 class DatabaseReaderTests : GRDBTestCase {
-    
-    func testDatabaseQueueReadPreventsDatabaseModification() throws {
-        // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            try db.create(table: "table1") { t in
-                t.column("id", .integer).primaryKey()
-            }
-        }
-        do {
-            try dbQueue.read { try $0.execute(sql: "INSERT INTO table1 DEFAULT VALUES") }
-            XCTFail()
-        } catch let error as DatabaseError where error.resultCode == .SQLITE_READONLY {
-        }
-    }
-    
-    func testDatabasePoolReadPreventsDatabaseModification() throws {
-        let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
-            try db.create(table: "table1") { t in
-                t.column("id", .integer).primaryKey()
-            }
-        }
-        do {
-            try dbPool.read { try $0.execute(sql: "INSERT INTO table1 DEFAULT VALUES") }
-            XCTFail()
-        } catch let error as DatabaseError where error.resultCode == .SQLITE_READONLY {
-        }
-    }
-
-    func testDatabaseQueueUnsafeReentrantRead() throws {
-        let dbQueue = try makeDatabaseQueue()
-        dbQueue.unsafeReentrantRead { db1 in
-            dbQueue.unsafeReentrantRead { db2 in
-                dbQueue.unsafeReentrantRead { db3 in
-                    XCTAssertTrue(db1 === db2)
-                    XCTAssertTrue(db2 === db3)
-                }
-            }
-        }
-    }
-    
-    func testDatabasePoolUnsafeReentrantRead() throws {
-        let dbPool = try makeDatabasePool()
-        try dbPool.unsafeReentrantRead { db1 in
-            try dbPool.unsafeReentrantRead { db2 in
-                try dbPool.unsafeReentrantRead { db3 in
-                    XCTAssertTrue(db1 === db2)
-                    XCTAssertTrue(db2 === db3)
-                }
-            }
-        }
-    }
     
     func testAnyDatabaseReader() {
         // This test passes if this code compiles.
         let reader: DatabaseReader = DatabaseQueue()
         let _: DatabaseReader = AnyDatabaseReader(reader)
     }
+    
+    // MARK: - Read
+    
+    func testReadCanRead() throws {
+        func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
+            try dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+            }
+            return dbWriter
+        }
+        func test(_ dbReader: DatabaseReader) throws {
+            let count = try dbReader.read { db in
+                try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
+            }
+            XCTAssertEqual(count, 0)
+        }
+        
+        try test(setup(makeDatabaseQueue()))
+        try test(setup(makeDatabasePool()))
+        try test(setup(makeDatabasePool()).makeSnapshot())
+    }
+    
+    func testReadPreventsDatabaseModification() throws {
+        func test(_ dbReader: DatabaseReader) throws {
+            do {
+                try dbReader.read { db in
+                    try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+                }
+                XCTFail("Expected error")
+            } catch let error as DatabaseError where error.resultCode == .SQLITE_READONLY {
+            }
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+        try test(makeDatabasePool().makeSnapshot())
+    }
+    
+    // MARK: - UnsafeRead
+    
+    func testUnsafeReadCanRead() throws {
+        func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
+            try dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+            }
+            return dbWriter
+        }
+        func test(_ dbReader: DatabaseReader) throws {
+            let count = try dbReader.unsafeRead { db in
+                try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
+            }
+            XCTAssertEqual(count, 0)
+        }
+        
+        try test(setup(makeDatabaseQueue()))
+        try test(setup(makeDatabasePool()))
+        try test(setup(makeDatabasePool()).makeSnapshot())
+    }
+    
+    // MARK: - UnsafeReentrantRead
+    
+    func testUnsafeReentrantReadCanRead() throws {
+        func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
+            try dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+            }
+            return dbWriter
+        }
+        func test(_ dbReader: DatabaseReader) throws {
+            let count = try dbReader.unsafeReentrantRead { db in
+                try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
+            }
+            XCTAssertEqual(count, 0)
+        }
+        
+        try test(setup(makeDatabaseQueue()))
+        try test(setup(makeDatabasePool()))
+        try test(setup(makeDatabasePool()).makeSnapshot())
+    }
+    
+    func testUnsafeReentrantReadIsReentrant() throws {
+        func test(_ dbReader: DatabaseReader) throws {
+            try dbReader.unsafeReentrantRead { db1 in
+                try dbReader.unsafeReentrantRead { db2 in
+                    try dbReader.unsafeReentrantRead { db3 in
+                        XCTAssertTrue(db1 === db2)
+                        XCTAssertTrue(db2 === db3)
+                    }
+                }
+            }
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+        try test(makeDatabasePool().makeSnapshot())
+    }
+    
+    // MARK: - AsyncRead
     
     #if compiler(>=5.0)
     func testAsyncRead() throws {
@@ -128,4 +166,62 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabasePool().makeSnapshot())
     }
     #endif
+    
+    // MARK: - Function
+    
+    func testAddFunction() throws {
+        func test(_ dbReader: DatabaseReader) throws {
+            let f = DatabaseFunction("f", argumentCount: 0, pure: true) { _ in 0 }
+            dbReader.add(function: f)
+            let value = try dbReader.read { db in
+                try Int.fetchOne(db, sql: "SELECT f()")
+            }
+            XCTAssertEqual(value, 0)
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+        try test(makeDatabasePool().makeSnapshot())
+    }
+    
+    // MARK: - Collation
+    
+    func testAddCollation() throws {
+        func test(_ dbReader: DatabaseReader) throws {
+            let collation = DatabaseCollation("c") { _, _ in .orderedSame }
+            dbReader.add(collation: collation)
+            let value = try dbReader.read { db in
+                try Int.fetchOne(db, sql: "SELECT 'foo' AS str ORDER BY str COLLATE c")
+            }
+            XCTAssertEqual(value, 0)
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+        try test(makeDatabasePool().makeSnapshot())
+    }
+    
+    // MARK: - Backup
+    
+    func testBackup() throws {
+        func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
+            try dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+            }
+            return dbWriter
+        }
+        func test(_ source: DatabaseReader) throws {
+            let dest = try makeDatabaseQueue(configuration: Configuration())
+            try source.backup(to: dest)
+            let count = try dest.read { db in
+                try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
+            }
+            XCTAssertEqual(count, 0)
+        }
+        
+        // SQLCipher can't backup encrypted databases: use a pristine Configuration
+        try test(setup(makeDatabaseQueue(configuration: Configuration())))
+        try test(setup(makeDatabasePool(configuration: Configuration())))
+        try test(setup(makeDatabasePool(configuration: Configuration())).makeSnapshot())
+    }
 }

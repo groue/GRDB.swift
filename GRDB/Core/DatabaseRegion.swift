@@ -184,27 +184,17 @@ extension DatabaseRegion {
             return true
         }
         
-        if tableRegions.count == 1 {
-            // Fast path when the region contains a single table.
-            //
-            // We can apply the precondition: due to the filtering of events
-            // performed in observes(eventsOfKind:), the event argument is
-            // guaranteed to be about the fetched table. We thus only have to
-            // check for rowIds.
-            assert(event.tableName == tableRegions[tableRegions.startIndex].key) // sanity check in debug mode
-            let tableRegion = tableRegions[tableRegions.startIndex].value
-            return tableRegion.contains(rowID: event.rowID)
-        } else {
-            // Slow path when several tables are observed.
-            guard let tableRegion = tableRegions[event.tableName] else {
-                // Shouldn't happen if the precondition is met.
-                fatalError("""
-                    precondition failure: event was not filtered out in observes(eventsOfKind:) \
-                    by region.isModified(byEventsOfKind:)
-                    """)
-            }
-            return tableRegion.contains(rowID: event.rowID)
+        guard let tableRegion = tableRegions[event.tableName] else {
+            // FTS4 (and maybe other virtual tables) perform unadvertised
+            // changes. For example, an "INSERT INTO document ..." statement
+            // advertises an insertion in the `document` table, but the
+            // actual change events happen in the `document_content` shadow
+            // table. When such a non-advertised event happens, assume that
+            // the region is modified.
+            // See https://github.com/groue/GRDB.swift/issues/620
+            return true
         }
+        return tableRegion.contains(rowID: event.rowID)
     }
 }
 

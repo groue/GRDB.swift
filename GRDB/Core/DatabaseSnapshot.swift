@@ -32,7 +32,7 @@ public class DatabaseSnapshot: DatabaseReader {
             guard journalMode == "wal" else {
                 throw DatabaseError(message: "WAL mode is not activated at path: \(path)")
             }
-            try db.beginSnapshotIsolation()
+            try db.beginSnapshotTransaction()
         }
     }
     
@@ -80,18 +80,14 @@ extension DatabaseSnapshot {
     }
     #endif
     
-    /// Alias for `read`. See `DatabaseReader.unsafeRead`.
-    ///
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) rethrows -> T {
         return try serializedDatabase.sync(block)
     }
     
-    /// Alias for `read`. See `DatabaseReader.unsafeReentrantRead`.
-    ///
     /// :nodoc:
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
-        return try serializedDatabase.sync(block)
+        return try serializedDatabase.reentrantSync(block)
     }
     
     // MARK: - Functions

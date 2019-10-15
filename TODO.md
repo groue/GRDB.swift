@@ -8,6 +8,19 @@
 - [ ] https://github.com/groue/GRDB.swift/issues/514
 - [ ] Test NOT TESTED methods
 - [ ] Cancellation of a started ValueObservation. Context: https://github.com/groue/GRDB.swift/issues/601#issuecomment-524733140
+- [ ] Test that one can force a JOIN with association aggregates:
+
+    ```swift
+    // SELECT author.*, MAX(book.publishDate) AS maxBookPublishDate
+    // FROM author
+    // JOIN book ON book.authorId = author.id 
+    // GROUP BY author.id
+    Author
+        .annotated(with: Author.books.max(Column("publishDate")))
+        .joining(required: Author.books)
+    ```
+    
+    It is important to have an explicit test for this technique because it is the only currently available that forces a JOIN, and we don't want to break it in the future, even if association aggregates change implementation eventually.
 
 
 ## Documentation
@@ -17,6 +30,7 @@
 
 ## Features
 
+- [ ] Xcode 10.3 and Xcode 11 Travis tests
 - [ ] Alternative technique for custom SQLite builds: see the Podfile at https://github.com/CocoaPods/CocoaPods/issues/9104, and https://github.com/clemensg/sqlite3pod
 - [ ] Attach databases. Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] SQL Generation

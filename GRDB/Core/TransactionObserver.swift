@@ -283,7 +283,11 @@ class DatabaseObservationBroker {
                 
                 // observation will only be notified of individual events that
                 // match one of the observed kinds.
-                return (observation, DatabaseEventPredicate.matching(observedKinds))
+                return (
+                    observation,
+                    DatabaseEventPredicate.matching(
+                        observedKinds: observedKinds,
+                        advertisedKinds: eventKinds))
             }
         }
         
@@ -336,7 +340,8 @@ class DatabaseObservationBroker {
                     //   BEGIN DEFERRED TRANSACTION; COMMIT
                     //
                     // This special case has a dedicated handling:
-                    return try databaseDidCommitEmptyDeferredTransaction()
+                    try databaseDidCommitEmptyDeferredTransaction()
+                    return
                 }
                 
             case .rollbackTransaction:
@@ -356,7 +361,8 @@ class DatabaseObservationBroker {
                     //   SAVEPOINT foo; RELEASE SAVEPOINT foo
                     //
                     // This special case has a dedicated handling:
-                    return try databaseDidCommitEmptyDeferredTransaction()
+                    try databaseDidCommitEmptyDeferredTransaction()
+                    return
                 }
                 
                 if savepointStack.isEmpty {
@@ -729,7 +735,6 @@ public protocol TransactionObserver: AnyObject {
     ///
     /// The databaseDidChangeWithEvent callback is always available,
     /// and may provide most/all of what you need.
-    /// (For example, FetchedRecordsController is built without databaseWillChange)
     func databaseWillChange(with event: DatabasePreUpdateEvent)
     #endif
 }
@@ -1312,15 +1317,28 @@ private struct CopiedDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
 enum DatabaseEventPredicate {
     // Yes filter
     case `true`
-    // Only events that match one of those kinds
-    case matching([DatabaseEventKind])
+    // Only events that match observedKinds
+    case matching(observedKinds: [DatabaseEventKind], advertisedKinds: [DatabaseEventKind])
     
     func evaluate(_ event: DatabaseEventProtocol) -> Bool {
         switch self {
         case .true:
             return true
-        case .matching(let kinds):
-            return kinds.contains { event.matchesKind($0) }
+        case let .matching(observedKinds: observedKinds, advertisedKinds: advertisedKinds):
+            if observedKinds.contains(where: { event.matchesKind($0) }) {
+                return true
+            }
+            if !advertisedKinds.contains(where: { event.matchesKind($0) }) {
+                // FTS4 (and maybe other virtual tables) perform unadvertised
+                // changes. For example, an "INSERT INTO document ..." statement
+                // advertises an insertion in the `document` table, but the
+                // actual change events happen in the `document_content` shadow
+                // table. When such a non-advertised event happens, assume that
+                // the event has to be notified.
+                // See https://github.com/groue/GRDB.swift/issues/620
+                return true
+            }
+            return false
         }
     }
 }

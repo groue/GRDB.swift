@@ -13,6 +13,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 #### 4.x Releases
 
+- `4.5.x` Releases - [4.5.0](#450)
 - `4.4.x` Releases - [4.4.0](#440)
 - `4.3.x` Releases - [4.3.0](#430)
 - `4.2.x` Releases - [4.2.0](#420) | [4.2.1](#421)
@@ -60,6 +61,31 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 <!--
 ## Next Release
 -->
+
+## 4.5.0
+
+Released October 15, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.4.0...v4.5.0)
+
+**Fixed**
+
+- The `DatabaseMigrator.eraseDatabaseOnSchemaChange` option no longer fails when migrations depend on database configuration.
+- Fixed `DatabasePool.reentrantRead` which was not actually reentrant.
+- [#631](https://github.com/groue/GRDB.swift/pull/631): Fix custom SQLite builds
+- [#632](https://github.com/groue/GRDB.swift/pull/632) by [@runhum](https://github.com/runhum): Fix documentation typo
+
+**New**
+
+- [#622](https://github.com/groue/GRDB.swift/pull/622): Allow observation of FTS4 virtual tables
+- [#627](https://github.com/groue/GRDB.swift/pull/627): Swift Package Manager: define SQLite as a system library target
+- [#633](https://github.com/groue/GRDB.swift/pull/633): SQLITE_ENABLE_PREUPDATE_HOOK support with CocoaPods
+- [#635](https://github.com/groue/GRDB.swift/pull/635): Sunset FetchedRecordsController
+
+### Documentation Diff
+
+The [Support for SQLite Pre-Update Hooks](README.md#support-for-sqlite-pre-update-hooks) chapter has been updated with a way to enable extra GRDB APIs for the SQLITE_ENABLE_PREUPDATE_HOOK option with CocoaPods.
+
+The [Demo Application](Documentation/DemoApps/GRDBDemoiOS) no longer uses [FetchedRecordsController](Documentation/FetchedRecordsController.md), which has been sunsetted. Instead, it tracks database changes with [ValueObservation](README.md#valueobservation), and animates its table view with the Swift built-in [difference(from:)](https://developer.apple.com/documentation/swift/bidirectionalcollection/3200721-difference) method.
+
 
 ## 4.4.0
 
@@ -1231,7 +1257,7 @@ Released September 23, 2018 &bull; [diff](https://github.com/groue/GRDB.swift/co
 
 ### Documentation Diff
 
-- Enhanced visibility of the [Demo Application](DemoApps/GRDBDemoiOS)
+- Enhanced visibility of the [Demo Application](Documentation/DemoApps/GRDBDemoiOS)
 
 
 ## 3.3.0

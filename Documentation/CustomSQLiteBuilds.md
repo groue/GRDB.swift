@@ -15,7 +15,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
     
     ```sh
     cd [GRDB directory]
-    git checkout v4.4.0
+    git checkout v4.5.0
     git submodule update --init SQLiteCustom/src
     ````
     
@@ -120,6 +120,8 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
     ```
     
     The path should be the path to your `GRDBCustomSQLite-INSTALL.sh` file.
+    
+    Select your application target in the "Provide build settings from" menu.
 
 9. Check the "Shared" checkbox of your application scheme (this lets you commit the pre-action in your Version Control System).
 

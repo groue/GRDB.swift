@@ -154,4 +154,114 @@ class ValueObservationRowTests: GRDBTestCase {
             ["id":2, "name":"bar"],
             nil])
     }
+    
+    func testFTS4Observation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(virtualTable: "ft_documents", using: FTS4())
+        }
+        
+        var rows: [[Row]] = []
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 2
+        
+        let request = SQLRequest<Row>(sql: "SELECT * FROM ft_documents")
+        let observation = ValueObservation.tracking(value: request.fetchAll)
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in
+                XCTFail("unexpected error: \(error)")
+        },
+            onChange: {
+                rows.append($0)
+                notificationExpectation.fulfill()
+        })
+        try withExtendedLifetime(observer) {
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO ft_documents VALUES (?)", arguments: ["foo"])
+            }
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(rows, [[], [["content":"foo"]]])
+        }
+    }
+    
+    func testSynchronizedFTS4Observation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "documents") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("content", .text)
+            }
+            try db.create(virtualTable: "ft_documents", using: FTS4()) { t in
+                t.synchronize(withTable: "documents")
+                t.column("content")
+            }
+        }
+        
+        var rows: [[Row]] = []
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 2
+        
+        let request = SQLRequest<Row>(sql: "SELECT * FROM ft_documents")
+        let observation = ValueObservation.tracking(value: request.fetchAll)
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in
+                XCTFail("unexpected error: \(error)")
+        },
+            onChange: {
+                rows.append($0)
+                notificationExpectation.fulfill()
+        })
+        try withExtendedLifetime(observer) {
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
+            }
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(rows, [[], [["content":"foo"]]])
+        }
+    }
+    
+    func testJoinedFTS4Observation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "document") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(virtualTable: "ft_document", using: FTS4()) { t in
+                t.column("content")
+            }
+        }
+        
+        var rows: [[Row]] = []
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 2
+        
+        let request = SQLRequest<Row>(sql: """
+            SELECT document.* FROM document
+            JOIN ft_document ON ft_document.rowid = document.id
+            WHERE ft_document MATCH 'foo'
+            """)
+        let observation = ValueObservation.tracking(value: request.fetchAll)
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in
+                XCTFail("unexpected error: \(error)")
+        },
+            onChange: {
+                rows.append($0)
+                notificationExpectation.fulfill()
+        })
+        try withExtendedLifetime(observer) {
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO document (id) VALUES (?)", arguments: [1])
+                try db.execute(sql: "INSERT INTO ft_document (rowid, content) VALUES (?, ?)", arguments: [1, "foo"])
+            }
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(rows, [[], [["id":1]]])
+        }
+    }
 }
