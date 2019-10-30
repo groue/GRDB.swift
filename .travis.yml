@@ -60,12 +60,12 @@ jobs:
         - TID=GRDBiOS (Swift 4.2, iOS <MAX>)
       script: make test_framework_GRDBiOS_maxTarget_minSwift
     
-    - stage: Test GRDB Xcode 11
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11
-      env:
-        - TID=GRDBiOS (Swift 5.1, iOS <MIN>)
-      script: make test_framework_GRDBiOS_minTarget
+    # - stage: Test GRDB Xcode 11
+    #   gemfile: .ci/gemfiles/Gemfile.travis
+    #   osx_image: xcode11
+    #   env:
+    #     - TID=GRDBiOS (Swift 5.1, iOS <MIN>)
+    #   script: make test_framework_GRDBiOS_minTarget
     
     - stage: Test GRDB Xcode 11
       gemfile: .ci/gemfiles/Gemfile.travis
@@ -81,12 +81,12 @@ jobs:
         - TID=GRDBtvOS (Swift 4.2, tvOS <MAX>)
       script: make test_framework_GRDBtvOS_maxTarget_minSwift
     
-    - stage: Test GRDB Xcode 11
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11
-      env:
-        - TID=GRDBtvOS (Swift 5.1, tvOS <MIN>)
-      script: make test_framework_GRDBtvOS_minTarget
+    # - stage: Test GRDB Xcode 11
+    #   gemfile: .ci/gemfiles/Gemfile.travis
+    #   osx_image: xcode11
+    #   env:
+    #     - TID=GRDBtvOS (Swift 5.1, tvOS <MIN>)
+    #   script: make test_framework_GRDBtvOS_minTarget
     
     - stage: Test GRDB Xcode 11
       gemfile: .ci/gemfiles/Gemfile.travis
@@ -119,12 +119,12 @@ jobs:
         - TID=GRDBiOS (Swift 4.2, iOS <MAX>)
       script: make test_framework_GRDBCustomSQLiteiOS_maxTarget_minSwift
     
-    - stage: Test GRDBCustom Xcode 11
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11
-      env:
-        - TID=GRDBiOS (Swift 5.1, iOS <MIN>)
-      script: make test_framework_GRDBCustomSQLiteiOS_minTarget
+    # - stage: Test GRDBCustom Xcode 11
+    #   gemfile: .ci/gemfiles/Gemfile.travis
+    #   osx_image: xcode11
+    #   env:
+    #     - TID=GRDBiOS (Swift 5.1, iOS <MIN>)
+    #   script: make test_framework_GRDBCustomSQLiteiOS_minTarget
     
     ###########################################
     ## Test SQLCipher Xcode 11
