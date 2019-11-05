@@ -117,18 +117,9 @@ final class Pool<T> {
     
     /// Removes all elements from the pool.
     /// Currently used elements won't be reused.
-    /// The `execute` function is executed before any other element is dequeued.
     func removeAll() {
-        removeAll(andThen: {})
-    }
-    
-    /// Removes all elements from the pool, and runs the `body` function before
-    /// any other element is dequeued.
-    /// Currently used elements won't be reused.
-    func removeAll<T>(andThen body: () throws -> T) rethrows -> T {
-        return try items.write { items in
-            items.removeAll()
-            return try body()
+        items.write {
+            $0.removeAll()
         }
     }
     
