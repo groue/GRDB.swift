@@ -168,7 +168,7 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
             
             // TODO: find out when ENABLE_UPDATE_DELETE_LIMIT is not there.
             // iOS8.1 can't run those tests, for example.
-            if try String.fetchAll(db, sql: "PRAGMA COMPILE_OPTIONS").contains("ENABLE_UPDATE_DELETE_LIMIT") {
+            if try String.fetchCursor(db, sql: "PRAGMA COMPILE_OPTIONS").contains("ENABLE_UPDATE_DELETE_LIMIT") {
                 try Person.limit(1).deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" LIMIT 1")
                 

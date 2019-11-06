@@ -174,6 +174,68 @@ struct SQLQueryGenerator {
         return statement
     }
     
+    /// Returns nil if setters is empty
+    func makeUpdateStatement(_ db: Database, _ setters: [ColumnAssignment]) throws -> UpdateStatement? {
+        if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
+            // Programmer error
+            fatalError("Can't update query with GROUP BY clause")
+        }
+        
+        guard havingExpressions.isEmpty else {
+            // Programmer error
+            fatalError("Can't update query with HAVING clause")
+        }
+        
+        guard relation.joins.isEmpty else {
+            // Programmer error
+            fatalError("Can't update query with JOIN clause")
+        }
+        
+        guard case .table = relation.source else {
+            // Programmer error
+            fatalError("Can't update without any database table")
+        }
+        
+        if setters.isEmpty {
+            return nil
+        }
+        
+        var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
+        
+        var sql = try "UPDATE " + relation.source.sql(db, &context)
+        
+        let settersSQL = setters
+            .map({ setter in
+                setter.column.expressionSQL(&context, wrappedInParenthesis: false) +
+                    " = " +
+                    setter.value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+            })
+            .joined(separator: ", ")
+        sql += " SET " + settersSQL
+        
+        let filters = try relation.filtersPromise.resolve(db)
+        if filters.isEmpty == false {
+            sql += " WHERE " + SQLExpressionAnd(filters).expressionSQL(&context, wrappedInParenthesis: false)
+        }
+        
+        if let limit = limit {
+            let orderings = try relation.ordering.resolve(db)
+            if !orderings.isEmpty {
+                sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
+            }
+            
+            if Database.sqliteCompileOptions.contains("ENABLE_UPDATE_DELETE_LIMIT") {
+                sql += " LIMIT " + limit.sql
+            } else {
+                fatalError("Can't delete query with limit")
+            }
+        }
+        
+        let statement = try db.makeUpdateStatement(sql: sql)
+        statement.arguments = context.arguments!
+        return statement
+    }
+
     /// Returns a select statement
     func makeSelectStatement(_ db: Database) throws -> SelectStatement {
         // Build an SQK generation context with all aliases found in the query,
