@@ -148,6 +148,12 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
             try Person.filter(Column("name") == "Arthur").deleteAll(db)
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"name\" = 'Arthur'")
             
+            try Person.filter(key: 1).deleteAll(db)
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" = 1")
+            
+            try Person.filter(keys: [1, 2]).deleteAll(db)
+            XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" IN (1, 2)")
+
             try Person.filter(sql: "id = 1").deleteAll(db)
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE id = 1")
             
