@@ -165,7 +165,7 @@ struct SQLQueryGenerator {
             if Database.sqliteCompileOptions.contains("ENABLE_UPDATE_DELETE_LIMIT") {
                 sql += " LIMIT " + limit.sql
             } else {
-                fatalError("Can't delete query with limit")
+                fatalError("SQLite was not compiled with the ENABLE_UPDATE_DELETE_LIMIT option: can't delete query with limit")
             }
         }
         
@@ -227,7 +227,7 @@ struct SQLQueryGenerator {
             if Database.sqliteCompileOptions.contains("ENABLE_UPDATE_DELETE_LIMIT") {
                 sql += " LIMIT " + limit.sql
             } else {
-                fatalError("Can't delete query with limit")
+                fatalError("SQLite was not compiled with the ENABLE_UPDATE_DELETE_LIMIT option: can't update query with limit")
             }
         }
         
