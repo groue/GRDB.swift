@@ -145,3 +145,4 @@
 - File protection: https://github.com/ccgus/fmdb/issues/262
 - File protection: https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
 - [iOS apps are terminated every time they enter the background if they share an encrypted database with an app extension](https://github.com/sqlcipher/sqlcipher/issues/255)
+- https://github.com/stephencelis/SQLite.swift/issues/630#issuecomment-548203293
