@@ -174,8 +174,8 @@ struct SQLQueryGenerator {
         return statement
     }
     
-    /// Returns nil if setters is empty
-    func makeUpdateStatement(_ db: Database, _ setters: [ColumnAssignment]) throws -> UpdateStatement? {
+    /// Returns nil if assignments is empty
+    func makeUpdateStatement(_ db: Database, _ assignments: [ColumnAssignment]) throws -> UpdateStatement? {
         if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
             // Programmer error
             fatalError("Can't update query with GROUP BY clause")
@@ -196,7 +196,7 @@ struct SQLQueryGenerator {
             fatalError("Can't update without any database table")
         }
         
-        if setters.isEmpty {
+        if assignments.isEmpty {
             return nil
         }
         
@@ -204,14 +204,14 @@ struct SQLQueryGenerator {
         
         var sql = try "UPDATE " + relation.source.sql(db, &context)
         
-        let settersSQL = setters
-            .map({ setter in
-                setter.column.expressionSQL(&context, wrappedInParenthesis: false) +
+        let assignmentsSQL = assignments
+            .map({ assignment in
+                assignment.column.expressionSQL(&context, wrappedInParenthesis: false) +
                     " = " +
-                    setter.value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+                    assignment.value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
             })
             .joined(separator: ", ")
-        sql += " SET " + settersSQL
+        sql += " SET " + assignmentsSQL
         
         let filters = try relation.filtersPromise.resolve(db)
         if filters.isEmpty == false {
