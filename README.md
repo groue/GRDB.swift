@@ -8084,8 +8084,9 @@ Sample Code
 - [@aymerick](https://github.com/aymerick) and [@kali](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
 
-Legacy
-======
+---
+
+[URIs don't change: people change them.](https://www.w3.org/Provider/Style/URI)
 
 #### Changes Tracking
 
@@ -8114,6 +8115,10 @@ This chapter has been renamed [Beyond FetchableRecord].
 #### Full-Text Search
 
 This chapter has [moved](Documentation/FullTextSearch.md).
+
+#### Enabling FTS5 Support
+
+This chapter has [moved](Documentation/FullTextSearch.md#enabling-fts5-support).
 
 [Associations]: Documentation/AssociationsBasics.md
 [Beyond FetchableRecord]: #beyond-fetchablerecord
