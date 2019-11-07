@@ -2206,10 +2206,13 @@ if var player = try Player.fetchOne(db, key: 1) {
 }
 ```
 
-For batch updates, execute an [SQL query](#executing-updates):
+For batch updates, execute an [SQL query](#executing-updates), or see the [query interface](#the-query-interface):
 
 ```swift
-try db.execute(sql: "UPDATE player SET synchronized = 1")
+try db.execute(sql: "UPDATE player SET score = score + 1 WHERE team = 'red'")
+try Player
+    .filter(Column("team") == "red")
+    .updateAll(db, Column("score") += 1)
 ```
 
 :point_right: update methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol.
@@ -2236,6 +2239,7 @@ try Country.deleteAll(db, keys: ["FR", "US"])
 For batch deletes, execute an [SQL query](#executing-updates), or see the [query interface](#the-query-interface):
 
 ```swift
+try db.execute(sql: "DELETE player WHERE email IS NULL")
 try Player
     .filter(Column("email") == nil)
     .deleteAll(db)
@@ -3576,6 +3580,8 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.updateChanges(db, from:...)` | [PersistableRecord] | [*](#record-comparison) |
 | `record.updateChanges(db) { ... }` | [PersistableRecord] | [*](#record-comparison) |
 | `record.updateChanges(db)` | [Record](#record-class) | [*](#record-comparison) |
+| `Type.updateAll(db, ...)` | [PersistableRecord] | |
+| `Type.filter(...).updateAll(db, ...)` | [PersistableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Delete Records** | | |
 | `record.delete(db)` | [PersistableRecord] | |
 | `Type.deleteOne(db, key:...)` | [PersistableRecord] | <a href="#list-of-record-methods-1">¹</a> |
@@ -3689,13 +3695,16 @@ try dbQueue.write { db in
     try db.create(table: "wine") { t in ... }
     
     // Fetch records
-    let wines = try Wine.filter(origin == "Burgundy").order(price).fetchAll(db)
+    let wines = try Wine.filter(Column("origin") == "Burgundy").order(price).fetchAll(db)
     
     // Count
-    let count = try Wine.filter(color == Color.red).fetchCount(db)
+    let count = try Wine.filter(Column("color") == Color.red).fetchCount(db)
+    
+    // Update
+    try Wine.filter(Column("origin") == "Burgundy").updateAll(db, Column("price") *= 0.75)
     
     // Delete
-    try Wine.filter(corked == true).deleteAll(db)
+    try Wine.filter(Column("corked") == true).deleteAll(db)
 }
 ```
 
@@ -3718,6 +3727,9 @@ try dbQueue.write { db in
         .filter(sql: "color = ?", arguments: [Color.red])
         .fetchCount(db)
     
+    // Update (with SQL)
+    try db.execute(sql: "UPDATE wine SET price = price * 0.75 WHERE origin = 'Burgundy'")
+    
     // Delete (with SQL)
     try db.execute(sql: "DELETE FROM wine WHERE corked")
 }
@@ -3736,6 +3748,7 @@ So don't miss the [SQL API](#sqlite-api).
 - [Fetching by Key](#fetching-by-key)
 - [Fetching Aggregated Values](#fetching-aggregated-values)
 - [Delete Requests](#delete-requests)
+- [Update Requests](#update-requests)
 - [Custom Requests](#custom-requests)
 - [Associations and Joins](Documentation/AssociationsBasics.md)
 
@@ -4552,9 +4565,19 @@ let maxScore = row[1] as Int?
 **Requests can delete records**, with the `deleteAll()` method:
 
 ```swift
-// DELETE FROM player WHERE email IS NULL
-let request = Player.filter(emailColumn == nil)
-try request.deleteAll(db)
+// DELETE FROM player
+try Player.deleteAll(db)
+
+// DELETE FROM player WHERE team = 'red'
+try Player
+    .filter(Column("team") == "red")
+    .deleteAll(db)
+
+// DELETE FROM player ORDER BY score LIMIT 10
+try Player
+    .order(Column("score"))
+    .limit(10)
+    .deleteAll(db)
 ```
 
 > :point_up: **Note** Deletion methods are only available for records that adopts the [PersistableRecord] protocol.
@@ -4591,6 +4614,43 @@ try Citizenship.deleteOne(db, key: ["citizenId": 1, "countryCode": "FR"])
 // DELETE FROM player WHERE email = 'arthur@example.com'
 Player.deleteOne(db, key: ["email": "arthur@example.com"])
 ```
+
+
+## Update Requests
+
+**Requests can batch update records**. The `updateAll()` method accepts *column assignments* defined with the `<-` operator:
+
+```swift
+// UPDATE player SET score = 0, isHealthy = 1
+try Player.updateAll(db, Column("score") <- 0, Column("isHealthy") <- true)
+
+// UPDATE player SET score = 0 WHERE team = 'red'
+try Player
+    .filter(Column("team") == "red")
+    .updateAll(db, Column("score") <- 0)
+
+// UPDATE player SET top10 = 1 ORDER BY score DESC LIMIT 10
+try Player
+    .order(Column("score").desc)
+    .limit(10)
+    .updateAll(db, Column("top10") <- true)
+```
+
+Column assignments accept any expression:
+
+```swift
+// UPDATE player SET score = score + (bonus * 2)
+try Player.updateAll(db, Column("score") <- Column("score") + Column("bonus") * 2)
+```
+
+As a convenience, you can also use the `+=`, `-=`, `*=`, or `/=` operators:
+
+```swift
+// UPDATE player SET score = score + (bonus * 2)
+try Player.updateAll(db, Column("score") += Column("bonus") * 2)
+```
+
+> :point_up: **Note** The `updateAll` method is only available for records that adopts the [PersistableRecord] protocol.
 
 
 ## Custom Requests
