@@ -2212,7 +2212,7 @@ For batch updates, execute an [SQL query](#executing-updates), or see the [query
 try db.execute(sql: "UPDATE player SET score = score + 1 WHERE team = 'red'")
 try Player
     .filter(Column("team") == "red")
-    .updateAll(db, Column("score") += 1)
+    .updateAll(db, scoreColumn += 1)
 ```
 
 :point_right: update methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol.
@@ -3695,16 +3695,25 @@ try dbQueue.write { db in
     try db.create(table: "wine") { t in ... }
     
     // Fetch records
-    let wines = try Wine.filter(Column("origin") == "Burgundy").order(price).fetchAll(db)
+    let wines = try Wine
+        .filter(originColumn == "Burgundy")
+        .order(priceColumn)
+        .fetchAll(db)
     
     // Count
-    let count = try Wine.filter(Column("color") == Color.red).fetchCount(db)
+    let count = try Wine
+        .filter(colorColumn == Color.red)
+        .fetchCount(db)
     
     // Update
-    try Wine.filter(Column("origin") == "Burgundy").updateAll(db, Column("price") *= 0.75)
+    try Wine
+        .filter(originColumn == "Burgundy")
+        .updateAll(db, priceColumn *= 0.75)
     
     // Delete
-    try Wine.filter(Column("corked") == true).deleteAll(db)
+    try Wine
+        .filter(corkedColumn == true)
+        .deleteAll(db)
 }
 ```
 
@@ -4172,7 +4181,7 @@ let request = Player.all()
 The `select(...)` and `select(..., as:)` methods change the selection of a single request (see [Fetching from Requests] for detailed information):
 
 ```swift
-let request = Player.select(max(Column("score")))
+let request = Player.select(max(scoreColumn))
 let maxScore: Int? = try Int.fetchOne(db, request)
 ```
 
@@ -4570,12 +4579,12 @@ try Player.deleteAll(db)
 
 // DELETE FROM player WHERE team = 'red'
 try Player
-    .filter(Column("team") == "red")
+    .filter(teamColumn == "red")
     .deleteAll(db)
 
 // DELETE FROM player ORDER BY score LIMIT 10
 try Player
-    .order(Column("score"))
+    .order(scoreColumn)
     .limit(10)
     .deleteAll(db)
 ```
@@ -4622,32 +4631,32 @@ Player.deleteOne(db, key: ["email": "arthur@example.com"])
 
 ```swift
 // UPDATE player SET score = 0, isHealthy = 1
-try Player.updateAll(db, Column("score") <- 0, Column("isHealthy") <- true)
+try Player.updateAll(db, scoreColumn <- 0, isHealthyColumn <- true)
 
 // UPDATE player SET score = 0 WHERE team = 'red'
 try Player
-    .filter(Column("team") == "red")
-    .updateAll(db, Column("score") <- 0)
+    .filter(teamColumn == "red")
+    .updateAll(db, scoreColumn <- 0)
 
-// UPDATE player SET top10 = 1 ORDER BY score DESC LIMIT 10
+// UPDATE player SET top = 1 ORDER BY score DESC LIMIT 10
 try Player
-    .order(Column("score").desc)
+    .order(scoreColumn.desc)
     .limit(10)
-    .updateAll(db, Column("top10") <- true)
+    .updateAll(db, topColumn <- true)
 ```
 
 Column assignments accept any expression:
 
 ```swift
 // UPDATE player SET score = score + (bonus * 2)
-try Player.updateAll(db, Column("score") <- Column("score") + Column("bonus") * 2)
+try Player.updateAll(db, scoreColumn <- scoreColumn + bonusColumn * 2)
 ```
 
 As a convenience, you can also use the `+=`, `-=`, `*=`, or `/=` operators:
 
 ```swift
 // UPDATE player SET score = score + (bonus * 2)
-try Player.updateAll(db, Column("score") += Column("bonus") * 2)
+try Player.updateAll(db, scoreColumn += bonusColumn * 2)
 ```
 
 > :point_up: **Note** The `updateAll` method is only available for records that adopts the [PersistableRecord] protocol.
@@ -7937,8 +7946,8 @@ You can turn your request into a `SQLRequest` instance:
 ```swift
 try dbQueue.read { db in
     let request = Wine
-        .filter(Column("origin") == "Burgundy")
-        .order(Column("price")
+        .filter(originColumn == "Burgundy")
+        .order(priceColumn)
     
     let sqlRequest = try SQLRequest(db, request: request)
     print(sqlRequest.sql)
@@ -7957,8 +7966,8 @@ let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
     let wines = Wine
-        .filter(Column("origin") == "Burgundy")
-        .order(Column("price")
+        .filter(originColumn == "Burgundy")
+        .order(priceColumn)
         .fetchAll(db)
     // Prints SELECT * FROM wine WHERE origin = 'Burgundy' ORDER BY price
 }
