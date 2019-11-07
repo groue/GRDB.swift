@@ -79,8 +79,6 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                 UPDATE "player" SET "score" = 0
                 """)
             
-            // TODO: find out when ENABLE_UPDATE_DELETE_LIMIT is not there.
-            // iOS8.1 can't run those tests, for example.
             if try String.fetchCursor(db, sql: "PRAGMA COMPILE_OPTIONS").contains("ENABLE_UPDATE_DELETE_LIMIT") {
                 try Player.limit(1).updateAll(db, assignment)
                 XCTAssertEqual(self.lastSQLQuery, """
@@ -255,11 +253,13 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
             try XCTAssertEqual(Player.updateAll(db, assignment), 4)
             try XCTAssertEqual(Player.filter(key: 1).updateAll(db, assignment), 1)
             try XCTAssertEqual(Player.filter(key: 5).updateAll(db, assignment), 0)
-            try XCTAssertEqual(Player.limit(1).updateAll(db, assignment), 1)
-            try XCTAssertEqual(Player.limit(2).updateAll(db, assignment), 2)
-            try XCTAssertEqual(Player.limit(2, offset: 3).updateAll(db, assignment), 1)
-            try XCTAssertEqual(Player.limit(10).updateAll(db, assignment), 4)
             try XCTAssertEqual(Player.filter(Columns.bonus > 1).updateAll(db, assignment), 2)
+            if try String.fetchCursor(db, sql: "PRAGMA COMPILE_OPTIONS").contains("ENABLE_UPDATE_DELETE_LIMIT") {
+                try XCTAssertEqual(Player.limit(1).updateAll(db, assignment), 1)
+                try XCTAssertEqual(Player.limit(2).updateAll(db, assignment), 2)
+                try XCTAssertEqual(Player.limit(2, offset: 3).updateAll(db, assignment), 1)
+                try XCTAssertEqual(Player.limit(10).updateAll(db, assignment), 4)
+            }
         }
     }
     
