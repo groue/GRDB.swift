@@ -5,15 +5,21 @@ import XCTest
     import GRDB
 #endif
 
-private struct Player: Encodable, PersistableRecord {
+private struct Player: Codable, PersistableRecord, FetchableRecord {
     var id: Int64
     var name: String
     var score: Int
     var bonus: Int
 }
 
-enum Columns: String, ColumnExpression {
+private enum Columns: String, ColumnExpression {
     case id, name, score, bonus
+}
+
+private extension QueryInterfaceRequest where RowDecoder == Player {
+    func incrementScore(_ db: Database) throws {
+        try updateAll(db, Columns.score += 1)
+    }
 }
 
 class MutablePersistableRecordUpdateTests: GRDBTestCase {
@@ -254,6 +260,21 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
             try XCTAssertEqual(Player.limit(2, offset: 3).updateAll(db, assignment), 1)
             try XCTAssertEqual(Player.limit(10).updateAll(db, assignment), 4)
             try XCTAssertEqual(Player.filter(Columns.bonus > 1).updateAll(db, assignment), 2)
+        }
+    }
+    
+    func testQueryInterfaceExtension() throws {
+        try makeDatabaseQueue().write { db in
+            try Player(id: 1, name: "Arthur", score: 0, bonus: 0).insert(db)
+            try Player(id: 2, name: "Barbara", score: 0, bonus: 0).insert(db)
+            try Player(id: 3, name: "Craig", score: 0, bonus: 0).insert(db)
+            try Player(id: 4, name: "Diane", score: 0, bonus: 0).insert(db)
+            
+            try Player.all().incrementScore(db)
+            try XCTAssertEqual(Player.filter(Columns.score == 1).fetchCount(db), 4)
+            
+            try Player.filter(key: 1).incrementScore(db)
+            try XCTAssertEqual(Player.fetchOne(db, key: 1)!.score, 2)
         }
     }
 }
