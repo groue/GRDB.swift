@@ -171,7 +171,7 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
                 XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" LIMIT 1")
                 
                 try Person.order(Column("name")).deleteAll(db)
-                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" LIMIT 1")
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\"")
                 
                 try Person.order(Column("name")).limit(1).deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" ORDER BY \"name\" LIMIT 1")

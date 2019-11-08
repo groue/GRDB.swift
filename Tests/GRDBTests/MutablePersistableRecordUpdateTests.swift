@@ -87,7 +87,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                 
                 try Player.order(Columns.name).updateAll(db, assignment)
                 XCTAssertEqual(self.lastSQLQuery, """
-                    UPDATE "player" SET "score" = 0 LIMIT 1
+                    UPDATE "player" SET "score" = 0
                     """)
 
                 try Player.order(Columns.name).limit(1).updateAll(db, assignment)
