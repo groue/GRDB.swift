@@ -528,7 +528,12 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
     /// - returns: The number of updated rows
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
-    public func updateAll(_ db: Database, _ assignment: ColumnAssignment, _ otherAssignments: ColumnAssignment...) throws -> Int {
+    public func updateAll(
+        _ db: Database,
+        _ assignment: ColumnAssignment,
+        _ otherAssignments: ColumnAssignment...)
+        throws -> Int
+    {
         return try updateAll(db, [assignment] + otherAssignments)
     }
 }
