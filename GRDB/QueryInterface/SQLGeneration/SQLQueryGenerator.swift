@@ -161,12 +161,7 @@ struct SQLQueryGenerator {
             if !orderings.isEmpty {
                 sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
             }
-            
-            if Database.sqliteCompileOptions.contains("ENABLE_UPDATE_DELETE_LIMIT") {
-                sql += " LIMIT " + limit.sql
-            } else {
-                fatalError("SQLite was not compiled with the ENABLE_UPDATE_DELETE_LIMIT option: can't delete query with limit")
-            }
+            sql += " LIMIT " + limit.sql
         }
         
         let statement = try db.makeUpdateStatement(sql: sql)
@@ -223,12 +218,7 @@ struct SQLQueryGenerator {
             if !orderings.isEmpty {
                 sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
             }
-            
-            if Database.sqliteCompileOptions.contains("ENABLE_UPDATE_DELETE_LIMIT") {
-                sql += " LIMIT " + limit.sql
-            } else {
-                fatalError("SQLite was not compiled with the ENABLE_UPDATE_DELETE_LIMIT option: can't update query with limit")
-            }
+            sql += " LIMIT " + limit.sql
         }
         
         let statement = try db.makeUpdateStatement(sql: sql)
