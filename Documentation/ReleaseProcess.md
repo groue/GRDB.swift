@@ -15,7 +15,6 @@ To release a new GRDB version:
 - Update GRDB version number and release date in:
     - Makefile
     - CHANGELOG.md
-    - Documentation/CustomSQLiteBuilds.md
     - GRDB.swift.podspec
     - README.md
     - Support/Info.plist
