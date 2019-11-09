@@ -83,6 +83,24 @@ class AssociationHasManyThroughOrderingTests: GRDBTestCase {
         }
     }
     
+    func testReorderedRequestFor() throws {
+        try makeDatabaseQueue().read { db in
+            let team = try Team.fetchOne(db, key: 2)!
+            let players = try team.request(for: Team.players).order(Column("name")).fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT "player".* \
+                FROM "player" \
+                JOIN "playerRole" ON ("playerRole"."playerId" = "player"."id") AND ("playerRole"."teamId" = 2) \
+                ORDER BY "player"."name", "playerRole"."position"
+                """)
+            XCTAssertEqual(players, [
+                Player(id: 2, name: "Barbara"),
+                Player(id: 3, name: "Craig"),
+                Player(id: 4, name: "Diane"),
+            ])
+        }
+    }
+    
     func testIncludingAll() throws {
         try makeDatabaseQueue().read { db in
             let teamInfos = try Team
@@ -113,6 +131,40 @@ class AssociationHasManyThroughOrderingTests: GRDBTestCase {
                         Player(id: 4, name: "Diane"),
                         Player(id: 3, name: "Craig"),
                         Player(id: 2, name: "Barbara"),
+                ])])
+        }
+    }
+    
+    func testReorderedIncludingAll() throws {
+        try makeDatabaseQueue().read { db in
+            let teamInfos = try Team
+                .orderByPrimaryKey()
+                .including(all: Team.players.order(Column("name")))
+                .asRequest(of: TeamInfo.self)
+                .fetchAll(db)
+            XCTAssertTrue(sqlQueries.contains("""
+                SELECT * FROM "team" ORDER BY "id"
+                """))
+            XCTAssertTrue(sqlQueries.contains("""
+                SELECT "player".*, "playerRole"."teamId" AS "grdb_teamId" \
+                FROM "player" \
+                JOIN "playerRole" ON ("playerRole"."playerId" = "player"."id") AND ("playerRole"."teamId" IN (1, 2)) \
+                ORDER BY "player"."name", "playerRole"."position"
+                """))
+            XCTAssertEqual(teamInfos, [
+                TeamInfo(
+                    team: Team(id: 1, name: "Red"),
+                    players: [
+                        Player(id: 1, name: "Arthur"),
+                        Player(id: 2, name: "Barbara"),
+                        Player(id: 3, name: "Craig"),
+                ]),
+                TeamInfo(
+                    team: Team(id: 2, name: "Blue"),
+                    players: [
+                        Player(id: 2, name: "Barbara"),
+                        Player(id: 3, name: "Craig"),
+                        Player(id: 4, name: "Diane"),
                 ])])
         }
     }

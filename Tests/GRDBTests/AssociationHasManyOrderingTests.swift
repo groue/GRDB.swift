@@ -66,6 +66,21 @@ class AssociationHasManyOrderingTests: GRDBTestCase {
         }
     }
     
+    func testReorderedRequestFor() throws {
+        try makeDatabaseQueue().read { db in
+            let team = try Team.fetchOne(db, key: 2)!
+            let players = try team.request(for: Team.players).order(Column("name")).fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, """
+                SELECT * FROM "player" WHERE "teamId" = 2 ORDER BY "name"
+                """)
+            XCTAssertEqual(players, [
+                Player(id: 4, teamId: 2, name: "Diane", position: 3),
+                Player(id: 5, teamId: 2, name: "Eugene", position: 2),
+                Player(id: 6, teamId: 2, name: "Fiona", position: 1),
+            ])
+        }
+    }
+    
     func testIncludingAll() throws {
         try makeDatabaseQueue().read { db in
             let teamInfos = try Team
@@ -96,6 +111,40 @@ class AssociationHasManyOrderingTests: GRDBTestCase {
                         Player(id: 6, teamId: 2, name: "Fiona", position: 1),
                         Player(id: 5, teamId: 2, name: "Eugene", position: 2),
                         Player(id: 4, teamId: 2, name: "Diane", position: 3),
+                ])])
+        }
+    }
+    
+    func testReorderedIncludingAll() throws {
+        try makeDatabaseQueue().read { db in
+            let teamInfos = try Team
+                .orderByPrimaryKey()
+                .including(all: Team.players.order(Column("name")))
+                .asRequest(of: TeamInfo.self)
+                .fetchAll(db)
+            XCTAssertTrue(sqlQueries.contains("""
+                SELECT * FROM "team" ORDER BY "id"
+                """))
+            XCTAssertTrue(sqlQueries.contains("""
+                SELECT *, "teamId" AS "grdb_teamId" \
+                FROM "player" \
+                WHERE "teamId" IN (1, 2) \
+                ORDER BY "name"
+                """))
+            XCTAssertEqual(teamInfos, [
+                TeamInfo(
+                    team: Team(id: 1, name: "Red"),
+                    players: [
+                        Player(id: 1, teamId: 1, name: "Arthur", position: 1),
+                        Player(id: 2, teamId: 1, name: "Barbara", position: 2),
+                        Player(id: 3, teamId: 1, name: "Craig", position: 3),
+                ]),
+                TeamInfo(
+                    team: Team(id: 2, name: "Blue"),
+                    players: [
+                        Player(id: 4, teamId: 2, name: "Diane", position: 3),
+                        Player(id: 5, teamId: 2, name: "Eugene", position: 2),
+                        Player(id: 6, teamId: 2, name: "Fiona", position: 1),
                 ])])
         }
     }
