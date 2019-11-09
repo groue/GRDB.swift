@@ -478,7 +478,7 @@ extension QueryInterfaceRequest: DerivableRequest where T: TableRecord { }
 
 extension QueryInterfaceRequest where T: MutablePersistableRecord {
     
-    // MARK: Deleting
+    // MARK: Batch Delete
     
     /// Deletes matching rows; returns the number of deleted rows.
     ///
@@ -489,6 +489,52 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
     public func deleteAll(_ db: Database) throws -> Int {
         try SQLQueryGenerator(query).makeDeleteStatement(db).execute()
         return db.changesCount
+    }
+    
+    // MARK: Batch Update
+    
+    /// Updates matching rows; returns the number of updated rows.
+    ///
+    /// For example:
+    ///
+    ///     try dbQueue.write { db in
+    ///         // UPDATE player SET score = 0
+    ///         try Player.all().updateAll(db, [Column("score") <- 0])
+    ///     }
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: The number of updated rows
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @discardableResult
+    public func updateAll(_ db: Database, _ assignments: [ColumnAssignment]) throws -> Int {
+        guard let updateStatement = try SQLQueryGenerator(query).makeUpdateStatement(db, assignments) else {
+            // database not hit
+            return 0
+        }
+        try updateStatement.execute()
+        return db.changesCount
+    }
+    
+    /// Updates matching rows; returns the number of updated rows.
+    ///
+    /// For example:
+    ///
+    ///     try dbQueue.write { db in
+    ///         // UPDATE player SET score = 0
+    ///         try Player.all().updateAll(db, Column("score") <- 0)
+    ///     }
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: The number of updated rows
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @discardableResult
+    public func updateAll(
+        _ db: Database,
+        _ assignment: ColumnAssignment,
+        _ otherAssignments: ColumnAssignment...)
+        throws -> Int
+    {
+        return try updateAll(db, [assignment] + otherAssignments)
     }
 }
 
@@ -573,4 +619,95 @@ extension Row {
             return index
         }
     }
+}
+
+// MARK: - ColumnAssignment
+
+precedencegroup ColumnAssignment {
+    associativity: left
+    assignment: true
+    lowerThan: AssignmentPrecedence
+}
+
+infix operator <- : ColumnAssignment
+
+/// A ColumnAssignment can update rows in the database.
+///
+/// You create an assignment from a column and an assignment operator, such as
+/// `<-` or `+=`:
+///
+///     try dbQueue.write { db in
+///         // UPDATE player SET score = 0
+///         let assignment = Column("score") <- 0
+///         try Player.updateAll(db, assignment)
+///     }
+public struct ColumnAssignment {
+    var column: ColumnExpression
+    var value: SQLExpressible
+}
+
+/// Creates an assignment to a value.
+///
+///     Column("valid") <- true
+///     Column("score") <- 0
+///     Column("score") <- Column("score") + Column("bonus")
+///
+///     try dbQueue.write { db in
+///         // UPDATE player SET score = 0
+///         try Player.updateAll(db, Column("score") <- 0)
+///     }
+public func <- (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
+    return ColumnAssignment(column: column, value: value)
+}
+
+/// Creates an assignment that adds a value
+///
+///     Column("score") += 1
+///     Column("score") += Column("bonus")
+///
+///     try dbQueue.write { db in
+///         // UPDATE player SET score = score + 1
+///         try Player.updateAll(db, Column("score") += 1)
+///     }
+public func += (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
+    return column <- column + value
+}
+
+/// Creates an assignment that subtracts a value
+///
+///     Column("score") -= 1
+///     Column("score") -= Column("bonus")
+///
+///     try dbQueue.write { db in
+///         // UPDATE player SET score = score - 1
+///         try Player.updateAll(db, Column("score") -= 1)
+///     }
+public func -= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
+    return column <- column - value
+}
+
+/// Creates an assignment that multiplies by a value
+///
+///     Column("score") *= 2
+///     Column("score") *= Column("factor")
+///
+///     try dbQueue.write { db in
+///         // UPDATE player SET score = score * 2
+///         try Player.updateAll(db, Column("score") *= 2)
+///     }
+public func *= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
+    return column <- column * value
+}
+
+/// Creates an assignment that divides by a value
+///
+///     Column("score") /= 2
+///     Column("score") /= Column("factor")
+///
+///     try dbQueue.write { db in
+///         // UPDATE player SET score = score / 2
+///         try Player.updateAll(db, Column("score") /= 2)
+///     }
+public func /= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
+    return column <- column / value
 }
