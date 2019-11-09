@@ -193,7 +193,7 @@ GRDB handles five types of associations:
 
 An association declares a link from a record type to another, as in "one book **belongs to** its author". It instructs GRDB to use the foreign keys declared in the database as support for Swift methods.
 
-Each one of the three types of associations is appropriate for a particular database situation.
+Each one of these associations is appropriate for a particular database situation.
 
 - [BelongsTo]
 - [HasMany]
