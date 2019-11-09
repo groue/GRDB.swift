@@ -23,6 +23,7 @@ GRDB Associations
     - [Combining Associations]
     - [Filtering Associations]
     - [Sorting Associations]
+    - [Ordered vs. Unordered Associations]
     - [Columns Selected by an Association]
     - [Table Aliases]
     - [Refining Association Requests]
@@ -765,6 +766,7 @@ Fetch requests do not visit the database until you fetch values from them. This 
 - [Combining Associations]
 - [Filtering Associations]
 - [Sorting Associations]
+- [Ordered vs. Unordered Associations]
 - [Columns Selected by an Association]
 - [Table Aliases]
 - [Refining Association Requests]
@@ -1107,6 +1109,104 @@ let request = Book
 - Changing the order of the sorting terms (such as sorting on author name first, and then publish date).
 
 Those extra sorting options require **[Table Aliases]**, introduced below.
+
+
+## Ordered vs. Unordered Associations
+
+By default, **[HasMany]** or **[HasManyThrough]** associations are unordered: the order of associated records is undefined unless [explicitly specified](#sorting-associations) on each request.
+
+But you can build an ordering right into the definition of an association, so that it becomes the default ordering for this association. For example, let's model soccer teams and players, ordered by the number printed on their shirt.
+
+Let's start with a **HasMany** association. Each player knows its position in its team:
+
+```swift
+struct Team: FetchableRecord, TableRecord {
+    var id: Int64
+    var name: String
+}
+
+struct Player: FetchableRecord, TableRecord {
+    var id: Int64
+    var teamId: Int64
+    var name: String
+    var position: Int
+}
+```
+
+The `Team.players` association is ordered by position, so that all team players are loaded well-sorted by defaul:
+
+```swift
+extension Team {
+    static let players = hasMany(Player.self).order(Column("position"))
+    
+    var players: QueryInterfaceRequest<Player> {
+        return request(for: Team.players)
+    }
+}
+```
+
+Things are very similar for **HasManyThrough** associations. Now each player knows its position in the teams it belongs to:
+
+```swift
+private struct Team: FetchableRecord, TableRecord {
+    var id: Int64
+    var name: String
+}
+
+private struct PlayerRole: FetchableRecord, TableRecord {
+    var teamId: Int64
+    var playerId: Int64
+    var position: Int
+}
+
+private struct Player: FetchableRecord, TableRecord {
+    var id: Int64
+    var name: String
+}
+```
+
+Again, the `Team.players` association is ordered by position, so that all team players are loaded well-sorted by defaul:
+
+```swift
+extension Team {
+    static let playerRoles = hasMany(PlayerRole.self).order(Column("position"))
+    
+    static let players = hasMany(Player.self, through: playerRoles, using: PlayerRole.player)
+    
+    var players: QueryInterfaceRequest<Player> {
+        return request(for: Team.players)
+    }
+}
+
+extension PlayerRole {
+    static let player = belongsTo(Player.self)
+}
+```
+
+In both cases, you can escape the default ordering when you need it:
+
+```swift
+struct TeamInfo: Decodable, FetchableRecord {
+    var team: Team
+    var players: [Player]
+}
+
+// Default ordering by position
+let team: Team = ...
+let players = try team.players.fetchAll(db)
+let teamInfos = try Team
+    .including(all: Team.players)
+    .asRequest(of: TeamInfo.self)
+    .fetchAll(db)
+
+// Custom ordering
+let team: Team = ...
+let players = try team.players.order(Column("name")).fetchAll(db)
+let teamInfos = try Team
+    .including(all: Team.players.order(Column("name")))
+    .asRequest(of: TeamInfo.self)
+    .fetchAll(db)
+```
 
 
 ## Columns Selected by an Association
@@ -2266,6 +2366,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [HasOneThrough]: #hasonethrough
 [Choosing Between BelongsTo and HasOne]: #choosing-between-belongsto-and-hasone
 [Self Joins]: #self-joins
+[Ordered vs. Unordered Associations]: #ordered-vs-unordered-associations
 [The Types of Associations]: #the-types-of-associations
 [FetchableRecord]: ../README.md#fetchablerecord-protocols
 [migration]: ../README.md#migrations
