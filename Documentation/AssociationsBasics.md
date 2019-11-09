@@ -1227,63 +1227,6 @@ let request = Book.aliased(bookAlias)
 
 ## Refining Association Requests
 
-You can join and include an association several times in a single request. This can help you craft complex requests in a modular way.
-
-Let's say, for example, that your application needs all books, along with their Spanish authors, sorted by author name and then by title. That's already pretty complex.
-
-This request can be built in a single shot:
-
-```swift
-let authorAlias = TableAlias()
-let request = Book
-    .including(required: Book.author
-        .filter(Column("countryCode") == "ES")
-        .aliased(authorAlias))
-    .order(authorAlias[Column("name")], Column("title"))
-```
-
-The same request can also be built in three distinct steps, as below:
-
-```swift
-// 1. include author
-var request = Book.including(required: Book.author)
-
-// 2. filter by author country
-request = request.joining(required: Book.author.filter(Column("countryCode") == "ES"))
-
-// 3. sort by author name and then title
-let authorAlias = TableAlias()
-request = request
-    .joining(optional: Book.author.aliased(authorAlias))
-    .order(authorAlias[Column("name")], Column("title"))
-```
-
-See how the `Book.author` has been joined or included, on each step, independently, for a different purpose. We can wrap those steps in an extension to the `QueryInterfaceRequest<Book>` type:
-
-```swift
-extension QueryInterfaceRequest where T == Book {
-    func filter(authorCountryCode: String) -> QueryInterfaceRequest<Book> {
-        let filteredAuthor = Book.author.filter(Column("countryCode") == countryCode)
-        return joining(required: filteredAuthor)
-    }
-    
-    func orderedByAuthorNameAndTitle() -> QueryInterfaceRequest<Book> {
-        let authorAlias = TableAlias()
-        return joining(optional: Book.author.aliased(authorAlias))
-            .order(authorAlias[Column("name")], Column("title"))
-    }
-}
-```
-
-And now our complex request looks much simpler:
-
-```swift
-let request = Book
-    .including(required: Book.author)
-    .filter(authorCountryCode: "ES")
-    .orderedByAuthorNameAndTitle()
-```
-
 When you join or include an association several times, with the same **[association key](#the-structure-of-a-joined-request)**, GRDB will apply the following rules:
 
 - `including` wins over `joining`:
@@ -2202,7 +2145,20 @@ But in the following example, we use the same association `Author.books` twice, 
 
 The `DerivableRequest` protocol is adopted by both [query interface requests] such as `Author.all()` and associations such as `Book.author`. It is intended for you to use as a customization point when you want to extend the built-in GRDB apis.
 
-For example:
+For example, we may want to define `orderedByName()` and `filter(country:)` request methods that make our requests easier to read:
+
+```swift
+// Authors sorted by name
+let request = Author.all().orderedByName()
+
+// French authors ordered by name
+let request = Author.all().filter(country: "FR").orderedByName()
+
+// Spanish books
+let request = Book.all().filter(country: "ES")
+```
+
+Thos methods are defined on extensions to the `DerivableRequest` protocol:
 
 ```swift
 extension DerivableRequest where RowDecoder == Author {
@@ -2210,27 +2166,19 @@ extension DerivableRequest where RowDecoder == Author {
         return filter(Column("country") == country)
     }
     
-    func orderByFullName() -> Self {
-        return order(
-            Column("lastName").collating(.localizedCaseInsensitiveCompare),
-            Column("firstName").collating(.localizedCaseInsensitiveCompare))
+    func orderedByName() -> Self {
+        return order(Column("name").collating(.localizedCaseInsensitiveCompare))
+    }
+}
+
+extension DerivableRequest where RowDecoder == Book {
+    func filter(country: String) -> Self {
+        return joining(required: Book.author.filter(country: country))
     }
 }
 ```
 
-Thanks to DerivableRequest, both the `filter(country:)` and `orderByFullName()` methods are now available for both Author-based requests and associations:
-
-```swift
-// French authors sorted by full name:
-let request = Author.all()
-    .filter(country: "FR")
-    .orderByFullName()
-
-// French books, sorted by full name of author:
-let request = Book.joining(required: Book.author
-    .filter(country: "FR")
-    .orderByFullName())
-```
+See [Good Practices for Designing Record Types] for more information.
 
 
 ## Known Issues
