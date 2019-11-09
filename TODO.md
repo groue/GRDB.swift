@@ -1,6 +1,5 @@
 ## Cleanup
 
-- [ ] Deprecate DatabaseQueue/Pool.addFunction, collation, tokenizer: those should be done in Configuration.prepareDatabase
 - [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
 - [ ] Write regression tests for #156 and #157
 - [ ] Fix matchingRowIds (todo: what is the problem, already?)
@@ -20,7 +19,6 @@
 
 ## Features
 
-- [ ] Xcode 10.3 and Xcode 11 Travis tests
 - [ ] Alternative technique for custom SQLite builds: see the Podfile at https://github.com/CocoaPods/CocoaPods/issues/9104, and https://github.com/clemensg/sqlite3pod
 - [ ] Attach databases. Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] SQL Generation
@@ -41,6 +39,7 @@
 
 ## Unsure if necessary
 
+- [ ] Deprecate DatabaseQueue/Pool.addFunction, collation, tokenizer: those should be done in Configuration.prepareDatabase
 - [ ] filter(rowid:), filter(rowids:)
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0075-import-test.md
 - [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
@@ -73,7 +72,6 @@
     observation.mapReducer { _, reducer in AnyValueReducer(reducer) }
     ```
     
-- [ ] FetchedRecordsController diff algorithm: check https://github.com/RxSwiftCommunity/RxDataSources/issues/256
 - [ ] new.updateChanges(from: old) vs. old.updateChanges(with: { old.a = new.a }). This is confusing.
 - [ ] Support for OR ROLLBACK, and mismatch between the Swift depth and the SQLite depth of nested transactions/savepoint:
     
@@ -131,10 +129,7 @@
 - Associations: http://docs.diesel.rs/diesel/associations/index.html
 - FTS: http://cocoamine.net/blog/2015/09/07/contentless-fts4-for-large-immutable-documents/
 - pinyin: http://hustlzp.com/post/2016/02/ios-full-text-search-using-sqlite-fts4
-- FetchedRecordsController: https://github.com/jflinter/Dwifft
-- FetchedRecordsController: https://github.com/wokalski/Diff.swift (Faster)
-- FetchedRecordsController: https://github.com/andre-alves/PHDiff
-- React oddity: http://stackoverflow.com/questions/41721769/realm-update-object-without-updating-lists
+- Realm oddity: http://stackoverflow.com/questions/41721769/realm-update-object-without-updating-lists
 - File protection: https://github.com/ccgus/fmdb/issues/262
 - File protection: https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
 - [iOS apps are terminated every time they enter the background if they share an encrypted database with an app extension](https://github.com/sqlcipher/sqlcipher/issues/255)
