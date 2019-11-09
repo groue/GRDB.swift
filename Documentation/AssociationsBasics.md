@@ -1286,31 +1286,14 @@ Often, you'll also make it adopt the standard Decodable protocol, because the co
 
 Each association included in the request can feed a property of the decoded record:
 
-- `including(all:)` feeds an Array or Set property:
-
-    ```swift
-    // All authors with their books
-    let request = Author.including(all: Author.books)
-    
-    struct AuthorInfo: FetchableRecord, Decodable {
-        var author: Author
-        var books: [Book] // all associated books
-    }
-    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
-    ```
-
 - `including(optional:)` feeds an optional property:
 
     ```swift
-    // All employees with their manager and subordinate
-    let request = Employee
-        .including(optional: Employee.manager)
-        .including(all: Employee.subordinates)
+    let request = Employee.including(optional: Employee.manager)
     
     struct EmployeeInfo: FetchableRecord, Decodable {
         var employee: Employee
-        var manager: Employee? // the optional manager
-        var subordinates: Set<Employee>
+        var manager: Employee? // the optional associated manager
     }
     let employeeInfos: [EmployeeInfo] = try EmployeeInfo.fetchAll(db, request)
     ```
@@ -1318,20 +1301,26 @@ Each association included in the request can feed a property of the decoded reco
 - `including(required:)` feeds an non-optional property:
 
     ```swift
-    // All books with information about their author, country, and cover image:
-    let request = Book
-        .including(required: Book.author
-            .including(optional: Author.country))
-        .including(optional: Book.coverImage)
+    let request = Book.including(required: Book.author)
     
     struct BookInfo: FetchableRecord, Decodable {
         var book: Book
-        var author: Author // the required author
-        var country: Country?
-        var coverImage: CoverImage?
+        var author: Author // the required associated author
     }
     
     let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
+    ```
+
+- `including(all:)` feeds an Array or Set property:
+
+    ```swift
+    let request = Author.including(all: Author.books)
+    
+    struct AuthorInfo: FetchableRecord, Decodable {
+        var author: Author
+        var books: [Book] // all associated books
+    }
+    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
 
 - [The Structure of a Joined Request]
