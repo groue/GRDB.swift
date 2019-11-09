@@ -1133,7 +1133,7 @@ struct Player: FetchableRecord, TableRecord {
 }
 ```
 
-The `Team.players` association is ordered by position, so that all team players are loaded well-sorted by defaul:
+The `Team.players` association is ordered by position, so that all team players are loaded well-sorted by default:
 
 ```swift
 extension Team {
@@ -1165,7 +1165,7 @@ private struct Player: FetchableRecord, TableRecord {
 }
 ```
 
-Again, the `Team.players` association is ordered by position, so that all team players are loaded well-sorted by defaul:
+Again, the `Team.players` association is ordered by position, so that all team players are loaded well-sorted by default:
 
 ```swift
 extension Team {
