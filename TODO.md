@@ -37,13 +37,6 @@
 - [ ] FTS: prefix queries
 - [ ] A way to stop a ValueObservation observer without waiting for deinit
 - [ ] More schema alterations
-- [ ] Query interface updates. One use case for query interface updates that is uneasy to deal with raw SQL:
-    
-    ```swift
-    // Uneasy to do with raw SQL
-    let players = Player.filter(...) // Returns a request that filters on column A or column B depending on the argument
-    players.update(...)              // Runs the expected UPDATE statement
-    ```
 
 
 ## Unsure if necessary
@@ -145,4 +138,3 @@
 - File protection: https://github.com/ccgus/fmdb/issues/262
 - File protection: https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
 - [iOS apps are terminated every time they enter the background if they share an encrypted database with an app extension](https://github.com/sqlcipher/sqlcipher/issues/255)
-- https://github.com/stephencelis/SQLite.swift/issues/630#issuecomment-548203293
