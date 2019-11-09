@@ -66,6 +66,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 The [Update Requests](README.md#update-requests) chapter documents the new support for batch updates introduced in the [query interface](README.md#the-query-interface).
 
+The [Associations Guide](Documentation/AssociationsBasics.md) has gained a new [Ordered Associations](Documentation/AssociationsBasics.md#ordered-associations) chapter which explains how to defined ordered HasMany and HasManyThrough associations.
+
 
 ## 4.5.0
 

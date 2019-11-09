@@ -23,7 +23,7 @@ GRDB Associations
     - [Combining Associations]
     - [Filtering Associations]
     - [Sorting Associations]
-    - [Ordered vs. Unordered Associations]
+    - [Ordered Associations]
     - [Columns Selected by an Association]
     - [Table Aliases]
     - [Refining Association Requests]
@@ -766,7 +766,7 @@ Fetch requests do not visit the database until you fetch values from them. This 
 - [Combining Associations]
 - [Filtering Associations]
 - [Sorting Associations]
-- [Ordered vs. Unordered Associations]
+- [Ordered Associations]
 - [Columns Selected by an Association]
 - [Table Aliases]
 - [Refining Association Requests]
@@ -1111,7 +1111,7 @@ let request = Book
 Those extra sorting options require **[Table Aliases]**, introduced below.
 
 
-## Ordered vs. Unordered Associations
+## Ordered Associations
 
 By default, **[HasMany]** or **[HasManyThrough]** associations are unordered: the order of associated records is undefined unless [explicitly specified](#sorting-associations) on each request.
 
@@ -2366,7 +2366,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [HasOneThrough]: #hasonethrough
 [Choosing Between BelongsTo and HasOne]: #choosing-between-belongsto-and-hasone
 [Self Joins]: #self-joins
-[Ordered vs. Unordered Associations]: #ordered-vs-unordered-associations
+[Ordered Associations]: #ordered-associations
 [The Types of Associations]: #the-types-of-associations
 [FetchableRecord]: ../README.md#fetchablerecord-protocols
 [migration]: ../README.md#migrations
