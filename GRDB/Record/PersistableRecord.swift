@@ -530,11 +530,19 @@ extension MutablePersistableRecord {
     ///     }
     ///
     /// - parameter db: A database connection.
-    /// - returns: The number of updated rows
+    /// - parameter conflictResolution: A policy for conflict resolution,
+    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter assignments: An array of column assignments.
+    /// - returns: The number of updated rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
-    public static func updateAll(_ db: Database, _ assignments: [ColumnAssignment]) throws -> Int {
-        return try all().updateAll(db, assignments)
+    public static func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        _ assignments: [ColumnAssignment])
+        throws -> Int
+    {
+        return try all().updateAll(db, onConflict: conflictResolution, assignments)
     }
     
     /// Updates all records; returns the number of updated records.
@@ -547,16 +555,21 @@ extension MutablePersistableRecord {
     ///     }
     ///
     /// - parameter db: A database connection.
-    /// - returns: The number of updated rows
+    /// - parameter conflictResolution: A policy for conflict resolution,
+    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter assignment: A column assignment.
+    /// - parameter otherAssignments: Eventual other column assignments.
+    /// - returns: The number of updated rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public static func updateAll(
         _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
         _ assignment: ColumnAssignment,
         _ otherAssignments: ColumnAssignment...)
         throws -> Int
     {
-        return try updateAll(db, [assignment] + otherAssignments)
+        return try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
     }
 }
 

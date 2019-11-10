@@ -503,11 +503,18 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
     ///     }
     ///
     /// - parameter db: A database connection.
-    /// - returns: The number of updated rows
+    /// - parameter conflictResolution: A policy for conflict resolution,
+    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter assignments: An array of column assignments.
+    /// - returns: The number of updated rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
-    public func updateAll(_ db: Database, _ assignments: [ColumnAssignment]) throws -> Int {
-        let conflictResolution = RowDecoder.persistenceConflictPolicy.conflictResolutionForUpdate
+    public func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        _ assignments: [ColumnAssignment]) throws -> Int
+    {
+        let conflictResolution = conflictResolution ?? RowDecoder.persistenceConflictPolicy.conflictResolutionForUpdate
         guard let updateStatement = try SQLQueryGenerator(query).makeUpdateStatement(
             db,
             conflictResolution: conflictResolution,
@@ -530,16 +537,21 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
     ///     }
     ///
     /// - parameter db: A database connection.
-    /// - returns: The number of updated rows
+    /// - parameter conflictResolution: A policy for conflict resolution,
+    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter assignment: A column assignment.
+    /// - parameter otherAssignments: Eventual other column assignments.
+    /// - returns: The number of updated rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public func updateAll(
         _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
         _ assignment: ColumnAssignment,
         _ otherAssignments: ColumnAssignment...)
         throws -> Int
     {
-        return try updateAll(db, [assignment] + otherAssignments)
+        return try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
     }
 }
 
