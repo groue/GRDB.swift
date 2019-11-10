@@ -507,7 +507,12 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public func updateAll(_ db: Database, _ assignments: [ColumnAssignment]) throws -> Int {
-        guard let updateStatement = try SQLQueryGenerator(query).makeUpdateStatement(db, assignments) else {
+        let conflictResolution = RowDecoder.persistenceConflictPolicy.conflictResolutionForUpdate
+        guard let updateStatement = try SQLQueryGenerator(query).makeUpdateStatement(
+            db,
+            conflictResolution: conflictResolution,
+            assignments: assignments) else
+        {
             // database not hit
             return 0
         }
