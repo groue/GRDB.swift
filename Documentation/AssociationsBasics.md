@@ -23,6 +23,7 @@ GRDB Associations
     - [Combining Associations]
     - [Filtering Associations]
     - [Sorting Associations]
+    - [Ordered Associations]
     - [Columns Selected by an Association]
     - [Table Aliases]
     - [Refining Association Requests]
@@ -193,7 +194,7 @@ GRDB handles five types of associations:
 
 An association declares a link from a record type to another, as in "one book **belongs to** its author". It instructs GRDB to use the foreign keys declared in the database as support for Swift methods.
 
-Each one of the three types of associations is appropriate for a particular database situation.
+Each one of these associations is appropriate for a particular database situation.
 
 - [BelongsTo]
 - [HasMany]
@@ -765,6 +766,7 @@ Fetch requests do not visit the database until you fetch values from them. This 
 - [Combining Associations]
 - [Filtering Associations]
 - [Sorting Associations]
+- [Ordered Associations]
 - [Columns Selected by an Association]
 - [Table Aliases]
 - [Refining Association Requests]
@@ -1109,6 +1111,104 @@ let request = Book
 Those extra sorting options require **[Table Aliases]**, introduced below.
 
 
+## Ordered Associations
+
+By default, **[HasMany]** or **[HasManyThrough]** associations are unordered: the order of associated records is undefined unless [explicitly specified](#sorting-associations) on each request.
+
+But you can build an ordering right into the definition of an association, so that it becomes the default ordering for this association. For example, let's model soccer teams and players, ordered by the number printed on their shirt.
+
+Let's start with a **HasMany** association. Each player knows its position in its team:
+
+```swift
+struct Team: FetchableRecord, TableRecord {
+    var id: Int64
+    var name: String
+}
+
+struct Player: FetchableRecord, TableRecord {
+    var id: Int64
+    var teamId: Int64
+    var name: String
+    var position: Int
+}
+```
+
+The `Team.players` association is ordered by position, so that all team players are loaded well-sorted by default:
+
+```swift
+extension Team {
+    static let players = hasMany(Player.self).order(Column("position"))
+    
+    var players: QueryInterfaceRequest<Player> {
+        return request(for: Team.players)
+    }
+}
+```
+
+Things are very similar for **HasManyThrough** associations. Now each player knows its position in the teams it belongs to:
+
+```swift
+private struct Team: FetchableRecord, TableRecord {
+    var id: Int64
+    var name: String
+}
+
+private struct PlayerRole: FetchableRecord, TableRecord {
+    var teamId: Int64
+    var playerId: Int64
+    var position: Int
+}
+
+private struct Player: FetchableRecord, TableRecord {
+    var id: Int64
+    var name: String
+}
+```
+
+Again, the `Team.players` association is ordered by position, so that all team players are loaded well-sorted by default:
+
+```swift
+extension Team {
+    static let playerRoles = hasMany(PlayerRole.self).order(Column("position"))
+    
+    static let players = hasMany(Player.self, through: playerRoles, using: PlayerRole.player)
+    
+    var players: QueryInterfaceRequest<Player> {
+        return request(for: Team.players)
+    }
+}
+
+extension PlayerRole {
+    static let player = belongsTo(Player.self)
+}
+```
+
+In both cases, you can escape the default ordering when you need it:
+
+```swift
+struct TeamInfo: Decodable, FetchableRecord {
+    var team: Team
+    var players: [Player]
+}
+
+// Default ordering by position
+let team: Team = ...
+let players = try team.players.fetchAll(db)
+let teamInfos = try Team
+    .including(all: Team.players)
+    .asRequest(of: TeamInfo.self)
+    .fetchAll(db)
+
+// Custom ordering
+let team: Team = ...
+let players = try team.players.order(Column("name")).fetchAll(db)
+let teamInfos = try Team
+    .including(all: Team.players.order(Column("name")))
+    .asRequest(of: TeamInfo.self)
+    .fetchAll(db)
+```
+
+
 ## Columns Selected by an Association
 
 By default, associated records include all their columns:
@@ -1227,63 +1327,6 @@ let request = Book.aliased(bookAlias)
 
 ## Refining Association Requests
 
-You can join and include an association several times in a single request. This can help you craft complex requests in a modular way.
-
-Let's say, for example, that your application needs all books, along with their Spanish authors, sorted by author name and then by title. That's already pretty complex.
-
-This request can be built in a single shot:
-
-```swift
-let authorAlias = TableAlias()
-let request = Book
-    .including(required: Book.author
-        .filter(Column("countryCode") == "ES")
-        .aliased(authorAlias))
-    .order(authorAlias[Column("name")], Column("title"))
-```
-
-The same request can also be built in three distinct steps, as below:
-
-```swift
-// 1. include author
-var request = Book.including(required: Book.author)
-
-// 2. filter by author country
-request = request.joining(required: Book.author.filter(Column("countryCode") == "ES"))
-
-// 3. sort by author name and then title
-let authorAlias = TableAlias()
-request = request
-    .joining(optional: Book.author.aliased(authorAlias))
-    .order(authorAlias[Column("name")], Column("title"))
-```
-
-See how the `Book.author` has been joined or included, on each step, independently, for a different purpose. We can wrap those steps in an extension to the `QueryInterfaceRequest<Book>` type:
-
-```swift
-extension QueryInterfaceRequest where T == Book {
-    func filter(authorCountryCode: String) -> QueryInterfaceRequest<Book> {
-        let filteredAuthor = Book.author.filter(Column("countryCode") == countryCode)
-        return joining(required: filteredAuthor)
-    }
-    
-    func orderedByAuthorNameAndTitle() -> QueryInterfaceRequest<Book> {
-        let authorAlias = TableAlias()
-        return joining(optional: Book.author.aliased(authorAlias))
-            .order(authorAlias[Column("name")], Column("title"))
-    }
-}
-```
-
-And now our complex request looks much simpler:
-
-```swift
-let request = Book
-    .including(required: Book.author)
-    .filter(authorCountryCode: "ES")
-    .orderedByAuthorNameAndTitle()
-```
-
 When you join or include an association several times, with the same **[association key](#the-structure-of-a-joined-request)**, GRDB will apply the following rules:
 
 - `including` wins over `joining`:
@@ -1343,31 +1386,14 @@ Often, you'll also make it adopt the standard Decodable protocol, because the co
 
 Each association included in the request can feed a property of the decoded record:
 
-- `including(all:)` feeds an Array or Set property:
-
-    ```swift
-    // All authors with their books
-    let request = Author.including(all: Author.books)
-    
-    struct AuthorInfo: FetchableRecord, Decodable {
-        var author: Author
-        var books: [Book] // all associated books
-    }
-    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
-    ```
-
 - `including(optional:)` feeds an optional property:
 
     ```swift
-    // All employees with their manager and subordinate
-    let request = Employee
-        .including(optional: Employee.manager)
-        .including(all: Employee.subordinates)
+    let request = Employee.including(optional: Employee.manager)
     
     struct EmployeeInfo: FetchableRecord, Decodable {
         var employee: Employee
-        var manager: Employee? // the optional manager
-        var subordinates: Set<Employee>
+        var manager: Employee? // the optional associated manager
     }
     let employeeInfos: [EmployeeInfo] = try EmployeeInfo.fetchAll(db, request)
     ```
@@ -1375,20 +1401,26 @@ Each association included in the request can feed a property of the decoded reco
 - `including(required:)` feeds an non-optional property:
 
     ```swift
-    // All books with information about their author, country, and cover image:
-    let request = Book
-        .including(required: Book.author
-            .including(optional: Author.country))
-        .including(optional: Book.coverImage)
+    let request = Book.including(required: Book.author)
     
     struct BookInfo: FetchableRecord, Decodable {
         var book: Book
-        var author: Author // the required author
-        var country: Country?
-        var coverImage: CoverImage?
+        var author: Author // the required associated author
     }
     
     let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
+    ```
+
+- `including(all:)` feeds an Array or Set property:
+
+    ```swift
+    let request = Author.including(all: Author.books)
+    
+    struct AuthorInfo: FetchableRecord, Decodable {
+        var author: Author
+        var books: [Book] // all associated books
+    }
+    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
     ```
 
 - [The Structure of a Joined Request]
@@ -2202,7 +2234,20 @@ But in the following example, we use the same association `Author.books` twice, 
 
 The `DerivableRequest` protocol is adopted by both [query interface requests] such as `Author.all()` and associations such as `Book.author`. It is intended for you to use as a customization point when you want to extend the built-in GRDB apis.
 
-For example:
+For example, we may want to define `orderedByName()` and `filter(country:)` request methods that make our requests easier to read:
+
+```swift
+// Authors sorted by name
+let request = Author.all().orderedByName()
+
+// French authors ordered by name
+let request = Author.all().filter(country: "FR").orderedByName()
+
+// Spanish books
+let request = Book.all().filter(country: "ES")
+```
+
+Thos methods are defined on extensions to the `DerivableRequest` protocol:
 
 ```swift
 extension DerivableRequest where RowDecoder == Author {
@@ -2210,27 +2255,19 @@ extension DerivableRequest where RowDecoder == Author {
         return filter(Column("country") == country)
     }
     
-    func orderByFullName() -> Self {
-        return order(
-            Column("lastName").collating(.localizedCaseInsensitiveCompare),
-            Column("firstName").collating(.localizedCaseInsensitiveCompare))
+    func orderedByName() -> Self {
+        return order(Column("name").collating(.localizedCaseInsensitiveCompare))
+    }
+}
+
+extension DerivableRequest where RowDecoder == Book {
+    func filter(country: String) -> Self {
+        return joining(required: Book.author.filter(country: country))
     }
 }
 ```
 
-Thanks to DerivableRequest, both the `filter(country:)` and `orderByFullName()` methods are now available for both Author-based requests and associations:
-
-```swift
-// French authors sorted by full name:
-let request = Author.all()
-    .filter(country: "FR")
-    .orderByFullName()
-
-// French books, sorted by full name of author:
-let request = Book.joining(required: Book.author
-    .filter(country: "FR")
-    .orderByFullName())
-```
+See [Good Practices for Designing Record Types] for more information.
 
 
 ## Known Issues
@@ -2329,6 +2366,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [HasOneThrough]: #hasonethrough
 [Choosing Between BelongsTo and HasOne]: #choosing-between-belongsto-and-hasone
 [Self Joins]: #self-joins
+[Ordered Associations]: #ordered-associations
 [The Types of Associations]: #the-types-of-associations
 [FetchableRecord]: ../README.md#fetchablerecord-protocols
 [migration]: ../README.md#migrations

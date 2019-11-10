@@ -13,6 +13,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 #### 4.x Releases
 
+- `4.6.x` Releases - [4.6.0](#460)
 - `4.5.x` Releases - [4.5.0](#450)
 - `4.4.x` Releases - [4.4.0](#440)
 - `4.3.x` Releases - [4.3.0](#430)
@@ -61,6 +62,22 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 <!--
 ## Next Release
 -->
+
+
+## 4.6.0
+
+Released November 9, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.5.0...v4.6.0)
+
+**New**
+
+- [#646](https://github.com/groue/GRDB.swift/pull/646): Batch updates
+
+### Documentation Diff
+
+The [Update Requests](README.md#update-requests) chapter documents the new support for batch updates introduced in the [query interface](README.md#the-query-interface).
+
+The [Associations Guide](Documentation/AssociationsBasics.md) has gained a new [Ordered Associations](Documentation/AssociationsBasics.md#ordered-associations) chapter which explains how to define ordered HasMany and HasManyThrough associations.
+
 
 ## 4.5.0
 

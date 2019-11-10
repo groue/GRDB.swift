@@ -1,6 +1,5 @@
 ## Cleanup
 
-- [ ] Deprecate DatabaseQueue/Pool.addFunction, collation, tokenizer: those should be done in Configuration.prepareDatabase
 - [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
 - [ ] Write regression tests for #156 and #157
 - [ ] Fix matchingRowIds (todo: what is the problem, already?)
@@ -8,29 +7,18 @@
 - [ ] https://github.com/groue/GRDB.swift/issues/514
 - [ ] Test NOT TESTED methods
 - [ ] Cancellation of a started ValueObservation. Context: https://github.com/groue/GRDB.swift/issues/601#issuecomment-524733140
-- [ ] Test that one can force a JOIN with association aggregates:
-
-    ```swift
-    // SELECT author.*, MAX(book.publishDate) AS maxBookPublishDate
-    // FROM author
-    // JOIN book ON book.authorId = author.id 
-    // GROUP BY author.id
-    Author
-        .annotated(with: Author.books.max(Column("publishDate")))
-        .joining(required: Author.books)
-    ```
-    
-    It is important to have an explicit test for this technique because it is the only currently available that forces a JOIN, and we don't want to break it in the future, even if association aggregates change implementation eventually.
 
 
 ## Documentation
 
 - [ ] Document that creating "too many" ValueObservation increases database contention. This also applies to database pools, because when observations create reader contention, they also create writer contention. Context: https://github.com/groue/GRDB.swift/issues/601#issuecomment-524615772
+- [ ] Enhance the introduction to SQLRequest, based on the feedback in https://github.com/groue/GRDB.swift/issues/617
+- [ ] Association: document how to use aggregates with inner join (testAnnotatedWithHasManyDefaultMaxJoiningRequired)
+- [ ] Association: document ordered vs. non-ordered hasMany and hasManyThrough associations
 
 
 ## Features
 
-- [ ] Xcode 10.3 and Xcode 11 Travis tests
 - [ ] Alternative technique for custom SQLite builds: see the Podfile at https://github.com/CocoaPods/CocoaPods/issues/9104, and https://github.com/clemensg/sqlite3pod
 - [ ] Attach databases. Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] SQL Generation
@@ -47,17 +35,11 @@
 - [ ] FTS: prefix queries
 - [ ] A way to stop a ValueObservation observer without waiting for deinit
 - [ ] More schema alterations
-- [ ] Query interface updates. One use case for query interface updates that is uneasy to deal with raw SQL:
-    
-    ```swift
-    // Uneasy to do with raw SQL
-    let players = Player.filter(...) // Returns a request that filters on column A or column B depending on the argument
-    players.update(...)              // Runs the expected UPDATE statement
-    ```
 
 
 ## Unsure if necessary
 
+- [ ] Deprecate DatabaseQueue/Pool.addFunction, collation, tokenizer: those should be done in Configuration.prepareDatabase
 - [ ] filter(rowid:), filter(rowids:)
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0075-import-test.md
 - [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
@@ -90,7 +72,6 @@
     observation.mapReducer { _, reducer in AnyValueReducer(reducer) }
     ```
     
-- [ ] FetchedRecordsController diff algorithm: check https://github.com/RxSwiftCommunity/RxDataSources/issues/256
 - [ ] new.updateChanges(from: old) vs. old.updateChanges(with: { old.a = new.a }). This is confusing.
 - [ ] Support for OR ROLLBACK, and mismatch between the Swift depth and the SQLite depth of nested transactions/savepoint:
     
@@ -148,10 +129,7 @@
 - Associations: http://docs.diesel.rs/diesel/associations/index.html
 - FTS: http://cocoamine.net/blog/2015/09/07/contentless-fts4-for-large-immutable-documents/
 - pinyin: http://hustlzp.com/post/2016/02/ios-full-text-search-using-sqlite-fts4
-- FetchedRecordsController: https://github.com/jflinter/Dwifft
-- FetchedRecordsController: https://github.com/wokalski/Diff.swift (Faster)
-- FetchedRecordsController: https://github.com/andre-alves/PHDiff
-- React oddity: http://stackoverflow.com/questions/41721769/realm-update-object-without-updating-lists
+- Realm oddity: http://stackoverflow.com/questions/41721769/realm-update-object-without-updating-lists
 - File protection: https://github.com/ccgus/fmdb/issues/262
 - File protection: https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
 - [iOS apps are terminated every time they enter the background if they share an encrypted database with an app extension](https://github.com/sqlcipher/sqlcipher/issues/255)
