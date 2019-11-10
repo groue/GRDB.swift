@@ -170,7 +170,12 @@ struct SQLQueryGenerator {
     }
     
     /// Returns nil if assignments is empty
-    func makeUpdateStatement(_ db: Database, _ assignments: [ColumnAssignment]) throws -> UpdateStatement? {
+    func makeUpdateStatement(
+        _ db: Database,
+        conflictResolution: Database.ConflictResolution,
+        assignments: [ColumnAssignment])
+        throws -> UpdateStatement?
+    {
         if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
             // Programmer error
             fatalError("Can't update query with GROUP BY clause")
@@ -197,7 +202,13 @@ struct SQLQueryGenerator {
         
         var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
         
-        var sql = try "UPDATE " + relation.source.sql(db, &context)
+        var sql = "UPDATE "
+        
+        if conflictResolution != .abort {
+            sql += "OR \(conflictResolution.rawValue) "
+        }
+        
+        sql += try relation.source.sql(db, &context)
         
         let assignmentsSQL = assignments
             .map({ assignment in

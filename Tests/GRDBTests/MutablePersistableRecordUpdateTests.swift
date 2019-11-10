@@ -35,8 +35,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
     }
     
     func testRequestUpdateAll() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { db in
+        try makeDatabaseQueue().write { db in
             let assignment = Columns.score <- 0
             
             try Player.updateAll(db, assignment)
@@ -280,6 +279,93 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
             
             try Player.filter(key: 1).incrementScore(db)
             try XCTAssertEqual(Player.fetchOne(db, key: 1)!.score, 2)
+        }
+    }
+    
+    func testConflictPolicyAbort() throws {
+        struct AbortPlayer: PersistableRecord {
+            static let databaseTableName = "player"
+            static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .abort, update: .abort)
+            func encode(to container: inout PersistenceContainer) { }
+        }
+        try makeDatabaseQueue().write { db in
+            try AbortPlayer.updateAll(db, Column("score") <- 0)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = 0
+                """)
+            
+            try AbortPlayer.updateAll(db, [Column("score") <- 0])
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = 0
+                """)
+            
+            try AbortPlayer.all().updateAll(db, Column("score") <- 0)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = 0
+                """)
+
+            try AbortPlayer.all().updateAll(db, [Column("score") <- 0])
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = 0
+                """)
+        }
+    }
+    
+    func testConflictPolicyIgnore() throws {
+        struct IgnorePlayer: PersistableRecord {
+            static let databaseTableName = "player"
+            static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .abort, update: .ignore)
+            func encode(to container: inout PersistenceContainer) { }
+        }
+        try makeDatabaseQueue().write { db in
+            try IgnorePlayer.updateAll(db, Column("score") <- 0)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE OR IGNORE "player" SET "score" = 0
+                """)
+            
+            try IgnorePlayer.updateAll(db, [Column("score") <- 0])
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE OR IGNORE "player" SET "score" = 0
+                """)
+            
+            try IgnorePlayer.all().updateAll(db, Column("score") <- 0)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE OR IGNORE "player" SET "score" = 0
+                """)
+            
+            try IgnorePlayer.all().updateAll(db, [Column("score") <- 0])
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE OR IGNORE "player" SET "score" = 0
+                """)
+        }
+    }
+    
+    func testConflictPolicyCustom() throws {
+        try makeDatabaseQueue().write { db in
+            try Player.updateAll(db, Column("score") <- 0)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = 0
+                """)
+            
+            try Player.updateAll(db, onConflict: .ignore, Column("score") <- 0)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE OR IGNORE "player" SET "score" = 0
+                """)
+            
+            try Player.updateAll(db, onConflict: .ignore, [Column("score") <- 0])
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE OR IGNORE "player" SET "score" = 0
+                """)
+            
+            try Player.all().updateAll(db, onConflict: .ignore, Column("score") <- 0)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE OR IGNORE "player" SET "score" = 0
+                """)
+            
+            try Player.all().updateAll(db, onConflict: .ignore, [Column("score") <- 0])
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE OR IGNORE "player" SET "score" = 0
+                """)
         }
     }
 }

@@ -13,7 +13,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 
 #### 4.x Releases
 
-- `4.6.x` Releases - [4.6.0](#460)
+- `4.6.x` Releases - [4.6.0](#460) | [4.6.1](#461)
 - `4.5.x` Releases - [4.5.0](#450)
 - `4.4.x` Releases - [4.4.0](#440)
 - `4.3.x` Releases - [4.3.0](#430)
@@ -62,6 +62,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one expection: 
 <!--
 ## Next Release
 -->
+
+
+## 4.6.1
+
+Released November 10, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.6.0...v4.6.1)
+
+**Fixed**
+
+- [#647](https://github.com/groue/GRDB.swift/pull/647): Honor conflict resolution for batch updates
 
 
 ## 4.6.0
