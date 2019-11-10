@@ -4659,6 +4659,13 @@ As a convenience, you can also use the `+=`, `-=`, `*=`, or `/=` operators:
 try Player.updateAll(db, scoreColumn += bonusColumn * 2)
 ```
 
+Default [Conflict Resolution] rules apply, and you may also provide a specific one:
+
+```swift
+// UPDATE OR IGNORE player SET ...
+try Player.updateAll(db, onConflict: .ignore, /* assignments... */)
+```
+
 > :point_up: **Note** The `updateAll` method is only available for records that adopts the [PersistableRecord] protocol.
 
 
