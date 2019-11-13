@@ -58,6 +58,7 @@
 
 ## Unsure how
 
+- [ ] Association limits: `Author.including(optional: Author.books.order(date.desc).first)`
 - [ ] Joins and full-text tables
 - [ ] UPSERT https://www.sqlite.org/lang_UPSERT.html
 - [ ] Support for "INSERT INTO ... SELECT ...".
