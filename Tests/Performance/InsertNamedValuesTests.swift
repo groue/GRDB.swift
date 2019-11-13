@@ -4,6 +4,15 @@ import GRDB
 import SQLite
 #endif
 
+// Avoid "Ambiguous operator declarations found for operator" error:
+// Redeclare operator in client module.
+precedencegroup ColumnAssignment {
+    associativity: left
+    assignment: true
+    lowerThan: AssignmentPrecedence
+}
+infix operator <- : ColumnAssignment
+
 private let insertedRowCount = 20_000
 
 // Here we insert rows, referencing statement arguments by name.
