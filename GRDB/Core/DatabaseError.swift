@@ -85,7 +85,7 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     // Extended Result Code
     // https://www.sqlite.org/rescode.html#extended_result_code_list
     
-    // swiftlint:disable operator_usage_whitespace
+    // swiftlint:disable operator_usage_whitespace line_length
     public static let SQLITE_ERROR_MISSING_COLLSEQ   = ResultCode(rawValue: (SQLITE_ERROR.rawValue | (1<<8)))
     public static let SQLITE_ERROR_RETRY             = ResultCode(rawValue: (SQLITE_ERROR.rawValue | (2<<8)))
     public static let SQLITE_ERROR_SNAPSHOT          = ResultCode(rawValue: (SQLITE_ERROR.rawValue | (3<<8)))
@@ -153,7 +153,7 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     public static let SQLITE_WARNING_AUTOINDEX       = ResultCode(rawValue: (SQLITE_WARNING.rawValue | (1<<8)))
     public static let SQLITE_AUTH_USER               = ResultCode(rawValue: (SQLITE_AUTH.rawValue | (1<<8)))
     public static let SQLITE_OK_LOAD_PERMANENTLY     = ResultCode(rawValue: (SQLITE_OK.rawValue | (1<<8)))
-    // swiftlint:enable operator_usage_whitespace
+    // swiftlint:enable operator_usage_whitespace line_length
 }
 
 // CustomStringConvertible
