@@ -3269,7 +3269,8 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
     You will then be able to track your record ids, update them, or check for their existence:
     
     ```swift
-    let event = Event(message: "foo", date: Date())
+    // Event is a struct, so it needs to be a variable to allow mutation (via didInsert(with:for) method) on insertion:
+    var event = Event(message: "foo", date: Date())
     
     // Insertion sets the record id:
     try event.insert(db)
