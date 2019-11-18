@@ -213,7 +213,17 @@ public struct DatabaseMigrator {
     
     /// Returns the set of applied migration identifiers.
     public func appliedMigrations(in reader: DatabaseReader) throws -> Set<String> {
-        return try reader.read { try appliedIdentifiers($0) }
+        return try reader.read { db in
+            guard let doesMigrationsTableExist = try Bool.fetchOne(db, sql: "SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type='table' AND name='grdb_migrations')") else {
+                fatalError("grdb_migrations check unexpectedly returned nil")
+            }
+
+            guard doesMigrationsTableExist else {
+                return Set()
+            }
+
+            return try appliedIdentifiers(db)
+        }
     }
     
     
