@@ -236,6 +236,31 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
         }
     }
+
+    func testAppliedMigrations() throws {
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+                t.column("score", .integer)
+            }
+        }
+
+        migrator.registerMigration("2") { db in
+            try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
+        }
+
+        // Apply migrator
+        let dbQueue = try makeDatabaseQueue()
+        try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), [])
+
+        try migrator.migrate(dbQueue, upTo: "1")
+        try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1"])
+
+        try migrator.migrate(dbQueue, upTo: "2")
+        try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1", "2"])
+    }
     
     func testEraseDatabaseOnSchemaChange() throws {
         // 1st version of the migrator
