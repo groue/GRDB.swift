@@ -49,7 +49,14 @@ endif
 TEST_ACTIONS = clean build build-for-testing test-without-building
 
 # When adding support for an Xcode version, look for available devices with `instruments -s devices`
-ifeq ($(XCODEVERSION),11.2)
+ifeq ($(XCODEVERSION),11.3)
+  MAX_SWIFT_VERSION = 5.1
+  MIN_SWIFT_VERSION = 4.2
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 11,OS=13.3"
+  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5,OS=10.3.1"
+  MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=13.3"
+  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.2"
+else ifeq ($(XCODEVERSION),11.2)
   MAX_SWIFT_VERSION = 5.1
   MIN_SWIFT_VERSION = 4.2
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 11,OS=13.2.2"
@@ -452,8 +459,8 @@ ifdef JAZZY
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
 	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v4.6.1 \
-	  --module-version 4.6.1 \
+	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v4.6.2 \
+	  --module-version 4.6.2 \
 	  --module GRDB \
 	  --root-url http://groue.github.io/GRDB.swift/docs/4.6/ \
 	  --output Documentation/Reference \

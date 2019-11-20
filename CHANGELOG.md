@@ -13,7 +13,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 4.x Releases
 
-- `4.6.x` Releases - [4.6.0](#460) | [4.6.1](#461)
+- `4.6.x` Releases - [4.6.0](#460) | [4.6.1](#461) | [4.6.2](#462)
 - `4.5.x` Releases - [4.5.0](#450)
 - `4.4.x` Releases - [4.4.0](#440)
 - `4.3.x` Releases - [4.3.0](#430)
@@ -62,6 +62,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 <!--
 ## Next Release
 -->
+
+
+## 4.6.2
+
+Released November 20, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.6.1...v4.6.2)
+
+**Fixed**
+
+- [#653](https://github.com/groue/GRDB.swift/pull/653) by [@michaelkirk-signal](https://github.com/michaelkirk-signal): Fix DatabaseMigrator.appliedMigrations() error on empty database
 
 
 ## 4.6.1

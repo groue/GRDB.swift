@@ -164,7 +164,15 @@ public struct Configuration {
     /// Default: .default (.unspecified on macOS < 10.10)
     public var qos: DispatchQoS
     
-    /// The target queue for the work performed by the database.
+    /// The target queue for all database accesses.
+    ///
+    /// When you use a database pool, make sure the queue is concurrent. If
+    /// it is serial, no concurrent database access can happen, and you may
+    /// experience deadlocks.
+    ///
+    /// If the queue is nil, all database accesses happen in unspecified
+    /// dispatch queues whose quality of service and label are determined by the
+    /// `qos` and `label` Configuration properties.
     ///
     /// Default: nil
     public var targetQueue: DispatchQueue? = nil
