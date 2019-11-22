@@ -7232,11 +7232,11 @@ For more information about database pools, grab information about SQLite [WAL mo
 
 ### Advanced DatabasePool
 
-- [The `concurrenRead` Method](#the-concurrenread-method)
+- [The `concurrentRead` Method](#the-concurrentread-method)
 - [The `barrierWriteWithoutTransaction` Method](#the-barrierwritewithouttransaction-method)
 
 
-#### The `concurrenRead` Method
+#### The `concurrentRead` Method
 
 [Database pools](#database-pools) are very concurrent, since all reads can run in parallel, and can even run during write operations. But writes are still serialized: at any given point in time, there is no more than a single thread that is writing into the database.
 
