@@ -470,6 +470,28 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         }
     }
     
+    func testSelectAsTypeInference() {
+        // This test passes if it compiles
+        _ = Reader.select(Col.name) as QueryInterfaceRequest<String>
+        _ = Reader.select([Col.name]) as QueryInterfaceRequest<String>
+        _ = Reader.select(sql: "name") as QueryInterfaceRequest<String>
+        _ = Reader.select(literal: SQLLiteral(sql: "name")) as QueryInterfaceRequest<String>
+        _ = Reader.all().select(Col.name) as QueryInterfaceRequest<String>
+        _ = Reader.all().select([Col.name]) as QueryInterfaceRequest<String>
+        _ = Reader.all().select(sql: "name") as QueryInterfaceRequest<String>
+        _ = Reader.all().select(literal: SQLLiteral(sql: "name")) as QueryInterfaceRequest<String>
+        
+        // No ambiguity: those are requests of Reader. TODO: how to assert this statically?
+        _ = Reader.select(Col.name)
+        _ = Reader.select([Col.name])
+        _ = Reader.select(sql: "name")
+        _ = Reader.select(literal: SQLLiteral(sql: "name"))
+        _ = Reader.all().select(Col.name)
+        _ = Reader.all().select([Col.name])
+        _ = Reader.all().select(sql: "name")
+        _ = Reader.all().select(literal: SQLLiteral(sql: "name"))
+    }
+    
     
     // MARK: - Distinct
     
