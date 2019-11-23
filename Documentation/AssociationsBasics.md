@@ -1148,18 +1148,18 @@ extension Team {
 Things are very similar for **HasManyThrough** associations. Now each player knows its position in the teams it belongs to:
 
 ```swift
-private struct Team: FetchableRecord, TableRecord {
+struct Team: FetchableRecord, TableRecord {
     var id: Int64
     var name: String
 }
 
-private struct PlayerRole: FetchableRecord, TableRecord {
+struct PlayerRole: FetchableRecord, TableRecord {
     var teamId: Int64
     var playerId: Int64
     var position: Int
 }
 
-private struct Player: FetchableRecord, TableRecord {
+struct Player: FetchableRecord, TableRecord {
     var id: Int64
     var name: String
 }
