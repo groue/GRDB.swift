@@ -6043,7 +6043,7 @@ For example:
 
 - On iOS, one needs to process a database transaction before the operating system had any opportunity to put the application in the suspended state.
 
-- One want to build a [database snapshot](#database-snapshots) with a guaranteed snapshot content.
+- One wants to build a [database snapshot](#database-snapshots) with a guaranteed snapshot content.
 
 Outside of those use cases, it is much likely *wrong* to use a DatabaseRegionObservation. Please check other [Database Observation](#database-changes-observation) options.
 
