@@ -7439,7 +7439,7 @@ let component = MyReadOnlyComponent(reader: dbQueue)
 The `asyncRead` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue:
 
 ```swift
-reader.asyncRead { (result: Result<Database>) in
+reader.asyncRead { (result: Result<Database, Error>) in
     try {
         let db = try result.get()
         let players = try Player.fetchAll(db)
@@ -7541,7 +7541,7 @@ try writer.asyncWriteWithoutTransaction { db in
         
         // <- not in a transaction here
         // Count players concurrently
-        writer.asyncConcurrentRead { (result: Result<Database>) in
+        writer.asyncConcurrentRead { (result: Result<Database, Error>) in
             try {
                 let db = try result.get()
                 // Guaranteed to be zero
