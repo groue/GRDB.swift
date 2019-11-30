@@ -201,6 +201,55 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
         try test(setup(makeDatabasePool()))
     }
     
+    func testWriteTransactionAbortedByInterruptDoesNotPreventRollback() throws {
+        func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
+            try dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE t(a);")
+            }
+            return dbWriter
+        }
+        func test(_ dbWriter: DatabaseWriter) throws {
+            let semaphore1 = DispatchSemaphore(value: 0)
+            let semaphore2 = DispatchSemaphore(value: 0)
+            
+            dbWriter.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
+                semaphore1.signal()
+                semaphore2.wait()
+                return nil
+            })
+            let block1 = {
+                try! dbWriter.writeWithoutTransaction { db in
+                    try db.inTransaction {
+                        do {
+                            try db.execute(sql: "INSERT INTO t (a) VALUES (wait())")
+                            XCTFail("Expected error")
+                        } catch let error as DatabaseError {
+                            XCTAssertEqual(error.resultCode, .SQLITE_INTERRUPT)
+                        } catch {
+                            XCTFail("Unexpected error: \(error)")
+                        }
+                        
+                        XCTAssertFalse(db.isInsideTransaction)
+                        return .rollback
+                    }
+                }
+            }
+            let block2 = {
+                semaphore1.wait()
+                dbWriter.interrupt()
+                semaphore2.signal()
+            }
+            let blocks = [block1, block2]
+            DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+                blocks[index]()
+            }
+        }
+        
+        try test(setup(DatabaseQueue()))
+        try test(setup(makeDatabaseQueue()))
+        try test(setup(makeDatabasePool()))
+    }
+    
     func testTransactionAbortedByConflictPreventsFurtherDatabaseAccess() throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in

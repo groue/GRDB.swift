@@ -28,7 +28,47 @@ public protocol DatabaseReader: AnyObject {
     
     // MARK: - Interrupting Database Operations
     
-    // TODO: doc
+    /// This method causes any pending database operation to abort and return at
+    /// its earliest opportunity.
+    ///
+    /// It can be called from any thread.
+    ///
+    /// A call to `interrupt()` that occurs when there are no running SQL
+    /// statements is a no-op and has no effect on SQL statements that are
+    /// started after `interrupt()` returns.
+    ///
+    /// A database operation that is interrupted will throw a DatabaseError with
+    /// code SQLITE_INTERRUPT. If the interrupted SQL operation is an INSERT,
+    /// UPDATE, or DELETE that is inside an explicit transaction, then the
+    /// entire transaction will be rolled back automatically. If the rolled back
+    /// transaction was created by a method which wraps your database accesses,
+    /// such as `DatabaseWriter.write` or `Database.inTransaction`, then all
+    /// database accesses will throw a DatabaseError with code SQLITE_ABORT
+    /// until the wrapping method returns.
+    ///
+    /// For example:
+    ///
+    ///     try dbQueue.write { db in
+    ///         // interrupted:
+    ///         try Player(...).insert(db)     // throws SQLITE_INTERRUPT
+    ///         // not executed:
+    ///         try Player(...).insert(db)
+    ///     }                                  // throws SQLITE_INTERRUPT
+    ///
+    ///     try dbQueue.write { db in
+    ///         do {
+    ///             // interrupted:
+    ///             try Player(...).insert(db) // throws SQLITE_INTERRUPT
+    ///         } catch { }
+    ///         try Player(...).insert(db)     // throws SQLITE_ABORT
+    ///     }                                  // throws SQLITE_ABORT
+    ///
+    ///     try dbQueue.write { db in
+    ///         do {
+    ///             // interrupted:
+    ///             try Player(...).insert(db) // throws SQLITE_INTERRUPT
+    ///         } catch { }
+    ///     }                                  // throws SQLITE_ABORT
     func interrupt()
     
     // MARK: - Read From Database
