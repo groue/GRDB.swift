@@ -678,7 +678,11 @@ extension Database {
     
     func assertNotInsideAbortedTransactionBlock(sql: String? = nil, arguments: StatementArguments? = nil) throws {
         if isInsideAbortedTransactionBlock {
-            throw DatabaseError(resultCode: SQLITE_ABORT, message: "Transaction was aborted", sql: sql, arguments: arguments)
+            throw DatabaseError(
+                resultCode: SQLITE_ABORT,
+                message: "Transaction was aborted",
+                sql: sql,
+                arguments: arguments)
         }
     }
     

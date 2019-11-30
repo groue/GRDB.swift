@@ -31,8 +31,7 @@ public class Statement {
             .trimmingCharacters(in: .sqlStatementSeparators)
     }
     
-    @usableFromInline
-    unowned let database: Database
+    @usableFromInline unowned let database: Database
     
     /// Creates a prepared statement. Returns nil if the compiled string is
     /// blank or empty.
