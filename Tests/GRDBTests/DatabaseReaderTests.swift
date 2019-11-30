@@ -224,45 +224,4 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabasePool(configuration: Configuration())))
         try test(setup(makeDatabasePool(configuration: Configuration())).makeSnapshot())
     }
-    
-    // MARK: Interrupt
-    
-    func testInterruptWhileReading() throws {
-        func test(_ dbReader: DatabaseReader) throws {
-            let semaphore1 = DispatchSemaphore(value: 0)
-            let semaphore2 = DispatchSemaphore(value: 0)
-            
-            dbReader.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
-                semaphore1.signal()
-                semaphore2.wait()
-                return nil
-            })
-            let block1 = {
-                do {
-                    _ = try dbReader.read {
-                        try Row.fetchAll($0, sql: "SELECT wait()")
-                    }
-                    XCTFail("Expected error")
-                } catch let error as DatabaseError {
-                    XCTAssertEqual(error.resultCode, .SQLITE_INTERRUPT)
-                } catch {
-                    XCTFail("Unexpected error: \(error)")
-                }
-            }
-            let block2 = {
-                semaphore1.wait()
-                dbReader.interrupt()
-                semaphore2.signal()
-            }
-            let blocks = [block1, block2]
-            DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
-                blocks[index]()
-            }
-        }
-        
-        try test(DatabaseQueue())
-        try test(makeDatabaseQueue())
-        try test(makeDatabasePool())
-        try test(makeDatabasePool().makeSnapshot())
-    }
 }
