@@ -255,6 +255,8 @@ public final class AnyDatabaseReader: DatabaseReader {
         return base.configuration
     }
     
+    // MARK: - Interrupting Database Operations
+    
     /// :nodoc:
     public func interrupt() {
         base.interrupt()
