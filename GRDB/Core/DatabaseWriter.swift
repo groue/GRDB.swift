@@ -380,7 +380,7 @@ extension DatabaseWriter {
                         if let value = observer.reducer.value(fetchedValue) {
                             startValue = value
                         }
-
+                        
                         db.add(transactionObserver: observer, extent: .observerLifetime)
                     }
                 } catch {
