@@ -199,6 +199,11 @@ final class SerializedDatabase {
         return try block(db)
     }
     
+    func interrupt() {
+        // Intentionally not scheduled in our serial queue
+        db.interrupt()
+    }
+    
     /// Fatal error if current dispatch queue is not valid.
     func preconditionValidQueue(
         _ message: @autoclosure() -> String = "Database was not used on the correct thread.",

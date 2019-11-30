@@ -149,6 +149,12 @@ extension DatabaseQueue {
 
 extension DatabaseQueue {
     
+    // MARK: - Interrupting Database Operations
+    
+    public func interrupt() {
+        writer.interrupt()
+    }
+    
     // MARK: - Reading from Database
     
     /// Synchronously executes a read-only block in a protected dispatch queue,

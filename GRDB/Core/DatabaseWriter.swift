@@ -601,6 +601,13 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         return base.configuration
     }
     
+    // MARK: - Interrupting Database Operations
+    
+    /// :nodoc:
+    public func interrupt() {
+        base.interrupt()
+    }
+    
     // MARK: - Reading from Database
     
     /// :nodoc:

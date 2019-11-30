@@ -635,6 +635,10 @@ extension Database {
             throw DatabaseError(resultCode: code, message: lastErrorMessage)
         }
     }
+    
+    func interrupt() {
+        sqlite3_interrupt(sqliteConnection)
+    }
 }
 
 extension Database {

@@ -26,6 +26,11 @@ public protocol DatabaseReader: AnyObject {
     /// The database configuration
     var configuration: Configuration { get }
     
+    // MARK: - Interrupting Database Operations
+    
+    // TODO: doc
+    func interrupt()
+    
     // MARK: - Read From Database
     
     /// Synchronously executes a read-only block that takes a database
@@ -248,6 +253,11 @@ public final class AnyDatabaseReader: DatabaseReader {
     /// :nodoc:
     public var configuration: Configuration {
         return base.configuration
+    }
+    
+    /// :nodoc:
+    public func interrupt() {
+        base.interrupt()
     }
     
     // MARK: - Reading from Database
