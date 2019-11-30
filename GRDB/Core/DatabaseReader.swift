@@ -41,10 +41,10 @@ public protocol DatabaseReader: AnyObject {
     /// code SQLITE_INTERRUPT. If the interrupted SQL operation is an INSERT,
     /// UPDATE, or DELETE that is inside an explicit transaction, then the
     /// entire transaction will be rolled back automatically. If the rolled back
-    /// transaction was created by a method which wraps your database accesses,
-    /// such as `DatabaseWriter.write` or `Database.inTransaction`, then all
-    /// database accesses will throw a DatabaseError with code SQLITE_ABORT
-    /// until the wrapping method returns.
+    /// transaction was started by a transaction-wrapping method such as
+    /// `DatabaseWriter.write` or `Database.inTransaction`, then all database
+    /// accesses will throw a DatabaseError with code SQLITE_ABORT until the
+    /// wrapping method returns.
     ///
     /// For example:
     ///
