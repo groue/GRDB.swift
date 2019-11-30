@@ -965,7 +965,6 @@ extension Database {
         // The second technique is more robust, because we don't have to guess
         // which rollback errors should be ignored, and which rollback errors
         // should be exposed to the library user.
-        SchedulingWatchdog.preconditionValidQueue(self) // guard sqlite3_get_autocommit
         if isInsideTransaction {
             try execute(sql: "ROLLBACK TRANSACTION")
         }
