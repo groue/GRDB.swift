@@ -231,4 +231,47 @@ class DatabaseWriterTests : GRDBTestCase {
         }
         try DatabaseQueue().backup(to: dbQueue)
     }
+    
+    // MARK: Interrupt
+    
+    func testInterruptWhileWriting() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            let semaphore1 = DispatchSemaphore(value: 0)
+            let semaphore2 = DispatchSemaphore(value: 0)
+            
+            dbWriter.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
+                semaphore1.signal()
+                semaphore2.wait()
+                return nil
+            })
+            let block1 = {
+                do {
+                    _ = try dbWriter.write { db in
+                        try db.execute(sql: """
+                            CREATE TABLE t(a);
+                            INSERT INTO t (a) VALUES (wait())
+                            """)
+                    }
+                    XCTFail("Expected error")
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.resultCode, .SQLITE_INTERRUPT)
+                } catch {
+                    XCTFail("Unexpected error: \(error)")
+                }
+            }
+            let block2 = {
+                semaphore1.wait()
+                dbWriter.interrupt()
+                semaphore2.signal()
+            }
+            let blocks = [block1, block2]
+            DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+                blocks[index]()
+            }
+        }
+        
+        try test(DatabaseQueue())
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
 }
