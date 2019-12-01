@@ -46,7 +46,7 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
         try test(makeDatabasePool().makeSnapshot())
     }
     
-    func testReadTransactionAbortedByInterruptDoesNotPreventFurtherDatabaseAccess() throws {
+    func testReadTransactionAbortedByInterruptDoesNotPreventFurtherRead() throws {
         func test(_ dbReader: DatabaseReader) throws {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
@@ -58,6 +58,7 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
             })
             let block1 = {
                 try! dbReader.read { db in
+                    let wasInTransaction = db.isInsideTransaction
                     do {
                         _ = try Row.fetchAll(db, sql: "SELECT wait()")
                         XCTFail("Expected error")
@@ -66,7 +67,7 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
                     } catch {
                         XCTFail("Unexpected error: \(error)")
                     }
-                    dbReader.interrupt()
+                    XCTAssertEqual(db.isInsideTransaction, wasInTransaction)
                     try XCTAssertTrue(Bool.fetchOne(db, sql: "SELECT 1")!)
                 }
             }
@@ -163,6 +164,17 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
                         }
                         
                         XCTAssertFalse(db.isInsideTransaction)
+                        
+                        do {
+                            _ = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
+                            XCTFail("Expected error")
+                        } catch let error as DatabaseError {
+                            XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
+                            XCTAssertEqual(error.message, "Transaction was aborted")
+                            XCTAssertEqual(error.sql, "SELECT COUNT(*) FROM t")
+                        } catch {
+                            XCTFail("Unexpected error: \(error)")
+                        }
                         
                         do {
                             try db.execute(sql: "INSERT INTO t (a) VALUES (0)")
