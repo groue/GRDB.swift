@@ -252,6 +252,13 @@ extension DatabasePool {
 
 extension DatabasePool: DatabaseReader {
     
+    // MARK: - Interrupting Database Operations
+    
+    public func interrupt() {
+        writer.interrupt()
+        readerPool.forEach { $0.interrupt() }
+    }
+    
     // MARK: - Reading from Database
     
     /// Synchronously executes a read-only block in a protected dispatch queue,

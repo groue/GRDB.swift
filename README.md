@@ -281,6 +281,7 @@ Documentation
 - [Database Changes Observation](#database-changes-observation): Observe database changes and transactions.
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
 - [Backup](#backup): Dump the content of a database to another.
+- [Interrupt a Database](#interrupt-a-database): Abort any pending database operation.
 
 #### Good to Know
 
@@ -6638,6 +6639,50 @@ try source.backup(to: destination)
 The `backup` method blocks the current thread until the destination database contains the same contents as the source database.
 
 When the source is a [database pool](#database-pools), concurrent writes can happen during the backup. Those writes may, or may not, be reflected in the backup, but they won't trigger any error.
+
+
+## Interrupt a Database
+
+**The `interrupt()` method** causes any pending database operation to abort and return at its earliest opportunity.
+
+It can be called from any thread.
+
+```swift
+dbQueue.interrupt()
+dbPool.interrupt()
+```
+
+A call to `interrupt()` that occurs when there are no running SQL statements is a no-op and has no effect on SQL statements that are started after `interrupt()` returns.
+
+A database operation that is interrupted will throw a DatabaseError with code `SQLITE_INTERRUPT`. If the interrupted SQL operation is an INSERT, UPDATE, or DELETE that is inside an explicit transaction, then the entire transaction will be rolled back automatically. If the rolled back transaction was started by a transaction-wrapping method such as `DatabaseWriter.write` or `Database.inTransaction`, then all database accesses will throw a DatabaseError with code `SQLITE_ABORT` until the wrapping method returns.
+
+For example:
+
+```swift
+try dbQueue.write { db in
+    // interrupted:
+    try Player(...).insert(db)     // throws SQLITE_INTERRUPT
+    // not executed:
+    try Player(...).insert(db)
+}                                  // throws SQLITE_INTERRUPT
+
+try dbQueue.write { db in
+    do {
+        // interrupted:
+        try Player(...).insert(db) // throws SQLITE_INTERRUPT
+    } catch { }
+    try Player(...).insert(db)     // throws SQLITE_ABORT
+}                                  // throws SQLITE_ABORT
+
+try dbQueue.write { db in
+    do {
+        // interrupted:
+        try Player(...).insert(db) // throws SQLITE_INTERRUPT
+    } catch { }
+}                                  // throws SQLITE_ABORT
+```
+
+For more information, see [Interrupt A Long-Running Query](https://www.sqlite.org/c3ref/interrupt.html).
 
 
 ## Avoiding SQL Injection

@@ -37,7 +37,7 @@ class SelectStatementTests : GRDBTestCase {
         try dbQueue.inDatabase { db in
             let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
             let statement = try db.makeSelectStatement(sql: sql)
-            let cursor = statement.makeCursor()
+            let cursor = try statement.makeCursor()
             
             // Check that StatementCursor gives access to the raw SQLite API
             XCTAssertEqual(String(cString: sqlite3_column_name(cursor._statement.sqliteStatement, 0)), "firstName")

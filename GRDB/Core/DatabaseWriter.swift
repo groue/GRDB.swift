@@ -380,7 +380,7 @@ extension DatabaseWriter {
                         if let value = observer.reducer.value(fetchedValue) {
                             startValue = value
                         }
-
+                        
                         db.add(transactionObserver: observer, extent: .observerLifetime)
                     }
                 } catch {
@@ -599,6 +599,13 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     /// :nodoc:
     public var configuration: Configuration {
         return base.configuration
+    }
+    
+    // MARK: - Interrupting Database Operations
+    
+    /// :nodoc:
+    public func interrupt() {
+        base.interrupt()
     }
     
     // MARK: - Reading from Database

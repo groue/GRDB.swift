@@ -31,7 +31,7 @@ public class Statement {
             .trimmingCharacters(in: .sqlStatementSeparators)
     }
     
-    unowned let database: Database
+    @usableFromInline unowned let database: Database
     
     /// Creates a prepared statement. Returns nil if the compiled string is
     /// blank or empty.
@@ -346,8 +346,8 @@ public final class SelectStatement: Statement {
     /// Creates a cursor over the statement which does not produce any
     /// value. Each call to the next() cursor method calls the sqlite3_step()
     /// C function.
-    func makeCursor(arguments: StatementArguments? = nil) -> StatementCursor {
-        return StatementCursor(statement: self, arguments: arguments)
+    func makeCursor(arguments: StatementArguments? = nil) throws -> StatementCursor {
+        return try StatementCursor(statement: self, arguments: arguments)
     }
     
     /// Utility function for cursors
@@ -384,13 +384,13 @@ final class StatementCursor: Cursor {
     var _done = false
     
     // Use SelectStatement.makeCursor() instead
-    init(statement: SelectStatement, arguments: StatementArguments? = nil) {
+    init(statement: SelectStatement, arguments: StatementArguments? = nil) throws {
         _statement = statement
         _sqliteStatement = statement.sqliteStatement
         _statement.reset(withArguments: arguments)
         
         // Assume cursor is created for iteration
-        statement.database.selectStatementWillExecute(statement)
+        try statement.database.selectStatementWillExecute(statement)
     }
     
     deinit {

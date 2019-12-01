@@ -146,6 +146,38 @@ public final class Database {
     /// Use recordingSelectedRegion(_:), see `selectStatementWillExecute(_:)`
     var _isRecordingSelectedRegion: Bool = false
     var _selectedRegion = DatabaseRegion()
+    
+    /// True inside `inTransaction { ... }` and `inSavepoint { ... }`
+    @usableFromInline var isInsideTransactionBlock = false
+    
+    /// When true, a transaction has been aborted (for example, by
+    /// `sqlite3_interrupt`, or a `ON CONFLICT ROLLBACK` clause.
+    ///
+    ///     try db.inTransaction {
+    ///         do {
+    ///             // Aborted by sqlite3_interrupt or any other
+    ///             // SQLite error which leaves transaction
+    ///             ...
+    ///         } catch { ... }
+    ///
+    ///         // <- Here we're inside an aborted transaction.
+    ///         ...
+    ///
+    ///         return .commit
+    ///     }
+    ///
+    /// When a transaction has been aborted, we throw SQLITE_ABORT for all
+    /// database accesses, because we don't want the user to think they are
+    /// safely wrapped by a transaction.
+    ///
+    /// We only monitor aborted transaction for `inTransaction` and
+    /// `inSavepoint` methods. When you use explicit methods like
+    /// `beginTransaction`, `commit`, or raw SQL statements, aborted
+    /// transactions are not monitored, and you won't get SQLITE_ABORT for
+    /// database accesses that run after a transaction has been aborted.
+    @usableFromInline var isInsideAbortedTransactionBlock: Bool {
+        return isInsideTransactionBlock && !isInsideTransaction
+    }
 
     // MARK: - Private properties
     
@@ -635,10 +667,24 @@ extension Database {
             throw DatabaseError(resultCode: code, message: lastErrorMessage)
         }
     }
+    
+    func interrupt() {
+        sqlite3_interrupt(sqliteConnection)
+    }
 }
 
 extension Database {
     // MARK: - Transactions & Savepoint
+    
+    func assertNotInsideAbortedTransactionBlock(sql: String? = nil, arguments: StatementArguments? = nil) throws {
+        if isInsideAbortedTransactionBlock {
+            throw DatabaseError(
+                resultCode: SQLITE_ABORT,
+                message: "Transaction was aborted",
+                sql: sql,
+                arguments: arguments)
+        }
+    }
     
     /// Executes a block inside a database transaction.
     ///
@@ -666,6 +712,12 @@ extension Database {
         // Begin transaction
         try beginTransaction(kind)
         
+        let wasInsideTransactionBlock = isInsideTransactionBlock
+        isInsideTransactionBlock = true
+        defer {
+            isInsideTransactionBlock = wasInsideTransactionBlock
+        }
+        
         // Now that transaction has begun, we'll rollback in case of error.
         // But we'll throw the first caught error, so that user knows
         // what happened.
@@ -675,6 +727,15 @@ extension Database {
             let completion = try block()
             switch completion {
             case .commit:
+                // In case of aborted transaction, throw SQLITE_ABORT instead
+                // of the generic SQLITE_ERROR "cannot commit - no transaction is active"
+                try assertNotInsideAbortedTransactionBlock()
+                
+                // Leave transaction block now, so that transaction observers
+                // can execute statements without getting errors from
+                // assertNotInsideAbortedTransactionBlock.
+                isInsideTransactionBlock = wasInsideTransactionBlock
+                
                 try commit()
                 needsRollback = false
             case .rollback:
@@ -726,7 +787,8 @@ extension Database {
         // So when the default GRDB transaction kind is not deferred, we open a
         // transaction instead
         if !isInsideTransaction && configuration.defaultTransactionKind != .deferred {
-            return try inTransaction(configuration.defaultTransactionKind, block)
+            try inTransaction(configuration.defaultTransactionKind, block)
+            return
         }
         
         // If the savepoint is top-level, we'll use ROLLBACK TRANSACTION in
@@ -742,6 +804,12 @@ extension Database {
         // the user uses "grdb" as a savepoint name.
         try execute(sql: "SAVEPOINT grdb")
         
+        let wasInsideTransactionBlock = isInsideTransactionBlock
+        isInsideTransactionBlock = true
+        defer {
+            isInsideTransactionBlock = wasInsideTransactionBlock
+        }
+        
         // Now that savepoint has begun, we'll rollback in case of error.
         // But we'll throw the first caught error, so that user knows
         // what happened.
@@ -751,6 +819,15 @@ extension Database {
             let completion = try block()
             switch completion {
             case .commit:
+                // In case of aborted transaction, throw SQLITE_ABORT instead
+                // of the generic SQLITE_ERROR "cannot commit - no transaction is active"
+                try assertNotInsideAbortedTransactionBlock()
+                
+                // Leave transaction block now, so that transaction observers
+                // can execute statements without getting errors from
+                // assertNotInsideAbortedTransactionBlock.
+                isInsideTransactionBlock = wasInsideTransactionBlock
+                
                 try execute(sql: "RELEASE SAVEPOINT grdb")
                 assert(!topLevelSavepoint || !isInsideTransaction)
                 needsRollback = false
@@ -888,8 +965,7 @@ extension Database {
         // The second technique is more robust, because we don't have to guess
         // which rollback errors should be ignored, and which rollback errors
         // should be exposed to the library user.
-        SchedulingWatchdog.preconditionValidQueue(self) // guard sqlite3_get_autocommit
-        if sqlite3_get_autocommit(sqliteConnection) == 0 {
+        if isInsideTransaction {
             try execute(sql: "ROLLBACK TRANSACTION")
         }
         assert(!isInsideTransaction)

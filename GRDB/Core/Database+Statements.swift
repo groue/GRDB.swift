@@ -222,6 +222,12 @@ extension Database {
 extension Database {
     
     func executeUpdateStatement(_ statement: UpdateStatement) throws {
+        // In aborted transaction, forbid all statements but statements that
+        // manage transaction.
+        if statement.transactionEffect == nil {
+            try assertNotInsideAbortedTransactionBlock(sql: statement.sql, arguments: statement.arguments)
+        }
+        
         let authorizer = observationBroker.updateStatementWillExecute(statement)
         let sqliteStatement = statement.sqliteStatement
         var code: Int32 = SQLITE_OK
@@ -289,7 +295,9 @@ extension Database {
     }
     
     @inline(__always)
-    func selectStatementWillExecute(_ statement: SelectStatement) {
+    func selectStatementWillExecute(_ statement: SelectStatement) throws {
+        try assertNotInsideAbortedTransactionBlock(sql: statement.sql, arguments: statement.arguments)
+        
         if _isRecordingSelectedRegion {
             // Don't record schema introspection queries, which may be
             // run, or not, depending on the state of the schema cache.

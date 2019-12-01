@@ -74,45 +74,6 @@
     ```
     
 - [ ] new.updateChanges(from: old) vs. old.updateChanges(with: { old.a = new.a }). This is confusing.
-- [ ] Support for OR ROLLBACK, and mismatch between the Swift depth and the SQLite depth of nested transactions/savepoint:
-    
-    ```swift
-    try db.inTransaction {           // Swift depth: 1, SQLite depth: 1
-        try db.execute("COMMIT")     // Swift depth: 1, SQLite depth: 0
-        try db.execute("INSERT ...") // Should throw an error since this statement is no longer protected by a transaction
-        try db.execute("SELECT ...") // Should throw an error since this statement is no longer protected by a transaction
-        return .commit 
-    }
-    ```
-
-    ```swift
-    try db.inTransaction {
-        try db.execute("INSERT OR ROLLBACK ...") // throws 
-        return .commit // not executed because of error
-    }   // Should not ROLLBACK since transaction has already been rollbacked
-    ```
-
-    ```swift
-    try db.inTransaction {
-        do {
-            try db.execute("INSERT OR ROLLBACK ...") // throws
-        } catch {
-        }
-        try db.execute("INSERT ...") // Should throw an error since this statement is no longer protected by a transaction
-        try db.execute("SELECT ...") // Should throw an error since this statement is no longer protected by a transaction
-        return .commit
-    }
-    ```
-
-    ```swift
-    try db.inTransaction {
-        do {
-            try db.execute("INSERT OR ROLLBACK ...") // throws
-        } catch {
-        }
-        return .commit  // Should throw an error since transaction has been rollbacked and user's intent can not be applied
-    }
-    ```
 
 
 ## Reading list
