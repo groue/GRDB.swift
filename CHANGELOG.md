@@ -62,6 +62,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 **New**
 
 - [#659](https://github.com/groue/GRDB.swift/pull/659): Database interruption
+- [#660](https://github.com/groue/GRDB.swift/pull/659): Exclusive Lock Prevention
 
 ### Documentation Diff
 
