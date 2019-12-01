@@ -717,15 +717,24 @@ extension Database {
     }
     
     func assertExclusiveLockPrevention(from statement: Statement) throws {
-        if preventsExclusiveLock.value {
-            // Attempt at releasing eventual exclusive lock.
-            // See Database.startPreventingExclusiveLock()
-            try? rollback()
-            throw DatabaseError(
-                resultCode: .SQLITE_ABORT,
-                message: "Can't acquire exclusive lock",
-                sql: statement.sql,
-                arguments: statement.arguments)
+        SchedulingWatchdog.assertValidQueue(self)
+        
+        try preventsExclusiveLock.read { preventsExclusiveLock in
+            if preventsExclusiveLock {
+                // Attempt at releasing eventual exclusive lock with ROLLBACk,
+                // as explained in Database.startPreventingExclusiveLock().
+                //
+                // We don't use `try? rollback()` because we're not in the
+                // protected dispatch queue here due to
+                // `preventsExclusiveLock.read`.
+                _ = sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
+                
+                throw DatabaseError(
+                    resultCode: .SQLITE_ABORT,
+                    message: "Can't acquire exclusive lock",
+                    sql: statement.sql,
+                    arguments: statement.arguments)
+            }
         }
     }
 }
