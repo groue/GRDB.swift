@@ -177,10 +177,21 @@ public protocol DatabaseWriter: DatabaseReader {
     
     // MARK: - Exclusive Lock Prevention
     
-    // TODO: doc
+    /// Starts exclusive lock prevention.
+    ///
+    /// During exclusive lock prevention, any exclusive lock is released as soon
+    /// as possible, and acquisition of exclusive lock is prevented.
+    ///
+    /// All database accesses may throw a DatabaseError of code
+    /// `SQLITE_INTERRUPT`, or `SQLITE_ABORT`.
+    ///
+    /// Read-only connections are not affected. Such errors will never happen to
+    /// `DatabasePool.read(_:)`, for example.
+    ///
+    /// Exclusive lock prevention ends with stopPreventingExclusiveLock().
     func startPreventingExclusiveLock()
     
-    // TODO: doc
+    /// Ends exclusive lock prevention. See startPreventingExclusiveLock().
     func stopPreventingExclusiveLock()
 }
 
