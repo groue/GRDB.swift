@@ -707,14 +707,26 @@ extension Database {
             // - the rollback may fail, and a lock could remain.
             //
             // We work around this situation by issuing a rollback on next
-            // database access which requires an exclusive lock.
-            // See Database.executeUpdateStatement(_:) and
-            // Database.selectStatementWillExecute(_:).
+            // database access which requires an exclusive lock,
+            // in preventExclusiveLock(from:).
         }
     }
     
     func stopPreventingExclusiveLock() {
         preventsExclusiveLock.value = false
+    }
+    
+    func assertExclusiveLockPrevention(from statement: Statement) throws {
+        if preventsExclusiveLock.value {
+            // Attempt at releasing eventual exclusive lock.
+            // See Database.startPreventingExclusiveLock()
+            try? rollback()
+            throw DatabaseError(
+                resultCode: .SQLITE_ABORT,
+                message: "Can't acquire exclusive lock",
+                sql: statement.sql,
+                arguments: statement.arguments)
+        }
     }
 }
 
