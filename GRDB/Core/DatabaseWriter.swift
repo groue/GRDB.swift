@@ -179,6 +179,8 @@ public protocol DatabaseWriter: DatabaseReader {
     
     /// Starts exclusive lock prevention.
     ///
+    /// This method can be called from any thread.
+    ///
     /// During exclusive lock prevention, any exclusive lock is released as soon
     /// as possible, and acquisition of exclusive lock is prevented.
     ///
@@ -192,6 +194,8 @@ public protocol DatabaseWriter: DatabaseReader {
     func startPreventingExclusiveLock()
     
     /// Ends exclusive lock prevention. See startPreventingExclusiveLock().
+    ///
+    /// This method can be called from any thread.
     func stopPreventingExclusiveLock()
 }
 
