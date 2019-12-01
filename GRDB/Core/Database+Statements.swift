@@ -222,8 +222,17 @@ extension Database {
 extension Database {
     
     func executeUpdateStatement(_ statement: UpdateStatement) throws {
+        if preventsExclusiveLock.value && statement.createsExclusiveLock {
+            try? rollback()
+            throw DatabaseError(
+                resultCode: .SQLITE_ABORT_EXCLUSIVE,
+                message: "Can't acquire exclusive lock",
+                sql: statement.sql,
+                arguments: statement.arguments)
+        }
+        
         // In aborted transaction, forbid all statements but statements that
-        // manage transaction.
+        // manage transactions.
         if statement.transactionEffect == nil {
             try assertNotInsideAbortedTransactionBlock(sql: statement.sql, arguments: statement.arguments)
         }
@@ -296,6 +305,15 @@ extension Database {
     
     @inline(__always)
     func selectStatementWillExecute(_ statement: SelectStatement) throws {
+        if preventsExclusiveLock.value && !statement.isReadonly {
+            try? rollback()
+            throw DatabaseError(
+                resultCode: .SQLITE_ABORT_EXCLUSIVE,
+                message: "Can't acquire exclusive lock",
+                sql: statement.sql,
+                arguments: statement.arguments)
+        }
+        
         try assertNotInsideAbortedTransactionBlock(sql: statement.sql, arguments: statement.arguments)
         
         if _isRecordingSelectedRegion {

@@ -155,6 +155,22 @@ extension DatabaseQueue {
         writer.interrupt()
     }
     
+    public func startPreventingExclusiveLock() {
+        if configuration.readonly {
+            // read-only connections can't acquire exclusive locks
+            return
+        }
+        writer.startPreventingExclusiveLock()
+    }
+    
+    public func stopPreventingExclusiveLock() {
+        if configuration.readonly {
+            // read-only connections can't acquire exclusive locks
+            return
+        }
+        writer.stopPreventingExclusiveLock()
+    }
+    
     // MARK: - Reading from Database
     
     /// Synchronously executes a read-only block in a protected dispatch queue,

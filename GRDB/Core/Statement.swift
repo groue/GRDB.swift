@@ -31,7 +31,11 @@ public class Statement {
             .trimmingCharacters(in: .sqlStatementSeparators)
     }
     
-    @usableFromInline unowned let database: Database
+    var isReadonly: Bool {
+        return sqlite3_stmt_readonly(sqliteStatement) != 0
+    }
+    
+    unowned let database: Database
     
     /// Creates a prepared statement. Returns nil if the compiled string is
     /// blank or empty.
@@ -448,6 +452,19 @@ public final class UpdateStatement: Statement {
     
     private(set) var transactionEffect: TransactionEffect?
     private(set) var databaseEventKinds: [DatabaseEventKind] = []
+    
+    var createsExclusiveLock: Bool {
+        switch transactionEffect {
+        case .beginTransaction:
+            // Not technically correct, because only immediate transactions
+            // acquire an exclusive lock. But SQLite authorizer does not allow
+            // us to distinguish BEGIN DEFERRED TRANSACTION from
+            // BEGIN IMMEDIATE TRANSACTION.
+            return true
+        default:
+            return sqlite3_stmt_readonly(sqliteStatement) == 0
+        }
+    }
     
     /// Creates a prepared statement. Returns nil if the compiled string is
     /// blank or empty.

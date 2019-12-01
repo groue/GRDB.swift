@@ -174,6 +174,14 @@ public protocol DatabaseWriter: DatabaseReader {
     /// :nodoc:
     func spawnConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void)
     #endif
+    
+    // MARK: - Exclusive Lock Prevention
+    
+    // TODO: doc
+    func startPreventingExclusiveLock()
+    
+    // TODO: doc
+    func stopPreventingExclusiveLock()
 }
 
 extension DatabaseWriter {
@@ -606,6 +614,18 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     /// :nodoc:
     public func interrupt() {
         base.interrupt()
+    }
+    
+    // MARK: - Exclusive Lock Prevention
+    
+    /// :nodoc:
+    public func startPreventingExclusiveLock() {
+        base.startPreventingExclusiveLock()
+    }
+    
+    /// :nodoc:
+    public func stopPreventingExclusiveLock() {
+        base.stopPreventingExclusiveLock()
     }
     
     // MARK: - Reading from Database

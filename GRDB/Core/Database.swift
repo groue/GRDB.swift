@@ -148,7 +148,7 @@ public final class Database {
     var _selectedRegion = DatabaseRegion()
     
     /// True inside `inTransaction { ... }` and `inSavepoint { ... }`
-    @usableFromInline var isInsideTransactionBlock = false
+    var isInsideTransactionBlock = false
     
     /// When true, a transaction has been aborted (for example, by
     /// `sqlite3_interrupt`, or a `ON CONFLICT ROLLBACK` clause.
@@ -175,10 +175,13 @@ public final class Database {
     /// `beginTransaction`, `commit`, or raw SQL statements, aborted
     /// transactions are not monitored, and you won't get SQLITE_ABORT for
     /// database accesses that run after a transaction has been aborted.
-    @usableFromInline var isInsideAbortedTransactionBlock: Bool {
+    var isInsideAbortedTransactionBlock: Bool {
         return isInsideTransactionBlock && !isInsideTransaction
     }
-
+    
+    // See startPreventingExclusiveLock
+    var preventsExclusiveLock = ReadWriteBox<Bool>(value: false)
+    
     // MARK: - Private properties
     
     private var busyCallback: BusyCallback?
@@ -668,8 +671,50 @@ extension Database {
         }
     }
     
+    // See https://www.sqlite.org/c3ref/interrupt.html
     func interrupt() {
         sqlite3_interrupt(sqliteConnection)
+    }
+    
+    /// Aborts any exclusive lock, as soon as possible, at any cost.
+    ///
+    /// See https://www.sqlite.org/lockingv3.html
+    func startPreventingExclusiveLock() {
+        preventsExclusiveLock.write { preventsExclusiveLock in
+            if preventsExclusiveLock {
+                return
+            }
+            
+            // Prevent future lock acquisition
+            preventsExclusiveLock = true
+            
+            // Interrupt the database because this may trigger an
+            // SQLITE_INTERRUPT error which may itself abort a transaction and
+            // release an exclusive lock. See https://www.sqlite.org/c3ref/interrupt.html
+            interrupt()
+            
+            // What about the eventual remaining exclusive lock?
+            // If the database had been opened with the SQLITE_OPEN_FULLMUTEX
+            // flag, we could safely execute a rollback statement:
+            //
+            //  if configuration.SQLiteOpenFlags & SQLITE_OPEN_FULLMUTEX != 0 {
+            //      sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
+            //  }
+            //
+            // But:
+            //
+            // - we currently use SQLITE_OPEN_NOMUTEX instead of SQLITE_OPEN_FULLMUTEX.
+            // - the rollback may fail, and a lock could remain.
+            //
+            // We work around this situation by issuing a rollback on next
+            // database access which requires an exclusive lock.
+            // See Database.executeUpdateStatement(_:) and
+            // Database.selectStatementWillExecute(_:).
+        }
+    }
+    
+    func stopPreventingExclusiveLock() {
+        preventsExclusiveLock.value = false
     }
 }
 
