@@ -6682,6 +6682,8 @@ try dbQueue.write { db in
 }                                  // throws SQLITE_ABORT
 ```
 
+For more information, see [Interrupt A Long-Running Query](https://www.sqlite.org/c3ref/interrupt.html).
+
 
 ## Avoiding SQL Injection
 

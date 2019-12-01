@@ -63,6 +63,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - [#659](https://github.com/groue/GRDB.swift/pull/659): Database interruption
 
+### Documentation Diff
+
+A new [Interrupt a Database](README.md#interrupt-a-database) chapter documents the new `interrupt()` method.
+
 
 ## 4.6.2
 
