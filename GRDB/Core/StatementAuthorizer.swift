@@ -66,7 +66,8 @@ final class StatementCompilationAuthorizer: StatementAuthorizer {
              SQLITE_CREATE_INDEX, SQLITE_CREATE_TABLE,
              SQLITE_CREATE_TEMP_INDEX, SQLITE_CREATE_TEMP_TABLE,
              SQLITE_CREATE_TEMP_TRIGGER, SQLITE_CREATE_TEMP_VIEW,
-             SQLITE_CREATE_TRIGGER, SQLITE_CREATE_VIEW:
+             SQLITE_CREATE_TRIGGER, SQLITE_CREATE_VIEW,
+             SQLITE_CREATE_VTABLE:
             invalidatesDatabaseSchemaCache = true
             return SQLITE_OK
             
