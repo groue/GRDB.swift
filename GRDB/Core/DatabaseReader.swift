@@ -69,6 +69,19 @@ public protocol DatabaseReader: AnyObject {
     ///             try Player(...).insert(db) // throws SQLITE_INTERRUPT
     ///         } catch { }
     ///     }                                  // throws SQLITE_ABORT
+    ///
+    /// When an application creates transaction without a transaction-wrapping
+    /// method, no SQLITE_ABORT error warns of aborted transactions:
+    ///
+    ///     try dbQueue.inDatabase { db in // or dbPool.writeWithoutTransaction
+    ///         try db.beginTransaction()
+    ///         do {
+    ///             // interrupted:
+    ///             try Player(...).insert(db) // throws SQLITE_INTERRUPT
+    ///         } catch { }
+    ///         try Player(...).insert(db)     // success
+    ///         try db.commit()                // throws SQLITE_ERROR "cannot commit - no transaction is active"
+    ///     }
     func interrupt()
     
     // MARK: - Read From Database
