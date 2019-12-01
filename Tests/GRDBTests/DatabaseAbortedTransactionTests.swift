@@ -106,14 +106,14 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
             let block1 = {
                 do {
                     try dbWriter.write { db in
-                        try db.execute(sql: "INSERT INTO t (a) VALUES (wait())")
+                        try db.execute(sql: "INSERT INTO t SELECT wait()")
                     }
                     XCTFail("Expected error")
                 } catch let error as DatabaseError {
                     // Transactions throw the first uncatched error: SQLITE_INTERRUPT
                     XCTAssertEqual(error.resultCode, .SQLITE_INTERRUPT)
                     XCTAssertEqual(error.message, "interrupted")
-                    XCTAssertEqual(error.sql, "INSERT INTO t (a) VALUES (wait())")
+                    XCTAssertEqual(error.sql, "INSERT INTO t SELECT wait()")
                 } catch {
                     XCTFail("Unexpected error: \(error)")
                 }
@@ -154,7 +154,7 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
                 do {
                     try dbWriter.write { db in
                         do {
-                            try db.execute(sql: "INSERT INTO t (a) VALUES (wait())")
+                            try db.execute(sql: "INSERT INTO t SELECT wait()")
                             XCTFail("Expected error")
                         } catch let error as DatabaseError {
                             XCTAssertEqual(error.resultCode, .SQLITE_INTERRUPT)
@@ -221,7 +221,7 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
                 try! dbWriter.writeWithoutTransaction { db in
                     try db.inTransaction {
                         do {
-                            try db.execute(sql: "INSERT INTO t (a) VALUES (wait())")
+                            try db.execute(sql: "INSERT INTO t SELECT wait()")
                             XCTFail("Expected error")
                         } catch let error as DatabaseError {
                             XCTAssertEqual(error.resultCode, .SQLITE_INTERRUPT)
