@@ -225,7 +225,7 @@ extension Database {
         if preventsExclusiveLock.value && statement.createsExclusiveLock {
             try? rollback()
             throw DatabaseError(
-                resultCode: .SQLITE_ABORT_EXCLUSIVE,
+                resultCode: .SQLITE_ABORT,
                 message: "Can't acquire exclusive lock",
                 sql: statement.sql,
                 arguments: statement.arguments)
@@ -308,7 +308,7 @@ extension Database {
         if preventsExclusiveLock.value && !statement.isReadonly {
             try? rollback()
             throw DatabaseError(
-                resultCode: .SQLITE_ABORT_EXCLUSIVE,
+                resultCode: .SQLITE_ABORT,
                 message: "Can't acquire exclusive lock",
                 sql: statement.sql,
                 arguments: statement.arguments)

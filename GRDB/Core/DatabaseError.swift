@@ -153,14 +153,6 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     public static let SQLITE_WARNING_AUTOINDEX       = ResultCode(rawValue: (SQLITE_WARNING.rawValue | (1<<8)))
     public static let SQLITE_AUTH_USER               = ResultCode(rawValue: (SQLITE_AUTH.rawValue | (1<<8)))
     public static let SQLITE_OK_LOAD_PERMANENTLY     = ResultCode(rawValue: (SQLITE_OK.rawValue | (1<<8)))
-    
-    // GRDB-specific
-    /// SQLITE_ABORT_EXCLUSIVE (32772) is thrown when an SQL statement attempts
-    /// at acquiring an exclusive lock on a database which prevents exclusive
-    /// lock acquisition.
-    ///
-    /// See DatabaseWriter.prevents
-    public static let SQLITE_ABORT_EXCLUSIVE         = ResultCode(rawValue: (SQLITE_ABORT.rawValue | (128<<8)))
     // swiftlint:enable operator_usage_whitespace line_length
 }
 
