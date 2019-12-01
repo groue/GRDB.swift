@@ -676,13 +676,17 @@ extension Database {
 extension Database {
     // MARK: - Transactions & Savepoint
     
-    func assertNotInsideAbortedTransactionBlock(sql: String? = nil, arguments: StatementArguments? = nil) throws {
+    func assertNotInsideAbortedTransactionBlock(
+        sql: @autoclosure () -> String? = nil,
+        arguments: @autoclosure () -> StatementArguments? = nil)
+        throws
+    {
         if isInsideAbortedTransactionBlock {
             throw DatabaseError(
-                resultCode: SQLITE_ABORT,
+                resultCode: .SQLITE_ABORT,
                 message: "Transaction was aborted",
-                sql: sql,
-                arguments: arguments)
+                sql: sql(),
+                arguments: arguments())
         }
     }
     
