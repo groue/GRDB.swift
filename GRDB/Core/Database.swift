@@ -179,8 +179,11 @@ public final class Database {
         return isInsideTransactionBlock && !isInsideTransaction
     }
     
-    // See startPreventingLock
+    /// See startPreventingLock
     var preventsLock = LockedBox<Bool>(value: false)
+    
+    /// Support for assertLockPrevention(from:)
+    var journalModeCache: String?
     
     // MARK: - Private properties
     
@@ -202,9 +205,6 @@ public final class Database {
     deinit {
         assert(isClosed)
     }
-}
-
-extension Database {
     
     // MARK: - Database Opening
     
@@ -230,9 +230,6 @@ extension Database {
         }
         throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
     }
-}
-
-extension Database {
     
     // MARK: - Database Setup
     
@@ -396,7 +393,7 @@ extension Database {
         },
             dbPointer)
     }
-
+    
     
     private func activateExtendedCodes() throws {
         let code = sqlite3_extended_result_codes(sqliteConnection, 1)
@@ -431,9 +428,6 @@ extension Database {
         // another passphrase.
         try makeSelectStatement(sql: "SELECT * FROM sqlite_master LIMIT 1").makeCursor().next()
     }
-}
-
-extension Database {
     
     // MARK: - Database Closing
     
@@ -507,9 +501,6 @@ extension Database {
             log(ResultCode(rawValue: code), "could not close database: \(message)")
         }
     }
-}
-
-extension Database {
     
     // MARK: - Functions
     
@@ -533,9 +524,6 @@ extension Database {
         functions.remove(function)
         function.uninstall(in: self)
     }
-}
-
-extension Database {
     
     // MARK: - Collations
     
@@ -573,9 +561,6 @@ extension Database {
             SQLITE_UTF8,
             nil, nil, nil)
     }
-}
-
-extension Database {
     
     // MARK: - Read-Only Access
     
@@ -626,9 +611,6 @@ extension Database {
         
         return result!
     }
-}
-
-extension Database {
     
     // MARK: - Authorizer
     
@@ -639,9 +621,6 @@ extension Database {
         defer { self._authorizer = old }
         return try block()
     }
-}
-
-extension Database {
     
     // MARK: - Recording of the selected region
     
@@ -661,9 +640,9 @@ extension Database {
         }
         return try (block(), _selectedRegion)
     }
-}
-
-extension Database {
+    
+    // MARK: - Checkpoints
+    
     func checkpoint(_ kind: Database.CheckpointMode) throws {
         let code = sqlite3_wal_checkpoint_v2(sqliteConnection, nil, kind.rawValue, nil, nil)
         guard code == SQLITE_OK else {
@@ -671,10 +650,14 @@ extension Database {
         }
     }
     
+    // MARK: - Interrupt
+    
     // See https://www.sqlite.org/c3ref/interrupt.html
     func interrupt() {
         sqlite3_interrupt(sqliteConnection)
     }
+    
+    // MARK: - Lock Prevention
     
     /// Release any database lock, as soon as possible, at any cost.
     ///
@@ -713,11 +696,79 @@ extension Database {
     }
     
     func stopPreventingLock() {
-        preventsLock.value = false
+        preventsLock.write { preventsLock in
+            preventsLock = false
+            // Reset journalMode cache until next need for it
+            journalModeCache = nil
+        }
     }
-}
-
-extension Database {
+    
+    /// Support for assertLockPrevention(from:)
+    private func journalMode() throws -> String {
+        if let journalMode = journalModeCache {
+            return journalMode
+        }
+        
+        // Don't return String.fetchOne(self, sql: "PRAGMA journal_mode"), so
+        // that we don't create an infinite loop of assertLockPrevention(from:)
+        let journalModeStatement = try internalStatementCache.selectStatement("PRAGMA journal_mode")
+        try journalModeStatement.reset()
+        defer {
+            try? journalModeStatement.reset()
+        }
+        let code = sqlite3_step(journalModeStatement.sqliteStatement)
+        guard code == SQLITE_ROW else {
+            try journalModeStatement.didFail(withResultCode: code)
+        }
+        let journalMode = String(cString: sqlite3_column_text(journalModeStatement.sqliteStatement, 0)!)
+        journalModeCache = journalMode
+        return journalMode
+    }
+    
+    func assertLockPrevention(from statement: Statement) throws {
+        try preventsLock.read { preventsLock in
+            guard preventsLock else {
+                return
+            }
+            
+            if try journalMode() == "wal" && statement.isReadonly {
+                // In WAL mode, accept read-only statements:
+                // - SELECT ...
+                // - BEGIN DEFERRED TRANSACTION
+                //
+                // Those are not read-only:
+                // - INSERT ...
+                // - BEGIN IMMEDIATE TRANSACTION
+                return
+            }
+            
+            if
+                let updateStatement = statement as? UpdateStatement,
+                updateStatement.releasesDatabaseLock
+            {
+                // Accept statements that release locks:
+                // - COMMIT
+                // - ROLLBACK
+                // - ROLLBACK TRANSACTION TO SAVEPOINT
+                // - RELEASE SAVEPOINT
+                return
+            }
+            
+            // Attempt at releasing an eventual lock with ROLLBACk,
+            // as explained in Database.startPreventingLock().
+            //
+            // Use sqlite3_exec instead of `try? rollback()` in order to avoid
+            // an infinite loop of assertLockPrevention(from:)
+            _ = sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
+            
+            throw DatabaseError(
+                resultCode: .SQLITE_ABORT,
+                message: "Can't acquire lock",
+                sql: statement.sql,
+                arguments: statement.arguments)
+        }
+    }
+    
     // MARK: - Transactions & Savepoint
     
     func assertNotInsideAbortedTransactionBlock(
@@ -1024,9 +1075,6 @@ extension Database {
         try execute(sql: "COMMIT TRANSACTION")
         assert(!isInsideTransaction)
     }
-}
-
-extension Database {
     
     // MARK: - Memory Management
     
@@ -1036,9 +1084,6 @@ extension Database {
         internalStatementCache.clear()
         publicStatementCache.clear()
     }
-}
-
-extension Database {
     
     // MARK: - Backup
     
