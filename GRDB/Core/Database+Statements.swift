@@ -255,9 +255,9 @@ extension Database {
             
             if
                 let updateStatement = statement as? UpdateStatement,
-                updateStatement.leavesTransaction
+                updateStatement.releasesDatabaseLock
             {
-                // Accept statements that remove locks:
+                // Accept statements that release locks:
                 // - COMMIT
                 // - ROLLBACK
                 // - ROLLBACK TRANSACTION TO SAVEPOINT

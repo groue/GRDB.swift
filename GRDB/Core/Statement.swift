@@ -453,12 +453,19 @@ public final class UpdateStatement: Statement {
     private(set) var transactionEffect: TransactionEffect?
     private(set) var databaseEventKinds: [DatabaseEventKind] = []
     
-    var leavesTransaction: Bool {
+    var releasesDatabaseLock: Bool {
+        guard let transactionEffect = transactionEffect else {
+            return false
+        }
+        
         switch transactionEffect {
         case .commitTransaction, .rollbackTransaction,
              .releaseSavepoint, .rollbackSavepoint:
-            // Not technically correct: ROLLBACK TRANSACTION TO SAVEPOINT and
-            // RELEASE SAVEPOINT do not leave transactions.
+            // Not technically correct:
+            // - ROLLBACK TRANSACTION TO SAVEPOINT does not release any lock
+            // - RELEASE SAVEPOINT does not always release lock
+            //
+            // But both move in the direction of releasing locks :-)
             return true
         default:
             return false
