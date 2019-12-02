@@ -179,8 +179,8 @@ public final class Database {
         return isInsideTransactionBlock && !isInsideTransaction
     }
     
-    // See startPreventingExclusiveLock
-    var preventsExclusiveLock = ReadWriteBox<Bool>(value: false)
+    // See startPreventingLock
+    var preventsLock = LockedBox<Bool>(value: false)
     
     // MARK: - Private properties
     
@@ -676,24 +676,24 @@ extension Database {
         sqlite3_interrupt(sqliteConnection)
     }
     
-    /// Aborts any exclusive lock, as soon as possible, at any cost.
+    /// Release any database lock, as soon as possible, at any cost.
     ///
     /// See https://www.sqlite.org/lockingv3.html
-    func startPreventingExclusiveLock() {
-        preventsExclusiveLock.write { preventsExclusiveLock in
-            if preventsExclusiveLock {
+    func startPreventingLock() {
+        preventsLock.write { preventsLock in
+            if preventsLock {
                 return
             }
             
             // Prevent future lock acquisition
-            preventsExclusiveLock = true
+            preventsLock = true
             
             // Interrupt the database because this may trigger an
             // SQLITE_INTERRUPT error which may itself abort a transaction and
-            // release an exclusive lock. See https://www.sqlite.org/c3ref/interrupt.html
+            // release a lock. See https://www.sqlite.org/c3ref/interrupt.html
             interrupt()
             
-            // What about the eventual remaining exclusive lock?
+            // What about the eventual remaining lock?
             // If the database had been opened with the SQLITE_OPEN_FULLMUTEX
             // flag, we could safely execute a rollback statement:
             //
@@ -707,35 +707,13 @@ extension Database {
             // - the rollback may fail, and a lock could remain.
             //
             // We work around this situation by issuing a rollback on next
-            // database access which requires an exclusive lock,
+            // database access which requires a lock,
             // in preventExclusiveLock(from:).
         }
     }
     
-    func stopPreventingExclusiveLock() {
-        preventsExclusiveLock.value = false
-    }
-    
-    func assertExclusiveLockPrevention(from statement: Statement) throws {
-        SchedulingWatchdog.assertValidQueue(self)
-        
-        try preventsExclusiveLock.read { preventsExclusiveLock in
-            if preventsExclusiveLock {
-                // Attempt at releasing eventual exclusive lock with ROLLBACk,
-                // as explained in Database.startPreventingExclusiveLock().
-                //
-                // We don't use `try? rollback()` because we're not in the
-                // protected dispatch queue here due to
-                // `preventsExclusiveLock.read`.
-                _ = sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
-                
-                throw DatabaseError(
-                    resultCode: .SQLITE_ABORT,
-                    message: "Can't acquire exclusive lock",
-                    sql: statement.sql,
-                    arguments: statement.arguments)
-            }
-        }
+    func stopPreventingLock() {
+        preventsLock.value = false
     }
 }
 

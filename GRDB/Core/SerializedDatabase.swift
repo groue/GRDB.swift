@@ -204,14 +204,14 @@ final class SerializedDatabase {
         db.interrupt()
     }
     
-    func startPreventingExclusiveLock() {
+    func startPreventingLock() {
         // Intentionally not scheduled in our serial queue
-        db.startPreventingExclusiveLock()
+        db.startPreventingLock()
     }
     
-    func stopPreventingExclusiveLock() {
+    func stopPreventingLock() {
         // Intentionally not scheduled in our serial queue
-        db.stopPreventingExclusiveLock()
+        db.stopPreventingLock()
     }
     
     /// Fatal error if current dispatch queue is not valid.

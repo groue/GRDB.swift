@@ -453,16 +453,15 @@ public final class UpdateStatement: Statement {
     private(set) var transactionEffect: TransactionEffect?
     private(set) var databaseEventKinds: [DatabaseEventKind] = []
     
-    var createsExclusiveLock: Bool {
+    var leavesTransaction: Bool {
         switch transactionEffect {
-        case .beginTransaction:
-            // Not technically correct, because only immediate transactions
-            // acquire an exclusive lock. But SQLite authorizer does not allow
-            // us to distinguish BEGIN DEFERRED TRANSACTION from
-            // BEGIN IMMEDIATE TRANSACTION.
+        case .commitTransaction, .rollbackTransaction,
+             .releaseSavepoint, .rollbackSavepoint:
+            // Not technically correct: ROLLBACK TRANSACTION TO SAVEPOINT and
+            // RELEASE SAVEPOINT do not leave transactions.
             return true
         default:
-            return sqlite3_stmt_readonly(sqliteStatement) == 0
+            return false
         }
     }
     

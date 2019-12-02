@@ -84,6 +84,26 @@ public protocol DatabaseReader: AnyObject {
     ///     }
     func interrupt()
     
+    // MARK: - Lock Prevention
+    
+    /// Starts preventing database locks.
+    ///
+    /// This method can be called from any thread.
+    ///
+    /// During lock prevention, any lock is released as soon as possible, and
+    /// lock acquisition is prevented.
+    ///
+    /// All database accesses may throw a DatabaseError of code
+    /// `SQLITE_INTERRUPT`, or `SQLITE_ABORT`.
+    ///
+    /// Lock prevention ends with stopPreventingLock().
+    func startPreventingLock()
+    
+    /// Ends lock prevention. See startPreventingLock().
+    ///
+    /// This method can be called from any thread.
+    func stopPreventingLock()
+    
     // MARK: - Read From Database
     
     /// Synchronously executes a read-only block that takes a database
@@ -313,6 +333,18 @@ public final class AnyDatabaseReader: DatabaseReader {
     /// :nodoc:
     public func interrupt() {
         base.interrupt()
+    }
+    
+    // MARK: - Lock Prevention
+    
+    /// :nodoc:
+    public func startPreventingLock() {
+        base.startPreventingLock()
+    }
+    
+    /// :nodoc:
+    public func stopPreventingLock() {
+        base.stopPreventingLock()
     }
     
     // MARK: - Reading from Database

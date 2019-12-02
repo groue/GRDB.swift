@@ -155,20 +155,14 @@ extension DatabaseQueue {
         writer.interrupt()
     }
     
-    public func startPreventingExclusiveLock() {
-        if configuration.readonly {
-            // read-only connections can't acquire exclusive locks
-            return
-        }
-        writer.startPreventingExclusiveLock()
+    // MARK: - Lock Prevention
+    
+    public func startPreventingLock() {
+        writer.startPreventingLock()
     }
     
-    public func stopPreventingExclusiveLock() {
-        if configuration.readonly {
-            // read-only connections can't acquire exclusive locks
-            return
-        }
-        writer.stopPreventingExclusiveLock()
+    public func stopPreventingLock() {
+        writer.stopPreventingLock()
     }
     
     // MARK: - Reading from Database

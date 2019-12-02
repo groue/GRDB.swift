@@ -174,29 +174,6 @@ public protocol DatabaseWriter: DatabaseReader {
     /// :nodoc:
     func spawnConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void)
     #endif
-    
-    // MARK: - Exclusive Lock Prevention
-    
-    /// Starts exclusive lock prevention.
-    ///
-    /// This method can be called from any thread.
-    ///
-    /// During exclusive lock prevention, any exclusive lock is released as soon
-    /// as possible, and acquisition of exclusive lock is prevented.
-    ///
-    /// All database accesses may throw a DatabaseError of code
-    /// `SQLITE_INTERRUPT`, or `SQLITE_ABORT`.
-    ///
-    /// Read-only connections are not affected. Such errors will never happen to
-    /// `DatabasePool.read(_:)`, for example.
-    ///
-    /// Exclusive lock prevention ends with stopPreventingExclusiveLock().
-    func startPreventingExclusiveLock()
-    
-    /// Ends exclusive lock prevention. See startPreventingExclusiveLock().
-    ///
-    /// This method can be called from any thread.
-    func stopPreventingExclusiveLock()
 }
 
 extension DatabaseWriter {
@@ -631,16 +608,16 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         base.interrupt()
     }
     
-    // MARK: - Exclusive Lock Prevention
+    // MARK: - Lock Prevention
     
     /// :nodoc:
-    public func startPreventingExclusiveLock() {
-        base.startPreventingExclusiveLock()
+    public func startPreventingLock() {
+        base.startPreventingLock()
     }
     
     /// :nodoc:
-    public func stopPreventingExclusiveLock() {
-        base.stopPreventingExclusiveLock()
+    public func stopPreventingLock() {
+        base.stopPreventingLock()
     }
     
     // MARK: - Reading from Database

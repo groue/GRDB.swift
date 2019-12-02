@@ -220,11 +220,68 @@ extension Database {
 }
 
 extension Database {
+    // TODO: cache
+    private func journalMode() throws -> String? {
+        // Don't return String.fetchOne(self, sql: "PRAGMA journal_mode"), so
+        // that we don't create an infinite loop of assertLockPrevention(from:)
+        let journalModeStatement = try internalStatementCache.selectStatement("PRAGMA journal_mode")
+        try journalModeStatement.reset()
+        defer {
+            try? journalModeStatement.reset()
+        }
+        let code = sqlite3_step(journalModeStatement.sqliteStatement)
+        guard code == SQLITE_ROW else {
+            try journalModeStatement.didFail(withResultCode: code)
+        }
+        return String(cString: sqlite3_column_text(journalModeStatement.sqliteStatement, 0)!)
+    }
+    
+    private func assertLockPrevention(from statement: Statement) throws {
+        try preventsLock.read { preventsLock in
+            guard preventsLock else {
+                return
+            }
+            
+            if try journalMode() == "wal" && statement.isReadonly {
+                // In WAL mode, accept read-only statements:
+                // - SELECT ...
+                // - BEGIN DEFERRED TRANSACTION
+                //
+                // Those are not read-only:
+                // - INSERT ...
+                // - BEGIN IMMEDIATE TRANSACTION
+                return
+            }
+            
+            if
+                let updateStatement = statement as? UpdateStatement,
+                updateStatement.leavesTransaction
+            {
+                // Accept statements that remove locks:
+                // - COMMIT
+                // - ROLLBACK
+                // - ROLLBACK TRANSACTION TO SAVEPOINT
+                // - RELEASE SAVEPOINT
+                return
+            }
+            
+            // Attempt at releasing an eventual lock with ROLLBACk,
+            // as explained in Database.startPreventingLock().
+            //
+            // Use sqlite3_exec instead of `try? rollback()` in order to avoid
+            // an infinite loop of assertLockPrevention(from:)
+            _ = sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
+            
+            throw DatabaseError(
+                resultCode: .SQLITE_ABORT,
+                message: "Can't acquire lock",
+                sql: statement.sql,
+                arguments: statement.arguments)
+        }
+    }
     
     func executeUpdateStatement(_ statement: UpdateStatement) throws {
-        if statement.createsExclusiveLock {
-            try assertExclusiveLockPrevention(from: statement)
-        }
+        try assertLockPrevention(from: statement)
         
         // In aborted transaction, forbid all statements but statements that
         // manage transactions.
@@ -300,9 +357,7 @@ extension Database {
     
     @inline(__always)
     func selectStatementWillExecute(_ statement: SelectStatement) throws {
-        if !statement.isReadonly {
-            try assertExclusiveLockPrevention(from: statement)
-        }
+        try assertLockPrevention(from: statement)
         
         try assertNotInsideAbortedTransactionBlock(sql: statement.sql, arguments: statement.arguments)
         

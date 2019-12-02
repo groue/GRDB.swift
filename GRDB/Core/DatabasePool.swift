@@ -259,20 +259,22 @@ extension DatabasePool: DatabaseReader {
         readerPool.forEach { $0.interrupt() }
     }
     
-    public func startPreventingExclusiveLock() {
+    // MARK: - Lock Prevention
+    
+    public func startPreventingLock() {
         if configuration.readonly {
-            // read-only connections can't acquire exclusive locks
+            // read-only WAL connections can't acquire locks
             return
         }
-        writer.startPreventingExclusiveLock()
+        writer.startPreventingLock()
     }
     
-    public func stopPreventingExclusiveLock() {
+    public func stopPreventingLock() {
         if configuration.readonly {
-            // read-only connections can't acquire exclusive locks
+            // read-only WAL connections can't acquire locks
             return
         }
-        writer.stopPreventingExclusiveLock()
+        writer.stopPreventingLock()
     }
     
     // MARK: - Reading from Database
