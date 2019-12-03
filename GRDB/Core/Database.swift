@@ -537,18 +537,20 @@ public final class Database {
     // MARK: - Read-Only Access
     
     func beginReadOnly() throws {
-        _readOnlyDepth += 1
-        if _readOnlyDepth == 1 && configuration.readonly == false  {
+        if configuration.readonly { return }
+        if _readOnlyDepth == 0 {
             // PRAGMA query_only was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
             // It is available from iOS 8.2 and OS X 10.10
             // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
             try internalCachedUpdateStatement(sql: "PRAGMA query_only = 1").execute()
         }
+        _readOnlyDepth += 1
     }
     
     func endReadOnly() throws {
+        if configuration.readonly { return }
         _readOnlyDepth -= 1
-        if _readOnlyDepth == 0 && configuration.readonly == false {
+        if _readOnlyDepth == 0 {
             // PRAGMA query_only was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
             // It is available from iOS 8.2 and OS X 10.10
             // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
