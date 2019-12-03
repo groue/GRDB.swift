@@ -31,7 +31,11 @@ public class Statement {
             .trimmingCharacters(in: .sqlStatementSeparators)
     }
     
-    @usableFromInline unowned let database: Database
+    var isReadonly: Bool {
+        return sqlite3_stmt_readonly(sqliteStatement) != 0
+    }
+    
+    unowned let database: Database
     
     /// Creates a prepared statement. Returns nil if the compiled string is
     /// blank or empty.
@@ -448,6 +452,25 @@ public final class UpdateStatement: Statement {
     
     private(set) var transactionEffect: TransactionEffect?
     private(set) var databaseEventKinds: [DatabaseEventKind] = []
+    
+    var releasesDatabaseLock: Bool {
+        guard let transactionEffect = transactionEffect else {
+            return false
+        }
+        
+        switch transactionEffect {
+        case .commitTransaction, .rollbackTransaction,
+             .releaseSavepoint, .rollbackSavepoint:
+            // Not technically correct:
+            // - ROLLBACK TRANSACTION TO SAVEPOINT does not release any lock
+            // - RELEASE SAVEPOINT does not always release lock
+            //
+            // But both move in the direction of releasing locks :-)
+            return true
+        default:
+            return false
+        }
+    }
     
     /// Creates a prepared statement. Returns nil if the compiled string is
     /// blank or empty.

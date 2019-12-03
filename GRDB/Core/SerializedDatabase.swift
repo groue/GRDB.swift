@@ -204,6 +204,16 @@ final class SerializedDatabase {
         db.interrupt()
     }
     
+    func startPreventingLock() {
+        // Intentionally not scheduled in our serial queue
+        db.startPreventingLock()
+    }
+    
+    func stopPreventingLock() {
+        // Intentionally not scheduled in our serial queue
+        db.stopPreventingLock()
+    }
+    
     /// Fatal error if current dispatch queue is not valid.
     func preconditionValidQueue(
         _ message: @autoclosure() -> String = "Database was not used on the correct thread.",

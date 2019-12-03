@@ -147,38 +147,16 @@ public final class Database {
     var _isRecordingSelectedRegion: Bool = false
     var _selectedRegion = DatabaseRegion()
     
-    /// True inside `inTransaction { ... }` and `inSavepoint { ... }`
-    @usableFromInline var isInsideTransactionBlock = false
+    /// Support for checkForAbortedTransaction()
+    var isInsideTransactionBlock = false
     
-    /// When true, a transaction has been aborted (for example, by
-    /// `sqlite3_interrupt`, or a `ON CONFLICT ROLLBACK` clause.
-    ///
-    ///     try db.inTransaction {
-    ///         do {
-    ///             // Aborted by sqlite3_interrupt or any other
-    ///             // SQLite error which leaves transaction
-    ///             ...
-    ///         } catch { ... }
-    ///
-    ///         // <- Here we're inside an aborted transaction.
-    ///         ...
-    ///
-    ///         return .commit
-    ///     }
-    ///
-    /// When a transaction has been aborted, we throw SQLITE_ABORT for all
-    /// database accesses, because we don't want the user to think they are
-    /// safely wrapped by a transaction.
-    ///
-    /// We only monitor aborted transaction for `inTransaction` and
-    /// `inSavepoint` methods. When you use explicit methods like
-    /// `beginTransaction`, `commit`, or raw SQL statements, aborted
-    /// transactions are not monitored, and you won't get SQLITE_ABORT for
-    /// database accesses that run after a transaction has been aborted.
-    @usableFromInline var isInsideAbortedTransactionBlock: Bool {
-        return isInsideTransactionBlock && !isInsideTransaction
-    }
-
+    /// Support for checkForLockPrevention(from:)
+    var preventsLock = LockedBox<Bool>(value: false)
+    
+    /// Support for checkForLockPrevention(from:)
+    /// This cache is never cleared: we assume journal mode never changes.
+    var journalModeCache: String?
+    
     // MARK: - Private properties
     
     private var busyCallback: BusyCallback?
@@ -199,9 +177,6 @@ public final class Database {
     deinit {
         assert(isClosed)
     }
-}
-
-extension Database {
     
     // MARK: - Database Opening
     
@@ -227,9 +202,6 @@ extension Database {
         }
         throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
     }
-}
-
-extension Database {
     
     // MARK: - Database Setup
     
@@ -393,7 +365,7 @@ extension Database {
         },
             dbPointer)
     }
-
+    
     
     private func activateExtendedCodes() throws {
         let code = sqlite3_extended_result_codes(sqliteConnection, 1)
@@ -428,9 +400,6 @@ extension Database {
         // another passphrase.
         try makeSelectStatement(sql: "SELECT * FROM sqlite_master LIMIT 1").makeCursor().next()
     }
-}
-
-extension Database {
     
     // MARK: - Database Closing
     
@@ -504,9 +473,6 @@ extension Database {
             log(ResultCode(rawValue: code), "could not close database: \(message)")
         }
     }
-}
-
-extension Database {
     
     // MARK: - Functions
     
@@ -530,9 +496,6 @@ extension Database {
         functions.remove(function)
         function.uninstall(in: self)
     }
-}
-
-extension Database {
     
     // MARK: - Collations
     
@@ -570,9 +533,6 @@ extension Database {
             SQLITE_UTF8,
             nil, nil, nil)
     }
-}
-
-extension Database {
     
     // MARK: - Read-Only Access
     
@@ -623,9 +583,6 @@ extension Database {
         
         return result!
     }
-}
-
-extension Database {
     
     // MARK: - Authorizer
     
@@ -636,9 +593,6 @@ extension Database {
         defer { self._authorizer = old }
         return try block()
     }
-}
-
-extension Database {
     
     // MARK: - Recording of the selected region
     
@@ -658,9 +612,9 @@ extension Database {
         }
         return try (block(), _selectedRegion)
     }
-}
-
-extension Database {
+    
+    // MARK: - Checkpoints
+    
     func checkpoint(_ kind: Database.CheckpointMode) throws {
         let code = sqlite3_wal_checkpoint_v2(sqliteConnection, nil, kind.rawValue, nil, nil)
         guard code == SQLITE_OK else {
@@ -668,20 +622,160 @@ extension Database {
         }
     }
     
+    // MARK: - Interrupt
+    
+    // See https://www.sqlite.org/c3ref/interrupt.html
     func interrupt() {
         sqlite3_interrupt(sqliteConnection)
     }
-}
-
-extension Database {
+    
+    // MARK: - Lock Prevention
+    
+    /// Starts preventing database locks.
+    ///
+    /// This method can be called from any thread.
+    ///
+    /// During lock prevention, any lock is released as soon as possible, and
+    /// lock acquisition is prevented.
+    ///
+    /// All database accesses may throw a DatabaseError of code
+    /// `SQLITE_INTERRUPT`, or `SQLITE_ABORT`, except reads in WAL mode.
+    ///
+    /// Lock prevention ends with stopPreventingLock().
+    func startPreventingLock() {
+        preventsLock.write { preventsLock in
+            if preventsLock {
+                return
+            }
+            
+            // Prevent future lock acquisition
+            preventsLock = true
+            
+            // Interrupt the database because this may trigger an
+            // SQLITE_INTERRUPT error which may itself abort a transaction and
+            // release a lock. See https://www.sqlite.org/c3ref/interrupt.html
+            interrupt()
+            
+            // What about the eventual remaining lock?
+            // If the database had been opened with the SQLITE_OPEN_FULLMUTEX
+            // flag, we could safely execute a rollback statement:
+            //
+            //  if configuration.SQLiteOpenFlags & SQLITE_OPEN_FULLMUTEX != 0 {
+            //      sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
+            //  }
+            //
+            // But:
+            //
+            // - we currently use SQLITE_OPEN_NOMUTEX instead of SQLITE_OPEN_FULLMUTEX.
+            // - the rollback may fail, and a lock could remain.
+            //
+            // We work around this situation by issuing a rollback on next
+            // database access which requires a lock,
+            // in preventExclusiveLock(from:).
+        }
+    }
+    
+    /// Ends lock prevention. See startPreventingLock().
+    ///
+    /// This method can be called from any thread.
+    func stopPreventingLock() {
+        preventsLock.write { preventsLock in
+            preventsLock = false
+        }
+    }
+    
+    /// Support for checkForLockPrevention(from:)
+    private func journalMode() throws -> String {
+        if let journalMode = journalModeCache {
+            return journalMode
+        }
+        
+        // Don't return String.fetchOne(self, sql: "PRAGMA journal_mode"), so
+        // that we don't create an infinite loop in checkForLockPrevention(from:)
+        var statement: SQLiteStatement? = nil
+        let sql = "PRAGMA journal_mode"
+        sqlite3_prepare_v2(sqliteConnection, sql, -1, &statement, nil)
+        defer { sqlite3_finalize(statement) }
+        sqlite3_step(statement)
+        guard let cString = sqlite3_column_text(statement, 0) else {
+            throw DatabaseError(resultCode: lastErrorCode, message: lastErrorMessage, sql: sql)
+        }
+        let journalMode = String(cString: cString)
+        journalModeCache = journalMode
+        return journalMode
+    }
+    
+    /// Throws SQLITE_ABORT during lock prevention, if statement would lock
+    /// the database.
+    func checkForLockPrevention(from statement: Statement) throws {
+        try preventsLock.read { preventsLock in
+            guard preventsLock else {
+                return
+            }
+            
+            if try journalMode() == "wal" && statement.isReadonly {
+                // In WAL mode, accept read-only statements:
+                // - SELECT ...
+                // - BEGIN DEFERRED TRANSACTION
+                //
+                // Those are not read-only:
+                // - INSERT ...
+                // - BEGIN IMMEDIATE TRANSACTION
+                return
+            }
+            
+            if
+                let updateStatement = statement as? UpdateStatement,
+                updateStatement.releasesDatabaseLock
+            {
+                // Accept statements that release locks:
+                // - COMMIT
+                // - ROLLBACK
+                // - ROLLBACK TRANSACTION TO SAVEPOINT
+                // - RELEASE SAVEPOINT
+                return
+            }
+            
+            // Attempt at releasing an eventual lock with ROLLBACk,
+            // as explained in Database.startPreventingLock().
+            //
+            // Use sqlite3_exec instead of `try? rollback()` in order to avoid
+            // an infinite loop in checkForLockPrevention(from:)
+            _ = sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
+            
+            throw DatabaseError(
+                resultCode: .SQLITE_ABORT,
+                message: "Aborted due to lock prevention",
+                sql: statement.sql,
+                arguments: statement.arguments)
+        }
+    }
+    
     // MARK: - Transactions & Savepoint
     
-    func assertNotInsideAbortedTransactionBlock(
+    /// Throws SQLITE_ABORT if called from a transaction-wrapping method and
+    /// transaction has been aborted (for example, by `sqlite3_interrupt`, or a
+    /// `ON CONFLICT ROLLBACK` clause.
+    ///
+    ///     try db.inTransaction {
+    ///         do {
+    ///             // Aborted by sqlite3_interrupt or any other
+    ///             // SQLite error which leaves transaction
+    ///             ...
+    ///         } catch { ... }
+    ///
+    ///         // <- Here we're inside an aborted transaction.
+    ///         try checkForAbortedTransaction(...) // throws
+    ///         ...
+    ///
+    ///         return .commit
+    ///     }
+    func checkForAbortedTransaction(
         sql: @autoclosure () -> String? = nil,
         arguments: @autoclosure () -> StatementArguments? = nil)
         throws
     {
-        if isInsideAbortedTransactionBlock {
+        if isInsideTransactionBlock && !isInsideTransaction {
             throw DatabaseError(
                 resultCode: .SQLITE_ABORT,
                 message: "Transaction was aborted",
@@ -733,11 +827,11 @@ extension Database {
             case .commit:
                 // In case of aborted transaction, throw SQLITE_ABORT instead
                 // of the generic SQLITE_ERROR "cannot commit - no transaction is active"
-                try assertNotInsideAbortedTransactionBlock()
+                try checkForAbortedTransaction()
                 
                 // Leave transaction block now, so that transaction observers
                 // can execute statements without getting errors from
-                // assertNotInsideAbortedTransactionBlock.
+                // checkForAbortedTransaction().
                 isInsideTransactionBlock = wasInsideTransactionBlock
                 
                 try commit()
@@ -825,11 +919,11 @@ extension Database {
             case .commit:
                 // In case of aborted transaction, throw SQLITE_ABORT instead
                 // of the generic SQLITE_ERROR "cannot commit - no transaction is active"
-                try assertNotInsideAbortedTransactionBlock()
+                try checkForAbortedTransaction()
                 
                 // Leave transaction block now, so that transaction observers
                 // can execute statements without getting errors from
-                // assertNotInsideAbortedTransactionBlock.
+                // checkForAbortedTransaction().
                 isInsideTransactionBlock = wasInsideTransactionBlock
                 
                 try execute(sql: "RELEASE SAVEPOINT grdb")
@@ -980,9 +1074,6 @@ extension Database {
         try execute(sql: "COMMIT TRANSACTION")
         assert(!isInsideTransaction)
     }
-}
-
-extension Database {
     
     // MARK: - Memory Management
     
@@ -992,9 +1083,6 @@ extension Database {
         internalStatementCache.clear()
         publicStatementCache.clear()
     }
-}
-
-extension Database {
     
     // MARK: - Backup
     

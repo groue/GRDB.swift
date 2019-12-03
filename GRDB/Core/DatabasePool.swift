@@ -259,6 +259,24 @@ extension DatabasePool: DatabaseReader {
         readerPool.forEach { $0.interrupt() }
     }
     
+    // MARK: - Lock Prevention
+    
+    public func startPreventingLock() {
+        if configuration.readonly {
+            // read-only WAL connections can't acquire locks
+            return
+        }
+        writer.startPreventingLock()
+    }
+    
+    public func stopPreventingLock() {
+        if configuration.readonly {
+            // read-only WAL connections can't acquire locks
+            return
+        }
+        writer.stopPreventingLock()
+    }
+    
     // MARK: - Reading from Database
     
     /// Synchronously executes a read-only block in a protected dispatch queue,

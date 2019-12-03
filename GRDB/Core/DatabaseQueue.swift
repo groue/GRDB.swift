@@ -155,6 +155,16 @@ extension DatabaseQueue {
         writer.interrupt()
     }
     
+    // MARK: - Lock Prevention
+    
+    public func startPreventingLock() {
+        writer.startPreventingLock()
+    }
+    
+    public func stopPreventingLock() {
+        writer.stopPreventingLock()
+    }
+    
     // MARK: - Reading from Database
     
     /// Synchronously executes a read-only block in a protected dispatch queue,
