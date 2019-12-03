@@ -387,8 +387,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
     }
     
     func testWriteTransactionAbortedDuringStatementExecutionPreventsFurtherDatabaseAccess() throws {
-        func test(journalMode: String) throws {
-            let dbQueue = try makeDatabaseQueue(journalMode: journalMode)
+        func test(_ dbQueue: DatabaseQueue) throws {
             try dbQueue.write { db in
                 try db.execute(sql: "CREATE TABLE t(a);")
             }
@@ -418,14 +417,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
                             XCTFail("Expected error")
                         } catch let error as DatabaseError {
                             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-                            switch journalMode {
-                            case "delete":
-                                XCTAssertEqual(error.message, "Aborted due to lock prevention")
-                            case "wal":
-                                XCTAssertEqual(error.message, "Transaction was aborted")
-                            default:
-                                XCTFail()
-                            }
+                            XCTAssertEqual(error.message, "Transaction was aborted")
                             XCTAssertEqual(error.sql, "SELECT COUNT(*) FROM t")
                         }
                     }
@@ -449,7 +441,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
                 blocks[index]()
             }
         }
-        try test(journalMode: "delete")
-        try test(journalMode: "wal")
+        try test(makeDatabaseQueue(journalMode: "delete"))
+        try test(makeDatabaseQueue(journalMode: "wal"))
     }
 }

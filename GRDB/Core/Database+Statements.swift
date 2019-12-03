@@ -221,13 +221,12 @@ extension Database {
 
 extension Database {
     func executeUpdateStatement(_ statement: UpdateStatement) throws {
-        try checkForLockPrevention(from: statement)
-        
         // In aborted transaction, forbid all statements but statements that
         // manage transactions.
         if statement.transactionEffect == nil {
             try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
         }
+        try checkForLockPrevention(from: statement)
         
         let authorizer = observationBroker.updateStatementWillExecute(statement)
         let sqliteStatement = statement.sqliteStatement
@@ -297,9 +296,8 @@ extension Database {
     
     @inline(__always)
     func selectStatementWillExecute(_ statement: SelectStatement) throws {
-        try checkForLockPrevention(from: statement)
-        
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
+        try checkForLockPrevention(from: statement)
         
         if _isRecordingSelectedRegion {
             // Don't record schema introspection queries, which may be
