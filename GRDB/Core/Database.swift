@@ -734,7 +734,7 @@ public final class Database {
             
             throw DatabaseError(
                 resultCode: .SQLITE_ABORT,
-                message: "Can't acquire lock",
+                message: "Aborted due to lock prevention",
                 sql: statement.sql,
                 arguments: statement.arguments)
         }

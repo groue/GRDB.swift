@@ -27,7 +27,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-            XCTAssertEqual(error.message, "Can't acquire lock")
+            XCTAssertEqual(error.message, "Aborted due to lock prevention")
             XCTAssertEqual(error.sql, "BEGIN TRANSACTION")
         }
         
@@ -38,7 +38,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-            XCTAssertEqual(error.message, "Can't acquire lock")
+            XCTAssertEqual(error.message, "Aborted due to lock prevention")
             XCTAssertEqual(error.sql, "BEGIN IMMEDIATE TRANSACTION")
         }
         
@@ -49,7 +49,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-            XCTAssertEqual(error.message, "Can't acquire lock")
+            XCTAssertEqual(error.message, "Aborted due to lock prevention")
             XCTAssertEqual(error.sql, "BEGIN EXCLUSIVE TRANSACTION")
         }
         
@@ -60,7 +60,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-            XCTAssertEqual(error.message, "Can't acquire lock")
+            XCTAssertEqual(error.message, "Aborted due to lock prevention")
             XCTAssertEqual(error.sql, "SAVEPOINT test")
         }
     }
@@ -86,7 +86,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-            XCTAssertEqual(error.message, "Can't acquire lock")
+            XCTAssertEqual(error.message, "Aborted due to lock prevention")
             XCTAssertEqual(error.sql, "BEGIN IMMEDIATE TRANSACTION")
         }
         
@@ -97,7 +97,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-            XCTAssertEqual(error.message, "Can't acquire lock")
+            XCTAssertEqual(error.message, "Aborted due to lock prevention")
             XCTAssertEqual(error.sql, "BEGIN EXCLUSIVE TRANSACTION")
         }
     }
@@ -166,7 +166,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-            XCTAssertEqual(error.message, "Can't acquire lock")
+            XCTAssertEqual(error.message, "Aborted due to lock prevention")
             XCTAssertEqual(error.sql, "SELECT COUNT(*) FROM t")
         }
     }
@@ -198,7 +198,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-                XCTAssertEqual(error.message, "Can't acquire lock")
+                XCTAssertEqual(error.message, "Aborted due to lock prevention")
                 XCTAssertEqual(error.sql, "INSERT INTO t DEFAULT VALUES")
             }
         }
@@ -215,7 +215,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-                XCTAssertEqual(error.message, "Can't acquire lock")
+                XCTAssertEqual(error.message, "Aborted due to lock prevention")
                 XCTAssertEqual(error.sql, "INSERT INTO t DEFAULT VALUES")
             }
             
@@ -227,7 +227,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-                XCTAssertEqual(error.message, "Can't acquire lock")
+                XCTAssertEqual(error.message, "Aborted due to lock prevention")
                 XCTAssertEqual(error.sql, "INSERT INTO t DEFAULT VALUES")
             }
         }
@@ -247,7 +247,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
                         XCTFail("Expected error")
                     } catch let error as DatabaseError {
                         XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-                        XCTAssertEqual(error.message, "Can't acquire lock")
+                        XCTAssertEqual(error.message, "Aborted due to lock prevention")
                         XCTAssertEqual(error.sql, "INSERT INTO t DEFAULT VALUES")
                     }
                     // Aborded transaction
@@ -420,7 +420,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
                             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
                             switch journalMode {
                             case "delete":
-                                XCTAssertEqual(error.message, "Can't acquire lock")
+                                XCTAssertEqual(error.message, "Aborted due to lock prevention")
                             case "wal":
                                 XCTAssertEqual(error.message, "Transaction was aborted")
                             default:
