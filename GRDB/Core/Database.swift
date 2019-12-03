@@ -147,42 +147,14 @@ public final class Database {
     var _isRecordingSelectedRegion: Bool = false
     var _selectedRegion = DatabaseRegion()
     
-    /// True inside `inTransaction { ... }` and `inSavepoint { ... }`
+    /// Support for checkForAbortedTransaction()
     var isInsideTransactionBlock = false
     
-    /// When true, a transaction has been aborted (for example, by
-    /// `sqlite3_interrupt`, or a `ON CONFLICT ROLLBACK` clause.
-    ///
-    ///     try db.inTransaction {
-    ///         do {
-    ///             // Aborted by sqlite3_interrupt or any other
-    ///             // SQLite error which leaves transaction
-    ///             ...
-    ///         } catch { ... }
-    ///
-    ///         // <- Here we're inside an aborted transaction.
-    ///         ...
-    ///
-    ///         return .commit
-    ///     }
-    ///
-    /// When a transaction has been aborted, we throw SQLITE_ABORT for all
-    /// database accesses, because we don't want the user to think they are
-    /// safely wrapped by a transaction.
-    ///
-    /// We only monitor aborted transaction for `inTransaction` and
-    /// `inSavepoint` methods. When you use explicit methods like
-    /// `beginTransaction`, `commit`, or raw SQL statements, aborted
-    /// transactions are not monitored, and you won't get SQLITE_ABORT for
-    /// database accesses that run after a transaction has been aborted.
-    var isInsideAbortedTransactionBlock: Bool {
-        return isInsideTransactionBlock && !isInsideTransaction
-    }
-    
-    /// See startPreventingLock
+    /// Support for checkLockPrevention(from:)
     var preventsLock = LockedBox<Bool>(value: false)
     
-    /// Support for assertLockPrevention(from:)
+    /// Support for checkLockPrevention(from:)
+    /// This cache is never cleared: we assume journal mode never changes.
     var journalModeCache: String?
     
     // MARK: - Private properties
@@ -698,34 +670,33 @@ public final class Database {
     func stopPreventingLock() {
         preventsLock.write { preventsLock in
             preventsLock = false
-            // Reset journalMode cache until next need for it
-            journalModeCache = nil
         }
     }
     
-    /// Support for assertLockPrevention(from:)
+    /// Support for checkLockPrevention(from:)
     private func journalMode() throws -> String {
         if let journalMode = journalModeCache {
             return journalMode
         }
         
         // Don't return String.fetchOne(self, sql: "PRAGMA journal_mode"), so
-        // that we don't create an infinite loop of assertLockPrevention(from:)
-        let journalModeStatement = try internalStatementCache.selectStatement("PRAGMA journal_mode")
-        try journalModeStatement.reset()
-        defer {
-            try? journalModeStatement.reset()
+        // that we don't create an infinite loop in checkLockPrevention(from:)
+        var statement: SQLiteStatement? = nil
+        let sql = "PRAGMA journal_mode"
+        sqlite3_prepare_v2(sqliteConnection, sql, -1, &statement, nil)
+        defer { sqlite3_finalize(statement) }
+        sqlite3_step(statement)
+        guard let cString = sqlite3_column_text(statement, 0) else {
+            throw DatabaseError(resultCode: lastErrorCode, message: lastErrorMessage, sql: sql)
         }
-        let code = sqlite3_step(journalModeStatement.sqliteStatement)
-        guard code == SQLITE_ROW else {
-            try journalModeStatement.didFail(withResultCode: code)
-        }
-        let journalMode = String(cString: sqlite3_column_text(journalModeStatement.sqliteStatement, 0)!)
+        let journalMode = String(cString: cString)
         journalModeCache = journalMode
         return journalMode
     }
     
-    func assertLockPrevention(from statement: Statement) throws {
+    /// Throws SQLITE_ABORT during lock prevention, if statement would lock
+    /// the database.
+    func checkLockPrevention(from statement: Statement) throws {
         try preventsLock.read { preventsLock in
             guard preventsLock else {
                 return
@@ -758,7 +729,7 @@ public final class Database {
             // as explained in Database.startPreventingLock().
             //
             // Use sqlite3_exec instead of `try? rollback()` in order to avoid
-            // an infinite loop of assertLockPrevention(from:)
+            // an infinite loop in checkLockPrevention(from:)
             _ = sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
             
             throw DatabaseError(
@@ -771,12 +742,29 @@ public final class Database {
     
     // MARK: - Transactions & Savepoint
     
-    func assertNotInsideAbortedTransactionBlock(
+    /// Throws SQLITE_ABORT if called from a transaction-wrapping method and
+    /// transaction has been aborted (for example, by `sqlite3_interrupt`, or a
+    /// `ON CONFLICT ROLLBACK` clause.
+    ///
+    ///     try db.inTransaction {
+    ///         do {
+    ///             // Aborted by sqlite3_interrupt or any other
+    ///             // SQLite error which leaves transaction
+    ///             ...
+    ///         } catch { ... }
+    ///
+    ///         // <- Here we're inside an aborted transaction.
+    ///         try checkForAbortedTransaction(...) // throws
+    ///         ...
+    ///
+    ///         return .commit
+    ///     }
+    func checkForAbortedTransaction(
         sql: @autoclosure () -> String? = nil,
         arguments: @autoclosure () -> StatementArguments? = nil)
         throws
     {
-        if isInsideAbortedTransactionBlock {
+        if isInsideTransactionBlock && !isInsideTransaction {
             throw DatabaseError(
                 resultCode: .SQLITE_ABORT,
                 message: "Transaction was aborted",
@@ -828,11 +816,11 @@ public final class Database {
             case .commit:
                 // In case of aborted transaction, throw SQLITE_ABORT instead
                 // of the generic SQLITE_ERROR "cannot commit - no transaction is active"
-                try assertNotInsideAbortedTransactionBlock()
+                try checkForAbortedTransaction()
                 
                 // Leave transaction block now, so that transaction observers
                 // can execute statements without getting errors from
-                // assertNotInsideAbortedTransactionBlock.
+                // checkForAbortedTransaction().
                 isInsideTransactionBlock = wasInsideTransactionBlock
                 
                 try commit()
@@ -920,11 +908,11 @@ public final class Database {
             case .commit:
                 // In case of aborted transaction, throw SQLITE_ABORT instead
                 // of the generic SQLITE_ERROR "cannot commit - no transaction is active"
-                try assertNotInsideAbortedTransactionBlock()
+                try checkForAbortedTransaction()
                 
                 // Leave transaction block now, so that transaction observers
                 // can execute statements without getting errors from
-                // assertNotInsideAbortedTransactionBlock.
+                // checkForAbortedTransaction().
                 isInsideTransactionBlock = wasInsideTransactionBlock
                 
                 try execute(sql: "RELEASE SAVEPOINT grdb")
