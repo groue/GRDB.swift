@@ -150,10 +150,10 @@ public final class Database {
     /// Support for checkForAbortedTransaction()
     var isInsideTransactionBlock = false
     
-    /// Support for checkLockPrevention(from:)
+    /// Support for checkForLockPrevention(from:)
     var preventsLock = LockedBox<Bool>(value: false)
     
-    /// Support for checkLockPrevention(from:)
+    /// Support for checkForLockPrevention(from:)
     /// This cache is never cleared: we assume journal mode never changes.
     var journalModeCache: String?
     
@@ -684,14 +684,14 @@ public final class Database {
         }
     }
     
-    /// Support for checkLockPrevention(from:)
+    /// Support for checkForLockPrevention(from:)
     private func journalMode() throws -> String {
         if let journalMode = journalModeCache {
             return journalMode
         }
         
         // Don't return String.fetchOne(self, sql: "PRAGMA journal_mode"), so
-        // that we don't create an infinite loop in checkLockPrevention(from:)
+        // that we don't create an infinite loop in checkForLockPrevention(from:)
         var statement: SQLiteStatement? = nil
         let sql = "PRAGMA journal_mode"
         sqlite3_prepare_v2(sqliteConnection, sql, -1, &statement, nil)
@@ -707,7 +707,7 @@ public final class Database {
     
     /// Throws SQLITE_ABORT during lock prevention, if statement would lock
     /// the database.
-    func checkLockPrevention(from statement: Statement) throws {
+    func checkForLockPrevention(from statement: Statement) throws {
         try preventsLock.read { preventsLock in
             guard preventsLock else {
                 return
@@ -740,7 +740,7 @@ public final class Database {
             // as explained in Database.startPreventingLock().
             //
             // Use sqlite3_exec instead of `try? rollback()` in order to avoid
-            // an infinite loop in checkLockPrevention(from:)
+            // an infinite loop in checkForLockPrevention(from:)
             _ = sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
             
             throw DatabaseError(

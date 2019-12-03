@@ -221,7 +221,7 @@ extension Database {
 
 extension Database {
     func executeUpdateStatement(_ statement: UpdateStatement) throws {
-        try checkLockPrevention(from: statement)
+        try checkForLockPrevention(from: statement)
         
         // In aborted transaction, forbid all statements but statements that
         // manage transactions.
@@ -297,7 +297,7 @@ extension Database {
     
     @inline(__always)
     func selectStatementWillExecute(_ statement: SelectStatement) throws {
-        try checkLockPrevention(from: statement)
+        try checkForLockPrevention(from: statement)
         
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
         
