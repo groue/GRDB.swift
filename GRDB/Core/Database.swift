@@ -631,9 +631,17 @@ public final class Database {
     
     // MARK: - Lock Prevention
     
-    /// Release any database lock, as soon as possible, at any cost.
+    /// Starts preventing database locks.
     ///
-    /// See https://www.sqlite.org/lockingv3.html
+    /// This method can be called from any thread.
+    ///
+    /// During lock prevention, any lock is released as soon as possible, and
+    /// lock acquisition is prevented.
+    ///
+    /// All database accesses may throw a DatabaseError of code
+    /// `SQLITE_INTERRUPT`, or `SQLITE_ABORT`, except reads in WAL mode.
+    ///
+    /// Lock prevention ends with stopPreventingLock().
     func startPreventingLock() {
         preventsLock.write { preventsLock in
             if preventsLock {
@@ -667,6 +675,9 @@ public final class Database {
         }
     }
     
+    /// Ends lock prevention. See startPreventingLock().
+    ///
+    /// This method can be called from any thread.
     func stopPreventingLock() {
         preventsLock.write { preventsLock in
             preventsLock = false

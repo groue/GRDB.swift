@@ -94,7 +94,7 @@ public protocol DatabaseReader: AnyObject {
     /// lock acquisition is prevented.
     ///
     /// All database accesses may throw a DatabaseError of code
-    /// `SQLITE_INTERRUPT`, or `SQLITE_ABORT`.
+    /// `SQLITE_INTERRUPT`, or `SQLITE_ABORT`, except reads in WAL mode.
     ///
     /// Lock prevention ends with stopPreventingLock().
     func startPreventingLock()
