@@ -444,4 +444,16 @@ class DatabaseLockPreventionTests : GRDBTestCase {
         try test(makeDatabaseQueue(journalMode: "delete"))
         try test(makeDatabaseQueue(journalMode: "wal"))
     }
+    
+    // MARK: - stopPreventingLock
+    
+    func testStopPreventingLock() throws {
+        let dbQueue = try makeDatabaseQueue(journalMode: "delete")
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE t(a);")
+            dbQueue.startPreventingLock()
+            dbQueue.stopPreventingLock()
+            try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 0)
+        }
+    }
 }
