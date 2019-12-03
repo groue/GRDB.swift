@@ -221,11 +221,7 @@ extension Database {
 
 extension Database {
     func executeUpdateStatement(_ statement: UpdateStatement) throws {
-        // In aborted transaction, forbid all statements but statements that
-        // manage transactions.
-        if statement.transactionEffect == nil {
-            try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
-        }
+        try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
         try checkForLockPrevention(from: statement)
         
         let authorizer = observationBroker.updateStatementWillExecute(statement)
