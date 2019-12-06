@@ -7,11 +7,14 @@ body {
 }
 
 h1 {
+  background-image: url("GRDB.png");
+  background-repeat: no-repeat;
+  background-size: 148px 120px;
+  background-position: center top; 
   font-size: 2.5em;
   font-weight: bold;
-  padding: 0;
-  margin: 1.5em 0 0;
-  color: #444;
+  padding: 120px 0 0;
+  margin: 1em 0 0.5em;
 }
 
 h2 {
@@ -37,7 +40,6 @@ header {
 }
 
 header p {
-  color: #777;
   margin-top: 0em;
 }
 
