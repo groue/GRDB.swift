@@ -64,6 +64,18 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [#659](https://github.com/groue/GRDB.swift/pull/659): Database interruption
 - [#660](https://github.com/groue/GRDB.swift/pull/660): Database Lock Prevention
 
+### Breaking Changes
+
+[Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) now disable by default the support for the [Double-quoted String Literals misfeature](https://sqlite.org/quirks.html#dblquote). You can restore the previous behavior if your application relies on it:
+
+```swift
+// Enable support for Double-quoted String Literals
+var configuration = Configuration()
+configuration.acceptsDoubleQuotedStringLiterals = true
+let dbQueue = try DatabaseQueue(path: ..., configuration: configuration)
+```
+
+
 ### Documentation Diff
 
 A new [Interrupt a Database](README.md#interrupt-a-database) chapter documents the new `interrupt()` method.

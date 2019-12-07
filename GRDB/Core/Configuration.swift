@@ -75,6 +75,19 @@ public struct Configuration {
     /// Default: nil
     public var trace: TraceFunction?
     
+    /// If false, SQLite from version 3.29.0 will not interpret a double-quoted
+    /// string as a string literal if it does not match any valid identifier:
+    ///
+    ///     // no such column: naame
+    ///     let name = try String.fetchOne(db, sql: """
+    ///         SELECT "naame" FROM "player"
+    ///         """)
+    ///
+    /// See https://sqlite.org/quirks.html#dblquote for more information.
+    ///
+    /// Default: false
+    public var acceptsDoubleQuotedStringLiterals = false
+    
     // MARK: - Encryption
     
     #if SQLITE_HAS_CODEC
