@@ -470,6 +470,56 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         }
     }
     
+    // This test passes if this method compiles
+    func testSelectAsTypeInference() {
+        _ = Reader.select(Col.name) as QueryInterfaceRequest<String>
+        _ = Reader.select([Col.name]) as QueryInterfaceRequest<String>
+        _ = Reader.select(sql: "name") as QueryInterfaceRequest<String>
+        _ = Reader.select(literal: SQLLiteral(sql: "name")) as QueryInterfaceRequest<String>
+        _ = Reader.all().select(Col.name) as QueryInterfaceRequest<String>
+        _ = Reader.all().select([Col.name]) as QueryInterfaceRequest<String>
+        _ = Reader.all().select(sql: "name") as QueryInterfaceRequest<String>
+        _ = Reader.all().select(literal: SQLLiteral(sql: "name")) as QueryInterfaceRequest<String>
+        
+        func makeRequest() -> QueryInterfaceRequest<String> {
+            return Reader.select(Col.name)
+        }
+        
+        // Those should be, without any ambiguuity, requests of Reader.
+        do {
+            let request = Reader.select(Col.name)
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.select([Col.name])
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.select(sql: "name")
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.select(literal: SQLLiteral(sql: "name"))
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.all().select(Col.name)
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.all().select([Col.name])
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.all().select(sql: "name")
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.all().select(literal: SQLLiteral(sql: "name"))
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+    }
+    
     
     // MARK: - Distinct
     
