@@ -76,16 +76,26 @@ public struct Configuration {
     public var trace: TraceFunction?
     
     /// If false, SQLite from version 3.29.0 will not interpret a double-quoted
-    /// string as a string literal if it does not match any valid identifier:
+    /// string as a string literal if it does not match any valid identifier.
     ///
-    ///     // no such column: naame
+    /// For example:
+    ///
+    ///     // Error: no such column: foo
     ///     let name = try String.fetchOne(db, sql: """
-    ///         SELECT "naame" FROM "player"
+    ///         SELECT "foo" FROM "player"
     ///         """)
     ///
-    /// See https://sqlite.org/quirks.html#dblquote for more information.
+    /// When true, or before version 3.29.0, such strings are interpreted as
+    /// string literals, as in the example below. This is a well known SQLite
+    /// [misfeature](https://sqlite.org/quirks.html#dblquote).
     ///
-    /// Default: false
+    ///     // Success: "foo"
+    ///     let name = try String.fetchOne(db, sql: """
+    ///         SELECT "foo" FROM "player"
+    ///         """)
+    ///
+    /// - Recommended value: false
+    /// - Default value: false
     public var acceptsDoubleQuotedStringLiterals = false
     
     // MARK: - Encryption
