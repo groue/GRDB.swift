@@ -1,7 +1,7 @@
 import UIKit
 
 class TestViewController: UIViewController {
-    var test: Test!
+    var test: Test! = Tests.shared.next()
     @IBOutlet private weak var titleLabel: UILabel!
     @IBOutlet private weak var instructionsLabel: UILabel!
     
@@ -12,7 +12,7 @@ class TestViewController: UIViewController {
         try! test.enter()
     }
     
-    @IBAction func done(_ sender: Any?) {
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         try! test.leave()
     }
 }

@@ -7,17 +7,25 @@ class AppDatabase {
     static let shared = AppDatabase()
     var dbWriter: DatabaseWriter?
     
-    func createDatabaseQueue() throws {
+    func createDatabaseQueue(configuration: Configuration) throws {
+        var config = configuration
+        config.trace = {
+            os_log("SQL> %@", $0)
+        }
         dbWriter = nil
         try resetDatabaseDirectoy()
-        dbWriter = try DatabaseQueue(path: databasePath, configuration: configuration)
+        dbWriter = try DatabaseQueue(path: databasePath, configuration: config)
         try migrator.migrate(dbWriter!)
     }
     
-    func createDatabasePool() throws {
+    func createDatabasePool(configuration: Configuration) throws {
+        var config = configuration
+        config.trace = {
+            os_log("SQL> %@", $0)
+        }
         dbWriter = nil
         try resetDatabaseDirectoy()
-        dbWriter = try DatabasePool(path: databasePath, configuration: configuration)
+        dbWriter = try DatabasePool(path: databasePath, configuration: config)
         try migrator.migrate(dbWriter!)
     }
     
@@ -48,39 +56,6 @@ class AppDatabase {
         //                completion(result)
         //            }
         //        })
-    }
-    
-    func openLongRunningTransaction(completion: @escaping (Result<Void, Error>) -> Void) {
-        let dbWriter = self.dbWriter!
-        
-        let semaphore = DispatchSemaphore(value: 0)
-        
-        DispatchQueue.global().async {
-            let result = Result {
-                try dbWriter.writeWithoutTransaction { db in
-                    try db.inTransaction(.immediate) {
-                        semaphore.wait()
-                        return .commit
-                    }
-                }
-            }
-            DispatchQueue.main.async {
-                completion(result)
-            }
-        }
-        
-        // TODO: why doen't this reproduce the bug??
-//        dbWriter.asyncWrite({ _ in
-//            semaphore.wait()
-//        }, completion: { (_, result) in
-//            DispatchQueue.main.async {
-//                completion(result)
-//            }
-//        })
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(60)) {
-            semaphore.signal()
-        }
     }
     
     func runLongQuery(completion: @escaping (Result<Void, Error>) -> Void) {

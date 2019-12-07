@@ -84,7 +84,7 @@
                     <navigationItem key="navigationItem" id="wfm-kU-q0x">
                         <barButtonItem key="rightBarButtonItem" style="done" systemItem="done" id="CxW-wF-vpv">
                             <connections>
-                                <action selector="done:" destination="fpb-n1-8z7" id="Nac-3C-P0B"/>
+                                <segue destination="fpb-n1-8z7" kind="show" identifier="" id="6SH-EF-LxK"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
