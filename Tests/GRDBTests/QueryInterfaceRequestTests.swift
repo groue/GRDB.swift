@@ -470,8 +470,8 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         }
     }
     
+    // This test passes if this method compiles
     func testSelectAsTypeInference() {
-        // This test passes if it compiles
         _ = Reader.select(Col.name) as QueryInterfaceRequest<String>
         _ = Reader.select([Col.name]) as QueryInterfaceRequest<String>
         _ = Reader.select(sql: "name") as QueryInterfaceRequest<String>
@@ -481,15 +481,43 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         _ = Reader.all().select(sql: "name") as QueryInterfaceRequest<String>
         _ = Reader.all().select(literal: SQLLiteral(sql: "name")) as QueryInterfaceRequest<String>
         
-        // No ambiguity: those are requests of Reader. TODO: how to assert this statically?
-        _ = Reader.select(Col.name)
-        _ = Reader.select([Col.name])
-        _ = Reader.select(sql: "name")
-        _ = Reader.select(literal: SQLLiteral(sql: "name"))
-        _ = Reader.all().select(Col.name)
-        _ = Reader.all().select([Col.name])
-        _ = Reader.all().select(sql: "name")
-        _ = Reader.all().select(literal: SQLLiteral(sql: "name"))
+        func makeRequest() -> QueryInterfaceRequest<String> {
+            return Reader.select(Col.name)
+        }
+        
+        // Those should be, without any ambiguuity, requests of Reader.
+        do {
+            let request = Reader.select(Col.name)
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.select([Col.name])
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.select(sql: "name")
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.select(literal: SQLLiteral(sql: "name"))
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.all().select(Col.name)
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.all().select([Col.name])
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.all().select(sql: "name")
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.all().select(literal: SQLLiteral(sql: "name"))
+            _ = request as QueryInterfaceRequest<Reader>
+        }
     }
     
     
