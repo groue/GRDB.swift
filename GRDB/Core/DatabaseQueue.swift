@@ -41,6 +41,10 @@ public final class DatabaseQueue: DatabaseWriter {
             configuration: configuration,
             schemaCache: SimpleDatabaseSchemaCache(),
             defaultLabel: "GRDB.DatabaseQueue")
+        
+        #if os(iOS)
+        setupLockPrevention()
+        #endif
     }
     
     /// Opens an in-memory SQLite database.
@@ -155,15 +159,43 @@ extension DatabaseQueue {
         writer.interrupt()
     }
     
-    // MARK: - Lock Prevention
+    // MARK: - Database Suspension
     
-    public func startPreventingLock() {
-        writer.startPreventingLock()
+    public func suspend() {
+        writer.suspend()
     }
     
-    public func stopPreventingLock() {
-        writer.stopPreventingLock()
+    public func resume() {
+        writer.resume()
     }
+    
+    #if os(iOS)
+    private func setupLockPrevention() {
+        if configuration.suspendsOnBackgroundTimeExpiration {
+            let center = NotificationCenter.default
+            center.addObserver(
+                self,
+                selector: #selector(DatabaseQueue.suspend(_:)),
+                name: DatabaseBackgroundScheduler.suspendNotification,
+                object: DatabaseBackgroundScheduler.shared)
+            center.addObserver(
+                self,
+                selector: #selector(DatabaseQueue.resume(_:)),
+                name: DatabaseBackgroundScheduler.resumeNotification,
+                object: nil)
+        }
+    }
+    
+    @objc
+    func suspend(_ notification: Notification) {
+        suspend()
+    }
+    
+    @objc
+    func resume(_ notification: Notification) {
+        resume()
+    }
+    #endif
     
     // MARK: - Reading from Database
     

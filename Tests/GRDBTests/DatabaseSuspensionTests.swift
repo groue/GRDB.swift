@@ -5,7 +5,7 @@ import GRDBCustomSQLite
 import GRDB
 #endif
 
-class DatabaseLockPreventionTests : GRDBTestCase {
+class DatabaseSuspensionTests : GRDBTestCase {
     
     private func makeDatabaseQueue(journalMode: String) throws -> DatabaseQueue {
         let dbQueue = try makeDatabaseQueue()
@@ -16,9 +16,9 @@ class DatabaseLockPreventionTests : GRDBTestCase {
     
     // MARK: - BEGIN TRANSACTION
     
-    func testLockPreventionPreventsNewTransactionInDeleteJournalMode() throws {
+    func testSuspensionPreventsNewTransactionInDeleteJournalMode() throws {
         let dbQueue = try makeDatabaseQueue(journalMode: "delete")
-        dbQueue.startPreventingLock()
+        dbQueue.suspend()
         
         do {
             try dbQueue.inDatabase { db in
@@ -27,7 +27,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-            XCTAssertEqual(error.message, "Aborted due to lock prevention")
+            XCTAssertEqual(error.message, "Database is suspended")
             XCTAssertEqual(error.sql, "BEGIN TRANSACTION")
         }
         
@@ -38,7 +38,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-            XCTAssertEqual(error.message, "Aborted due to lock prevention")
+            XCTAssertEqual(error.message, "Database is suspended")
             XCTAssertEqual(error.sql, "BEGIN IMMEDIATE TRANSACTION")
         }
         
@@ -49,7 +49,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-            XCTAssertEqual(error.message, "Aborted due to lock prevention")
+            XCTAssertEqual(error.message, "Database is suspended")
             XCTAssertEqual(error.sql, "BEGIN EXCLUSIVE TRANSACTION")
         }
         
@@ -60,14 +60,14 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-            XCTAssertEqual(error.message, "Aborted due to lock prevention")
+            XCTAssertEqual(error.message, "Database is suspended")
             XCTAssertEqual(error.sql, "SAVEPOINT test")
         }
     }
     
-    func testLockPreventionDoesNotPreventNewDeferredTransactionInWALMode() throws {
+    func testSuspensionDoesNotPreventNewDeferredTransactionInWALMode() throws {
         let dbQueue = try makeDatabaseQueue(journalMode: "wal")
-        dbQueue.startPreventingLock()
+        dbQueue.suspend()
         
         try dbQueue.inDatabase { db in
             try db.execute(sql: "BEGIN TRANSACTION; ROLLBACK")
@@ -75,9 +75,9 @@ class DatabaseLockPreventionTests : GRDBTestCase {
         }
     }
     
-    func testLockPreventionPreventsNewImmediateOrExclusiveTransactionInWALMode() throws {
+    func testSuspensionPreventsNewImmediateOrExclusiveTransactionInWALMode() throws {
         let dbQueue = try makeDatabaseQueue(journalMode: "wal")
-        dbQueue.startPreventingLock()
+        dbQueue.suspend()
         
         do {
             try dbQueue.inDatabase { db in
@@ -86,7 +86,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-            XCTAssertEqual(error.message, "Aborted due to lock prevention")
+            XCTAssertEqual(error.message, "Database is suspended")
             XCTAssertEqual(error.sql, "BEGIN IMMEDIATE TRANSACTION")
         }
         
@@ -97,18 +97,18 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-            XCTAssertEqual(error.message, "Aborted due to lock prevention")
+            XCTAssertEqual(error.message, "Database is suspended")
             XCTAssertEqual(error.sql, "BEGIN EXCLUSIVE TRANSACTION")
         }
     }
     
     // MARK: - COMMIT, ROLLBACK, RELEASE SAVEPOINT, ROLLBACK TRANSACTION TO SAVEPOINT
     
-    func testLockPreventionDoesNotPreventCommit() throws {
+    func testSuspensionDoesNotPreventCommit() throws {
         func test(_ dbQueue: DatabaseQueue) throws {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "BEGIN TRANSACTION")
-                dbQueue.startPreventingLock()
+                dbQueue.suspend()
                 try db.execute(sql: "COMMIT")
             }
         }
@@ -116,11 +116,11 @@ class DatabaseLockPreventionTests : GRDBTestCase {
         try test(makeDatabaseQueue(journalMode: "wal"))
     }
     
-    func testLockPreventionDoesNotPreventRollback() throws {
+    func testSuspensionDoesNotPreventRollback() throws {
         func test(_ dbQueue: DatabaseQueue) throws {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "BEGIN TRANSACTION")
-                dbQueue.startPreventingLock()
+                dbQueue.suspend()
                 try db.execute(sql: "ROLLBACK")
             }
         }
@@ -128,11 +128,11 @@ class DatabaseLockPreventionTests : GRDBTestCase {
         try test(makeDatabaseQueue(journalMode: "wal"))
     }
     
-    func testLockPreventionDoesNotPreventReleaseSavePoint() throws {
+    func testSuspensionDoesNotPreventReleaseSavePoint() throws {
         func test(_ dbQueue: DatabaseQueue) throws {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "SAVEPOINT test")
-                dbQueue.startPreventingLock()
+                dbQueue.suspend()
                 try db.execute(sql: "RELEASE SAVEPOINT test")
             }
         }
@@ -140,11 +140,11 @@ class DatabaseLockPreventionTests : GRDBTestCase {
         try test(makeDatabaseQueue(journalMode: "wal"))
     }
     
-    func testLockPreventionDoesNotPreventRollbackSavePoint() throws {
+    func testSuspensionDoesNotPreventRollbackSavePoint() throws {
         func test(_ dbQueue: DatabaseQueue) throws {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "SAVEPOINT test")
-                dbQueue.startPreventingLock()
+                dbQueue.suspend()
                 try db.execute(sql: "ROLLBACK TRANSACTION TO SAVEPOINT test")
                 try db.execute(sql: "RELEASE SAVEPOINT test")
             }
@@ -155,27 +155,27 @@ class DatabaseLockPreventionTests : GRDBTestCase {
     
     // MARK: - SELECT
     
-    func testLockPreventionPreventsReadInDeleteJournalMode() throws {
+    func testSuspensionPreventsReadInDeleteJournalMode() throws {
         let dbQueue = try makeDatabaseQueue(journalMode: "delete")
         do {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "CREATE TABLE t(a);")
-                dbQueue.startPreventingLock()
+                dbQueue.suspend()
                 _ = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
             }
             XCTFail("Expected error")
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-            XCTAssertEqual(error.message, "Aborted due to lock prevention")
+            XCTAssertEqual(error.message, "Database is suspended")
             XCTAssertEqual(error.sql, "SELECT COUNT(*) FROM t")
         }
     }
-
-    func testLockPreventionDoesNotPreventReadInWALMode() throws {
+    
+    func testSuspensionDoesNotPreventReadInWALMode() throws {
         let dbQueue = try makeDatabaseQueue(journalMode: "wal")
         try dbQueue.inDatabase { db in
             try db.execute(sql: "CREATE TABLE t(a);")
-            dbQueue.startPreventingLock()
+            dbQueue.suspend()
             
             try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t"), 0)
             
@@ -188,34 +188,34 @@ class DatabaseLockPreventionTests : GRDBTestCase {
     
     // MARK: - INSERT
     
-    func testLockPreventionPreventsWriteInDeleteJournalMode() throws {
+    func testSuspensionPreventsWriteInDeleteJournalMode() throws {
         let dbQueue = try makeDatabaseQueue(journalMode: "delete")
         try dbQueue.inDatabase { db in
             try db.execute(sql: "CREATE TABLE t(a);")
-            dbQueue.startPreventingLock()
+            dbQueue.suspend()
             do {
                 try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-                XCTAssertEqual(error.message, "Aborted due to lock prevention")
+                XCTAssertEqual(error.message, "Database is suspended")
                 XCTAssertEqual(error.sql, "INSERT INTO t DEFAULT VALUES")
             }
         }
     }
     
-    func testLockPreventionPreventsWriteInWALMode() throws {
+    func testSuspensionPreventsWriteInWALMode() throws {
         let dbQueue = try makeDatabaseQueue(journalMode: "wal")
         try dbQueue.inDatabase { db in
             try db.execute(sql: "CREATE TABLE t(a);")
-            dbQueue.startPreventingLock()
+            dbQueue.suspend()
             
             do {
                 try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-                XCTAssertEqual(error.message, "Aborted due to lock prevention")
+                XCTAssertEqual(error.message, "Database is suspended")
                 XCTAssertEqual(error.sql, "INSERT INTO t DEFAULT VALUES")
             }
             
@@ -227,7 +227,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-                XCTAssertEqual(error.message, "Aborted due to lock prevention")
+                XCTAssertEqual(error.message, "Database is suspended")
                 XCTAssertEqual(error.sql, "INSERT INTO t DEFAULT VALUES")
             }
         }
@@ -235,19 +235,19 @@ class DatabaseLockPreventionTests : GRDBTestCase {
     
     // MARK: - Automatic ROLLBACK
     
-    func testLockPreventionRollbacksOnPreventedWrite() throws {
+    func testSuspensionRollbacksOnPreventedWrite() throws {
         func test(_ dbQueue: DatabaseQueue) throws {
             do {
                 try dbQueue.write { db in
                     try db.execute(sql: "CREATE TABLE t(a);")
                     XCTAssertTrue(db.isInsideTransaction)
-                    dbQueue.startPreventingLock()
+                    dbQueue.suspend()
                     do {
                         try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
                         XCTFail("Expected error")
                     } catch let error as DatabaseError {
                         XCTAssertEqual(error.resultCode, .SQLITE_ABORT)
-                        XCTAssertEqual(error.message, "Aborted due to lock prevention")
+                        XCTAssertEqual(error.message, "Database is suspended")
                         XCTAssertEqual(error.sql, "INSERT INTO t DEFAULT VALUES")
                     }
                     // Aborded transaction
@@ -265,7 +265,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
     
     // MARK: - Concurrent Lock Prevention
     
-    func testLockPreventionAbortsDatabaseQueueAccess() throws {
+    func testSuspensionAbortsDatabaseQueueAccess() throws {
         func test(_ dbQueue: DatabaseQueue) throws {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
@@ -289,7 +289,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             }
             let block2 = {
                 semaphore1.wait()
-                dbQueue.startPreventingLock()
+                dbQueue.suspend()
                 semaphore2.signal()
             }
             let blocks = [block1, block2]
@@ -301,7 +301,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
         try test(makeDatabaseQueue(journalMode: "wal"))
     }
     
-    func testLockPreventionDoesNotPreventFurtherReadInWALMode() throws {
+    func testSuspensionDoesNotPreventFurtherReadInWALMode() throws {
         let dbQueue = try makeDatabaseQueue(journalMode: "wal")
         try dbQueue.write { db in
             try db.execute(sql: "CREATE TABLE t(a);")
@@ -334,7 +334,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
         }
         let block2 = {
             semaphore1.wait()
-            dbQueue.startPreventingLock()
+            dbQueue.suspend()
             semaphore2.signal()
         }
         let blocks = [block1, block2]
@@ -374,7 +374,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             }
             let block2 = {
                 semaphore1.wait()
-                dbQueue.startPreventingLock()
+                dbQueue.suspend()
                 semaphore2.signal()
             }
             let blocks = [block1, block2]
@@ -433,7 +433,7 @@ class DatabaseLockPreventionTests : GRDBTestCase {
             }
             let block2 = {
                 semaphore1.wait()
-                dbQueue.startPreventingLock()
+                dbQueue.suspend()
                 semaphore2.signal()
             }
             let blocks = [block1, block2]
@@ -445,14 +445,14 @@ class DatabaseLockPreventionTests : GRDBTestCase {
         try test(makeDatabaseQueue(journalMode: "wal"))
     }
     
-    // MARK: - stopPreventingLock
+    // MARK: - resume
     
-    func testStopPreventingLock() throws {
+    func testResume() throws {
         let dbQueue = try makeDatabaseQueue(journalMode: "delete")
         try dbQueue.inDatabase { db in
             try db.execute(sql: "CREATE TABLE t(a);")
-            dbQueue.startPreventingLock()
-            dbQueue.stopPreventingLock()
+            dbQueue.suspend()
+            dbQueue.resume()
             try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 0)
         }
     }

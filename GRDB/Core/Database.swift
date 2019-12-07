@@ -631,20 +631,20 @@ public final class Database {
         sqlite3_interrupt(sqliteConnection)
     }
     
-    // MARK: - Lock Prevention
+    // MARK: - Database Suspension
     
-    /// Starts preventing database locks.
+    /// Suspends the database. A suspended database prevents database locks in
+    /// order to avoid the [`0xdead10cc` exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
     ///
     /// This method can be called from any thread.
     ///
-    /// During lock prevention, any lock is released as soon as possible, and
-    /// lock acquisition is prevented.
+    /// During suspension, any lock is released as soon as possible, and
+    /// lock acquisition is prevented. All database accesses may throw a
+    /// DatabaseError of code `SQLITE_INTERRUPT`, or `SQLITE_ABORT`, except
+    /// reads in WAL mode.
     ///
-    /// All database accesses may throw a DatabaseError of code
-    /// `SQLITE_INTERRUPT`, or `SQLITE_ABORT`, except reads in WAL mode.
-    ///
-    /// Lock prevention ends with stopPreventingLock().
-    func startPreventingLock() {
+    /// Suspnsion ends with resume().
+    func suspend() {
         preventsLock.write { preventsLock in
             if preventsLock {
                 return
@@ -677,23 +677,26 @@ public final class Database {
         }
     }
     
-    /// Ends lock prevention. See startPreventingLock().
+    /// Resumes the database. A resumed database stops preventing database locks
+    /// in order to avoid the [`0xdead10cc` exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
     ///
     /// This method can be called from any thread.
-    func stopPreventingLock() {
+    ///
+    /// See suspend().
+    func resume() {
         preventsLock.write { preventsLock in
             preventsLock = false
         }
     }
     
-    /// Support for checkForLockPrevention(from:)
+    /// Support for checkForSuspension(from:)
     private func journalMode() throws -> String {
         if let journalMode = journalModeCache {
             return journalMode
         }
         
         // Don't return String.fetchOne(self, sql: "PRAGMA journal_mode"), so
-        // that we don't create an infinite loop in checkForLockPrevention(from:)
+        // that we don't create an infinite loop in checkForSuspension(from:)
         var statement: SQLiteStatement? = nil
         let sql = "PRAGMA journal_mode"
         sqlite3_prepare_v2(sqliteConnection, sql, -1, &statement, nil)
@@ -707,9 +710,10 @@ public final class Database {
         return journalMode
     }
     
-    /// Throws SQLITE_ABORT during lock prevention, if statement would lock
-    /// the database.
-    func checkForLockPrevention(from statement: Statement) throws {
+    /// Throws SQLITE_ABORT for suspended databases, if statement would lock
+    /// the database, in order to avoid the [`0xdead10cc`
+    /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
+    func checkForSuspension(from statement: Statement) throws {
         try preventsLock.read { preventsLock in
             guard preventsLock else {
                 return
@@ -739,15 +743,15 @@ public final class Database {
             }
             
             // Attempt at releasing an eventual lock with ROLLBACk,
-            // as explained in Database.startPreventingLock().
+            // as explained in Database.suspend().
             //
             // Use sqlite3_exec instead of `try? rollback()` in order to avoid
-            // an infinite loop in checkForLockPrevention(from:)
+            // an infinite loop in checkForSuspension(from:)
             _ = sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
             
             throw DatabaseError(
                 resultCode: .SQLITE_ABORT,
-                message: "Aborted due to lock prevention",
+                message: "Database is suspended",
                 sql: statement.sql,
                 arguments: statement.arguments)
         }

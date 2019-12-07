@@ -75,6 +75,38 @@ public struct Configuration {
     /// Default: nil
     public var trace: TraceFunction?
     
+    #if os(iOS)
+    /// When true, the database becomes suspended when application background
+    /// time expires, in order to avoid the
+    /// [`0xdead10cc` exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
+    ///
+    /// During suspension, all database accesses but reads in WAL mode may throw
+    /// a DatabaseError of code `SQLITE_INTERRUPT`, or `SQLITE_ABORT`.
+    ///
+    /// Suspended databases do not resume automatically when application leaves
+    /// its own suspended state. You resume databases explicitly by calling
+    /// `DatabaseBackgroundScheduler.shared.resume(in:)`.
+    ///
+    /// The only time it's safe to call this method is in exactly the same
+    /// runloop cycle as your app was is woken by the system. For example, you
+    /// will call it in `UIApplicationDelegate.applicationWillEnterForeground(_:)`
+    /// and in the various background mode callbacks defined by iOS.
+    ///
+    /// For example:
+    ///
+    ///     @UIApplicationMain
+    ///     class AppDelegate: UIResponder, UIApplicationDelegate {
+    ///         func applicationWillEnterForeground(_ application: UIApplication) {
+    ///             // Resume suspended databases
+    ///             DatabaseBackgroundScheduler.shared.resume(in: application)
+    ///         }
+    ///     }
+    ///
+    /// See https://forums.developer.apple.com/thread/126438 for more
+    /// information.
+    public var suspendsOnBackgroundTimeExpiration = false
+    #endif
+    
     // MARK: - Encryption
     
     #if SQLITE_HAS_CODEC

@@ -608,16 +608,16 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         base.interrupt()
     }
     
-    // MARK: - Lock Prevention
+    // MARK: - Database Suspension
     
     /// :nodoc:
-    public func startPreventingLock() {
-        base.startPreventingLock()
+    public func suspend() {
+        base.suspend()
     }
     
     /// :nodoc:
-    public func stopPreventingLock() {
-        base.stopPreventingLock()
+    public func resume() {
+        base.resume()
     }
     
     // MARK: - Reading from Database

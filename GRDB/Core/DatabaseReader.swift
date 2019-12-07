@@ -84,25 +84,28 @@ public protocol DatabaseReader: AnyObject {
     ///     }
     func interrupt()
     
-    // MARK: - Lock Prevention
+    // MARK: - Database Suspension
     
-    /// Starts preventing database locks.
+    /// Suspends the database. A suspended database prevents database locks in
+    /// order to avoid the [`0xdead10cc` exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
     ///
     /// This method can be called from any thread.
     ///
-    /// During lock prevention, any lock is released as soon as possible, and
-    /// lock acquisition is prevented.
+    /// During suspension, any lock is released as soon as possible, and
+    /// lock acquisition is prevented. All database accesses may throw a
+    /// DatabaseError of code `SQLITE_INTERRUPT`, or `SQLITE_ABORT`, except
+    /// reads in WAL mode.
     ///
-    /// All database accesses may throw a DatabaseError of code
-    /// `SQLITE_INTERRUPT`, or `SQLITE_ABORT`, except reads in WAL mode.
-    ///
-    /// Lock prevention ends with stopPreventingLock().
-    func startPreventingLock()
+    /// Suspnsion ends with resume().
+    func suspend()
     
-    /// Ends lock prevention. See startPreventingLock().
+    /// Resumes the database. A resumed database stops preventing database locks
+    /// in order to avoid the [`0xdead10cc` exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
     ///
     /// This method can be called from any thread.
-    func stopPreventingLock()
+    ///
+    /// See suspend().
+    func resume()
     
     // MARK: - Read From Database
     
@@ -335,16 +338,16 @@ public final class AnyDatabaseReader: DatabaseReader {
         base.interrupt()
     }
     
-    // MARK: - Lock Prevention
+    // MARK: - Database Suspension
     
     /// :nodoc:
-    public func startPreventingLock() {
-        base.startPreventingLock()
+    public func suspend() {
+        base.suspend()
     }
     
     /// :nodoc:
-    public func stopPreventingLock() {
-        base.stopPreventingLock()
+    public func resume() {
+        base.resume()
     }
     
     // MARK: - Reading from Database

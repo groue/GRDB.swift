@@ -53,14 +53,16 @@ extension DatabaseSnapshot {
         serializedDatabase.interrupt()
     }
     
-    // MARK: - Lock Prevention
+    // MARK: - Database Suspension
     
-    public func startPreventingLock() {
-        // read-only WAL connections can't acquire locks
+    public func suspend() {
+        // read-only WAL connections can't acquire locks and do not need to
+        // be suspended.
     }
     
-    public func stopPreventingLock() {
-        // read-only WAL connections can't acquire locks
+    public func resume() {
+        // read-only WAL connections can't acquire locks and do not need to
+        // be suspended.
     }
     
     // MARK: - Reading from Database

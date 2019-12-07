@@ -15,7 +15,7 @@ import UIKit
 public final class DatabasePool: DatabaseWriter {
     private let writer: SerializedDatabase
     private var readerPool: Pool<SerializedDatabase>!
-    var readerConfiguration: Configuration
+    var readerConfiguration: Configuration // TOTO make private or remove
     
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
@@ -112,6 +112,10 @@ public final class DatabasePool: DatabaseWriter {
                 }
             }
         }
+        
+        #if os(iOS)
+        setupLockPrevention()
+        #endif
     }
     
     #if os(iOS)
@@ -259,23 +263,53 @@ extension DatabasePool: DatabaseReader {
         readerPool.forEach { $0.interrupt() }
     }
     
-    // MARK: - Lock Prevention
+    // MARK: - Database Suspension
     
-    public func startPreventingLock() {
+    public func suspend() {
         if configuration.readonly {
-            // read-only WAL connections can't acquire locks
+            // read-only WAL connections can't acquire locks and do not need to
+            // be suspended.
             return
         }
-        writer.startPreventingLock()
+        writer.suspend()
     }
     
-    public func stopPreventingLock() {
+    public func resume() {
         if configuration.readonly {
-            // read-only WAL connections can't acquire locks
+            // read-only WAL connections can't acquire locks and do not need to
+            // be suspended.
             return
         }
-        writer.stopPreventingLock()
+        writer.resume()
     }
+    
+    #if os(iOS)
+    private func setupLockPrevention() {
+        if configuration.suspendsOnBackgroundTimeExpiration {
+            let center = NotificationCenter.default
+            center.addObserver(
+                self,
+                selector: #selector(DatabaseQueue.suspend(_:)),
+                name: DatabaseBackgroundScheduler.suspendNotification,
+                object: DatabaseBackgroundScheduler.shared)
+            center.addObserver(
+                self,
+                selector: #selector(DatabaseQueue.resume(_:)),
+                name: DatabaseBackgroundScheduler.resumeNotification,
+                object: nil)
+        }
+    }
+    
+    @objc
+    func suspend(_ notification: Notification) {
+        suspend()
+    }
+    
+    @objc
+    func resume(_ notification: Notification) {
+        resume()
+    }
+    #endif
     
     // MARK: - Reading from Database
     

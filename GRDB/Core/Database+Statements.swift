@@ -222,7 +222,7 @@ extension Database {
 extension Database {
     func executeUpdateStatement(_ statement: UpdateStatement) throws {
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
-        try checkForLockPrevention(from: statement)
+        try checkForSuspension(from: statement)
         
         let authorizer = observationBroker.updateStatementWillExecute(statement)
         let sqliteStatement = statement.sqliteStatement
@@ -293,7 +293,7 @@ extension Database {
     @inline(__always)
     func selectStatementWillExecute(_ statement: SelectStatement) throws {
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
-        try checkForLockPrevention(from: statement)
+        try checkForSuspension(from: statement)
         
         if _isRecordingSelectedRegion {
             // Don't record schema introspection queries, which may be

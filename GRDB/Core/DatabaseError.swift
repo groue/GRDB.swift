@@ -250,6 +250,22 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     let arguments: StatementArguments?
 }
 
+extension DatabaseError {
+    // TODO: test
+    /// Returns true if the error has code SQLITE_ABORT or SQLITE_INTERRUPT.
+    ///
+    /// Such an error can be thrown when a database is suspended in order to
+    /// avoid the [`0xdead10cc` exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
+    var isDatabaseSuspensionError: Bool {
+        switch resultCode {
+        case .SQLITE_ABORT, .SQLITE_INTERRUPT:
+            return true
+        default:
+            return false
+        }
+    }
+}
+
 // CustomStringConvertible
 extension DatabaseError {
     /// :nodoc:
