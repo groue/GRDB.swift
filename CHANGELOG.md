@@ -61,6 +61,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 **New**
 
+- [#656](https://github.com/groue/GRDB.swift/pull/656): Type inference of selected columns
 - [#659](https://github.com/groue/GRDB.swift/pull/659): Database interruption
 - [#660](https://github.com/groue/GRDB.swift/pull/660): Database Lock Prevention
 
