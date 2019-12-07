@@ -38,11 +38,16 @@ final class SerializedDatabase {
         // > [...]
         // >
         // > The default mode is serialized.
-        //
-        // Since our database connection is only used via our serial dispatch
-        // queue, there is no purpose using the default serialized mode.
         var config = configuration
-        config.threadingMode = .multiThread
+        if config.suspendsOnBackgroundTimeExpiration {
+            // Allow concurrent database accesses, so that we can force a
+            // rollback in Database.suspend()
+            config.threadingMode = .serialized
+        } else {
+            // Since our database connection is only used via our serial dispatch
+            // queue, there is no purpose using the default serialized mode.
+            config.threadingMode = .multiThread
+        }
         
         self.path = path
         self.db = try Database(path: path, configuration: config, schemaCache: schemaCache)

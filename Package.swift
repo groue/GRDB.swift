@@ -23,6 +23,7 @@ let package = Package(
             dependencies: ["GRDB"],
             path: "Tests",
             exclude: [
+                "AppGroupTest",
                 "CocoaPods",
                 "CustomSQLite",
                 "Crash",

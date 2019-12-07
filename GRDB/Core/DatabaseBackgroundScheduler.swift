@@ -19,11 +19,11 @@ public class DatabaseBackgroundScheduler {
     
     private var lock = NSLock()
     private var suspendedSemaphore: DispatchSemaphore?
-    private var preventsLock = false {
+    private var isSuspended = false {
         didSet {
-            guard preventsLock != oldValue else { return }
+            guard isSuspended != oldValue else { return }
             let center = NotificationCenter.default
-            if preventsLock {
+            if isSuspended {
                 center.post(name: DatabaseBackgroundScheduler.databaseWillSuspendNotification, object: self)
                 center.post(name: DatabaseBackgroundScheduler.suspendNotification, object: self)
             } else {
@@ -71,7 +71,7 @@ public class DatabaseBackgroundScheduler {
             case .active, .inactive:
                 suspendedSemaphore?.signal()
                 suspendedSemaphore = nil
-                preventsLock = false
+                isSuspended = false
             case .background:
                 waitForBackgroundTaskExpiration()
             }
@@ -92,7 +92,7 @@ public class DatabaseBackgroundScheduler {
     private func waitForBackgroundTaskExpiration() {
         synchronized {
             suspendedSemaphore?.signal()
-            preventsLock = false
+            isSuspended = false
             
             let semaphore = DispatchSemaphore(value: 0)
             ProcessInfo.processInfo.performExpiringActivity(withReason: "GRDB.DatabaseTaskScheduler") { suspended in
@@ -100,7 +100,7 @@ public class DatabaseBackgroundScheduler {
                     self.synchronized {
                         self.suspendedSemaphore?.signal()
                         self.suspendedSemaphore = nil
-                        self.preventsLock = true
+                        self.isSuspended = true
                     }
                 } else {
                     semaphore.wait()

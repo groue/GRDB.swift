@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15505" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="QOC-RY-PIW">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15701" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="QOC-RY-PIW">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15510"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15703"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -34,38 +34,42 @@
                             <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qZw-pS-6fs">
                                 <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                                 <subviews>
-                                    <view hidden="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" translatesAutoresizingMaskIntoConstraints="NO" id="7ln-Vs-IEl">
-                                        <rect key="frame" x="0.0" y="0.0" width="414" height="774"/>
-                                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
-                                    </view>
-                                    <stackView opaque="NO" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" axis="vertical" alignment="center" spacing="40" translatesAutoresizingMaskIntoConstraints="NO" id="Jyy-VW-9sK">
-                                        <rect key="frame" x="20" y="318" width="374" height="138"/>
+                                    <view contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" translatesAutoresizingMaskIntoConstraints="NO" id="OXE-KM-U76">
+                                        <rect key="frame" x="0.0" y="0.0" width="414" height="178"/>
                                         <subviews>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gwN-w4-yqp" customClass="BalancedLabel" customModule="AppGroupTest" customModuleProvider="target">
-                                                <rect key="frame" x="161" y="0.0" width="52.5" height="33.5"/>
-                                                <fontDescription key="fontDescription" style="UICTFontTextStyleTitle1"/>
-                                                <nil key="textColor"/>
-                                                <nil key="highlightedColor"/>
-                                            </label>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mY5-62-q3v" customClass="BalancedLabel" customModule="AppGroupTest" customModuleProvider="target">
-                                                <rect key="frame" x="22" y="73.5" width="330" height="64.5"/>
-                                                <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
-                                                <nil key="textColor"/>
-                                                <nil key="highlightedColor"/>
-                                            </label>
+                                            <stackView opaque="NO" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" axis="vertical" alignment="center" spacing="40" translatesAutoresizingMaskIntoConstraints="NO" id="Jyy-VW-9sK">
+                                                <rect key="frame" x="20" y="40" width="374" height="138"/>
+                                                <subviews>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title" textAlignment="center" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gwN-w4-yqp" customClass="BalancedLabel" customModule="AppGroupTest" customModuleProvider="target">
+                                                        <rect key="frame" x="161" y="0.0" width="52.5" height="33.5"/>
+                                                        <fontDescription key="fontDescription" style="UICTFontTextStyleTitle1"/>
+                                                        <nil key="textColor"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
+                                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mY5-62-q3v" customClass="BalancedLabel" customModule="AppGroupTest" customModuleProvider="target">
+                                                        <rect key="frame" x="22" y="73.5" width="330" height="64.5"/>
+                                                        <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
+                                                        <nil key="textColor"/>
+                                                        <nil key="highlightedColor"/>
+                                                    </label>
+                                                </subviews>
+                                            </stackView>
                                         </subviews>
-                                    </stackView>
+                                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                        <constraints>
+                                            <constraint firstAttribute="trailingMargin" secondItem="Jyy-VW-9sK" secondAttribute="trailing" id="i65-hF-QLt"/>
+                                            <constraint firstItem="Jyy-VW-9sK" firstAttribute="leading" secondItem="OXE-KM-U76" secondAttribute="leadingMargin" id="qRZ-BT-J5W"/>
+                                            <constraint firstAttribute="bottom" secondItem="Jyy-VW-9sK" secondAttribute="bottom" id="tem-Dc-c7p"/>
+                                            <constraint firstItem="Jyy-VW-9sK" firstAttribute="top" secondItem="OXE-KM-U76" secondAttribute="top" constant="40" id="uK4-xx-fK8"/>
+                                        </constraints>
+                                    </view>
                                 </subviews>
                                 <constraints>
-                                    <constraint firstItem="7ln-Vs-IEl" firstAttribute="bottom" secondItem="yqw-fj-1sj" secondAttribute="bottom" id="JVf-xS-BPT"/>
-                                    <constraint firstItem="Jyy-VW-9sK" firstAttribute="height" relation="lessThanOrEqual" secondItem="7ln-Vs-IEl" secondAttribute="height" constant="-80" id="RJq-WO-Wb0"/>
-                                    <constraint firstItem="7ln-Vs-IEl" firstAttribute="leading" secondItem="yqw-fj-1sj" secondAttribute="leading" id="Rge-4b-xAm"/>
-                                    <constraint firstItem="yqw-fj-1sj" firstAttribute="trailing" secondItem="7ln-Vs-IEl" secondAttribute="trailing" id="VPZ-xp-McF"/>
-                                    <constraint firstItem="Jyy-VW-9sK" firstAttribute="leading" secondItem="7ln-Vs-IEl" secondAttribute="leadingMargin" id="XFE-Fr-eWx"/>
-                                    <constraint firstItem="7ln-Vs-IEl" firstAttribute="top" secondItem="yqw-fj-1sj" secondAttribute="top" id="ZKP-au-KrH"/>
-                                    <constraint firstItem="Jyy-VW-9sK" firstAttribute="trailing" secondItem="7ln-Vs-IEl" secondAttribute="trailingMargin" id="gc8-xM-7Kb"/>
-                                    <constraint firstItem="7ln-Vs-IEl" firstAttribute="width" secondItem="CNs-dj-Su3" secondAttribute="width" id="lvj-5e-DdY"/>
-                                    <constraint firstItem="Jyy-VW-9sK" firstAttribute="centerY" secondItem="yqw-fj-1sj" secondAttribute="centerY" id="nlL-ZG-T0u"/>
+                                    <constraint firstItem="OXE-KM-U76" firstAttribute="width" secondItem="CNs-dj-Su3" secondAttribute="width" id="7n1-wr-g8k"/>
+                                    <constraint firstItem="OXE-KM-U76" firstAttribute="top" secondItem="yqw-fj-1sj" secondAttribute="top" id="Nzr-af-hiM"/>
+                                    <constraint firstItem="OXE-KM-U76" firstAttribute="leading" secondItem="yqw-fj-1sj" secondAttribute="leading" id="Qdw-yI-k6t"/>
+                                    <constraint firstItem="OXE-KM-U76" firstAttribute="bottom" secondItem="yqw-fj-1sj" secondAttribute="bottom" id="dVI-kd-aQ9"/>
+                                    <constraint firstItem="yqw-fj-1sj" firstAttribute="trailing" secondItem="OXE-KM-U76" secondAttribute="trailing" id="szw-eR-gWE"/>
                                 </constraints>
                                 <viewLayoutGuide key="contentLayoutGuide" id="yqw-fj-1sj"/>
                                 <viewLayoutGuide key="frameLayoutGuide" id="CNs-dj-Su3"/>
@@ -76,7 +80,6 @@
                             <constraint firstItem="qZw-pS-6fs" firstAttribute="top" secondItem="0NA-NF-aiN" secondAttribute="top" id="AkL-vL-uac"/>
                             <constraint firstItem="qZw-pS-6fs" firstAttribute="leading" secondItem="0NA-NF-aiN" secondAttribute="leading" id="IXp-j5-3hu"/>
                             <constraint firstItem="qZw-pS-6fs" firstAttribute="trailing" secondItem="0NA-NF-aiN" secondAttribute="trailing" id="KiD-LH-kZO"/>
-                            <constraint firstItem="7ln-Vs-IEl" firstAttribute="height" secondItem="g79-kg-x4B" secondAttribute="height" priority="250" id="fx1-UL-4Lm"/>
                             <constraint firstAttribute="bottom" secondItem="qZw-pS-6fs" secondAttribute="bottom" id="sb2-Ks-ezf"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="g79-kg-x4B"/>
@@ -84,7 +87,7 @@
                     <navigationItem key="navigationItem" id="wfm-kU-q0x">
                         <barButtonItem key="rightBarButtonItem" style="done" systemItem="done" id="CxW-wF-vpv">
                             <connections>
-                                <segue destination="fpb-n1-8z7" kind="show" identifier="" id="6SH-EF-LxK"/>
+                                <segue destination="fpb-n1-8z7" kind="show" identifier="next" id="dhB-GM-ec0"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>

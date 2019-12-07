@@ -151,7 +151,7 @@ public final class Database {
     var isInsideTransactionBlock = false
     
     /// Support for checkForLockPrevention(from:)
-    var preventsLock = LockedBox<Bool>(value: false)
+    var isSuspended = LockedBox<Bool>(value: false)
     
     /// Support for checkForLockPrevention(from:)
     /// This cache is never cleared: we assume journal mode never changes.
@@ -645,13 +645,13 @@ public final class Database {
     ///
     /// Suspnsion ends with resume().
     func suspend() {
-        preventsLock.write { preventsLock in
-            if preventsLock {
+        isSuspended.write { isSuspended in
+            if isSuspended {
                 return
             }
             
             // Prevent future lock acquisition
-            preventsLock = true
+            isSuspended = true
             
             // Interrupt the database because this may trigger an
             // SQLITE_INTERRUPT error which may itself abort a transaction and
@@ -660,20 +660,15 @@ public final class Database {
             
             // What about the eventual remaining lock?
             // If the database had been opened with the SQLITE_OPEN_FULLMUTEX
-            // flag, we could safely execute a rollback statement:
-            //
-            //  if configuration.SQLiteOpenFlags & SQLITE_OPEN_FULLMUTEX != 0 {
-            //      sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
-            //  }
-            //
-            // But:
-            //
-            // - we currently use SQLITE_OPEN_NOMUTEX instead of SQLITE_OPEN_FULLMUTEX.
-            // - the rollback may fail, and a lock could remain.
-            //
-            // We work around this situation by issuing a rollback on next
-            // database access which requires a lock,
-            // in preventExclusiveLock(from:).
+            // flag, execute a rollback statement:
+            if configuration.threadingMode == .serialized {
+                _ = sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
+            }
+            
+            // If threadingMode is not .serialized, or if the rollback has
+            // failed, a lock could remain. We'll issue a rollback on next
+            // database access which requires a lock, in
+            // checkForSuspension(from:).
         }
     }
     
@@ -684,8 +679,8 @@ public final class Database {
     ///
     /// See suspend().
     func resume() {
-        preventsLock.write { preventsLock in
-            preventsLock = false
+        isSuspended.write { isSuspended in
+            isSuspended = false
         }
     }
     
@@ -714,8 +709,8 @@ public final class Database {
     /// the database, in order to avoid the [`0xdead10cc`
     /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
     func checkForSuspension(from statement: Statement) throws {
-        try preventsLock.read { preventsLock in
-            guard preventsLock else {
+        try isSuspended.read { isSuspended in
+            guard isSuspended else {
                 return
             }
             

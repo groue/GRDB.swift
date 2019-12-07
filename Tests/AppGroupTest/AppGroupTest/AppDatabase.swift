@@ -29,7 +29,7 @@ class AppDatabase {
         try migrator.migrate(dbWriter!)
     }
     
-    func openLongRunningTransaction(until promise: (@escaping () -> Void) -> Void, completion: @escaping (Result<Void, Error>) -> Void) {
+    func openTransaction(_ kind: Database.TransactionKind, until promise: (@escaping () -> Void) -> Void, completion: @escaping (Result<Void, Error>) -> Void) {
         let dbWriter = self.dbWriter!
         let semaphore = DispatchSemaphore(value: 0)
         promise({ semaphore.signal() })
@@ -37,7 +37,7 @@ class AppDatabase {
         DispatchQueue.global().async {
             let result = Result {
                 try dbWriter.writeWithoutTransaction { db in
-                    try db.inTransaction(.immediate) {
+                    try db.inTransaction(kind) {
                         semaphore.wait()
                         return .commit
                     }
