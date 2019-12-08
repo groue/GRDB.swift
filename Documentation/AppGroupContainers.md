@@ -28,7 +28,7 @@ See https://www.sqlite.org/rescode.html#busy for more information about this err
 1. Use a [Database Pool].
     
     ```swift
-    let dbPool = DatabasePool(path: ...)
+    let dbPool = try DatabasePool(path: ...)
     ```
     
     If only one process writes in the database, then a database pool will prevent all `SQLITE_BUSY` errors. This is a consequence of the [WAL mode](https://www.sqlite.org/wal.html).
@@ -39,7 +39,7 @@ See https://www.sqlite.org/rescode.html#busy for more information about this err
     var configuration = Configuration()
     configuration.busyMode = .timeout(/* a TimeInterval */)
     configuration.defaultTransactionKind = .immediate
-    let dbPool = DatabasePool(path: ..., configuration: configuration)
+    let dbPool = try DatabasePool(path: ..., configuration: configuration)
     ```
     
     With such a setup, you may still get `SQLITE_BUSY` errors from all write operations, should the database remain locked by another process for longer than the specified timeout.
@@ -66,7 +66,7 @@ Those steps are only recommended for applications, not for extensions.
     ```swift
     var configuration = Configuration()
     configuration.suspendsOnBackgroundTimeExpiration = true
-    let dbPool = DatabasePool(path: ..., configuration: configuration)
+    let dbPool = try DatabasePool(path: ..., configuration: configuration)
     ```
 
 2. Resume normal operations from `UIApplicationDelegate.applicationWillEnterForeground(_:)` (`SceneDelegate.sceneWillEnterForeground(_:)` for scene-based applications), and from all the background mode callbacks defined by iOS:
