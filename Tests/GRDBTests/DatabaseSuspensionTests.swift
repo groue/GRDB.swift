@@ -1,8 +1,8 @@
 import XCTest
 #if GRDBCUSTOMSQLITE
-import GRDBCustomSQLite
+@testable import GRDBCustomSQLite
 #else
-import GRDB
+@testable import GRDB
 #endif
 
 class DatabaseSuspensionTests : GRDBTestCase {
@@ -159,7 +159,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue(journalMode: "delete")
         do {
             try dbQueue.inDatabase { db in
-                try db.execute(sql: "CREATE TABLE t(a);")
+                try db.execute(sql: "CREATE TABLE t(a)")
                 dbQueue.suspend()
                 _ = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
             }
@@ -174,7 +174,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
     func testSuspensionDoesNotPreventReadInWALMode() throws {
         let dbQueue = try makeDatabaseQueue(journalMode: "wal")
         try dbQueue.inDatabase { db in
-            try db.execute(sql: "CREATE TABLE t(a);")
+            try db.execute(sql: "CREATE TABLE t(a)")
             dbQueue.suspend()
             
             try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t"), 0)
@@ -191,7 +191,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
     func testSuspensionPreventsWriteInDeleteJournalMode() throws {
         let dbQueue = try makeDatabaseQueue(journalMode: "delete")
         try dbQueue.inDatabase { db in
-            try db.execute(sql: "CREATE TABLE t(a);")
+            try db.execute(sql: "CREATE TABLE t(a)")
             dbQueue.suspend()
             do {
                 try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
@@ -207,7 +207,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
     func testSuspensionPreventsWriteInWALMode() throws {
         let dbQueue = try makeDatabaseQueue(journalMode: "wal")
         try dbQueue.inDatabase { db in
-            try db.execute(sql: "CREATE TABLE t(a);")
+            try db.execute(sql: "CREATE TABLE t(a)")
             dbQueue.suspend()
             
             do {
@@ -239,7 +239,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
         func test(_ dbQueue: DatabaseQueue) throws {
             do {
                 try dbQueue.write { db in
-                    try db.execute(sql: "CREATE TABLE t(a);")
+                    try db.execute(sql: "CREATE TABLE t(a)")
                     XCTAssertTrue(db.isInsideTransaction)
                     dbQueue.suspend()
                     do {
@@ -304,7 +304,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
     func testSuspensionDoesNotPreventFurtherReadInWALMode() throws {
         let dbQueue = try makeDatabaseQueue(journalMode: "wal")
         try dbQueue.write { db in
-            try db.execute(sql: "CREATE TABLE t(a);")
+            try db.execute(sql: "CREATE TABLE t(a)")
         }
         
         let semaphore1 = DispatchSemaphore(value: 0)
@@ -346,7 +346,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
     func testWriteTransactionAbortedDuringStatementExecution() throws {
         func test(_ dbQueue: DatabaseQueue) throws {
             try dbQueue.write { db in
-                try db.execute(sql: "CREATE TABLE t(a);")
+                try db.execute(sql: "CREATE TABLE t(a)")
             }
             
             let semaphore1 = DispatchSemaphore(value: 0)
@@ -389,7 +389,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
     func testWriteTransactionAbortedDuringStatementExecutionPreventsFurtherDatabaseAccess() throws {
         func test(_ dbQueue: DatabaseQueue) throws {
             try dbQueue.write { db in
-                try db.execute(sql: "CREATE TABLE t(a);")
+                try db.execute(sql: "CREATE TABLE t(a)")
             }
             
             let semaphore1 = DispatchSemaphore(value: 0)
@@ -450,10 +450,45 @@ class DatabaseSuspensionTests : GRDBTestCase {
     func testResume() throws {
         let dbQueue = try makeDatabaseQueue(journalMode: "delete")
         try dbQueue.inDatabase { db in
-            try db.execute(sql: "CREATE TABLE t(a);")
+            try db.execute(sql: "CREATE TABLE t(a)")
             dbQueue.suspend()
             dbQueue.resume()
             try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!, 0)
+        }
+    }
+    
+    // MARK: - journalModeCache
+    
+    // Test for internals. Make sure the journalModeCache is not set too early,
+    // especially not before user can choose the journal mode
+    func testDatabaseQueueJournalModeCache() throws {
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                XCTAssertNil(db.journalModeCache)
+                try db.execute(sql: "PRAGMA journal_mode=truncate")
+            }
+            dbQueue.suspend()
+            dbQueue.inDatabase { db in
+                try? db.execute(sql: "CREATE TABLE t(a)")
+                XCTAssertEqual(db.journalModeCache, "truncate")
+            }
+        }
+        do {
+            let dbPool = try makeDatabasePool()
+            try dbPool.write { db in
+                XCTAssertNil(db.journalModeCache)
+            }
+            dbPool.suspend()
+            dbPool.writeWithoutTransaction { db in
+                try? db.execute(sql: "CREATE TABLE t(a)")
+                XCTAssertEqual(db.journalModeCache, "wal")
+            }
+            try dbPool.read { db in
+                XCTAssertNil(db.journalModeCache)
+                try db.execute(sql: "SELECT * FROM sqlite_master")
+                XCTAssertNil(db.journalModeCache)
+            }
         }
     }
 }
