@@ -461,7 +461,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
     
     // Test for internals. Make sure the journalModeCache is not set too early,
     // especially not before user can choose the journal mode
-    func testDatabaseQueueJournalModeCache() throws {
+    func testJournalModeCache() throws {
         do {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.inDatabase { db in
@@ -470,6 +470,19 @@ class DatabaseSuspensionTests : GRDBTestCase {
                 try db.execute(sql: "CREATE TABLE t(a)")
                 XCTAssertNil(db.journalModeCache)
             }
+            dbQueue.suspend()
+            dbQueue.inDatabase { db in
+                XCTAssertNil(db.journalModeCache)
+                try? db.execute(sql: "SELECT * FROM sqlite_master")
+                XCTAssertEqual(db.journalModeCache, "truncate")
+            }
+        }
+        do {
+            var configuration = Configuration()
+            configuration.prepareDatabase = { db in
+                try db.execute(sql: "PRAGMA journal_mode=truncate")
+            }
+            let dbQueue = try makeDatabaseQueue(configuration: configuration)
             dbQueue.suspend()
             dbQueue.inDatabase { db in
                 XCTAssertNil(db.journalModeCache)
