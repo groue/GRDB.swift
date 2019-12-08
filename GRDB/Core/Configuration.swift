@@ -82,7 +82,7 @@ public struct Configuration {
     ///
     /// During suspension, all database accesses but reads in WAL mode may throw
     /// a DatabaseError of code `SQLITE_INTERRUPT`, or `SQLITE_ABORT`. You can
-    /// easily check for; those error codes with the
+    /// check for those error codes with the
     /// `DatabaseError.isDatabaseSuspensionError` property.
     ///
     /// Suspended databases do not resume automatically when application leaves
