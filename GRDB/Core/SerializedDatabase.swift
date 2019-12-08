@@ -41,7 +41,8 @@ final class SerializedDatabase {
         var config = configuration
         if config.suspendsOnBackgroundTimeExpiration {
             // Allow concurrent database accesses, so that we can force a
-            // rollback in Database.suspend()
+            // rollback in Database.suspend(), as a way to avoid the
+            // `0xdead10cc` exception.
             config.threadingMode = .serialized
         } else {
             // Since our database connection is only used via our serial dispatch

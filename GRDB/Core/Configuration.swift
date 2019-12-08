@@ -84,13 +84,14 @@ public struct Configuration {
     /// a DatabaseError of code `SQLITE_INTERRUPT`, or `SQLITE_ABORT`.
     ///
     /// Suspended databases do not resume automatically when application leaves
-    /// its own suspended state. You resume databases explicitly by calling
-    /// `DatabaseBackgroundScheduler.shared.resume(in:)`.
+    /// its own suspended state. You have to resume databases, explicitly, by
+    /// calling `DatabaseBackgroundScheduler.shared.resume(in:)`.
     ///
-    /// The only time it's safe to call this method is in exactly the same
+    /// The only time it's safe to resume databases is in exactly the same
     /// runloop cycle as your app was is woken by the system. For example, you
-    /// will call it in `UIApplicationDelegate.applicationWillEnterForeground(_:)`
-    /// and in the various background mode callbacks defined by iOS.
+    /// will call `resume(in:)` in `UIApplicationDelegate.applicationWillEnterForeground(_:)`
+    /// or `SceneDelegate.sceneWillEnterForeground(_:)`, and in the various
+    /// background mode callbacks defined by iOS.
     ///
     /// For example:
     ///

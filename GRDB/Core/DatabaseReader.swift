@@ -96,7 +96,7 @@ public protocol DatabaseReader: AnyObject {
     /// DatabaseError of code `SQLITE_INTERRUPT`, or `SQLITE_ABORT`, except
     /// reads in WAL mode.
     ///
-    /// Suspnsion ends with resume().
+    /// Suspension ends with resume().
     func suspend()
     
     /// Resumes the database. A resumed database stops preventing database locks
