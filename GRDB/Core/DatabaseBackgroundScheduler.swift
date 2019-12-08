@@ -93,6 +93,7 @@ public class DatabaseBackgroundScheduler {
         }
     }
     
+    // TODO: what about apps that do not want to run in the background?
     /// MUST be called from a synchronized block
     private func waitForBackgroundTaskExpiration() {
         suspendedSemaphore?.signal()
