@@ -101,8 +101,10 @@ class DatabaseConfigurationTests: GRDBTestCase {
         XCTAssertEqual(foo, "foo")
         
         // Test SQLITE_DBCONFIG_DQS_DDL
-        try dbQueue.inDatabase { db in
-            try db.execute(sql: "CREATE INDEX i ON player(\"foo\")")
+        if sqlite3_libversion_number() > 3008010 {
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "CREATE INDEX i ON player(\"foo\")")
+            }
         }
     }
     
@@ -143,7 +145,10 @@ class DatabaseConfigurationTests: GRDBTestCase {
             }
         } catch let error as DatabaseError {
             XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
-            XCTAssertEqual(error.message, "no such column: foo")
+            XCTAssert([
+                "no such column: foo",
+                "table player has no column named foo"]
+                .contains(error.message))
             XCTAssertEqual(error.sql, "CREATE INDEX i ON player(\"foo\")")
         }
     }
