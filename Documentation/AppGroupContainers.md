@@ -80,7 +80,7 @@ Those steps are only recommended for applications, not for extensions.
     
     This will avoid https://github.com/sqlcipher/sqlcipher/issues/255.
 
-3. Resume normal operations from `UIApplicationDelegate.applicationWillEnterForeground(_:)` (`SceneDelegate.sceneWillEnterForeground(_:)` for scene-based applications), and from all the background mode callbacks defined by iOS:
+3. From `UIApplicationDelegate.applicationWillEnterForeground(_:)` (or `SceneDelegate.sceneWillEnterForeground(_:)` for scene-based applications), and from all the background mode callbacks defined by iOS, call the `DatabaseBackgroundScheduler.shared.resume(in:)` method:
     
     ```swift
     @UIApplicationMain
@@ -93,6 +93,8 @@ Those steps are only recommended for applications, not for extensions.
         func application(_ application: UIApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
             // Resume suspended databases
             DatabaseBackgroundScheduler.shared.resume(in: application)
+            // Proceed with background fetch
+            ...
         }
     }
     ```
