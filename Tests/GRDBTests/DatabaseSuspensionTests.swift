@@ -467,10 +467,13 @@ class DatabaseSuspensionTests : GRDBTestCase {
             try dbQueue.inDatabase { db in
                 XCTAssertNil(db.journalModeCache)
                 try db.execute(sql: "PRAGMA journal_mode=truncate")
+                try db.execute(sql: "CREATE TABLE t(a)")
+                XCTAssertNil(db.journalModeCache)
             }
             dbQueue.suspend()
             dbQueue.inDatabase { db in
-                try? db.execute(sql: "CREATE TABLE t(a)")
+                XCTAssertNil(db.journalModeCache)
+                try? db.execute(sql: "SELECT * FROM sqlite_master")
                 XCTAssertEqual(db.journalModeCache, "truncate")
             }
         }
@@ -478,10 +481,16 @@ class DatabaseSuspensionTests : GRDBTestCase {
             let dbPool = try makeDatabasePool()
             try dbPool.write { db in
                 XCTAssertNil(db.journalModeCache)
+                try db.execute(sql: "CREATE TABLE t(a)")
+                XCTAssertNil(db.journalModeCache)
             }
             dbPool.suspend()
-            dbPool.writeWithoutTransaction { db in
-                try? db.execute(sql: "CREATE TABLE t(a)")
+            try dbPool.writeWithoutTransaction { db in
+                XCTAssertNil(db.journalModeCache)
+                try db.execute(sql: "SELECT * FROM sqlite_master")
+                XCTAssertEqual(db.journalModeCache, "wal")
+            }
+            try dbPool.write { db in
                 XCTAssertEqual(db.journalModeCache, "wal")
             }
             try dbPool.read { db in
