@@ -1276,4 +1276,32 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             s4.wait()
         }
     }
+    
+    // MARK: - Concurrent opening
+    
+    func testConcurrentOpening() throws {
+        for _ in 0..<50 {
+            let dbDirectoryName = "DatabasePoolConcurrencyTests-\(ProcessInfo.processInfo.globallyUniqueString)"
+            let directoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+                .appendingPathComponent(dbDirectoryName, isDirectory: true)
+            let dbURL = directoryURL.appendingPathComponent("db.sqlite")
+            try FileManager.default.createDirectory(atPath: directoryURL.path, withIntermediateDirectories: true, attributes: nil)
+            defer { try! FileManager.default.removeItem(at: directoryURL) }
+            DispatchQueue.concurrentPerform(iterations: 10) { n in
+                // WTF I could never Google for the proper correct error handling
+                // of NSFileCoordinator. What a weird API.
+                let coordinator = NSFileCoordinator(filePresenter: nil)
+                var coordinatorError: NSError?
+                var poolError: Error?
+                coordinator.coordinate(writingItemAt: dbURL, options: .forMerging, error: &coordinatorError, byAccessor: { url in
+                    do {
+                        _ = try DatabasePool(path: url.path)
+                    } catch {
+                        poolError = error
+                    }
+                })
+                XCTAssert(poolError ?? coordinatorError == nil)
+            }
+        }
+    }
 }
