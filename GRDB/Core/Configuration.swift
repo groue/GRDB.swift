@@ -77,11 +77,13 @@ public struct Configuration {
     
     #if os(iOS)
     /// When true, the database becomes suspended when application background
-    /// time expires, in order to avoid the
-    /// [`0xdead10cc` exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
+    /// time expires, in order to avoid the [`0xdead10cc`
+    /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
     ///
     /// During suspension, all database accesses but reads in WAL mode may throw
-    /// a DatabaseError of code `SQLITE_INTERRUPT`, or `SQLITE_ABORT`.
+    /// a DatabaseError of code `SQLITE_INTERRUPT`, or `SQLITE_ABORT`. You can
+    /// easily check for; those error codes with the
+    /// `DatabaseError.isDatabaseSuspensionError` property.
     ///
     /// Suspended databases do not resume automatically when application leaves
     /// its own suspended state. You have to resume databases, explicitly, by
