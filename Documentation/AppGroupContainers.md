@@ -12,11 +12,29 @@ A shared database is accessed from several SQLite connections, from several proc
 We'll address all of those challenges below.
 
 
-## How to Create the Database
+## Use a Database Pool
 
-TODO
+Use a [Database Pool] because the [WAL mode](https://www.sqlite.org/wal.html) helps sharing a database. Protect the creation of the database pool with an [NSFileCoordinator](https://developer.apple.com/documentation/foundation/nsfilecoordinator).
 
-Problem: one never knows who creates the database first. Is it the application, or the extension? What if both processes want to create the database at the same time? What if both want to activate the WAL mode at the same time? What is the **reliable** sample code we want people to copy-paste?
+```swift
+func createDatabase(at databaseURL: URL) throws -> DatabasePool {
+    let coordinator = NSFileCoordinator(filePresenter: nil)
+    var coordinatorError: NSError?
+    var poolError: Error?
+    var dbPool: DatabasePool?
+    coordinator.coordinate(writingItemAt: databaseURL, options: .forMerging, error: &coordinatorError, byAccessor: { url in
+        do {
+            dbPool = try DatabasePool(path: url.path)
+        } catch {
+            poolError = error
+        }
+    })
+    if let error = poolError ?? coordinatorError {
+        throw error
+    }
+    return dbPool!
+}
+```
 
 
 ## How to limit the `SQLITE_BUSY` error
@@ -25,34 +43,26 @@ Problem: one never knows who creates the database first. Is it the application, 
 
 See https://www.sqlite.org/rescode.html#busy for more information about this error.
 
-1. Use a [Database Pool].
-    
-    ```swift
-    let dbPool = try DatabasePool(path: ...)
-    ```
-    
-    If only one process writes in the database, then a database pool will prevent all `SQLITE_BUSY` errors. This is a consequence of the [WAL mode](https://www.sqlite.org/wal.html).
+If several processes want to write in the database, configure the database pool of each process that wants to write:
 
-2. If several processes want to write in the database, then configure each process that wants to write:
+```swift
+var configuration = Configuration()
+configuration.busyMode = .timeout(/* a TimeInterval */)
+configuration.defaultTransactionKind = .immediate
+let dbPool = try DatabasePool(path: ..., configuration: configuration)
+```
 
-    ```swift
-    var configuration = Configuration()
-    configuration.busyMode = .timeout(/* a TimeInterval */)
-    configuration.defaultTransactionKind = .immediate
-    let dbPool = try DatabasePool(path: ..., configuration: configuration)
-    ```
-    
-    With such a setup, you may still get `SQLITE_BUSY` (5, "database is locked") errors from all write operations. They will occur if the database remains locked by another process for longer than the specified timeout.
-    
-    ```swift
-    do {
-        try dbPool.write { db in ... }
-    } catch let error as DatabaseError where error.resultCode == .SQLITE_BUSY {
-        // Another process won't let you write. Deal with it.
-    }
-    ```
-    
-    > :bulb: **Tip**: In order to be nice to other processes, measure the duration of your longest writes, and attempt at optimizing the ones that last for too long.
+With such a setup, you may still get `SQLITE_BUSY` (5, "database is locked") errors from all write operations. They will occur if the database remains locked by another process for longer than the specified timeout.
+
+```swift
+do {
+    try dbPool.write { db in ... }
+} catch let error as DatabaseError where error.resultCode == .SQLITE_BUSY {
+    // Another process won't let you write. Deal with it.
+}
+```
+
+> :bulb: **Tip**: In order to be nice to other processes, measure the duration of your longest writes, and attempt at optimizing the ones that last for too long.
 
 
 ## How to limit the `0xDEAD10CC` exception
