@@ -3,7 +3,7 @@ Sharing a Datatase in an App Group Container
 
 On iOS, you can share database files between multiple processes by storing them in an [App Group Container](https://developer.apple.com/documentation/foundation/nsfilemanager/1412643-containerurlforsecurityapplicati).
 
-Sharing a database means that several database connections, from several processes, will access the same database. This create various challenges, at various levels:
+A shared database is accessed from several SQLite connections, from several processes. This creates challenges at various levels:
 
 1. **SQLite** may throw `SQLITE_BUSY` errors, code 5, "database is locked".
 2. **iOS** may kill your application with a `0xDEAD10CC` exception.
