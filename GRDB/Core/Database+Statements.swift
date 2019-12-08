@@ -221,8 +221,10 @@ extension Database {
 
 extension Database {
     func executeUpdateStatement(_ statement: UpdateStatement) throws {
+        // Two things must prevent the statement from executing: aborted
+        // transactions, and database suspension.
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
-        try checkForSuspension(from: statement)
+        try checkForSuspensionViolation(from: statement)
         
         let authorizer = observationBroker.updateStatementWillExecute(statement)
         let sqliteStatement = statement.sqliteStatement
@@ -293,7 +295,7 @@ extension Database {
     @inline(__always)
     func selectStatementWillExecute(_ statement: SelectStatement) throws {
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
-        try checkForSuspension(from: statement)
+        try checkForSuspensionViolation(from: statement)
         
         if _isRecordingSelectedRegion {
             // Don't record schema introspection queries, which may be

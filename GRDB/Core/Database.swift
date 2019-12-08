@@ -150,10 +150,10 @@ public final class Database {
     /// Support for checkForAbortedTransaction()
     var isInsideTransactionBlock = false
     
-    /// Support for checkForLockPrevention(from:)
+    /// Support for checkForSuspensionViolation(from:)
     var isSuspended = LockedBox<Bool>(value: false)
     
-    /// Support for checkForLockPrevention(from:)
+    /// Support for checkForSuspensionViolation(from:)
     /// This cache is never cleared: we assume journal mode never changes.
     var journalModeCache: String?
     
@@ -673,7 +673,7 @@ public final class Database {
             // If threadingMode is not .serialized, or if the rollback has
             // failed, a lock could remain. We'll issue a rollback on next
             // database access which requires a lock, in
-            // checkForSuspension(from:).
+            // checkForSuspensionViolation(from:).
         }
     }
     
@@ -690,14 +690,14 @@ public final class Database {
         }
     }
     
-    /// Support for checkForSuspension(from:)
+    /// Support for checkForSuspensionViolation(from:)
     private func journalMode() throws -> String {
         if let journalMode = journalModeCache {
             return journalMode
         }
         
         // Don't return String.fetchOne(self, sql: "PRAGMA journal_mode"), so
-        // that we don't create an infinite loop in checkForSuspension(from:)
+        // that we don't create an infinite loop in checkForSuspensionViolation(from:)
         var statement: SQLiteStatement? = nil
         let sql = "PRAGMA journal_mode"
         sqlite3_prepare_v2(sqliteConnection, sql, -1, &statement, nil)
@@ -714,7 +714,7 @@ public final class Database {
     /// Throws SQLITE_ABORT for suspended databases, if statement would lock
     /// the database, in order to avoid the [`0xdead10cc`
     /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
-    func checkForSuspension(from statement: Statement) throws {
+    func checkForSuspensionViolation(from statement: Statement) throws {
         try isSuspended.read { isSuspended in
             guard isSuspended else {
                 return
@@ -747,7 +747,7 @@ public final class Database {
             // as explained in Database.suspend().
             //
             // Use sqlite3_exec instead of `try? rollback()` in order to avoid
-            // an infinite loop in checkForSuspension(from:)
+            // an infinite loop in checkForSuspensionViolation(from:)
             _ = sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
             
             throw DatabaseError(
