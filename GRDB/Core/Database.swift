@@ -634,7 +634,8 @@ public final class Database {
     // MARK: - Database Suspension
     
     /// Suspends the database. A suspended database prevents database locks in
-    /// order to avoid the [`0xdead10cc` exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
+    /// order to avoid the [`0xdead10cc`
+    /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
     ///
     /// This method can be called from any thread.
     ///
@@ -676,7 +677,8 @@ public final class Database {
     }
     
     /// Resumes the database. A resumed database stops preventing database locks
-    /// in order to avoid the [`0xdead10cc` exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
+    /// in order to avoid the [`0xdead10cc`
+    /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
     ///
     /// This method can be called from any thread.
     ///
