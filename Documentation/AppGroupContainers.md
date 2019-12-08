@@ -42,7 +42,7 @@ See https://www.sqlite.org/rescode.html#busy for more information about this err
     let dbPool = try DatabasePool(path: ..., configuration: configuration)
     ```
     
-    With such a setup, you may still get `SQLITE_BUSY` errors from all write operations, should the database remain locked by another process for longer than the specified timeout.
+    With such a setup, you may still get `SQLITE_BUSY` (5, "database is locked") errors from all write operations. They will occur if the database remain locked by another process for longer than the specified timeout.
     
     ```swift
     do {
@@ -101,7 +101,7 @@ Those steps are only recommended for applications, not for extensions.
 
 If you carefully follow this setup, the odds of `0xDEAD10CC` exception are greatly reduced. If you see one in your crash logs, please open an issue!
 
-In exchange, you will get `SQLITE_INTERRUPT` or `SQLITE_ABORT` errors, with messages "Database is suspended", "Transaction was aborted", or "interrupted", for any attempt at writing in the database when it is **suspended**.
+In exchange, you will get `SQLITE_INTERRUPT` (9) or `SQLITE_ABORT` (4) errors, with messages "Database is suspended", "Transaction was aborted", or "interrupted", for any attempt at writing in the database when it is **suspended**.
 
 The database is suspended soon before the application transitions to the [suspended state](https://developer.apple.com/documentation/uikit/app_and_environment/managing_your_app_s_life_cycle), and resumes on the next call to `DatabaseBackgroundScheduler.shared.resume(in:)`.
 
