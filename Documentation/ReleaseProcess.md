@@ -7,6 +7,7 @@ To release a new GRDB version:
 
 - Tests
     - `make test`
+    - Run the Tests/AppGroupTest app on a device
     - Build and run GRDBDemoiOS in Release configuration on a device
     - Archive GRDBDemoiOS
     - Check for performance regression with GRDBOSXPerformanceTests
