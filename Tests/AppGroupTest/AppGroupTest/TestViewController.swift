@@ -15,10 +15,7 @@ class TestViewController: UIViewController {
             instructionsLabel.text = test.instructions
             try! test.enter()
         } else {
-            navigationItem.title = NSLocalizedString("End", comment: "")
-            titleLabel.text = NSLocalizedString("Thank you!", comment: "")
-            instructionsLabel.text = NSLocalizedString("Tests are completed.", comment: "")
-            navigationItem.rightBarButtonItem = nil
+            exit(0)
         }
     }
     

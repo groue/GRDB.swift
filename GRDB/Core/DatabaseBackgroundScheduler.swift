@@ -57,7 +57,9 @@ public class DatabaseBackgroundScheduler {
         // background application.
         // Just in case, start a background task and wait for notification of
         // imminent application suspension.
-        waitForBackgroundTaskExpiration()
+        synchronized {
+            waitForBackgroundTaskExpiration()
+        }
     }
     
     deinit {
@@ -65,7 +67,7 @@ public class DatabaseBackgroundScheduler {
     }
     
     // TODO: doc
-    func resume(in application: UIApplication) {
+    public func resume(in application: UIApplication) {
         synchronized {
             switch application.applicationState {
             case .active, .inactive:
@@ -86,29 +88,30 @@ public class DatabaseBackgroundScheduler {
     
     @objc
     func applicationDidEnterBackground(_ notification: Notification) {
-        waitForBackgroundTaskExpiration()
+        synchronized {
+            waitForBackgroundTaskExpiration()
+        }
     }
     
+    /// MUST be called from a synchronized block
     private func waitForBackgroundTaskExpiration() {
-        synchronized {
-            suspendedSemaphore?.signal()
-            isSuspended = false
-            
-            let semaphore = DispatchSemaphore(value: 0)
-            ProcessInfo.processInfo.performExpiringActivity(withReason: "GRDB.DatabaseTaskScheduler") { suspended in
-                if suspended {
-                    self.synchronized {
-                        self.suspendedSemaphore?.signal()
-                        self.suspendedSemaphore = nil
-                        self.isSuspended = true
-                    }
-                } else {
-                    semaphore.wait()
+        suspendedSemaphore?.signal()
+        isSuspended = false
+        
+        let semaphore = DispatchSemaphore(value: 0)
+        ProcessInfo.processInfo.performExpiringActivity(withReason: "GRDB.DatabaseTaskScheduler") { suspended in
+            if suspended {
+                self.synchronized {
+                    self.suspendedSemaphore?.signal()
+                    self.suspendedSemaphore = nil
+                    self.isSuspended = true
                 }
+            } else {
+                semaphore.wait()
             }
-            
-            suspendedSemaphore = semaphore
         }
+        
+        suspendedSemaphore = semaphore
     }
 }
 #endif

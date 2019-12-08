@@ -12,14 +12,35 @@ class Tests {
     private let tests: [Test] = [
         testCrash(),
         testImmediateTransaction(),
+        testEnd()
     ]
     
     private lazy var iterator: EnumeratedSequence<[Test]>.Iterator = { tests.enumerated().makeIterator() }()
     
     private static func testCrash() -> Test {
-        var promise: (() -> Void)?
-        let semaphore = DispatchSemaphore(value: 0)
-        var error: Error?
+        var commitTransaction: (() -> Void)?
+        let transactionCompletion = DispatchSemaphore(value: 0)
+        var transactionError: Error?
+        
+        func enter() throws {
+            try AppDatabase.shared.createDatabaseQueue(configuration: Configuration())
+            AppDatabase.shared.openTransaction(
+                .immediate,
+                until: { commitTransaction = $0 },
+                completion: {
+                    transactionError = $0.error
+                    transactionCompletion.signal()
+            })
+        }
+        
+        func leave(_ completion: @escaping (Error?) -> Void) {
+            commitTransaction?()
+            DispatchQueue.global().async {
+                transactionCompletion.wait()
+                completion(transactionError)
+            }
+        }
+        
         return Test(
             title: "Crash",
             instructions: """
@@ -40,80 +61,94 @@ class Tests {
                 When the expectation is fulfilled, relanch the app and \
                 hit Done.
                 """,
-            enter: {
-                try AppDatabase.shared.createDatabaseQueue(configuration: Configuration())
-                AppDatabase.shared.openTransaction(
-                    .immediate,
-                    until: { promise = $0 },
-                    completion: {
-                        error = $0.error
-                        semaphore.signal()
-                })
-        },
-            leave: { completion in
-                promise?()
-                DispatchQueue.global().async {
-                    semaphore.wait()
-                    completion(error)
-                }
-        })
+            enter: enter,
+            leave: leave)
     }
     
     private static func testImmediateTransaction() -> Test {
-        var promise: (() -> Void)?
-        let semaphore = DispatchSemaphore(value: 0)
-        var error: Error?
-        var handler: NSObjectProtocol?
-        _ = handler
-        handler = NotificationCenter.default.addObserver(forName: DatabaseBackgroundScheduler.databaseWillSuspendNotification, object: nil, queue: .main) { _ in
+        var commitTransaction: (() -> Void)?
+        let transactionCompletion = DispatchSemaphore(value: 0)
+        var transactionError: Error?
+        var databaseWillSuspendToken: NSObjectProtocol?
+        _ = databaseWillSuspendToken
+        
+        func enter() {
+            UNUserNotificationCenter.current().requestAuthorization(options: UNAuthorizationOptions.alert) { _, _ in
+                var configuration = Configuration()
+                configuration.suspendsOnBackgroundTimeExpiration = true
+                try! AppDatabase.shared.createDatabaseQueue(configuration: configuration)
+                AppDatabase.shared.openTransaction(
+                    .immediate,
+                    until: { commitTransaction = $0 },
+                    completion: {
+                        transactionError = $0.error
+                        transactionCompletion.signal() })
+            }
+        }
+        
+        func databaseWillSuspend(_ notification: Notification) {
             let content = UNMutableNotificationContent()
-            content.title = "Test has passed!"
+            content.title = "Please wake up the application"
             // Make sure app gets suspended for good
             let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 30, repeats: false)
             let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
             UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
-            handler = nil
+            databaseWillSuspendToken = nil
         }
+        
+        func leave(_ completion: @escaping (Error?) -> Void) {
+            databaseWillSuspendToken = nil
+            commitTransaction?()
+            DispatchQueue.global().async {
+                transactionCompletion.wait()
+                if let dbError = transactionError as? DatabaseError, dbError.isDatabaseSuspensionError {
+                    // That's what we expect.
+                    // Now check that database is still usable, thanks to
+                    // SceneDelegate.sceneWillEnterForeground(_:)
+                    do {
+                        try AppDatabase.shared.dbWriter!.write { db in
+                            try db.execute(sql: "CREATE TABLE t(a)")
+                        }
+                        completion(nil)
+                    } catch {
+                        completion(error)
+                    }
+                } else {
+                    completion(transactionError ?? NSError(
+                        domain: "GRDB",
+                        code: 0,
+                        userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("Expected suspension error", comment: "")]))
+                }
+            }
+        }
+        
+        databaseWillSuspendToken = NotificationCenter.default.addObserver(
+            forName: DatabaseBackgroundScheduler.databaseWillSuspendNotification,
+            object: nil,
+            queue: .main,
+            using: databaseWillSuspend)
+        
         return Test(
             title: "Immediate Transaction",
             instructions: """
-                1. Send the app to bacground
-                2. Wait for the notification (around 1mn on iOS 13)
-                3. Activate the app
+                1. Accept notifications
+                2. Send the app to bacground
+                3. Wait for the notification (around 1mn on iOS 13)
+                4. Activate the app
                 
                 EXPECTED: the notification was displayed, and the app is \
                 still running.
                 """,
-            enter: {
-                UNUserNotificationCenter.current().requestAuthorization(options: UNAuthorizationOptions.alert) { _, _ in
-                    var configuration = Configuration()
-                    configuration.suspendsOnBackgroundTimeExpiration = true
-                    try! AppDatabase.shared.createDatabaseQueue(configuration: configuration)
-                    AppDatabase.shared.openTransaction(
-                        .immediate,
-                        until: { promise = $0 },
-                        completion: {
-                            error = $0.error
-                            semaphore.signal() })
-                }
-        },
-            leave: { completion in
-                handler = nil
-                promise?()
-                DispatchQueue.global().async {
-                    semaphore.wait()
-                    if let error = error {
-                        if let dbError = error as? DatabaseError, dbError.isDatabaseSuspensionError {
-                            completion(nil)
-                        } else {
-                            completion(error)
-                        }
-                    } else {
-                        completion(NSError(domain: "GRDB", code: 0, userInfo: [NSLocalizedDescriptionKey: NSLocalizedString("Expected suspension error", comment: "")]))
-                    }
-                    completion(error)
-                }
-        })
+            enter: enter,
+            leave: leave)
+    }
+    
+    private static func testEnd() -> Test {
+        Test(
+            title: NSLocalizedString("Thank you!", comment: ""),
+            instructions: NSLocalizedString("Tests are completed.", comment: ""),
+            enter: { },
+            leave: { $0(nil) })
     }
 }
 

@@ -190,17 +190,17 @@
 			isa = PBXGroup;
 			children = (
 				564B3DA9239BEF36007BF308 /* AppGroupTest.entitlements */,
-				564B3D92239BEE26007BF308 /* AppDelegate.swift */,
-				564B3D94239BEE26007BF308 /* SceneDelegate.swift */,
-				564B3D96239BEE26007BF308 /* TestViewController.swift */,
-				564B3D98239BEE26007BF308 /* Main.storyboard */,
-				564B3D9B239BEE27007BF308 /* Assets.xcassets */,
-				564B3D9D239BEE27007BF308 /* LaunchScreen.storyboard */,
 				564B3DA0239BEE27007BF308 /* Info.plist */,
 				564B3DA6239BEE8C007BF308 /* AppDatabase.swift */,
+				564B3D92239BEE26007BF308 /* AppDelegate.swift */,
 				56FBD607239BF0070078693E /* BalancedLabel.swift */,
+				564B3D94239BEE26007BF308 /* SceneDelegate.swift */,
 				565EC4F5239BF8A300F3061E /* Test.swift */,
 				565EC4F7239BF8FB00F3061E /* Tests.swift */,
+				564B3D96239BEE26007BF308 /* TestViewController.swift */,
+				564B3D9B239BEE27007BF308 /* Assets.xcassets */,
+				564B3D9D239BEE27007BF308 /* LaunchScreen.storyboard */,
+				564B3D98239BEE26007BF308 /* Main.storyboard */,
 			);
 			path = AppGroupTest;
 			sourceTree = "<group>";
