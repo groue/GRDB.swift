@@ -1,8 +1,13 @@
 import XCTest
 #if GRDBCUSTOMSQLITE
-import GRDBCustomSQLite
+    import GRDBCustomSQLite
 #else
-import GRDB
+    #if SWIFT_PACKAGE
+        import CSQLite
+    #else
+        import SQLite3
+    #endif
+    import GRDB
 #endif
 
 class DatabaseConfigurationTests: GRDBTestCase {
