@@ -75,6 +75,7 @@ public struct Configuration {
     /// Default: nil
     public var trace: TraceFunction?
     
+    // TODO: hide from extensions?
     #if os(iOS)
     /// When true, the database becomes suspended when application background
     /// time expires, in order to avoid the [`0xdead10cc`
@@ -90,8 +91,8 @@ public struct Configuration {
     /// calling `DatabaseBackgroundScheduler.shared.resume(in:)`.
     ///
     /// The only time it's safe to resume databases is in exactly the same
-    /// runloop cycle as your app was is woken by the system. For example, you
-    /// will call `resume(in:)` in `UIApplicationDelegate.applicationWillEnterForeground(_:)`
+    /// runloop cycle as your app is woken by the system. For example, you will
+    /// call `resume(in:)` in `UIApplicationDelegate.applicationWillEnterForeground(_:)`
     /// or `SceneDelegate.sceneWillEnterForeground(_:)`, and in the various
     /// background mode callbacks defined by iOS.
     ///
