@@ -69,7 +69,18 @@ Those steps are only recommended for applications, not for extensions.
     let dbPool = try DatabasePool(path: ..., configuration: configuration)
     ```
 
-2. Resume normal operations from `UIApplicationDelegate.applicationWillEnterForeground(_:)` (`SceneDelegate.sceneWillEnterForeground(_:)` for scene-based applications), and from all the background mode callbacks defined by iOS:
+2. If you use SQLCipher, use SQLCipher 4+, and call the `cipher_plaintext_header_size` pragma from your database preparation function:
+    
+    ```swift
+    configuration.prepareDatabase = { (db: Database) in
+        try db.usePassphrase("secret")
+        try db.execute(sql: "PRAGMA cipher_plaintext_header_size = 32")
+    }
+    ```
+    
+    This will avoid https://github.com/sqlcipher/sqlcipher/issues/255.
+
+3. Resume normal operations from `UIApplicationDelegate.applicationWillEnterForeground(_:)` (`SceneDelegate.sceneWillEnterForeground(_:)` for scene-based applications), and from all the background mode callbacks defined by iOS:
     
     ```swift
     @UIApplicationMain
