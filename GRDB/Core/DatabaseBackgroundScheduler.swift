@@ -3,15 +3,23 @@ import Dispatch
 import Foundation
 import UIKit
 
-// TODO: doc
+/// DatabaseBackgroundScheduler takes care of suspending databases before the
+/// application enters the suspended state, in order to avoid the [`0xdead10cc`
+/// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
+///
+/// See `Configuration.suspendsOnBackgroundTimeExpiration` for more information.
 public class DatabaseBackgroundScheduler {
-    // TODO: doc
+    /// The shared DatabaseBackgroundScheduler
     public static let shared = DatabaseBackgroundScheduler()
     
-    // TODO: doc
+    /// This notification is posted immediately before databases get suspended.
+    ///
+    /// See `Configuration.suspendsOnBackgroundTimeExpiration` for more information.
     public static let databaseWillSuspendNotification = Notification.Name("GRDBDatabaseWillSuspend")
     
-    // TODO: doc
+    /// This notification is posted immediately after databases are resumed.
+    ///
+    /// See `Configuration.suspendsOnBackgroundTimeExpiration` for more information.
     public static let databaseDidResumeNotification = Notification.Name("GRDBDatabaseDidResume")
     
     static let suspendNotification = Notification.Name("GRDBSuspend")
@@ -66,7 +74,24 @@ public class DatabaseBackgroundScheduler {
         NotificationCenter.default.removeObserver(self)
     }
     
-    // TODO: doc
+    /// Resumes database that were suspended before the application last entered
+    /// the suspended state.
+    ///
+    /// The only time it's safe to call this method is in exactly the same
+    /// runloop cycle as your app is woken by the system. For example, you will
+    /// call `resume(in:)` in `UIApplicationDelegate.applicationWillEnterForeground(_:)`
+    /// or `SceneDelegate.sceneWillEnterForeground(_:)`, and in the various
+    /// background mode callbacks defined by iOS.
+    ///
+    /// For example:
+    ///
+    ///     @UIApplicationMain
+    ///     class AppDelegate: UIResponder, UIApplicationDelegate {
+    ///         func applicationWillEnterForeground(_ application: UIApplication) {
+    ///             // Resume suspended databases
+    ///             DatabaseBackgroundScheduler.shared.resume(in: application)
+    ///         }
+    ///     }
     public func resume(in application: UIApplication) {
         synchronized {
             switch application.applicationState {
@@ -100,7 +125,7 @@ public class DatabaseBackgroundScheduler {
         isSuspended = false
         
         let semaphore = DispatchSemaphore(value: 0)
-        ProcessInfo.processInfo.performExpiringActivity(withReason: "GRDB.DatabaseTaskScheduler") { suspended in
+        ProcessInfo.processInfo.performExpiringActivity(withReason: "GRDB.DatabaseBackgroundScheduler") { suspended in
             if suspended {
                 self.synchronized {
                     self.suspendedSemaphore?.signal()
