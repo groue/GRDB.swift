@@ -33,7 +33,7 @@ See https://www.sqlite.org/rescode.html#busy for more information about this err
     
     If only one process writes in the database, then a database pool will prevent all `SQLITE_BUSY` errors. This is a consequence of the [WAL mode](https://www.sqlite.org/wal.html).
 
-2. If and only if several processes want to write in the database, then configure each process that wants to write:
+2. If several processes want to write in the database, then configure each process that wants to write:
 
     ```swift
     var configuration = Configuration()
