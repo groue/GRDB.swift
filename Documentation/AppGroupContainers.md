@@ -51,6 +51,8 @@ See https://www.sqlite.org/rescode.html#busy for more information about this err
         // Another process won't let you write. Deal with it.
     }
     ```
+    
+    > :bulb: **Tip**: In order to be nice to other processes, measure the duration of your longest writes, and attempt at optimizing the ones that last for too long.
 
 
 ## How to limit the `0xDEAD10CC` exception
