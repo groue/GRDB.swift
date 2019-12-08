@@ -43,7 +43,7 @@ public final class DatabaseQueue: DatabaseWriter {
             defaultLabel: "GRDB.DatabaseQueue")
         
         #if os(iOS)
-        setupLockPrevention()
+        setupSuspension()
         #endif
     }
     
@@ -170,7 +170,7 @@ extension DatabaseQueue {
     }
     
     #if os(iOS)
-    private func setupLockPrevention() {
+    private func setupSuspension() {
         if configuration.suspendsOnBackgroundTimeExpiration {
             let center = NotificationCenter.default
             center.addObserver(

@@ -113,7 +113,7 @@ public final class DatabasePool: DatabaseWriter {
         }
         
         #if os(iOS)
-        setupLockPrevention()
+        setupSuspension()
         #endif
     }
     
@@ -283,7 +283,7 @@ extension DatabasePool: DatabaseReader {
     }
     
     #if os(iOS)
-    private func setupLockPrevention() {
+    private func setupSuspension() {
         if configuration.suspendsOnBackgroundTimeExpiration {
             let center = NotificationCenter.default
             center.addObserver(
