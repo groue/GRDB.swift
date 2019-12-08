@@ -251,7 +251,7 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
 }
 
 extension DatabaseError {
-    /// Returns true if the error has code `SQLITE_ABORT` or `SQLITE_INTERRUPT.
+    /// Returns true if the error has code `SQLITE_ABORT` or `SQLITE_INTERRUPT`.
     ///
     /// Such an error can be thrown when a database is suspended in order to
     /// avoid the [`0xdead10cc` exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
