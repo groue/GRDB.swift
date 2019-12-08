@@ -15,7 +15,6 @@ import UIKit
 public final class DatabasePool: DatabaseWriter {
     private let writer: SerializedDatabase
     private var readerPool: Pool<SerializedDatabase>!
-    var readerConfiguration: Configuration // TOTO make private or remove
     
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
@@ -62,7 +61,7 @@ public final class DatabasePool: DatabaseWriter {
             purpose: "writer")
         
         // Readers
-        readerConfiguration = configuration
+        var readerConfiguration = configuration
         readerConfiguration.readonly = true
         // Readers use deferred transactions by default.
         // Other transaction kinds are forbidden by SQLite in read-only connections.
@@ -76,11 +75,11 @@ public final class DatabasePool: DatabaseWriter {
             readerCount += 1 // protected by pool (TODO: documented this protection behavior)
             let reader = try SerializedDatabase(
                 path: path,
-                configuration: self.readerConfiguration,
+                configuration: readerConfiguration,
                 schemaCache: SimpleDatabaseSchemaCache(),
                 defaultLabel: "GRDB.DatabasePool",
                 purpose: "reader.\(readerCount)")
-            reader.sync { self.setupDatabase($0) }
+            reader.sync(self.setupDatabase)
             return reader
         })
         
