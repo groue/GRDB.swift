@@ -5,9 +5,13 @@ import UIKit
 /// Compare BalancedLabel:
 ///
 ///     +----------------------------------------------------+
+///     | Ut enim ad minim veniam, quis nostrud              |
+///     | exercitation ullamco laboris nisi ut               |
+///     | aliquip ex ea commodo consequat.                   |
+///     +----------------------------------------------------+
 ///     |       Ut enim ad minim veniam, quis nostrud        |
-///     |       exercitation ullamco laboris nisi ut         |
-///     |       aliquip ex ea commodo consequat.             |
+///     |        exercitation ullamco laboris nisi ut        |
+///     |          aliquip ex ea commodo consequat.          |
 ///     +----------------------------------------------------+
 ///
 /// ... with a regular UILabel:
@@ -16,6 +20,10 @@ import UIKit
 ///     | Ut enim ad minim veniam, quis nostrud exercitation |
 ///     | ullamco laboris nisi ut aliquip ex ea commodo      |
 ///     | consequat.                                         |
+///     +----------------------------------------------------+
+///     | Ut enim ad minim veniam, quis nostrud exercitation |
+///     |   ullamco laboris nisi ut aliquip ex ea commodo    |
+///     |                     consequat.                     |
 ///     +----------------------------------------------------+
 @IBDesignable
 class BalancedLabel: UILabel {
