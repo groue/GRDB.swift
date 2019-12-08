@@ -666,6 +666,7 @@ public final class Database {
             // If the database had been opened with the SQLITE_OPEN_FULLMUTEX
             // flag, execute a rollback statement:
             if configuration.threadingMode == .serialized {
+                assert(configuration.SQLiteOpenFlags & SQLITE_OPEN_FULLMUTEX != 0)
                 _ = sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
             }
             
