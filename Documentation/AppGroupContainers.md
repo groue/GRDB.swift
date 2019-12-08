@@ -42,7 +42,7 @@ See https://www.sqlite.org/rescode.html#busy for more information about this err
     let dbPool = try DatabasePool(path: ..., configuration: configuration)
     ```
     
-    With such a setup, you may still get `SQLITE_BUSY` (5, "database is locked") errors from all write operations. They will occur if the database remain locked by another process for longer than the specified timeout.
+    With such a setup, you may still get `SQLITE_BUSY` (5, "database is locked") errors from all write operations. They will occur if the database remains locked by another process for longer than the specified timeout.
     
     ```swift
     do {
