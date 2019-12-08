@@ -294,6 +294,8 @@ extension Database {
     
     @inline(__always)
     func selectStatementWillExecute(_ statement: SelectStatement) throws {
+        // Two things must prevent the statement from executing: aborted
+        // transactions, and database suspension.
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
         try checkForSuspensionViolation(from: statement)
         
