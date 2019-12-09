@@ -16,7 +16,7 @@ We'll address all of those challenges below.
 
 In order to access a shared database, use a [Database Pool]. It opens the database in the [WAL mode](https://www.sqlite.org/wal.html), which helps sharing a database.
 
-Protect the creation of the database, as well as the definition of its schema, with an [NSFileCoordinator](https://developer.apple.com/documentation/foundation/nsfilecoordinator).
+Since several processes may open the database at the same time, protect the creation of the database pool, as well as the definition of the database schema, with an [NSFileCoordinator](https://developer.apple.com/documentation/foundation/nsfilecoordinator).
 
 For example:
 
