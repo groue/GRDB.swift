@@ -1,5 +1,6 @@
 import XCTest
 import Dispatch
+import Foundation
 #if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
@@ -1301,6 +1302,75 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                     }
                 })
                 XCTAssert(poolError ?? coordinatorError == nil)
+            }
+        }
+    }
+    
+    // MARK: - NSFileCoordinator sample code tests
+    
+    // Test for sample code in Documentation/AppGroupContainers.md.
+    // This test passes if this method compiles
+    private func openSharedDatabase(at databaseURL: URL) throws -> DatabasePool {
+        let coordinator = NSFileCoordinator(filePresenter: nil)
+        var coordinatorError: NSError?
+        var dbPool: DatabasePool?
+        var dbError: Error?
+        coordinator.coordinate(writingItemAt: databaseURL, options: .forMerging, error: &coordinatorError, byAccessor: { url in
+            do {
+                dbPool = try openDatabase(at: url)
+            } catch {
+                dbError = error
+            }
+        })
+        if let error = dbError ?? coordinatorError {
+            throw error
+        }
+        return dbPool!
+    }
+
+    // Test for sample code in Documentation/AppGroupContainers.md.
+    // This test passes if this method compiles
+    private func openDatabase(at databaseURL: URL) throws -> DatabasePool {
+        let dbPool = try DatabasePool(path: databaseURL.path)
+        // Perform here other database setups, such as defining
+        // the database schema with a DatabaseMigrator.
+        return dbPool
+    }
+    
+    // Test for sample code in Documentation/AppGroupContainers.md.
+    // This test passes if this method compiles
+    private func openSharedReadOnlyDatabase(at databaseURL: URL) throws -> DatabasePool? {
+        let coordinator = NSFileCoordinator(filePresenter: nil)
+        var coordinatorError: NSError?
+        var dbPool: DatabasePool?
+        var dbError: Error?
+        coordinator.coordinate(readingItemAt: databaseURL, options: .withoutChanges, error: &coordinatorError, byAccessor: { url in
+            do {
+                dbPool = try openReadOnlyDatabase(at: url)
+            } catch {
+                dbError = error
+            }
+        })
+        if let error = dbError ?? coordinatorError {
+            throw error
+        }
+        return dbPool
+    }
+
+    // Test for sample code in Documentation/AppGroupContainers.md.
+    // This test passes if this method compiles
+    private func openReadOnlyDatabase(at databaseURL: URL) throws -> DatabasePool? {
+        do {
+            var configuration = Configuration()
+            configuration.readonly = true
+            return try DatabasePool(path: databaseURL.path, configuration: configuration)
+        } catch {
+            if FileManager.default.fileExists(atPath: databaseURL.path) {
+                // Something went wrong
+                throw error
+            } else {
+                // Database file does not exist
+                return nil
             }
         }
     }
