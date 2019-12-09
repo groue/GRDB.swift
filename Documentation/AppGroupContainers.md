@@ -27,6 +27,8 @@ func openDatabase(at databaseURL: URL) throws -> DatabasePool {
     coordinator.coordinate(writingItemAt: databaseURL, options: .forMerging, error: &coordinatorError, byAccessor: { url in
         do {
             dbPool = try DatabasePool(path: url.path)
+            // Here perform other database setups, such as defining 
+            // your database schema with a DatabaseMigrator.
         } catch {
             poolError = error
         }
