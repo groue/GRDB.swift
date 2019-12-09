@@ -76,7 +76,7 @@ Since several processes may open the database at the same time, protect the crea
             var configuration = Configuration()
             configuration.readonly = true
             return try DatabasePool(path: databaseURL.path, configuration: configuration)
-        } catch let error as DatabaseError where error.resultCode == .SQLITE_CANTOPEN {
+        } catch {
             if FileManager.default.fileExists(atPath: databaseURL.path) {
                 // Something went wrong
                 throw error
