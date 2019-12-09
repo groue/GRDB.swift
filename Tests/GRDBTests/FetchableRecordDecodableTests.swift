@@ -1072,9 +1072,29 @@ extension FetchableRecordDecodableTests {
         let decoder = RowDecoder()
         do {
             _ = try decoder.decode(Composed.self, from: [:])
+            XCTFail("Expected error")
         } catch let DecodingError.keyNotFound(key, context) {
             XCTAssertEqual(key.stringValue, "left")
             XCTAssertEqual(context.debugDescription, "No such key: left")
         }
     }
+    
+    // This is a regression test for https://github.com/groue/GRDB.swift/issues/664
+    // TODO: make this test pass
+//    func testIllDecoding2() throws {
+//        struct Left: Decodable { }
+//        struct Right: Decodable { }
+//        struct Composed: Decodable, FetchableRecord {
+//            var left: Left
+//            var right: Right?
+//        }
+//        let decoder = RowDecoder()
+//        do {
+//            _ = try decoder.decode(Composed.self, from: [:])
+//            XCTFail("Expected error")
+//        } catch let DecodingError.keyNotFound(key, context) {
+//            XCTAssertEqual(key.stringValue, "left")
+//            XCTAssertEqual(context.debugDescription, "No such key: left")
+//        }
+//    }
 }
