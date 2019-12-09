@@ -5,6 +5,7 @@ import XCTest
     import GRDB
 #endif
 
+// TODO: test concurrent migrations
 class DatabaseMigratorTests : GRDBTestCase {
     
     func testMigratorDatabaseQueue() throws {
