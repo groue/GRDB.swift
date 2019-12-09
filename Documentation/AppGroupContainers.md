@@ -82,17 +82,7 @@ do {
 
 See https://developer.apple.com/library/archive/technotes/tn2151/_index.html for more information about this exception.
 
-Those steps are only recommended for applications, not for extensions.
-
-1. Set the `suspendsOnBackgroundTimeExpiration` configuration flag:
-    
-    ```swift
-    var configuration = Configuration()
-    configuration.suspendsOnBackgroundTimeExpiration = true
-    let dbPool = try DatabasePool(path: ..., configuration: configuration)
-    ```
-
-2. If you use SQLCipher, use SQLCipher 4+, and call the `cipher_plaintext_header_size` pragma from your database preparation function:
+1. If you use SQLCipher, use SQLCipher 4+, and call the `cipher_plaintext_header_size` pragma from your database preparation function:
     
     ```swift
     configuration.prepareDatabase = { (db: Database) in
@@ -103,7 +93,17 @@ Those steps are only recommended for applications, not for extensions.
     
     This will avoid https://github.com/sqlcipher/sqlcipher/issues/255.
 
-3. From `UIApplicationDelegate.applicationWillEnterForeground(_:)` (or `SceneDelegate.sceneWillEnterForeground(_:)` for scene-based applications), and from all the background mode callbacks defined by iOS, call the `DatabaseBackgroundScheduler.shared.resume(in:)` method:
+2. In applications (not extensions), perform this extra setup:
+
+    Set the `suspendsOnBackgroundTimeExpiration` configuration flag:
+    
+    ```swift
+    var configuration = Configuration()
+    configuration.suspendsOnBackgroundTimeExpiration = true
+    let dbPool = try DatabasePool(path: ..., configuration: configuration)
+    ```
+    
+    Call the `DatabaseBackgroundScheduler.shared.resume(in:)` method from `UIApplicationDelegate.applicationWillEnterForeground(_:)` (or `SceneDelegate.sceneWillEnterForeground(_:)` for scene-based applications):
     
     ```swift
     @UIApplicationMain
@@ -112,7 +112,14 @@ Those steps are only recommended for applications, not for extensions.
             // Resume suspended databases
             DatabaseBackgroundScheduler.shared.resume(in: application)
         }
-        
+    }
+    ```
+    
+    If your application uses the background modes supported by iOS, call the `DatabaseBackgroundScheduler.shared.resume(in:)` method from each and every background mode callback that may use the database. For example, if your application supports background fetches:
+    
+    ```swift
+    @UIApplicationMain
+    class AppDelegate: UIResponder, UIApplicationDelegate {
         func application(_ application: UIApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
             // Resume suspended databases
             DatabaseBackgroundScheduler.shared.resume(in: application)
@@ -121,23 +128,23 @@ Those steps are only recommended for applications, not for extensions.
         }
     }
     ```
-
-If you carefully follow this setup, the odds of `0xDEAD10CC` exception are greatly reduced. If you see one in your crash logs, please open an issue!
-
-In exchange, you will get `SQLITE_INTERRUPT` (9) or `SQLITE_ABORT` (4) errors, with messages "Database is suspended", "Transaction was aborted", or "interrupted", for any attempt at writing in the database when it is **suspended**.
-
-The database is suspended soon before the application transitions to the [suspended state](https://developer.apple.com/documentation/uikit/app_and_environment/managing_your_app_s_life_cycle), and resumes on the next call to `DatabaseBackgroundScheduler.shared.resume(in:)`.
-
-Those events are globally notified with the `DatabaseBackgroundScheduler.databaseWillSuspendNotification` and `DatabaseBackgroundScheduler.databaseDidResumeNotification` notifications.
-
-```swift
-do {
-    try dbPool.write { db in ... }
-} catch let error as DatabaseError where error.isDatabaseSuspensionError {
-    // Oops, the database is suspended.
-    // Maybe try again after DatabaseBackgroundScheduler.databaseDidResumeNotification?
-}
-```
+    
+    If you carefully follow those steps, the odds of `0xDEAD10CC` exception are greatly reduced. If you see one in your crash logs, please open an issue!
+    
+    In exchange, you will get `SQLITE_INTERRUPT` (9) or `SQLITE_ABORT` (4) errors, with messages "Database is suspended", "Transaction was aborted", or "interrupted", for any attempt at writing in the database when it is **suspended**.
+    
+    The database is suspended soon before the application transitions to the [suspended state](https://developer.apple.com/documentation/uikit/app_and_environment/managing_your_app_s_life_cycle), and resumes on the next call to `DatabaseBackgroundScheduler.shared.resume(in:)`.
+    
+    Those events are globally notified with the `DatabaseBackgroundScheduler.databaseWillSuspendNotification` and `DatabaseBackgroundScheduler.databaseDidResumeNotification` notifications.
+    
+    ```swift
+    do {
+        try dbPool.write { db in ... }
+    } catch let error as DatabaseError where error.isDatabaseSuspensionError {
+        // Oops, the database is suspended.
+        // Maybe try again after DatabaseBackgroundScheduler.databaseDidResumeNotification?
+    }
+    ```
 
 
 ## How to perform cross-process database observation
