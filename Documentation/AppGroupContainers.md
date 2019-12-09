@@ -18,25 +18,32 @@ In order to access a shared database, use a [Database Pool]. It opens the databa
 
 Protect the creation of the database, as well as the definition of its schema, with an [NSFileCoordinator](https://developer.apple.com/documentation/foundation/nsfilecoordinator).
 
+For example:
+
 ```swift
-func openDatabase(at databaseURL: URL) throws -> DatabasePool {
+func openSharedDatabase(at databaseURL: URL) throws -> DatabasePool {
     let coordinator = NSFileCoordinator(filePresenter: nil)
     var coordinatorError: NSError?
-    var poolError: Error?
     var dbPool: DatabasePool?
+    var dbError: Error?
     coordinator.coordinate(writingItemAt: databaseURL, options: .forMerging, error: &coordinatorError, byAccessor: { url in
         do {
-            dbPool = try DatabasePool(path: url.path)
-            // Here perform other database setups, such as defining 
-            // your database schema with a DatabaseMigrator.
+            dbPool = try openDatabase(at: url)
         } catch {
-            poolError = error
+            dbError = error
         }
     })
-    if let error = poolError ?? coordinatorError {
+    if let error = dbError ?? coordinatorError {
         throw error
     }
     return dbPool!
+}
+
+private func openDatabase(at databaseURL: URL) throws -> DatabasePool {
+    let dbPool = try DatabasePool(path: url.path)
+    // Perform here other database setups, such as defining 
+    // the database schema with a DatabaseMigrator.
+    return dbPool
 }
 ```
 
