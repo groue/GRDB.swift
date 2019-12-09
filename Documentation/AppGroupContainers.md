@@ -40,7 +40,7 @@ func openSharedDatabase(at databaseURL: URL) throws -> DatabasePool {
 }
 
 private func openDatabase(at databaseURL: URL) throws -> DatabasePool {
-    let dbPool = try DatabasePool(path: url.path)
+    let dbPool = try DatabasePool(path: databaseURL.path)
     // Perform here other database setups, such as defining 
     // the database schema with a DatabaseMigrator.
     return dbPool
