@@ -14,7 +14,9 @@ We'll address all of those challenges below.
 
 ## Use a Database Pool
 
-Use a [Database Pool] because the [WAL mode](https://www.sqlite.org/wal.html) helps sharing a database. Protect the creation of the database pool with an [NSFileCoordinator](https://developer.apple.com/documentation/foundation/nsfilecoordinator).
+In order to access the shared database, use a [Database Pool]. Pools open databases in the [WAL mode](https://www.sqlite.org/wal.html), which helps sharing a database.
+
+Protect the creation of the database pool with an [NSFileCoordinator](https://developer.apple.com/documentation/foundation/nsfilecoordinator).
 
 ```swift
 func openDatabase(at databaseURL: URL) throws -> DatabasePool {
