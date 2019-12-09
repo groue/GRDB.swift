@@ -48,7 +48,7 @@ Since several processes may open the database at the same time, protect the crea
     }
     ```
 
--> In a process that only reads in the database, use this sample code:
+- In a process that only reads in the database, use this sample code:
     
     ```swift
     /// Returns an initialized database pool at the shared location databaseURL,
