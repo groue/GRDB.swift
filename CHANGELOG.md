@@ -81,7 +81,40 @@ let dbQueue = try DatabaseQueue(path: ..., configuration: configuration)
 
 ### Documentation Diff
 
-A new [Interrupt a Database](README.md#interrupt-a-database) chapter documents the new `interrupt()` method.
+The new [Sharing a Datatase in an App Group Container](Documentation/AppGroupContainers.md) guide explains how to setup GRDB when you share a database in an iOS App Group container.
+
+The new [Interrupt a Database](README.md#interrupt-a-database) chapter documents the new `interrupt()` method.
+
+### API Diff
+
+```diff
+ struct Configuration {
++    var suspendsOnBackgroundTimeExpiration: Bool
++    var acceptsDoubleQuotedStringLiterals: Bool
+ }
+
++class DatabaseBackgroundScheduler {
++    static var shared: DatabaseBackgroundScheduler { get }
++    static var databaseWillSuspendNotification: Notification.Name { get }
++    static var databaseDidResumeNotification: Notification.Name { get }
++    func resume(in application: UIApplication)
++}
+
+ extension DatabaseError {
++    var isDatabaseSuspensionError: Bool { get }
+ }
+ 
+ protocol DatabaseReader {
++    func interrupt()
+ }
+ 
+ extension SQLSpecificExpressible {
++    #if GRDBCUSTOMSQLITE
++    var ascNullsLast: SQLOrderingTerm { get }
++    var descNullsFirst: SQLOrderingTerm { get }
++    #endif
+ }
+```
 
 
 ## 4.6.2
