@@ -1,9 +1,9 @@
 import Foundation
 import XCTest
 #if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
+    @testable import GRDBCustomSQLite
 #else
-    import GRDB
+    @testable import GRDB
 #endif
 
 class FetchableRecordDecodableTests: GRDBTestCase { }
@@ -574,7 +574,7 @@ extension FetchableRecordDecodableTests {
 
     }
     
-    // MARK: - JSON data in Detahced Rows
+    // MARK: - JSON data in Detached Rows
     
     func testDetachedRows() throws {
         struct NestedStruct : PersistableRecord, FetchableRecord, Codable {
@@ -1056,6 +1056,25 @@ extension FetchableRecordDecodableTests {
             
             let row = try Row.fetchOne(db, request)!
             test(CustomizedRecord(row: row))
+        }
+    }
+    
+    // MARK: - Ill-defined records
+    
+    // This is a regression test for https://github.com/groue/GRDB.swift/issues/664
+    func testIllDecoding() throws {
+        struct Left: Decodable { }
+        struct Right: Decodable { }
+        struct Composed: Decodable, FetchableRecord {
+            var left: Left
+            var right: Right
+        }
+        let decoder = RowDecoder()
+        do {
+            _ = try decoder.decode(Composed.self, from: [:])
+        } catch let DecodingError.keyNotFound(key, context) {
+            XCTAssertEqual(key.stringValue, "left")
+            XCTAssertEqual(context.debugDescription, "No such key: left")
         }
     }
 }
