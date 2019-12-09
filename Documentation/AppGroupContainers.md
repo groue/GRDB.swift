@@ -16,36 +16,77 @@ We'll address all of those challenges below.
 
 In order to access a shared database, use a [Database Pool]. It opens the database in the [WAL mode](https://www.sqlite.org/wal.html), which helps sharing a database.
 
-Since several processes may open the database at the same time, protect the creation of the database pool, as well as the definition of the database schema, with an [NSFileCoordinator](https://developer.apple.com/documentation/foundation/nsfilecoordinator).
+Since several processes may open the database at the same time, protect the creation of the database pool with an [NSFileCoordinator](https://developer.apple.com/documentation/foundation/nsfilecoordinator).
 
-For example:
-
-```swift
-func openSharedDatabase(at databaseURL: URL) throws -> DatabasePool {
-    let coordinator = NSFileCoordinator(filePresenter: nil)
-    var coordinatorError: NSError?
-    var dbPool: DatabasePool?
-    var dbError: Error?
-    coordinator.coordinate(writingItemAt: databaseURL, options: .forMerging, error: &coordinatorError, byAccessor: { url in
-        do {
-            dbPool = try openDatabase(at: url)
-        } catch {
-            dbError = error
+- In a process that can create and write in the database, use this sample code:
+    
+    ```swift
+    /// Returns an initialized database pool at the shared location databaseURL
+    func openSharedDatabase(at databaseURL: URL) throws -> DatabasePool {
+        let coordinator = NSFileCoordinator(filePresenter: nil)
+        var coordinatorError: NSError?
+        var dbPool: DatabasePool?
+        var dbError: Error?
+        coordinator.coordinate(writingItemAt: databaseURL, options: .forMerging, error: &coordinatorError, byAccessor: { url in
+            do {
+                dbPool = try openDatabase(at: url)
+            } catch {
+                dbError = error
+            }
+        })
+        if let error = dbError ?? coordinatorError {
+            throw error
         }
-    })
-    if let error = dbError ?? coordinatorError {
-        throw error
+        return dbPool!
     }
-    return dbPool!
-}
+    
+    private func openDatabase(at databaseURL: URL) throws -> DatabasePool {
+        let dbPool = try DatabasePool(path: databaseURL.path)
+        // Perform here other database setups, such as defining 
+        // the database schema with a DatabaseMigrator.
+        return dbPool
+    }
+    ```
 
-private func openDatabase(at databaseURL: URL) throws -> DatabasePool {
-    let dbPool = try DatabasePool(path: databaseURL.path)
-    // Perform here other database setups, such as defining 
-    // the database schema with a DatabaseMigrator.
-    return dbPool
-}
-```
+-> In a process that only reads in the database, use this sample code:
+    
+    ```swift
+    /// Returns an initialized database pool at the shared location databaseURL,
+    /// or nil if the database was not created yet.
+    func openSharedReadOnlyDatabase(at databaseURL: URL) throws -> DatabasePool? {
+        let coordinator = NSFileCoordinator(filePresenter: nil)
+        var coordinatorError: NSError?
+        var dbPool: DatabasePool?
+        var dbError: Error?
+        coordinator.coordinate(readingItemAt: databaseURL, options: .withoutChanges, error: &coordinatorError, byAccessor: { url in
+            do {
+                dbPool = try openReadOnlyDatabase(at: url)
+            } catch {
+                dbError = error
+            }
+        })
+        if let error = dbError ?? coordinatorError {
+            throw error
+        }
+        return dbPool
+    }
+    
+    private func openReadOnlyDatabase(at databaseURL: URL) throws -> DatabasePool? {
+        do {
+            var configuration = Configuration()
+            configuration.readonly = true
+            return try DatabasePool(path: databaseURL.path, configuration: configuration)
+        } catch let error as DatabaseError where error.resultCode == .SQLITE_CANTOPEN {
+            if FileManager.default.fileExists(atPath: databaseURL.path) {
+                // Something went wrong
+                throw error
+            } else {
+                // Database file does not exist
+                return nil
+            }
+        }
+    }
+    ```
 
 
 ## How to limit the `SQLITE_BUSY` error
