@@ -38,17 +38,21 @@ final class SerializedDatabase {
         // > [...]
         // >
         // > The default mode is serialized.
+        //
+        // Since our database connection is only used via our serial dispatch
+        // queue, there is no purpose using the default serialized mode.
+        //
+        // But we make an exception in order to prevent the `0xdead10cc`
+        // exception. We need the serialized mode just so that we can perform
+        // an emergency rollback when database needs to get suspended.
         var config = configuration
-        if config.suspendsOnBackgroundTimeExpiration {
-            // Allow concurrent database accesses, so that we can force a
-            // rollback in Database.suspend(), as a way to avoid the
-            // `0xdead10cc` exception.
-            config.threadingMode = .serialized
-        } else {
-            // Since our database connection is only used via our serial dispatch
-            // queue, there is no purpose using the default serialized mode.
-            config.threadingMode = .multiThread
-        }
+        #if os(iOS)
+        config.threadingMode = config.suspendsOnBackgroundTimeExpiration
+            ? .serialized
+            : .multiThread
+        #else
+        config.threadingMode = .multiThread
+        #endif
         
         self.path = path
         self.db = try Database(path: path, configuration: config, schemaCache: schemaCache)
