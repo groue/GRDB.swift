@@ -59,12 +59,12 @@ class PlayersViewController: UITableViewController {
         switch playerOrdering {
         case .byScore:
             navigationItem.rightBarButtonItem = UIBarButtonItem(
-                title: "Score ⬇︎",
+                title: "Score ▼",
                 style: .plain,
                 target: self, action: #selector(sortByName))
         case .byName:
             navigationItem.rightBarButtonItem = UIBarButtonItem(
-                title: "Name ⬆︎",
+                title: "Name ▲",
                 style: .plain,
                 target: self, action: #selector(sortByScore))
         }

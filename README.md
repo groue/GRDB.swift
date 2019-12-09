@@ -1,7 +1,14 @@
-GRDB 4 [![Swift 4.2](https://img.shields.io/badge/swift-4.2-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Swift 5](https://img.shields.io/badge/swift-5-orange.svg?style=flat)](https://developer.apple.com/swift/) [![Platforms](https://img.shields.io/cocoapods/p/GRDB.swift.svg)](https://developer.apple.com/swift/) [![License](https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000)](/LICENSE) [![Build Status](https://travis-ci.org/groue/GRDB.swift.svg?branch=master)](https://travis-ci.org/groue/GRDB.swift)
-==========
+![GRDB: A toolkit for SQLite databases, with a focus on application development](https://raw.githubusercontent.com/groue/GRDB.swift/master/GRDB.png)
 
-### A toolkit for SQLite databases, with a focus on application development
+<p align="center"><strong>A toolkit for SQLite databases, with a focus on application development</strong></p>
+
+<p align="center">
+    <a href="https://developer.apple.com/swift/"><img alt="Swift 4.2" src="https://img.shields.io/badge/swift-4.2-orange.svg?style=flat"></a>
+    <a href="https://developer.apple.com/swift/"><img alt="Swift 5" src="https://img.shields.io/badge/swift-5-orange.svg?style=flat"></a>
+    <a href="https://developer.apple.com/swift/"><img alt="Platforms" src="https://img.shields.io/cocoapods/p/GRDB.swift.svg"></a>
+    <a href="https://github.com/groue/GRDB.swift/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000"></a>
+    <a href="https://travis-ci.org/groue/GRDB.swift"><img alt="Build Status" src="https://travis-ci.org/groue/GRDB.swift.svg?branch=master"></a>
+</p>
 
 ---
 
@@ -4082,6 +4089,13 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     // SELECT * FROM player ORDER BY score DESC, name
     Player.order(scoreColumn.desc, nameColumn)
+    ```
+    
+    SQLite considers NULL values to be smaller than any other values for sorting purposes. Hence, NULLs naturally appear at the beginning of an ascending ordering and at the end of a descending ordering. With a [custom SQLite build], this can be changed using `.ascNullsLast` and `.descNullsFirst`:
+    
+    ```swift
+    // SELECT * FROM player ORDER BY score ASC NULLS LAST
+    Player.order(nameColumn.ascNullsLast)
     ```
     
     Each `order` call clears any previous ordering:

@@ -78,7 +78,7 @@ extension TableRecord {
     ///     }
     public static func select<RowDecoder>(
         _ selection: [SQLSelectable],
-        as type: RowDecoder.Type)
+        as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
         return all().select(selection, as: type)
@@ -94,7 +94,7 @@ extension TableRecord {
     ///     }
     public static func select<RowDecoder>(
         _ selection: SQLSelectable...,
-        as type: RowDecoder.Type)
+        as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
         return all().select(selection, as: type)
@@ -111,7 +111,7 @@ extension TableRecord {
     public static func select<RowDecoder>(
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        as type: RowDecoder.Type)
+        as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
         return all().select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
@@ -127,7 +127,7 @@ extension TableRecord {
     ///     }
     public static func select<RowDecoder>(
         literal sqlLiteral: SQLLiteral,
-        as type: RowDecoder.Type)
+        as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
         return all().select(literal: sqlLiteral, as: type)

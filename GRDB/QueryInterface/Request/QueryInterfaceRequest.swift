@@ -143,7 +143,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         let request = Player.all().select([max(Column("score"))], as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type)
+    public func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
         return mapQuery { $0.select(selection) }.asRequest(of: RowDecoder.self)
@@ -157,7 +157,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         let request = Player.all().select(max(Column("score")), as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type)
+    public func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
         return select(selection, as: type)
@@ -174,7 +174,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     public func select<RowDecoder>(
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        as type: RowDecoder.Type)
+        as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
         return select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
@@ -209,7 +209,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///     }
     public func select<RowDecoder>(
         literal sqlLiteral: SQLLiteral,
-        as type: RowDecoder.Type)
+        as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
         return select(SQLSelectionLiteral(literal: sqlLiteral), as: type)

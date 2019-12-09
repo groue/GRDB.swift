@@ -209,6 +209,7 @@ public final class Database {
     func setup() throws {
         // Setup trace first, so that setup queries are traced.
         setupTrace()
+        setupDoubleQuotedStringLiterals()
         try setupForeignKeys()
         setupBusyMode()
         setupDefaultFunctions()
@@ -292,6 +293,14 @@ public final class Database {
         let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
         db.configuration.trace!(sql)
         return SQLITE_OK
+    }
+    
+    private func setupDoubleQuotedStringLiterals() {
+        if configuration.acceptsDoubleQuotedStringLiterals {
+            enableDoubleQuotedStringLiterals(sqliteConnection)
+        } else {
+            disableDoubleQuotedStringLiterals(sqliteConnection)
+        }
     }
     
     private func setupForeignKeys() throws {

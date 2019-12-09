@@ -42,6 +42,7 @@
 
 ## Unsure if necessary
 
+- [ ] https://sqlite.org/pragma.html#pragma_index_xinfo
 - [ ] Deprecate DatabaseQueue/Pool.addFunction, collation, tokenizer: those should be done in Configuration.prepareDatabase
 - [ ] filter(rowid:), filter(rowids:)
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0075-import-test.md

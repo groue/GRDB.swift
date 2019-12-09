@@ -2,6 +2,11 @@ import XCTest
 #if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
+    #if SWIFT_PACKAGE
+        import CSQLite
+    #else
+        import SQLite3
+    #endif
     import GRDB
 #endif
 
@@ -70,6 +75,81 @@ class DatabaseConfigurationTests: GRDBTestCase {
                 _ = try pool.makeSnapshot()
                 XCTFail("Expected TestError")
             } catch is TestError { }
+        }
+    }
+    
+    func testAcceptsDoubleQuotedStringLiteralsDefault() throws {
+        let configuration = Configuration()
+        XCTAssertFalse(configuration.acceptsDoubleQuotedStringLiterals)
+    }
+    
+    func testAcceptsDoubleQuotedStringLiteralsTrue() throws {
+        var configuration = Configuration()
+        configuration.acceptsDoubleQuotedStringLiterals = true
+        let dbQueue = try makeDatabaseQueue(configuration: configuration)
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE player(name TEXT);
+                INSERT INTO player DEFAULT VALUES;
+                """)
+        }
+        
+        // Test SQLITE_DBCONFIG_DQS_DML
+        let foo = try dbQueue.inDatabase { db in
+            try String.fetchOne(db, sql: "SELECT \"foo\" FROM player")
+        }
+        XCTAssertEqual(foo, "foo")
+        
+        // Test SQLITE_DBCONFIG_DQS_DDL
+        if sqlite3_libversion_number() > 3008010 {
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "CREATE INDEX i ON player(\"foo\")")
+            }
+        }
+    }
+    
+    func testAcceptsDoubleQuotedStringLiteralsFalse() throws {
+        var configuration = Configuration()
+        configuration.acceptsDoubleQuotedStringLiterals = false
+        let dbQueue = try makeDatabaseQueue(configuration: configuration)
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE player(name TEXT);
+                INSERT INTO player DEFAULT VALUES;
+                """)
+        }
+        
+        // Test SQLITE_DBCONFIG_DQS_DML
+        do {
+            let foo = try dbQueue.inDatabase { db in
+                try String.fetchOne(db, sql: "SELECT \"foo\" FROM player")
+            }
+            if sqlite3_libversion_number() >= 3029000 {
+                XCTFail("Expected error")
+            } else {
+                XCTAssertEqual(foo, "foo")
+            }
+        } catch let error as DatabaseError {
+            XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+            XCTAssertEqual(error.message, "no such column: foo")
+            XCTAssertEqual(error.sql, "SELECT \"foo\" FROM player")
+        }
+        
+        // Test SQLITE_DBCONFIG_DQS_DDL
+        do {
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "CREATE INDEX i ON player(\"foo\")")
+            }
+            if sqlite3_libversion_number() >= 3029000 {
+                XCTFail("Expected error")
+            }
+        } catch let error as DatabaseError {
+            XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+            XCTAssert([
+                "no such column: foo",
+                "table player has no column named foo"]
+                .contains(error.message))
+            XCTAssertEqual(error.sql, "CREATE INDEX i ON player(\"foo\")")
         }
     }
 }
