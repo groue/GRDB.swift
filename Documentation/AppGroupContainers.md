@@ -85,10 +85,12 @@ See https://developer.apple.com/library/archive/technotes/tn2151/_index.html for
 1. If you use SQLCipher, use SQLCipher 4+, and call the `cipher_plaintext_header_size` pragma from your database preparation function:
     
     ```swift
+    var configuration = Configuration()
     configuration.prepareDatabase = { (db: Database) in
         try db.usePassphrase("secret")
         try db.execute(sql: "PRAGMA cipher_plaintext_header_size = 32")
     }
+    let dbPool = try DatabasePool(path: ..., configuration: configuration)
     ```
     
     This will avoid https://github.com/sqlcipher/sqlcipher/issues/255.
