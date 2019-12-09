@@ -26,6 +26,10 @@ public protocol SQLOrderingTerm {
 enum SQLOrdering: SQLOrderingTerm {
     case asc(SQLExpression)
     case desc(SQLExpression)
+    #if GRDBCUSTOMSQLITE
+    case ascNullsLast(SQLExpression)
+    case descNullsFirst(SQLExpression)
+    #endif
     
     var reversed: SQLOrderingTerm {
         switch self {
@@ -33,6 +37,12 @@ enum SQLOrdering: SQLOrderingTerm {
             return SQLOrdering.desc(expression)
         case .desc(let expression):
             return SQLOrdering.asc(expression)
+            #if GRDBCUSTOMSQLITE
+        case .ascNullsLast(let expression):
+            return SQLOrdering.descNullsFirst(expression)
+        case .descNullsFirst(let expression):
+            return SQLOrdering.ascNullsLast(expression)
+            #endif
         }
     }
     
@@ -42,6 +52,12 @@ enum SQLOrdering: SQLOrderingTerm {
             return expression.expressionSQL(&context, wrappedInParenthesis: false) + " ASC"
         case .desc(let expression):
             return expression.expressionSQL(&context, wrappedInParenthesis: false) + " DESC"
+            #if GRDBCUSTOMSQLITE
+        case .ascNullsLast(let expression):
+            return expression.expressionSQL(&context, wrappedInParenthesis: false) + " ASC NULLS LAST"
+        case .descNullsFirst(let expression):
+            return expression.expressionSQL(&context, wrappedInParenthesis: false) + " DESC NULLS FIRST"
+            #endif
         }
     }
     
@@ -51,6 +67,12 @@ enum SQLOrdering: SQLOrderingTerm {
             return SQLOrdering.asc(expression.qualifiedExpression(with: alias))
         case .desc(let expression):
             return SQLOrdering.desc(expression.qualifiedExpression(with: alias))
+            #if GRDBCUSTOMSQLITE
+        case .ascNullsLast(let expression):
+            return SQLOrdering.ascNullsLast(expression.qualifiedExpression(with: alias))
+        case .descNullsFirst(let expression):
+            return SQLOrdering.descNullsFirst(expression.qualifiedExpression(with: alias))
+            #endif
         }
     }
 }

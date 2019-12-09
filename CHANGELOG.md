@@ -64,6 +64,19 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [#656](https://github.com/groue/GRDB.swift/pull/656): Type inference of selected columns
 - [#659](https://github.com/groue/GRDB.swift/pull/659): Database interruption
 - [#660](https://github.com/groue/GRDB.swift/pull/660): Database Lock Prevention
+- [#662](https://github.com/groue/GRDB.swift/pull/662): Upgrade custom SQLite builds to version 3.30.1 (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib))
+
+### Breaking Changes
+
+[Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) now disable by default the support for the [Double-quoted String Literals misfeature](https://sqlite.org/quirks.html#dblquote). You can restore the previous behavior if your application relies on it:
+
+```swift
+// Enable support for the Double-quoted String Literals misfeature
+var configuration = Configuration()
+configuration.acceptsDoubleQuotedStringLiterals = true
+let dbQueue = try DatabaseQueue(path: ..., configuration: configuration)
+```
+
 
 ### Documentation Diff
 

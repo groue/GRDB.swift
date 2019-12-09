@@ -4083,6 +4083,13 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.order(scoreColumn.desc, nameColumn)
     ```
     
+    SQLite considers NULL values to be smaller than any other values for sorting purposes. Hence, NULLs naturally appear at the beginning of an ascending ordering and at the end of a descending ordering. With a [custom SQLite build], this can be changed using `.ascNullsLast` and `.descNullsFirst`:
+    
+    ```swift
+    // SELECT * FROM player ORDER BY score ASC NULLS LAST
+    Player.order(nameColumn.ascNullsLast)
+    ```
+    
     Each `order` call clears any previous ordering:
     
     ```swift

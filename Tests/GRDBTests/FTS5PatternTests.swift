@@ -32,7 +32,7 @@ class FTS5PatternTests: GRDBTestCase {
                 ("écarlates", 1),
                 ("fooéı👨👨🏿🇫🇷🇨🇮", 0),
                 // Prefix queries
-                ("*", 1),   // weird
+                // ("*", 1),   // No longer valid on SQLite 3.30.1
                 ("Robin*", 1),
                 // Phrase queries
                 ("\"foulent muscles\"", 1),
