@@ -206,7 +206,6 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             //
             // Yeah, there may be better ways to handle this.
             if let decodedRootKey = decodedRootKey {
-                print(codingPath)
                 throw DecodingError.keyNotFound(decodedRootKey, DecodingError.Context(
                     codingPath: codingPath,
                     debugDescription: "No such key: \(decodedRootKey.stringValue)")) // TODO: better error message
