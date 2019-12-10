@@ -200,13 +200,13 @@ You can trigger those notifications automatically with [DatabaseRegionObservatio
 ```swift
 // Notify all changes made to the "player" and "team" database tables
 let observation = DatabaseRegionObservation(tracking: Player.all(), Team.all())
-let observer = try observation.start(in: dbQueue) { (db: Database) in
+let observer = try observation.start(in: dbPool) { (db: Database) in
     // Notify other processes
 }
 
 // Notify all changes made to the databsae
 let observation = DatabaseRegionObservation(tracking: DatabaseRegion.fullDatabase)
-let observer = try observation.start(in: dbQueue) { (db: Database) in
+let observer = try observation.start(in: dbPool) { (db: Database) in
     // Notify other processes
 }
 ```
