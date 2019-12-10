@@ -14,16 +14,21 @@ public class DatabaseBackgroundScheduler {
     
     /// This notification is posted immediately before databases get suspended.
     ///
+    /// It is posted from an unspecified dispatch queue.
+    ///
     /// See `Configuration.suspendsOnBackgroundTimeExpiration` for more information.
-    public static let databaseWillSuspendNotification = Notification.Name("GRDBDatabaseWillSuspend")
+    public static let databaseWillSuspendNotification =
+        Notification.Name("DatabaseBackgroundSchedulerDatabaseWillSuspend")
     
     /// This notification is posted immediately after databases are resumed.
     ///
+    /// It is posted from an unspecified dispatch queue.
+    ///
     /// See `Configuration.suspendsOnBackgroundTimeExpiration` for more information.
-    public static let databaseDidResumeNotification = Notification.Name("GRDBDatabaseDidResume")
+    public static let databaseDidResumeNotification = Notification.Name("DatabaseBackgroundSchedulerDatabaseDidResume")
     
-    static let suspendNotification = Notification.Name("GRDBSuspend")
-    static let resumeNotification = Notification.Name("GRDBResume")
+    static let suspendNotification = Notification.Name("DatabaseBackgroundSchedulerSuspend")
+    static let resumeNotification = Notification.Name("DatabaseBackgroundSchedulerResume")
     
     private var lock = NSLock()
     private var suspendedSemaphore: DispatchSemaphore?
@@ -61,13 +66,7 @@ public class DatabaseBackgroundScheduler {
             name: UIApplication.didEnterBackgroundNotification,
             object: nil)
         
-        // We do not know if self is initialized from an active, inactive, or
-        // background application.
-        // Just in case, start a background task and wait for notification of
-        // imminent application suspension.
-        synchronized {
-            waitForBackgroundTaskExpiration()
-        }
+        waitForBackgroundTaskExpiration()
     }
     
     deinit {
@@ -93,16 +92,7 @@ public class DatabaseBackgroundScheduler {
     ///         }
     ///     }
     public func resume(in application: UIApplication) {
-        synchronized {
-            switch application.applicationState {
-            case .active, .inactive:
-                suspendedSemaphore?.signal()
-                suspendedSemaphore = nil
-                isSuspended = false
-            case .background:
-                waitForBackgroundTaskExpiration()
-            }
-        }
+        waitForBackgroundTaskExpiration()
     }
     
     private func synchronized<T>(_ execute: () throws -> T) rethrows -> T {
@@ -113,31 +103,32 @@ public class DatabaseBackgroundScheduler {
     
     @objc
     func applicationDidEnterBackground(_ notification: Notification) {
-        synchronized {
-            waitForBackgroundTaskExpiration()
-        }
+        waitForBackgroundTaskExpiration()
     }
     
     // TODO: what about apps that do not want to run in the background?
-    /// MUST be called from a synchronized block
     private func waitForBackgroundTaskExpiration() {
-        suspendedSemaphore?.signal()
-        isSuspended = false
-        
-        let semaphore = DispatchSemaphore(value: 0)
-        ProcessInfo.processInfo.performExpiringActivity(withReason: "GRDB.DatabaseBackgroundScheduler") { suspended in
-            if suspended {
-                self.synchronized {
-                    self.suspendedSemaphore?.signal()
-                    self.suspendedSemaphore = nil
-                    self.isSuspended = true
+        synchronized {
+            suspendedSemaphore?.signal()
+            isSuspended = false
+            
+            let semaphore = DispatchSemaphore(value: 0)
+            ProcessInfo.processInfo.performExpiringActivity(
+            withReason: "GRDB.DatabaseBackgroundScheduler",
+            using: { suspended in
+                if suspended {
+                    self.synchronized {
+                        self.suspendedSemaphore?.signal()
+                        self.suspendedSemaphore = nil
+                        self.isSuspended = true
+                    }
+                } else {
+                    semaphore.wait()
                 }
-            } else {
-                semaphore.wait()
-            }
+            })
+            
+            suspendedSemaphore = semaphore
         }
-        
-        suspendedSemaphore = semaphore
     }
 }
 #endif
