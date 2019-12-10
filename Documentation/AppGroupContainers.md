@@ -5,9 +5,10 @@ On iOS, you can share database files between multiple processes by storing them 
 
 A shared database is accessed from several SQLite connections, from several processes. This creates challenges at various levels:
 
-1. **SQLite** may throw `SQLITE_BUSY` errors, code 5, "database is locked".
-2. **iOS** may kill your application with a `0xDEAD10CC` exception.
-3. **GRDB** database observation misses changes performed by external processes.
+1. **Database setup** may be attempted by multiple processes, concurrently.
+2. **SQLite** may throw `SQLITE_BUSY` errors, code 5, "database is locked".
+3. **iOS** may kill your application with a `0xDEAD10CC` exception.
+4. **GRDB** database observation misses changes performed by external processes.
 
 We'll address all of those challenges below.
 
