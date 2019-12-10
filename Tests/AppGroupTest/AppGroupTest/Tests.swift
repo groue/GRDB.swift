@@ -77,12 +77,20 @@ class Tests {
                 var configuration = Configuration()
                 configuration.suspendsOnBackgroundTimeExpiration = true
                 try! AppDatabase.shared.createDatabaseQueue(configuration: configuration)
+                
                 AppDatabase.shared.openTransaction(
                     .immediate,
                     until: { commitTransaction = $0 },
                     completion: {
                         transactionError = $0.error
                         transactionCompletion.signal() })
+                
+                databaseWillSuspendToken = NotificationCenter.default.addObserver(
+                    forName: DatabaseBackgroundScheduler.databaseWillSuspendNotification,
+                    object: nil,
+                    queue: .main,
+                    using: databaseWillSuspend)
+                
             }
         }
         
@@ -121,12 +129,6 @@ class Tests {
                 }
             }
         }
-        
-        databaseWillSuspendToken = NotificationCenter.default.addObserver(
-            forName: DatabaseBackgroundScheduler.databaseWillSuspendNotification,
-            object: nil,
-            queue: .main,
-            using: databaseWillSuspend)
         
         return Test(
             title: "Immediate Transaction",
