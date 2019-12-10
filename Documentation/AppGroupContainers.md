@@ -136,7 +136,7 @@ See https://developer.apple.com/library/archive/technotes/tn2151/_index.html for
     
     This will avoid https://github.com/sqlcipher/sqlcipher/issues/255.
 
-2. In applications (not extensions), perform this extra setup:
+2. In each process that wants to write in the database:
 
     Set the `suspendsOnBackgroundTimeExpiration` configuration flag:
     
@@ -146,7 +146,7 @@ See https://developer.apple.com/library/archive/technotes/tn2151/_index.html for
     let dbPool = try DatabasePool(path: ..., configuration: configuration)
     ```
     
-    Call the `DatabaseBackgroundScheduler.shared.resume(in:)` method from `UIApplicationDelegate.applicationWillEnterForeground(_:)` (or `SceneDelegate.sceneWillEnterForeground(_:)` for scene-based applications):
+    In applications, call the `DatabaseBackgroundScheduler.shared.resume(in:)` method from `UIApplicationDelegate.applicationWillEnterForeground(_:)` (or `SceneDelegate.sceneWillEnterForeground(_:)` for scene-based applications):
     
     ```swift
     @UIApplicationMain
@@ -158,7 +158,7 @@ See https://developer.apple.com/library/archive/technotes/tn2151/_index.html for
     }
     ```
     
-    If your application uses the background modes supported by iOS, call the `DatabaseBackgroundScheduler.shared.resume(in:)` method from each and every background mode callback that may use the database. For example, if your application supports background fetches:
+    If the application uses the background modes supported by iOS, call the `DatabaseBackgroundScheduler.shared.resume(in:)` method from each and every background mode callback that may use the database. For example, if your application supports background fetches:
     
     ```swift
     @UIApplicationMain

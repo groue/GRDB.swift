@@ -75,7 +75,6 @@ public struct Configuration {
     /// Default: nil
     public var trace: TraceFunction?
     
-    // TODO: hide from extensions?
     #if os(iOS)
     /// When true, the database becomes suspended when application background
     /// time expires, in order to avoid the [`0xdead10cc`
