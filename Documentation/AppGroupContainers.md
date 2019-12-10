@@ -17,7 +17,7 @@ We'll address all of those challenges below.
 
 In order to access a shared database, use a [Database Pool]. It opens the database in the [WAL mode](https://www.sqlite.org/wal.html), which helps sharing a database.
 
-Since several processes may open the database at the same time, protect the creation of the database pool with an [NSFileCoordinator](https://developer.apple.com/documentation/foundation/nsfilecoordinator).
+Since several processes may open the database at the same time, protect the creation of the database pool with an [NSFileCoordinator].
 
 - In a process that can create and write in the database, use this sample code:
     
@@ -191,7 +191,31 @@ See https://developer.apple.com/library/archive/technotes/tn2151/_index.html for
 
 ## How to perform cross-process database observation
 
-TODO get ideas from https://www.avanderlee.com/swift/core-data-app-extension-data-sharing/
+GRDB [Database Observation] features, as well as [GRDBCombine] and [RxGRDB], are not able to notify database changes performed by other processes.
+
+Whenever you need to notify other processes that the database has been changed, you will have to use a cross-process notification mechanism such as [NSFileCoordinator] or [CFNotificationCenterGetDarwinNotifyCenter].
+
+You can trigger those notifications automatically with [DatabaseRegionObservation]:
+
+```swift
+// Notify all changes made to the "player" and "team" database tables
+let observation = DatabaseRegionObservation(tracking: Player.all(), Team.all())
+let observer = try observation.start(in: dbQueue) { (db: Database) in
+    // Notify other processes
+}
+
+// Notify all any change made to the databsae
+let observation = DatabaseRegionObservation(tracking: DatabaseRegion.fullDatabase)
+let observer = try observation.start(in: dbQueue) { (db: Database) in
+    // Notify other processes
+}
+```
 
 
 [Database Pool]: ../README.md#database-pools
+[Database Observation]: ../README.md#database-changes-observation
+[GRDBCombine]: http://github.com/groue/GRDBCombine
+[RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
+[NSFileCoordinator]: https://developer.apple.com/documentation/foundation/nsfilecoordinator
+[CFNotificationCenterGetDarwinNotifyCenter]: https://developer.apple.com/documentation/corefoundation/1542572-cfnotificationcentergetdarwinnot
+[DatabaseRegionObservation]: ../README.md#databaseregionobservation
