@@ -86,7 +86,8 @@ public final class DatabasePool: DatabaseWriter {
         // >   that connection will acquire an exclusive lock for a short time
         // >   while it cleans up the WAL and shared-memory files [...]
         // > - If the last connection to a database crashed, then the first new
-        // >   connection to open the database will start a recovery process
+        // >   connection to open the database will start a recovery process. An
+        // >   exclusive lock is held during recovery. [...]
         //
         // The whole point of WAL readers is to avoid SQLITE_BUSY, so let's
         // setup a busy handler for pool readers, in order to workaround those
