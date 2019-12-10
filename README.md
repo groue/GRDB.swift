@@ -8169,7 +8169,7 @@ This chapter has [moved](Documentation/FullTextSearch.md).
 
 This chapter has [moved](Documentation/FullTextSearch.md#enabling-fts5-support).
 
-##@@ Dealing with External Connections
+#### Dealing with External Connections
 
 This chapter has been superseded by [App Group Containers].
 
