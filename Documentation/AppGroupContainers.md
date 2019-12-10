@@ -79,10 +79,8 @@ Since several processes may open the database at the same time, protect the crea
             return try DatabasePool(path: databaseURL.path, configuration: configuration)
         } catch {
             if FileManager.default.fileExists(atPath: databaseURL.path) {
-                // Something went wrong
                 throw error
             } else {
-                // Database file does not exist
                 return nil
             }
         }
