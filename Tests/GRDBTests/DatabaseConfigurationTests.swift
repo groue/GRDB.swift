@@ -159,7 +159,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
     
     // MARK: - busyMode
     
-    func testBusyMode() throws {
+    func testBusyModeImmediate() throws {
         let dbQueue1 = try makeDatabaseQueue(filename: "test.sqlite")
         #if GRDBCIPHER_USE_ENCRYPTION
         // Work around SQLCipher bug when two connections are open to the
@@ -173,19 +173,9 @@ class DatabaseConfigurationTests: GRDBTestCase {
         var configuration2 = Configuration()
         configuration2.busyMode = .immediateError
         let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite", configuration: configuration2)
-
-        var configuration3 = Configuration()
-        configuration3.busyMode = .timeout(0.9)
-        let dbQueue3 = try makeDatabaseQueue(filename: "test.sqlite", configuration: configuration3)
         
-        var configuration4 = Configuration()
-        configuration4.busyMode = .timeout(1.1)
-        let dbQueue4 = try makeDatabaseQueue(filename: "test.sqlite", configuration: configuration4)
-        
-        let s0 = DispatchSemaphore(value: 0)
+        let s1 = DispatchSemaphore(value: 0)
         let s2 = DispatchSemaphore(value: 0)
-        let s3 = DispatchSemaphore(value: 0)
-        let s4 = DispatchSemaphore(value: 0)
         let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
         let group = DispatchGroup()
         
@@ -193,12 +183,10 @@ class DatabaseConfigurationTests: GRDBTestCase {
             do {
                 try dbQueue1.inTransaction(.exclusive) { db in
                     s2.signal()
-                    s3.signal()
-                    s4.signal()
                     queue.asyncAfter(deadline: .now() + 1) {
-                        s0.signal()
+                        s1.signal()
                     }
-                    _ = s0.wait(timeout: .distantFuture)
+                    _ = s1.wait(timeout: .distantFuture)
                     return .commit
                 }
             } catch {
@@ -217,12 +205,39 @@ class DatabaseConfigurationTests: GRDBTestCase {
             }
         }
         
+        _ = group.wait(timeout: .distantFuture)
+    }
+    
+    func testBusyModeTimeoutTooShort() throws {
+        let dbQueue1 = try makeDatabaseQueue(filename: "test.sqlite")
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Work around SQLCipher bug when two connections are open to the
+        // same empty database: make sure the database is not empty before
+        // running this test
+        try dbQueue1.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+        }
+        #endif
+        
+        var configuration2 = Configuration()
+        configuration2.busyMode = .timeout(0.5)
+        let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite", configuration: configuration2)
+        
+        let s1 = DispatchSemaphore(value: 0)
+        let s2 = DispatchSemaphore(value: 0)
+        let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
+        let group = DispatchGroup()
+        
         queue.async(group: group) {
             do {
-                _ = s3.wait(timeout: .distantFuture)
-                try dbQueue3.inTransaction(.exclusive) { db in return .commit }
-                XCTFail("Expected error")
-            } catch let error as DatabaseError where error.resultCode == .SQLITE_BUSY {
+                try dbQueue1.inTransaction(.exclusive) { db in
+                    s2.signal()
+                    queue.asyncAfter(deadline: .now() + 1) {
+                        s1.signal()
+                    }
+                    _ = s1.wait(timeout: .distantFuture)
+                    return .commit
+                }
             } catch {
                 XCTFail("\(error)")
             }
@@ -230,13 +245,62 @@ class DatabaseConfigurationTests: GRDBTestCase {
         
         queue.async(group: group) {
             do {
-                _ = s4.wait(timeout: .distantFuture)
-                try dbQueue4.inTransaction(.exclusive) { db in return .commit }
+                _ = s2.wait(timeout: .distantFuture)
+                try dbQueue2.inTransaction(.exclusive) { db in return .commit }
+                XCTFail("Expected error")
+            } catch let error as DatabaseError where error.resultCode == .SQLITE_BUSY {
             } catch {
                 XCTFail("\(error)")
             }
         }
-
+        
+        _ = group.wait(timeout: .distantFuture)
+    }
+    
+    func testBusyModeTimeoutTooLong() throws {
+        let dbQueue1 = try makeDatabaseQueue(filename: "test.sqlite")
+        #if GRDBCIPHER_USE_ENCRYPTION
+        // Work around SQLCipher bug when two connections are open to the
+        // same empty database: make sure the database is not empty before
+        // running this test
+        try dbQueue1.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE SQLCipherWorkAround (foo INTEGER)")
+        }
+        #endif
+        
+        var configuration2 = Configuration()
+        configuration2.busyMode = .timeout(2)
+        let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite", configuration: configuration2)
+        
+        let s1 = DispatchSemaphore(value: 0)
+        let s2 = DispatchSemaphore(value: 0)
+        let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
+        let group = DispatchGroup()
+        
+        queue.async(group: group) {
+            do {
+                try dbQueue1.inTransaction(.exclusive) { db in
+                    s2.signal()
+                    queue.asyncAfter(deadline: .now() + 1) {
+                        s1.signal()
+                    }
+                    _ = s1.wait(timeout: .distantFuture)
+                    return .commit
+                }
+            } catch {
+                XCTFail("\(error)")
+            }
+        }
+        
+        queue.async(group: group) {
+            do {
+                _ = s2.wait(timeout: .distantFuture)
+                try dbQueue2.inTransaction(.exclusive) { db in return .commit }
+            } catch {
+                XCTFail("\(error)")
+            }
+        }
+        
         _ = group.wait(timeout: .distantFuture)
     }
 }
