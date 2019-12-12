@@ -644,10 +644,14 @@ public final class Database {
     
     /// When this notification is posted, databases which were opened with the
     /// `Configuration.observesSuspensionNotifications` flag are suspended.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public static let suspendNotification = Notification.Name("GRDB.Database.Suspend")
     
     /// When this notification is posted, databases which were opened with the
     /// `Configuration.observesSuspensionNotifications` flag are resumed.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public static let resumeNotification = Notification.Name("GRDB.Database.Resume")
     
     /// Suspends the database. A suspended database prevents database locks in

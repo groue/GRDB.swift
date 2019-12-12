@@ -95,8 +95,8 @@ The new [Sharing a Datatase in an App Group Container](Documentation/AppGroupCon
  }
 
  class Database {
-+    static let suspendNotification: Notification.Name
-+    static let resumeNotification: Notification.Name
++    static let suspendNotification: Notification.Name // Experimental
++    static let resumeNotification: Notification.Name  // Experimental
  }
 
  extension DatabaseError {
