@@ -83,6 +83,8 @@ let dbQueue = try DatabaseQueue(path: ..., configuration: configuration)
 
 The new [Interrupt a Database](README.md#interrupt-a-database) chapter documents the new `interrupt()` method.
 
+The new [Sharing a Datatase in an App Group Container](Documentation/AppGroupContainers.md) guide explains how to setup GRDB when you share a database in an iOS App Group container.
+
 
 ### API Diff
 
