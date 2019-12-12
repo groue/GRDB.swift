@@ -7,6 +7,15 @@ import XCTest
 
 class DatabaseQueueReadOnlyTests : GRDBTestCase {
     
+    func testOpenReadOnlyMissingDatabase() throws {
+        dbConfiguration.readonly = true
+        do {
+            _ = try makeDatabaseQueue()
+        } catch let error as DatabaseError {
+            XCTAssertEqual(error.resultCode, .SQLITE_CANTOPEN)
+        }
+    }
+    
     func testReadOnlyDatabaseCanNotBeModified() throws {
         // Create database
         do {

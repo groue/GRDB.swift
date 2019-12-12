@@ -80,7 +80,37 @@ let dbQueue = try DatabaseQueue(path: ..., configuration: configuration)
 
 ### Documentation Diff
 
-A new [Interrupt a Database](README.md#interrupt-a-database) chapter documents the new `interrupt()` method.
+The new [Interrupt a Database](README.md#interrupt-a-database) chapter documents the new `interrupt()` method.
+
+
+### API Diff
+
+```diff
+ struct Configuration {
++    var observesSuspensionNotifications: Bool // Experimental
++    var acceptsDoubleQuotedStringLiterals: Bool
+ }
+
+ class Database {
++    static let suspendNotification: Notification.Name
++    static let resumeNotification: Notification.Name
+ }
+
+ extension DatabaseError {
++    var isInterruptionError: Bool { get }
+ }
+ 
+ protocol DatabaseReader {
++    func interrupt()
+ }
+ 
+ extension SQLSpecificExpressible {
++    #if GRDBCUSTOMSQLITE
++    var ascNullsLast: SQLOrderingTerm { get }
++    var descNullsFirst: SQLOrderingTerm { get }
++    #endif
+ }
+```
 
 
 ## 4.6.2

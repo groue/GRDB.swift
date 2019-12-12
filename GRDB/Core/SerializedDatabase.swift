@@ -41,8 +41,15 @@ final class SerializedDatabase {
         //
         // Since our database connection is only used via our serial dispatch
         // queue, there is no purpose using the default serialized mode.
+        //
+        // But we make an exception in order to prevent the `0xdead10cc`
+        // exception. We need the serialized mode just so that we can perform
+        // an emergency rollback when database gets suspended. This extra
+        // behavior is triggered by `observesSuspensionNotifications`:
         var config = configuration
-        config.threadingMode = .multiThread
+        config.threadingMode = config.observesSuspensionNotifications
+            ? .serialized
+            : .multiThread
         
         self.path = path
         self.db = try Database(path: path, configuration: config, schemaCache: schemaCache)
@@ -204,14 +211,14 @@ final class SerializedDatabase {
         db.interrupt()
     }
     
-    func startPreventingLock() {
+    func suspend() {
         // Intentionally not scheduled in our serial queue
-        db.startPreventingLock()
+        db.suspend()
     }
     
-    func stopPreventingLock() {
+    func resume() {
         // Intentionally not scheduled in our serial queue
-        db.stopPreventingLock()
+        db.resume()
     }
     
     /// Fatal error if current dispatch queue is not valid.
