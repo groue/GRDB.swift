@@ -5,12 +5,29 @@
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "56439B2D1F4CA1DC0066043F"
+               BuildableName = "GRDBOSXPerformanceComparisonTests.xctest"
+               BlueprintName = "GRDBOSXPerformanceComparisonTests"
+               ReferencedContainer = "container:GRDBPerformance.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
    </BuildAction>
    <TestAction
       buildConfiguration = "Release"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES">
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      disableMainThreadChecker = "YES">
       <Testables>
          <TestableReference
             skipped = "NO">
@@ -19,12 +36,10 @@
                BlueprintIdentifier = "56439B2D1F4CA1DC0066043F"
                BuildableName = "GRDBOSXPerformanceComparisonTests.xctest"
                BlueprintName = "GRDBOSXPerformanceComparisonTests"
-               ReferencedContainer = "container:GRDB.xcodeproj">
+               ReferencedContainer = "container:GRDBPerformance.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -36,8 +51,6 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <AdditionalOptions>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -45,6 +58,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "56439B2D1F4CA1DC0066043F"
+            BuildableName = "GRDBOSXPerformanceComparisonTests.xctest"
+            BlueprintName = "GRDBOSXPerformanceComparisonTests"
+            ReferencedContainer = "container:GRDBPerformance.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
