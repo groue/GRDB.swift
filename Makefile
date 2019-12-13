@@ -411,7 +411,7 @@ endif
 
 test_performance: Realm FMDB SQLite.swift
 	$(XCODEBUILD) \
-	  -project GRDB.xcodeproj \
+	  -project Tests/Performance/GRDBPerformance/GRDBPerformance.xcodeproj \
 	  -scheme GRDBOSXPerformanceComparisonTests \
 	  build-for-testing test-without-building
 
