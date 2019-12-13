@@ -6675,10 +6675,8 @@ For example:
 
 ```swift
 try dbQueue.write { db in
-    // interrupted:
     try Player(...).insert(db)     // throws SQLITE_INTERRUPT
-    // not executed:
-    try Player(...).insert(db)
+    try Player(...).insert(db)     // not executed
 }                                  // throws SQLITE_INTERRUPT
 
 try dbQueue.write { db in
@@ -6691,10 +6689,19 @@ try dbQueue.write { db in
 
 try dbQueue.write { db in
     do {
-        // interrupted:
         try Player(...).insert(db) // throws SQLITE_INTERRUPT
     } catch { }
 }                                  // throws SQLITE_ABORT
+```
+
+You can catch both `SQLITE_INTERRUPT` and `SQLITE_ABORT` errors with the `DatabaseError.isInterruptionError` property:
+
+```swift
+do {
+    try dbPool.write { db in ... }
+} catch let error as DatabaseError where error.isInterruptionError {
+    // Oops, the database was interrupted.
+}
 ```
 
 For more information, see [Interrupt A Long-Running Query](https://www.sqlite.org/c3ref/interrupt.html).
