@@ -683,17 +683,8 @@ public final class Database {
             // release a lock. See https://www.sqlite.org/c3ref/interrupt.html
             interrupt()
             
-            // What about the eventual remaining lock?
-            // If the database had been opened with the SQLITE_OPEN_FULLMUTEX
-            // flag, execute a rollback statement:
-            if configuration.threadingMode == .serialized {
-                assert(configuration.SQLiteOpenFlags & SQLITE_OPEN_FULLMUTEX != 0)
-                _ = sqlite3_exec(sqliteConnection, "ROLLBACK", nil, nil, nil)
-            }
-            
-            // If threadingMode is not .serialized, or if the rollback has
-            // failed, a lock could remain. We'll issue a rollback on next
-            // database access which requires a lock, in
+            // Now what about the eventual remaining lock? We'll issue a
+            // rollback on next database access which requires a lock, in
             // checkForSuspensionViolation(from:).
         }
     }

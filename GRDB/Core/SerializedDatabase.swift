@@ -41,15 +41,8 @@ final class SerializedDatabase {
         //
         // Since our database connection is only used via our serial dispatch
         // queue, there is no purpose using the default serialized mode.
-        //
-        // But we make an exception in order to prevent the `0xdead10cc`
-        // exception. We need the serialized mode just so that we can perform
-        // an emergency rollback when database gets suspended. This extra
-        // behavior is triggered by `observesSuspensionNotifications`:
         var config = configuration
-        config.threadingMode = config.observesSuspensionNotifications
-            ? .serialized
-            : .multiThread
+        config.threadingMode = .multiThread
         
         self.path = path
         self.db = try Database(path: path, configuration: config, schemaCache: schemaCache)
