@@ -219,7 +219,7 @@ let observer = try observation.start(in: dbPool) { (db: Database) in
     // Notify other processes
 }
 
-// Notify all changes made to the databsae
+// Notify all changes made to the database
 let observation = DatabaseRegionObservation(tracking: DatabaseRegion.fullDatabase)
 let observer = try observation.start(in: dbPool) { (db: Database) in
     // Notify other processes
