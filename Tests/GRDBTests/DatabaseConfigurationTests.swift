@@ -170,7 +170,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
         }
         #endif
         
-        var configuration2 = Configuration()
+        var configuration2 = dbQueue1.configuration
         configuration2.busyMode = .immediateError
         let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite", configuration: configuration2)
         
@@ -219,7 +219,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
         }
         #endif
         
-        var configuration2 = Configuration()
+        var configuration2 = dbQueue1.configuration
         configuration2.busyMode = .timeout(0.5)
         let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite", configuration: configuration2)
         
@@ -268,7 +268,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
         }
         #endif
         
-        var configuration2 = Configuration()
+        var configuration2 = dbQueue1.configuration
         configuration2.busyMode = .timeout(2)
         let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite", configuration: configuration2)
         
