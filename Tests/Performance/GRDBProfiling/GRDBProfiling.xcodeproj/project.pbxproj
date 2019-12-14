@@ -31,13 +31,6 @@
 			remoteGlobalIDString = 56E5D7F91B4D422D00430942;
 			remoteInfo = GRDBOSXTests;
 		};
-		564C5B6B1F489B8A00176870 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 560C981A1C0E22D300BF8471;
-			remoteInfo = GRDBOSXPerformanceTests;
-		};
 		564C5B6D1F489B8A00176870 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
@@ -66,12 +59,19 @@
 			remoteGlobalIDString = 565490A01D5A4798005622CB;
 			remoteInfo = GRDBWatchOS;
 		};
-		56B1C3BD201C8B7D001938DA /* PBXContainerItemProxy */ = {
+		5679871623A5538A0076902D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = 56439B501F4CA1DC0066043F;
-			remoteInfo = GRDBOSXPerformanceComparisonTests;
+			remoteGlobalIDString = AAA4DCFE230F1E0600C74B15;
+			remoteInfo = GRDBtvOS;
+		};
+		5679871823A5538A0076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56537C841BA8874F00E87787 /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AAA4DDD4230F262000C74B15;
+			remoteInfo = GRDBtvOSTests;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -118,12 +118,12 @@
 			children = (
 				564C5B681F489B8A00176870 /* GRDB.framework */,
 				564C5B6A1F489B8A00176870 /* GRDBOSXTests.xctest */,
-				564C5B6C1F489B8A00176870 /* GRDBOSXPerformanceTests.xctest */,
-				56B1C3BE201C8B7D001938DA /* GRDBOSXPerformanceComparisonTests.xctest */,
 				564C5B6E1F489B8A00176870 /* GRDBOSXCrashTests.xctest */,
 				564C5B7A1F489B8A00176870 /* GRDB.framework */,
 				564C5B7C1F489B8A00176870 /* GRDBiOSTests.xctest */,
 				564C5B881F489B8A00176870 /* GRDB.framework */,
+				5679871723A5538A0076902D /* GRDB.framework */,
+				5679871923A5538A0076902D /* GRDBtvOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -186,7 +186,7 @@
 		56537C6A1BA8871A00E87787 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1130;
 				ORGANIZATIONNAME = "Gwendal Roué";
 				TargetAttributes = {
 					56537C711BA8871A00E87787 = {
@@ -234,13 +234,6 @@
 			remoteRef = 564C5B691F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		564C5B6C1F489B8A00176870 /* GRDBOSXPerformanceTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = GRDBOSXPerformanceTests.xctest;
-			remoteRef = 564C5B6B1F489B8A00176870 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		564C5B6E1F489B8A00176870 /* GRDBOSXCrashTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
@@ -269,11 +262,18 @@
 			remoteRef = 564C5B871F489B8A00176870 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		56B1C3BE201C8B7D001938DA /* GRDBOSXPerformanceComparisonTests.xctest */ = {
+		5679871723A5538A0076902D /* GRDB.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDB.framework;
+			remoteRef = 5679871623A5538A0076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		5679871923A5538A0076902D /* GRDBtvOSTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = GRDBOSXPerformanceComparisonTests.xctest;
-			remoteRef = 56B1C3BD201C8B7D001938DA /* PBXContainerItemProxy */;
+			path = GRDBtvOSTests.xctest;
+			remoteRef = 5679871823A5538A0076902D /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -424,6 +424,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = GRDBProfiling/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
@@ -437,6 +438,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
 				INFOPLIST_FILE = GRDBProfiling/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
