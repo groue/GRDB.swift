@@ -6681,16 +6681,15 @@ try dbQueue.write { db in
 
 try dbQueue.write { db in
     do {
-        // interrupted:
         try Player(...).insert(db) // throws SQLITE_INTERRUPT
     } catch { }
-    try Player(...).insert(db)     // throws SQLITE_ABORT
 }                                  // throws SQLITE_ABORT
 
 try dbQueue.write { db in
     do {
         try Player(...).insert(db) // throws SQLITE_INTERRUPT
     } catch { }
+    try Player(...).insert(db)     // throws SQLITE_ABORT
 }                                  // throws SQLITE_ABORT
 ```
 
