@@ -665,9 +665,6 @@ public final class Database {
     /// DatabaseError of code `SQLITE_INTERRUPT`, or `SQLITE_ABORT`, except
     /// reads in WAL mode.
     ///
-    /// If database configuration has the `observesSuspensionNotifications`
-    /// flag set, this methods performs an immediate rollback.
-    ///
     /// Suspension ends with resume().
     func suspend() {
         isSuspended.write { isSuspended in
