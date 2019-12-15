@@ -466,9 +466,9 @@
 		567F45AC1F888B2600030B59 /* TruncateOptimizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F45A71F888B2600030B59 /* TruncateOptimizationTests.swift */; };
 		568068311EBBA26100EFB8AA /* SQLRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568068301EBBA26100EFB8AA /* SQLRequestTests.swift */; };
 		568068351EBBA26100EFB8AA /* SQLRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568068301EBBA26100EFB8AA /* SQLRequestTests.swift */; };
-		5682D721239582AA004B58C4 /* DatabaseLockPreventionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5682D71A239582AA004B58C4 /* DatabaseLockPreventionTests.swift */; };
-		5682D722239582AA004B58C4 /* DatabaseLockPreventionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5682D71A239582AA004B58C4 /* DatabaseLockPreventionTests.swift */; };
-		5682D723239582AA004B58C4 /* DatabaseLockPreventionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5682D71A239582AA004B58C4 /* DatabaseLockPreventionTests.swift */; };
+		5682D721239582AA004B58C4 /* DatabaseSuspensionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5682D71A239582AA004B58C4 /* DatabaseSuspensionTests.swift */; };
+		5682D722239582AA004B58C4 /* DatabaseSuspensionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5682D71A239582AA004B58C4 /* DatabaseSuspensionTests.swift */; };
+		5682D723239582AA004B58C4 /* DatabaseSuspensionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5682D71A239582AA004B58C4 /* DatabaseSuspensionTests.swift */; };
 		568735A21CEDE16C009B9116 /* Betty.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 5687359E1CEDE16C009B9116 /* Betty.jpeg */; };
 		568D131F2207213E00674B58 /* SQLQueryGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568D13182207213E00674B58 /* SQLQueryGenerator.swift */; };
 		568D13202207213E00674B58 /* SQLQueryGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568D13182207213E00674B58 /* SQLQueryGenerator.swift */; };
@@ -1370,7 +1370,7 @@
 		567F0B2C220F0E2E00D111FB /* SQLInterpolationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLInterpolationTests.swift; sourceTree = "<group>"; };
 		567F45A71F888B2600030B59 /* TruncateOptimizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TruncateOptimizationTests.swift; sourceTree = "<group>"; };
 		568068301EBBA26100EFB8AA /* SQLRequestTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLRequestTests.swift; sourceTree = "<group>"; };
-		5682D71A239582AA004B58C4 /* DatabaseLockPreventionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseLockPreventionTests.swift; sourceTree = "<group>"; };
+		5682D71A239582AA004B58C4 /* DatabaseSuspensionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseSuspensionTests.swift; sourceTree = "<group>"; };
 		5687359E1CEDE16C009B9116 /* Betty.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Betty.jpeg; sourceTree = "<group>"; };
 		568D13182207213E00674B58 /* SQLQueryGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLQueryGenerator.swift; sourceTree = "<group>"; };
 		5690C3251D23E6D800E59934 /* FoundationDateComponentsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationDateComponentsTests.swift; sourceTree = "<group>"; };
@@ -2053,7 +2053,6 @@
 				563DE4EC231A91E2005081B7 /* DatabaseConfigurationTests.swift */,
 				56A238161B9C74A90082EB20 /* DatabaseErrorTests.swift */,
 				560C97C61BFD0B8400BF8471 /* DatabaseFunctionTests.swift */,
-				5682D71A239582AA004B58C4 /* DatabaseLockPreventionTests.swift */,
 				567DAF341EAB789800FC0928 /* DatabaseLogErrorTests.swift */,
 				560A37A91C90084600949E71 /* DatabasePool */,
 				563363BB1C93FD32000BE133 /* DatabaseQueue */,
@@ -2061,6 +2060,7 @@
 				564CE5BD21B8FFA300652B19 /* DatabaseRegionObservationTests.swift */,
 				56C3F7521CF9F12400F6A361 /* DatabaseSavepointTests.swift */,
 				566A8424204120B700E50BFD /* DatabaseSnapshotTests.swift */,
+				5682D71A239582AA004B58C4 /* DatabaseSuspensionTests.swift */,
 				56A238131B9C74A90082EB20 /* DatabaseTests.swift */,
 				564FCE5D20F7E11A00202B90 /* DatabaseValueConversionErrorTests.swift */,
 				56A2381B1B9C74A90082EB20 /* DatabaseValueConversionTests.swift */,
@@ -3086,7 +3086,7 @@
 				56EA869F1C932597002BB4DF /* DatabasePoolReadOnlyTests.swift in Sources */,
 				5615B288222B17C000061C1C /* AssociationHasOneThroughDecodableRecordTests.swift in Sources */,
 				567F45AC1F888B2600030B59 /* TruncateOptimizationTests.swift in Sources */,
-				5682D722239582AA004B58C4 /* DatabaseLockPreventionTests.swift in Sources */,
+				5682D722239582AA004B58C4 /* DatabaseSuspensionTests.swift in Sources */,
 				5657AB621D108BA9006283EF /* FoundationNSURLTests.swift in Sources */,
 				5657AB6A1D108BA9006283EF /* FoundationURLTests.swift in Sources */,
 				563B06C42185D29F00B38F35 /* ValueObservationExtentTests.swift in Sources */,
@@ -3293,7 +3293,7 @@
 				56176C591EACCCC7000F3F2B /* FTS5CustomTokenizerTests.swift in Sources */,
 				5615B289222B17C000061C1C /* AssociationHasOneThroughDecodableRecordTests.swift in Sources */,
 				56D4968A1D81316E008276D7 /* DatabaseValueConvertibleSubclassTests.swift in Sources */,
-				5682D721239582AA004B58C4 /* DatabaseLockPreventionTests.swift in Sources */,
+				5682D721239582AA004B58C4 /* DatabaseSuspensionTests.swift in Sources */,
 				56D496601D81304E008276D7 /* FoundationNSUUIDTests.swift in Sources */,
 				567F45A81F888B2600030B59 /* TruncateOptimizationTests.swift in Sources */,
 				563B06C32185D29F00B38F35 /* ValueObservationExtentTests.swift in Sources */,
@@ -3633,7 +3633,7 @@
 				AAA4DD4D230F262000C74B15 /* DatabasePoolReadOnlyTests.swift in Sources */,
 				AAA4DD4E230F262000C74B15 /* AssociationHasOneThroughDecodableRecordTests.swift in Sources */,
 				AAA4DD4F230F262000C74B15 /* TruncateOptimizationTests.swift in Sources */,
-				5682D723239582AA004B58C4 /* DatabaseLockPreventionTests.swift in Sources */,
+				5682D723239582AA004B58C4 /* DatabaseSuspensionTests.swift in Sources */,
 				AAA4DD50230F262000C74B15 /* FoundationNSURLTests.swift in Sources */,
 				AAA4DD51230F262000C74B15 /* FoundationURLTests.swift in Sources */,
 				AAA4DD52230F262000C74B15 /* ValueObservationExtentTests.swift in Sources */,

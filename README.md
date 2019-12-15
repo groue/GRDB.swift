@@ -289,6 +289,7 @@ Documentation
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
 - [Backup](#backup): Dump the content of a database to another.
 - [Interrupt a Database](#interrupt-a-database): Abort any pending database operation.
+- [App Group Containers]
 
 #### Good to Know
 
@@ -6674,26 +6675,32 @@ For example:
 
 ```swift
 try dbQueue.write { db in
-    // interrupted:
     try Player(...).insert(db)     // throws SQLITE_INTERRUPT
-    // not executed:
-    try Player(...).insert(db)
+    try Player(...).insert(db)     // not executed
 }                                  // throws SQLITE_INTERRUPT
 
 try dbQueue.write { db in
     do {
-        // interrupted:
         try Player(...).insert(db) // throws SQLITE_INTERRUPT
     } catch { }
-    try Player(...).insert(db)     // throws SQLITE_ABORT
 }                                  // throws SQLITE_ABORT
 
 try dbQueue.write { db in
     do {
-        // interrupted:
         try Player(...).insert(db) // throws SQLITE_INTERRUPT
     } catch { }
+    try Player(...).insert(db)     // throws SQLITE_ABORT
 }                                  // throws SQLITE_ABORT
+```
+
+You can catch both `SQLITE_INTERRUPT` and `SQLITE_ABORT` errors with the `DatabaseError.isInterruptionError` property:
+
+```swift
+do {
+    try dbPool.write { db in ... }
+} catch let error as DatabaseError where error.isInterruptionError {
+    // Oops, the database was interrupted.
+}
 ```
 
 For more information, see [Interrupt A Long-Running Query](https://www.sqlite.org/c3ref/interrupt.html).
@@ -7140,7 +7147,7 @@ You can catch those errors and wait for [UIApplicationDelegate.applicationProtec
 - [DatabaseWriter and DatabaseReader Protocols](#databasewriter-and-databasereader-protocols)
 - [Asynchronous APIs](#asynchronous-apis)
 - [Unsafe Concurrency APIs](#unsafe-concurrency-apis)
-- [Dealing with External Connections](#dealing-with-external-connections)
+- [App Group Containers]
 
 
 ### Guarantees and Rules
@@ -7181,7 +7188,7 @@ Those guarantees hold as long as you follow three rules:
     
     See the [Demo Application] for a sample app that sets up a single database queue that is available throughout the application.
     
-    If there are several instances of database queues or pools that write in the same database, a multi-threaded application will eventually face "database is locked" errors. See [Dealing with External Connections](#dealing-with-external-connections).
+    See [App Group Containers] for the specific setup required by applications that share their database files.
     
     ```swift
     // SAFE CONCURRENCY
@@ -7683,24 +7690,6 @@ try writer.asyncWriteWithoutTransaction { db in
     There is a single valid use case for reentrant methods, which is when you are unable to control database access scheduling.
 
 
-### Dealing with External Connections
-
-The first rule of GRDB is:
-
-- **[Rule 1](#guarantees-and-rules)**: Have a unique instance of DatabaseQueue or DatabasePool connected to any database file.
-
-This means that dealing with external connections is not a focus of GRDB. [Guarantees](#guarantees-and-rules) of GRDB may or may not hold as soon as some external connection modifies a database.
-
-If you absolutely need multiple connections, then:
-
-- Reconsider your position
-- Read about [isolation in SQLite](https://www.sqlite.org/isolation.html)
-- Learn about [locks and transactions](https://www.sqlite.org/lang_transaction.html)
-- Become a master of the [WAL mode](https://www.sqlite.org/wal.html)
-- Prepare to setup a [busy handler](https://www.sqlite.org/c3ref/busy_handler.html) with [Configuration.busyMode](http://groue.github.io/GRDB.swift/docs/4.6/Structs/Configuration.html)
-- [Ask questions](https://github.com/groue/GRDB.swift/issues)
-
-
 ## Performance
 
 GRDB is a reasonably fast library, and can deliver quite efficient SQLite access. See [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance) for an overview.
@@ -8186,6 +8175,10 @@ This chapter has [moved](Documentation/FullTextSearch.md).
 
 This chapter has [moved](Documentation/FullTextSearch.md#enabling-fts5-support).
 
+#### Dealing with External Connections
+
+This chapter has been superseded by [App Group Containers].
+
 [Associations]: Documentation/AssociationsBasics.md
 [Beyond FetchableRecord]: #beyond-fetchablerecord
 [Codable Records]: #codable-records
@@ -8215,3 +8208,4 @@ This chapter has [moved](Documentation/FullTextSearch.md#enabling-fts5-support).
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
 [Combine]: https://developer.apple.com/documentation/combine
 [Demo Application]: Documentation/DemoApps/GRDBDemoiOS/README.md
+[App Group Containers]: Documentation/AppGroupContainers.md

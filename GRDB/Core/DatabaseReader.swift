@@ -82,27 +82,10 @@ public protocol DatabaseReader: AnyObject {
     ///         try Player(...).insert(db)     // success
     ///         try db.commit()                // throws SQLITE_ERROR "cannot commit - no transaction is active"
     ///     }
+    ///
+    /// Both SQLITE_ABORT and SQLITE_INTERRUPT errors can be checked with the
+    /// `DatabaseError.isInterruptionError` property.
     func interrupt()
-    
-    // MARK: - Lock Prevention
-    
-    /// Starts preventing database locks.
-    ///
-    /// This method can be called from any thread.
-    ///
-    /// During lock prevention, any lock is released as soon as possible, and
-    /// lock acquisition is prevented.
-    ///
-    /// All database accesses may throw a DatabaseError of code
-    /// `SQLITE_INTERRUPT`, or `SQLITE_ABORT`, except reads in WAL mode.
-    ///
-    /// Lock prevention ends with stopPreventingLock().
-    func startPreventingLock()
-    
-    /// Ends lock prevention. See startPreventingLock().
-    ///
-    /// This method can be called from any thread.
-    func stopPreventingLock()
     
     // MARK: - Read From Database
     
@@ -333,18 +316,6 @@ public final class AnyDatabaseReader: DatabaseReader {
     /// :nodoc:
     public func interrupt() {
         base.interrupt()
-    }
-    
-    // MARK: - Lock Prevention
-    
-    /// :nodoc:
-    public func startPreventingLock() {
-        base.startPreventingLock()
-    }
-    
-    /// :nodoc:
-    public func stopPreventingLock() {
-        base.stopPreventingLock()
     }
     
     // MARK: - Reading from Database

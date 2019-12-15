@@ -65,6 +65,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [#659](https://github.com/groue/GRDB.swift/pull/659): Database interruption
 - [#660](https://github.com/groue/GRDB.swift/pull/660): Database Lock Prevention
 - [#662](https://github.com/groue/GRDB.swift/pull/662): Upgrade custom SQLite builds to version 3.30.1 (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib))
+- [#668](https://github.com/groue/GRDB.swift/pull/668): Database Suspension
 
 ### Breaking Changes
 
@@ -80,7 +81,39 @@ let dbQueue = try DatabaseQueue(path: ..., configuration: configuration)
 
 ### Documentation Diff
 
-A new [Interrupt a Database](README.md#interrupt-a-database) chapter documents the new `interrupt()` method.
+The new [Interrupt a Database](README.md#interrupt-a-database) chapter documents the new `interrupt()` method.
+
+The new [Sharing a Datatase in an App Group Container](Documentation/AppGroupContainers.md) guide explains how to setup GRDB when you share a database in an iOS App Group container.
+
+
+### API Diff
+
+```diff
+ struct Configuration {
++    var observesSuspensionNotifications: Bool // Experimental
++    var acceptsDoubleQuotedStringLiterals: Bool
+ }
+
+ class Database {
++    static let suspendNotification: Notification.Name // Experimental
++    static let resumeNotification: Notification.Name  // Experimental
+ }
+
+ extension DatabaseError {
++    var isInterruptionError: Bool { get }
+ }
+ 
+ protocol DatabaseReader {
++    func interrupt()
+ }
+ 
+ extension SQLSpecificExpressible {
++    #if GRDBCUSTOMSQLITE
++    var ascNullsLast: SQLOrderingTerm { get }
++    var descNullsFirst: SQLOrderingTerm { get }
++    #endif
+ }
+```
 
 
 ## 4.6.2

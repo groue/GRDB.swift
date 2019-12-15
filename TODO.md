@@ -19,6 +19,7 @@
 
 ## Features
 
+- [ ] Measure the duration of transactions 
 - [ ] Make deleteAll and updateAll work even for complex queries, with `DELETE FROM xxx WHERE rowid IN (SELECT rowid ...)`
 - [ ] Improve SQL generation for `Player.....fetchCount(db)`, especially with distinct. Try to avoid `SELECT COUNT(*) FROM (SELECT DISTINCT player.* ...)`
 - [ ] Alternative technique for custom SQLite builds: see the Podfile at https://github.com/CocoaPods/CocoaPods/issues/9104, and https://github.com/clemensg/sqlite3pod
@@ -98,3 +99,4 @@
 - File protection: https://github.com/ccgus/fmdb/issues/262
 - File protection: https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
 - [iOS apps are terminated every time they enter the background if they share an encrypted database with an app extension](https://github.com/sqlcipher/sqlcipher/issues/255)
+- [Cross-Process notifications with CFNotificationCenterGetDarwinNotifyCenter](https://www.avanderlee.com/swift/core-data-app-extension-data-sharing/)
