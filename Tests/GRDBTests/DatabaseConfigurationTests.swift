@@ -176,7 +176,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
         
         let s1 = DispatchSemaphore(value: 0)
         let s2 = DispatchSemaphore(value: 0)
-        let queue = DispatchQueue.global()
+        let queue = DispatchQueue.global(priority: .default)
         let group = DispatchGroup()
         
         queue.async(group: group) {
@@ -225,7 +225,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
         
         let s1 = DispatchSemaphore(value: 0)
         let s2 = DispatchSemaphore(value: 0)
-        let queue = DispatchQueue.global()
+        let queue = DispatchQueue.global(priority: .default)
         let group = DispatchGroup()
         
         queue.async(group: group) {
@@ -274,7 +274,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
         
         let s1 = DispatchSemaphore(value: 0)
         let s2 = DispatchSemaphore(value: 0)
-        let queue = DispatchQueue.global()
+        let queue = DispatchQueue.global(priority: .default)
         let group = DispatchGroup()
         
         queue.async(group: group) {
