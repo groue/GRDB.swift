@@ -176,7 +176,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
         
         let s1 = DispatchSemaphore(value: 0)
         let s2 = DispatchSemaphore(value: 0)
-        let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
+        let queue = DispatchQueue.global()
         let group = DispatchGroup()
         
         queue.async(group: group) {
@@ -220,12 +220,12 @@ class DatabaseConfigurationTests: GRDBTestCase {
         #endif
         
         var configuration2 = dbQueue1.configuration
-        configuration2.busyMode = .timeout(0.5)
+        configuration2.busyMode = .timeout(0.1)
         let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite", configuration: configuration2)
         
         let s1 = DispatchSemaphore(value: 0)
         let s2 = DispatchSemaphore(value: 0)
-        let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
+        let queue = DispatchQueue.global()
         let group = DispatchGroup()
         
         queue.async(group: group) {
@@ -269,19 +269,19 @@ class DatabaseConfigurationTests: GRDBTestCase {
         #endif
         
         var configuration2 = dbQueue1.configuration
-        configuration2.busyMode = .timeout(2)
+        configuration2.busyMode = .timeout(1)
         let dbQueue2 = try makeDatabaseQueue(filename: "test.sqlite", configuration: configuration2)
         
         let s1 = DispatchSemaphore(value: 0)
         let s2 = DispatchSemaphore(value: 0)
-        let queue = DispatchQueue(label: "GRDB", attributes: [.concurrent])
+        let queue = DispatchQueue.global()
         let group = DispatchGroup()
         
         queue.async(group: group) {
             do {
                 try dbQueue1.inTransaction(.exclusive) { db in
                     s2.signal()
-                    queue.asyncAfter(deadline: .now() + 1) {
+                    queue.asyncAfter(deadline: .now() + 0.1) {
                         s1.signal()
                     }
                     _ = s1.wait(timeout: .distantFuture)
