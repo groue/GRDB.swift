@@ -6,11 +6,14 @@ All notable changes to this project will be documented in this file.
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
 
+<!--
 [Next Release](#next-release)
+-->
 
 
 #### 4.x Releases
 
+- `4.7.x` Releases - [4.7.0](#470)
 - `4.6.x` Releases - [4.6.0](#460) | [4.6.1](#461) | [4.6.2](#462)
 - `4.5.x` Releases - [4.5.0](#450)
 - `4.4.x` Releases - [4.4.0](#440)
@@ -57,7 +60,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 
+<!--
 ## Next Release
+-->
+
+
+## 4.7.0
+
+Released December 18, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.6.2...v4.7.0)
 
 **New**
 
@@ -69,7 +79,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ### Breaking Changes
 
-[Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) now disable by default the support for the [Double-quoted String Literals misfeature](https://sqlite.org/quirks.html#dblquote). You can restore the previous behavior if your application relies on it:
+[Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) now disable by default the support for the [Double-quoted String Literals misfeature](https://sqlite.org/quirks.html#dblquote). This is a technically a breaking change, but it fixes an SQLite bug. You can restore the previous behavior if your application relies on it:
 
 ```swift
 // Enable support for the Double-quoted String Literals misfeature
