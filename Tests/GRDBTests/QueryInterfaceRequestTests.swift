@@ -1,8 +1,8 @@
 import XCTest
 #if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
+import GRDBCustomSQLite
 #else
-    import GRDB
+import GRDB
 #endif
 
 private struct Col {
@@ -18,7 +18,7 @@ private struct Reader : TableRecord {
 private let tableRequest = Reader.all()
 
 class QueryInterfaceRequestTests: GRDBTestCase {
-
+    
     var collation: DatabaseCollation!
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
@@ -88,10 +88,10 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             }
         }
     }
-
-
+    
+    
     // MARK: - Count
-
+    
     func testFetchCount() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -135,10 +135,10 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT MAX(\"age\") FROM \"readers\" GROUP BY \"name\")")
         }
     }
-
-
+    
+    
     // MARK: - Select
-
+    
     func testSelectLiteral() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -155,7 +155,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(rows[1][1] as Int64, 1)
         }
     }
-
+    
     func testSelectLiteralWithPositionalArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -172,7 +172,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(rows[1][1] as Int64, 1)
         }
     }
-
+    
     func testSelectLiteralWithNamedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -228,7 +228,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             XCTAssertEqual(rows[1][1] as Int64, 1)
         }
     }
-
+    
     func testSelectionCustomKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -470,6 +470,56 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         }
     }
     
+    // This test passes if this method compiles
+    func testSelectAsTypeInference() {
+        _ = Reader.select(Col.name) as QueryInterfaceRequest<String>
+        _ = Reader.select([Col.name]) as QueryInterfaceRequest<String>
+        _ = Reader.select(sql: "name") as QueryInterfaceRequest<String>
+        _ = Reader.select(literal: SQLLiteral(sql: "name")) as QueryInterfaceRequest<String>
+        _ = Reader.all().select(Col.name) as QueryInterfaceRequest<String>
+        _ = Reader.all().select([Col.name]) as QueryInterfaceRequest<String>
+        _ = Reader.all().select(sql: "name") as QueryInterfaceRequest<String>
+        _ = Reader.all().select(literal: SQLLiteral(sql: "name")) as QueryInterfaceRequest<String>
+        
+        func makeRequest() -> QueryInterfaceRequest<String> {
+            return Reader.select(Col.name)
+        }
+        
+        // Those should be, without any ambiguuity, requests of Reader.
+        do {
+            let request = Reader.select(Col.name)
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.select([Col.name])
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.select(sql: "name")
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.select(literal: SQLLiteral(sql: "name"))
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.all().select(Col.name)
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.all().select([Col.name])
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.all().select(sql: "name")
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+        do {
+            let request = Reader.all().select(literal: SQLLiteral(sql: "name"))
+            _ = request as QueryInterfaceRequest<Reader>
+        }
+    }
+    
     
     // MARK: - Distinct
     
@@ -526,14 +576,14 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 .filter(sql: "name = :name", arguments: ["name": "arthur"])),
             "SELECT * FROM \"readers\" WHERE (age > 20) AND (name = 'arthur')")
     }
-
+    
     func testFilter() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(true)),
             "SELECT * FROM \"readers\" WHERE 1")
     }
-
+    
     func testMultipleFilter() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
@@ -617,7 +667,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
             sql(dbQueue, tableRequest.group(Col.name).having(min(Col.age) > 18).having(max(Col.age) < 50)),
-                "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING (MIN(\"age\") > 18) AND (MAX(\"age\") < 50)")
+            "SELECT * FROM \"readers\" GROUP BY \"name\" HAVING (MIN(\"age\") > 18) AND (MAX(\"age\") < 50)")
     }
     
     
@@ -661,6 +711,14 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(abs(Col.age))),
             "SELECT * FROM \"readers\" ORDER BY ABS(\"age\")")
+        #if GRDBCUSTOMSQLITE
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(Col.age.ascNullsLast)),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(Col.age.descNullsFirst)),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+        #endif
     }
     
     func testSortWithCollation() throws {
@@ -674,6 +732,14 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Col.name.collating(collation))),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE localized_case_insensitive")
+        #if GRDBCUSTOMSQLITE
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(Col.name.collating(.nocase).ascNullsLast)),
+            "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(Col.name.collating(.nocase).descNullsFirst)),
+            "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")
+        #endif
     }
     
     func testMultipleSort() throws {
@@ -706,6 +772,14 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(abs(Col.age)).reversed()),
             "SELECT * FROM \"readers\" ORDER BY ABS(\"age\") DESC")
+        #if GRDBCUSTOMSQLITE
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(Col.age.descNullsFirst).reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(Col.age.ascNullsLast).reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+        #endif
     }
     
     func testReverseWithCollation() throws {
@@ -719,6 +793,14 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Col.name.collating(collation)).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE localized_case_insensitive DESC")
+        #if GRDBCUSTOMSQLITE
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(Col.name.collating(.nocase).ascNullsLast).reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.order(Col.name.collating(.nocase).descNullsFirst).reversed()),
+            "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
+        #endif
     }
     
     func testMultipleReverse() throws {

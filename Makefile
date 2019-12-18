@@ -411,14 +411,14 @@ endif
 
 test_performance: Realm FMDB SQLite.swift
 	$(XCODEBUILD) \
-	  -project GRDB.xcodeproj \
+	  -project Tests/Performance/GRDBPerformance/GRDBPerformance.xcodeproj \
 	  -scheme GRDBOSXPerformanceComparisonTests \
 	  build-for-testing test-without-building
 
-Realm: Tests/Performance/Realm/build/osx/swift-11.2.1/RealmSwift.framework
+Realm: Tests/Performance/Realm/build/osx/swift-11.3/RealmSwift.framework
 
 # Makes sure the Tests/Performance/Realm submodule has been downloaded, and Realm framework has been built.
-Tests/Performance/Realm/build/osx/swift-11.2.1/RealmSwift.framework:
+Tests/Performance/Realm/build/osx/swift-11.3/RealmSwift.framework:
 	$(GIT) submodule update --init --recursive Tests/Performance/Realm
 	cd Tests/Performance/Realm && sh build.sh osx-swift
 
@@ -459,10 +459,10 @@ ifdef JAZZY
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
 	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v4.6.2 \
-	  --module-version 4.6.2 \
+	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v4.7.0 \
+	  --module-version 4.7.0 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/4.6/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/4.7/ \
 	  --output Documentation/Reference \
 	  --xcodebuild-arguments -project,GRDB.xcodeproj,-scheme,GRDBiOS
 else

@@ -26,6 +26,67 @@ public protocol DatabaseReader: AnyObject {
     /// The database configuration
     var configuration: Configuration { get }
     
+    // MARK: - Interrupting Database Operations
+    
+    /// This method causes any pending database operation to abort and return at
+    /// its earliest opportunity.
+    ///
+    /// It can be called from any thread.
+    ///
+    /// A call to `interrupt()` that occurs when there are no running SQL
+    /// statements is a no-op and has no effect on SQL statements that are
+    /// started after `interrupt()` returns.
+    ///
+    /// A database operation that is interrupted will throw a DatabaseError with
+    /// code SQLITE_INTERRUPT. If the interrupted SQL operation is an INSERT,
+    /// UPDATE, or DELETE that is inside an explicit transaction, then the
+    /// entire transaction will be rolled back automatically. If the rolled back
+    /// transaction was started by a transaction-wrapping method such as
+    /// `DatabaseWriter.write` or `Database.inTransaction`, then all database
+    /// accesses will throw a DatabaseError with code SQLITE_ABORT until the
+    /// wrapping method returns.
+    ///
+    /// For example:
+    ///
+    ///     try dbQueue.write { db in
+    ///         // interrupted:
+    ///         try Player(...).insert(db)     // throws SQLITE_INTERRUPT
+    ///         // not executed:
+    ///         try Player(...).insert(db)
+    ///     }                                  // throws SQLITE_INTERRUPT
+    ///
+    ///     try dbQueue.write { db in
+    ///         do {
+    ///             // interrupted:
+    ///             try Player(...).insert(db) // throws SQLITE_INTERRUPT
+    ///         } catch { }
+    ///         try Player(...).insert(db)     // throws SQLITE_ABORT
+    ///     }                                  // throws SQLITE_ABORT
+    ///
+    ///     try dbQueue.write { db in
+    ///         do {
+    ///             // interrupted:
+    ///             try Player(...).insert(db) // throws SQLITE_INTERRUPT
+    ///         } catch { }
+    ///     }                                  // throws SQLITE_ABORT
+    ///
+    /// When an application creates transaction without a transaction-wrapping
+    /// method, no SQLITE_ABORT error warns of aborted transactions:
+    ///
+    ///     try dbQueue.inDatabase { db in // or dbPool.writeWithoutTransaction
+    ///         try db.beginTransaction()
+    ///         do {
+    ///             // interrupted:
+    ///             try Player(...).insert(db) // throws SQLITE_INTERRUPT
+    ///         } catch { }
+    ///         try Player(...).insert(db)     // success
+    ///         try db.commit()                // throws SQLITE_ERROR "cannot commit - no transaction is active"
+    ///     }
+    ///
+    /// Both SQLITE_ABORT and SQLITE_INTERRUPT errors can be checked with the
+    /// `DatabaseError.isInterruptionError` property.
+    func interrupt()
+    
     // MARK: - Read From Database
     
     /// Synchronously executes a read-only block that takes a database
@@ -248,6 +309,13 @@ public final class AnyDatabaseReader: DatabaseReader {
     /// :nodoc:
     public var configuration: Configuration {
         return base.configuration
+    }
+    
+    // MARK: - Interrupting Database Operations
+    
+    /// :nodoc:
+    public func interrupt() {
+        base.interrupt()
     }
     
     // MARK: - Reading from Database

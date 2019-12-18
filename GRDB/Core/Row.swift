@@ -779,7 +779,7 @@ public final class RowCursor: Cursor {
         statement.reset(withArguments: arguments)
         
         // Assume cursor is created for iteration
-        statement.database.selectStatementWillExecute(statement)
+        try statement.database.selectStatementWillExecute(statement)
     }
     
     deinit {

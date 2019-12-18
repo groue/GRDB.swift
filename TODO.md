@@ -19,6 +19,9 @@
 
 ## Features
 
+- [ ] Measure the duration of transactions 
+- [ ] Make deleteAll and updateAll work even for complex queries, with `DELETE FROM xxx WHERE rowid IN (SELECT rowid ...)`
+- [ ] Improve SQL generation for `Player.....fetchCount(db)`, especially with distinct. Try to avoid `SELECT COUNT(*) FROM (SELECT DISTINCT player.* ...)`
 - [ ] Alternative technique for custom SQLite builds: see the Podfile at https://github.com/CocoaPods/CocoaPods/issues/9104, and https://github.com/clemensg/sqlite3pod
 - [ ] Attach databases. Interesting question: what happens when one attaches a non-WAL db to a databasePool?
 - [ ] SQL Generation
@@ -39,6 +42,7 @@
 
 ## Unsure if necessary
 
+- [ ] https://sqlite.org/pragma.html#pragma_index_xinfo
 - [ ] Deprecate DatabaseQueue/Pool.addFunction, collation, tokenizer: those should be done in Configuration.prepareDatabase
 - [ ] filter(rowid:), filter(rowids:)
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0075-import-test.md
@@ -74,45 +78,6 @@
     ```
     
 - [ ] new.updateChanges(from: old) vs. old.updateChanges(with: { old.a = new.a }). This is confusing.
-- [ ] Support for OR ROLLBACK, and mismatch between the Swift depth and the SQLite depth of nested transactions/savepoint:
-    
-    ```swift
-    try db.inTransaction {           // Swift depth: 1, SQLite depth: 1
-        try db.execute("COMMIT")     // Swift depth: 1, SQLite depth: 0
-        try db.execute("INSERT ...") // Should throw an error since this statement is no longer protected by a transaction
-        try db.execute("SELECT ...") // Should throw an error since this statement is no longer protected by a transaction
-        return .commit 
-    }
-    ```
-
-    ```swift
-    try db.inTransaction {
-        try db.execute("INSERT OR ROLLBACK ...") // throws 
-        return .commit // not executed because of error
-    }   // Should not ROLLBACK since transaction has already been rollbacked
-    ```
-
-    ```swift
-    try db.inTransaction {
-        do {
-            try db.execute("INSERT OR ROLLBACK ...") // throws
-        } catch {
-        }
-        try db.execute("INSERT ...") // Should throw an error since this statement is no longer protected by a transaction
-        try db.execute("SELECT ...") // Should throw an error since this statement is no longer protected by a transaction
-        return .commit
-    }
-    ```
-
-    ```swift
-    try db.inTransaction {
-        do {
-            try db.execute("INSERT OR ROLLBACK ...") // throws
-        } catch {
-        }
-        return .commit  // Should throw an error since transaction has been rollbacked and user's intent can not be applied
-    }
-    ```
 
 
 ## Reading list
@@ -134,3 +99,4 @@
 - File protection: https://github.com/ccgus/fmdb/issues/262
 - File protection: https://lists.apple.com/archives/cocoa-dev/2012/Aug/msg00527.html
 - [iOS apps are terminated every time they enter the background if they share an encrypted database with an app extension](https://github.com/sqlcipher/sqlcipher/issues/255)
+- [Cross-Process notifications with CFNotificationCenterGetDarwinNotifyCenter](https://www.avanderlee.com/swift/core-data-app-extension-data-sharing/)

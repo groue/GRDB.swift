@@ -1,0 +1,883 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 47;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		560C98231C0E23BB00BF8471 /* InsertRecordClassTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BB86121BA9886D001F9168 /* InsertRecordClassTests.swift */; };
+		560C98241C0E23BB00BF8471 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA22211BB41565009A04C5 /* PerformanceTests.swift */; };
+		56288F9C1FD430AB0091310B /* Realm.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56B8C2401CA1758F00510325 /* Realm.framework */; };
+		56288F9D1FD430AB0091310B /* RealmSwift.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56B8C2411CA1758F00510325 /* RealmSwift.framework */; };
+		56439B331F4CA1DC0066043F /* FMDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = 56BB86191BA988F2001F9168 /* FMDatabase.m */; };
+		56439B341F4CA1DC0066043F /* InsertRecordClassTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BB86121BA9886D001F9168 /* InsertRecordClassTests.swift */; };
+		56439B351F4CA1DC0066043F /* FMDatabaseAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 56BB861B1BA988F2001F9168 /* FMDatabaseAdditions.m */; };
+		56439B361F4CA1DC0066043F /* FetchRecordClassTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B2B1C41311900861EB8 /* FetchRecordClassTests.swift */; };
+		56439B371F4CA1DC0066043F /* FMResultSet.m in Sources */ = {isa = PBXBuildFile; fileRef = 56BB86221BA988F2001F9168 /* FMResultSet.m */; };
+		56439B381F4CA1DC0066043F /* FetchNamedValuesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B271C41302500861EB8 /* FetchNamedValuesTests.swift */; };
+		56439B391F4CA1DC0066043F /* InsertPositionalValuesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B231C412F7E00861EB8 /* InsertPositionalValuesTests.swift */; };
+		56439B3A1F4CA1DC0066043F /* FMDatabaseQueue.m in Sources */ = {isa = PBXBuildFile; fileRef = 56BB861F1BA988F2001F9168 /* FMDatabaseQueue.m */; };
+		56439B3B1F4CA1DC0066043F /* FMDatabasePool.m in Sources */ = {isa = PBXBuildFile; fileRef = 56BB861D1BA988F2001F9168 /* FMDatabasePool.m */; };
+		56439B3C1F4CA1DC0066043F /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA22211BB41565009A04C5 /* PerformanceTests.swift */; };
+		56439B3D1F4CA1DC0066043F /* InsertNamedValuesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B251C412FDA00861EB8 /* InsertNamedValuesTests.swift */; };
+		56439B3E1F4CA1DC0066043F /* PerformanceModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B2D1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld */; };
+		56439B3F1F4CA1DC0066043F /* FetchPositionalValuesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B291C4130AF00861EB8 /* FetchPositionalValuesTests.swift */; };
+		56439B431F4CA1DC0066043F /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56DE7B341C42B37E00861EB8 /* CoreData.framework */; };
+		56439B471F4CA1DC0066043F /* PerformanceRealmTests.realm in Resources */ = {isa = PBXBuildFile; fileRef = 563363F81C960711000BE133 /* PerformanceRealmTests.realm */; };
+		56439B481F4CA1DC0066043F /* PerformanceTests.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = 56BB86111BA9886D001F9168 /* PerformanceTests.sqlite */; };
+		56439B491F4CA1DC0066043F /* PerformanceCoreDataTests.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = 56DE7B361C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite */; };
+		56439B4B1F4CA1DC0066043F /* Realm.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 56B8C2401CA1758F00510325 /* Realm.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		56439B4C1F4CA1DC0066043F /* RealmSwift.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 56B8C2411CA1758F00510325 /* RealmSwift.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		56439B581F4CA5AE0066043F /* PerformanceTests.sqlite in Resources */ = {isa = PBXBuildFile; fileRef = 56BB86111BA9886D001F9168 /* PerformanceTests.sqlite */; };
+		56707201208A509C006AD95A /* DateParsingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567071FA208A509C006AD95A /* DateParsingTests.swift */; };
+		5679870223A37A6A0076902D /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 567986B923A378CD0076902D /* GRDB.framework */; };
+		5679870523A37A790076902D /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 567986B923A378CD0076902D /* GRDB.framework */; };
+		5679870823A37CCC0076902D /* SQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 567986F623A379F70076902D /* SQLite.framework */; };
+		5690AFD82120589A001530EA /* InsertRecordCodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690AFD72120589A001530EA /* InsertRecordCodableTests.swift */; };
+		5690AFD92120589A001530EA /* InsertRecordCodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690AFD72120589A001530EA /* InsertRecordCodableTests.swift */; };
+		5690AFDB212058CB001530EA /* FetchRecordCodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690AFDA212058CB001530EA /* FetchRecordCodableTests.swift */; };
+		5690AFDC212058CB001530EA /* FetchRecordCodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690AFDA212058CB001530EA /* FetchRecordCodableTests.swift */; };
+		56D3BE711F4EB1A00034C6D2 /* FetchRecordStructTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D3BE701F4EB1900034C6D2 /* FetchRecordStructTests.swift */; };
+		56D3BE721F4EB1A00034C6D2 /* FetchRecordStructTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D3BE701F4EB1900034C6D2 /* FetchRecordStructTests.swift */; };
+		56D507831F6D7B2E00AE1C5B /* InsertRecordStructTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D507821F6D7A4500AE1C5B /* InsertRecordStructTests.swift */; };
+		56D507841F6D7B2F00AE1C5B /* InsertRecordStructTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D507821F6D7A4500AE1C5B /* InsertRecordStructTests.swift */; };
+		56DE7B241C412F7E00861EB8 /* InsertPositionalValuesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B231C412F7E00861EB8 /* InsertPositionalValuesTests.swift */; };
+		56DE7B261C412FDA00861EB8 /* InsertNamedValuesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B251C412FDA00861EB8 /* InsertNamedValuesTests.swift */; };
+		56DE7B281C41302500861EB8 /* FetchNamedValuesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B271C41302500861EB8 /* FetchNamedValuesTests.swift */; };
+		56DE7B2A1C4130AF00861EB8 /* FetchPositionalValuesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B291C4130AF00861EB8 /* FetchPositionalValuesTests.swift */; };
+		56DE7B2C1C41311900861EB8 /* FetchRecordClassTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B2B1C41311900861EB8 /* FetchRecordClassTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		567986B823A378CD0076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 567986AD23A378CD0076902D /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = DC3773F319C8CBB3004FCF85;
+			remoteInfo = GRDBOSX;
+		};
+		567986BA23A378CD0076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 567986AD23A378CD0076902D /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56E5D7F91B4D422D00430942;
+			remoteInfo = GRDBOSXTests;
+		};
+		567986BC23A378CD0076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 567986AD23A378CD0076902D /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56553C181C3E906C00522B5C;
+			remoteInfo = GRDBOSXCrashTests;
+		};
+		567986BE23A378CD0076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 567986AD23A378CD0076902D /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56E5D7CA1B4D3FED00430942;
+			remoteInfo = GRDBiOS;
+		};
+		567986C023A378CD0076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 567986AD23A378CD0076902D /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 56E5D7D31B4D3FEE00430942;
+			remoteInfo = GRDBiOSTests;
+		};
+		567986C223A378CD0076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 567986AD23A378CD0076902D /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 565490A01D5A4798005622CB;
+			remoteInfo = GRDBWatchOS;
+		};
+		567986C423A378CD0076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 567986AD23A378CD0076902D /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AAA4DCFE230F1E0600C74B15;
+			remoteInfo = GRDBtvOS;
+		};
+		567986C623A378CD0076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 567986AD23A378CD0076902D /* GRDB.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = AAA4DDD4230F262000C74B15;
+			remoteInfo = GRDBtvOSTests;
+		};
+		567986F123A379F70076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EE247AD31C3F04ED00AE3E12;
+			remoteInfo = "SQLite iOS";
+		};
+		567986F323A379F70076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EE247ADD1C3F04ED00AE3E12;
+			remoteInfo = "SQLiteTests iOS";
+		};
+		567986F523A379F70076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EE247B3C1C3F3ED000AE3E12;
+			remoteInfo = "SQLite Mac";
+		};
+		567986F723A379F70076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EE247B451C3F3ED000AE3E12;
+			remoteInfo = "SQLiteTests Mac";
+		};
+		567986F923A379F70076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 03A65E5A1C6BB0F50062603F;
+			remoteInfo = "SQLite tvOS";
+		};
+		567986FB23A379F70076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 03A65E631C6BB0F60062603F;
+			remoteInfo = "SQLiteTests tvOS";
+		};
+		567986FD23A379F70076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = A121AC451CA35C79005A31D1;
+			remoteInfo = "SQLite watchOS";
+		};
+		567986FF23A37A590076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 567986AD23A378CD0076902D /* GRDB.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = DC3773F219C8CBB3004FCF85;
+			remoteInfo = GRDBOSX;
+		};
+		5679870323A37A710076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 567986AD23A378CD0076902D /* GRDB.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = DC3773F219C8CBB3004FCF85;
+			remoteInfo = GRDBOSX;
+		};
+		5679870623A37CC40076902D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = EE247B3B1C3F3ED000AE3E12;
+			remoteInfo = "SQLite Mac";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		56439B4A1F4CA1DC0066043F /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				56439B4B1F4CA1DC0066043F /* Realm.framework in CopyFiles */,
+				56439B4C1F4CA1DC0066043F /* RealmSwift.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		560C981A1C0E22D300BF8471 /* GRDBOSXPerformanceTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBOSXPerformanceTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		563363F81C960711000BE133 /* PerformanceRealmTests.realm */ = {isa = PBXFileReference; lastKnownFileType = file; path = PerformanceRealmTests.realm; sourceTree = "<group>"; };
+		56439B501F4CA1DC0066043F /* GRDBOSXPerformanceComparisonTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBOSXPerformanceComparisonTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		567071FA208A509C006AD95A /* DateParsingTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DateParsingTests.swift; sourceTree = "<group>"; };
+		567986AD23A378CD0076902D /* GRDB.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDB.xcodeproj; path = ../../../GRDB.xcodeproj; sourceTree = "<group>"; };
+		5690AFD72120589A001530EA /* InsertRecordCodableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsertRecordCodableTests.swift; sourceTree = "<group>"; };
+		5690AFDA212058CB001530EA /* FetchRecordCodableTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchRecordCodableTests.swift; sourceTree = "<group>"; };
+		56B8C2401CA1758F00510325 /* Realm.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Realm.framework; path = "../Realm/build/osx/swift-11.3/Realm.framework"; sourceTree = SOURCE_ROOT; };
+		56B8C2411CA1758F00510325 /* RealmSwift.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = RealmSwift.framework; path = "../Realm/build/osx/swift-11.3/RealmSwift.framework"; sourceTree = SOURCE_ROOT; };
+		56BB86111BA9886D001F9168 /* PerformanceTests.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = PerformanceTests.sqlite; sourceTree = "<group>"; };
+		56BB86121BA9886D001F9168 /* InsertRecordClassTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsertRecordClassTests.swift; sourceTree = "<group>"; };
+		56BB86181BA988F2001F9168 /* FMDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabase.h; sourceTree = "<group>"; };
+		56BB86191BA988F2001F9168 /* FMDatabase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMDatabase.m; sourceTree = "<group>"; };
+		56BB861A1BA988F2001F9168 /* FMDatabaseAdditions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabaseAdditions.h; sourceTree = "<group>"; };
+		56BB861B1BA988F2001F9168 /* FMDatabaseAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMDatabaseAdditions.m; sourceTree = "<group>"; };
+		56BB861C1BA988F2001F9168 /* FMDatabasePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabasePool.h; sourceTree = "<group>"; };
+		56BB861D1BA988F2001F9168 /* FMDatabasePool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMDatabasePool.m; sourceTree = "<group>"; };
+		56BB861E1BA988F2001F9168 /* FMDatabaseQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabaseQueue.h; sourceTree = "<group>"; };
+		56BB861F1BA988F2001F9168 /* FMDatabaseQueue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMDatabaseQueue.m; sourceTree = "<group>"; };
+		56BB86201BA988F2001F9168 /* FMDB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDB.h; sourceTree = "<group>"; };
+		56BB86211BA988F2001F9168 /* FMResultSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMResultSet.h; sourceTree = "<group>"; };
+		56BB86221BA988F2001F9168 /* FMResultSet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMResultSet.m; sourceTree = "<group>"; };
+		56BB862D1BA98933001F9168 /* GRDBPerformanceComparisonTests-Bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GRDBPerformanceComparisonTests-Bridging.h"; sourceTree = "<group>"; };
+		56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLite.xcodeproj; path = ../SQLite.swift/SQLite.xcodeproj; sourceTree = SOURCE_ROOT; };
+		56CA22211BB41565009A04C5 /* PerformanceTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
+		56D3BE701F4EB1900034C6D2 /* FetchRecordStructTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchRecordStructTests.swift; sourceTree = "<group>"; };
+		56D507821F6D7A4500AE1C5B /* InsertRecordStructTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsertRecordStructTests.swift; sourceTree = "<group>"; };
+		56DE7B231C412F7E00861EB8 /* InsertPositionalValuesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsertPositionalValuesTests.swift; sourceTree = "<group>"; };
+		56DE7B251C412FDA00861EB8 /* InsertNamedValuesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsertNamedValuesTests.swift; sourceTree = "<group>"; };
+		56DE7B271C41302500861EB8 /* FetchNamedValuesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchNamedValuesTests.swift; sourceTree = "<group>"; };
+		56DE7B291C4130AF00861EB8 /* FetchPositionalValuesTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchPositionalValuesTests.swift; sourceTree = "<group>"; };
+		56DE7B2B1C41311900861EB8 /* FetchRecordClassTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchRecordClassTests.swift; sourceTree = "<group>"; };
+		56DE7B2E1C42B23B00861EB8 /* PerformanceModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = PerformanceModel.xcdatamodel; sourceTree = "<group>"; };
+		56DE7B341C42B37E00861EB8 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		56DE7B361C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite */ = {isa = PBXFileReference; lastKnownFileType = file; path = PerformanceCoreDataTests.sqlite; sourceTree = "<group>"; };
+		DC37740419C8CBB3004FCF85 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		560C98111C0E22D300BF8471 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5679870223A37A6A0076902D /* GRDB.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		56439B401F4CA1DC0066043F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5679870823A37CCC0076902D /* SQLite.framework in Frameworks */,
+				5679870523A37A790076902D /* GRDB.framework in Frameworks */,
+				56288F9C1FD430AB0091310B /* Realm.framework in Frameworks */,
+				56288F9D1FD430AB0091310B /* RealmSwift.framework in Frameworks */,
+				56439B431F4CA1DC0066043F /* CoreData.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		567986AE23A378CD0076902D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				567986B923A378CD0076902D /* GRDB.framework */,
+				567986BB23A378CD0076902D /* GRDBOSXTests.xctest */,
+				567986BD23A378CD0076902D /* GRDBOSXCrashTests.xctest */,
+				567986BF23A378CD0076902D /* GRDB.framework */,
+				567986C123A378CD0076902D /* GRDBiOSTests.xctest */,
+				567986C323A378CD0076902D /* GRDB.framework */,
+				567986C523A378CD0076902D /* GRDB.framework */,
+				567986C723A378CD0076902D /* GRDBtvOSTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		567986E023A379F60076902D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				567986F223A379F70076902D /* SQLite.framework */,
+				567986F423A379F70076902D /* SQLiteTests iOS.xctest */,
+				567986F623A379F70076902D /* SQLite.framework */,
+				567986F823A379F70076902D /* SQLiteTests Mac.xctest */,
+				567986FA23A379F70076902D /* SQLite.framework */,
+				567986FC23A379F70076902D /* SQLiteTests tvOS.xctest */,
+				567986FE23A379F70076902D /* SQLite.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		5679870123A37A6A0076902D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		56BB86101BA9886D001F9168 /* Performance */ = {
+			isa = PBXGroup;
+			children = (
+				56BB862D1BA98933001F9168 /* GRDBPerformanceComparisonTests-Bridging.h */,
+				56BB86111BA9886D001F9168 /* PerformanceTests.sqlite */,
+				56DE7B361C42BBBB00861EB8 /* PerformanceCoreDataTests.sqlite */,
+				56DE7B2D1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld */,
+				563363F81C960711000BE133 /* PerformanceRealmTests.realm */,
+				567071FA208A509C006AD95A /* DateParsingTests.swift */,
+				56DE7B271C41302500861EB8 /* FetchNamedValuesTests.swift */,
+				56DE7B291C4130AF00861EB8 /* FetchPositionalValuesTests.swift */,
+				56DE7B2B1C41311900861EB8 /* FetchRecordClassTests.swift */,
+				5690AFDA212058CB001530EA /* FetchRecordCodableTests.swift */,
+				56D3BE701F4EB1900034C6D2 /* FetchRecordStructTests.swift */,
+				56DE7B251C412FDA00861EB8 /* InsertNamedValuesTests.swift */,
+				56DE7B231C412F7E00861EB8 /* InsertPositionalValuesTests.swift */,
+				56BB86121BA9886D001F9168 /* InsertRecordClassTests.swift */,
+				5690AFD72120589A001530EA /* InsertRecordCodableTests.swift */,
+				56D507821F6D7A4500AE1C5B /* InsertRecordStructTests.swift */,
+				56CA22211BB41565009A04C5 /* PerformanceTests.swift */,
+				56B8C2401CA1758F00510325 /* Realm.framework */,
+				56B8C2411CA1758F00510325 /* RealmSwift.framework */,
+				56DE7B341C42B37E00861EB8 /* CoreData.framework */,
+				56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */,
+				56BB86171BA988F2001F9168 /* fmdb */,
+			);
+			name = Performance;
+			sourceTree = SOURCE_ROOT;
+		};
+		56BB86171BA988F2001F9168 /* fmdb */ = {
+			isa = PBXGroup;
+			children = (
+				56BB86181BA988F2001F9168 /* FMDatabase.h */,
+				56BB86191BA988F2001F9168 /* FMDatabase.m */,
+				56BB861A1BA988F2001F9168 /* FMDatabaseAdditions.h */,
+				56BB861B1BA988F2001F9168 /* FMDatabaseAdditions.m */,
+				56BB861C1BA988F2001F9168 /* FMDatabasePool.h */,
+				56BB861D1BA988F2001F9168 /* FMDatabasePool.m */,
+				56BB861E1BA988F2001F9168 /* FMDatabaseQueue.h */,
+				56BB861F1BA988F2001F9168 /* FMDatabaseQueue.m */,
+				56BB86201BA988F2001F9168 /* FMDB.h */,
+				56BB86211BA988F2001F9168 /* FMResultSet.h */,
+				56BB86221BA988F2001F9168 /* FMResultSet.m */,
+			);
+			name = fmdb;
+			path = ../fmdb/src/fmdb;
+			sourceTree = SOURCE_ROOT;
+		};
+		DC3773E919C8CBB3004FCF85 = {
+			isa = PBXGroup;
+			children = (
+				567986AD23A378CD0076902D /* GRDB.xcodeproj */,
+				56BB86101BA9886D001F9168 /* Performance */,
+				DC37740319C8CBB3004FCF85 /* Supporting Files */,
+				DC3773F419C8CBB3004FCF85 /* Products */,
+				5679870123A37A6A0076902D /* Frameworks */,
+			);
+			indentWidth = 4;
+			sourceTree = "<group>";
+			tabWidth = 4;
+			usesTabs = 0;
+		};
+		DC3773F419C8CBB3004FCF85 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				560C981A1C0E22D300BF8471 /* GRDBOSXPerformanceTests.xctest */,
+				56439B501F4CA1DC0066043F /* GRDBOSXPerformanceComparisonTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DC37740319C8CBB3004FCF85 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				DC37740419C8CBB3004FCF85 /* Info.plist */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		560C97CF1C0E22D300BF8471 /* GRDBOSXPerformanceTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 560C98171C0E22D300BF8471 /* Build configuration list for PBXNativeTarget "GRDBOSXPerformanceTests" */;
+			buildPhases = (
+				560C97D41C0E22D300BF8471 /* Sources */,
+				560C98111C0E22D300BF8471 /* Frameworks */,
+				560C98151C0E22D300BF8471 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5679870023A37A590076902D /* PBXTargetDependency */,
+			);
+			name = GRDBOSXPerformanceTests;
+			productName = GRDBOSXTests;
+			productReference = 560C981A1C0E22D300BF8471 /* GRDBOSXPerformanceTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		56439B2D1F4CA1DC0066043F /* GRDBOSXPerformanceComparisonTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 56439B4D1F4CA1DC0066043F /* Build configuration list for PBXNativeTarget "GRDBOSXPerformanceComparisonTests" */;
+			buildPhases = (
+				56439B321F4CA1DC0066043F /* Sources */,
+				56439B401F4CA1DC0066043F /* Frameworks */,
+				56439B461F4CA1DC0066043F /* Resources */,
+				56439B4A1F4CA1DC0066043F /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5679870723A37CC40076902D /* PBXTargetDependency */,
+				5679870423A37A710076902D /* PBXTargetDependency */,
+			);
+			name = GRDBOSXPerformanceComparisonTests;
+			productName = GRDBOSXTests;
+			productReference = 56439B501F4CA1DC0066043F /* GRDBOSXPerformanceComparisonTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DC3773EA19C8CBB3004FCF85 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 0730;
+				LastUpgradeCheck = 1020;
+				ORGANIZATIONNAME = "Gwendal Roué";
+			};
+			buildConfigurationList = DC3773ED19C8CBB3004FCF85 /* Build configuration list for PBXProject "GRDBPerformance" */;
+			compatibilityVersion = "Xcode 6.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = DC3773E919C8CBB3004FCF85;
+			productRefGroup = DC3773F419C8CBB3004FCF85 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 567986AE23A378CD0076902D /* Products */;
+					ProjectRef = 567986AD23A378CD0076902D /* GRDB.xcodeproj */;
+				},
+				{
+					ProductGroup = 567986E023A379F60076902D /* Products */;
+					ProjectRef = 56CA21FE1BB414FE009A04C5 /* SQLite.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				560C97CF1C0E22D300BF8471 /* GRDBOSXPerformanceTests */,
+				56439B2D1F4CA1DC0066043F /* GRDBOSXPerformanceComparisonTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		567986B923A378CD0076902D /* GRDB.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDB.framework;
+			remoteRef = 567986B823A378CD0076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		567986BB23A378CD0076902D /* GRDBOSXTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBOSXTests.xctest;
+			remoteRef = 567986BA23A378CD0076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		567986BD23A378CD0076902D /* GRDBOSXCrashTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBOSXCrashTests.xctest;
+			remoteRef = 567986BC23A378CD0076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		567986BF23A378CD0076902D /* GRDB.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDB.framework;
+			remoteRef = 567986BE23A378CD0076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		567986C123A378CD0076902D /* GRDBiOSTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBiOSTests.xctest;
+			remoteRef = 567986C023A378CD0076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		567986C323A378CD0076902D /* GRDB.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDB.framework;
+			remoteRef = 567986C223A378CD0076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		567986C523A378CD0076902D /* GRDB.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GRDB.framework;
+			remoteRef = 567986C423A378CD0076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		567986C723A378CD0076902D /* GRDBtvOSTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GRDBtvOSTests.xctest;
+			remoteRef = 567986C623A378CD0076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		567986F223A379F70076902D /* SQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLite.framework;
+			remoteRef = 567986F123A379F70076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		567986F423A379F70076902D /* SQLiteTests iOS.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "SQLiteTests iOS.xctest";
+			remoteRef = 567986F323A379F70076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		567986F623A379F70076902D /* SQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLite.framework;
+			remoteRef = 567986F523A379F70076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		567986F823A379F70076902D /* SQLiteTests Mac.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "SQLiteTests Mac.xctest";
+			remoteRef = 567986F723A379F70076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		567986FA23A379F70076902D /* SQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLite.framework;
+			remoteRef = 567986F923A379F70076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		567986FC23A379F70076902D /* SQLiteTests tvOS.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "SQLiteTests tvOS.xctest";
+			remoteRef = 567986FB23A379F70076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		567986FE23A379F70076902D /* SQLite.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = SQLite.framework;
+			remoteRef = 567986FD23A379F70076902D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		560C98151C0E22D300BF8471 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56439B581F4CA5AE0066043F /* PerformanceTests.sqlite in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		56439B461F4CA1DC0066043F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56439B471F4CA1DC0066043F /* PerformanceRealmTests.realm in Resources */,
+				56439B481F4CA1DC0066043F /* PerformanceTests.sqlite in Resources */,
+				56439B491F4CA1DC0066043F /* PerformanceCoreDataTests.sqlite in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		560C97D41C0E22D300BF8471 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56D3BE711F4EB1A00034C6D2 /* FetchRecordStructTests.swift in Sources */,
+				560C98231C0E23BB00BF8471 /* InsertRecordClassTests.swift in Sources */,
+				56707201208A509C006AD95A /* DateParsingTests.swift in Sources */,
+				56DE7B2C1C41311900861EB8 /* FetchRecordClassTests.swift in Sources */,
+				56DE7B281C41302500861EB8 /* FetchNamedValuesTests.swift in Sources */,
+				5690AFD82120589A001530EA /* InsertRecordCodableTests.swift in Sources */,
+				5690AFDB212058CB001530EA /* FetchRecordCodableTests.swift in Sources */,
+				56D507831F6D7B2E00AE1C5B /* InsertRecordStructTests.swift in Sources */,
+				56DE7B241C412F7E00861EB8 /* InsertPositionalValuesTests.swift in Sources */,
+				560C98241C0E23BB00BF8471 /* PerformanceTests.swift in Sources */,
+				56DE7B261C412FDA00861EB8 /* InsertNamedValuesTests.swift in Sources */,
+				56DE7B2A1C4130AF00861EB8 /* FetchPositionalValuesTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		56439B321F4CA1DC0066043F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56439B331F4CA1DC0066043F /* FMDatabase.m in Sources */,
+				56439B341F4CA1DC0066043F /* InsertRecordClassTests.swift in Sources */,
+				56439B351F4CA1DC0066043F /* FMDatabaseAdditions.m in Sources */,
+				56439B361F4CA1DC0066043F /* FetchRecordClassTests.swift in Sources */,
+				56439B371F4CA1DC0066043F /* FMResultSet.m in Sources */,
+				56439B381F4CA1DC0066043F /* FetchNamedValuesTests.swift in Sources */,
+				56439B391F4CA1DC0066043F /* InsertPositionalValuesTests.swift in Sources */,
+				56D507841F6D7B2F00AE1C5B /* InsertRecordStructTests.swift in Sources */,
+				56439B3A1F4CA1DC0066043F /* FMDatabaseQueue.m in Sources */,
+				56439B3B1F4CA1DC0066043F /* FMDatabasePool.m in Sources */,
+				5690AFD92120589A001530EA /* InsertRecordCodableTests.swift in Sources */,
+				56439B3C1F4CA1DC0066043F /* PerformanceTests.swift in Sources */,
+				56D3BE721F4EB1A00034C6D2 /* FetchRecordStructTests.swift in Sources */,
+				56439B3D1F4CA1DC0066043F /* InsertNamedValuesTests.swift in Sources */,
+				56439B3E1F4CA1DC0066043F /* PerformanceModel.xcdatamodeld in Sources */,
+				5690AFDC212058CB001530EA /* FetchRecordCodableTests.swift in Sources */,
+				56439B3F1F4CA1DC0066043F /* FetchPositionalValuesTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5679870023A37A590076902D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GRDBOSX;
+			targetProxy = 567986FF23A37A590076902D /* PBXContainerItemProxy */;
+		};
+		5679870423A37A710076902D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GRDBOSX;
+			targetProxy = 5679870323A37A710076902D /* PBXContainerItemProxy */;
+		};
+		5679870723A37CC40076902D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "SQLite Mac";
+			targetProxy = 5679870623A37CC40076902D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		560C98181C0E22D300BF8471 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		560C98191C0E22D300BF8471 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				FRAMEWORK_SEARCH_PATHS = "";
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+			};
+			name = Release;
+		};
+		56439B4E1F4CA1DC0066043F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/../Realm/build/osx/swift-11.3",
+				);
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D GRDB_COMPARE";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "GRDBPerformanceComparisonTests-Bridging.h";
+			};
+			name = Debug;
+		};
+		56439B4F1F4CA1DC0066043F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/../Realm/build/osx/swift-11.3",
+				);
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D GRDB_COMPARE";
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "GRDBPerformanceComparisonTests-Bridging.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+			};
+			name = Release;
+		};
+		DC37740719C8CBB3004FCF85 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 4.2;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		DC37740819C8CBB3004FCF85 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_VERSION = 4.2;
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		560C98171C0E22D300BF8471 /* Build configuration list for PBXNativeTarget "GRDBOSXPerformanceTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				560C98181C0E22D300BF8471 /* Debug */,
+				560C98191C0E22D300BF8471 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		56439B4D1F4CA1DC0066043F /* Build configuration list for PBXNativeTarget "GRDBOSXPerformanceComparisonTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56439B4E1F4CA1DC0066043F /* Debug */,
+				56439B4F1F4CA1DC0066043F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DC3773ED19C8CBB3004FCF85 /* Build configuration list for PBXProject "GRDBPerformance" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DC37740719C8CBB3004FCF85 /* Debug */,
+				DC37740819C8CBB3004FCF85 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		56DE7B2D1C42B23B00861EB8 /* PerformanceModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				56DE7B2E1C42B23B00861EB8 /* PerformanceModel.xcdatamodel */,
+			);
+			currentVersion = 56DE7B2E1C42B23B00861EB8 /* PerformanceModel.xcdatamodel */;
+			path = PerformanceModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
+	};
+	rootObject = DC3773EA19C8CBB3004FCF85 /* Project object */;
+}

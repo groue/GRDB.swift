@@ -258,6 +258,14 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, Reader.order(abs(Col.age))),
             "SELECT * FROM \"readers\" ORDER BY ABS(\"age\")")
+        #if GRDBCUSTOMSQLITE
+        XCTAssertEqual(
+            sql(dbQueue, Reader.order(Col.age.ascNullsLast)),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+        XCTAssertEqual(
+            sql(dbQueue, Reader.order(Col.age.descNullsFirst)),
+            "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+        #endif
     }
     
     func testMultipleSort() throws {

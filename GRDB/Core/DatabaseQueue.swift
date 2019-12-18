@@ -41,6 +41,8 @@ public final class DatabaseQueue: DatabaseWriter {
             configuration: configuration,
             schemaCache: SimpleDatabaseSchemaCache(),
             defaultLabel: "GRDB.DatabaseQueue")
+        
+        setupSuspension()
     }
     
     /// Opens an in-memory SQLite database.
@@ -59,7 +61,6 @@ public final class DatabaseQueue: DatabaseWriter {
             defaultLabel: "GRDB.DatabaseQueue")
     }
     
-    #if os(iOS)
     deinit {
         // Undo job done in setupMemoryManagement()
         //
@@ -67,7 +68,6 @@ public final class DatabaseQueue: DatabaseWriter {
         // Explicit unregistration is required before iOS 9 and OS X 10.11.
         NotificationCenter.default.removeObserver(self)
     }
-    #endif
 }
 
 extension DatabaseQueue {
@@ -148,6 +148,48 @@ extension DatabaseQueue {
 #endif
 
 extension DatabaseQueue {
+    
+    // MARK: - Interrupting Database Operations
+    
+    public func interrupt() {
+        writer.interrupt()
+    }
+    
+    // MARK: - Database Suspension
+    
+    func suspend() {
+        writer.suspend()
+    }
+    
+    func resume() {
+        writer.resume()
+    }
+    
+    private func setupSuspension() {
+        if configuration.observesSuspensionNotifications {
+            let center = NotificationCenter.default
+            center.addObserver(
+                self,
+                selector: #selector(DatabaseQueue.suspend(_:)),
+                name: Database.suspendNotification,
+                object: nil)
+            center.addObserver(
+                self,
+                selector: #selector(DatabaseQueue.resume(_:)),
+                name: Database.resumeNotification,
+                object: nil)
+        }
+    }
+    
+    @objc
+    private func suspend(_ notification: Notification) {
+        suspend()
+    }
+    
+    @objc
+    private func resume(_ notification: Notification) {
+        resume()
+    }
     
     // MARK: - Reading from Database
     

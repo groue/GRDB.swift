@@ -13,6 +13,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 4.x Releases
 
+- `4.7.x` Releases - [4.7.0](#470)
 - `4.6.x` Releases - [4.6.0](#460) | [4.6.1](#461) | [4.6.2](#462)
 - `4.5.x` Releases - [4.5.0](#450)
 - `4.4.x` Releases - [4.4.0](#440)
@@ -62,6 +63,67 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 <!--
 ## Next Release
 -->
+
+
+## 4.7.0
+
+Released December 18, 2019 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.6.2...v4.7.0)
+
+**New**
+
+- [#656](https://github.com/groue/GRDB.swift/pull/656): Type inference of selected columns
+- [#659](https://github.com/groue/GRDB.swift/pull/659): Database interruption
+- [#660](https://github.com/groue/GRDB.swift/pull/660): Database Lock Prevention
+- [#662](https://github.com/groue/GRDB.swift/pull/662): Upgrade custom SQLite builds to version 3.30.1 (thanks to [@swiftlyfalling](https://github.com/swiftlyfalling/SQLiteLib))
+- [#668](https://github.com/groue/GRDB.swift/pull/668): Database Suspension
+
+### Breaking Changes
+
+[Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) now disable by default the support for the [Double-quoted String Literals misfeature](https://sqlite.org/quirks.html#dblquote). This is a technically a breaking change, but it fixes an SQLite bug. You can restore the previous behavior if your application relies on it:
+
+```swift
+// Enable support for the Double-quoted String Literals misfeature
+var configuration = Configuration()
+configuration.acceptsDoubleQuotedStringLiterals = true
+let dbQueue = try DatabaseQueue(path: ..., configuration: configuration)
+```
+
+
+### Documentation Diff
+
+The new [Interrupt a Database](README.md#interrupt-a-database) chapter documents the new `interrupt()` method.
+
+The new [Sharing a Datatase in an App Group Container](Documentation/AppGroupContainers.md) guide explains how to setup GRDB when you share a database in an iOS App Group container.
+
+
+### API Diff
+
+```diff
+ struct Configuration {
++    var observesSuspensionNotifications: Bool // Experimental
++    var acceptsDoubleQuotedStringLiterals: Bool
+ }
+
+ class Database {
++    static let suspendNotification: Notification.Name // Experimental
++    static let resumeNotification: Notification.Name  // Experimental
+ }
+
+ extension DatabaseError {
++    var isInterruptionError: Bool { get }
+ }
+ 
+ protocol DatabaseReader {
++    func interrupt()
+ }
+ 
+ extension SQLSpecificExpressible {
++    #if GRDBCUSTOMSQLITE
++    var ascNullsLast: SQLOrderingTerm { get }
++    var descNullsFirst: SQLOrderingTerm { get }
++    #endif
+ }
+```
 
 
 ## 4.6.2

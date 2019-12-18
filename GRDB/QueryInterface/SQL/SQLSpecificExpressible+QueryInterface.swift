@@ -16,6 +16,22 @@ extension SQLSpecificExpressible {
     public var desc: SQLOrderingTerm {
         return SQLOrdering.desc(sqlExpression)
     }
+    
+    #if GRDBCUSTOMSQLITE
+    /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
+    ///
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    public var ascNullsLast: SQLOrderingTerm {
+        return SQLOrdering.ascNullsLast(sqlExpression)
+    }
+    
+    /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
+    ///
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    public var descNullsFirst: SQLOrderingTerm {
+        return SQLOrdering.descNullsFirst(sqlExpression)
+    }
+    #endif
 }
 
 

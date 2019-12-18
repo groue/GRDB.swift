@@ -40,6 +40,32 @@ public struct SQLCollatedExpression {
         return SQLOrdering.desc(sqlExpression)
     }
     
+    #if GRDBCUSTOMSQLITE
+    /// Returns an ordering suitable for QueryInterfaceRequest.order()
+    ///
+    ///     let email: SQLCollatedExpression = Column("email").collating(.nocase)
+    ///
+    ///     // SELECT * FROM player ORDER BY email COLLATE NOCASE ASC NULLS LAST
+    ///     Player.order(email.ascNullsLast)
+    ///
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    public var ascNullsLast: SQLOrderingTerm {
+        return SQLOrdering.ascNullsLast(sqlExpression)
+    }
+    
+    /// Returns an ordering suitable for QueryInterfaceRequest.order()
+    ///
+    ///     let email: SQLCollatedExpression = Column("email").collating(.nocase)
+    ///
+    ///     // SELECT * FROM player ORDER BY email COLLATE NOCASE DESC NULLS FIRST
+    ///     Player.order(email.descNullsFirst)
+    ///
+    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    public var descNullsFirst: SQLOrderingTerm {
+        return SQLOrdering.descNullsFirst(sqlExpression)
+    }
+    #endif
+    
     init(_ expression: SQLExpression, collationName: Database.CollationName) {
         self.expression = expression
         self.collationName = collationName

@@ -7,6 +7,15 @@ import XCTest
 
 class DatabasePoolReadOnlyTests: GRDBTestCase {
     
+    func testOpenReadOnlyMissingDatabase() throws {
+        dbConfiguration.readonly = true
+        do {
+            _ = try makeDatabasePool()
+        } catch let error as DatabaseError {
+            XCTAssertEqual(error.resultCode, .SQLITE_CANTOPEN)
+        }
+    }
+    
     func testConcurrentRead() throws {
         let databaseFileName = "db.sqlite"
         

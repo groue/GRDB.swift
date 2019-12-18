@@ -9,15 +9,27 @@ import SQLite3
 
 extension FetchableRecord where Self: Decodable {
     public init(row: Row) {
-        let decoder = RowDecoder<Self>(row: row, codingPath: [])
-        try! self.init(from: decoder)
+        // Intended force-try. FetchableRecord is designed for records that
+        // reliably decode from rows.
+        self = try! RowDecoder().decode(from: row)
     }
 }
 
-// MARK: - RowDecoder
+// For testability. Not intended to become public as long as FetchableRecord has
+// a non-throwing row initializer, since this would open an undesired door.
+class RowDecoder {
+    init() { }
+    
+    func decode<T: FetchableRecord & Decodable>(_ type: T.Type = T.self, from row: Row) throws -> T {
+        let decoder = _RowDecoder<T>(row: row, codingPath: [])
+        return try T(from: decoder)
+    }
+}
+
+// MARK: - _RowDecoder
 
 /// The decoder that decodes a record from a database row
-private struct RowDecoder<R: FetchableRecord>: Decoder {
+private struct _RowDecoder<R: FetchableRecord>: Decoder {
     var row: Row
     var codingPath: [CodingKey]
     var userInfo: [CodingUserInfoKey: Any] { return R.databaseDecodingUserInfo }
@@ -59,11 +71,12 @@ private struct RowDecoder<R: FetchableRecord>: Decoder {
         return ColumnDecoder<R>(row: row, columnIndex: index, codingPath: codingPath)
     }
     
-    struct KeyedContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
-        let decoder: RowDecoder
+    class KeyedContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
+        let decoder: _RowDecoder
         var codingPath: [CodingKey] { return decoder.codingPath }
+        var decodedRootKey: CodingKey?
         
-        init(decoder: RowDecoder) {
+        init(decoder: _RowDecoder) {
             self.decoder = decoder
         }
         
@@ -192,6 +205,12 @@ private struct RowDecoder<R: FetchableRecord>: Decoder {
             // scope) has to be decoded right from the base row.
             //
             // Yeah, there may be better ways to handle this.
+            if let decodedRootKey = decodedRootKey {
+                throw DecodingError.keyNotFound(decodedRootKey, DecodingError.Context(
+                    codingPath: codingPath,
+                    debugDescription: "No such key: \(decodedRootKey.stringValue)")) // TODO: better error message
+            }
+            decodedRootKey = key
             return try decode(type, fromRow: row, codingPath: codingPath + [key])
         }
         
@@ -231,7 +250,7 @@ private struct RowDecoder<R: FetchableRecord>: Decoder {
                 return type.init(row: row) as! T
             } else {
                 do {
-                    let decoder = RowDecoder(row: row, codingPath: codingPath)
+                    let decoder = _RowDecoder(row: row, codingPath: codingPath)
                     return try T(from: decoder)
                 } catch let error as MissingColumnError {
                     // Support for DatabaseValueConversionErrorTests.testDecodableFetchableRecord2
@@ -320,7 +339,7 @@ extension PrefetchedRowsDecoder: UnkeyedDecodingContainer {
     
     mutating func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         defer { currentIndex += 1 }
-        let decoder = RowDecoder<R>(row: rows[currentIndex], codingPath: codingPath)
+        let decoder = _RowDecoder<R>(row: rows[currentIndex], codingPath: codingPath)
         return try T(from: decoder)
     }
     

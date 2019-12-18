@@ -75,6 +75,42 @@ public struct Configuration {
     /// Default: nil
     public var trace: TraceFunction?
     
+    /// If false, SQLite from version 3.29.0 will not interpret a double-quoted
+    /// string as a string literal if it does not match any valid identifier.
+    ///
+    /// For example:
+    ///
+    ///     // Error: no such column: foo
+    ///     let name = try String.fetchOne(db, sql: """
+    ///         SELECT "foo" FROM "player"
+    ///         """)
+    ///
+    /// When true, or before version 3.29.0, such strings are interpreted as
+    /// string literals, as in the example below. This is a well known SQLite
+    /// [misfeature](https://sqlite.org/quirks.html#dblquote).
+    ///
+    ///     // Success: "foo"
+    ///     let name = try String.fetchOne(db, sql: """
+    ///         SELECT "foo" FROM "player"
+    ///         """)
+    ///
+    /// - Recommended value: false
+    /// - Default value: false
+    public var acceptsDoubleQuotedStringLiterals = false
+    
+    /// When true, the `Database.suspendNotification` and
+    /// `Database.resumeNotification` suspend and resume the database. Database
+    /// suspension helps avoiding the [`0xdead10cc`
+    /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
+    ///
+    /// During suspension, all database accesses but reads in WAL mode may throw
+    /// a DatabaseError of code `SQLITE_INTERRUPT`, or `SQLITE_ABORT`. You can
+    /// check for those error codes with the
+    /// `DatabaseError.isInterruptionError` property.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    public var observesSuspensionNotifications = false
+    
     // MARK: - Encryption
     
     #if SQLITE_HAS_CODEC

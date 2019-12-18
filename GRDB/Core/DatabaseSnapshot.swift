@@ -47,6 +47,12 @@ public class DatabaseSnapshot: DatabaseReader {
 // DatabaseReader
 extension DatabaseSnapshot {
     
+    // MARK: - Interrupting Database Operations
+    
+    public func interrupt() {
+        serializedDatabase.interrupt()
+    }
+    
     // MARK: - Reading from Database
     
     /// Synchronously executes a read-only block that takes a database

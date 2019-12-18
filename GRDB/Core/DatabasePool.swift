@@ -15,7 +15,8 @@ import UIKit
 public final class DatabasePool: DatabaseWriter {
     private let writer: SerializedDatabase
     private var readerPool: Pool<SerializedDatabase>!
-    var readerConfiguration: Configuration
+    // TODO: remove when the deprecated change(passphrase:) method turns unavailable.
+    private var readerConfiguration: Configuration
     
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
@@ -64,13 +65,36 @@ public final class DatabasePool: DatabaseWriter {
         // Readers
         readerConfiguration = configuration
         readerConfiguration.readonly = true
+        
         // Readers use deferred transactions by default.
         // Other transaction kinds are forbidden by SQLite in read-only connections.
         readerConfiguration.defaultTransactionKind = .deferred
+        
         // Readers can't allow dangling transactions because there's no
         // guarantee that one can get the same reader later in order to close
         // an opened transaction.
         readerConfiguration.allowsUnsafeTransactions = false
+        
+        // https://www.sqlite.org/wal.html#sometimes_queries_return_sqlite_busy_in_wal_mode
+        // > But there are some obscure cases where a query against a WAL-mode
+        // > database can return SQLITE_BUSY, so applications should be prepared
+        // > for that happenstance.
+        // >
+        // > - If another database connection has the database mode open in
+        // >   exclusive locking mode [...]
+        // > - When the last connection to a particular database is closing,
+        // >   that connection will acquire an exclusive lock for a short time
+        // >   while it cleans up the WAL and shared-memory files [...]
+        // > - If the last connection to a database crashed, then the first new
+        // >   connection to open the database will start a recovery process. An
+        // >   exclusive lock is held during recovery. [...]
+        //
+        // The whole point of WAL readers is to avoid SQLITE_BUSY, so let's
+        // setup a busy handler for pool readers, in order to workaround those
+        // "obscure cases" that may happen when the database is shared between
+        // multiple processes.
+        readerConfiguration.busyMode = .timeout(10)
+        
         var readerCount = 0
         readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
             readerCount += 1 // protected by pool (TODO: documented this protection behavior)
@@ -112,9 +136,10 @@ public final class DatabasePool: DatabaseWriter {
                 }
             }
         }
+        
+        setupSuspension()
     }
     
-    #if os(iOS)
     deinit {
         // Undo job done in setupMemoryManagement()
         //
@@ -122,7 +147,6 @@ public final class DatabasePool: DatabaseWriter {
         // Explicit unregistration is required before iOS 9 and OS X 10.11.
         NotificationCenter.default.removeObserver(self)
     }
-    #endif
     
     private func setupDatabase(_ db: Database) {
         for function in functions {
@@ -251,6 +275,59 @@ extension DatabasePool {
 #endif
 
 extension DatabasePool: DatabaseReader {
+    
+    // MARK: - Interrupting Database Operations
+    
+    public func interrupt() {
+        writer.interrupt()
+        readerPool.forEach { $0.interrupt() }
+    }
+    
+    // MARK: - Database Suspension
+    
+    func suspend() {
+        if configuration.readonly {
+            // read-only WAL connections can't acquire locks and do not need to
+            // be suspended.
+            return
+        }
+        writer.suspend()
+    }
+    
+    func resume() {
+        if configuration.readonly {
+            // read-only WAL connections can't acquire locks and do not need to
+            // be suspended.
+            return
+        }
+        writer.resume()
+    }
+    
+    private func setupSuspension() {
+        if configuration.observesSuspensionNotifications {
+            let center = NotificationCenter.default
+            center.addObserver(
+                self,
+                selector: #selector(DatabasePool.suspend(_:)),
+                name: Database.suspendNotification,
+                object: nil)
+            center.addObserver(
+                self,
+                selector: #selector(DatabasePool.resume(_:)),
+                name: Database.resumeNotification,
+                object: nil)
+        }
+    }
+    
+    @objc
+    private func suspend(_ notification: Notification) {
+        suspend()
+    }
+    
+    @objc
+    private func resume(_ notification: Notification) {
+        resume()
+    }
     
     // MARK: - Reading from Database
     
