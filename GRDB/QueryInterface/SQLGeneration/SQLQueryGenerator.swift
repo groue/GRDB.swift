@@ -256,6 +256,56 @@ struct SQLQueryGenerator {
         return statement
     }
     
+    /// Informs about the query grouping
+    private enum GroupingInfo {
+        /// No grouping at all: SELECT ... FROM player
+        case none
+        /// Grouped by unique key: SELECT ... FROM player GROUP BY id
+        case unique
+        /// Grouped by some non-unique columnns: SELECT ... FROM player GROUP BY teamId
+        case nonUnique
+    }
+    
+    /// Informs about the query grouping
+    private func grouping(_ db: Database) throws -> GroupingInfo {
+        // Empty group clause: no grouping
+        // SELECT * FROM player
+        guard let groupExpressions = try groupPromise?.resolve(db), groupExpressions.isEmpty == false else {
+            return .none
+        }
+        
+        // Grouping by something which is not a column: assume non
+        // unique grouping.
+        // SELECT * FROM player GROUP BY (score + bonus)
+        let qualifiedColumns = groupExpressions.compactMap { $0 as? QualifiedColumn }
+        if qualifiedColumns.count != groupExpressions.count {
+            return .nonUnique
+        }
+        
+        // Grouping something which is not a table: assume non unique grouping.
+        guard case let .table(tableName: tableName, alias: alias) = relation.source else {
+            return .nonUnique
+        }
+        
+        // Grouping by some column(s) which do not come from the main table:
+        // assume non unique grouping.
+        // SELECT * FROM player JOIN team ... GROUP BY team.id
+        guard qualifiedColumns.allSatisfy({ $0.alias == alias }) else {
+            return .nonUnique
+        }
+        
+        // Grouping by some column(s) which are unique
+        // SELECT * FROM player GROUP BY id
+        let columnNames = qualifiedColumns.map { $0.name }
+        if try db.table(tableName, hasUniqueKey: columnNames) {
+            return .unique
+        }
+        
+        // Grouping by some column(s) which are not unique
+        // SELECT * FROM player GROUP BY score
+        return .nonUnique
+    }
+    
     /// Returns the row adapter which presents the fetched rows according to the
     /// tree of joined relations.
     ///
