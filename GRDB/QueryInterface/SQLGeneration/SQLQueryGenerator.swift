@@ -129,43 +129,43 @@ struct SQLQueryGenerator {
     func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
         switch try grouping(db) {
         case .none:
-            break
+            guard case .table = relation.source else {
+                // Programmer error
+                fatalError("Can't delete without any database table")
+            }
+            
+            guard relation.joins.isEmpty else {
+                return try makeTrivialDeleteStatement(db)
+            }
+            
+            var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
+            
+            var sql = try "DELETE FROM " + relation.source.sql(db, &context)
+            
+            let filters = try relation.filtersPromise.resolve(db)
+            if filters.isEmpty == false {
+                sql += " WHERE " + SQLExpressionAnd(filters).expressionSQL(&context, wrappedInParenthesis: false)
+            }
+            
+            if let limit = limit {
+                let orderings = try relation.ordering.resolve(db)
+                if !orderings.isEmpty {
+                    sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
+                }
+                sql += " LIMIT " + limit.sql
+            }
+            
+            let statement = try db.makeUpdateStatement(sql: sql)
+            statement.arguments = context.arguments!
+            return statement
+            
         case .unique:
             return try makeTrivialDeleteStatement(db)
+            
         case .nonUnique:
             // Programmer error
             fatalError("Can't delete query with GROUP BY clause")
         }
-        
-        guard case .table = relation.source else {
-            // Programmer error
-            fatalError("Can't delete without any database table")
-        }
-        
-        guard relation.joins.isEmpty else {
-            return try makeTrivialDeleteStatement(db)
-        }
-        
-        var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
-        
-        var sql = try "DELETE FROM " + relation.source.sql(db, &context)
-        
-        let filters = try relation.filtersPromise.resolve(db)
-        if filters.isEmpty == false {
-            sql += " WHERE " + SQLExpressionAnd(filters).expressionSQL(&context, wrappedInParenthesis: false)
-        }
-        
-        if let limit = limit {
-            let orderings = try relation.ordering.resolve(db)
-            if !orderings.isEmpty {
-                sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
-            }
-            sql += " LIMIT " + limit.sql
-        }
-        
-        let statement = try db.makeUpdateStatement(sql: sql)
-        statement.arguments = context.arguments!
-        return statement
     }
     
     /// DELETE FROM table WHERE rowid IN (SELECT rowid FROM table ...)
@@ -199,62 +199,62 @@ struct SQLQueryGenerator {
     {
         switch try grouping(db) {
         case .none:
-            break
+            guard case .table = relation.source else {
+                // Programmer error
+                fatalError("Can't update without any database table")
+            }
+            
+            guard relation.joins.isEmpty else {
+                return try makeTrivialUpdateStatement(db, conflictResolution: conflictResolution, assignments: assignments)
+            }
+            
+            if assignments.isEmpty {
+                return nil
+            }
+            
+            var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
+            
+            var sql = "UPDATE "
+            
+            if conflictResolution != .abort {
+                sql += "OR \(conflictResolution.rawValue) "
+            }
+            
+            sql += try relation.source.sql(db, &context)
+            
+            let assignmentsSQL = assignments
+                .map({ assignment in
+                    assignment.column.expressionSQL(&context, wrappedInParenthesis: false) +
+                        " = " +
+                        assignment.value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+                })
+                .joined(separator: ", ")
+            sql += " SET " + assignmentsSQL
+            
+            let filters = try relation.filtersPromise.resolve(db)
+            if filters.isEmpty == false {
+                sql += " WHERE " + SQLExpressionAnd(filters).expressionSQL(&context, wrappedInParenthesis: false)
+            }
+            
+            if let limit = limit {
+                let orderings = try relation.ordering.resolve(db)
+                if !orderings.isEmpty {
+                    sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
+                }
+                sql += " LIMIT " + limit.sql
+            }
+            
+            let statement = try db.makeUpdateStatement(sql: sql)
+            statement.arguments = context.arguments!
+            return statement
+            
         case .unique:
             return try makeTrivialUpdateStatement(db, conflictResolution: conflictResolution, assignments: assignments)
+            
         case .nonUnique:
             // Programmer error
             fatalError("Can't update query with GROUP BY clause")
         }
-        
-        guard case .table = relation.source else {
-            // Programmer error
-            fatalError("Can't update without any database table")
-        }
-        
-        guard relation.joins.isEmpty else {
-            return try makeTrivialUpdateStatement(db, conflictResolution: conflictResolution, assignments: assignments)
-        }
-        
-        if assignments.isEmpty {
-            return nil
-        }
-        
-        var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
-        
-        var sql = "UPDATE "
-        
-        if conflictResolution != .abort {
-            sql += "OR \(conflictResolution.rawValue) "
-        }
-        
-        sql += try relation.source.sql(db, &context)
-        
-        let assignmentsSQL = assignments
-            .map({ assignment in
-                assignment.column.expressionSQL(&context, wrappedInParenthesis: false) +
-                    " = " +
-                    assignment.value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
-            })
-            .joined(separator: ", ")
-        sql += " SET " + assignmentsSQL
-        
-        let filters = try relation.filtersPromise.resolve(db)
-        if filters.isEmpty == false {
-            sql += " WHERE " + SQLExpressionAnd(filters).expressionSQL(&context, wrappedInParenthesis: false)
-        }
-        
-        if let limit = limit {
-            let orderings = try relation.ordering.resolve(db)
-            if !orderings.isEmpty {
-                sql += " ORDER BY " + orderings.map { $0.orderingTermSQL(&context) }.joined(separator: ", ")
-            }
-            sql += " LIMIT " + limit.sql
-        }
-        
-        let statement = try db.makeUpdateStatement(sql: sql)
-        statement.arguments = context.arguments!
-        return statement
     }
     
     /// UPDATE table SET ... WHERE rowid IN (SELECT rowid FROM table ...)
