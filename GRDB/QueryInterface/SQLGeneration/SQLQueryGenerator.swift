@@ -205,9 +205,14 @@ struct SQLQueryGenerator {
             }
             
             guard relation.joins.isEmpty else {
-                return try makeTrivialUpdateStatement(db, conflictResolution: conflictResolution, assignments: assignments)
+                return try makeTrivialUpdateStatement(
+                    db,
+                    conflictResolution: conflictResolution,
+                    assignments: assignments)
             }
             
+            // Check for empty assignments after all programmer errors have
+            // been checked.
             if assignments.isEmpty {
                 return nil
             }
@@ -258,15 +263,22 @@ struct SQLQueryGenerator {
     }
     
     /// UPDATE table SET ... WHERE rowid IN (SELECT rowid FROM table ...)
+    /// Returns nil if assignments is empty
     private func makeTrivialUpdateStatement(
         _ db: Database,
         conflictResolution: Database.ConflictResolution,
         assignments: [ColumnAssignment])
-        throws -> UpdateStatement
+        throws -> UpdateStatement?
     {
         guard case let .table(tableName: tableName, alias: _) = relation.source else {
             // Programmer error
             fatalError("Can't delete without any database table")
+        }
+        
+        // Check for empty assignments after all programmer errors have
+        // been checked.
+        if assignments.isEmpty {
+            return nil
         }
         
         var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
