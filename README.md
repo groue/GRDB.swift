@@ -2630,6 +2630,7 @@ try place.delete(db)                   // DELETE
 try place.exists(db)
 
 // Type methods
+try Place.updateAll(db, ...)               // UPDATE
 try Place.deleteAll(db)                    // DELETE
 try Place.deleteAll(db, keys:...)          // DELETE
 try Place.deleteOne(db, key:...)           // DELETE
@@ -2640,6 +2641,8 @@ try Place.deleteOne(db, key:...)           // DELETE
 - `update` and `updateChanges` can also throw a [PersistenceError](#persistenceerror), should the update fail because there is no matching row in the database.
     
     When saving an object that may or may not already exist in the database, prefer the `save` method:
+
+- `updateAll` performs a batch update. See [Update Requests](#update-requests).
 
 - `save` makes sure your values are stored in the database.
 
