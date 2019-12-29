@@ -1,6 +1,6 @@
 /// SQLQueryGenerator is able to generate an SQL SELECT query.
 struct SQLQueryGenerator {
-    fileprivate var relation: SQLQualifiedRelation
+    fileprivate private(set) var relation: SQLQualifiedRelation
     private let isDistinct: Bool
     private let groupPromise: DatabasePromise<[SQLExpression]>?
     private let havingExpressions: [SQLExpression]
@@ -485,7 +485,7 @@ private struct SQLQualifiedRelation {
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
     ///                                     |
     ///                                     • joins
-    var joins: OrderedDictionary<String, SQLQualifiedJoin>
+    private(set) var joins: OrderedDictionary<String, SQLQualifiedJoin>
     
     init(_ relation: SQLRelation) {
         // Qualify the source, so that it be disambiguated with an SQL alias
