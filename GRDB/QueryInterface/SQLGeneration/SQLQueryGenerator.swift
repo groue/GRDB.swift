@@ -322,7 +322,7 @@ private struct SQLQualifiedRelation {
     let source: SQLQualifiedSource
     
     /// The selection, not including selection of joined relations
-    private let ownSelection: [SQLSelectable]
+    private var ownSelection: [SQLSelectable]
     
     /// The full selection, including selection of joined relations
     ///
@@ -361,7 +361,7 @@ private struct SQLQualifiedRelation {
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
     ///                                     |
     ///                                     • joins
-    let joins: OrderedDictionary<String, SQLQualifiedJoin>
+    var joins: OrderedDictionary<String, SQLQualifiedJoin>
     
     init(_ relation: SQLRelation) {
         // Qualify the source, so that it be disambiguated with an SQL alias
@@ -456,6 +456,14 @@ private struct SQLQualifiedRelation {
         
         return (adapter: adapter, endIndex: endIndex)
     }
+    
+    /// Removes all selections from joins
+    func selectOnly(_ selection: [SQLSelectable]) -> SQLQualifiedRelation {
+        var relation = self
+        relation.ownSelection = selection.map { $0.qualifiedSelectable(with: alias) }
+        relation.joins = relation.joins.mapValues { $0.selectOnly([]) }
+        return relation
+    }
 }
 
 /// A "qualified" source, where all tables are identified with a table alias.
@@ -518,6 +526,14 @@ private struct SQLQualifiedJoin {
     
     func sql(_ db: Database, _ context: inout SQLGenerationContext, leftAlias: TableAlias) throws -> String {
         return try sql(db, &context, leftAlias: leftAlias, allowingInnerJoin: true)
+    }
+    
+    /// Removes all selections from joins
+    func selectOnly(_ selection: [SQLSelectable]) -> SQLQualifiedJoin {
+        return SQLQualifiedJoin(
+            kind: kind,
+            condition: condition,
+            relation: relation.selectOnly(selection))
     }
     
     private func sql(
