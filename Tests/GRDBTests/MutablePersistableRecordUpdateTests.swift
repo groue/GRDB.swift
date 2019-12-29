@@ -442,6 +442,12 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                     HAVING COUNT(DISTINCT "player"."rowid") = 0)
                     """)
             }
+            do {
+                try Team.including(all: Team.players).updateAll(db, Column("active") <- false)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "team" SET "active" = 0
+                    """)
+            }
         }
     }
     

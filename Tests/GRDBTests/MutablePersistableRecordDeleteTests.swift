@@ -236,6 +236,12 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
                     HAVING COUNT(DISTINCT "player"."rowid") = 0)
                     """)
             }
+            do {
+                try Team.including(all: Team.players).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "team"
+                    """)
+            }
         }
     }
     
