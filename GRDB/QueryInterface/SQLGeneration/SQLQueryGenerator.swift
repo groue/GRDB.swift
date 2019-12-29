@@ -1,6 +1,6 @@
 /// SQLQueryGenerator is able to generate an SQL SELECT query.
 struct SQLQueryGenerator {
-    fileprivate let relation: SQLQualifiedRelation
+    fileprivate var relation: SQLQualifiedRelation
     private let isDistinct: Bool
     private let groupPromise: DatabasePromise<[SQLExpression]>?
     private let havingExpressions: [SQLExpression]
@@ -127,24 +127,23 @@ struct SQLQueryGenerator {
     }
     
     func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
-        if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
+        switch try grouping(db) {
+        case .none:
+            break
+        case .unique:
+            return try makeTrivialDeleteStatement(db)
+        case .nonUnique:
             // Programmer error
             fatalError("Can't delete query with GROUP BY clause")
-        }
-        
-        guard havingExpressions.isEmpty else {
-            // Programmer error
-            fatalError("Can't delete query with HAVING clause")
-        }
-        
-        guard relation.joins.isEmpty else {
-            // Programmer error
-            fatalError("Can't delete query with JOIN clause")
         }
         
         guard case .table = relation.source else {
             // Programmer error
             fatalError("Can't delete without any database table")
+        }
+        
+        guard relation.joins.isEmpty else {
+            return try makeTrivialDeleteStatement(db)
         }
         
         var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
@@ -169,6 +168,28 @@ struct SQLQueryGenerator {
         return statement
     }
     
+    /// DELETE FROM table WHERE rowid IN (SELECT rowid FROM table ...)
+    private func makeTrivialDeleteStatement(_ db: Database) throws -> UpdateStatement {
+        guard case let .table(tableName: tableName, alias: _) = relation.source else {
+            // Programmer error
+            fatalError("Can't delete without any database table")
+        }
+        
+        var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
+        
+        // SELECT rowid FROM table ...
+        var generator = self
+        generator.relation = generator.relation.selectOnly([Column.rowID])
+        let selectSQL = try generator.sql(db, &context)
+        
+        // DELETE FROM table WHERE rowid IN (SELECT rowid FROM table ...)
+        let sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE rowid IN (\(selectSQL))"
+        
+        let statement = try db.makeUpdateStatement(sql: sql)
+        statement.arguments = context.arguments!
+        return statement
+    }
+    
     /// Returns nil if assignments is empty
     func makeUpdateStatement(
         _ db: Database,
@@ -176,24 +197,23 @@ struct SQLQueryGenerator {
         assignments: [ColumnAssignment])
         throws -> UpdateStatement?
     {
-        if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
+        switch try grouping(db) {
+        case .none:
+            break
+        case .unique:
+            return try makeTrivialUpdateStatement(db, conflictResolution: conflictResolution, assignments: assignments)
+        case .nonUnique:
             // Programmer error
             fatalError("Can't update query with GROUP BY clause")
-        }
-        
-        guard havingExpressions.isEmpty else {
-            // Programmer error
-            fatalError("Can't update query with HAVING clause")
-        }
-        
-        guard relation.joins.isEmpty else {
-            // Programmer error
-            fatalError("Can't update query with JOIN clause")
         }
         
         guard case .table = relation.source else {
             // Programmer error
             fatalError("Can't update without any database table")
+        }
+        
+        guard relation.joins.isEmpty else {
+            return try makeTrivialUpdateStatement(db, conflictResolution: conflictResolution, assignments: assignments)
         }
         
         if assignments.isEmpty {
@@ -236,7 +256,49 @@ struct SQLQueryGenerator {
         statement.arguments = context.arguments!
         return statement
     }
-
+    
+    /// UPDATE table SET ... WHERE rowid IN (SELECT rowid FROM table ...)
+    private func makeTrivialUpdateStatement(
+        _ db: Database,
+        conflictResolution: Database.ConflictResolution,
+        assignments: [ColumnAssignment])
+        throws -> UpdateStatement
+    {
+        guard case let .table(tableName: tableName, alias: _) = relation.source else {
+            // Programmer error
+            fatalError("Can't delete without any database table")
+        }
+        
+        var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
+        
+        // SELECT rowid FROM table ...
+        var generator = self
+        generator.relation = generator.relation.selectOnly([Column.rowID])
+        let selectSQL = try generator.sql(db, &context)
+        
+        var sql = "UPDATE "
+        
+        if conflictResolution != .abort {
+            sql += "OR \(conflictResolution.rawValue) "
+        }
+        
+        sql += tableName.quotedDatabaseIdentifier
+        
+        let assignmentsSQL = assignments
+            .map({ assignment in
+                assignment.column.expressionSQL(&context, wrappedInParenthesis: false) +
+                    " = " +
+                    assignment.value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+            })
+            .joined(separator: ", ")
+        sql += " SET " + assignmentsSQL
+        sql += " WHERE rowid IN (\(selectSQL))"
+        
+        let statement = try db.makeUpdateStatement(sql: sql)
+        statement.arguments = context.arguments!
+        return statement
+    }
+    
     /// Returns a select statement
     func makeSelectStatement(_ db: Database) throws -> SelectStatement {
         // Build an SQK generation context with all aliases found in the query,
