@@ -1,6 +1,11 @@
 # The OS X Build Environment
 # https://docs.travis-ci.com/user/reference/osx/#xcode-version
 
+branches:
+  only:
+  - master
+  - development
+
 language: objective-c
 xcode_project: GRDB.xcodeproj
 
