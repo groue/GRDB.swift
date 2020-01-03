@@ -283,7 +283,7 @@ See [Convention for the HasOne Association] for some sample code that defines th
 The **HasManyThrough** association is often used to set up a many-to-many connection with another record. This association indicates that the declaring record can be matched with zero or more instances of another record by proceeding through a third record. For example, consider the practice of passport delivery. The relevant association declarations could look like this:
 
 ```swift
-struct Country: TableRecord, EncodableRecord {
+struct Country: TableRecord {
     static let passports = hasMany(Passport.self)
     static let citizens = hasMany(Citizen.self, through: passports, using: Passport.citizen)
     ...
@@ -294,7 +294,7 @@ struct Passport: TableRecord {
     static let citizen = belongsTo(Citizen.self)
 }
  
-struct Citizen: TableRecord, EncodableRecord {
+struct Citizen: TableRecord {
     static let passports = hasMany(Passport.self)
     static let countries = hasMany(Country.self, through: passports, using: Passport.country)
     ...
@@ -342,9 +342,9 @@ See [Building Requests from Associations] in order to learn how to use the HasMa
 A **HasOneThrough** association sets up a one-to-one connection with another record. This association indicates that the declaring record can be matched with one instance of another record by proceeding through a third record. For example, if each book belongs to a library, and each library has one address, then one knows where the book should be returned to:
 
 ```swift
-struct Book: TableRecord, EncodableRecord {
+struct Book: TableRecord {
     static let library = belongsTo(Library.self)
-    static let returnAddress = hasOne(Address.self, through: library, using: library.address)
+    static let returnAddress = hasOne(Address.self, through: library, using: Library.address)
     ...
 }
 

@@ -341,7 +341,7 @@ extension TableRecord {
     ///
     ///     struct Book: TableRecord {
     ///         static let library = belongsTo(Library.self)
-    ///         static let returnAddress = hasOne(Address.self, through: library, using: library.address)
+    ///         static let returnAddress = hasOne(Address.self, through: library, using: Library.address)
     ///     }
     ///
     ///     struct Library: TableRecord {
