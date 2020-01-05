@@ -290,7 +290,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 t.column("authorId", .integer).references("author")
             }
             try db.execute(sql: """
-                INSERT INTO author(id, name) VALUES (1, "Arthur");
+                INSERT INTO author(id, name) VALUES (1, 'Arthur');
                 INSERT INTO book(id, authorId) VALUES (2, 1);
                 """)
             struct Author: TableRecord { }
