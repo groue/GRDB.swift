@@ -1374,6 +1374,60 @@ When you join or include an association several times, with the same **[associat
         .including(optional: association.select(selection2))
     ```
 
+**Those rules exist so that you can design fluent interfaces that build complex requests out of simple building blocks.**
+
+For example, we can start by defining base requests as extensions to the [DerivableRequest Protocol]:
+
+```swift
+// Author requests
+extension DerivableRequest where RowDecoder == Author {
+    /// Filters authors by country
+    func filter(country: String) -> Self {
+        return filter(Column("country") == country)
+    }
+}
+
+// Book requests
+extension DerivableRequest where RowDecoder == Book {
+    /// Filters books by author country
+    func filter(authorCountry: String) -> Self {
+        return joining(required: Book.author.filter(country: country))
+    }
+    
+    /// Order books by author name and then book title
+    func orderedByAuthorNameAndYear() -> Self {
+        let authorAlias = TableAlias()
+        return self
+            .joining(optional: Book.author.aliased(authorAlias))
+            .order(
+                authorAlias[Column("name")].collating(.localizedCaseInsensitiveCompare),
+                Column("year"))
+    }
+}
+```
+
+And then compose those in a fluent style:
+
+```swift
+struct BookInfo: FetchableRecord, Decodable {
+    var book: Book
+    var author: Author
+}
+
+// SELECT book.*, author.*
+// FROM book
+// JOIN author ON author.id = book.authorId AND author.country = 'FR'
+// ORDER BY author.name COLLATE ..., book.year
+let bookInfos = try Book.all()
+    .filter(authorCountry: "FR")
+    .orderedByAuthorNameAndYear()
+    .including(required: Book.author)
+    .asRequest(of: BookInfo.self)
+    .fetchAll(db)
+```
+
+Remember that those refinement rules only apply when an association is joined or included several times, with the same **[association key](#the-structure-of-a-joined-request)**. Changing this key stops merging associations together. See [Isolation of Multiple Aggregates] for a longer discussion.
+
 
 Fetching Values from Associations
 =================================
