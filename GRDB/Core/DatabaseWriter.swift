@@ -285,35 +285,32 @@ extension DatabaseWriter {
         // https://discuss.zetetic.net/t/using-the-sqlite-online-backup-api/2631
         // So we'll drop all database objects one after the other.
         try writeWithoutTransaction { db in
-            // Prevent foreign keys from messing with drop table statements
             let foreignKeysEnabled = try Bool.fetchOne(db, sql: "PRAGMA foreign_keys")!
-            if foreignKeysEnabled {
-                try db.execute(sql: "PRAGMA foreign_keys = OFF")
-            }
             
-            // Remove all database objects, one after the other
-            do {
-                try db.inTransaction {
-                    let sql = "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
-                    while let row = try Row.fetchOne(db, sql: sql) {
-                        let type: String = row["type"]
-                        let name: String = row["name"]
-                        try db.execute(sql: "DROP \(type) \(name.quotedDatabaseIdentifier)")
+            try throwingFirstError(
+                execute: {
+                    // Prevent foreign keys from messing with drop table statements
+                    if foreignKeysEnabled {
+                        try db.execute(sql: "PRAGMA foreign_keys = OFF")
                     }
-                    return .commit
-                }
-                
-                // Restore foreign keys if needed
-                if foreignKeysEnabled {
-                    try db.execute(sql: "PRAGMA foreign_keys = ON")
-                }
-            } catch {
-                // Restore foreign keys if needed
-                if foreignKeysEnabled {
-                    try? db.execute(sql: "PRAGMA foreign_keys = ON")
-                }
-                throw error
-            }
+                    
+                    // Remove all database objects, one after the other
+                    try db.inTransaction {
+                        let sql = "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
+                        while let row = try Row.fetchOne(db, sql: sql) {
+                            let type: String = row["type"]
+                            let name: String = row["name"]
+                            try db.execute(sql: "DROP \(type) \(name.quotedDatabaseIdentifier)")
+                        }
+                        return .commit
+                    }
+            },
+                finally: {
+                    // Restore foreign keys if needed
+                    if foreignKeysEnabled {
+                        try db.execute(sql: "PRAGMA foreign_keys = ON")
+                    }
+            })
         }
         #else
         try DatabaseQueue().backup(to: self)
