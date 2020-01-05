@@ -300,7 +300,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             
             let alias = TableAlias()
             let request = Book
-                .annotated(with: [alias[Column("name")]])
+                .annotated(with: alias[Column("name")])
                 .joining(required: Book.author.aliased(alias))
             let rows = try Row.fetchCursor(db, request)
             while let row = try rows.next() {
