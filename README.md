@@ -4008,7 +4008,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.annotated(with: (scoreColumn + bonusColumn).forKey("total"))
     ```
 
-Such annotations can help using [Associations]:
+    Such annotations can help using [Associations]:
 
     ```swift
     // SELECT player.*, team.name
