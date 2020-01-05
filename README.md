@@ -3992,7 +3992,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.all()
     ```
     
-    The hidden `rowid` column can be selected as well [when you need it](#the-implicit-rowid-primary-key).
+    By default, all columns are selected. See [Columns Selected by a Request].
 
 - `select(...)` and `select(..., as:)` define the selected columns. See [Columns Selected by a Request].
     
@@ -4001,7 +4001,26 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.select(nameColumn, as: String.self)
     ```
 
-- `annotated(with: ...)` extends the selection with [association aggregates](Documentation/AssociationsBasics.md#association-aggregates).
+- `annotated(with: expression...)` extends the selection.
+
+    ```swift
+    // SELECT *, (score + bonus) AS total FROM player
+    Player.annotated(with: (scoreColumn + bonusColumn).forKey("total"))
+    ```
+
+Such annotations can help using [Associations]:
+
+    ```swift
+    // SELECT player.*, team.name
+    // FROM player
+    // JOIN team ON team.id = player.teamId
+    let teamAlias = TableAlias()
+    let request = Player
+        .annotated(with: teamAlias[nameColumn])
+        .joining(required: Player.team.aliased(teamAlias))
+    ```
+
+- `annotated(with: aggregate)` extends the selection with [association aggregates](Documentation/AssociationsBasics.md#association-aggregates).
     
     ```swift
     // SELECT team.*, COUNT(DISTINCT player.rowid) AS playerCount
