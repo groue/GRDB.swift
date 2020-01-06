@@ -285,15 +285,14 @@ extension DatabaseWriter {
         // https://discuss.zetetic.net/t/using-the-sqlite-online-backup-api/2631
         // So we'll drop all database objects one after the other.
         try writeWithoutTransaction { db in
+            // Prevent foreign keys from messing with drop table statements
             let foreignKeysEnabled = try Bool.fetchOne(db, sql: "PRAGMA foreign_keys")!
+            if foreignKeysEnabled {
+                try db.execute(sql: "PRAGMA foreign_keys = OFF")
+            }
             
             try throwingFirstError(
                 execute: {
-                    // Prevent foreign keys from messing with drop table statements
-                    if foreignKeysEnabled {
-                        try db.execute(sql: "PRAGMA foreign_keys = OFF")
-                    }
-                    
                     // Remove all database objects, one after the other
                     try db.inTransaction {
                         let sql = "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"

@@ -126,27 +126,13 @@ extension Character {
 /// Makes sure the `finally` function is executed even if `execute` throws, and
 /// rethrows the eventual first thrown error.
 ///
-/// For example:
+/// Usage:
 ///
-///     // Does not throw
+///     try setup()
 ///     try throwingFirstError(
-///         execute: { },
-///         finally: { })
-///
-///     // throws A
-///     try throwingFirstError(
-///         execute: { throw A },
-///         finally: { })
-///
-///     // throws B
-///     try throwingFirstError(
-///         execute: { },
-///         finally: { throw B })
-///
-///     // throws A
-///     try throwingFirstError(
-///         execute: { throw A },
-///         finally: { throw B })
+///         execute: work,
+///         finally: cleanup)
+@inline(__always)
 func throwingFirstError<T>(execute: () throws -> T, finally: () throws -> Void) throws -> T {
     do {
         let result = try execute()

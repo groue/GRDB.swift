@@ -46,15 +46,15 @@ struct Migration {
     }
     
     private func runWithDisabledForeignKeys(_ db: Database) throws {
+        // Support for database alterations described at
+        // https://www.sqlite.org/lang_altertable.html#otheralter
+        //
+        // > 1. If foreign key constraints are enabled, disable them using
+        // > PRAGMA foreign_keys=OFF.
+        try db.execute(sql: "PRAGMA foreign_keys = OFF")
+        
         try throwingFirstError(
             execute: {
-                // Support for database alterations described at
-                // https://www.sqlite.org/lang_altertable.html#otheralter
-                //
-                // > 1. If foreign key constraints are enabled, disable them using
-                // > PRAGMA foreign_keys=OFF.
-                try db.execute(sql: "PRAGMA foreign_keys = OFF")
-                
                 // > 2. Start a transaction.
                 try db.inTransaction(.immediate) {
                     try migrate(db)
