@@ -227,7 +227,7 @@ public final class DatabaseFunction: Hashable {
             return { (sqliteContext, argc, argv) in
                 let aggregateContextU = DatabaseFunction.unmanagedAggregateContext(sqliteContext)
                 let aggregateContext = aggregateContextU.takeUnretainedValue()
-                assert(!aggregateContext.hasErrored)
+                assert(!aggregateContext.hasErrored) // assert SQLite behavior
                 do {
                     let arguments = (0..<Int(argc)).map { index in
                         DatabaseValue(sqliteValue: argv.unsafelyUnwrapped[index]!)
@@ -272,20 +272,24 @@ public final class DatabaseFunction: Hashable {
     /// See https://sqlite.org/c3ref/context.html
     /// See https://sqlite.org/c3ref/aggregate_context.html
     private static func unmanagedAggregateContext(_ sqliteContext: OpaquePointer?) -> Unmanaged<AggregateContext> {
-        // The current aggregate buffer
+        // > The first time the sqlite3_aggregate_context(C,N) routine is called
+        // > for a particular aggregate function, SQLite allocates N of memory,
+        // > zeroes out that memory, and returns a pointer to the new memory.
+        // > On second and subsequent calls to sqlite3_aggregate_context() for
+        // > the same aggregate function instance, the same buffer is returned.
         let stride = MemoryLayout<Unmanaged<AggregateContext>>.stride
         let aggregateContextBufferP = UnsafeMutableRawBufferPointer(
             start: sqlite3_aggregate_context(sqliteContext, Int32(stride))!,
             count: stride)
         
-        if aggregateContextBufferP.contains(where: { $0 != 0 }) { // TODO: This testt looks weird. Review.
-            // Buffer contains non-null pointer: load aggregate context
+        if aggregateContextBufferP.contains(where: { $0 != 0 }) {
+            // Buffer contains non-zero byte: load aggregate context
             let aggregateContextP = aggregateContextBufferP
                 .baseAddress!
                 .assumingMemoryBound(to: Unmanaged<AggregateContext>.self)
             return aggregateContextP.pointee
         } else {
-            // Buffer contains null pointer: create aggregate context...
+            // Buffer contains null pointer: create aggregate context.
             let aggregate = Unmanaged<AggregateDefinition>.fromOpaque(sqlite3_user_data(sqliteContext))
                 .takeUnretainedValue()
                 .makeAggregate()
