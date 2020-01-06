@@ -412,78 +412,71 @@ struct SQLQueryGenerator {
 
 /// A "qualified" relation, where all tables are identified with a table alias.
 ///
-///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
-///            |        |      |        |         |            |
-///            |        |      |        |         |            • ordering
-///            |        |      |        |         • filterPromise
-///            |        |      |        • joins
-///            |        |      • alias
+///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
+///            |        |        |         |            |
+///            |        |        |         |            • ordering
+///            |        |        |         • filterPromise
+///            |        |        • joins
 ///            |        • source
-///            • fullSelection
+///            • selection
 private struct SQLQualifiedRelation {
-    /// The alias for the relation
-    ///
-    ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
-    ///                            |
-    ///                            • alias
+    /// The source alias
     var alias: TableAlias { return source.alias }
     
     /// All aliases, including aliases of joined relations
     var allAliases: [TableAlias] {
-        var aliases = source.allAliases
-        for join in joins.values {
-            aliases.append(contentsOf: join.relation.allAliases)
+        return joins.reduce(into: source.allAliases) {
+            $0.append(contentsOf: $1.value.relation.allAliases)
         }
-        return aliases
     }
     
     /// The source
     ///
-    ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
+    ///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
     ///                     |
     ///                     • source
     let source: SQLQualifiedSource
     
-    /// The selection, not including selection of joined relations
-    private var ownSelection: [SQLSelectable]
+    /// The selection from source, not including selection of joined relations
+    private var sourceSelection: [SQLSelectable]
     
     /// The full selection, including selection of joined relations
     ///
-    ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
+    ///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
     ///            |
-    ///            • fullSelection
+    ///            • selection
     var selection: [SQLSelectable] {
-        return joins.reduce(into: ownSelection) {
+        return joins.reduce(into: sourceSelection) {
             $0.append(contentsOf: $1.value.relation.selection)
         }
     }
     
     /// The filtering clause
     ///
-    ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
-    ///                                               |
-    ///                                               • filtersPromise
+    ///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
+    ///                                        |
+    ///                                        • filtersPromise
     let filtersPromise: DatabasePromise<[SQLExpression]>
     
-    /// The ordering, not including ordering of joined relations
-    private let ownOrdering: SQLRelation.Ordering
+    /// The ordering of source, not including ordering of joined relations
+    private let sourceOrdering: SQLRelation.Ordering
     
     /// The full ordering, including orderings of joined relations
     ///
-    ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
-    ///                                                            |
-    ///                                                            • ordering
+    ///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
+    ///                                                     |
+    ///                                                     • ordering
     var ordering: SQLRelation.Ordering {
-        return joins.reduce(ownOrdering) {
+        return joins.reduce(sourceOrdering) {
             $0.appending($1.value.relation.ordering)
         }
     }
     
     /// The joins
     ///
-    ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
-    ///                                     |
-    ///                                     • joins
+    ///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
+    ///                              |
+    ///                              • joins
     private(set) var joins: OrderedDictionary<String, SQLQualifiedJoin>
     
     init(_ relation: SQLRelation) {
@@ -514,9 +507,9 @@ private struct SQLQualifiedRelation {
                 condition: child.condition,
                 relation: SQLQualifiedRelation(child.relation))
         }
-        ownSelection = relation.selection.map { $0.qualifiedSelectable(with: alias) }
+        sourceSelection = relation.selection.map { $0.qualifiedSelectable(with: alias) }
         filtersPromise = relation.filtersPromise.map { [alias] in $0.map { $0.qualifiedExpression(with: alias) } }
-        ownOrdering = relation.ordering.qualified(with: alias)
+        sourceOrdering = relation.ordering.qualified(with: alias)
     }
     
     /// See SQLQueryGenerator.rowAdapter(_:)
@@ -535,15 +528,15 @@ private struct SQLQualifiedRelation {
             return nil
         }
         
-        // The number of columns in own selection. Columns selected by joined
+        // The number of columns in source selection. Columns selected by joined
         // relations are appended after.
-        let selectionWidth = try ownSelection
-            .map { try $0.columnCount(db) }
-            .reduce(0, +)
+        let sourceSelectionWidth = try sourceSelection.reduce(0) {
+            try $0 + $1.columnCount(db)
+        }
         
         // Recursively build adapters for each joined relation with a selection.
         // Name them according to the join keys.
-        var endIndex = startIndex + selectionWidth
+        var endIndex = startIndex + sourceSelectionWidth
         var scopes: [String: RowAdapter] = [:]
         for (key, join) in joins {
             if let (joinAdapter, joinEndIndex) = try join.relation.rowAdapter(db, fromIndex: endIndex) {
@@ -553,7 +546,7 @@ private struct SQLQualifiedRelation {
         }
         
         // (Root relation || empty selection) && no included relation => no need for any adapter
-        if (startIndex == 0 || selectionWidth == 0) && scopes.isEmpty {
+        if (startIndex == 0 || sourceSelectionWidth == 0) && scopes.isEmpty {
             return nil
         }
         
@@ -573,7 +566,7 @@ private struct SQLQualifiedRelation {
         //          row.scopes["author"] // [id:12, name:"Herman Melville"]
         //          let author: Author = row["author"]
         //      }
-        let rangeAdapter = RangeRowAdapter(startIndex ..< (startIndex + selectionWidth))
+        let rangeAdapter = RangeRowAdapter(startIndex ..< (startIndex + sourceSelectionWidth))
         let adapter = rangeAdapter.addingScopes(scopes)
         
         return (adapter: adapter, endIndex: endIndex)
@@ -582,7 +575,7 @@ private struct SQLQualifiedRelation {
     /// Removes all selections from joins
     func selectOnly(_ selection: [SQLSelectable]) -> SQLQualifiedRelation {
         var relation = self
-        relation.ownSelection = selection.map { $0.qualifiedSelectable(with: alias) }
+        relation.sourceSelection = selection.map { $0.qualifiedSelectable(with: alias) }
         relation.joins = relation.joins.mapValues { $0.selectOnly([]) }
         return relation
     }
