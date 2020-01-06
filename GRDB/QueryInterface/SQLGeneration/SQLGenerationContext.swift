@@ -20,22 +20,10 @@ public struct SQLGenerationContext {
     
     /// Used for SQLQuery.makeSelectStatement() and SQLQuery.makeDeleteStatement()
     static func queryGenerationContext(aliases: [TableAlias]) -> SQLGenerationContext {
-        // TODO: since 5d9fa76, in the lines below, we started uniquing aliases.
-        // Something tells me this is a wrong fix. We should try to investigate
-        // and maybe revert this change. I don't see why we'd really need to
-        // unique aliases, and I'm afraid we're hiding some latent bug
-        // somewhere else.
-        
-        // Unique aliases, but with preserved ordering, so that we have stable SQL generation
-        let uniqueAliases = aliases.reduce(into: [TableAlias]()) {
-            if !$0.contains($1) {
-                $0.append($1)
-            }
-        }
         return SQLGenerationContext(
             arguments: [],
-            resolvedNames: uniqueAliases.resolvedNames,
-            qualifierNeeded: uniqueAliases.count > 1)
+            resolvedNames: aliases.resolvedNames,
+            qualifierNeeded: aliases.count > 1)
     }
     
     /// Used for TableRecord.selectionSQL

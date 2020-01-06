@@ -426,15 +426,14 @@ private struct SQLQualifiedRelation {
     ///     SELECT ... FROM ... AS ... JOIN ... WHERE ... ORDER BY ...
     ///                            |
     ///                            • alias
-    let alias: TableAlias
+    var alias: TableAlias { return source.alias }
     
     /// All aliases, including aliases of joined relations
     var allAliases: [TableAlias] {
-        var aliases = [alias]
+        var aliases = source.allAliases
         for join in joins.values {
             aliases.append(contentsOf: join.relation.allAliases)
         }
-        aliases.append(contentsOf: source.allAliases)
         return aliases
     }
     
@@ -495,7 +494,6 @@ private struct SQLQualifiedRelation {
         // this SQLQualifiedRelation generates SQL.
         source = SQLQualifiedSource(relation.source)
         let alias = source.alias
-        self.alias = alias
         
         // Qualify all joins, selection, filter, and ordering, so that all
         // identifiers can be correctly disambiguated and qualified.
