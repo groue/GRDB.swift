@@ -121,7 +121,7 @@ struct SQLQueryGenerator {
             return databaseRegion
         }
         
-        // Database regions are case-insensitive: use the canonical table name
+        // Database regions are case-sensitive: use the canonical table name
         let canonicalTableName = try db.canonicalTableName(tableName)
         return databaseRegion.tableIntersection(canonicalTableName, rowIds: rowIds)
     }
