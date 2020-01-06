@@ -35,7 +35,7 @@ struct SQLQueryGenerator {
         // This turns `GROUP BY id` INTO `GROUP BY book.id`, and
         // `HAVING MAX(year) < 2000` INTO `HAVING MAX(book.year) < 2000`.
         let alias = relation.alias
-        groupPromise = query.groupPromise?.map { [alias] in $0.map { $0.qualifiedExpression(with: alias) } }
+        groupPromise = query.groupPromise?.map { $0.map { $0.qualifiedExpression(with: alias) } }
         havingExpressions = query.havingExpressions.map { $0.qualifiedExpression(with: alias) }
         
         // Preserve other flags
@@ -508,7 +508,7 @@ private struct SQLQualifiedRelation {
                 relation: SQLQualifiedRelation(child.relation))
         }
         sourceSelection = relation.selection.map { $0.qualifiedSelectable(with: alias) }
-        filtersPromise = relation.filtersPromise.map { [alias] in $0.map { $0.qualifiedExpression(with: alias) } }
+        filtersPromise = relation.filtersPromise.map { $0.map { $0.qualifiedExpression(with: alias) } }
         sourceOrdering = relation.ordering.qualified(with: alias)
     }
     
