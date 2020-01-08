@@ -61,27 +61,7 @@ extension TableRecord {
         using foreignKey: ForeignKey? = nil)
         -> BelongsToAssociation<Self, Destination>
     {
-        let foreignKeyRequest = SQLForeignKeyRequest(
-            originTable: databaseTableName,
-            destinationTable: Destination.databaseTableName,
-            foreignKey: foreignKey)
-        
-        let condition = SQLAssociationCondition(
-            foreignKeyRequest: foreignKeyRequest,
-            originIsLeft: true)
-        
-        let associationKey: SQLAssociationKey
-        if let key = key {
-            associationKey = .fixedSingular(key)
-        } else {
-            associationKey = .inflected(Destination.databaseTableName)
-        }
-        
-        return BelongsToAssociation(sqlAssociation: SQLAssociation(
-            key: associationKey,
-            condition: condition,
-            relation: Destination.all().relation,
-            cardinality: .toOne))
+        return BelongsToAssociation(key: key, using: foreignKey)
     }
     
     /// Creates a "Has many" association between Self and the
@@ -146,27 +126,7 @@ extension TableRecord {
         using foreignKey: ForeignKey? = nil)
         -> HasManyAssociation<Self, Destination>
     {
-        let foreignKeyRequest = SQLForeignKeyRequest(
-            originTable: Destination.databaseTableName,
-            destinationTable: databaseTableName,
-            foreignKey: foreignKey)
-        
-        let condition = SQLAssociationCondition(
-            foreignKeyRequest: foreignKeyRequest,
-            originIsLeft: false)
-        
-        let associationKey: SQLAssociationKey
-        if let key = key {
-            associationKey = .fixedPlural(key)
-        } else {
-            associationKey = .inflected(Destination.databaseTableName)
-        }
-        
-        return HasManyAssociation(sqlAssociation: SQLAssociation(
-            key: associationKey,
-            condition: condition,
-            relation: Destination.all().relation,
-            cardinality: .toMany))
+        return HasManyAssociation(key: key, using: foreignKey)
     }
     
     /// Creates a "Has Many Through" association between Self and the
@@ -313,27 +273,7 @@ extension TableRecord {
         using foreignKey: ForeignKey? = nil)
         -> HasOneAssociation<Self, Destination>
     {
-        let foreignKeyRequest = SQLForeignKeyRequest(
-            originTable: Destination.databaseTableName,
-            destinationTable: databaseTableName,
-            foreignKey: foreignKey)
-        
-        let condition = SQLAssociationCondition(
-            foreignKeyRequest: foreignKeyRequest,
-            originIsLeft: false)
-        
-        let associationKey: SQLAssociationKey
-        if let key = key {
-            associationKey = .fixedSingular(key)
-        } else {
-            associationKey = .inflected(Destination.databaseTableName)
-        }
-        
-        return HasOneAssociation(sqlAssociation: SQLAssociation(
-            key: associationKey,
-            condition: condition,
-            relation: Destination.all().relation,
-            cardinality: .toOne))
+        return HasOneAssociation(key: key, using: foreignKey)
     }
     
     /// Creates a "Has One Through" association between Self and the
@@ -341,7 +281,7 @@ extension TableRecord {
     ///
     ///     struct Book: TableRecord {
     ///         static let library = belongsTo(Library.self)
-    ///         static let returnAddress = hasOne(Address.self, through: library, using: library.address)
+    ///         static let returnAddress = hasOne(Address.self, through: library, using: Library.address)
     ///     }
     ///
     ///     struct Library: TableRecord {

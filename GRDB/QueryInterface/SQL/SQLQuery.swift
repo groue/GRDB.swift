@@ -56,6 +56,8 @@ extension SQLQuery {
     }
     
     func qualified(with alias: TableAlias) -> SQLQuery {
+        // We do not need to qualify group and having clauses. They will be
+        // in SQLQueryGenerator.init()
         return mapRelation { $0.qualified(with: alias) }
     }
 }

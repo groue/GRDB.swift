@@ -65,7 +65,7 @@ public struct Column: ColumnExpression {
 /// A qualified column in the database, as in `SELECT t.a FROM t`
 struct QualifiedColumn: ColumnExpression {
     var name: String
-    private let alias: TableAlias
+    let alias: TableAlias
     
     /// Creates a column given its name.
     init(_ name: String, alias: TableAlias) {

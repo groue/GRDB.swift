@@ -570,29 +570,9 @@ public final class Database {
     /// Grants read-only access, starting SQLite 3.8.0
     func readOnly<T>(_ block: () throws -> T) throws -> T {
         try beginReadOnly()
-        
-        var result: T?
-        var thrownError: Error?
-        
-        do {
-            result = try block()
-        } catch {
-            thrownError = error
-        }
-        
-        do {
-            try endReadOnly()
-        } catch {
-            if thrownError == nil {
-                thrownError = error
-            }
-        }
-        
-        if let error = thrownError {
-            throw error
-        }
-        
-        return result!
+        return try throwingFirstError(
+            execute: block,
+            finally: endReadOnly)
     }
     
     // MARK: - Authorizer

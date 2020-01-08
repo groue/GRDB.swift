@@ -360,8 +360,14 @@ extension Database {
         where T.Iterator.Element == String
     {
         // Check primaryKey first, so that we fail early if the table does not exist
-        let primaryKey = try self.primaryKey(tableName)
         let lowercasedColumns = Set(columns.map { $0.lowercased() })
+        
+        // Assume "rowid" is a primary key
+        if lowercasedColumns == ["rowid"] {
+            return ["rowid"]
+        }
+        
+        let primaryKey = try self.primaryKey(tableName)
         if Set(primaryKey.columns.map { $0.lowercased() }) == lowercasedColumns {
             return primaryKey.columns
         }

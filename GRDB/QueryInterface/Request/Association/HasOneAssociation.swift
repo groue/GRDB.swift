@@ -74,4 +74,31 @@ public struct HasOneAssociation<Origin: TableRecord, Destination: TableRecord>: 
     public init(sqlAssociation: SQLAssociation) {
         self.sqlAssociation = sqlAssociation
     }
+    
+    init(
+        key: String?,
+        using foreignKey: ForeignKey?)
+    {
+        let foreignKeyRequest = SQLForeignKeyRequest(
+            originTable: Destination.databaseTableName,
+            destinationTable: Origin.databaseTableName,
+            foreignKey: foreignKey)
+        
+        let condition = SQLAssociationCondition(
+            foreignKeyRequest: foreignKeyRequest,
+            originIsLeft: false)
+        
+        let associationKey: SQLAssociationKey
+        if let key = key {
+            associationKey = .fixedSingular(key)
+        } else {
+            associationKey = .inflected(Destination.databaseTableName)
+        }
+        
+        sqlAssociation = SQLAssociation(
+            key: associationKey,
+            condition: condition,
+            relation: Destination.all().relation,
+            cardinality: .toOne)
+    }
 }

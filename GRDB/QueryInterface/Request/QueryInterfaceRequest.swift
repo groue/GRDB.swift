@@ -223,15 +223,6 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: [Column("name")])
     public func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest {
-        // TODO: test consumption of
-        //
-        //      let author = TableAlias()
-        //      let request = Book
-        //          .annotated(with: [author[Column("name")]])
-        //          .joining(requireed: Book.author)
-        //
-        // The problem is the "author.name" column. Can we consume it as "name"?
-        // From raw rows? From copied rows?
         return mapQuery { $0.annotated(with: selection) }
     }
 }

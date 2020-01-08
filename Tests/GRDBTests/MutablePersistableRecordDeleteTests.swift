@@ -184,4 +184,120 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
             }
         }
     }
+    
+    func testJoinedRequestDelete() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            struct Player: MutablePersistableRecord {
+                static let team = belongsTo(Team.self)
+                func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
+            }
+            
+            struct Team: MutablePersistableRecord {
+                static let players = hasMany(Player.self)
+                func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
+            }
+            
+            try db.create(table: "team") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("teamId", .integer).references("team")
+            }
+            
+            do {
+                try Player.including(required: Player.team).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "player" WHERE rowid IN (\
+                    SELECT "player"."rowid" \
+                    FROM "player" \
+                    JOIN "team" ON "team"."id" = "player"."teamId")
+                    """)
+            }
+            do {
+                let alias = TableAlias(name: "p")
+                try Player.aliased(alias).including(required: Player.team).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "player" WHERE rowid IN (\
+                    SELECT "p"."rowid" \
+                    FROM "player" "p" \
+                    JOIN "team" ON "team"."id" = "p"."teamId")
+                    """)
+            }
+            do {
+                try Team.having(Team.players.isEmpty).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "team" WHERE rowid IN (\
+                    SELECT "team"."rowid" \
+                    FROM "team" \
+                    LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                    GROUP BY "team"."id" \
+                    HAVING COUNT(DISTINCT "player"."rowid") = 0)
+                    """)
+            }
+            do {
+                try Team.including(all: Team.players).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "team"
+                    """)
+            }
+        }
+    }
+    
+    func testGroupedRequestDelete() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            struct Player: MutablePersistableRecord {
+                func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
+            }
+            struct Passport: MutablePersistableRecord {
+                func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
+            }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("score", .integer)
+            }
+            try db.create(table: "passport") { t in
+                t.column("countryCode", .text).notNull()
+                t.column("citizenId", .integer).notNull()
+                t.primaryKey(["countryCode", "citizenId"])
+            }
+            do {
+                try Player.all().groupByPrimaryKey().deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "player" WHERE rowid IN (\
+                    SELECT "rowid" \
+                    FROM "player" \
+                    GROUP BY "id")
+                    """)
+            }
+            do {
+                try Player.all().group(Column.rowID).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "player" WHERE rowid IN (\
+                    SELECT "rowid" \
+                    FROM "player" \
+                    GROUP BY "rowid")
+                    """)
+            }
+            do {
+                try Passport.all().groupByPrimaryKey().deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "passport" WHERE rowid IN (\
+                    SELECT "rowid" \
+                    FROM "passport" \
+                    GROUP BY "countryCode", "citizenId")
+                    """)
+            }
+            do {
+                try Passport.all().group(Column.rowID).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    DELETE FROM "passport" WHERE rowid IN (\
+                    SELECT "rowid" \
+                    FROM "passport" \
+                    GROUP BY "rowid")
+                    """)
+            }
+        }
+    }
 }

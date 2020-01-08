@@ -20,7 +20,6 @@
 ## Features
 
 - [ ] Measure the duration of transactions 
-- [ ] Make deleteAll and updateAll work even for complex queries, with `DELETE FROM xxx WHERE rowid IN (SELECT rowid ...)`
 - [ ] Improve SQL generation for `Player.....fetchCount(db)`, especially with distinct. Try to avoid `SELECT COUNT(*) FROM (SELECT DISTINCT player.* ...)`
 - [ ] Alternative technique for custom SQLite builds: see the Podfile at https://github.com/CocoaPods/CocoaPods/issues/9104, and https://github.com/clemensg/sqlite3pod
 - [ ] Attach databases. Interesting question: what happens when one attaches a non-WAL db to a databasePool?

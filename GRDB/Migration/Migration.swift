@@ -53,32 +53,35 @@ struct Migration {
         // > PRAGMA foreign_keys=OFF.
         try db.execute(sql: "PRAGMA foreign_keys = OFF")
         
-        // > 2. Start a transaction.
-        try db.inTransaction(.immediate) {
-            try migrate(db)
-            try insertAppliedIdentifier(db)
-            
-            // > 10. If foreign key constraints were originally enabled then run PRAGMA
-            // > foreign_key_check to verify that the schema change did not break any foreign key
-            // > constraints.
-            if try Row.fetchOne(db, sql: "PRAGMA foreign_key_check") != nil {
-                // https://www.sqlite.org/pragma.html#pragma_foreign_key_check
-                //
-                // PRAGMA foreign_key_check does not return an error,
-                // but the list of violated foreign key constraints.
-                //
-                // Let's turn any violation into an SQLITE_CONSTRAINT
-                // error, and rollback the transaction.
-                throw DatabaseError(resultCode: .SQLITE_CONSTRAINT, message: "FOREIGN KEY constraint failed")
-            }
-            
-            // > 11. Commit the transaction started in step 2.
-            return .commit
-        }
-        
-        // TODO: we should restore foreign_keys in case of error as well
-        // > 12. If foreign keys constraints were originally enabled, reenable them now.
-        try db.execute(sql: "PRAGMA foreign_keys = ON")
+        try throwingFirstError(
+            execute: {
+                // > 2. Start a transaction.
+                try db.inTransaction(.immediate) {
+                    try migrate(db)
+                    try insertAppliedIdentifier(db)
+                    
+                    // > 10. If foreign key constraints were originally enabled then run PRAGMA
+                    // > foreign_key_check to verify that the schema change did not break any foreign key
+                    // > constraints.
+                    if try Row.fetchOne(db, sql: "PRAGMA foreign_key_check") != nil {
+                        // https://www.sqlite.org/pragma.html#pragma_foreign_key_check
+                        //
+                        // PRAGMA foreign_key_check does not return an error,
+                        // but the list of violated foreign key constraints.
+                        //
+                        // Let's turn any violation into an SQLITE_CONSTRAINT
+                        // error, and rollback the transaction.
+                        throw DatabaseError(resultCode: .SQLITE_CONSTRAINT, message: "FOREIGN KEY constraint failed")
+                    }
+                    
+                    // > 11. Commit the transaction started in step 2.
+                    return .commit
+                }
+        },
+            finally: {
+                // > 12. If foreign keys constraints were originally enabled, reenable them now.
+                try db.execute(sql: "PRAGMA foreign_keys = ON")
+        })
     }
     
     private func insertAppliedIdentifier(_ db: Database) throws {

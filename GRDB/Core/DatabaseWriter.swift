@@ -291,29 +291,25 @@ extension DatabaseWriter {
                 try db.execute(sql: "PRAGMA foreign_keys = OFF")
             }
             
-            // Remove all database objects, one after the other
-            do {
-                try db.inTransaction {
-                    let sql = "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
-                    while let row = try Row.fetchOne(db, sql: sql) {
-                        let type: String = row["type"]
-                        let name: String = row["name"]
-                        try db.execute(sql: "DROP \(type) \(name.quotedDatabaseIdentifier)")
+            try throwingFirstError(
+                execute: {
+                    // Remove all database objects, one after the other
+                    try db.inTransaction {
+                        let sql = "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
+                        while let row = try Row.fetchOne(db, sql: sql) {
+                            let type: String = row["type"]
+                            let name: String = row["name"]
+                            try db.execute(sql: "DROP \(type) \(name.quotedDatabaseIdentifier)")
+                        }
+                        return .commit
                     }
-                    return .commit
-                }
-                
-                // Restore foreign keys if needed
-                if foreignKeysEnabled {
-                    try db.execute(sql: "PRAGMA foreign_keys = ON")
-                }
-            } catch {
-                // Restore foreign keys if needed
-                if foreignKeysEnabled {
-                    try? db.execute(sql: "PRAGMA foreign_keys = ON")
-                }
-                throw error
-            }
+            },
+                finally: {
+                    // Restore foreign keys if needed
+                    if foreignKeysEnabled {
+                        try db.execute(sql: "PRAGMA foreign_keys = ON")
+                    }
+            })
         }
         #else
         try DatabaseQueue().backup(to: self)

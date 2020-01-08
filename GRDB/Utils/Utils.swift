@@ -122,3 +122,24 @@ extension Character {
     }
 }
 #endif
+
+/// Makes sure the `finally` function is executed even if `execute` throws, and
+/// rethrows the eventual first thrown error.
+///
+/// Usage:
+///
+///     try setup()
+///     try throwingFirstError(
+///         execute: work,
+///         finally: cleanup)
+@inline(__always)
+func throwingFirstError<T>(execute: () throws -> T, finally: () throws -> Void) throws -> T {
+    do {
+        let result = try execute()
+        try finally()
+        return result
+    } catch {
+        try? finally()
+        throw error
+    }
+}

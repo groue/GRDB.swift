@@ -13,6 +13,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 4.x Releases
 
+- `4.8.x` Releases - [4.7.0](#480)
 - `4.7.x` Releases - [4.7.0](#470)
 - `4.6.x` Releases - [4.6.0](#460) | [4.6.1](#461) | [4.6.2](#462)
 - `4.5.x` Releases - [4.5.0](#450)
@@ -63,6 +64,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 <!--
 ## Next Release
 -->
+
+
+## 4.8.0
+
+Released January 8, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.7.0...v4.8.0)
+
+**New**
+
+- [#676](https://github.com/groue/GRDB.swift/pull/676): More batch delete and update
 
 
 ## 4.7.0
