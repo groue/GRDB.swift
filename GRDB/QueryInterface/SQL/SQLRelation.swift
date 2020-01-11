@@ -376,7 +376,7 @@ extension SQLRelation {
     
     func filteringChildren(_ included: (Child) throws -> Bool) rethrows -> SQLRelation {
         var relation = self
-        try relation.children = relation.children.filter { try included($1) }
+        relation.children = try relation.children.filter { try included($1) }
         return relation
     }
 }
