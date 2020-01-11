@@ -55,7 +55,7 @@ public /* TODO: internal */ struct SQLAssociation {
     // All steps, from pivot to destination. Never empty.
     private(set) var steps: [SQLAssociationStep]
     var keyPath: [String] {
-        return steps.map { $0.key.name(for: $0.cardinality) }
+        return steps.map { $0.keyName }
     }
     
     var destination: SQLAssociationStep {
@@ -189,25 +189,27 @@ public /* TODO: internal */ struct SQLAssociation {
         //     through: Origin.hasMany(Pivot.self),
         //     via: Pivot.belongsTo(Destination.self))
         // Origin(id: 1).request(for: association)
-        let reversedSteps = zip(steps, steps.dropFirst())
-            .map { (step, nextStep) -> SQLAssociationStep in
-                // Intermediate steps are not included in the selection, and
-                // don't have any child.
-                let relation = step.relation.select([]).deletingChildren()
+        var filteredSteps = steps
+        filteredSteps[0] = pivot.mapRelation { _ in filteredPivotRelation }
+        let reversedSteps = zip(filteredSteps, filteredSteps.dropFirst())
+            .map({ (step, nextStep) -> SQLAssociationStep in
+                // Intermediate steps are not selected, and including(all:)
+                // children are useless:
+                let relation = step.relation
+                    .selectOnly([])
+                    .filteringChildren { $0.kind.cardinality == .toOne }
+                
+                // Don't interfere with user-defined keys that could be added later
+                let key = step.key.mapName { "grdb_\($0)" }
+                
                 return SQLAssociationStep(
-                    key: step.key,
+                    key: key,
                     condition: nextStep.condition.reversed,
                     relation: relation,
-                    cardinality: step.cardinality)
-            }
+                    cardinality: .toOne)
+            })
             .reversed()
-        
-        var reversedAssociation = SQLAssociation(steps: Array(reversedSteps))
-        // Replace pivot with the filtered one (not included in the selection,
-        // without children).
-        reversedAssociation = reversedAssociation.mapDestinationRelation { _ in
-            filteredPivotRelation.select([]).deletingChildren()
-        }
+        let reversedAssociation = SQLAssociation(steps: Array(reversedSteps))
         return destination.relation.appendingChild(for: reversedAssociation, kind: .oneRequired)
     }
 }
@@ -218,6 +220,10 @@ struct SQLAssociationStep {
     var relation: SQLRelation
     var cardinality: SQLAssociationCardinality
     
+    var keyName: String {
+        return key.name(for: cardinality)
+    }
+
     func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLAssociationStep {
         return SQLAssociationStep(
             key: key,
@@ -348,6 +354,19 @@ enum SQLAssociationKey {
             return name.singularized
         case .fixed(let name):
             return name
+        }
+    }
+    
+    func mapName(_ transform: (String) throws -> String) rethrows -> SQLAssociationKey {
+        switch self {
+        case .inflected(let name):
+            return try .inflected(transform(name))
+        case .fixedSingular(let name):
+            return try .fixedSingular(transform(name))
+        case .fixedPlural(let name):
+            return try .fixedPlural(transform(name))
+        case .fixed(let name):
+            return try .fixed(transform(name))
         }
     }
 }
