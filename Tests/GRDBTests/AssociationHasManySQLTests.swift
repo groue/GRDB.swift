@@ -765,7 +765,7 @@ class AssociationHasManySQLTests: GRDBTestCase {
         }
     }
     
-    func testJoinedAssociation() throws {
+    func testAssociationFilteredByOtherAssociation() throws {
         struct Toy: TableRecord { }
         struct Child: TableRecord {
             static let toy = hasOne(Toy.self)

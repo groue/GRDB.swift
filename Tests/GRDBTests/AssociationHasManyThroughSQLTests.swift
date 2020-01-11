@@ -314,7 +314,7 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
         }
     }
     
-    func testJoinedAssociation() throws {
+    func testAssociationFilteredByOtherAssociation() throws {
         struct Pet: TableRecord {
             static let child = belongsTo(Child.self)
         }
