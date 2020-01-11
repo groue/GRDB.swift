@@ -17,6 +17,12 @@ struct OrderedDictionary<Key: Hashable, Value> {
         return keys.map { dictionary[$0]! }
     }
     
+    private init(keys: [Key], dictionary: [Key: Value]) {
+        assert(Set(keys) == Set(dictionary.keys))
+        self.keys = keys
+        self.dictionary = dictionary
+    }
+    
     /// Creates an empty ordered dictionary.
     init() {
         keys = []
@@ -107,6 +113,12 @@ struct OrderedDictionary<Key: Hashable, Value> {
                 dict.appendValue(value, forKey: pair.key)
             }
         }
+    }
+    
+    func filter(_ isIncluded: ((key: Key, value: Value)) throws -> Bool) rethrows -> OrderedDictionary<Key, Value> {
+        let dictionary = try self.dictionary.filter(isIncluded)
+        let keys = self.keys.filter(dictionary.keys.contains)
+        return OrderedDictionary(keys: keys, dictionary: dictionary)
     }
 }
 
