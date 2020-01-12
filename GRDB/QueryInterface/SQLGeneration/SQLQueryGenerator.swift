@@ -34,7 +34,7 @@ struct SQLQueryGenerator {
         //
         // This turns `GROUP BY id` INTO `GROUP BY book.id`, and
         // `HAVING MAX(year) < 2000` INTO `HAVING MAX(book.year) < 2000`.
-        let alias = relation.alias
+        let alias = relation.sourceAlias
         groupPromise = query.groupPromise?.map { $0.map { $0.qualifiedExpression(with: alias) } }
         havingExpressions = query.havingExpressions.map { $0.qualifiedExpression(with: alias) }
         
@@ -59,7 +59,7 @@ struct SQLQueryGenerator {
         
         for (_, join) in relation.joins {
             sql += " "
-            sql += try join.sql(db, &context, leftAlias: relation.alias)
+            sql += try join.sql(db, &context, leftAlias: relation.sourceAlias)
         }
         
         let filters = try relation.filtersPromise.resolve(db)
@@ -421,7 +421,7 @@ struct SQLQueryGenerator {
 ///            • selection
 private struct SQLQualifiedRelation {
     /// The source alias
-    var alias: TableAlias { return source.alias }
+    var sourceAlias: TableAlias { return source.alias }
     
     /// All aliases, including aliases of joined relations
     var allAliases: [TableAlias] {
@@ -486,7 +486,7 @@ private struct SQLQualifiedRelation {
         // SQLGenerationContext, when the SQLSelectQueryGenerator which owns
         // this SQLQualifiedRelation generates SQL.
         source = SQLQualifiedSource(relation.source)
-        let alias = source.alias
+        let sourceAlias = source.alias
         
         // Qualify all joins, selection, filter, and ordering, so that all
         // identifiers can be correctly disambiguated and qualified.
@@ -507,9 +507,9 @@ private struct SQLQualifiedRelation {
                 condition: child.condition,
                 relation: SQLQualifiedRelation(child.relation))
         }
-        sourceSelection = relation.selection.map { $0.qualifiedSelectable(with: alias) }
-        filtersPromise = relation.filtersPromise.map { $0.map { $0.qualifiedExpression(with: alias) } }
-        sourceOrdering = relation.ordering.qualified(with: alias)
+        sourceSelection = relation.selection.map { $0.qualifiedSelectable(with: sourceAlias) }
+        filtersPromise = relation.filtersPromise.map { $0.map { $0.qualifiedExpression(with: sourceAlias) } }
+        sourceOrdering = relation.ordering.qualified(with: sourceAlias)
     }
     
     /// See SQLQueryGenerator.rowAdapter(_:)
@@ -575,7 +575,7 @@ private struct SQLQualifiedRelation {
     /// Removes all selections from joins
     func selectOnly(_ selection: [SQLSelectable]) -> SQLQualifiedRelation {
         var relation = self
-        relation.sourceSelection = selection.map { $0.qualifiedSelectable(with: alias) }
+        relation.sourceSelection = selection.map { $0.qualifiedSelectable(with: sourceAlias) }
         relation.joins = relation.joins.mapValues { $0.selectOnly([]) }
         return relation
     }
@@ -591,7 +591,7 @@ private enum SQLQualifiedSource {
         case .table(_, let alias):
             return alias
         case .query(let query):
-            return query.relation.alias
+            return query.relation.sourceAlias
         }
     }
     
@@ -676,7 +676,7 @@ private struct SQLQualifiedJoin {
         }
         sql += try "\(kind.rawValue) \(relation.source.sql(db, &context))"
         
-        let rightAlias = relation.alias
+        let rightAlias = relation.sourceAlias
         let filters = try condition.expressions(db, leftAlias: leftAlias, rightAlias: rightAlias)
             + relation.filtersPromise.resolve(db)
         if filters.isEmpty == false {

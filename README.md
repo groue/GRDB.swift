@@ -12,14 +12,14 @@
 
 ---
 
-**Latest release**: January 8, 2020 • version 4.8.0 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 3 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
+**Latest release**: January 12, 2020 • version 4.8.1 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 3 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
 
 **Requirements**: iOS 9.0+ / macOS 10.9+ / tvOS 9.0+ / watchOS 2.0+ &bull; Swift 4.2+ / Xcode 10.0+
 
 | Swift version | GRDB version                                                |
 | ------------- | ----------------------------------------------------------- |
-| **Swift 5**   | **v4.8.0**                                                  |
-| **Swift 4.2** | **v4.8.0**                                                  |
+| **Swift 5**   | **v4.8.1**                                                  |
+| **Swift 4.2** | **v4.8.1**                                                  |
 | Swift 4.1     | [v3.7.0](https://github.com/groue/GRDB.swift/tree/v3.7.0)   |
 | Swift 4       | [v2.10.0](https://github.com/groue/GRDB.swift/tree/v2.10.0) |
 | Swift 3.2     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |

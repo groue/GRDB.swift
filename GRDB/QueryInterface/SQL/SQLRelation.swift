@@ -167,8 +167,14 @@ struct SQLRelation {
             case .allPrefetched:
                 return [child.makeAssociationForKey(key)]
             case .oneOptional, .oneRequired, .allNotPrefetched:
-                return child.relation.prefetchedAssociations.map {
-                    $0.through(child.makeAssociationForKey(key))
+                return child.relation.prefetchedAssociations.map { association in
+                    // Remove redundant pivot child
+                    let pivotKey = association.pivot.keyName
+                    let child = child.mapRelation { relation in
+                        assert(relation.children[pivotKey] != nil)
+                        return relation.removingChild(forKey: pivotKey)
+                    }
+                    return association.through(child.makeAssociationForKey(key))
                 }
             }
         }
@@ -193,6 +199,14 @@ extension SQLRelation {
     func select(_ selection: [SQLSelectable]) -> SQLRelation {
         var relation = self
         relation.selection = selection
+        return relation
+    }
+    
+    /// Removes all selections from chidren
+    func selectOnly(_ selection: [SQLSelectable]) -> SQLRelation {
+        var relation = self
+        relation.selection = selection
+        relation.children = relation.children.mapValues { $0.mapRelation { $0.selectOnly([]) } }
         return relation
     }
     
@@ -239,12 +253,6 @@ extension SQLRelation {
 }
 
 extension SQLRelation {
-    func deletingChildren() -> SQLRelation {
-        var relation = self
-        relation.children = [:]
-        return relation
-    }
-    
     /// Returns a relation extended with an association.
     ///
     /// This method provides support for public joining methods such
@@ -357,6 +365,18 @@ extension SQLRelation {
         } else {
             relation.children.appendValue(child, forKey: key)
         }
+        return relation
+    }
+    
+    func removingChild(forKey key: String) -> SQLRelation {
+        var relation = self
+        relation.children.removeValue(forKey: key)
+        return relation
+    }
+    
+    func filteringChildren(_ included: (Child) throws -> Bool) rethrows -> SQLRelation {
+        var relation = self
+        relation.children = try relation.children.filter { try included($1) }
         return relation
     }
 }
@@ -616,16 +636,16 @@ struct SQLAssociationCondition: Equatable {
             // Join on a multiple columns.
             // ((table.a = 1) AND (table.b = 2)) OR ((table.a = 3) AND (table.b = 4)) ...
             return leftRows
-                .map { leftRow in
+                .map({ leftRow in
                     // (table.a = 1) AND (table.b = 2)
                     columnMappings
-                        .map { columns -> SQLExpression in
+                        .map({ columns -> SQLExpression in
                             let rightColumn = QualifiedColumn(columns.right, alias: rightAlias)
                             let leftValue = leftRow[columns.left] as DatabaseValue
                             return rightColumn == leftValue
-                        }
+                        })
                         .joined(operator: .and)
-                }
+                })
                 .joined(operator: .or)
         }
     }
