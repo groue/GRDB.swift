@@ -313,4 +313,125 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
                 """)
         }
     }
+    
+    func testAssociationFilteredByOtherAssociation() throws {
+        struct Pet: TableRecord {
+            static let child = belongsTo(Child.self)
+        }
+        struct Toy: TableRecord { }
+        struct Child: TableRecord {
+            static let toy = hasOne(Toy.self)
+            static let pets = hasMany(Pet.self)
+        }
+        struct Parent: TableRecord, EncodableRecord {
+            static let children = hasMany(Child.self)
+            func encode(to container: inout PersistenceContainer) {
+                container["id"] = 1
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "parent") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "child") { t in
+                t.column("parentId", .integer).references("parent")
+            }
+            try db.create(table: "toy") { t in
+                t.column("childId", .integer).references("child")
+            }
+            try db.create(table: "pet") { t in
+                t.column("childId", .integer).references("child")
+            }
+        }
+        
+        try dbQueue.inDatabase { db in
+            do {
+                let association = Parent.hasMany(
+                    Pet.self,
+                    through: Parent.children.joining(required: Child.toy),
+                    using: Child.pets)
+                try assertEqualSQL(db, Parent.all().including(required: association), """
+                    SELECT "parent".*, "pet".* \
+                    FROM "parent" \
+                    JOIN "child" ON "child"."parentId" = "parent"."id" \
+                    JOIN "toy" ON "toy"."childId" = "child"."rowid" \
+                    JOIN "pet" ON "pet"."childId" = "child"."rowid"
+                    """)
+                try assertEqualSQL(db, Parent.all().joining(required: association), """
+                    SELECT "parent".* \
+                    FROM "parent" \
+                    JOIN "child" ON "child"."parentId" = "parent"."id" \
+                    JOIN "toy" ON "toy"."childId" = "child"."rowid" \
+                    JOIN "pet" ON "pet"."childId" = "child"."rowid"
+                    """)
+                try assertEqualSQL(db, Parent().request(for: association), """
+                    SELECT "pet".* \
+                    FROM "pet" \
+                    JOIN "child" ON ("child"."rowid" = "pet"."childId") AND ("child"."parentId" = 1) \
+                    JOIN "toy" ON "toy"."childId" = "child"."rowid"
+                    """)
+            }
+            do {
+                let association = Parent.hasMany(
+                    Pet.self,
+                    through: Parent.children.filter(sql: "1 + 1"),
+                    using: Child.pets.joining(required: Pet.child.filter(sql: "1").joining(required: Child.toy)))
+                try assertEqualSQL(db, Parent.all().including(required: association), """
+                    SELECT "parent".*, "pet".* \
+                    FROM "parent" \
+                    JOIN "child" "child1" ON ("child1"."parentId" = "parent"."id") AND (1 + 1) \
+                    JOIN "pet" ON "pet"."childId" = "child1"."rowid" \
+                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child2"."rowid"
+                    """)
+                try assertEqualSQL(db, Parent.all().joining(required: association), """
+                    SELECT "parent".* \
+                    FROM "parent" \
+                    JOIN "child" "child1" ON ("child1"."parentId" = "parent"."id") AND (1 + 1) \
+                    JOIN "pet" ON "pet"."childId" = "child1"."rowid" \
+                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child2"."rowid"
+                    """)
+                try assertEqualSQL(db, Parent().request(for: association), """
+                    SELECT "pet".* \
+                    FROM "pet" \
+                    JOIN "child" "child1" ON ("child1"."rowid" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child1"."rowid" \
+                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1 + 1) AND ("child2"."parentId" = 1)
+                    """)
+            }
+            do {
+                let association = Parent.hasMany(
+                    Pet.self,
+                    through: Parent.children.filter(sql: "1 + 1"),
+                    using: Child.pets)
+                    .joining(required: Pet.child.filter(sql: "1").joining(required: Child.toy))
+                try assertEqualSQL(db, Parent.all().including(required: association), """
+                    SELECT "parent".*, "pet".* \
+                    FROM "parent" \
+                    JOIN "child" "child1" ON ("child1"."parentId" = "parent"."id") AND (1 + 1) \
+                    JOIN "pet" ON "pet"."childId" = "child1"."rowid" \
+                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child2"."rowid"
+                    """)
+                try assertEqualSQL(db, Parent.all().joining(required: association), """
+                    SELECT "parent".* \
+                    FROM "parent" \
+                    JOIN "child" "child1" ON ("child1"."parentId" = "parent"."id") AND (1 + 1) \
+                    JOIN "pet" ON "pet"."childId" = "child1"."rowid" \
+                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child2"."rowid"
+                    """)
+                try assertEqualSQL(db, Parent().request(for: association), """
+                    SELECT "pet".* \
+                    FROM "pet" \
+                    JOIN "child" "child1" ON ("child1"."rowid" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child1"."rowid" \
+                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1 + 1) AND ("child2"."parentId" = 1)
+                    """)
+            }
+        }
+    }
 }

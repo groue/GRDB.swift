@@ -1537,4 +1537,39 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
             }
         }
     }
+    
+    func testAssociationFilteredByOtherAssociation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            // Plain request
+            do {
+                let request = A
+                    .including(all: A
+                        .hasMany(
+                            D.self,
+                            through: A.hasMany(C.self)
+                                .joining(required: C.belongsTo(A.self).filter(sql: "1")),
+                            using: C.hasMany(D.self))
+                        .orderByPrimaryKey())
+                    .filter(sql: "1 + 1")
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" WHERE 1 + 1 ORDER BY "cola1"
+                    """,
+                    """
+                    SELECT "d".*, "c"."colc2" AS "grdb_colc2" \
+                    FROM "d" \
+                    JOIN "c" ON ("c"."colc1" = "d"."cold2") AND ("c"."colc2" IN (1, 2, 3)) \
+                    JOIN "a" ON ("a"."cola1" = "c"."colc2") AND (1) \
+                    ORDER BY "d"."cold1"
+                    """])
+            }
+        }
+    }
 }

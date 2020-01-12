@@ -764,4 +764,75 @@ class AssociationHasManySQLTests: GRDBTestCase {
             }
         }
     }
+    
+    func testAssociationFilteredByOtherAssociation() throws {
+        struct Toy: TableRecord { }
+        struct Child: TableRecord {
+            static let toy = hasOne(Toy.self)
+            static let parent = belongsTo(Parent.self)
+        }
+        struct Parent: TableRecord, EncodableRecord {
+            static let children = hasMany(Child.self)
+            func encode(to container: inout PersistenceContainer) {
+                container["id"] = 1
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "parent") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "child") { t in
+                t.column("parentId", .integer).references("parent")
+            }
+            try db.create(table: "toy") { t in
+                t.column("childId", .integer).references("child")
+            }
+        }
+        
+        try dbQueue.inDatabase { db in
+            do {
+                let association = Parent.children.joining(required: Child.toy)
+                try assertEqualSQL(db, Parent.all().including(required: association), """
+                    SELECT "parent".*, "child".* \
+                    FROM "parent" JOIN "child" ON "child"."parentId" = "parent"."id" \
+                    JOIN "toy" ON "toy"."childId" = "child"."rowid"
+                    """)
+                try assertEqualSQL(db, Parent.all().joining(required: association), """
+                    SELECT "parent".* FROM "parent" \
+                    JOIN "child" ON "child"."parentId" = "parent"."id" \
+                    JOIN "toy" ON "toy"."childId" = "child"."rowid"
+                    """)
+                try assertEqualSQL(db, Parent().request(for: association), """
+                    SELECT "child".* \
+                    FROM "child" \
+                    JOIN "toy" ON "toy"."childId" = "child"."rowid" \
+                    WHERE "child"."parentId" = 1
+                    """)
+            }
+            do {
+                // not a realistic use case, but testable anyway
+                let association = Parent.children.joining(required: Child.parent)
+                try assertEqualSQL(db, Parent.all().including(required: association), """
+                    SELECT "parent1".*, "child".* \
+                    FROM "parent" "parent1" \
+                    JOIN "child" ON "child"."parentId" = "parent1"."id" \
+                    JOIN "parent" "parent2" ON "parent2"."id" = "child"."parentId"
+                    """)
+                try assertEqualSQL(db, Parent.all().joining(required: association), """
+                    SELECT "parent1".* \
+                    FROM "parent" "parent1" \
+                    JOIN "child" ON "child"."parentId" = "parent1"."id" \
+                    JOIN "parent" "parent2" ON "parent2"."id" = "child"."parentId"
+                    """)
+                try assertEqualSQL(db, Parent().request(for: association), """
+                    SELECT "child".* \
+                    FROM "child" \
+                    JOIN "parent" ON "parent"."id" = "child"."parentId" \
+                    WHERE "child"."parentId" = 1
+                    """)
+            }
+        }
+    }
 }
