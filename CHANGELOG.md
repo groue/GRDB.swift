@@ -6,12 +6,14 @@ All notable changes to this project will be documented in this file.
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
 
+<!--
 [Next Release](#next-release)
+-->
 
 
 #### 4.x Releases
 
-- `4.8.x` Releases - [4.8.0](#480)
+- `4.8.x` Releases - [4.8.0](#480) | [4.8.1](#481)
 - `4.7.x` Releases - [4.7.0](#470)
 - `4.6.x` Releases - [4.6.0](#460) | [4.6.1](#461) | [4.6.2](#462)
 - `4.5.x` Releases - [4.5.0](#450)
@@ -59,7 +61,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 
+<!--
 ## Next Release
+-->
+
+
+## 4.8.1
+
+Released January 12, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.8.0...v4.8.1)
 
 **Fixed**
 
@@ -2070,7 +2079,7 @@ Released September 17, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/co
 **Fixed**: restored support for Swift Package Manager
 
 
-## 2.0
+## 2.0.0
 
 Released September 16, 2017 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v1.3.0...v2.0)
 
