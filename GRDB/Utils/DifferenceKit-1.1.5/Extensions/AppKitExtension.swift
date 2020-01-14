@@ -1,12 +1,13 @@
 #if os(macOS)
 import AppKit
 
-public extension NSTableView {
+extension NSTableView {
     /// Applies multiple animated updates in stages using `StagedChangeset`.
     ///
     /// - Note: There are combination of changes that crash when applied simultaneously in `performBatchUpdates`.
     ///         Assumes that `StagedChangeset` has a minimum staged changesets to avoid it.
-    ///         The data of the data-source needs to be updated synchronously before `performBatchUpdates` in every stages.
+    ///         The data of the data-source needs to be updated synchronously before
+    ///         `performBatchUpdates` in every stages.
     ///
     /// - Parameters:
     ///   - stagedChangeset: A staged set of changes.
@@ -16,7 +17,7 @@ public extension NSTableView {
     ///   - setData: A closure that takes the collection as a parameter.
     ///              The collection should be set to data-source of NSTableView.
 
-    func reload<C>(
+    public func reload<C>(
         using stagedChangeset: StagedChangeset<C>,
         with animation: @autoclosure () -> NSTableView.AnimationOptions,
         interrupt: ((Changeset<C>) -> Bool)? = nil,
@@ -36,7 +37,8 @@ public extension NSTableView {
     ///
     /// - Note: There are combination of changes that crash when applied simultaneously in `performBatchUpdates`.
     ///         Assumes that `StagedChangeset` has a minimum staged changesets to avoid it.
-    ///         The data of the data-source needs to be updated synchronously before `performBatchUpdates` in every stages.
+    ///         The data of the data-source needs to be updated synchronously before
+    ///         `performBatchUpdates` in every stages.
     ///
     /// - Parameters:
     ///   - stagedChangeset: A staged set of changes.
@@ -70,15 +72,18 @@ public extension NSTableView {
             setData(changeset.data)
 
             if !changeset.elementDeleted.isEmpty {
-                removeRows(at: IndexSet(changeset.elementDeleted.map { $0.element }), withAnimation: deleteRowsAnimation())
+                removeRows(at: IndexSet(changeset.elementDeleted.map { $0.element }),
+                           withAnimation: deleteRowsAnimation())
             }
 
             if !changeset.elementInserted.isEmpty {
-                insertRows(at: IndexSet(changeset.elementInserted.map { $0.element }), withAnimation: insertRowsAnimation())
+                insertRows(at: IndexSet(changeset.elementInserted.map { $0.element }),
+                           withAnimation: insertRowsAnimation())
             }
 
             if !changeset.elementUpdated.isEmpty {
-                reloadData(forRowIndexes: IndexSet(changeset.elementUpdated.map { $0.element }), columnIndexes: IndexSet(changeset.elementUpdated.map { $0.section }))
+                reloadData(forRowIndexes: IndexSet(changeset.elementUpdated.map { $0.element }),
+                           columnIndexes: IndexSet(changeset.elementUpdated.map { $0.section }))
             }
 
             for (source, target) in changeset.elementMoved {
@@ -91,12 +96,13 @@ public extension NSTableView {
 }
 
 @available(macOS 10.11, *)
-public extension NSCollectionView {
+extension NSCollectionView {
     /// Applies multiple animated updates in stages using `StagedChangeset`.
     ///
     /// - Note: There are combination of changes that crash when applied simultaneously in `performBatchUpdates`.
     ///         Assumes that `StagedChangeset` has a minimum staged changesets to avoid it.
-    ///         The data of the data-source needs to be updated synchronously before `performBatchUpdates` in every stages.
+    ///         The data of the data-source needs to be updated synchronously before
+    ///          `performBatchUpdates` in every stages.
     ///
     /// - Parameters:
     ///   - stagedChangeset: A staged set of changes.
@@ -104,7 +110,7 @@ public extension NSCollectionView {
     ///                updates should be stopped and performed reloadData. Default is nil.
     ///   - setData: A closure that takes the collection as a parameter.
     ///              The collection should be set to data-source of NSCollectionView.
-    func reload<C>(
+    public  func reload<C>(
         using stagedChangeset: StagedChangeset<C>,
         interrupt: ((Changeset<C>) -> Bool)? = nil,
         setData: (C) -> Void
@@ -124,19 +130,23 @@ public extension NSCollectionView {
                 setData(changeset.data)
 
                 if !changeset.elementDeleted.isEmpty {
-                    deleteItems(at: Set(changeset.elementDeleted.map { IndexPath(item: $0.element, section: $0.section) }))
+                    deleteItems(at: Set(changeset.elementDeleted.map { IndexPath(item: $0.element,
+                                                                                 section: $0.section) }))
                 }
 
                 if !changeset.elementInserted.isEmpty {
-                    insertItems(at: Set(changeset.elementInserted.map { IndexPath(item: $0.element, section: $0.section) }))
+                    insertItems(at: Set(changeset.elementInserted.map { IndexPath(item: $0.element,
+                                                                                  section: $0.section) }))
                 }
 
                 if !changeset.elementUpdated.isEmpty {
-                    reloadItems(at: Set(changeset.elementUpdated.map { IndexPath(item: $0.element, section: $0.section) }))
+                    reloadItems(at: Set(changeset.elementUpdated.map { IndexPath(item: $0.element,
+                                                                                 section: $0.section) }))
                 }
 
                 for (source, target) in changeset.elementMoved {
-                    moveItem(at: IndexPath(item: source.element, section: source.section), to: IndexPath(item: target.element, section: target.section))
+                    moveItem(at: IndexPath(item: source.element, section: source.section),
+                             to: IndexPath(item: target.element, section: target.section))
                 }
             })
         }

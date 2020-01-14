@@ -9,8 +9,7 @@ public struct ArraySection<Model: Differentiable, Element: Differentiable>: Diff
     public var elements: [Element]
 
     /// An identifier value that of model for difference calculation.
-    @inlinable
-    public var differenceIdentifier: Model.DifferenceIdentifier {
+    @inlinable public var differenceIdentifier: Model.DifferenceIdentifier {
         return model.differenceIdentifier
     }
 

@@ -30,8 +30,7 @@
 ///     let changeset = StagedChangeset(source: sectionedSource, target: sectionedTarget)
 ///     print(changeset.isEmpty)  // prints "false"
 public struct StagedChangeset<Collection: Swift.Collection> {
-    @usableFromInline
-    internal var changesets: ContiguousArray<Changeset<Collection>>
+    @usableFromInline internal var changesets: ContiguousArray<Changeset<Collection>>
 
     /// Creates a new `StagedChangeset`.
     ///
@@ -50,13 +49,11 @@ extension StagedChangeset: RandomAccessCollection, RangeReplaceableCollection, M
         self.init([])
     }
 
-    @inlinable
-    public var startIndex: Int {
+    @inlinable public var startIndex: Int {
         return changesets.startIndex
     }
 
-    @inlinable
-    public var endIndex: Int {
+    @inlinable public var endIndex: Int {
         return changesets.endIndex
     }
 
@@ -72,7 +69,9 @@ extension StagedChangeset: RandomAccessCollection, RangeReplaceableCollection, M
     }
 
     @inlinable
-    public mutating func replaceSubrange<C: Swift.Collection, R: RangeExpression>(_ subrange: R, with newElements: C) where C.Element == Changeset<Collection>, R.Bound == Int {
+    public mutating func replaceSubrange<C: Swift.Collection, R: RangeExpression>(_ subrange: R,
+                                                                                  with newElements: C)
+        where C.Element == Changeset<Collection>, R.Bound == Int {
         changesets.replaceSubrange(subrange, with: newElements)
     }
 }
@@ -95,6 +94,7 @@ extension StagedChangeset: CustomDebugStringConvertible {
     public var debugDescription: String {
         guard !isEmpty else { return "[]" }
 
+        // swiftlint:disable:next line_length
         return "[\n\(map { "    \($0.debugDescription.split(separator: "\n").joined(separator: "\n    "))" }.joined(separator: ",\n"))\n]"
     }
 }

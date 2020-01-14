@@ -61,10 +61,9 @@ public struct Changeset<Collection: Swift.Collection> {
     }
 }
 
-public extension Changeset {
+extension Changeset {
     /// The number of section changes.
-    @inlinable
-    var sectionChangeCount: Int {
+    @inlinable public var sectionChangeCount: Int {
         return sectionDeleted.count
             + sectionInserted.count
             + sectionUpdated.count
@@ -72,8 +71,7 @@ public extension Changeset {
     }
 
     /// The number of element changes.
-    @inlinable
-    var elementChangeCount: Int {
+    @inlinable public var elementChangeCount: Int {
         return elementDeleted.count
             + elementInserted.count
             + elementUpdated.count
@@ -81,41 +79,65 @@ public extension Changeset {
     }
 
     /// The number of all changes.
-    @inlinable
-    var changeCount: Int {
+    @inlinable public var changeCount: Int {
         return sectionChangeCount + elementChangeCount
     }
 
     /// A Boolean value indicating whether has section changes.
-    @inlinable
-    var hasSectionChanges: Bool {
+    @inlinable public var hasSectionChanges: Bool {
         return sectionChangeCount > 0
     }
 
     /// A Boolean value indicating whether has element changes.
-    @inlinable
-    var hasElementChanges: Bool {
+    @inlinable public var hasElementChanges: Bool {
         return elementChangeCount > 0
     }
 
     /// A Boolean value indicating whether has changes.
-    @inlinable
-    var hasChanges: Bool {
+    @inlinable public var hasChanges: Bool {
         return changeCount > 0
     }
 }
 
 extension Changeset: Equatable where Collection: Equatable {
     public static func == (lhs: Changeset, rhs: Changeset) -> Bool {
-        return lhs.data == rhs.data
-            && Set(lhs.sectionDeleted) == Set(rhs.sectionDeleted)
-            && Set(lhs.sectionInserted) == Set(rhs.sectionInserted)
-            && Set(lhs.sectionUpdated) == Set(rhs.sectionUpdated)
-            && Set(lhs.sectionMoved.map(HashablePair.init)) == Set(rhs.sectionMoved.map(HashablePair.init))
-            && Set(lhs.elementDeleted) == Set(rhs.elementDeleted)
-            && Set(lhs.elementInserted) == Set(rhs.elementInserted)
-            && Set(lhs.elementUpdated) == Set(rhs.elementUpdated)
-            && Set(lhs.elementMoved.map(HashablePair.init)) == Set(rhs.elementMoved.map(HashablePair.init))
+        let a = lhs.data == rhs.data
+        if !a {
+            return false
+        }
+        let b = Set(lhs.sectionDeleted) == Set(rhs.sectionDeleted)
+        if !b {
+            return false
+        }
+        let c = Set(lhs.sectionInserted) == Set(rhs.sectionInserted)
+        if !c {
+            return false
+        }
+        let d = Set(lhs.sectionUpdated) == Set(rhs.sectionUpdated)
+        if !d {
+            return false
+        }
+        let e = Set(lhs.sectionMoved.map(HashablePair.init)) == Set(rhs.sectionMoved.map(HashablePair.init))
+        if !e {
+            return false
+        }
+        let f = Set(lhs.elementDeleted) == Set(rhs.elementDeleted)
+        if !f {
+            return false
+        }
+        let g = Set(lhs.elementInserted) == Set(rhs.elementInserted)
+        if !g {
+            return false
+        }
+        let h = Set(lhs.elementUpdated) == Set(rhs.elementUpdated)
+        if !h {
+            return false
+        }
+        let i = Set(lhs.elementMoved.map(HashablePair.init)) == Set(rhs.elementMoved.map(HashablePair.init))
+        if !i {
+            return false
+        }
+        return true
     }
 }
 
@@ -129,6 +151,7 @@ extension Changeset: CustomDebugStringConvertible {
             """
         }
 
+        // swiftlint:disable line_length
         var description = """
         Changeset(
             data: \(data.isEmpty ? "[]" : "[\n        \(data.map { "\($0)" }.joined(separator: ",\n").split(separator: "\n").joined(separator: "\n        "))\n    ]")

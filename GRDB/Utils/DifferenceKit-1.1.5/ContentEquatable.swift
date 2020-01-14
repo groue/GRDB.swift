@@ -11,7 +11,7 @@ public protocol ContentEquatable {
     func isContentEqual(to source: Self) -> Bool
 }
 
-public extension ContentEquatable where Self: Equatable {
+extension ContentEquatable where Self: Equatable {
     /// Indicate whether the content of `self` is equals to the content of the given source value.
     /// Compared using `==` operator of `Equatable'.
     ///
@@ -21,7 +21,7 @@ public extension ContentEquatable where Self: Equatable {
     /// - Returns: A Boolean value indicating whether the content of `self` is equals
     ///            to the content of the given source value.
     @inlinable
-    func isContentEqual(to source: Self) -> Bool {
+    public func isContentEqual(to source: Self) -> Bool {
         return self == source
     }
 }

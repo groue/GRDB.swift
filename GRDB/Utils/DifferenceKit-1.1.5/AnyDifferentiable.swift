@@ -24,19 +24,16 @@
 ///     print(changeset.isEmpty)  // prints "false"
 public struct AnyDifferentiable: Differentiable {
     /// The value wrapped by this instance.
-    @inlinable
-    public var base: Any {
+    @inlinable public var base: Any {
         return box.base
     }
 
     /// A type-erased identifier value for difference calculation.
-    @inlinable
-    public var differenceIdentifier: AnyHashable {
+    @inlinable public var differenceIdentifier: AnyHashable {
         return box.differenceIdentifier
     }
 
-    @usableFromInline
-    internal let box: AnyDifferentiableBox
+    @usableFromInline internal let box: AnyDifferentiableBox
 
     /// Creates a type-erased differentiable value that wraps the given instance.
     ///
@@ -45,8 +42,7 @@ public struct AnyDifferentiable: Differentiable {
     public init<D: Differentiable>(_ base: D) {
         if let anyDifferentiable = base as? AnyDifferentiable {
             self = anyDifferentiable
-        }
-        else {
+        } else {
             box = DifferentiableBox(base)
         }
     }
@@ -80,16 +76,13 @@ internal protocol AnyDifferentiableBox {
 
 @usableFromInline
 internal struct DifferentiableBox<Base: Differentiable>: AnyDifferentiableBox {
-    @usableFromInline
-    internal let baseComponent: Base
+    @usableFromInline internal let baseComponent: Base
 
-    @inlinable
-    internal var base: Any {
+    @inlinable internal var base: Any {
         return baseComponent
     }
 
-    @inlinable
-    internal var differenceIdentifier: AnyHashable {
+    @inlinable internal var differenceIdentifier: AnyHashable {
         return baseComponent.differenceIdentifier
     }
 
