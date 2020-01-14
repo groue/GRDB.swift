@@ -43,12 +43,14 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
         arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil,
         queue: DispatchQueue = .main,
+        sectionColumn: ColumnExpression? = nil,
         isSameRecord: ((Record, Record) -> Bool)? = nil) throws
     {
         try self.init(
             databaseWriter,
             request: SQLRequest<Record>(sql: sql, arguments: arguments, adapter: adapter),
             queue: queue,
+            sectionColumn: sectionColumn,
             isSameRecord: isSameRecord)
     }
     
@@ -78,6 +80,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
         _ databaseWriter: DatabaseWriter,
         request: Request,
         queue: DispatchQueue = .main,
+        sectionColumn: ColumnExpression? = nil,
         isSameRecord: ((Record, Record) -> Bool)? = nil) throws
         where Request: FetchRequest, Request.RowDecoder == Record
     {
@@ -92,6 +95,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
             databaseWriter,
             request: request,
             queue: queue,
+            sectionColumn: sectionColumn,
             itemsAreIdenticalFactory: itemsAreIdenticalFactory)
     }
     
@@ -99,6 +103,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
         _ databaseWriter: DatabaseWriter,
         request: Request,
         queue: DispatchQueue,
+        sectionColumn: ColumnExpression? = nil,
         itemsAreIdenticalFactory: @escaping ItemComparatorFactory<Record>) throws
         where Request: FetchRequest, Request.RowDecoder == Record
     {
@@ -111,6 +116,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
         }
         self.databaseWriter = databaseWriter
         self.queue = queue
+        self.sectionColumn = sectionColumn
     }
     
     /// Executes the controller's fetch request.
@@ -156,6 +162,8 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     ///
     /// Unless specified otherwise at initialization time, it is the main queue.
     public let queue: DispatchQueue
+
+    public private(set) var sectionColumn: ColumnExpression?
     
     /// Updates the fetch request, and eventually notifies the tracking
     /// callbacks if performFetch() has been called.
@@ -440,12 +448,14 @@ extension FetchedRecordsController where Record: TableRecord {
         sql: String,
         arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil,
-        queue: DispatchQueue = .main) throws
+        queue: DispatchQueue = .main,
+        sectionColumn: ColumnExpression? = nil) throws
     {
         try self.init(
             databaseWriter,
             request: SQLRequest(sql: sql, arguments: arguments, adapter: adapter),
-            queue: queue)
+            queue: queue,
+            sectionColumn: sectionColumn)
     }
     
     /// Creates a fetched records controller initialized from a fetch request
@@ -477,7 +487,8 @@ extension FetchedRecordsController where Record: TableRecord {
     public convenience init<Request>(
         _ databaseWriter: DatabaseWriter,
         request: Request,
-        queue: DispatchQueue = .main) throws
+        queue: DispatchQueue = .main,
+        sectionColumn: ColumnExpression? = nil) throws
         where Request: FetchRequest, Request.RowDecoder == Record
     {
         // Builds a function that returns true if and only if two items

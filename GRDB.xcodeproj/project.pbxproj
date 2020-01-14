@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0489816B23CD8EEE0012BC8A /* Diff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0489816A23CD8EEE0012BC8A /* Diff.swift */; };
+		0489816C23CD8EEE0012BC8A /* Diff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0489816A23CD8EEE0012BC8A /* Diff.swift */; };
+		0489816D23CD8EEE0012BC8A /* Diff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0489816A23CD8EEE0012BC8A /* Diff.swift */; };
+		0489816E23CD8EEE0012BC8A /* Diff.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0489816A23CD8EEE0012BC8A /* Diff.swift */; };
 		31A778841C6A4E0600F507F6 /* FetchedRecordsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31A7787C1C6A4DD600F507F6 /* FetchedRecordsController.swift */; };
 		560432A0228F00C2009D3FE2 /* OrderedDictionaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56043299228F00C2009D3FE2 /* OrderedDictionaryTests.swift */; };
 		560432A1228F00C2009D3FE2 /* OrderedDictionaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56043299228F00C2009D3FE2 /* OrderedDictionaryTests.swift */; };
@@ -1180,6 +1184,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		0489816A23CD8EEE0012BC8A /* Diff.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Diff.swift; sourceTree = "<group>"; };
 		31A7787C1C6A4DD600F507F6 /* FetchedRecordsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FetchedRecordsController.swift; sourceTree = "<group>"; };
 		56043299228F00C2009D3FE2 /* OrderedDictionaryTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OrderedDictionaryTests.swift; sourceTree = "<group>"; };
 		560432A2228F1667009D3FE2 /* AssociationPrefetchingObservationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingObservationTests.swift; sourceTree = "<group>"; };
@@ -1956,6 +1961,7 @@
 				5659F4971EA8D989004A4992 /* Pool.swift */,
 				5659F48F1EA8D964004A4992 /* ReadWriteBox.swift */,
 				5659F4871EA8D94E004A4992 /* Utils.swift */,
+				0489816A23CD8EEE0012BC8A /* Diff.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -2732,6 +2738,7 @@
 				56B964BF1DA51D0A0002DA19 /* FTS5Pattern.swift in Sources */,
 				56D51D061EA789FA0074638A /* FetchableRecord+TableRecord.swift in Sources */,
 				565490CE1D5AE252005622CB /* NSNull.swift in Sources */,
+				0489816D23CD8EEE0012BC8A /* Diff.swift in Sources */,
 				5656A8202295B12F001FF3FF /* SQLAssociation.swift in Sources */,
 				565490E41D5AE252005622CB /* TableRecord.swift in Sources */,
 				564CE5AE21B8FAB400652B19 /* DatabaseRegionObservation.swift in Sources */,
@@ -2890,6 +2897,7 @@
 				5674A6F91F307F600095F066 /* EncodableRecord+Encodable.swift in Sources */,
 				5605F18E1C6B1A8700235C62 /* SQLCollatedExpression.swift in Sources */,
 				566475D61D981D5E00FF74B8 /* SQLOperators.swift in Sources */,
+				0489816C23CD8EEE0012BC8A /* Diff.swift in Sources */,
 				5698AD381DABAF4A0056AF8C /* FTS5CustomTokenizer.swift in Sources */,
 				5653EB0A20944C7C00F46237 /* Association.swift in Sources */,
 				56A2387E1B9C75030082EB20 /* Database.swift in Sources */,
@@ -3437,6 +3445,7 @@
 				AAA4DC7D230F1E0600C74B15 /* EncodableRecord+Encodable.swift in Sources */,
 				AAA4DC7E230F1E0600C74B15 /* SQLCollatedExpression.swift in Sources */,
 				AAA4DC7F230F1E0600C74B15 /* SQLOperators.swift in Sources */,
+				0489816E23CD8EEE0012BC8A /* Diff.swift in Sources */,
 				AAA4DC80230F1E0600C74B15 /* FTS5CustomTokenizer.swift in Sources */,
 				AAA4DC81230F1E0600C74B15 /* Association.swift in Sources */,
 				AAA4DC82230F1E0600C74B15 /* Database.swift in Sources */,
@@ -3777,6 +3786,7 @@
 				5636E9BC1D22574100B9B05F /* FetchRequest.swift in Sources */,
 				56BB6EA91D3009B100A1CA52 /* SchedulingWatchdog.swift in Sources */,
 				563EF44A2161F179007DAACD /* Inflections.swift in Sources */,
+				0489816B23CD8EEE0012BC8A /* Diff.swift in Sources */,
 				566B91091FA4C3970012D5B0 /* Database+Statements.swift in Sources */,
 				566B91231FA4CF810012D5B0 /* Database+Schema.swift in Sources */,
 				5613ED3F21A95A8B00DC7A68 /* Combine.swift in Sources */,

@@ -83,6 +83,25 @@ private class Person : Record {
     }
 }
 
+extension Person: Diffable {
+    var primaryKeyValue: String {
+        return "\(String(describing: id))"
+    }
+}
+
+extension Person: Hashable {
+    static func == (lhs: Person, rhs: Person) -> Bool {
+        return lhs.id == rhs.id && lhs.name == rhs.name && lhs.email == rhs.email && lhs.bookCount == rhs.bookCount
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(name)
+        hasher.combine(email)
+        hasher.combine(bookCount)
+    }
+}
+
 private struct Book : FetchableRecord {
     var id: Int64
     var authorID: Int64
@@ -905,6 +924,16 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         XCTAssertEqual(generalChangeCount, 6)
         XCTAssertEqual(specificChangeCount, 3)
+    }
+
+    func testDiff() {
+        let a: [Person] = [.init(id: 1, name: "greg", email: ""),
+                           .init(id: 2, name: "george", email: ""),
+                           .init(id: 3, name: "zapp", email: "")]
+        let b: [Person] = [.init(id: 2, name: "george", email: ""),
+                           .init(id: 1, name: "greg", email: "")]
+        let diff = a.diff(b)
+        print(diff)
     }
 }
 
