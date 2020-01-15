@@ -10,7 +10,7 @@ import SQLite3
 /// A database row.
 public final class Row: Equatable, Hashable, RandomAccessCollection,
     ExpressibleByDictionaryLiteral, CustomStringConvertible,
-    CustomDebugStringConvertible
+    CustomDebugStringConvertible, Differentiable
 {
     // It is not a violation of the Demeter law when another type uses this
     // property, which is exposed for optimizations.

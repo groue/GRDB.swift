@@ -707,13 +707,12 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
         }
         
         let expectation = self.expectation(description: "expectation")
-        let controller =
-            try FetchedRecordsController<Person>(dbQueue, request: Person.all())
+        let controller = try FetchedRecordsController<Person>(dbQueue, request: Person.all())
         var update = false
-        controller.trackChanges(
-            onChange: { (_, _, change) in if case .update = change { update = true /* identification by hidden rowid primary key has succeeded */ } },
-            didChange: { _ in expectation.fulfill()
-        })
+        controller.track { changes in
+            update = changes.last?.sectionInserted.count == 1
+            expectation.fulfill()
+        }
         try controller.performFetch()
         try dbQueue.inDatabase { db in
             person.name = "Barbara"

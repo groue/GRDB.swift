@@ -18,7 +18,7 @@ public struct ArraySection<Model: Differentiable, Element: Differentiable>: Diff
     /// - Parameters:
     ///   - model: A differentiable model of section.
     ///   - elements: The collection of element in the section.
-    public init<C: Collection>(model: Model, elements: C) where C.Element == Element {
+    public init<C: Swift.Collection>(model: Model, elements: C) where C.Element == Element {
         self.model = model
         self.elements = Array(elements)
     }
@@ -29,7 +29,7 @@ public struct ArraySection<Model: Differentiable, Element: Differentiable>: Diff
     ///   - source: A source section to reproduce.
     ///   - elements: The collection of elements for the new section.
     @inlinable
-    public init<C: Collection>(source: ArraySection, elements: C) where C.Element == Element {
+    public init<C: Swift.Collection>(source: ArraySection, elements: C) where C.Element == Element {
         self.init(model: source.model, elements: elements)
     }
 

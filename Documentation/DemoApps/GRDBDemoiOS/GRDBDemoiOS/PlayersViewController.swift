@@ -9,8 +9,8 @@ class PlayersViewController: UITableViewController {
     }
     
     @IBOutlet private weak var newPlayerButtonItem: UIBarButtonItem!
-    private var players: [Player] = []
-    private var playersObserver: TransactionObserver?
+    private var playerData: [ArraySection<FetchedRecordsSectionInfo<Player>, Item<Player>>] = []
+    private var playersFetchController: FetchedRecordsController<Player>?
     private var playerCountObserver: TransactionObserver?
     private var playerOrdering: PlayerOrdering = .byScore {
         didSet {
@@ -31,6 +31,7 @@ class PlayersViewController: UITableViewController {
         super.viewDidLoad()
         configureToolbar()
         configureNavigationItem()
+        configureFetchController()
         configureTableView()
     }
     
@@ -91,49 +92,24 @@ class PlayersViewController: UITableViewController {
     }
     
     private func configureTableView() {
-        // Track changes in the list of players
-        let request = self.playersRequest
-        let observation = ValueObservation.tracking { db in
-            try request.fetchAll(db)
+        playersFetchController?.setRequest(playersRequest)
+        try? playersFetchController?.performFetch()
+    }
+
+    private func configureFetchController() {
+        guard playersFetchController == nil else {
+            return
         }
-        playersObserver = observation.start(
-            in: dbQueue,
-            onError: { error in
-                fatalError("Unexpected error: \(error)")
-        },
-            onChange: { [weak self] players in
-                guard let self = self else { return }
-                
-                // Compute difference between current and new list of players
-                let difference = players
-                    .difference(from: self.players)
-                    .inferringMoves()
-                
-                // Apply those changes to the table view
-                self.tableView.performBatchUpdates({
-                    self.players = players
-                    for change in difference {
-                        switch change {
-                        case let .remove(offset, _, associatedWith):
-                            if let associatedWith = associatedWith {
-                                self.tableView.moveRow(
-                                    at: IndexPath(row: offset, section: 0),
-                                    to: IndexPath(row: associatedWith, section: 0))
-                            } else {
-                                self.tableView.deleteRows(
-                                    at: [IndexPath(row: offset, section: 0)],
-                                    with: .fade)
-                            }
-                        case let .insert(offset, _, associatedWith):
-                            if associatedWith == nil {
-                                self.tableView.insertRows(
-                                    at: [IndexPath(row: offset, section: 0)],
-                                    with: .fade)
-                            }
-                        }
-                    }
-                }, completion: nil)
-        })
+        do {
+            playersFetchController = try .init(dbQueue, request: playersRequest, sectionColumn: Player.Columns.name)
+            playersFetchController?.track { [weak self] changes in
+                self?.tableView?.reload(using: changes, with: .fade, interrupt: { $0.changeCount > 200 }) { data in
+                    self?.playerData = data
+                }
+            }
+        } catch {
+            assertionFailure("Unexpected error: \(error)")
+        }
     }
 }
 
@@ -144,7 +120,10 @@ extension PlayersViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "Edit" {
-            let player = players[tableView.indexPathForSelectedRow!.row]
+            guard let selectedIndexPath = tableView.indexPathForSelectedRow,
+                let player = playersFetchController?.record(at: selectedIndexPath) else {
+                return
+            }
             let controller = segue.destination as! PlayerEditionViewController
             controller.title = player.name
             controller.player = player
@@ -174,7 +153,11 @@ extension PlayersViewController {
 
 extension PlayersViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return players.count
+        return playerData[section].elements.count
+    }
+
+    override func numberOfSections(in tableView: UITableView) -> Int {
+        return playerData.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -185,14 +168,18 @@ extension PlayersViewController {
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         // Delete the player
-        let player = players[indexPath.row]
+        let player = playerData[indexPath.section].elements[indexPath.item].record
         try! dbQueue.write { db in
             _ = try player.delete(db)
         }
     }
+
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return playerData[section].model.name
+    }
     
     private func configure(_ cell: UITableViewCell, at indexPath: IndexPath) {
-        let player = players[indexPath.row]
+        let player = playerData[indexPath.section].elements[indexPath.item].record
         if player.name.isEmpty {
             cell.textLabel?.text = "-"
         } else {
@@ -241,7 +228,7 @@ extension PlayersViewController {
         try! dbQueue.write { db in
             if try Player.fetchCount(db) == 0 {
                 // Insert new random players
-                for _ in 0..<8 {
+                for _ in 0..<15 {
                     var player = Player(id: nil, name: Player.randomName(), score: Player.randomScore())
                     try player.insert(db)
                 }
