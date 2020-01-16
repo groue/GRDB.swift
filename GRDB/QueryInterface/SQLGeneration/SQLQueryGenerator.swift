@@ -65,7 +65,7 @@ struct SQLQueryGenerator {
         let filters = try relation.filtersPromise.resolve(db)
         if filters.isEmpty == false {
             sql += " WHERE "
-            sql += SQLExpressionAnd(filters).expressionSQL(&context, wrappedInParenthesis: false)
+            sql += filters.joined(operator: .and).expressionSQL(&context, wrappedInParenthesis: false)
         }
         
         if let groupExpressions = try groupPromise?.resolve(db), !groupExpressions.isEmpty {
@@ -77,7 +77,7 @@ struct SQLQueryGenerator {
         
         if havingExpressions.isEmpty == false {
             sql += " HAVING "
-            sql += SQLExpressionAnd(havingExpressions).expressionSQL(&context, wrappedInParenthesis: false)
+            sql += havingExpressions.joined(operator: .and).expressionSQL(&context, wrappedInParenthesis: false)
         }
         
         let orderings = try relation.ordering.resolve(db)
@@ -117,7 +117,7 @@ struct SQLQueryGenerator {
         
         // The filters knows better
         let filters = try relation.filtersPromise.resolve(db)
-        guard let rowIds = SQLExpressionAnd(filters).matchedRowIds(rowIdName: primaryKeyInfo.rowIDColumn) else {
+        guard let rowIds = filters.joined(operator: .and).matchedRowIds(rowIdName: primaryKeyInfo.rowIDColumn) else {
             return databaseRegion
         }
         
@@ -144,7 +144,7 @@ struct SQLQueryGenerator {
             
             let filters = try relation.filtersPromise.resolve(db)
             if filters.isEmpty == false {
-                sql += " WHERE " + SQLExpressionAnd(filters).expressionSQL(&context, wrappedInParenthesis: false)
+                sql += " WHERE " + filters.joined(operator: .and).expressionSQL(&context, wrappedInParenthesis: false)
             }
             
             if let limit = limit {
@@ -238,7 +238,7 @@ struct SQLQueryGenerator {
             
             let filters = try relation.filtersPromise.resolve(db)
             if filters.isEmpty == false {
-                sql += " WHERE " + SQLExpressionAnd(filters).expressionSQL(&context, wrappedInParenthesis: false)
+                sql += " WHERE " + filters.joined(operator: .and).expressionSQL(&context, wrappedInParenthesis: false)
             }
             
             if let limit = limit {
@@ -680,7 +680,7 @@ private struct SQLQualifiedJoin {
         let filters = try condition.expressions(db, leftAlias: leftAlias, rightAlias: rightAlias)
             + relation.filtersPromise.resolve(db)
         if filters.isEmpty == false {
-            sql += " ON \(SQLExpressionAnd(filters).expressionSQL(&context, wrappedInParenthesis: false))"
+            sql += " ON \(filters.joined(operator: .and).expressionSQL(&context, wrappedInParenthesis: false))"
         }
         
         for (_, join) in relation.joins {
