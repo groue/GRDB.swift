@@ -567,10 +567,16 @@ extension SQLBinaryOperator {
 
 extension SQLAssociativeBinaryOperator {
     /// The `+` binary operator
-    public static let add = SQLAssociativeBinaryOperator("+", neutralValue: 0.databaseValue)
+    public static let add = SQLAssociativeBinaryOperator(
+        sql: "+",
+        neutralValue: 0.databaseValue,
+        strictlyAssociative: false)
     
     /// The `*` binary operator
-    public static let multiply = SQLAssociativeBinaryOperator("*", neutralValue: 1.databaseValue)
+    public static let multiply = SQLAssociativeBinaryOperator(
+        sql: "*",
+        neutralValue: 1.databaseValue,
+        strictlyAssociative: false)
 }
 
 extension SQLUnaryOperator {
@@ -687,10 +693,16 @@ public func - (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLE
 
 extension SQLAssociativeBinaryOperator {
     /// The `AND` binary operator
-    public static let and = SQLAssociativeBinaryOperator("AND", neutralValue: true.databaseValue)
+    public static let and = SQLAssociativeBinaryOperator(
+        sql: "AND",
+        neutralValue: true.databaseValue,
+        strictlyAssociative: true)
     
     /// The `OR` binary operator
-    public static let or = SQLAssociativeBinaryOperator("OR", neutralValue: false.databaseValue)
+    public static let or = SQLAssociativeBinaryOperator(
+        sql: "OR",
+        neutralValue: false.databaseValue,
+        strictlyAssociative: true)
 }
 
 /// A logical SQL expression with the `AND` SQL operator.

@@ -291,13 +291,21 @@ public struct SQLAssociativeBinaryOperator: Hashable {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
-    /// Creates a binary operator
+    /// if true, (a • b) • c is strictly equal to a • (b • c).
     ///
-    ///     SQLAssociativeBinaryOperator("+")
-    ///     SQLAssociativeBinaryOperator("AND")
-    public init(_ sql: String, neutralValue: DatabaseValue) {
+    /// `AND`, `OR`, `||` (concat) are stricly associative.
+    ///
+    /// + and * are not stricly associative when applied to floating
+    /// point values.
+    public let strictlyAssociative: Bool
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// Creates a binary operator
+    public init(sql: String, neutralValue: DatabaseValue, strictlyAssociative: Bool) {
         self.sql = sql
         self.neutralValue = neutralValue
+        self.strictlyAssociative = strictlyAssociative
     }
 }
 
@@ -316,7 +324,19 @@ struct SQLExpressionBinaryReduce: SQLExpression {
     ///     SQLExpressionBinaryReduce(.multiply, [Column("length"), Column("width")])
     init(_ op: SQLAssociativeBinaryOperator, _ expressions: [SQLExpression]) {
         self.op = op
-        self.expressions = expressions
+        
+        // flatten when possible: a • (b • c) = a • b • c
+        if op.strictlyAssociative {
+            self.expressions = expressions.flatMap { expression -> [SQLExpression] in
+                if let reduce = expression as? SQLExpressionBinaryReduce, reduce.op == op {
+                    return reduce.expressions
+                } else {
+                    return [expression]
+                }
+            }
+        } else {
+            self.expressions = expressions
+        }
     }
     
     func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
