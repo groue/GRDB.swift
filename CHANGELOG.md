@@ -6,9 +6,7 @@ All notable changes to this project will be documented in this file.
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
 
-<!--
 [Next Release](#next-release)
--->
 
 
 #### 4.x Releases
@@ -61,9 +59,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 
-<!--
 ## Next Release
--->
+
+- [#685](https://github.com/groue/GRDB.swift/pull/685) by [@gjeck](https://github.com/gjeck): Add cache for TableRecord.defaultDatabaseTableName
 
 
 ## 4.8.1
