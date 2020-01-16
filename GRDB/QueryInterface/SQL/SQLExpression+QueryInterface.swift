@@ -309,6 +309,9 @@ public struct SQLAssociativeBinaryOperator: Hashable {
     }
 }
 
+@available(*, deprecated, renamed: "SQLAssociativeBinaryOperator")
+typealias SQLLogicalBinaryOperator = SQLAssociativeBinaryOperator
+
 /// SQLExpressionBinary is an expression made of two expressions joined with a
 /// binary operator.
 ///
