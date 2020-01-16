@@ -1079,6 +1079,31 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     }
     
     
+    // MARK: - || concat operator
+    
+    func testConcatOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([Col.name, Col.name].joined(operator: .concat))),
+            """
+            SELECT "name" || "name" FROM "readers"
+            """)
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter([Col.name, Col.name].joined(operator: .concat) == "foo")),
+            """
+            SELECT * FROM "readers" WHERE ("name" || "name") = 'foo'
+            """)
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([Col.name, " ".databaseValue, Col.name].joined(operator: .concat))),
+            """
+            SELECT "name" || ' ' || "name" FROM "readers"
+            """)
+    }
+
+    
     // MARK: - Function
     
     func testCustomFunction() throws {

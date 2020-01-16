@@ -4282,7 +4282,20 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Planet.select((temperatureColumn * 1.8 + 32).forKey("farenheit"))
     ```
     
-    > :point_up: **Note**: an expression like `nameColumn + "rrr"` will be interpreted by SQLite as a numerical addition (with funny results), not as a string concatenation.
+    > :point_up: **Note**: an expression like `nameColumn + "rrr"` will be interpreted by SQLite as a numerical addition (with funny results), not as a string concatenation. See the `concat` operator below.
+
+- `||`
+    
+    Concatenate several strings:
+    
+    ```swift
+    // SELECT firstName || ' ' || lastName FROM player
+    Player.select([firstNameColumn, " ".databaseValue, lastNameColumn].joined(operator: .concat))
+    ```
+    
+    Note in the example above how you concatenate raw strings: `" ".databaseValue`. A plain `" "` would not compile.
+    
+    When the sequence is empty, `joined(operator: .concat)` returns the empty string.
 
 - `AND`, `OR`, `NOT`
     
