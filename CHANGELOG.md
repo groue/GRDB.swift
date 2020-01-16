@@ -62,6 +62,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - [#683](https://github.com/groue/GRDB.swift/pull/683): String concatenation
+- [#685](https://github.com/groue/GRDB.swift/pull/685) by [@gjeck](https://github.com/gjeck): Add cache for TableRecord.defaultDatabaseTableName
 
 
 ## 4.8.1
