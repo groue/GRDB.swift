@@ -1,3 +1,5 @@
+import Foundation
+
 /// Types that adopt TableRecord declare a particular relationship with
 /// a database table.
 ///
@@ -59,18 +61,24 @@ extension TableRecord {
     /// - HTTPRequest -> "httpRequest"
     /// - TOEFL -> "toefl"
     internal static var defaultDatabaseTableName: String {
+        if let cached = defaultDatabaseTableNameCache.object(forKey: "\(Self.self)" as NSString) {
+            return cached as String
+        }
         let typeName = "\(Self.self)".replacingOccurrences(of: "(.)\\b.*$", with: "$1", options: [.regularExpression])
         let initial = typeName.replacingOccurrences(of: "^([A-Z]+).*$", with: "$1", options: [.regularExpression])
+        let tableName: String
         switch initial.count {
         case typeName.count:
-            return initial.lowercased()
+            tableName = initial.lowercased()
         case 0:
-            return typeName
+            tableName = typeName
         case 1:
-            return initial.lowercased() + typeName.dropFirst()
+            tableName = initial.lowercased() + typeName.dropFirst()
         default:
-            return initial.dropLast().lowercased() + typeName.dropFirst(initial.count - 1)
+            tableName = initial.dropLast().lowercased() + typeName.dropFirst(initial.count - 1)
         }
+        defaultDatabaseTableNameCache.setObject(tableName as NSString, forKey: "\(Self.self)" as NSString)
+        return tableName
     }
     
     /// The default name of the database table used to build requests.
@@ -153,3 +161,8 @@ extension TableRecord {
             .reduce(0, +)
     }
 }
+
+/// Calculating `defaultDatabaseTableName` is somewhat expensive due to the regular expression evaluation
+///
+/// This cache mitigates the cost of the calculation by storing the name for later retrieval
+private let defaultDatabaseTableNameCache = NSCache<NSString, NSString>()
