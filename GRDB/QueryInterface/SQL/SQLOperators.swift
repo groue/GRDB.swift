@@ -567,12 +567,22 @@ extension SQLBinaryOperator {
 
 extension SQLAssociativeBinaryOperator {
     /// The `+` binary operator
+    ///
+    /// For example:
+    ///
+    ///     // score + bonus
+    ///     [Column("score"), Column("bonus")].joined(operator: .add)
     public static let add = SQLAssociativeBinaryOperator(
         sql: "+",
         neutralValue: 0.databaseValue,
         strictlyAssociative: false)
     
     /// The `*` binary operator
+    ///
+    /// For example:
+    ///
+    ///     // score * factor
+    ///     [Column("score"), Column("factor")].joined(operator: .multiply)
     public static let multiply = SQLAssociativeBinaryOperator(
         sql: "*",
         neutralValue: 1.databaseValue,
@@ -693,12 +703,22 @@ public func - (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLE
 
 extension SQLAssociativeBinaryOperator {
     /// The `AND` binary operator
+    ///
+    /// For example:
+    ///
+    ///     // isBlue AND isTall
+    ///     [Column("isBlue"), Column("isTall")].joined(operator: .and)
     public static let and = SQLAssociativeBinaryOperator(
         sql: "AND",
         neutralValue: true.databaseValue,
         strictlyAssociative: true)
     
     /// The `OR` binary operator
+    ///
+    /// For example:
+    ///
+    ///     // isBlue OR isTall
+    ///     [Column("isBlue"), Column("isTall")].joined(operator: .or)
     public static let or = SQLAssociativeBinaryOperator(
         sql: "OR",
         neutralValue: false.databaseValue,
@@ -785,6 +805,20 @@ extension SQLSpecificExpressible {
     }
 }
 
+// MARK: - Concat Operator
+
+extension SQLAssociativeBinaryOperator {
+    /// The `||` string concatenation operator
+    ///
+    /// For example:
+    ///
+    ///     // firstName || ' ' || lastName
+    ///     [Column("firstName"), " ", Column("lastName")].joined(operator: .concat)
+    public static let concat = SQLAssociativeBinaryOperator(
+        sql: "||",
+        neutralValue: "".databaseValue,
+        strictlyAssociative: true)
+}
 
 // MARK: - Match Operator
 
