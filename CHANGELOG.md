@@ -13,6 +13,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 4.x Releases
 
+- `4.9.x` Releases - [4.9.0](#490)
 - `4.8.x` Releases - [4.8.0](#480) | [4.8.1](#481)
 - `4.7.x` Releases - [4.7.0](#470)
 - `4.6.x` Releases - [4.6.0](#460) | [4.6.1](#461) | [4.6.2](#462)
@@ -64,6 +65,16 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 <!--
 ## Next Release
 -->
+
+
+## 4.9.0
+
+Released January 17, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.8.1...v4.9.0)
+
+**New**
+
+- [#683](https://github.com/groue/GRDB.swift/pull/683): String concatenation
+- [#685](https://github.com/groue/GRDB.swift/pull/685) by [@gjeck](https://github.com/gjeck): Add cache for TableRecord.defaultDatabaseTableName
 
 
 ## 4.8.1

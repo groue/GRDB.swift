@@ -868,7 +868,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE -((-\"age\") + 1)")
     }
     
-    func testInfixMinusOperator() throws {
+    func testInfixSubtractOperator() throws {
         let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
@@ -891,7 +891,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE 1 - ((\"age\" > 1) AND (\"age\" IS NULL))")
     }
     
-    func testInfixPlusOperator() throws {
+    func testInfixAddOperator() throws {
         let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
@@ -914,6 +914,30 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE 1 + ((\"age\" > 1) AND (\"age\" IS NULL))")
     }
     
+    func testJoinedAddOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([].joined(operator: .add))),
+            "SELECT 0 FROM \"readers\"")
+
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([Col.age, Col.age].joined(operator: .add))),
+            "SELECT \"age\" + \"age\" FROM \"readers\"")
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([Col.age, 2.databaseValue, Col.age].joined(operator: .add))),
+            "SELECT \"age\" + 2 + \"age\" FROM \"readers\"")
+
+        // Not flattened
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([
+                [Col.age, 1.databaseValue].joined(operator: .add),
+                [2.databaseValue, Col.age].joined(operator: .add),
+                ].joined(operator: .add))),
+            "SELECT (\"age\" + 1) + (2 + \"age\") FROM \"readers\"")
+    }
+    
     func testInfixMultiplyOperator() throws {
         let dbQueue = try makeDatabaseQueue()
         
@@ -932,6 +956,30 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(2 * (Col.age * Col.age))),
             "SELECT * FROM \"readers\" WHERE 2 * (\"age\" * \"age\")")
+    }
+    
+    func testJoinedMultiplyOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([].joined(operator: .multiply))),
+            "SELECT 1 FROM \"readers\"")
+
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([Col.age, Col.age].joined(operator: .multiply))),
+            "SELECT \"age\" * \"age\" FROM \"readers\"")
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([Col.age, 2.databaseValue, Col.age].joined(operator: .multiply))),
+            "SELECT \"age\" * 2 * \"age\" FROM \"readers\"")
+
+        // Not flattened
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([
+                [Col.age, 1.databaseValue].joined(operator: .multiply),
+                [2.databaseValue, Col.age].joined(operator: .multiply),
+                ].joined(operator: .multiply))),
+            "SELECT (\"age\" * 1) * (2 * \"age\") FROM \"readers\"")
     }
     
     func testInfixDivideOperator() throws {
@@ -1078,6 +1126,41 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE \"name\" LIKE '%foo'")
     }
     
+    
+    // MARK: - || concat operator
+    
+    func testConcatOperator() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([Col.name, Col.name].joined(operator: .concat))),
+            """
+            SELECT "name" || "name" FROM "readers"
+            """)
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter([Col.name, Col.name].joined(operator: .concat) == "foo")),
+            """
+            SELECT * FROM "readers" WHERE ("name" || "name") = 'foo'
+            """)
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([Col.name, " ".databaseValue, Col.name].joined(operator: .concat))),
+            """
+            SELECT "name" || ' ' || "name" FROM "readers"
+            """)
+        
+        // Flattened
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select([
+                [Col.name, "a".databaseValue].joined(operator: .concat),
+                ["b".databaseValue, Col.name].joined(operator: .concat),
+                ].joined(operator: .concat))),
+            """
+            SELECT "name" || 'a' || 'b' || "name" FROM "readers"
+            """)
+    }
+
     
     // MARK: - Function
     
