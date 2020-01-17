@@ -4282,7 +4282,35 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Planet.select((temperatureColumn * 1.8 + 32).forKey("farenheit"))
     ```
     
-    > :point_up: **Note**: an expression like `nameColumn + "rrr"` will be interpreted by SQLite as a numerical addition (with funny results), not as a string concatenation.
+    > :point_up: **Note**: an expression like `nameColumn + "rrr"` will be interpreted by SQLite as a numerical addition (with funny results), not as a string concatenation. See the `concat` operator below.
+    
+    When you want to join a sequence of expressions with the `+` or `*` operator, use `joined(operator:)`:
+    
+    ```swift
+    // SELECT score + bonus + 1000 FROM player
+    let values = [
+        scoreColumn,
+        bonusColumn,
+        1000.databaseValue]
+    Player.select(values.joined(operator: .add))
+    ```
+    
+    Note in the example above how you concatenate raw values: `1000.databaseValue`. A plain `1000` would not compile.
+    
+    When the sequence is empty, `joined(operator: .add)` returns 0, and `joined(operator: .multiply)` returns 1.
+
+- `||`
+    
+    Concatenate several strings:
+    
+    ```swift
+    // SELECT firstName || ' ' || lastName FROM player
+    Player.select([firstNameColumn, " ".databaseValue, lastNameColumn].joined(operator: .concat))
+    ```
+    
+    Note in the example above how you concatenate raw strings: `" ".databaseValue`. A plain `" "` would not compile.
+    
+    When the sequence is empty, `joined(operator: .concat)` returns the empty string.
 
 - `AND`, `OR`, `NOT`
     
@@ -4293,7 +4321,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Player.filter(!verifiedColumn || scoreColumn < 1000)
     ```
     
-    When you want to join a sequence of expressions with `AND` or `OR` operators, use `joined(operator:)`:
+    When you want to join a sequence of expressions with the `AND` or `OR` operator, use `joined(operator:)`:
     
     ```swift
     // SELECT * FROM player WHERE (verified AND (score >= 1000) AND (name IS NOT NULL))

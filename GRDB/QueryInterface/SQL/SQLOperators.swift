@@ -558,17 +558,35 @@ extension Sequence where Self.Iterator.Element: SQLExpressible {
 // MARK: - Arithmetic Operators (+, -, *, /)
 
 extension SQLBinaryOperator {
-    /// The `+` binary operator
-    static let plus = SQLBinaryOperator("+")
-    
     /// The `-` binary operator
-    static let minus = SQLBinaryOperator("-")
-    
-    /// The `*` binary operator
-    static let multiply = SQLBinaryOperator("*")
+    static let subtract = SQLBinaryOperator("-")
     
     /// The `/` binary operator
     static let divide = SQLBinaryOperator("/")
+}
+
+extension SQLAssociativeBinaryOperator {
+    /// The `+` binary operator
+    ///
+    /// For example:
+    ///
+    ///     // score + bonus
+    ///     [Column("score"), Column("bonus")].joined(operator: .add)
+    public static let add = SQLAssociativeBinaryOperator(
+        sql: "+",
+        neutralValue: 0.databaseValue,
+        strictlyAssociative: false)
+    
+    /// The `*` binary operator
+    ///
+    /// For example:
+    ///
+    ///     // score * factor
+    ///     [Column("score"), Column("factor")].joined(operator: .multiply)
+    public static let multiply = SQLAssociativeBinaryOperator(
+        sql: "*",
+        neutralValue: 1.databaseValue,
+        strictlyAssociative: false)
 }
 
 extension SQLUnaryOperator {
@@ -581,7 +599,7 @@ extension SQLUnaryOperator {
 ///     // width * 2
 ///     Column("width") * 2
 public func * (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.multiply, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionBinaryReduce(.multiply, [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// An SQL arithmetic multiplication.
@@ -589,7 +607,7 @@ public func * (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpressio
 ///     // 2 * width
 ///     2 * Column("width")
 public func * (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.multiply, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionBinaryReduce(.multiply, [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// An SQL arithmetic multiplication.
@@ -597,7 +615,7 @@ public func * (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpressio
 ///     // width * height
 ///     Column("width") * Column("height")
 public func * (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.multiply, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionBinaryReduce(.multiply, [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// An SQL arithmetic division.
@@ -629,7 +647,7 @@ public func / (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLE
 ///     // width + 2
 ///     Column("width") + 2
 public func + (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.plus, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionBinaryReduce(.add, [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// An SQL arithmetic addition.
@@ -637,7 +655,7 @@ public func + (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpressio
 ///     // 2 + width
 ///     2 + Column("width")
 public func + (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.plus, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionBinaryReduce(.add, [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// An SQL arithmetic addition.
@@ -645,7 +663,7 @@ public func + (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpressio
 ///     // width + height
 ///     Column("width") + Column("height")
 public func + (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.plus, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionBinaryReduce(.add, [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// A negated SQL arithmetic expression.
@@ -661,7 +679,7 @@ public prefix func - (value: SQLSpecificExpressible) -> SQLExpression {
 ///     // width - 2
 ///     Column("width") - 2
 public func - (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.minus, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionBinary(.subtract, lhs.sqlExpression, rhs.sqlExpression)
 }
 
 /// An SQL arithmetic substraction.
@@ -669,7 +687,7 @@ public func - (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpressio
 ///     // 2 - width
 ///     2 - Column("width")
 public func - (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.minus, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionBinary(.subtract, lhs.sqlExpression, rhs.sqlExpression)
 }
 
 /// An SQL arithmetic substraction.
@@ -677,18 +695,42 @@ public func - (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpressio
 ///     // width - height
 ///     Column("width") - Column("height")
 public func - (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionBinary(.minus, lhs.sqlExpression, rhs.sqlExpression)
+    return SQLExpressionBinary(.subtract, lhs.sqlExpression, rhs.sqlExpression)
 }
 
 
 // MARK: - Logical Operators (AND, OR, NOT)
+
+extension SQLAssociativeBinaryOperator {
+    /// The `AND` binary operator
+    ///
+    /// For example:
+    ///
+    ///     // isBlue AND isTall
+    ///     [Column("isBlue"), Column("isTall")].joined(operator: .and)
+    public static let and = SQLAssociativeBinaryOperator(
+        sql: "AND",
+        neutralValue: true.databaseValue,
+        strictlyAssociative: true)
+    
+    /// The `OR` binary operator
+    ///
+    /// For example:
+    ///
+    ///     // isBlue OR isTall
+    ///     [Column("isBlue"), Column("isTall")].joined(operator: .or)
+    public static let or = SQLAssociativeBinaryOperator(
+        sql: "OR",
+        neutralValue: false.databaseValue,
+        strictlyAssociative: true)
+}
 
 /// A logical SQL expression with the `AND` SQL operator.
 ///
 ///     // favorite AND 0
 ///     Column("favorite") && false
 public func && (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
-    return SQLExpressionAnd([lhs.sqlExpression, rhs.sqlExpression])
+    return SQLExpressionBinaryReduce(.and, [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// A logical SQL expression with the `AND` SQL operator.
@@ -696,7 +738,7 @@ public func && (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpressi
 ///     // 0 AND favorite
 ///     false && Column("favorite")
 public func && (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionAnd([lhs.sqlExpression, rhs.sqlExpression])
+    return SQLExpressionBinaryReduce(.and, [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// A logical SQL expression with the `AND` SQL operator.
@@ -704,7 +746,7 @@ public func && (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpressi
 ///     // email IS NOT NULL AND favorite
 ///     Column("email") != nil && Column("favorite")
 public func && (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionAnd([lhs.sqlExpression, rhs.sqlExpression])
+    return SQLExpressionBinaryReduce(.and, [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// A logical SQL expression with the `OR` SQL operator.
@@ -712,7 +754,7 @@ public func && (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQL
 ///     // favorite OR 1
 ///     Column("favorite") || true
 public func || (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
-    return SQLExpressionOr([lhs.sqlExpression, rhs.sqlExpression])
+    return SQLExpressionBinaryReduce(.or, [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// A logical SQL expression with the `OR` SQL operator.
@@ -720,7 +762,7 @@ public func || (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpressi
 ///     // 0 OR favorite
 ///     true || Column("favorite")
 public func || (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionOr([lhs.sqlExpression, rhs.sqlExpression])
+    return SQLExpressionBinaryReduce(.or, [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// A logical SQL expression with the `OR` SQL operator.
@@ -728,7 +770,7 @@ public func || (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpressi
 ///     // email IS NULL OR hidden
 ///     Column("email") == nil || Column("hidden")
 public func || (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionOr([lhs.sqlExpression, rhs.sqlExpression])
+    return SQLExpressionBinaryReduce(.or, [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 /// A negated logical SQL expression with the `NOT` SQL operator.
@@ -743,44 +785,6 @@ public func || (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQL
 public prefix func ! (value: SQLSpecificExpressible) -> SQLExpression {
     return value.sqlExpression.negated
 }
-
-public enum SQLLogicalBinaryOperator {
-    case and, or
-}
-
-extension Sequence where Element == SQLExpression {
-    /// Returns an expression by joining all elements with an SQL
-    /// logical operator.
-    ///
-    /// For example:
-    ///
-    ///     // SELECT * FROM player
-    ///     // WHERE (registered
-    ///     //        AND (score >= 1000)
-    ///     //        AND (name IS NOT NULL))
-    ///     let conditions = [
-    ///         Column("registered"),
-    ///         Column("score") >= 1000,
-    ///         Column("name") != nil]
-    ///     Player.filter(conditions.joined(operator: .and))
-    ///
-    /// When the sequence is empty, `joined(operator: .and)` returns true,
-    /// and `joined(operator: .or)` returns false:
-    ///
-    ///     // SELECT * FROM player WHERE 1
-    ///     Player.filter([].joined(operator: .and))
-    ///
-    ///     // SELECT * FROM player WHERE 0
-    ///     Player.filter([].joined(operator: .or))
-    public func joined(operator: SQLLogicalBinaryOperator) -> SQLExpression {
-        let expressions = Array(self)
-        switch `operator` {
-        case .and: return SQLExpressionAnd(expressions)
-        case .or: return SQLExpressionOr(expressions)
-        }
-    }
-}
-
 
 // MARK: - Like Operator
 
@@ -801,6 +805,20 @@ extension SQLSpecificExpressible {
     }
 }
 
+// MARK: - Concat Operator
+
+extension SQLAssociativeBinaryOperator {
+    /// The `||` string concatenation operator
+    ///
+    /// For example:
+    ///
+    ///     // firstName || ' ' || lastName
+    ///     [Column("firstName"), " ", Column("lastName")].joined(operator: .concat)
+    public static let concat = SQLAssociativeBinaryOperator(
+        sql: "||",
+        neutralValue: "".databaseValue,
+        strictlyAssociative: true)
+}
 
 // MARK: - Match Operator
 
