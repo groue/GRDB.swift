@@ -352,8 +352,9 @@ let package = Package(
 )
 ```
 
-Note that Linux is not currently supported.
-
+> :point_up: **Note**: Linux is not currently supported.
+>
+> :warning: **Warning**: Due to an Xcode bug, you will get "No such module 'CSQLite'" errors when you want to embed the GRDB package in other targets than the main application (watch extensions, for example). UI and Unit testing targets are OK, though. See [#642](https://github.com/groue/GRDB.swift/issues/642#issuecomment-575994093) for more information.
 
 ## Carthage
 
