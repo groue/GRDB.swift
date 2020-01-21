@@ -70,7 +70,7 @@ public struct AssociationAggregate<RowDecoder> {
     }
 }
 
-extension AssociationAggregate {
+extension AssociationAggregate: KeyPathRefining {
     /// Returns an aggregate that is selected in a column with the given name.
     ///
     /// For example:
@@ -95,9 +95,7 @@ extension AssociationAggregate {
     ///         let numberOfBooks: Int = row["numberOfBooks"]
     ///     }
     public func forKey(_ key: String) -> AssociationAggregate<RowDecoder> {
-        var aggregate = self
-        aggregate.key = key
-        return aggregate
+        return with(\.key, key)
     }
     
     /// Returns an aggregate that is selected in a column named like the given

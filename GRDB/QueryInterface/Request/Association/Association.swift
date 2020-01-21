@@ -72,7 +72,7 @@ extension Association {
 
 extension Association {
     private func mapDestinationRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self {
-        return .init(sqlAssociation: sqlAssociation.mapDestinationRelation(transform))
+        return .init(sqlAssociation: sqlAssociation.map(\.destination.relation, transform))
     }
 }
 

@@ -27,11 +27,11 @@ public struct SQLLiteral {
     
     /// Returns a literal whose SQL is transformed by the given closure.
     public func mapSQL(_ transform: (String) throws -> String) rethrows -> SQLLiteral {
-        var result = self
-        result.sql = try transform(sql)
-        return result
+        return try map(\.sql, transform)
     }
 }
+
+extension SQLLiteral: KeyPathRefining { }
 
 extension SQLLiteral {
     /// Returns the SQLLiteral produced by the concatenation of two literals.
