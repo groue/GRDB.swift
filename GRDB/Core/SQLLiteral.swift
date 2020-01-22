@@ -10,8 +10,25 @@
 ///         try db.execute(literal: query)
 ///     }
 public struct SQLLiteral {
-    public private(set) var sql: String
-    public private(set) var arguments: StatementArguments
+    public var sql: String {
+        return resolveWithDefaultContext().sql
+    }
+    
+    public var arguments: StatementArguments {
+        return resolveWithDefaultContext().arguments
+    }
+    
+    let resolve: (inout SQLGenerationContext) -> String
+    
+    func resolveWithDefaultContext() -> (sql: String, arguments: StatementArguments) {
+        var context = SQLGenerationContext.literalGenerationContext(withArguments: true)
+        let sql = resolve(&context)
+        return (sql: sql, arguments: context.arguments!)
+    }
+    
+    init(_ resolve: @escaping (inout SQLGenerationContext) -> String) {
+        self.resolve = resolve
+    }
     
     /// Creates an SQLLiteral from a plain SQL string, and eventual arguments.
     ///
@@ -21,13 +38,27 @@ public struct SQLLiteral {
     ///         sql: "UPDATE player SET name = ? WHERE id = ?",
     ///         arguments: [name, id])
     public init(sql: String, arguments: StatementArguments = StatementArguments()) {
-        self.sql = sql
-        self.arguments = arguments
+        self.init({ context in
+            if context.append(arguments: arguments) == false {
+                // GRDB limitation: we don't know how to look for `?` in sql and
+                // replace them with literals.
+                fatalError("Not implemented")
+            }
+            return sql
+        })
     }
     
     /// Returns a literal whose SQL is transformed by the given closure.
-    public func mapSQL(_ transform: (String) throws -> String) rethrows -> SQLLiteral {
-        return try map(\.sql, transform)
+    public func mapSQL(_ transform: @escaping (String) -> String) -> SQLLiteral {
+        flatMap { sql in
+            SQLLiteral { _ in transform(sql) }
+        }
+    }
+    
+    func flatMap(_ transform: @escaping (_ sql: String) -> SQLLiteral) -> SQLLiteral {
+        return SQLLiteral { context in
+            transform(self.resolve(&context)).resolve(&context)
+        }
     }
 }
 
@@ -52,8 +83,11 @@ extension SQLLiteral {
     ///     var query: SQLLiteral = "SELECT * FROM player "
     ///     query += "WHERE name = \(name)"
     public static func += (lhs: inout SQLLiteral, rhs: SQLLiteral) {
-        lhs.sql += rhs.sql
-        lhs.arguments += rhs.arguments
+        lhs = lhs.flatMap { lSQL in
+            SQLLiteral { context in
+                lSQL + rhs.resolve(&context)
+            }
+        }
     }
     
     /// Appends an SQLLiteral to the receiver.
@@ -86,19 +120,14 @@ extension Sequence where Element == SQLLiteral {
     ///     ]
     ///     let query = components.joined(separator: " ")
     public func joined(separator: String = "") -> SQLLiteral {
-        var sql = ""
-        var arguments = StatementArguments()
-        var first = true
-        for literal in self {
-            if first {
-                first = false
-            } else {
-                sql += separator
-            }
-            sql += literal.sql
-            arguments += literal.arguments
-        }
-        return SQLLiteral(sql: sql, arguments: arguments)
+        // Calling the two properties `sql` and `arguments` must not consume the
+        // sequence twice, or we would get inconsistent values if the sequence
+        // does not yield the same elements on the two distinct iterations.
+        // So let's turn the sequence into a collection first.
+        //
+        // TODO: consider deprecating the two `sql` and `arguments` properties,
+        // and provide a more efficient implementation of this method.
+        return Array(self).joined(separator: separator)
     }
 }
 
@@ -113,9 +142,9 @@ extension Collection where Element == SQLLiteral {
     ///     ]
     ///     let query = components.joined(separator: " ")
     public func joined(separator: String = "") -> SQLLiteral {
-        let sql = map { $0.sql }.joined(separator: separator)
-        let arguments = reduce(into: StatementArguments()) { $0 += $1.arguments }
-        return SQLLiteral(sql: sql, arguments: arguments)
+        return SQLLiteral { context in
+            self.map { $0.resolve(&context) }.joined(separator: separator)
+        }
     }
 }
 

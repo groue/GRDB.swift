@@ -146,16 +146,17 @@ public struct SQLRequest<T>: FetchRequest {
     ///
     /// :nodoc:
     public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+        let (sql, arguments) = sqlLiteral.resolveWithDefaultContext()
         let statement: SelectStatement
         switch cache {
         case .none:
-            statement = try db.makeSelectStatement(sql: sqlLiteral.sql)
+            statement = try db.makeSelectStatement(sql: sql)
         case .public?:
-            statement = try db.cachedSelectStatement(sql: sqlLiteral.sql)
+            statement = try db.cachedSelectStatement(sql: sql)
         case .internal?:
-            statement = try db.internalCachedSelectStatement(sql: sqlLiteral.sql)
+            statement = try db.internalCachedSelectStatement(sql: sql)
         }
-        try statement.setArgumentsWithValidation(sqlLiteral.arguments)
+        try statement.setArgumentsWithValidation(arguments)
         return PreparedRequest(statement: statement, adapter: adapter)
     }
 }

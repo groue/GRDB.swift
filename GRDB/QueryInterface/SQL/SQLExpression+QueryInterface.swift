@@ -35,7 +35,9 @@ extension SQLExpression {
 ///     SQLExpressionLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2])
 public struct SQLExpressionLiteral: SQLExpression {
     private let sqlLiteral: SQLLiteral
+    
     public var sql: String { return sqlLiteral.sql }
+    
     public var arguments: StatementArguments { return sqlLiteral.arguments }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -71,12 +73,7 @@ public struct SQLExpressionLiteral: SQLExpression {
         if wrappedInParenthesis {
             return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
-        if context.append(arguments: sqlLiteral.arguments) == false {
-            // GRDB limitation: we don't know how to look for `?` in sql and
-            // replace them with literals.
-            fatalError("Not implemented")
-        }
-        return sqlLiteral.sql
+        return sqlLiteral.resolve(&context)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
