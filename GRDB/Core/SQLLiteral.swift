@@ -10,24 +10,66 @@
 ///         try db.execute(literal: query)
 ///     }
 public struct SQLLiteral {
+    enum Element {
+        case sql(String, StatementArguments)
+        case sqlLiteral(SQLLiteral)
+        case expression(SQLExpression)
+        case selectable(SQLSelectable)
+        case orderingTerm(SQLOrderingTerm)
+        case map(SQLLiteral, (String) -> String)
+
+        func sql(_ context: inout SQLGenerationContext) -> String {
+            switch self {
+            case let .sql(sql, arguments):
+                if context.append(arguments: arguments) == false {
+                    // GRDB limitation: we don't know how to look for `?` in sql and
+                    // replace them with literals.
+                    fatalError("Not implemented")
+                }
+                return sql
+            case let .sqlLiteral(sqlLiteral):
+                return sqlLiteral.sql(&context)
+            case let .expression(expression):
+                return expression.expressionSQL(&context, wrappedInParenthesis: false)
+            case let .selectable(selectable):
+                return selectable.resultColumnSQL(&context)
+            case let .orderingTerm(orderingTerm):
+                return orderingTerm.orderingTermSQL(&context)
+            case let .map(sqlLiteral, transform):
+                return transform(sqlLiteral.sql(&context))
+            }
+        }
+        
+        func qualified(with alias: TableAlias) -> Element {
+            switch self {
+            case .sql:
+                return self
+            case let .sqlLiteral(sqlLiteral):
+                return .sqlLiteral(sqlLiteral.qualified(with: alias))
+            case let .expression(expression):
+                return .expression(expression.qualifiedExpression(with: alias))
+            case let .selectable(selectable):
+                return .selectable(selectable.qualifiedSelectable(with: alias))
+            case let .orderingTerm(orderingTerm):
+                return .orderingTerm(orderingTerm.qualifiedOrdering(with: alias))
+            case let .map(sqlLiteral, transform):
+                return .map(sqlLiteral.qualified(with: alias), transform)
+            }
+        }
+    }
+    
     public var sql: String {
-        return resolveWithDefaultContext().sql
+        return sqlWithDefaultContext().sql
     }
     
     public var arguments: StatementArguments {
-        return resolveWithDefaultContext().arguments
+        return sqlWithDefaultContext().arguments
     }
     
-    let resolve: (inout SQLGenerationContext) -> String
+    var elements: [Element]
     
-    func resolveWithDefaultContext() -> (sql: String, arguments: StatementArguments) {
-        var context = SQLGenerationContext.literalGenerationContext(withArguments: true)
-        let sql = resolve(&context)
-        return (sql: sql, arguments: context.arguments!)
-    }
-    
-    init(_ resolve: @escaping (inout SQLGenerationContext) -> String) {
-        self.resolve = resolve
+    init(elements: [Element]) {
+        self.elements = elements
     }
     
     /// Creates an SQLLiteral from a plain SQL string, and eventual arguments.
@@ -38,31 +80,32 @@ public struct SQLLiteral {
     ///         sql: "UPDATE player SET name = ? WHERE id = ?",
     ///         arguments: [name, id])
     public init(sql: String, arguments: StatementArguments = StatementArguments()) {
-        self.init({ context in
-            if context.append(arguments: arguments) == false {
-                // GRDB limitation: we don't know how to look for `?` in sql and
-                // replace them with literals.
-                fatalError("Not implemented")
-            }
-            return sql
-        })
+        self.init(elements: [.sql(sql, arguments)])
     }
     
     /// Returns a literal whose SQL is transformed by the given closure.
     public func mapSQL(_ transform: @escaping (String) -> String) -> SQLLiteral {
-        flatMap { sql in
-            SQLLiteral { _ in transform(sql) }
-        }
+        return SQLLiteral(elements: [.map(self, transform)])
     }
     
-    func flatMap(_ transform: @escaping (_ sql: String) -> SQLLiteral) -> SQLLiteral {
-        return SQLLiteral { context in
-            transform(self.resolve(&context)).resolve(&context)
+    func sql(_ context: inout SQLGenerationContext) -> String {
+        var sql = ""
+        for element in elements {
+            sql += element.sql(&context)
         }
+        return sql
+    }
+    
+    func sqlWithDefaultContext() -> (sql: String, arguments: StatementArguments) {
+        var context = SQLGenerationContext.literalGenerationContext(withArguments: true)
+        let sql = self.sql(&context)
+        return (sql: sql, arguments: context.arguments!)
+    }
+    
+    fileprivate func qualified(with alias: TableAlias) -> SQLLiteral {
+        return SQLLiteral(elements: elements.map { $0.qualified(with: alias) })
     }
 }
-
-extension SQLLiteral: KeyPathRefining { }
 
 extension SQLLiteral {
     /// Returns the SQLLiteral produced by the concatenation of two literals.
@@ -83,11 +126,7 @@ extension SQLLiteral {
     ///     var query: SQLLiteral = "SELECT * FROM player "
     ///     query += "WHERE name = \(name)"
     public static func += (lhs: inout SQLLiteral, rhs: SQLLiteral) {
-        lhs = lhs.flatMap { lSQL in
-            SQLLiteral { context in
-                lSQL + rhs.resolve(&context)
-            }
-        }
+        lhs.elements += rhs.elements
     }
     
     /// Appends an SQLLiteral to the receiver.
@@ -157,8 +196,11 @@ extension Collection where Element == SQLLiteral {
     ///     ]
     ///     let query = components.joined(separator: " ")
     public func joined(separator: String = "") -> SQLLiteral {
-        return SQLLiteral { context in
-            self.map { $0.resolve(&context) }.joined(separator: separator)
+        if separator.isEmpty {
+            return SQLLiteral(elements: Array(map { $0.elements }.joined()))
+        } else {
+            let separator = SQLLiteral.Element.sql(separator, StatementArguments())
+            return SQLLiteral(elements: Array(map { $0.elements }.joined(separator: CollectionOfOne(separator))))
         }
     }
 }
@@ -248,13 +290,13 @@ public struct SQLExpressionLiteral: SQLExpression {
         if wrappedInParenthesis {
             return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
-        return sqlLiteral.resolve(&context)
+        return sqlLiteral.sql(&context)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return self
+        return sqlLiteral.qualified(with: alias).sqlExpression
     }
 }
 
@@ -269,7 +311,7 @@ private struct SQLSelectionLiteral: SQLSelectable {
     }
     
     func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
-        return sqlLiteral.resolve(&context)
+        return sqlLiteral.sql(&context)
     }
     
     func countedSQL(_ context: inout SQLGenerationContext) -> String {
@@ -294,6 +336,6 @@ private struct SQLSelectionLiteral: SQLSelectable {
     }
     
     func qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
-        return self
+        return sqlLiteral.qualified(with: alias).sqlSelectable
     }
 }

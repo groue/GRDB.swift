@@ -146,7 +146,7 @@ public struct SQLRequest<T>: FetchRequest {
     ///
     /// :nodoc:
     public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        let (sql, arguments) = sqlLiteral.resolveWithDefaultContext()
+        let (sql, arguments) = sqlLiteral.sqlWithDefaultContext()
         let statement: SelectStatement
         switch cache {
         case .none:
