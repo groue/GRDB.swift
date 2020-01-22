@@ -109,6 +109,21 @@ extension SQLLiteral {
     }
 }
 
+extension SQLLiteral {
+    /// Creates an SQL literal expression.
+    ///
+    ///     SQLLiteral(sql: "1 + 2").sqlExpression
+    ///     SQLLiteral(sql: "? + ?", arguments: [1, 2]).sqlExpression
+    ///     SQLLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2]).sqlExpression
+    public var sqlExpression: SQLExpression {
+        return SQLExpressionLiteral(sqlLiteral: self)
+    }
+    
+    var sqlSelectable: SQLSelectable {
+        return SQLSelectionLiteral(sqlLiteral: self)
+    }
+}
+
 extension Sequence where Element == SQLLiteral {
     /// Returns the concatenated SQLLiteral of this sequence of literals,
     /// inserting the given separator between each element.
@@ -173,3 +188,112 @@ extension SQLLiteral: ExpressibleByStringInterpolation {
     }
 }
 #endif
+
+// MARK: - SQLExpressionLiteral
+
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// SQLExpressionLiteral is an expression built from a raw SQL snippet.
+///
+///     SQLExpressionLiteral(sql: "1 + 2")
+///
+/// The SQL literal may contain `?` and colon-prefixed arguments:
+///
+///     SQLExpressionLiteral(sql: "? + ?", arguments: [1, 2])
+///     SQLExpressionLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2])
+public struct SQLExpressionLiteral: SQLExpression {
+    private let sqlLiteral: SQLLiteral
+    
+    public var sql: String { return sqlLiteral.sql }
+    
+    public var arguments: StatementArguments { return sqlLiteral.arguments }
+    
+    // Prefer SQLLiteral.sqlExpression
+    fileprivate init(sqlLiteral: SQLLiteral) {
+        self.sqlLiteral = sqlLiteral
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// Creates an SQL literal expression.
+    ///
+    ///     SQLExpressionLiteral(sql: "1 + 2")
+    ///     SQLExpressionLiteral(sql: "? + ?", arguments: [1, 2])
+    ///     SQLExpressionLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2])
+    @available(*, deprecated, message: "Use SQLiteral.sqlExpression instead")
+    public init(sql: String, arguments: StatementArguments = StatementArguments()) {
+        self.init(sqlLiteral: SQLLiteral(sql: sql, arguments: arguments))
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// Creates an SQL literal expression.
+    ///
+    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: "1 + 2")
+    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: "? + ?", arguments: [1, 2]))
+    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2]))
+    ///
+    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
+    ///
+    ///     SQLExpressionLiteral(literal: "\(1) + \(2)")
+    @available(*, deprecated, message: "Use SQLiteral.sqlExpression instead")
+    public init(literal sqlLiteral: SQLLiteral) {
+        self.init(sqlLiteral: sqlLiteral)
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+        if wrappedInParenthesis {
+            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+        }
+        return sqlLiteral.resolve(&context)
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return self
+    }
+}
+
+// MARK: - SQLSelectionLiteral
+
+private struct SQLSelectionLiteral: SQLSelectable {
+    private let sqlLiteral: SQLLiteral
+    
+    // Prefer SQLLiteral.sqlSelectable
+    fileprivate init(sqlLiteral: SQLLiteral) {
+        self.sqlLiteral = sqlLiteral
+    }
+    
+    func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
+        return sqlLiteral.resolve(&context)
+    }
+    
+    func countedSQL(_ context: inout SQLGenerationContext) -> String {
+        fatalError("""
+            Selection literals can't be counted. \
+            To resolve this error, select one or several SQLExpressionLiteral instead.
+            """)
+    }
+    
+    func count(distinct: Bool) -> SQLCount? {
+        fatalError("""
+            Selection literals can't be counted. \
+            To resolve this error, select one or several SQLExpressionLiteral instead.
+            """)
+    }
+    
+    func columnCount(_ db: Database) throws -> Int {
+        fatalError("""
+            Selection literals don't known how many columns they contain. \
+            To resolve this error, select one or several SQLExpressionLiteral instead.
+            """)
+    }
+    
+    func qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
+        return self
+    }
+}

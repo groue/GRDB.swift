@@ -21,68 +21,6 @@ extension SQLExpression {
     }
 }
 
-// MARK: - SQLExpressionLiteral
-
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// SQLExpressionLiteral is an expression built from a raw SQL snippet.
-///
-///     SQLExpressionLiteral(sql: "1 + 2")
-///
-/// The SQL literal may contain `?` and colon-prefixed arguments:
-///
-///     SQLExpressionLiteral(sql: "? + ?", arguments: [1, 2])
-///     SQLExpressionLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2])
-public struct SQLExpressionLiteral: SQLExpression {
-    private let sqlLiteral: SQLLiteral
-    
-    public var sql: String { return sqlLiteral.sql }
-    
-    public var arguments: StatementArguments { return sqlLiteral.arguments }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Creates an SQL literal expression.
-    ///
-    ///     SQLExpressionLiteral(sql: "1 + 2")
-    ///     SQLExpressionLiteral(sql: "? + ?", arguments: [1, 2])
-    ///     SQLExpressionLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2])
-    public init(sql: String, arguments: StatementArguments = StatementArguments()) {
-        self.init(literal: SQLLiteral(sql: sql, arguments: arguments))
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Creates an SQL literal expression.
-    ///
-    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: "1 + 2")
-    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: "? + ?", arguments: [1, 2]))
-    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2]))
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     SQLExpressionLiteral(literal: "\(1) + \(2)")
-    public init(literal sqlLiteral: SQLLiteral) {
-        self.sqlLiteral = sqlLiteral
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
-        }
-        return sqlLiteral.resolve(&context)
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return self
-    }
-}
-
 // MARK: - SQLExpressionUnary
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)

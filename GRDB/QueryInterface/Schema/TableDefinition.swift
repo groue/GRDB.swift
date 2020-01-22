@@ -521,7 +521,7 @@ public final class TableDefinition {
     ///
     /// - parameter sql: An SQL snippet
     public func check(sql: String) {
-        checkConstraints.append(SQLExpressionLiteral(sql: sql))
+        checkConstraints.append(SQLLiteral(sql: sql).sqlExpression)
     }
     
     fileprivate func sql(_ db: Database) throws -> String {
@@ -850,7 +850,7 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func check(sql: String) -> Self {
-        checkConstraints.append(SQLExpressionLiteral(sql: sql))
+        checkConstraints.append(SQLLiteral(sql: sql).sqlExpression)
         return self
     }
     
@@ -882,7 +882,7 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func defaults(sql: String) -> Self {
-        defaultExpression = SQLExpressionLiteral(sql: sql)
+        defaultExpression = SQLLiteral(sql: sql).sqlExpression
         return self
     }
     
