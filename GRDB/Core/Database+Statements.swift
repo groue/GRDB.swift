@@ -165,7 +165,9 @@ extension Database {
         //
         // And before we return, we'll check that all arguments were consumed.
         
-        var (sql, arguments) = sqlLiteral.generate()
+        var context = SQLGenerationContext.sqlLiteralContext
+        let sql = sqlLiteral.sql(&context)
+        var arguments = context.arguments
         let initialValuesCount = arguments.values.count
         
         // Build a C string (SQLite wants that), and execute SQL statements one

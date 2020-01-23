@@ -10,6 +10,8 @@
 ///         try db.execute(literal: query)
 ///     }
 public struct SQLLiteral {
+    /// SQLLiteral is an array of elements which can be qualified with
+    /// table aliases.
     enum Element {
         case sql(String, StatementArguments = StatementArguments())
         case sqlLiteral(SQLLiteral, qualified: Bool = false)
@@ -64,11 +66,14 @@ public struct SQLLiteral {
     }
     
     public var sql: String {
-        return generate().sql
+        var context = SQLGenerationContext.sqlLiteralContext
+        return sql(&context)
     }
     
     public var arguments: StatementArguments {
-        return generate().arguments
+        var context = SQLGenerationContext.sqlLiteralContext
+        _ = sql(&context)
+        return context.arguments
     }
     
     var elements: [Element]
@@ -100,12 +105,6 @@ public struct SQLLiteral {
             sql += element.sql(&context)
         }
         return sql
-    }
-    
-    func generate() -> (sql: String, arguments: StatementArguments) {
-        var context = SQLGenerationContext.sqlLiteralContext
-        let sql = self.sql(&context)
-        return (sql: sql, arguments: context.arguments)
     }
     
     fileprivate func qualified(with alias: TableAlias) -> SQLLiteral {
