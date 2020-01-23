@@ -255,16 +255,16 @@ extension SQLLiteralTests {
         XCTAssertEqual(query.arguments, [data])
     }
     
-    func testQualifiedExpressionInterpolation() {
+    func testAliasedExpressionInterpolation() {
         let query: SQLLiteral = """
-            SELECT \(Column("name").forKey("foo"))
+            SELECT \(Column("name").forKey("foo")), \(1.databaseValue.forKey("bar"))
             FROM player
             """
         XCTAssertEqual(query.sql, """
-            SELECT "name" AS "foo"
+            SELECT "name" AS "foo", ? AS "bar"
             FROM player
             """)
-        XCTAssert(query.arguments.isEmpty)
+        XCTAssertEqual(query.arguments, [1])
     }
     
     func testCodingKeyInterpolation() {
@@ -395,6 +395,42 @@ extension SQLLiteralTests {
             SELECT * FROM player WHERE score > 1000 AND name = :name
             """)
         XCTAssertEqual(query.arguments, ["name": "Arthur"])
+    }
+    
+    func testQualifiedSQLLiteral() throws {
+        struct Player: TableRecord { }
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "player") { t in
+                t.column("name", .text)
+            }
+            let nameColumn = Column("name")
+            let baseRequest = Player.aliased(TableAlias(name: "p"))
+            
+            let alteredNameLiteral = SQLLiteral("\(nameColumn) || \("foo")")
+            do {
+                let request = baseRequest.select(literal: alteredNameLiteral)
+                try assertEqualSQL(db, request, """
+                    SELECT "p"."name" || 'foo' FROM "player" "p"
+                    """)
+            }
+            
+            let alteredNameColumn = alteredNameLiteral.sqlExpression.forKey("alteredName")
+            do {
+                let request = baseRequest.select(alteredNameColumn)
+                try assertEqualSQL(db, request, """
+                    SELECT "p"."name" || 'foo' AS "alteredName" FROM "player" "p"
+                    """)
+            }
+            
+            let subQuery: SQLRequest<String> = "SELECT MAX(\(nameColumn)) FROM \(Player.self)"
+            let conditionLiteral = SQLLiteral("\(nameColumn) = \(subQuery)")
+            do {
+                let request = baseRequest.filter(literal: conditionLiteral)
+                try assertEqualSQL(db, request, """
+                    SELECT "p".* FROM "player" "p" WHERE "p"."name" = (SELECT MAX("name") FROM "player")
+                    """)
+            }
+        }
     }
 }
 #endif

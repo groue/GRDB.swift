@@ -11,13 +11,13 @@
 ///     }
 public struct SQLLiteral {
     enum Element {
-        case sql(String, StatementArguments)
-        case sqlLiteral(SQLLiteral)
+        case sql(String, StatementArguments = StatementArguments())
+        case sqlLiteral(SQLLiteral, qualified: Bool = false)
         case expression(SQLExpression)
         case selectable(SQLSelectable)
         case orderingTerm(SQLOrderingTerm)
         case map(SQLLiteral, (String) -> String)
-
+        
         func sql(_ context: inout SQLGenerationContext) -> String {
             switch self {
             case let .sql(sql, arguments):
@@ -27,7 +27,7 @@ public struct SQLLiteral {
                     fatalError("Not implemented")
                 }
                 return sql
-            case let .sqlLiteral(sqlLiteral):
+            case let .sqlLiteral(sqlLiteral, _):
                 return sqlLiteral.sql(&context)
             case let .expression(expression):
                 return expression.expressionSQL(&context, wrappedInParenthesis: false)
@@ -44,8 +44,12 @@ public struct SQLLiteral {
             switch self {
             case .sql:
                 return self
-            case let .sqlLiteral(sqlLiteral):
-                return .sqlLiteral(sqlLiteral.qualified(with: alias))
+            case let .sqlLiteral(sqlLiteral, qualified):
+                if qualified {
+                    return self
+                } else {
+                    return .sqlLiteral(sqlLiteral.qualified(with: alias), qualified: false /* allow requalification */)
+                }
             case let .expression(expression):
                 return .expression(expression.qualifiedExpression(with: alias))
             case let .selectable(selectable):
@@ -199,7 +203,7 @@ extension Collection where Element == SQLLiteral {
         if separator.isEmpty {
             return SQLLiteral(elements: Array(map { $0.elements }.joined()))
         } else {
-            let separator = SQLLiteral.Element.sql(separator, StatementArguments())
+            let separator = SQLLiteral.Element.sql(separator)
             return SQLLiteral(elements: Array(map { $0.elements }.joined(separator: CollectionOfOne(separator))))
         }
     }
@@ -226,7 +230,7 @@ extension SQLLiteral: ExpressibleByStringInterpolation {
     
     /// :nodoc:
     public init(stringInterpolation sqlInterpolation: SQLInterpolation) {
-        self.init(sql: sqlInterpolation.sql, arguments: sqlInterpolation.arguments)
+        self.init(elements: sqlInterpolation.elements)
     }
 }
 #endif
