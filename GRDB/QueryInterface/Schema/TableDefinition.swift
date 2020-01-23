@@ -657,6 +657,7 @@ public final class TableDefinition {
 public final class TableAlteration {
     private let name: String
     private var addedColumns: [ColumnDefinition] = []
+    private var renamedColumns: [(oldColumn: ColumnDefinition, newColumn: ColumnDefinition)] = []
     
     init(name: String) {
         self.name = name
@@ -680,9 +681,38 @@ public final class TableAlteration {
         addedColumns.append(column)
         return column
     }
+
+    /// Renames a column in a table.
+    ///
+    ///     try db.alter(table: "player") { t in
+    ///         t.rename(column: "url", to: "home_url")
+    ///     }
+    ///
+    /// See https://www.sqlite.org/lang_altertable.html
+    ///
+    /// - parameter name: the column name to rename.
+    /// - parameter newName: the new name of the column.
+    @available(iOS 13.0, OSX 10.15, tvOS 13.0, watchOS 6.0, *)
+    public func rename(column name: String, to newName: String) {
+        let old = ColumnDefinition(name: name, type: nil)
+        let new = ColumnDefinition(name: newName, type: nil)
+        renamedColumns.append((oldColumn: old, newColumn: new))
+    }
     
     fileprivate func sql(_ db: Database) throws -> String {
         var statements: [String] = []
+
+        for (oldColumn, newColumn) in renamedColumns {
+            var chunks: [String] = []
+            chunks.append("ALTER TABLE")
+            chunks.append(name.quotedDatabaseIdentifier)
+            chunks.append("RENAME COLUMN")
+            chunks.append(oldColumn.name.quotedDatabaseIdentifier)
+            chunks.append("TO")
+            chunks.append(newColumn.name.quotedDatabaseIdentifier)
+            let statement = chunks.joined(separator: " ")
+            statements.append(statement)
+        }
         
         for column in addedColumns {
             var chunks: [String] = []
