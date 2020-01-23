@@ -8,16 +8,14 @@ extension SQLExpression {
     /// :nodoc:
     @available(*, deprecated, message: "Use SQL interpolation instead")
     public var sqlLiteral: SQLLiteral {
-        var context = SQLGenerationContext.literalGenerationContext(withArguments: true)
-        let sql = expressionSQL(&context, wrappedInParenthesis: false)
-        return SQLLiteral(sql: sql, arguments: context.arguments!)
+        return SQLLiteral(elements: [.expression(self)])
     }
     
     /// The expression as a quoted SQL literal (not public in order to avoid abuses)
     ///
     ///     "foo'bar".databaseValue.quotedSQL() // "'foo''bar'""
     func quotedSQL() -> String {
-        var context = SQLGenerationContext.literalGenerationContext(withArguments: false)
+        var context = SQLGenerationContext.rawSQLContext
         return expressionSQL(&context, wrappedInParenthesis: false)
     }
 }

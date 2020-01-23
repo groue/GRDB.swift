@@ -16,10 +16,10 @@ public struct SQLLiteral {
         case expression(SQLExpression)
         case selectable(SQLSelectable)
         case orderingTerm(SQLOrderingTerm)
-        // TODO: remove when the deprecated mapSQL is removed.
+        // TODO: remove when the deprecated SQLLiteral.mapSQL(_:) is removed.
         case map(SQLLiteral, (String) -> String)
         
-        func sql(_ context: inout SQLGenerationContext) -> String {
+        fileprivate func sql(_ context: inout SQLGenerationContext) -> String {
             switch self {
             case let .sql(sql, arguments):
                 if context.append(arguments: arguments) == false {
@@ -41,7 +41,7 @@ public struct SQLLiteral {
             }
         }
         
-        func qualified(with alias: TableAlias) -> Element {
+        fileprivate func qualified(with alias: TableAlias) -> Element {
             switch self {
             case .sql:
                 return self
@@ -64,11 +64,11 @@ public struct SQLLiteral {
     }
     
     public var sql: String {
-        return sqlWithDefaultContext().sql
+        return generate().sql
     }
     
     public var arguments: StatementArguments {
-        return sqlWithDefaultContext().arguments
+        return generate().arguments
     }
     
     var elements: [Element]
@@ -102,10 +102,10 @@ public struct SQLLiteral {
         return sql
     }
     
-    func sqlWithDefaultContext() -> (sql: String, arguments: StatementArguments) {
-        var context = SQLGenerationContext.literalGenerationContext(withArguments: true)
+    func generate() -> (sql: String, arguments: StatementArguments) {
+        var context = SQLGenerationContext.sqlLiteralContext
         let sql = self.sql(&context)
-        return (sql: sql, arguments: context.arguments!)
+        return (sql: sql, arguments: context.arguments)
     }
     
     fileprivate func qualified(with alias: TableAlias) -> SQLLiteral {
