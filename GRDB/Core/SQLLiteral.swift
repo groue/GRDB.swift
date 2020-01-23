@@ -16,6 +16,7 @@ public struct SQLLiteral {
         case expression(SQLExpression)
         case selectable(SQLSelectable)
         case orderingTerm(SQLOrderingTerm)
+        // TODO: remove when the deprecated mapSQL is removed.
         case map(SQLLiteral, (String) -> String)
         
         func sql(_ context: inout SQLGenerationContext) -> String {
@@ -88,6 +89,7 @@ public struct SQLLiteral {
     }
     
     /// Returns a literal whose SQL is transformed by the given closure.
+    @available(*, deprecated, message: "Use SQL interpolation instead")
     public func mapSQL(_ transform: @escaping (String) -> String) -> SQLLiteral {
         return SQLLiteral(elements: [.map(self, transform)])
     }

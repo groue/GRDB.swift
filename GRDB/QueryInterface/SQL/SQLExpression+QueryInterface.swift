@@ -6,6 +6,7 @@ extension SQLExpression {
     /// Converts an expression to an SQLLiteral
     ///
     /// :nodoc:
+    @available(*, deprecated, message: "Use SQL interpolation instead")
     public var sqlLiteral: SQLLiteral {
         var context = SQLGenerationContext.literalGenerationContext(withArguments: true)
         let sql = expressionSQL(&context, wrappedInParenthesis: false)
