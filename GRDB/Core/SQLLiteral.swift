@@ -179,14 +179,12 @@ extension Sequence where Element == SQLLiteral {
     ///     ]
     ///     let query = components.joined(separator: " ")
     public func joined(separator: String = "") -> SQLLiteral {
-        // Calling the two properties `sql` and `arguments` must not consume the
-        // sequence twice, or we would get inconsistent values if the sequence
-        // does not yield the same elements on the two distinct iterations.
-        // So let's turn the sequence into a collection first.
-        //
-        // TODO: consider deprecating the two `sql` and `arguments` properties,
-        // and provide a more efficient implementation of this method.
-        return Array(self).joined(separator: separator)
+        if separator.isEmpty {
+            return SQLLiteral(elements: flatMap { $0.elements })
+        } else {
+            let separator = SQLLiteral.Element.sql(separator)
+            return SQLLiteral(elements: Array(map { $0.elements }.joined(separator: CollectionOfOne(separator))))
+        }
     }
 }
 
@@ -202,7 +200,7 @@ extension Collection where Element == SQLLiteral {
     ///     let query = components.joined(separator: " ")
     public func joined(separator: String = "") -> SQLLiteral {
         if separator.isEmpty {
-            return SQLLiteral(elements: Array(map { $0.elements }.joined()))
+            return SQLLiteral(elements: flatMap { $0.elements })
         } else {
             let separator = SQLLiteral.Element.sql(separator)
             return SQLLiteral(elements: Array(map { $0.elements }.joined(separator: CollectionOfOne(separator))))
