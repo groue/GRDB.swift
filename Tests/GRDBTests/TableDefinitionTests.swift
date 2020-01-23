@@ -495,6 +495,27 @@ class TableDefinitionTests: GRDBTestCase {
             assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" ADD COLUMN \"e\"")
         }
     }
+
+    #if !os(OSX)
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+    func testAlterTableRenameColumn() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test") { t in
+                t.column("a", .text)
+            }
+
+            sqlQueries.removeAll()
+            try db.alter(table: "test") { t in
+                t.rename(column: "a", to: "b")
+                t.add(column: "e")
+            }
+
+            assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" RENAME COLUMN \"a\" TO \"b\"")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" ADD COLUMN \"e\"")
+        }
+    }
+    #endif
     
     func testDropTable() throws {
         let dbQueue = try makeDatabaseQueue()
