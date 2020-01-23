@@ -402,6 +402,7 @@ extension SQLLiteralTests {
         try makeDatabaseQueue().write { db in
             try db.create(table: "player") { t in
                 t.column("name", .text)
+                t.column("createdAt", .datetime)
             }
             let nameColumn = Column("name")
             let baseRequest = Player.aliased(TableAlias(name: "p"))
@@ -428,6 +429,17 @@ extension SQLLiteralTests {
                 let request = baseRequest.filter(literal: conditionLiteral)
                 try assertEqualSQL(db, request, """
                     SELECT "p".* FROM "player" "p" WHERE "p"."name" = (SELECT MAX("name") FROM "player")
+                    """)
+            }
+            
+            do {
+                // Test of documentation
+                let date = "2020-01-23"
+                let createdAt = Column("createdAt")
+                let creationDate = SQLLiteral("DATE(\(createdAt))").sqlExpression
+                let request = Player.filter(creationDate == date)
+                try assertEqualSQL(db, request, """
+                    SELECT * FROM "player" WHERE (DATE("createdAt")) = '2020-01-23'
                     """)
             }
         }
