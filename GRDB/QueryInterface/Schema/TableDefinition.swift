@@ -687,7 +687,21 @@ public final class TableAlteration {
         return column
     }
 
-    #if !os(OSX) || GRDBCUSTOMSQLITE || GRDBCIPHER
+    #if GRDBCUSTOMSQLITE
+    /// Renames a column in a table.
+    ///
+    ///     try db.alter(table: "player") { t in
+    ///         t.rename(column: "url", to: "home_url")
+    ///     }
+    ///
+    /// See https://www.sqlite.org/lang_altertable.html
+    ///
+    /// - parameter name: the column name to rename.
+    /// - parameter newName: the new name of the column.
+    public func rename(column name: String, to newName: String) {
+        alterations.append(.rename(old: name, new: newName))
+    }
+    #elseif !os(OSX)
     /// Renames a column in a table.
     ///
     ///     try db.alter(table: "player") { t in
