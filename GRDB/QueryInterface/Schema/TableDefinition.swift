@@ -656,8 +656,13 @@ public final class TableDefinition {
 /// See https://www.sqlite.org/lang_altertable.html
 public final class TableAlteration {
     private let name: String
-    private var addedColumns: [ColumnDefinition] = []
-    private var renamedColumns: [(oldColumn: ColumnDefinition, newColumn: ColumnDefinition)] = []
+
+    private enum TableAlterationKind {
+        case add(ColumnDefinition)
+        case rename(old: String, new: String)
+    }
+
+    private var alterations: [TableAlterationKind] = []
     
     init(name: String) {
         self.name = name
@@ -678,11 +683,11 @@ public final class TableAlteration {
     @discardableResult
     public func add(column name: String, _ type: Database.ColumnType? = nil) -> ColumnDefinition {
         let column = ColumnDefinition(name: name, type: type)
-        addedColumns.append(column)
+        alterations.append(.add(column))
         return column
     }
 
-    #if !os(OSX)
+    #if !os(OSX) || GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Renames a column in a table.
     ///
     ///     try db.alter(table: "player") { t in
@@ -695,43 +700,40 @@ public final class TableAlteration {
     /// - parameter newName: the new name of the column.
     @available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
     public func rename(column name: String, to newName: String) {
-        let old = ColumnDefinition(name: name, type: nil)
-        let new = ColumnDefinition(name: newName, type: nil)
-        renamedColumns.append((oldColumn: old, newColumn: new))
+        alterations.append(.rename(old: name, new: newName))
     }
     #endif
     
     fileprivate func sql(_ db: Database) throws -> String {
         var statements: [String] = []
 
-        #if !os(OSX)
-        for (oldColumn, newColumn) in renamedColumns {
-            var chunks: [String] = []
-            chunks.append("ALTER TABLE")
-            chunks.append(name.quotedDatabaseIdentifier)
-            chunks.append("RENAME COLUMN")
-            chunks.append(oldColumn.name.quotedDatabaseIdentifier)
-            chunks.append("TO")
-            chunks.append(newColumn.name.quotedDatabaseIdentifier)
-            let statement = chunks.joined(separator: " ")
-            statements.append(statement)
-        }
-        #endif
-        
-        for column in addedColumns {
-            var chunks: [String] = []
-            chunks.append("ALTER TABLE")
-            chunks.append(name.quotedDatabaseIdentifier)
-            chunks.append("ADD COLUMN")
-            try chunks.append(column.sql(db, tableName: name, primaryKeyColumns: nil))
-            let statement = chunks.joined(separator: " ")
-            statements.append(statement)
-            
-            if let indexDefinition = column.indexDefinition(in: name) {
-                statements.append(indexDefinition.sql())
+        for alteration in alterations {
+            switch alteration {
+            case let .add(column):
+                var chunks: [String] = []
+                chunks.append("ALTER TABLE")
+                chunks.append(name.quotedDatabaseIdentifier)
+                chunks.append("ADD COLUMN")
+                try chunks.append(column.sql(db, tableName: name, primaryKeyColumns: nil))
+                let statement = chunks.joined(separator: " ")
+                statements.append(statement)
+
+                if let indexDefinition = column.indexDefinition(in: name) {
+                    statements.append(indexDefinition.sql())
+                }
+            case let .rename(oldName, newName):
+                var chunks: [String] = []
+                chunks.append("ALTER TABLE")
+                chunks.append(name.quotedDatabaseIdentifier)
+                chunks.append("RENAME COLUMN")
+                chunks.append(oldName.quotedDatabaseIdentifier)
+                chunks.append("TO")
+                chunks.append(newName.quotedDatabaseIdentifier)
+                let statement = chunks.joined(separator: " ")
+                statements.append(statement)
             }
         }
-        
+
         return statements.joined(separator: "; ")
     }
 }
