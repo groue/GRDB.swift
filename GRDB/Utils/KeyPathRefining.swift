@@ -20,7 +20,8 @@ extension KeyPathRefining {
         return result
     }
     
-    #if compiler(<5.1)
+    #if compiler(>=5.1)
+    #else
     @inlinable
     func with<T>(_ keyPath: WritableKeyPath<Self, T?>, _ value: T) -> Self {
         var result = self
