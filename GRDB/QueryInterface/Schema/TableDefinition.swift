@@ -687,7 +687,7 @@ public final class TableAlteration {
         return column
     }
 
-    #if GRDBCUSTOMSQLITE
+    #if GRDBCUSTOMSQLITE || GRDBCipher
     /// Renames a column in a table.
     ///
     ///     try db.alter(table: "player") { t in
@@ -699,9 +699,9 @@ public final class TableAlteration {
     /// - parameter name: the column name to rename.
     /// - parameter newName: the new name of the column.
     public func rename(column name: String, to newName: String) {
-        alterations.append(.rename(old: name, new: newName))
+        _rename(column: name, to: newName)
     }
-    #elseif !os(OSX)
+    #else
     /// Renames a column in a table.
     ///
     ///     try db.alter(table: "player") { t in
@@ -714,9 +714,13 @@ public final class TableAlteration {
     /// - parameter newName: the new name of the column.
     @available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
     public func rename(column name: String, to newName: String) {
-        alterations.append(.rename(old: name, new: newName))
+        _rename(column: name, to: newName)
     }
     #endif
+
+    private func _rename(column name: String, to newName: String) {
+        alterations.append(.rename(old: name, new: newName))
+    }
     
     fileprivate func sql(_ db: Database) throws -> String {
         var statements: [String] = []
