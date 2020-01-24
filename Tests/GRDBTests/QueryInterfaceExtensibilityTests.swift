@@ -45,7 +45,7 @@ func castDeprecated(_ value: SQLExpressible, as type: Database.ColumnType) -> SQ
     return SQLExpressionLiteral(literal: castLiteral)
 }
 
-#if compiler(>=5.0)
+#if swift(>=5.0)
 func cast<T: SQLExpressible>(_ value: T, as type: Database.ColumnType) -> SQLExpression {
     return SQLLiteral("CAST(\(value) AS \(sql: type.rawValue))").sqlExpression
 }
@@ -123,7 +123,7 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
         }
     }
     
-    #if compiler(>=5.0)
+    #if swift(>=5.0)
     func testCast() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
