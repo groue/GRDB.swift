@@ -117,14 +117,25 @@ class SQLLiteralTests: GRDBTestCase {
                 t.column("createdAt", .datetime)
             }
             
-            // Test of SQLLiteral.init(_:) documentation (plus qualification)
-            let columnLiteral = SQLLiteral(Column("name"))
-            let suffixLiteral = SQLLiteral("O''Brien".databaseValue)
-            let literal = [columnLiteral, suffixLiteral].joined(separator: " || ")
-            let request = Player.aliased(TableAlias(name: "p")).select(literal.sqlExpression)
-            try assertEqualSQL(db, request, """
-                SELECT "p"."name" || 'O''''Brien' FROM "player" "p"
-                """)
+            do {
+                // Test of SQLLiteral.init(_:) documentation (plus qualification)
+                let columnLiteral = SQLLiteral(Column("name"))
+                let suffixLiteral = SQLLiteral("O'Brien".databaseValue)
+                let literal = [columnLiteral, suffixLiteral].joined(separator: " || ")
+                let request = Player.aliased(TableAlias(name: "p")).select(literal.sqlExpression)
+                try assertEqualSQL(db, request, """
+                    SELECT "p"."name" || 'O''Brien' FROM "player" "p"
+                    """)
+            }
+            
+            do {
+                // Test mapSQL plus qualification
+                let literal = SQLLiteral(Column("name")).mapSQL { sql in "\(sql) || 'foo'" }
+                let request = Player.aliased(TableAlias(name: "p")).select(literal.sqlExpression)
+                try assertEqualSQL(db, request, """
+                    SELECT "p"."name" || 'foo' FROM "player" "p"
+                    """)
+            }
         }
     }
 }
