@@ -8,7 +8,7 @@ extension SQLExpression {
     /// :nodoc:
     @available(*, deprecated, message: "Use SQLLiteral initializer instead")
     public var sqlLiteral: SQLLiteral {
-        return SQLLiteral(elements: [.expression(self)])
+        return SQLLiteral(self)
     }
     
     /// The expression as a quoted SQL literal (not public in order to avoid abuses)
