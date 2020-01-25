@@ -148,7 +148,7 @@ extension SQLInterpolation {
     ///         """
     public mutating func appendInterpolation<T>(_ request: SQLRequest<T>) {
         appendLiteral("(")
-        elements.append(.sqlLiteral(request.sqlLiteral, qualified: true /* don't requalify */))
+        elements.append(.literal(request.sqlLiteral, qualifierLocked: true))
         appendLiteral(")")
     }
 }

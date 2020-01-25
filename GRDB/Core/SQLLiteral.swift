@@ -13,13 +13,18 @@ public struct SQLLiteral {
     /// SQLLiteral is an array of elements which can be qualified with
     /// table aliases.
     enum Element {
-        case sql(String, StatementArguments = StatementArguments())
-        case sqlLiteral(SQLLiteral, qualified: Bool = false)
+        case sql(String, StatementArguments)
+        case literal(SQLLiteral, qualifierLocked: Bool)
         case expression(SQLExpression)
         case selectable(SQLSelectable)
         case orderingTerm(SQLOrderingTerm)
         // TODO: remove when the deprecated SQLLiteral.mapSQL(_:) is removed.
         case map(SQLLiteral, (String) -> String)
+        
+        // TODO: remove and use default case argument when compiler >= 5.1
+        static func sql(_ sql: String) -> Element {
+            return .sql(sql, StatementArguments())
+        }
         
         fileprivate func sql(_ context: inout SQLGenerationContext) -> String {
             switch self {
@@ -30,7 +35,7 @@ public struct SQLLiteral {
                     fatalError("Not implemented")
                 }
                 return sql
-            case let .sqlLiteral(sqlLiteral, _):
+            case let .literal(sqlLiteral, _):
                 return sqlLiteral.sql(&context)
             case let .expression(expression):
                 return expression.expressionSQL(&context, wrappedInParenthesis: false)
@@ -47,11 +52,11 @@ public struct SQLLiteral {
             switch self {
             case .sql:
                 return self
-            case let .sqlLiteral(sqlLiteral, qualified):
-                if qualified {
+            case let .literal(sqlLiteral, qualifierLocked):
+                if qualifierLocked {
                     return self
                 } else {
-                    return .sqlLiteral(sqlLiteral.qualified(with: alias), qualified: false /* allow requalification */)
+                    return .literal(sqlLiteral.qualified(with: alias), qualifierLocked: false)
                 }
             case let .expression(expression):
                 return .expression(expression.qualifiedExpression(with: alias))
@@ -91,6 +96,11 @@ public struct SQLLiteral {
     ///         arguments: [name, id])
     public init(sql: String, arguments: StatementArguments = StatementArguments()) {
         self.init(elements: [.sql(sql, arguments)])
+    }
+    
+    /// TODO
+    public init(_ expressible: SQLExpressible) {
+        self.init(elements: [.expression(expressible.sqlExpression)])
     }
     
     /// Returns a literal whose SQL is transformed by the given closure.

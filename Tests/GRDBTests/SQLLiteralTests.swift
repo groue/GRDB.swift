@@ -433,6 +433,17 @@ extension SQLLiteralTests {
             }
             
             do {
+                let concatenation = [nameColumn, "O'Brien", nameColumn]
+                    .map { (expressible: SQLExpressible) in SQLLiteral(expressible) }
+                    .joined(separator: " || ")
+                    .sqlExpression
+                let request = baseRequest.select(concatenation)
+                try assertEqualSQL(db, request, """
+                    SELECT "p"."name" || 'O''Brien' || "p"."name" FROM "player" "p"
+                    """)
+            }
+            
+            do {
                 // Test of documentation
                 let date = "2020-01-23"
                 let createdAt = Column("createdAt")
