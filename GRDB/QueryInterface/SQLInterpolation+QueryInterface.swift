@@ -147,9 +147,7 @@ extension SQLInterpolation {
     ///         SELECT * FROM player WHERE score = \(subQuery)
     ///         """
     public mutating func appendInterpolation<T>(_ request: SQLRequest<T>) {
-        appendLiteral("(")
-        elements.append(.literal(request.sqlLiteral, qualifierLocked: true))
-        appendLiteral(")")
+        elements.append(.subQuery(request.sqlLiteral))
     }
 }
 #endif

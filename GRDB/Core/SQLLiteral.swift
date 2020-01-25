@@ -14,10 +14,10 @@ public struct SQLLiteral {
     /// table aliases.
     enum Element {
         case sql(String, StatementArguments)
-        case literal(SQLLiteral, qualifierLocked: Bool)
         case expression(SQLExpression)
         case selectable(SQLSelectable)
         case orderingTerm(SQLOrderingTerm)
+        case subQuery(SQLLiteral)
         // TODO: remove when the deprecated SQLLiteral.mapSQL(_:) is removed.
         case map(SQLLiteral, (String) -> String)
         
@@ -35,14 +35,14 @@ public struct SQLLiteral {
                     fatalError("Not implemented")
                 }
                 return sql
-            case let .literal(sqlLiteral, _):
-                return sqlLiteral.sql(&context)
             case let .expression(expression):
                 return expression.expressionSQL(&context, wrappedInParenthesis: false)
             case let .selectable(selectable):
                 return selectable.resultColumnSQL(&context)
             case let .orderingTerm(orderingTerm):
                 return orderingTerm.orderingTermSQL(&context)
+            case let .subQuery(sqlLiteral):
+                return "(" + sqlLiteral.sql(&context) + ")"
             case let .map(sqlLiteral, transform):
                 return transform(sqlLiteral.sql(&context))
             }
@@ -52,18 +52,15 @@ public struct SQLLiteral {
             switch self {
             case .sql:
                 return self
-            case let .literal(sqlLiteral, qualifierLocked):
-                if qualifierLocked {
-                    return self
-                } else {
-                    return .literal(sqlLiteral.qualified(with: alias), qualifierLocked: false)
-                }
             case let .expression(expression):
                 return .expression(expression.qualifiedExpression(with: alias))
             case let .selectable(selectable):
                 return .selectable(selectable.qualifiedSelectable(with: alias))
             case let .orderingTerm(orderingTerm):
                 return .orderingTerm(orderingTerm.qualifiedOrdering(with: alias))
+            case .subQuery:
+                // subqueries are not requalified
+                return self
             case let .map(sqlLiteral, transform):
                 return .map(sqlLiteral.qualified(with: alias), transform)
             }

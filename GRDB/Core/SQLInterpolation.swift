@@ -20,7 +20,7 @@ public struct SQLInterpolation: StringInterpolationProtocol {
     
     /// "SELECT * FROM player WHERE \(literal: condition)"
     public mutating func appendInterpolation(literal sqlLiteral: SQLLiteral) {
-        elements.append(.literal(sqlLiteral, qualifierLocked: false))
+        elements.append(contentsOf: sqlLiteral.elements)
     }
 }
 #endif
