@@ -197,15 +197,14 @@ extension Sequence where Element == SQLLiteral {
         if separator.isEmpty {
             return SQLLiteral(elements: flatMap { $0.elements })
         } else {
-            let separator = SQLLiteral.Element.sql(separator)
-            return SQLLiteral(elements: Array(map { $0.elements }.joined(separator: CollectionOfOne(separator))))
+            return SQLLiteral(elements: Array(map { $0.elements }.joined(separator: CollectionOfOne(.sql(separator)))))
         }
     }
 }
 
 extension Collection where Element == SQLLiteral {
     /// Returns the concatenated SQLLiteral of this collection of literals,
-    /// inserting the given separator between each element.
+    /// inserting the given SQL separator between each element.
     ///
     ///     let components: [SQLLiteral] = [
     ///         "UPDATE player",
@@ -217,8 +216,7 @@ extension Collection where Element == SQLLiteral {
         if separator.isEmpty {
             return SQLLiteral(elements: flatMap { $0.elements })
         } else {
-            let separator = SQLLiteral.Element.sql(separator)
-            return SQLLiteral(elements: Array(map { $0.elements }.joined(separator: CollectionOfOne(separator))))
+            return SQLLiteral(elements: Array(map { $0.elements }.joined(separator: CollectionOfOne(.sql(separator)))))
         }
     }
 }
