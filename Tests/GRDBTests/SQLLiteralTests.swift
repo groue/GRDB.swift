@@ -108,6 +108,25 @@ class SQLLiteralTests: GRDBTestCase {
             XCTAssertEqual(joined.arguments, [1000] + ["name": "Arthur"])
         }
     }
+    
+    func testQualifiedSQLLiteral() throws {
+        struct Player: TableRecord { }
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "player") { t in
+                t.column("name", .text)
+                t.column("createdAt", .datetime)
+            }
+            
+            // Test of SQLLiteral.init(_:) documentation (plus qualification)
+            let columnLiteral = SQLLiteral(Column("name"))
+            let suffixLiteral = SQLLiteral("O''Brien".databaseValue)
+            let literal = [columnLiteral, suffixLiteral].joined(separator: " || ")
+            let request = Player.aliased(TableAlias(name: "p")).select(literal.sqlExpression)
+            try assertEqualSQL(db, request, """
+                SELECT "p"."name" || 'O''''Brien' FROM "player" "p"
+                """)
+        }
+    }
 }
 
 #if swift(>=5.0)
@@ -397,7 +416,7 @@ extension SQLLiteralTests {
         XCTAssertEqual(query.arguments, ["name": "Arthur"])
     }
     
-    func testQualifiedSQLLiteral() throws {
+    func testQualifiedSQLInterpolation() throws {
         struct Player: TableRecord { }
         try makeDatabaseQueue().write { db in
             try db.create(table: "player") { t in
@@ -407,39 +426,29 @@ extension SQLLiteralTests {
             let nameColumn = Column("name")
             let baseRequest = Player.aliased(TableAlias(name: "p"))
             
-            let alteredNameLiteral = SQLLiteral("\(nameColumn) || \("foo")")
             do {
+                let alteredNameLiteral = SQLLiteral("\(nameColumn) || \("O'Brien")")
                 let request = baseRequest.select(literal: alteredNameLiteral)
                 try assertEqualSQL(db, request, """
-                    SELECT "p"."name" || 'foo' FROM "player" "p"
+                    SELECT "p"."name" || 'O''Brien' FROM "player" "p"
                     """)
             }
             
-            let alteredNameColumn = alteredNameLiteral.sqlExpression.forKey("alteredName")
             do {
+                let alteredNameLiteral = SQLLiteral("\(nameColumn) || \("O'Brien")")
+                let alteredNameColumn = alteredNameLiteral.sqlExpression.forKey("alteredName")
                 let request = baseRequest.select(alteredNameColumn)
                 try assertEqualSQL(db, request, """
-                    SELECT "p"."name" || 'foo' AS "alteredName" FROM "player" "p"
+                    SELECT "p"."name" || 'O''Brien' AS "alteredName" FROM "player" "p"
                     """)
             }
             
-            let subQuery: SQLRequest<String> = "SELECT MAX(\(nameColumn)) FROM \(Player.self)"
-            let conditionLiteral = SQLLiteral("\(nameColumn) = \(subQuery)")
             do {
+                let subQuery: SQLRequest<String> = "SELECT MAX(\(nameColumn)) FROM \(Player.self)"
+                let conditionLiteral = SQLLiteral("\(nameColumn) = \(subQuery)")
                 let request = baseRequest.filter(literal: conditionLiteral)
                 try assertEqualSQL(db, request, """
                     SELECT "p".* FROM "player" "p" WHERE "p"."name" = (SELECT MAX("name") FROM "player")
-                    """)
-            }
-            
-            do {
-                let concatenation = [nameColumn, "O'Brien", nameColumn]
-                    .map { (expressible: SQLExpressible) in SQLLiteral(expressible) }
-                    .joined(separator: " || ")
-                    .sqlExpression
-                let request = baseRequest.select(concatenation)
-                try assertEqualSQL(db, request, """
-                    SELECT "p"."name" || 'O''Brien' || "p"."name" FROM "player" "p"
                     """)
             }
             

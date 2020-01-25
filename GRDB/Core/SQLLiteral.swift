@@ -98,9 +98,17 @@ public struct SQLLiteral {
         self.init(elements: [.sql(sql, arguments)])
     }
     
-    /// TODO
-    public init(_ expressible: SQLExpressible) {
-        self.init(elements: [.expression(expressible.sqlExpression)])
+    /// Creates an SQLLiteral from an SQL expression.
+    ///
+    /// For example:
+    ///
+    ///     let columnLiteral = SQLLiteral(Column("username"))
+    ///     let suffixLiteral = SQLLiteral("@example.com".databaseValue)
+    ///     let emailLiteral = [columnLiteral, suffixLiteral].joined(separator: " || ")
+    ///     let request = User.select(emailLiteral.sqlExpression)
+    ///     let emails = try String.fetchAll(db, request)
+    public init(_ expression: SQLExpression) {
+        self.init(elements: [.expression(expression)])
     }
     
     /// Returns a literal whose SQL is transformed by the given closure.
