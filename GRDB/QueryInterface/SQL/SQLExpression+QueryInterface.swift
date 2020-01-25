@@ -6,7 +6,7 @@ extension SQLExpression {
     /// Converts an expression to an SQLLiteral
     ///
     /// :nodoc:
-    @available(*, deprecated, message: "Use SQL interpolation instead")
+    @available(*, deprecated, message: "Use SQLLiteral initializer instead")
     public var sqlLiteral: SQLLiteral {
         return SQLLiteral(elements: [.expression(self)])
     }

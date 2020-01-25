@@ -111,8 +111,8 @@ public struct SQLLiteral {
         self.init(elements: [.expression(expression)])
     }
     
+    // TODO: deprecate when SQL interpolation is always available
     /// Returns a literal whose SQL is transformed by the given closure.
-    @available(*, deprecated, message: "Use SQL interpolation instead")
     public func mapSQL(_ transform: @escaping (String) -> String) -> SQLLiteral {
         return SQLLiteral(elements: [.map(self, transform)])
     }
