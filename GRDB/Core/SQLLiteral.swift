@@ -81,7 +81,7 @@ public struct SQLLiteral {
         return context.arguments
     }
     
-    var elements: [Element]
+    private(set) var elements: [Element]
     
     init(elements: [Element]) {
         self.elements = elements

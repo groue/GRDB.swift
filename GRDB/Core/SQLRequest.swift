@@ -31,7 +31,7 @@ public struct SQLRequest<T>: FetchRequest {
     /// The request adapter
     public var adapter: RowAdapter?
     
-    var sqlLiteral: SQLLiteral
+    private(set) var sqlLiteral: SQLLiteral
     private let cache: Cache?
     
     /// Creates a request from an SQL string, optional arguments, and
