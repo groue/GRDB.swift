@@ -691,7 +691,7 @@ public final class TableAlteration {
     /// Renames a column in a table.
     ///
     ///     try db.alter(table: "player") { t in
-    ///         t.rename(column: "url", to: "home_url")
+    ///         t.rename(column: "url", to: "homeURL")
     ///     }
     ///
     /// See https://www.sqlite.org/lang_altertable.html
@@ -705,7 +705,7 @@ public final class TableAlteration {
     /// Renames a column in a table.
     ///
     ///     try db.alter(table: "player") { t in
-    ///         t.rename(column: "url", to: "home_url")
+    ///         t.rename(column: "url", to: "homeURL")
     ///     }
     ///
     /// See https://www.sqlite.org/lang_altertable.html

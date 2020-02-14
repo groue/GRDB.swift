@@ -3911,15 +3911,17 @@ Other **table constraints** can involve several columns:
 
 ### Modify Tables
 
-SQLite lets you rename tables, and add columns to existing tables:
+SQLite lets you modify existing tables:
 
 ```swift
 // ALTER TABLE referer RENAME TO referrer
 try db.rename(table: "referer", to: "referrer")
 
-// ALTER TABLE player ADD COLUMN url TEXT
+// ALTER TABLE player ADD COLUMN hasBonus BOOLEAN
+// ALTER TABLE player RENAME COLUMN url TO homeURL
 try db.alter(table: "player") { t in
-    t.add(column: "url", .text)
+    t.add(column: "hasBonus", .boolean)
+    t.rename(column: "url", to: "homeURL") // SQLite 3.25+
 }
 ```
 
