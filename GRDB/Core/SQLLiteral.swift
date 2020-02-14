@@ -181,6 +181,10 @@ extension SQLLiteral {
     var sqlSelectable: SQLSelectable {
         return SQLSelectionLiteral(sqlLiteral: self)
     }
+    
+    var sqlOrderingTerm: SQLOrderingTerm {
+        return SQLOrderingLiteral(sqlLiteral: self)
+    }
 }
 
 extension Sequence where Element == SQLLiteral {
@@ -353,5 +357,31 @@ private struct SQLSelectionLiteral: SQLSelectable {
     
     func qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
         return sqlLiteral.qualified(with: alias).sqlSelectable
+    }
+}
+
+// MARK: - SQLOrderingLiteral
+
+private struct SQLOrderingLiteral: SQLOrderingTerm {
+    private let sqlLiteral: SQLLiteral
+    
+    // Prefer SQLLiteral.sqlOrderingTerm
+    fileprivate init(sqlLiteral: SQLLiteral) {
+        self.sqlLiteral = sqlLiteral
+    }
+    
+    var reversed: SQLOrderingTerm {
+        fatalError("""
+            Ordering literals can't be reversed. \
+            To resolve this error, order by expression literals instead.
+            """)
+    }
+    
+    func orderingTermSQL(_ context: inout SQLGenerationContext) -> String {
+        return sqlLiteral.sql(&context)
+    }
+    
+    func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
+        return sqlLiteral.qualified(with: alias).sqlOrderingTerm
     }
 }

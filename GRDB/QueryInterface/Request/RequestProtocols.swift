@@ -496,7 +496,7 @@ extension OrderedRequest {
     ///         .order(sql: "name")
     public func order(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return order(sqlLiteral.sqlExpression)
+        return order(sqlLiteral.sqlOrderingTerm)
     }
 }
 
