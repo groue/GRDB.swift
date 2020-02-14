@@ -115,11 +115,7 @@ public struct SQLLiteral {
     }
     
     func sql(_ context: inout SQLGenerationContext) -> String {
-        var sql = ""
-        for element in elements {
-            sql += element.sql(&context)
-        }
-        return sql
+        return elements.map { $0.sql(&context) }.joined()
     }
     
     fileprivate func qualified(with alias: TableAlias) -> SQLLiteral {
