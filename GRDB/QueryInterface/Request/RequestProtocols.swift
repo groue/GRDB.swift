@@ -91,7 +91,7 @@ extension SelectionRequest {
     ///         .select(literal: SQLLiteral(sql: "email"))
     public func select(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return select(SQLSelectionLiteral(literal: sqlLiteral))
+        return select(sqlLiteral.sqlSelectable)
     }
     
     /// Creates a request which appends *selection*.
@@ -174,7 +174,7 @@ extension FilteredRequest {
     ///     request = request.filter(literal: "name = \("O'Brien")")
     public func filter(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return filter(SQLExpressionLiteral(literal: sqlLiteral))
+        return filter(sqlLiteral.sqlExpression)
     }
     
     /// Creates a request that matches nothing.
@@ -369,7 +369,7 @@ extension AggregatingRequest {
     /// Creates a request with a new grouping.
     public func group(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return group(SQLExpressionLiteral(literal: sqlLiteral))
+        return group(sqlLiteral.sqlExpression)
     }
     
     /// Creates a request with the provided *sql* added to the
@@ -382,7 +382,7 @@ extension AggregatingRequest {
     /// eventual set of already applied predicates.
     public func having(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return having(SQLExpressionLiteral(literal: sqlLiteral))
+        return having(sqlLiteral.sqlExpression)
     }
 }
 
@@ -496,7 +496,7 @@ extension OrderedRequest {
     ///         .order(sql: "name")
     public func order(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return order(SQLExpressionLiteral(literal: sqlLiteral))
+        return order(sqlLiteral.sqlOrderingTerm)
     }
 }
 

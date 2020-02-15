@@ -212,7 +212,7 @@ extension QueryInterfaceRequest: SelectionRequest {
         as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
-        return select(SQLSelectionLiteral(literal: sqlLiteral), as: type)
+        return select(sqlLiteral.sqlSelectable, as: type)
     }
     
     /// Creates a request which appends *selection*.

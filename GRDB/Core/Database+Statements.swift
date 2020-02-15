@@ -165,12 +165,14 @@ extension Database {
         //
         // And before we return, we'll check that all arguments were consumed.
         
-        var arguments = sqlLiteral.arguments
+        var context = SQLGenerationContext.sqlLiteralContext
+        let sql = sqlLiteral.sql(&context)
+        var arguments = context.arguments
         let initialValuesCount = arguments.values.count
         
         // Build a C string (SQLite wants that), and execute SQL statements one
         // after the other.
-        try sqlLiteral.sql.utf8CString.withUnsafeBufferPointer { buffer in
+        try sql.utf8CString.withUnsafeBufferPointer { buffer in
             guard let sqlStart = buffer.baseAddress else { return }
             let sqlEnd = sqlStart + buffer.count // past \0
             var statementStart = sqlStart

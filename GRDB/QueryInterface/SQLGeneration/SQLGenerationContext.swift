@@ -5,44 +5,49 @@
 ///
 /// :nodoc:
 public struct SQLGenerationContext {
-    var arguments: StatementArguments?
+    var arguments: StatementArguments {
+        return _arguments ?? StatementArguments()
+    }
+    private var _arguments: StatementArguments?
     private var resolvedNames: [TableAlias: String]
     private var qualifierNeeded: Bool
     
-    /// Used for SQLExpression -> SQLExpressionLiteral conversion
-    /// and SQLInterpolation
-    static func literalGenerationContext(withArguments: Bool) -> SQLGenerationContext {
-        return SQLGenerationContext(
-            arguments: withArguments ? [] : nil,
-            resolvedNames: [:],
-            qualifierNeeded: false)
-    }
+    /// Used for pure SQL generation. Arguments are always empty.
+    static let rawSQLContext = SQLGenerationContext(
+        _arguments: nil,
+        resolvedNames: [:],
+        qualifierNeeded: false)
     
-    /// Used for SQLQuery.makeSelectStatement() and SQLQuery.makeDeleteStatement()
-    static func queryGenerationContext(aliases: [TableAlias]) -> SQLGenerationContext {
+    /// Used for SQLLiteral generation
+    static let sqlLiteralContext = SQLGenerationContext(
+        _arguments: [],
+        resolvedNames: [:],
+        qualifierNeeded: false)
+    
+    /// Used for TableRecord.selectionSQL
+    static let selectionContext = SQLGenerationContext(
+        _arguments: nil,
+        resolvedNames: [:],
+        qualifierNeeded: true)
+    
+    /// Used for SQLQueryGenerator
+    static func queryContext(aliases: [TableAlias]) -> SQLGenerationContext {
         return SQLGenerationContext(
-            arguments: [],
+            _arguments: [],
             resolvedNames: aliases.resolvedNames,
             qualifierNeeded: aliases.count > 1)
     }
     
-    /// Used for TableRecord.selectionSQL
-    static func recordSelectionGenerationContext() -> SQLGenerationContext {
-        return SQLGenerationContext(
-            arguments: nil,
-            resolvedNames: [:],
-            qualifierNeeded: true)
-    }
-    
-    /// Returns whether arguments could be appended
+    /// Returns whether arguments could be appended.
+    /// May be false for SQLGenerationContext.rawSQLContext
     mutating func append(arguments newArguments: StatementArguments) -> Bool {
         if newArguments.isEmpty {
             return true
         }
-        guard let arguments = arguments else {
+        guard let arguments = _arguments else {
             return false
         }
-        self.arguments = arguments + newArguments
+        self._arguments = arguments + newArguments
         return true
     }
     

@@ -65,6 +65,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 **New**
 
 - [#689](https://github.com/groue/GRDB.swift/pull/689) by [@gjeck](https://github.com/gjeck): Add support for renaming columns within a table
+- [#690](https://github.com/groue/GRDB.swift/pull/690): Enhance SQLLiteral and SQL interpolation
 
 
 ## 4.9.0

@@ -22,6 +22,7 @@ SQL Interpolation is an answer to these troubles. It is available in Swift 5.
 
 - [Introduction]
 - [SQLLiteral]
+- [SQL Interpolation and the Query Interface]
 - [SQL Interpolation and Record Protocols]
 - [SQL Interpolation Reference]
 
@@ -125,6 +126,23 @@ let query = SQLLiteral(
 ```
 
 SQLLiteral can embed any [value], as we have seen above, but not only. Please keep on reading the next chapter, or jump directly to the [SQL Interpolation Reference].
+
+
+## SQL Interpolation and the Query Interface
+
+SQL Interpolation and SQLLiteral let you embed raw SQL snippets in [query interface requests].
+
+For example:
+
+```swift
+// SELECT * FROM player WHERE name = 'O''Brien'
+let request = Player.filter(literal: "name = \("O'Brien")")
+
+// SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
+let createdAt = Column("createdAt")
+let creationDay = SQLLiteral("DATE(\(createdAt))").sqlExpression
+let request = Player.filter(creationDay == "2020-01-23")
+```
 
 
 ## SQL Interpolation and Record Protocols
@@ -399,6 +417,7 @@ This chapter lists all kinds of supported interpolations.
 
 [Introduction]: #introduction
 [SQLLiteral]: #sqlliteral
+[SQL Interpolation and the Query Interface]: #sql-interpolation-and-the-query-interface
 [SQL Interpolation and Record Protocols]: #sql-interpolation-and-record-protocols
 [SQL Interpolation Reference]: #sql-interpolation-reference
 [String interpolation]: https://docs.swift.org/swift-book/LanguageGuide/StringsAndCharacters.html#ID292
@@ -415,4 +434,5 @@ This chapter lists all kinds of supported interpolations.
 [record]: ../README.md#records
 [Expressions]: ../README.md#expressions
 [welcomed]: ../README.md#sqlite-api
+[query interface requests]: ../README.md#requests
 [SE-0228 Fix ExpressibleByStringInterpolation]: https://github.com/apple/swift-evolution/blob/master/proposals/0228-fix-expressiblebystringinterpolation.md
