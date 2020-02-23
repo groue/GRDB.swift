@@ -29,102 +29,85 @@ struct SQLQuery {
     }
 }
 
-extension SQLQuery {
-    /// Returns a query whose relation is transformed by the given closure.
-    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLQuery {
-        var query = self
-        query.relation = transform(relation)
-        return query
-    }
-    
+extension SQLQuery: KeyPathRefining {
     func distinct() -> SQLQuery {
-        var query = self
-        query.isDistinct = true
-        return query
+        return with(\.isDistinct, true)
     }
     
     func expectingSingleResult() -> SQLQuery {
-        var query = self
-        query.expectsSingleResult = true
-        return query
+        return with(\.expectsSingleResult, true)
     }
     
     func limit(_ limit: Int, offset: Int? = nil) -> SQLQuery {
-        var query = self
-        query.limit = SQLLimit(limit: limit, offset: offset)
-        return query
+        return with(\.limit, SQLLimit(limit: limit, offset: offset))
     }
     
     func qualified(with alias: TableAlias) -> SQLQuery {
         // We do not need to qualify group and having clauses. They will be
         // in SQLQueryGenerator.init()
-        return mapRelation { $0.qualified(with: alias) }
+        return map(\.relation, { $0.qualified(with: alias) })
     }
 }
 
 extension SQLQuery: SelectionRequest {
     func select(_ selection: [SQLSelectable]) -> SQLQuery {
-        return mapRelation { $0.select(selection) }
+        return map(\.relation, { $0.select(selection) })
     }
     
     func annotated(with selection: [SQLSelectable]) -> SQLQuery {
-        return mapRelation { $0.annotated(with: selection) }
+        return map(\.relation, { $0.annotated(with: selection) })
     }
 }
 
 extension SQLQuery: FilteredRequest {
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLQuery {
-        return mapRelation { $0.filter(predicate) }
+        return map(\.relation, { $0.filter(predicate) })
     }
 }
 
 extension SQLQuery: OrderedRequest {
     func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> SQLQuery {
-        return mapRelation { $0.order(orderings) }
+        return map(\.relation, { $0.order(orderings) })
     }
     
     func reversed() -> SQLQuery {
-        return mapRelation { $0.reversed() }
+        return map(\.relation, { $0.reversed() })
     }
     
     func unordered() -> SQLQuery {
-        return mapRelation { $0.unordered() }
+        return map(\.relation, { $0.unordered() })
     }
 }
 
 extension SQLQuery: AggregatingRequest {
     func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> SQLQuery {
-        var query = self
-        query.groupPromise = DatabasePromise { db in try expressions(db).map { $0.sqlExpression } }
-        return query
+        return with(\.groupPromise, DatabasePromise { db in try expressions(db).map { $0.sqlExpression } })
     }
     
     func having(_ predicate: SQLExpressible) -> SQLQuery {
-        var query = self
-        query.havingExpressions.append(predicate.sqlExpression)
-        return query
+        return mapInto(\.havingExpressions, { $0.append(predicate.sqlExpression) })
     }
 }
 
 extension SQLQuery: _JoinableRequest {
     func _including(all association: SQLAssociation) -> SQLQuery {
-        return mapRelation { $0._including(all: association) }
+        return map(\.relation, { $0._including(all: association) })
     }
     
     func _including(optional association: SQLAssociation) -> SQLQuery {
-        return mapRelation { $0._including(optional: association) }
+        return map(\.relation, { $0._including(optional: association) })
     }
     
     func _including(required association: SQLAssociation) -> SQLQuery {
-        return mapRelation { $0._including(required: association) }
+        return map(\.relation, { $0._including(required: association) })
     }
     
     func _joining(optional association: SQLAssociation) -> SQLQuery {
-        return mapRelation { $0._joining(optional: association) }
+        return map(\.relation, { $0._joining(optional: association) })
     }
     
     func _joining(required association: SQLAssociation) -> SQLQuery {
-        return mapRelation { $0._joining(required: association) }
+        return map(\.relation, { $0._joining(required: association) })
     }
 }
 

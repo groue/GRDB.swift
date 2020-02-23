@@ -138,7 +138,7 @@ struct SQLQueryGenerator {
                 return try makeTrivialDeleteStatement(db)
             }
             
-            var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
+            var context = SQLGenerationContext.queryContext(aliases: relation.allAliases)
             
             var sql = try "DELETE FROM " + relation.source.sql(db, &context)
             
@@ -156,7 +156,7 @@ struct SQLQueryGenerator {
             }
             
             let statement = try db.makeUpdateStatement(sql: sql)
-            statement.arguments = context.arguments!
+            statement.arguments = context.arguments
             return statement
             
         case .unique:
@@ -175,7 +175,7 @@ struct SQLQueryGenerator {
             fatalError("Can't delete without any database table")
         }
         
-        var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
+        var context = SQLGenerationContext.queryContext(aliases: relation.allAliases)
         
         // SELECT rowid FROM table ...
         var generator = self
@@ -186,7 +186,7 @@ struct SQLQueryGenerator {
         let sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE rowid IN (\(selectSQL))"
         
         let statement = try db.makeUpdateStatement(sql: sql)
-        statement.arguments = context.arguments!
+        statement.arguments = context.arguments
         return statement
     }
     
@@ -217,7 +217,7 @@ struct SQLQueryGenerator {
                 return nil
             }
             
-            var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
+            var context = SQLGenerationContext.queryContext(aliases: relation.allAliases)
             
             var sql = "UPDATE "
             
@@ -250,7 +250,7 @@ struct SQLQueryGenerator {
             }
             
             let statement = try db.makeUpdateStatement(sql: sql)
-            statement.arguments = context.arguments!
+            statement.arguments = context.arguments
             return statement
             
         case .unique:
@@ -281,7 +281,7 @@ struct SQLQueryGenerator {
             return nil
         }
         
-        var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
+        var context = SQLGenerationContext.queryContext(aliases: relation.allAliases)
         
         // SELECT rowid FROM table ...
         var generator = self
@@ -307,7 +307,7 @@ struct SQLQueryGenerator {
         sql += " WHERE rowid IN (\(selectSQL))"
         
         let statement = try db.makeUpdateStatement(sql: sql)
-        statement.arguments = context.arguments!
+        statement.arguments = context.arguments
         return statement
     }
     
@@ -316,14 +316,14 @@ struct SQLQueryGenerator {
         // Build an SQK generation context with all aliases found in the query,
         // so that we can disambiguate tables that are used several times with
         // SQL aliases.
-        var context = SQLGenerationContext.queryGenerationContext(aliases: relation.allAliases)
+        var context = SQLGenerationContext.queryContext(aliases: relation.allAliases)
         
         // Generate SQL
         let sql = try self.sql(db, &context)
         
         // Compile & set arguments
         let statement = try db.makeSelectStatement(sql: sql)
-        statement.arguments = context.arguments! // not nil for this kind of context
+        statement.arguments = context.arguments
         
         // Optimize databaseRegion
         statement.databaseRegion = try optimizedDatabaseRegion(db, statement.databaseRegion)
@@ -574,12 +574,13 @@ private struct SQLQualifiedRelation {
     
     /// Removes all selections from joins
     func selectOnly(_ selection: [SQLSelectable]) -> SQLQualifiedRelation {
-        var relation = self
-        relation.sourceSelection = selection.map { $0.qualifiedSelectable(with: sourceAlias) }
-        relation.joins = relation.joins.mapValues { $0.selectOnly([]) }
-        return relation
+        return self
+            .with(\.sourceSelection, selection.map { $0.qualifiedSelectable(with: sourceAlias) })
+            .map(\.joins, { $0.mapValues { $0.selectOnly([]) } })
     }
 }
+
+extension SQLQualifiedRelation: KeyPathRefining { }
 
 /// A "qualified" source, where all tables are identified with a table alias.
 private enum SQLQualifiedSource {

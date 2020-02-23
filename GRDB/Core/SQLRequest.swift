@@ -31,7 +31,7 @@ public struct SQLRequest<T>: FetchRequest {
     /// The request adapter
     public var adapter: RowAdapter?
     
-    private var sqlLiteral: SQLLiteral
+    private(set) var sqlLiteral: SQLLiteral
     private let cache: Cache?
     
     /// Creates a request from an SQL string, optional arguments, and
@@ -146,16 +146,18 @@ public struct SQLRequest<T>: FetchRequest {
     ///
     /// :nodoc:
     public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+        var context = SQLGenerationContext.sqlLiteralContext
+        let sql = sqlLiteral.sql(&context)
         let statement: SelectStatement
         switch cache {
         case .none:
-            statement = try db.makeSelectStatement(sql: sqlLiteral.sql)
+            statement = try db.makeSelectStatement(sql: sql)
         case .public?:
-            statement = try db.cachedSelectStatement(sql: sqlLiteral.sql)
+            statement = try db.cachedSelectStatement(sql: sql)
         case .internal?:
-            statement = try db.internalCachedSelectStatement(sql: sqlLiteral.sql)
+            statement = try db.internalCachedSelectStatement(sql: sql)
         }
-        try statement.setArgumentsWithValidation(sqlLiteral.arguments)
+        try statement.setArgumentsWithValidation(context.arguments)
         return PreparedRequest(statement: statement, adapter: adapter)
     }
 }

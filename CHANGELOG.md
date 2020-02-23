@@ -13,6 +13,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 4.x Releases
 
+- `4.10.x` Releases - [4.10.0](#4100)
 - `4.9.x` Releases - [4.9.0](#490)
 - `4.8.x` Releases - [4.8.0](#480) | [4.8.1](#481)
 - `4.7.x` Releases - [4.7.0](#470)
@@ -65,6 +66,16 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 <!--
 ## Next Release
 -->
+
+
+## 4.10.0
+
+Released February 23, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.9.0...v4.10.0)
+
+**New**
+
+- [#689](https://github.com/groue/GRDB.swift/pull/689) by [@gjeck](https://github.com/gjeck): Add support for renaming columns within a table
+- [#690](https://github.com/groue/GRDB.swift/pull/690): Enhance SQLLiteral and SQL interpolation
 
 
 ## 4.9.0

@@ -521,7 +521,7 @@ public final class TableDefinition {
     ///
     /// - parameter sql: An SQL snippet
     public func check(sql: String) {
-        checkConstraints.append(SQLExpressionLiteral(sql: sql))
+        checkConstraints.append(SQLLiteral(sql: sql).sqlExpression)
     }
     
     fileprivate func sql(_ db: Database) throws -> String {
@@ -656,7 +656,13 @@ public final class TableDefinition {
 /// See https://www.sqlite.org/lang_altertable.html
 public final class TableAlteration {
     private let name: String
-    private var addedColumns: [ColumnDefinition] = []
+
+    private enum TableAlterationKind {
+        case add(ColumnDefinition)
+        case rename(old: String, new: String)
+    }
+
+    private var alterations: [TableAlterationKind] = []
     
     init(name: String) {
         self.name = name
@@ -677,27 +683,75 @@ public final class TableAlteration {
     @discardableResult
     public func add(column name: String, _ type: Database.ColumnType? = nil) -> ColumnDefinition {
         let column = ColumnDefinition(name: name, type: type)
-        addedColumns.append(column)
+        alterations.append(.add(column))
         return column
+    }
+
+    #if GRDBCUSTOMSQLITE || GRDBCipher
+    /// Renames a column in a table.
+    ///
+    ///     try db.alter(table: "player") { t in
+    ///         t.rename(column: "url", to: "homeURL")
+    ///     }
+    ///
+    /// See https://www.sqlite.org/lang_altertable.html
+    ///
+    /// - parameter name: the column name to rename.
+    /// - parameter newName: the new name of the column.
+    public func rename(column name: String, to newName: String) {
+        _rename(column: name, to: newName)
+    }
+    #else
+    /// Renames a column in a table.
+    ///
+    ///     try db.alter(table: "player") { t in
+    ///         t.rename(column: "url", to: "homeURL")
+    ///     }
+    ///
+    /// See https://www.sqlite.org/lang_altertable.html
+    ///
+    /// - parameter name: the column name to rename.
+    /// - parameter newName: the new name of the column.
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+    public func rename(column name: String, to newName: String) {
+        _rename(column: name, to: newName)
+    }
+    #endif
+
+    private func _rename(column name: String, to newName: String) {
+        alterations.append(.rename(old: name, new: newName))
     }
     
     fileprivate func sql(_ db: Database) throws -> String {
         var statements: [String] = []
-        
-        for column in addedColumns {
-            var chunks: [String] = []
-            chunks.append("ALTER TABLE")
-            chunks.append(name.quotedDatabaseIdentifier)
-            chunks.append("ADD COLUMN")
-            try chunks.append(column.sql(db, tableName: name, primaryKeyColumns: nil))
-            let statement = chunks.joined(separator: " ")
-            statements.append(statement)
-            
-            if let indexDefinition = column.indexDefinition(in: name) {
-                statements.append(indexDefinition.sql())
+
+        for alteration in alterations {
+            switch alteration {
+            case let .add(column):
+                var chunks: [String] = []
+                chunks.append("ALTER TABLE")
+                chunks.append(name.quotedDatabaseIdentifier)
+                chunks.append("ADD COLUMN")
+                try chunks.append(column.sql(db, tableName: name, primaryKeyColumns: nil))
+                let statement = chunks.joined(separator: " ")
+                statements.append(statement)
+
+                if let indexDefinition = column.indexDefinition(in: name) {
+                    statements.append(indexDefinition.sql())
+                }
+            case let .rename(oldName, newName):
+                var chunks: [String] = []
+                chunks.append("ALTER TABLE")
+                chunks.append(name.quotedDatabaseIdentifier)
+                chunks.append("RENAME COLUMN")
+                chunks.append(oldName.quotedDatabaseIdentifier)
+                chunks.append("TO")
+                chunks.append(newName.quotedDatabaseIdentifier)
+                let statement = chunks.joined(separator: " ")
+                statements.append(statement)
             }
         }
-        
+
         return statements.joined(separator: "; ")
     }
 }
@@ -850,7 +904,7 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func check(sql: String) -> Self {
-        checkConstraints.append(SQLExpressionLiteral(sql: sql))
+        checkConstraints.append(SQLLiteral(sql: sql).sqlExpression)
         return self
     }
     
@@ -882,7 +936,7 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func defaults(sql: String) -> Self {
-        defaultExpression = SQLExpressionLiteral(sql: sql)
+        defaultExpression = SQLLiteral(sql: sql).sqlExpression
         return self
     }
     

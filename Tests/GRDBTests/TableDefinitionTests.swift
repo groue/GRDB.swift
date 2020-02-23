@@ -2,6 +2,13 @@ import XCTest
 #if GRDBCUSTOMSQLITE
     import GRDBCustomSQLite
 #else
+    #if GRDBCIPHER
+        import SQLCipher
+    #elseif SWIFT_PACKAGE
+        import CSQLite
+    #else
+        import SQLite3
+    #endif
     import GRDB
 #endif
 
@@ -493,6 +500,34 @@ class TableDefinitionTests: GRDBTestCase {
             assertEqualSQL(sqlQueries[sqlQueries.count - 3], "ALTER TABLE \"test\" ADD COLUMN \"c\" INTEGER NOT NULL DEFAULT 1")
             assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" ADD COLUMN \"d\" TEXT REFERENCES \"alt\"(\"rowid\")")
             assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" ADD COLUMN \"e\"")
+        }
+    }
+
+    func testAlterTableRenameColumn() throws {
+        guard sqlite3_libversion_number() >= 3025000 else {
+            return
+        }
+        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+            guard #available(iOS 13.0, tvOS 13.0, watchOS 6.0, *) else {
+                return
+            }
+        #endif
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test") { t in
+                t.column("a", .text)
+            }
+
+            sqlQueries.removeAll()
+            try db.alter(table: "test") { t in
+                t.rename(column: "a", to: "b")
+                t.add(column: "c")
+                t.rename(column: "c", to: "d")
+            }
+
+            assertEqualSQL(sqlQueries[sqlQueries.count - 3], "ALTER TABLE \"test\" RENAME COLUMN \"a\" TO \"b\"")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" ADD COLUMN \"c\"")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" RENAME COLUMN \"c\" TO \"d\"")
         }
     }
     

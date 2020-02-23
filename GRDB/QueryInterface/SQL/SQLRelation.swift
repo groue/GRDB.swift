@@ -100,7 +100,7 @@
 ///             .filter(Column("continent") == "EU")
 ///             .including(all: Country.citizens)
 struct SQLRelation {
-    struct Child {
+    struct Child: KeyPathRefining {
         enum Kind {
             // Record.including(optional: association)
             case oneOptional
@@ -146,10 +146,6 @@ struct SQLRelation {
                 relation: relation,
                 cardinality: kind.cardinality)
         }
-        
-        func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> Child {
-            return Child(kind: kind, condition: condition, relation: transform(relation))
-        }
     }
     
     var source: SQLSource
@@ -170,10 +166,10 @@ struct SQLRelation {
                 return child.relation.prefetchedAssociations.map { association in
                     // Remove redundant pivot child
                     let pivotKey = association.pivot.keyName
-                    let child = child.mapRelation { relation in
+                    let child = child.map(\.relation, { relation in
                         assert(relation.children[pivotKey] != nil)
                         return relation.removingChild(forKey: pivotKey)
-                    }
+                    })
                     return association.through(child.makeAssociationForKey(key))
                 }
             }
@@ -195,60 +191,46 @@ struct SQLRelation {
     }
 }
 
-extension SQLRelation {
+extension SQLRelation: KeyPathRefining {
     func select(_ selection: [SQLSelectable]) -> SQLRelation {
-        var relation = self
-        relation.selection = selection
-        return relation
+        return with(\.selection, selection)
     }
     
     /// Removes all selections from chidren
     func selectOnly(_ selection: [SQLSelectable]) -> SQLRelation {
-        var relation = self
-        relation.selection = selection
-        relation.children = relation.children.mapValues { $0.mapRelation { $0.selectOnly([]) } }
-        return relation
+        return self
+            .with(\.selection, selection)
+            .map(\.children, { $0.mapValues { $0.map(\.relation, { $0.selectOnly([]) }) } })
     }
     
     func annotated(with selection: [SQLSelectable]) -> SQLRelation {
-        var relation = self
-        relation.selection.append(contentsOf: selection)
-        return relation
+        return mapInto(\.selection, { $0.append(contentsOf: selection) })
     }
     
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLRelation {
-        var relation = self
-        relation.filtersPromise = relation.filtersPromise.flatMap { filters in
-            DatabasePromise { try filters + [predicate($0).sqlExpression] }
-        }
-        return relation
+        return map(\.filtersPromise, { filtersPromise in
+            filtersPromise.flatMap { filters in
+                DatabasePromise { try filters + [predicate($0).sqlExpression] }
+            }
+        })
     }
     
     func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> SQLRelation {
-        return order(SQLRelation.Ordering(orderings: orderings))
+        return with(\.ordering, SQLRelation.Ordering(orderings: orderings))
     }
     
     func reversed() -> SQLRelation {
-        return order(ordering.reversed)
+        return map(\.ordering, { $0.reversed })
     }
     
     func unordered() -> SQLRelation {
-        var relation = self
-        relation.ordering = SQLRelation.Ordering()
-        relation.children = relation.children.mapValues { $0.mapRelation { $0.unordered() } }
-        return relation
-    }
-    
-    private func order(_ ordering: SQLRelation.Ordering) -> SQLRelation {
-        var relation = self
-        relation.ordering = ordering
-        return relation
+        return self
+            .with(\.ordering, SQLRelation.Ordering())
+            .map(\.children, { $0.mapValues { $0.map(\.relation, { $0.unordered() }) } })
     }
     
     func qualified(with alias: TableAlias) -> SQLRelation {
-        var relation = self
-        relation.source = source.qualified(with: alias)
-        return relation
+        return map(\.source, { $0.qualified(with: alias) })
     }
 }
 
@@ -369,15 +351,11 @@ extension SQLRelation {
     }
     
     func removingChild(forKey key: String) -> SQLRelation {
-        var relation = self
-        relation.children.removeValue(forKey: key)
-        return relation
+        return mapInto(\.children, { $0.removeValue(forKey: key) })
     }
     
     func filteringChildren(_ included: (Child) throws -> Bool) rethrows -> SQLRelation {
-        var relation = self
-        relation.children = try relation.children.filter { try included($1) }
-        return relation
+        return try map(\.children, { try $0.filter { try included($1) } })
     }
 }
 
@@ -395,11 +373,11 @@ extension SQLRelation: _JoinableRequest {
     }
     
     func _joining(optional association: SQLAssociation) -> SQLRelation {
-        return appendingChild(for: association.mapDestinationRelation { $0.select([]) }, kind: .oneOptional)
+        return appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneOptional)
     }
     
     func _joining(required association: SQLAssociation) -> SQLRelation {
-        return appendingChild(for: association.mapDestinationRelation { $0.select([]) }, kind: .oneRequired)
+        return appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneRequired)
     }
 }
 

@@ -89,23 +89,7 @@ public /* TODO: internal */ struct SQLAssociation {
     
     /// Changes the destination key
     func forDestinationKey(_ key: SQLAssociationKey) -> SQLAssociation {
-        var result = self
-        result.destination.key = key
-        return result
-    }
-    
-    /// Transforms the destination relation
-    func mapDestinationRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLAssociation {
-        var result = self
-        result.destination = result.destination.mapRelation(transform)
-        return result
-    }
-    
-    /// Transforms the pivot relation
-    func mapPivotRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLAssociation {
-        var result = self
-        result.pivot = result.pivot.mapRelation(transform)
-        return result
+        return with(\.destination.key, key)
     }
     
     /// Returns a new association
@@ -189,8 +173,7 @@ public /* TODO: internal */ struct SQLAssociation {
         //     through: Origin.hasMany(Pivot.self),
         //     via: Pivot.belongsTo(Destination.self))
         // Origin(id: 1).request(for: association)
-        var filteredSteps = steps
-        filteredSteps[0] = pivot.mapRelation { _ in filteredPivotRelation }
+        let filteredSteps = steps.with(\.[0].relation, filteredPivotRelation)
         let reversedSteps = zip(filteredSteps, filteredSteps.dropFirst())
             .map({ (step, nextStep) -> SQLAssociationStep in
                 // Intermediate steps are not selected, and including(all:)
@@ -200,7 +183,7 @@ public /* TODO: internal */ struct SQLAssociation {
                     .filteringChildren { $0.kind.cardinality == .toOne }
                 
                 // Don't interfere with user-defined keys that could be added later
-                let key = step.key.mapName { "grdb_\($0)" }
+                let key = step.key.map(\.baseName, { "grdb_\($0)" })
                 
                 return SQLAssociationStep(
                     key: key,
@@ -214,7 +197,9 @@ public /* TODO: internal */ struct SQLAssociation {
     }
 }
 
-struct SQLAssociationStep {
+extension SQLAssociation: KeyPathRefining { }
+
+struct SQLAssociationStep: KeyPathRefining {
     var key: SQLAssociationKey
     var condition: SQLAssociationCondition
     var relation: SQLRelation
@@ -222,14 +207,6 @@ struct SQLAssociationStep {
     
     var keyName: String {
         return key.name(for: cardinality)
-    }
-
-    func mapRelation(_ transform: (SQLRelation) -> SQLRelation) -> SQLAssociationStep {
-        return SQLAssociationStep(
-            key: key,
-            condition: condition,
-            relation: transform(relation),
-            cardinality: cardinality)
     }
 }
 
@@ -283,7 +260,7 @@ enum SQLAssociationCardinality {
 ///
 /// The SQLAssociationKey type aims at providing the necessary support for
 /// those various inflections.
-enum SQLAssociationKey {
+enum SQLAssociationKey: KeyPathRefining {
     /// A key that is inflected in singular and plural contexts.
     ///
     /// For example:
@@ -322,6 +299,30 @@ enum SQLAssociationKey {
     /// A key that is never inflected.
     case fixed(String)
     
+    var baseName: String {
+        get {
+            switch self {
+            case let .inflected(name),
+                 let .fixedSingular(name),
+                 let .fixedPlural(name),
+                 let .fixed(name):
+                return name
+            }
+        }
+        set {
+            switch self {
+            case .inflected:
+                self = .inflected(newValue)
+            case .fixedSingular:
+                self = .fixedSingular(newValue)
+            case .fixedPlural:
+                self = .fixedPlural(newValue)
+            case .fixed:
+                self = .fixed(newValue)
+            }
+        }
+    }
+    
     func name(for cardinality: SQLAssociationCardinality) -> String {
         switch cardinality {
         case .toOne:
@@ -354,19 +355,6 @@ enum SQLAssociationKey {
             return name.singularized
         case .fixed(let name):
             return name
-        }
-    }
-    
-    func mapName(_ transform: (String) throws -> String) rethrows -> SQLAssociationKey {
-        switch self {
-        case .inflected(let name):
-            return try .inflected(transform(name))
-        case .fixedSingular(let name):
-            return try .fixedSingular(transform(name))
-        case .fixedPlural(let name):
-            return try .fixedPlural(transform(name))
-        case .fixed(let name):
-            return try .fixed(transform(name))
         }
     }
 }

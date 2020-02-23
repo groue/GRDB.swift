@@ -6,7 +6,7 @@ extension SQLInterpolation {
     ///     // SELECT * FROM player
     ///     let request: SQLRequest<Player> = "SELECT * FROM \(Player.self)"
     public mutating func appendInterpolation<T: TableRecord>(_ table: T.Type) {
-        sql += table.databaseTableName.quotedDatabaseIdentifier
+        appendLiteral(table.databaseTableName.quotedDatabaseIdentifier)
     }
     
     /// Appends the table name of the record.
@@ -15,7 +15,7 @@ extension SQLInterpolation {
     ///     let player: Player = ...
     ///     let request: SQLRequest<Player> = "INSERT INTO \(tableOf: player) ..."
     public mutating func appendInterpolation<T: TableRecord>(tableOf record: T) {
-        sql += type(of: record).databaseTableName.quotedDatabaseIdentifier
+        appendInterpolation(type(of: record))
     }
     
     /// Appends the selectable SQL.
@@ -25,7 +25,7 @@ extension SQLInterpolation {
     ///         SELECT \(AllColumns()) FROM player
     ///         """
     public mutating func appendInterpolation(_ selection: SQLSelectable) {
-        sql += selection.resultColumnSQL(&context)
+        elements.append(.selectable(selection))
     }
     
     /// Appends the expression SQL.
@@ -35,7 +35,7 @@ extension SQLInterpolation {
     ///         SELECT \(Column("name")) FROM player
     ///         """
     public mutating func appendInterpolation(_ expressible: SQLExpressible & SQLSelectable & SQLOrderingTerm) {
-        sql += expressible.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+        elements.append(.expression(expressible.sqlExpression))
     }
     
     /// Appends the name of the coding key.
@@ -47,7 +47,7 @@ extension SQLInterpolation {
     public mutating func appendInterpolation(
         _ codingKey: SQLExpressible & SQLSelectable & SQLOrderingTerm & CodingKey)
     {
-        sql += codingKey.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+        elements.append(.expression(codingKey.sqlExpression))
     }
     
     /// Appends the expression SQL, or NULL if it is nil.
@@ -59,9 +59,9 @@ extension SQLInterpolation {
     ///         """
     public mutating func appendInterpolation<T: SQLExpressible>(_ expressible: T?) {
         if let expressible = expressible {
-            sql += expressible.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+            elements.append(.expression(expressible.sqlExpression))
         } else {
-            sql += "NULL"
+            appendLiteral("NULL")
         }
     }
     
@@ -81,7 +81,7 @@ extension SQLInterpolation {
     public mutating func appendInterpolation<T>(_ expressible: T)
         where T: Sequence, T.Element: SQLExpressible, T: SQLExpressible
     {
-        sql += expressible.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+        elements.append(.expression(expressible.sqlExpression))
     }
 
     /// Appends a sequence of expressions, wrapped in parentheses.
@@ -119,20 +119,14 @@ extension SQLInterpolation {
     ///         SELECT * FROM player WHERE a IN \(expressions)
     ///         """
     public mutating func appendInterpolation<S>(_ sequence: S) where S: Sequence, S.Element == SQLExpression {
-        sql += "("
-        var first = true
-        for element in sequence {
-            if first {
-                first = false
-            } else {
-                sql += ","
-            }
-            appendInterpolation(element)
+        let e: [SQLLiteral.Element] = sequence.map { .expression($0.sqlExpression) }
+        if e.isEmpty {
+            appendLiteral("(SELECT NULL WHERE NULL)")
+        } else {
+            appendLiteral("(")
+            elements.append(contentsOf: e.map(CollectionOfOne.init(_:)).joined(separator: CollectionOfOne(.sql(","))))
+            appendLiteral(")")
         }
-        if first {
-            sql += "SELECT NULL WHERE NULL"
-        }
-        sql += ")"
     }
     
     /// Appends the ordering SQL.
@@ -142,7 +136,7 @@ extension SQLInterpolation {
     ///         SELECT * FROM player ORDER BY \(Column("name").desc)
     ///         """
     public mutating func appendInterpolation(_ ordering: SQLOrderingTerm) {
-        sql += ordering.orderingTermSQL(&context)
+        elements.append(.orderingTerm(ordering))
     }
     
     /// Appends the request SQL, wrapped in parentheses
@@ -153,8 +147,7 @@ extension SQLInterpolation {
     ///         SELECT * FROM player WHERE score = \(subQuery)
     ///         """
     public mutating func appendInterpolation<T>(_ request: SQLRequest<T>) {
-        sql += "(" + request.sql + ")"
-        arguments += request.arguments
+        elements.append(.subQuery(request.sqlLiteral))
     }
 }
 #endif
