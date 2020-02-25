@@ -473,6 +473,18 @@ extension SQLLiteralTests {
                     SELECT * FROM "player" WHERE (DATE("createdAt")) = '2020-01-23'
                     """)
             }
+            
+            do {
+                // Here we test that users can define functions that return literal expressions
+                func date(_ value: SQLExpressible) -> SQLExpression {
+                    SQLLiteral("DATE(\(value))").sqlExpression
+                }
+                let createdAt = Column("createdAt")
+                let request = Player.filter(date(createdAt) == "2020-01-23")
+                try assertEqualSQL(db, request, """
+                    SELECT * FROM "player" WHERE (DATE("createdAt")) = '2020-01-23'
+                    """)
+            }
         }
     }
 }
