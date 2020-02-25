@@ -152,7 +152,7 @@ Such literals can be returned by Swift functions:
 
 ```swift
 func date(_ value: SQLExpressible) -> SQLExpression {
-    SQLLiteral("DATE(\(lhs.sqlExpression)").sqlExpression
+    SQLLiteral("DATE(\(lhs.sqlExpression))").sqlExpression
 }
 
 // SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
