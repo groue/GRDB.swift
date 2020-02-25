@@ -6,9 +6,7 @@ All notable changes to this project will be documented in this file.
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
 
-<!--
 [Next Release](#next-release)
--->
 
 
 #### 4.x Releases
@@ -63,9 +61,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 
-<!--
 ## Next Release
--->
+
+**New**
+
+- [#706](https://github.com/groue/GRDB.swift/pull/706): Enhance SQLLiteral and SQL interpolation again
 
 
 ## 4.10.0
