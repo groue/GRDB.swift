@@ -422,7 +422,7 @@ See the updated [Custom Requests](../README.md#custom-requests) chapter for more
 
 ## If You Use RxGRDB
 
-Some RxGRDB APIs have slighly changed. Did you track multiple requests at the same time with "fetch tokens"?
+Some RxGRDB APIs have slightly changed. Did you track multiple requests at the same time with "fetch tokens"?
 
 ```swift
 // GRDB 2
