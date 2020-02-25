@@ -139,7 +139,7 @@ For example:
 let request = Player.filter(literal: "name = \("O'Brien")")
 ```
 
-You can also build literals from other values. For example, let's call the `DATE` SQLite function on a query interface column:
+You can also build literal expressions from other expressions. For example, let's call the `DATE` SQLite function on a query interface column:
 
 ```swift
 // SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
@@ -148,7 +148,7 @@ let creationDay = SQLLiteral("DATE(\(createdAt))").sqlExpression
 let request = Player.filter(creationDay == "2020-01-23")
 ```
 
-Such literals can be returned by Swift functions:
+Such literal expressions can be returned by Swift functions:
 
 ```swift
 func date(_ value: SQLExpressible) -> SQLExpression {
