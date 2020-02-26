@@ -91,66 +91,27 @@ public struct DatabaseMigrator {
         registerMigration(Migration(identifier: identifier, migrate: migrate))
     }
     
-    #if GRDBCUSTOMSQLITE || GRDBCIPHER
-    /// Registers an advanced migration, as described at https://www.sqlite.org/lang_altertable.html#otheralter
+    /// Registers a migration.
     ///
-    ///     // Add a NOT NULL constraint on players.name:
-    ///     migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") { db in
-    ///         try db.create(table: "new_player") { t in
+    ///     migrator.registerMigration("createAuthors") { db in
+    ///         try db.create(table: "author") { t in
     ///             t.autoIncrementedPrimaryKey("id")
+    ///             t.column("creationDate", .datetime)
     ///             t.column("name", .text).notNull()
     ///         }
-    ///         try db.execute(sql: "INSERT INTO new_player SELECT * FROM player")
-    ///         try db.drop(table: "player")
-    ///         try db.rename(table: "new_player", to: "player")
     ///     }
-    ///
-    /// While your migration code runs with disabled foreign key checks, those
-    /// are re-enabled and checked at the end of the migration, regardless of
-    /// eventual errors.
     ///
     /// - parameters:
     ///     - identifier: The migration identifier.
     ///     - block: The migration block that performs SQL statements.
     /// - precondition: No migration with the same same as already been registered.
-    ///
-    /// :nodoc:
+    @available(*, deprecated, renamed: "registerMigration(_:migrate:)")
     public mutating func registerMigrationWithDeferredForeignKeyCheck(
         _ identifier: String,
         migrate: @escaping (Database) throws -> Void)
     {
-        registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: true, migrate: migrate))
+        registerMigration(identifier, migrate: migrate)
     }
-    #else
-    @available(OSX 10.10, *)
-    /// Registers an advanced migration, as described at https://www.sqlite.org/lang_altertable.html#otheralter
-    ///
-    ///     // Add a NOT NULL constraint on players.name:
-    ///     migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") { db in
-    ///         try db.create(table: "new_player") { t in
-    ///             t.autoIncrementedPrimaryKey("id")
-    ///             t.column("name", .text).notNull()
-    ///         }
-    ///         try db.execute(sql: "INSERT INTO new_player SELECT * FROM player")
-    ///         try db.drop(table: "player")
-    ///         try db.rename(table: "new_player", to: "player")
-    ///     }
-    ///
-    /// While your migration code runs with disabled foreign key checks, those
-    /// are re-enabled and checked at the end of the migration, regardless of
-    /// eventual errors.
-    ///
-    /// - parameters:
-    ///     - identifier: The migration identifier.
-    ///     - block: The migration block that performs SQL statements.
-    /// - precondition: No migration with the same same as already been registered.
-    public mutating func registerMigrationWithDeferredForeignKeyCheck(
-        _ identifier: String,
-        migrate: @escaping (Database) throws -> Void)
-    {
-        registerMigration(Migration(identifier: identifier, disabledForeignKeyChecks: true, migrate: migrate))
-    }
-    #endif
     
     /// Iterate migrations in the same order as they were registered. If a
     /// migration has not yet been applied, its block is executed in
