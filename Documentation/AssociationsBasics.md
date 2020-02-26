@@ -1631,7 +1631,7 @@ let bookInfos = try BookInfo.all().fetchAll(db, request) // [BookInfo]
 
 ## Decoding a Joined Request with FetchableRecord
 
-When [Dedocable](#decoding-a-joined-request-with-a-decodable-record) records provides convenient decoding of joined rows, you may want a little more control over row decoding.
+When [Decodable](#decoding-a-joined-request-with-a-decodable-record) records provides convenient decoding of joined rows, you may want a little more control over row decoding.
 
 The `init(row:)` initializer of the [FetchableRecord] protocol is what you look after:
 
@@ -2301,7 +2301,7 @@ let request = Author.all().filter(country: "FR").orderedByName()
 let request = Book.all().filter(country: "ES")
 ```
 
-Thos methods are defined on extensions to the `DerivableRequest` protocol:
+Those methods are defined on extensions to the `DerivableRequest` protocol:
 
 ```swift
 extension DerivableRequest where RowDecoder == Author {

@@ -1,4 +1,4 @@
-Sharing a Datatase in an App Group Container
+Sharing a Database in an App Group Container
 ============================================
 
 On iOS, you can share database files between multiple processes by storing them in an [App Group Container](https://developer.apple.com/documentation/foundation/nsfilemanager/1412643-containerurlforsecurityapplicati).

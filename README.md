@@ -369,7 +369,7 @@ let package = Package(
 
 3. Add the `GRDBOSX`, `GRDBiOS`, `GRDBtvOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target (extension target for WatchOS).
 
-4. Add the `GRDB.framework` from the targetted platform to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
+4. Add the `GRDB.framework` from the targeted platform to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
 
 > :bulb: **Tip**: see the [Demo Application] for an example of such integration.
 
@@ -2647,7 +2647,7 @@ try Place.deleteOne(db, key:...)           // DELETE
 
 - `save` makes sure your values are stored in the database.
 
-    It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly perfoms an INSERT if the record has no primary key, or a null primary key.
+    It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly performs an INSERT if the record has no primary key, or a null primary key.
     
     Despite the fact that it may execute two SQL statements, `save` behaves as an atomic operation: GRDB won't allow any concurrent thread to sneak in (see [concurrency](#concurrency)).
 
@@ -5025,7 +5025,7 @@ We will not talk about the *generation* of joined queries, which is covered in [
 
 It is difficult to consume rows fetched from complex joined queries, because they often contain several columns with the same name: `id` from table `player`, `id` from table `team`, etc.
 
-When such ambiguity happens, GRDB row accessors always favor the leftmost matching column. This means that `row["id"]` would give a player id, whithout any obvious way to access the team id.
+When such ambiguity happens, GRDB row accessors always favor the leftmost matching column. This means that `row["id"]` would give a player id, without any obvious way to access the team id.
 
 A classical technique to avoid this ambiguity is to give each column a unique name. For example:
 
@@ -5046,7 +5046,7 @@ This technique works pretty well, but it has three drawbacks:
 
 We thus need another technique. **Below we'll see how to split rows into slices, and preserve column names.**
 
-`SELECT player.*, team.*, MAX(round.score) AS maxScore FROM ...` will be splitted into three slices: one that contains player's columns, one that contains team's columns, and a remaining slice that contains remaining column(s). The Player record type will be able to read the first slice, which contains the colums expected by the `Player.init(row:)` initializer. In the same way, the Team record type could read the second slice.
+`SELECT player.*, team.*, MAX(round.score) AS maxScore FROM ...` will be split into three slices: one that contains player's columns, one that contains team's columns, and a remaining slice that contains remaining column(s). The Player record type will be able to read the first slice, which contains the columns expected by the `Player.init(row:)` initializer. In the same way, the Team record type could read the second slice.
 
 Unlike the name-mangling technique, splitting rows keeps SQL legible, accepts your hand-crafted SQL queries, and plays as nicely as possible with your existing [record types](#records).
 
@@ -5648,7 +5648,7 @@ observer = observation.start(
 
 **You can observe several requests and several tables if you need**: all writes that have an impact on the fetched values will trigger the observation, and call the `onChange` function.
 
-**It may happen that such an observation notifies identical consecutive values.** This is because it will fetch a fresh value whenever a change *could* happen. For example, the observation for the maximum player score will notify a fresh value everytime a score is changed, inserted, or deleted, even if the maximum score is unchanged:
+**It may happen that such an observation notifies identical consecutive values.** This is because it will fetch a fresh value whenever a change *could* happen. For example, the observation for the maximum player score will notify a fresh value every time a score is changed, inserted, or deleted, even if the maximum score is unchanged:
 
 ```swift
 // Track changes in the maximum player score
@@ -5676,7 +5676,7 @@ We will see below other ways to define observations. They all add a little conve
 
 The `ValueObservation.tracking(_:fetch:)` method is an **optimized** version of the [`ValueObservation.tracking(value:)`](#valueobservationtrackingvalue) method seen above. 
 
-The returned observation ouputs exactly the same results, but it can perform better when you use a [database pool](#database-pools), and the fetch is slow. It reduces write contention by fetching fresh values without blocking write accesses. When you use a [database queue](#database-queues), no optimization is applied.
+The returned observation outputs exactly the same results, but it can perform better when you use a [database pool](#database-pools), and the fetch is slow. It reduces write contention by fetching fresh values without blocking write accesses. When you use a [database queue](#database-queues), no optimization is applied.
 
 It accepts two arguments:
 
@@ -5949,7 +5949,7 @@ The `scheduling` property lets you control how fresh values are notified:
     // <- Eventually prints "fresh value" on the main queue
     ```
 
-- `.async(onQueue:startImmediately:)`: all values are asychronously notified on the specified queue.
+- `.async(onQueue:startImmediately:)`: all values are asynchronously notified on the specified queue.
     
     An initial value is fetched and notified if `startImmediately` is true.
     
@@ -6573,7 +6573,7 @@ try dbPool.barrierWriteWithoutTransaction { db in
 
 Providing a passphrase won't encrypt a clear-text database that already exists, though. SQLCipher can't do that, and you will get an error instead: `SQLite error 26: file is encrypted or is not a database`.
 
-Instead, create a new encrypted database, at a distinct location, and export the content of the existing database. This can both encrypt a clear-text database, or change the passphrase of an encrypted databaase.
+Instead, create a new encrypted database, at a distinct location, and export the content of the existing database. This can both encrypt a clear-text database, or change the passphrase of an encrypted database.
 
 The technique to do that is [documented](https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/868/1) by SQLCipher.
 
@@ -6893,7 +6893,7 @@ do {
 }
 ```
 
-> :warning: **Warning**: SQLite has progressively introduced extended result codes accross its versions. The [SQLite release notes](http://www.sqlite.org/changes.html) are unfortunately not quite clear about that: write your handling of extended result codes with care.
+> :warning: **Warning**: SQLite has progressively introduced extended result codes across its versions. The [SQLite release notes](http://www.sqlite.org/changes.html) are unfortunately not quite clear about that: write your handling of extended result codes with care.
 
 
 ### PersistenceError
@@ -7329,7 +7329,7 @@ Those guarantees hold as long as you follow three rules:
     
     Without transaction, `DatabasePool.read { ... }` may see the first statement, but not the second, and access a database where the balance of accounts is not zero. A highly bug-prone situation.
     
-    So do use [transactions](#transactions-and-savepoints) in order to guarantee database consistency accross your application threads: that's what they are made for.
+    So do use [transactions](#transactions-and-savepoints) in order to guarantee database consistency across your application threads: that's what they are made for.
 
 
 ### Differences between Database Queues and Pools
