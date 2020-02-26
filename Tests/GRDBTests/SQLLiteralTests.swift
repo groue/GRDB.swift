@@ -478,7 +478,7 @@ extension SQLLiteralTests {
                 // Here we test that users can define functions that return
                 // literal expressions.
                 func date(_ value: SQLExpressible) -> SQLExpression {
-                    SQLLiteral("DATE(\(value))").sqlExpression
+                    return SQLLiteral("DATE(\(value))").sqlExpression
                 }
                 let createdAt = Column("createdAt")
                 let request = Player.filter(date(createdAt) == "2020-01-23")
@@ -492,7 +492,7 @@ extension SQLLiteralTests {
                 // return literal expressions with the previously
                 // supported technique.
                 func date(_ value: SQLExpressible) -> SQLExpression {
-                    SQLLiteral("DATE(\(value.sqlExpression))").sqlExpression
+                    return SQLLiteral("DATE(\(value.sqlExpression))").sqlExpression
                 }
                 let createdAt = Column("createdAt")
                 let request = Player.filter(date(createdAt) == "2020-01-23")
