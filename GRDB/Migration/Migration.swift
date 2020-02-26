@@ -50,7 +50,7 @@ struct Migration {
                     if try db
                         .makeSelectStatement(sql: "PRAGMA foreign_key_check")
                         .makeCursor()
-                        .next() != nil
+                        .isEmpty() == false
                     {
                         // https://www.sqlite.org/pragma.html#pragma_foreign_key_check
                         //

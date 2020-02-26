@@ -93,7 +93,7 @@ public struct DatabaseMigrator {
     
     /// Registers a migration.
     ///
-    ///     migrator.registerMigration("createAuthors") { db in
+    ///     migrator.registerMigrationWithDeferredForeignKeyCheck("createAuthors") { db in
     ///         try db.create(table: "author") { t in
     ///             t.autoIncrementedPrimaryKey("id")
     ///             t.column("creationDate", .datetime)
