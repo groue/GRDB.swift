@@ -65,6 +65,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 **New**
 
+- [#706](https://github.com/groue/GRDB.swift/pull/706): Enhance SQLLiteral and SQL interpolation again
 - [#709](https://github.com/groue/GRDB.swift/pull/709): Simplify DatabaseMigrator API
 
 
