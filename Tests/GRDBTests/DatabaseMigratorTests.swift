@@ -141,13 +141,8 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
         migrator.registerMigration("foreignKeyError") { db in
             try db.execute(sql: "INSERT INTO persons (name) VALUES ('Barbara')")
-            do {
-                // triggers immediate foreign key error:
-                try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [123, "Bobby"])
-                XCTFail("Expected error")
-            } catch {
-                throw error
-            }
+            // triggers foreign key error:
+            try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [123, "Bobby"])
         }
         
         let dbQueue = try makeDatabaseQueue()
@@ -163,8 +158,6 @@ class DatabaseMigratorTests : GRDBTestCase {
             XCTAssert((error.resultCode == error.extendedResultCode) || error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
             XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
             XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
-            XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-            XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [123, \"bobby\"]: foreign key constraint failed")
             
             let names = try dbQueue.inDatabase { db in
                 try String.fetchAll(db, sql: "SELECT name FROM persons")
@@ -173,7 +166,65 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
     }
     
-    func testMigrationWithoutForeignKeyChecks() throws {
+    func testForeignKeyViolation() throws {
+        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+            guard #available(iOS 8.2, OSX 10.10, *) else {
+                return
+            }
+        #endif
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createPersons") { db in
+            try db.execute(sql: "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, tmp TEXT)")
+            try db.execute(sql: "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
+            try db.execute(sql: "INSERT INTO persons (name) VALUES ('Arthur')")
+            let personId = db.lastInsertedRowID
+            try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, 'Bobby')", arguments:[personId])
+        }
+        migrator.registerMigration("removePersonTmpColumn") { db in
+            // Test the technique described at https://www.sqlite.org/lang_altertable.html#otheralter
+            try db.execute(sql: "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT)")
+            try db.execute(sql: "INSERT INTO new_persons SELECT id, name FROM persons")
+            try db.execute(sql: "DROP TABLE persons")
+            try db.execute(sql: "ALTER TABLE new_persons RENAME TO persons")
+        }
+        migrator.registerMigration("foreignKeyError") { db in
+            try db.execute(sql: "INSERT INTO persons (name) VALUES ('Barbara')")
+            // triggers foreign key error:
+            try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [123, "Bobby"])
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            try migrator.migrate(dbQueue)
+            XCTFail("Expected error")
+        } catch let error as DatabaseError {
+            // Migration 1 and 2 should be committed.
+            // Migration 3 should not be committed.
+            
+            XCTAssert((error.resultCode == error.extendedResultCode) || error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+            XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
+            XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
+            
+            try dbQueue.inDatabase { db in
+                // Arthur inserted (migration 1), Barbara (migration 3) not inserted.
+                var rows = try Row.fetchAll(db, sql: "SELECT * FROM persons")
+                XCTAssertEqual(rows.count, 1)
+                var row = rows.first!
+                XCTAssertEqual(row["name"] as String, "Arthur")
+                
+                // persons table has no "tmp" column (migration 2)
+                XCTAssertEqual(Array(row.columnNames), ["id", "name"])
+                
+                // Bobby inserted (migration 1), not deleted by migration 2.
+                rows = try Row.fetchAll(db, sql: "SELECT * FROM pets")
+                XCTAssertEqual(rows.count, 1)
+                row = rows.first!
+                XCTAssertEqual(row["name"] as String, "Bobby")
+            }
+        }
+    }
+
+    func testMigrationWithDeferredForeignKeyChecksDeprecated() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
             guard #available(iOS 8.2, OSX 10.10, *) else {
                 return

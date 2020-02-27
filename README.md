@@ -4921,6 +4921,8 @@ migrator.registerMigration("v2") { db in
 
 **Each migration runs in a separate transaction.** Should one throw an error, its transaction is rollbacked, subsequent migrations do not run, and the error is eventually thrown by `migrator.migrate(dbQueue)`.
 
+**Migrations run with deferred foreign key checks,** starting SQLite 3.7.16+ (iOS 9.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+ / [custom SQLite build] / [SQLCipher](#encryption)). This means that eventual foreign key violations are only checked at the end of the migration (and they make the migration fail).
+
 **The memory of applied migrations is stored in the database itself** (in a reserved table).
 
 You migrate the database up to the latest version with the `migrate(_:)` method:
@@ -4986,11 +4988,11 @@ The `eraseDatabaseOnSchemaChange` option triggers a recreation of the database i
 
 SQLite does not support many schema changes, and won't let you drop a table column with "ALTER TABLE ... DROP COLUMN ...", for example.
 
-Yet any kind of schema change is still possible. The SQLite documentation explains in detail how to do so: https://www.sqlite.org/lang_altertable.html#otheralter. This technique requires the temporary disabling of foreign key checks, and is supported by the `registerMigrationWithDeferredForeignKeyCheck` function:
+Yet any kind of schema change is still possible, by recreating tables:
 
 ```swift
-// Add a NOT NULL constraint on player.name:
-migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") { db in
+migrator.registerMigration("AddNotNullCheckOnName") { db in
+    // Add a NOT NULL constraint on player.name:
     try db.create(table: "new_player") { t in
         t.autoIncrementedPrimaryKey("id")
         t.column("name", .text).notNull()
@@ -5001,7 +5003,7 @@ migrator.registerMigrationWithDeferredForeignKeyCheck("AddNotNullCheckOnName") {
 }
 ```
 
-While your migration code runs with disabled foreign key checks, those are re-enabled and checked at the end of the migration, regardless of eventual errors.
+> :point_up: **Note**: This technique requires SQLite 3.7.16+ (iOS 9.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+ / [custom SQLite build] / [SQLCipher](#encryption)).
 
 
 ## Joined Queries Support
