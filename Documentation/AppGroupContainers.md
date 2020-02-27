@@ -48,8 +48,10 @@ Since several processes may open the database at the same time, protect the crea
     
     private func openDatabase(at databaseURL: URL) throws -> DatabasePool {
         let dbPool = try DatabasePool(path: databaseURL.path)
+        
         // Perform here other database setups, such as defining 
         // the database schema with a DatabaseMigrator.
+        try migrator.migrate(dbPool)
         return dbPool
     }
     ```
@@ -58,7 +60,8 @@ Since several processes may open the database at the same time, protect the crea
     
     ```swift
     /// Returns an initialized database pool at the shared location databaseURL,
-    /// or nil if the database was not created yet.
+    /// or nil if the database is not created yet, or does not have the required
+    /// schema version.
     func openSharedReadOnlyDatabase(at databaseURL: URL) throws -> DatabasePool? {
         let coordinator = NSFileCoordinator(filePresenter: nil)
         var coordinatorError: NSError?
@@ -81,7 +84,14 @@ Since several processes may open the database at the same time, protect the crea
         do {
             var configuration = Configuration()
             configuration.readonly = true
-            return try DatabasePool(path: databaseURL.path, configuration: configuration)
+            let dbPool = try DatabasePool(path: databaseURL.path, configuration: configuration)
+            
+            // Check here if the database schema is correct, for example
+            // with a DatabaseMigrator.
+            if try migrator.hasUnappliedMigrations(in: dbPool) {
+                return nil
+            }
+            return dbPool
         } catch {
             if FileManager.default.fileExists(atPath: databaseURL.path) {
                 throw error
