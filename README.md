@@ -4945,7 +4945,18 @@ try migrator.migrate(dbQueue, upTo: "v1")
 // fatal error: database is already migrated beyond migration "v1"
 ```
 
-Check if a migration has been applied:
+Check if migrations are needed:
+
+```swift
+if try migrator.hasUnappliedMigrations(in: dbQueue) {
+    // Some migrations have not been applied
+}
+if try migrator.hasUnappliedMigrations(in: dbQueue, upTo: "v2") {
+    // Some migrations have not been applied until "v2"
+}
+```
+
+Check if a specific migration has been applied:
 
 ```swift
 let appliedMigrations = try migrator.appliedMigrations(in: dbQueue)
