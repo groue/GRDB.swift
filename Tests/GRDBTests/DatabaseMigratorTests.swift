@@ -7,6 +7,12 @@ import XCTest
 
 class DatabaseMigratorTests : GRDBTestCase {
     
+    func testEmptyMigrator() throws {
+        let migrator = DatabaseMigrator()
+        let dbQueue = try makeDatabaseQueue()
+        try migrator.migrate(dbQueue)
+    }
+    
     func testMigratorDatabaseQueue() throws {
         let dbQueue = try makeDatabaseQueue()
         
@@ -290,6 +296,15 @@ class DatabaseMigratorTests : GRDBTestCase {
 
     func testAppliedMigrations() throws {
         var migrator = DatabaseMigrator()
+        
+        // No migration
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), [])
+        }
+        
+        // One migration
+
         migrator.registerMigration("1") { db in
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
@@ -297,24 +312,41 @@ class DatabaseMigratorTests : GRDBTestCase {
                 t.column("score", .integer)
             }
         }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), [])
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1"])
+        }
+
+        // Two migrations
 
         migrator.registerMigration("2") { db in
             try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
         }
-
-        // Apply migrator
-        let dbQueue = try makeDatabaseQueue()
-        try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), [])
-
-        try migrator.migrate(dbQueue, upTo: "1")
-        try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1"])
-
-        try migrator.migrate(dbQueue, upTo: "2")
-        try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1", "2"])
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), [])
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1"])
+            try migrator.migrate(dbQueue, upTo: "2")
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1", "2"])
+        }
     }
     
     func testHasUnappliedMigrations() throws {
         var migrator = DatabaseMigrator()
+        
+        // No migration
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue))
+        }
+        
+        // One migration
+
         migrator.registerMigration("1") { db in
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
@@ -322,26 +354,36 @@ class DatabaseMigratorTests : GRDBTestCase {
                 t.column("score", .integer)
             }
         }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "1"))
+            try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue))
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "1"))
+            try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue))
+        }
+
+        // Two migrations
 
         migrator.registerMigration("2") { db in
             try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
         }
-
-        // Apply migrator
-        let dbQueue = try makeDatabaseQueue()
-        try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "1"))
-        try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "2"))
-        try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue))
-
-        try migrator.migrate(dbQueue, upTo: "1")
-        try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "1"))
-        try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "2"))
-        try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue))
-
-        try migrator.migrate(dbQueue, upTo: "2")
-        try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "1"))
-        try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "2"))
-        try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue))
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "1"))
+            try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "2"))
+            try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue))
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "1"))
+            try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "2"))
+            try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue))
+            try migrator.migrate(dbQueue, upTo: "2")
+            try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "1"))
+            try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "2"))
+            try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue))
+        }
     }
     
     func testEraseDatabaseOnSchemaChange() throws {
