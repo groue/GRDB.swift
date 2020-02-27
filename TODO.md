@@ -8,6 +8,11 @@
 - [ ] Test NOT TESTED methods
 - [ ] Cancellation of a started ValueObservation. Context: https://github.com/groue/GRDB.swift/issues/601#issuecomment-524733140
 - [ ] Remove submodules
+- [ ] DatabaseMigrator.unappliedMigrations(in:upTo:), DatabaseMigrator.needsMigrate(in:). Update App Group sample code, so that read-only apps check the schema.
+- [ ] DatabaseMigrator should always use dbWriter.writeBarrierWithoutTransaction
+- [ ] Remove EmptyDatabaseSchemaCache, it is useless
+- [ ] DatabasePool.databaseSchemaIsLocked = true (should forbid schema changes, and never reset dbPool readers' caches). Or can we invalidate reader's cache automatically from the writer connection?
+- [ ] Database.clearSchemaCache() is fine, but what about dbPool readers? Can we invalidate the cache for a whole pool?
 
 
 ## Documentation
