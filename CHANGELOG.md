@@ -63,10 +63,36 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Next Release
 
-**New**
+### New
 
 - [#706](https://github.com/groue/GRDB.swift/pull/706): Enhance SQLLiteral and SQL interpolation again
+
+### Breaking Change
+
 - [#709](https://github.com/groue/GRDB.swift/pull/709): Simplify DatabaseMigrator API
+
+Database migrations have a new behavior which is a breaking change. However, it is very unlikely to impact your application.
+
+In previous versions of GRDB, a foreign key violation would immediately prevent a migration from successfully complete. Now, foreign key checks are deferred until the end of each migration. This means that some migrations will change their behavior:
+
+```swift
+// Used to fail, now succeeds
+migrator.registerMigration(...) { db in
+    try violateForeignKeyConstraint(db)
+    try fixForeignKeyConstraint(db)
+}
+
+// The catch clause is no longer called
+migrator.registerMigration(...) { db in
+    do {
+        try performChanges(db)
+    } catch let error as DatabaseError where error.resultCode == .SQL_CONSTRAINT {
+        // Handle foreign key error
+    }
+}
+```
+
+If your application happens to define migrations that are impacted by this change, please open an issue so that we find a way to restore the previous behavior.
 
 
 ## 4.10.0
