@@ -7147,12 +7147,7 @@ This method blocks the current thread until all current database accesses are co
 
 **The iOS operating system likes applications that do not consume much memory.**
 
-[Database queues](#database-queues) and [pools](#database-pools) can call the `releaseMemory` method for you, when application receives memory warnings, and when application enters background: call the `setupMemoryManagement` method after creating the queue or pool instance:
-
-```
-let dbQueue = try DatabaseQueue(...)
-dbQueue.setupMemoryManagement(in: UIApplication.shared)
-```
+[Database queues](#database-queues) and [pools](#database-pools) automatically calls the `releaseMemory` method for you, when application receives memory warnings, and when application enters background.
 
 
 ## Data Protection

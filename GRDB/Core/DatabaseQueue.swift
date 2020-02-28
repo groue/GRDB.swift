@@ -7,9 +7,6 @@ import UIKit
 /// A DatabaseQueue serializes access to an SQLite database.
 public final class DatabaseQueue: DatabaseWriter {
     private var writer: SerializedDatabase
-    #if os(iOS)
-    private weak var application: UIApplication?
-    #endif
     
     // MARK: - Configuration
     
@@ -43,6 +40,12 @@ public final class DatabaseQueue: DatabaseWriter {
             defaultLabel: "GRDB.DatabaseQueue")
         
         setupSuspension()
+        
+        // Be a nice iOS citizen, and don't consume too much memory
+        // See https://github.com/groue/GRDB.swift/#memory-management
+        #if canImport(UIKit)
+        setupMemoryManagement()
+        #endif
     }
     
     /// Opens an in-memory SQLite database.
@@ -83,7 +86,7 @@ extension DatabaseQueue {
         writer.sync { $0.releaseMemory() }
     }
     
-    #if os(iOS)
+    #if canImport(UIKit)
     /// Listens to UIApplicationDidEnterBackgroundNotification and
     /// UIApplicationDidReceiveMemoryWarningNotification in order to release
     /// as much memory as possible.
@@ -91,8 +94,7 @@ extension DatabaseQueue {
     /// - param application: The UIApplication that will start a background
     ///   task to let the database queue release its memory when the application
     ///   enters background.
-    public func setupMemoryManagement(in application: UIApplication) {
-        self.application = application
+    private func setupMemoryManagement() {
         let center = NotificationCenter.default
         center.addObserver(
             self,
@@ -108,7 +110,7 @@ extension DatabaseQueue {
     
     @objc
     private func applicationDidEnterBackground(_ notification: NSNotification) {
-        guard let application = application else {
+        guard let application = notification.object as? UIApplication else {
             return
         }
         
