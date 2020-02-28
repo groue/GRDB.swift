@@ -179,7 +179,7 @@ public struct DatabaseMigrator {
     /// - throws: An eventual database error.
     public func appliedMigrations(in reader: DatabaseReader) throws -> Set<String> {
         return try reader.read { db in
-            return try appliedIdentifiers(db)
+            return try appliedIdentifiers(db).intersection(migrations.map { $0.identifier })
         }
     }
     
@@ -191,15 +191,16 @@ public struct DatabaseMigrator {
         guard let lastMigration = migrations.last else {
             return true
         }
-        return try isMigrated(in: reader, upTo: lastMigration.identifier)
+        return try isMigrated(in: reader, beyond: lastMigration.identifier)
     }
     
-    /// Returns true if all migrations up to the provided target are applied.
+    /// Returns true if all migrations up to the provided target are applied,
+    /// and maybe further.
     ///
     /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
     /// - parameter targetIdentifier: The identifier of a registered migration.
     /// - throws: An eventual database error.
-    public func isMigrated(in reader: DatabaseReader, upTo targetIdentifier: String) throws -> Bool {
+    public func isMigrated(in reader: DatabaseReader, beyond targetIdentifier: String) throws -> Bool {
         return try reader.read { db in
             let appliedIdentifiers = try self.appliedIdentifiers(db)
             let unappliedMigrations = self.unappliedMigrations(
@@ -209,6 +210,30 @@ public struct DatabaseMigrator {
         }
     }
     
+    /// Returns the identifier of the last applied migration.
+    ///
+    /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
+    /// - throws: An eventual database error.
+    public func lastAppliedMigration(in reader: DatabaseReader) throws -> String? {
+        return try reader.read { db in
+            let appliedIdentifiers = try self.appliedIdentifiers(db)
+            if appliedIdentifiers.isEmpty {
+                return nil
+            }
+            let lastAppliedIdentifier = migrations
+                .last { appliedIdentifiers.contains($0.identifier) }!
+                .identifier
+            let unappliedMigrations = self.unappliedMigrations(
+                upTo: lastAppliedIdentifier,
+                appliedIdentifiers: appliedIdentifiers)
+            if unappliedMigrations.isEmpty {
+                return lastAppliedIdentifier
+            } else {
+                return nil
+            }
+        }
+    }
+
     // MARK: - Non public
     
     private mutating func registerMigration(_ migration: Migration) {
