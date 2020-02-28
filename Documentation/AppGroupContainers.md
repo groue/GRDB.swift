@@ -88,10 +88,11 @@ Since several processes may open the database at the same time, protect the crea
             
             // Check here if the database schema is correct, for example
             // with a DatabaseMigrator.
-            if try migrator.hasUnappliedMigrations(in: dbPool) {
+            if try migrator.isMigrated(in: dbPool) {
+                return dbPool
+            } else {
                 return nil
             }
-            return dbPool
         } catch {
             if FileManager.default.fileExists(atPath: databaseURL.path) {
                 throw error

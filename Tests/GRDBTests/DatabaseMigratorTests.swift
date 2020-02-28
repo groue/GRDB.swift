@@ -336,13 +336,13 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
     }
     
-    func testHasUnappliedMigrations() throws {
+    func testIsMigrated() throws {
         var migrator = DatabaseMigrator()
         
         // No migration
         do {
             let dbQueue = try makeDatabaseQueue()
-            try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue))
+            try XCTAssertTrue(migrator.isMigrated(in: dbQueue))
         }
         
         // One migration
@@ -357,11 +357,11 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         do {
             let dbQueue = try makeDatabaseQueue()
-            try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "1"))
-            try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue))
+            try XCTAssertFalse(migrator.isMigrated(in: dbQueue, upTo: "1"))
+            try XCTAssertFalse(migrator.isMigrated(in: dbQueue))
             try migrator.migrate(dbQueue, upTo: "1")
-            try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "1"))
-            try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue))
+            try XCTAssertTrue(migrator.isMigrated(in: dbQueue, upTo: "1"))
+            try XCTAssertTrue(migrator.isMigrated(in: dbQueue))
         }
 
         // Two migrations
@@ -372,17 +372,17 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         do {
             let dbQueue = try makeDatabaseQueue()
-            try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "1"))
-            try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "2"))
-            try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue))
+            try XCTAssertFalse(migrator.isMigrated(in: dbQueue, upTo: "1"))
+            try XCTAssertFalse(migrator.isMigrated(in: dbQueue, upTo: "2"))
+            try XCTAssertFalse(migrator.isMigrated(in: dbQueue))
             try migrator.migrate(dbQueue, upTo: "1")
-            try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "1"))
-            try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "2"))
-            try XCTAssertTrue(migrator.hasUnappliedMigrations(in: dbQueue))
+            try XCTAssertTrue(migrator.isMigrated(in: dbQueue, upTo: "1"))
+            try XCTAssertFalse(migrator.isMigrated(in: dbQueue, upTo: "2"))
+            try XCTAssertFalse(migrator.isMigrated(in: dbQueue))
             try migrator.migrate(dbQueue, upTo: "2")
-            try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "1"))
-            try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue, upTo: "2"))
-            try XCTAssertFalse(migrator.hasUnappliedMigrations(in: dbQueue))
+            try XCTAssertTrue(migrator.isMigrated(in: dbQueue, upTo: "1"))
+            try XCTAssertTrue(migrator.isMigrated(in: dbQueue, upTo: "2"))
+            try XCTAssertTrue(migrator.isMigrated(in: dbQueue))
         }
     }
     

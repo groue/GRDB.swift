@@ -183,30 +183,29 @@ public struct DatabaseMigrator {
         }
     }
     
-    /// Returns true if there exist unapplied migrations.
+    /// Returns true if all migrations are applied.
     ///
     /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
     /// - throws: An eventual database error.
-    public func hasUnappliedMigrations(in reader: DatabaseReader) throws -> Bool {
+    public func isMigrated(in reader: DatabaseReader) throws -> Bool {
         guard let lastMigration = migrations.last else {
-            return false
+            return true
         }
-        return try hasUnappliedMigrations(in: reader, upTo: lastMigration.identifier)
+        return try isMigrated(in: reader, upTo: lastMigration.identifier)
     }
     
-    /// Returns true if there exist unapplied migrations, up to the
-    /// provided target.
+    /// Returns true if all migrations up to the provided target are applied.
     ///
     /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
     /// - parameter targetIdentifier: The identifier of a registered migration.
     /// - throws: An eventual database error.
-    public func hasUnappliedMigrations(in reader: DatabaseReader, upTo targetIdentifier: String) throws -> Bool {
+    public func isMigrated(in reader: DatabaseReader, upTo targetIdentifier: String) throws -> Bool {
         return try reader.read { db in
             let appliedIdentifiers = try self.appliedIdentifiers(db)
             let unappliedMigrations = self.unappliedMigrations(
                 upTo: targetIdentifier,
                 appliedIdentifiers: appliedIdentifiers)
-            return unappliedMigrations.isEmpty == false
+            return unappliedMigrations.isEmpty
         }
     }
     
