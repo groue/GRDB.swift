@@ -291,40 +291,7 @@ extension DatabaseWriter {
     /// - precondition: database is not accessed concurrently during the
     ///   execution of this method.
     public func erase() throws {
-        #if SQLITE_HAS_CODEC
-        // SQLCipher does not support the backup API:
-        // https://discuss.zetetic.net/t/using-the-sqlite-online-backup-api/2631
-        // So we'll drop all database objects one after the other.
-        try writeWithoutTransaction { db in
-            // Prevent foreign keys from messing with drop table statements
-            let foreignKeysEnabled = try Bool.fetchOne(db, sql: "PRAGMA foreign_keys")!
-            if foreignKeysEnabled {
-                try db.execute(sql: "PRAGMA foreign_keys = OFF")
-            }
-            
-            try throwingFirstError(
-                execute: {
-                    // Remove all database objects, one after the other
-                    try db.inTransaction {
-                        let sql = "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
-                        while let row = try Row.fetchOne(db, sql: sql) {
-                            let type: String = row["type"]
-                            let name: String = row["name"]
-                            try db.execute(sql: "DROP \(type) \(name.quotedDatabaseIdentifier)")
-                        }
-                        return .commit
-                    }
-            },
-                finally: {
-                    // Restore foreign keys if needed
-                    if foreignKeysEnabled {
-                        try db.execute(sql: "PRAGMA foreign_keys = ON")
-                    }
-            })
-        }
-        #else
-        try DatabaseQueue().backup(to: self)
-        #endif
+        try writeWithoutTransaction { try $0.erase() }
     }
     
     // MARK: - Claiming Disk Space

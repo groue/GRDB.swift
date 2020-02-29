@@ -35,7 +35,7 @@ class DatabasePoolBackupTests: GRDBTestCase {
         }
     }
     
-    // TODO: this test is fragile: understand if somethig is wrong, or not:
+    // TODO: fix flaky test
 //    @available(OSX 10.10, *)
 //    func testConcurrentWriteDuringBackup() throws {
 //        let source = try makeDatabasePool(filename: "source.sqlite")
@@ -58,17 +58,19 @@ class DatabasePoolBackupTests: GRDBTestCase {
 //            }
 //        }
 //        
-//        try source.backup(
-//            to: destination,
-//            afterBackupInit: {
-//                s1.signal()
-//                _ = s2.wait(timeout: .distantFuture)
-//        },
-//            afterBackupStep: {
-//                try! source.write { db in
-//                    try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
-//                }
-//        })
+//        try destination.writeWithoutTransaction { dbDestination in
+//            try source.backup(
+//                to: dbDestination,
+//                afterBackupInit: {
+//                    s1.signal()
+//                    _ = s2.wait(timeout: .distantFuture)
+//            },
+//                afterBackupStep: {
+//                    try! source.write { db in
+//                        try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
+//                    }
+//            })
+//        }
 //        
 //        try source.read { db in
 //            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 3)
