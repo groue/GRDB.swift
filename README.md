@@ -7147,7 +7147,7 @@ This method blocks the current thread until all current database accesses are co
 
 **The iOS operating system likes applications that do not consume much memory.**
 
-[Database queues](#database-queues) and [pools](#database-pools) automatically calls the `releaseMemory` method for you, when application receives memory warnings, and when application enters background.
+[Database queues](#database-queues) and [pools](#database-pools) automatically call the `releaseMemory` method when the application receives a memory warning, and when the application enters background.
 
 
 ## Data Protection
