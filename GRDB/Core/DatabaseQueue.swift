@@ -7,9 +7,6 @@ import UIKit
 /// A DatabaseQueue serializes access to an SQLite database.
 public final class DatabaseQueue: DatabaseWriter {
     private var writer: SerializedDatabase
-    #if os(iOS)
-    private weak var application: UIApplication?
-    #endif
     
     // MARK: - Configuration
     
@@ -43,6 +40,12 @@ public final class DatabaseQueue: DatabaseWriter {
             defaultLabel: "GRDB.DatabaseQueue")
         
         setupSuspension()
+        
+        // Be a nice iOS citizen, and don't consume too much memory
+        // See https://github.com/groue/GRDB.swift/#memory-management
+        #if os(iOS)
+        setupAutomaticMemoryManagement()
+        #endif
     }
     
     /// Opens an in-memory SQLite database.
@@ -62,7 +65,7 @@ public final class DatabaseQueue: DatabaseWriter {
     }
     
     deinit {
-        // Undo job done in setupMemoryManagement()
+        // Undo job done in setupAutomaticMemoryManagement()
         //
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
         // Explicit unregistration is required before iOS 9 and OS X 10.11.
@@ -77,13 +80,17 @@ extension DatabaseQueue {
     /// Free as much memory as possible.
     ///
     /// This method blocks the current thread until all database accesses are completed.
-    ///
-    /// See also setupMemoryManagement(application:)
     public func releaseMemory() {
         writer.sync { $0.releaseMemory() }
     }
     
     #if os(iOS)
+    // swiftlint:disable:next line_length
+    @available(*, deprecated, message: "Memory management is now enabled by default. This deprecated method does nothing.")
+    public func setupMemoryManagement(in application: UIApplication) {
+        // No op.
+    }
+    
     /// Listens to UIApplicationDidEnterBackgroundNotification and
     /// UIApplicationDidReceiveMemoryWarningNotification in order to release
     /// as much memory as possible.
@@ -91,8 +98,7 @@ extension DatabaseQueue {
     /// - param application: The UIApplication that will start a background
     ///   task to let the database queue release its memory when the application
     ///   enters background.
-    public func setupMemoryManagement(in application: UIApplication) {
-        self.application = application
+    private func setupAutomaticMemoryManagement() {
         let center = NotificationCenter.default
         center.addObserver(
             self,
@@ -108,7 +114,7 @@ extension DatabaseQueue {
     
     @objc
     private func applicationDidEnterBackground(_ notification: NSNotification) {
-        guard let application = application else {
+        guard let application = notification.object as? UIApplication else {
             return
         }
         
