@@ -382,6 +382,20 @@ extension DatabaseQueue {
     /// Synchronously executes database updates in a protected dispatch queue,
     /// outside of any transaction, and returns the result.
     ///
+    /// Eventual concurrent database accesses are postponed until the updates
+    /// are completed.
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter updates: The updates to the database.
+    /// - throws: The error thrown by the updates.
+    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
+        return try writer.sync(updates)
+    }
+    
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
+    ///
     ///     // INSERT INTO player ...
     ///     let players = try dbQueue.inDatabase { db in
     ///         try Player(...).insert(db)

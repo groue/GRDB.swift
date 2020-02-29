@@ -53,6 +53,17 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - throws: The error thrown by the updates.
     func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T
     
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
+    ///
+    /// No concurrent write or read happens during the execution of the updates.
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter updates: The updates to the database.
+    /// - throws: The error thrown by the updates.
+    func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T
+    
     #if compiler(>=5.0)
     /// Asynchronously executes database updates in a protected dispatch queue,
     /// wrapped inside a transaction.
@@ -650,6 +661,11 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     /// :nodoc:
     public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         return try base.writeWithoutTransaction(updates)
+    }
+    
+    /// :nodoc:
+    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
+        return try base.barrierWriteWithoutTransaction(updates)
     }
     
     #if compiler(>=5.0)
