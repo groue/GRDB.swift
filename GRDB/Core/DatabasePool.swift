@@ -54,7 +54,7 @@ public final class DatabasePool: DatabaseWriter {
         writer = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: SimpleDatabaseSchemaCache(),
+            schemaCache: DatabaseSchemaCache(),
             defaultLabel: "GRDB.DatabasePool",
             purpose: "writer")
         
@@ -97,7 +97,7 @@ public final class DatabasePool: DatabaseWriter {
             let reader = try SerializedDatabase(
                 path: path,
                 configuration: self.readerConfiguration,
-                schemaCache: SimpleDatabaseSchemaCache(),
+                schemaCache: DatabaseSchemaCache(),
                 defaultLabel: "GRDB.DatabasePool",
                 purpose: "reader.\(readerCount)")
             reader.sync { self.setupDatabase($0) }
@@ -372,9 +372,8 @@ extension DatabasePool: DatabaseReader {
                 // See DatabasePoolTests.testReadMethodIsolationOfBlock().
                 try db.inTransaction(.deferred) {
                     // Reset the schema cache before running user code in snapshot isolation
-                    result = try db.withSchemaCache(SimpleDatabaseSchemaCache()) {
-                        try block(db)
-                    }
+                    db.clearSchemaCache()
+                    result = try block(db)
                     return .commit
                 }
                 return result!
@@ -420,9 +419,8 @@ extension DatabasePool: DatabaseReader {
                             try db.beginTransaction(.deferred)
                             
                             // Reset the schema cache before running user code in snapshot isolation
-                            db.withSchemaCache(SimpleDatabaseSchemaCache()) {
-                                block(.success(db))
-                            }
+                            db.clearSchemaCache()
+                            block(.success(db))
                         } catch {
                             block(.failure(error))
                         }
@@ -464,10 +462,9 @@ extension DatabasePool: DatabaseReader {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         return try readerPool.get { reader in
             try reader.sync { db in
-                // No schema cache when snapshot isolation is not established
-                return try db.withSchemaCache(EmptyDatabaseSchemaCache()) {
-                    try block(db)
-                }
+                // Reset the schema cache
+                db.clearSchemaCache()
+                return try block(db)
             }
         }
     }
@@ -505,10 +502,9 @@ extension DatabasePool: DatabaseReader {
         } else {
             return try readerPool.get { reader in
                 try reader.sync { db in
-                    // No schema cache when snapshot isolation is not established
-                    return try db.withSchemaCache(EmptyDatabaseSchemaCache()) {
-                        try block(db)
-                    }
+                    // Reset the schema cache
+                    db.clearSchemaCache()
+                    return try block(db)
                 }
             }
         }
@@ -560,11 +556,12 @@ extension DatabasePool: DatabaseReader {
                 // Release the writer queue
                 isolationSemaphore.signal()
                 
-                // Reset the schema cache before running user code in snapshot isolation
-                db.schemaCache = SimpleDatabaseSchemaCache()
-                
                 // Fetch and release the future
-                futureResult = DatabaseResult { try block(db) }
+                futureResult = DatabaseResult {
+                    // Reset the schema cache before running user code in snapshot isolation
+                    db.clearSchemaCache()
+                    return try block(db)
+                }
                 futureSemaphore.signal()
             }
         } catch {
@@ -664,10 +661,9 @@ extension DatabasePool: DatabaseReader {
                 isolationSemaphore.signal()
                 
                 // Reset the schema cache before running user code in snapshot isolation
-                db.withSchemaCache(SimpleDatabaseSchemaCache()) {
-                    // Fetch and release the future
-                    block(.success(db))
-                }
+                db.clearSchemaCache()
+
+                block(.success(db))
             }
         } catch {
             isolationSemaphore.signal()

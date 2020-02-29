@@ -187,7 +187,7 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         }
     }
     
-    func testUnsafeReaderHasNoDatabaseCache() throws {
+    func testUnsafeReaderHasDatabaseCache() throws {
         let dbPool = try makeDatabasePool()
         
         try dbPool.write { db in
@@ -206,10 +206,10 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             _ = try db.columns(in: "items")
             _ = try db.indexes(on: "items")
             
-            // Assert that a reader cache is still empty
-            XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
-            XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)
-            XCTAssertTrue(db.schemaCache.indexes(on: "items") == nil)
+            // Assert that a reader cache is warmed
+            XCTAssertFalse(db.schemaCache.primaryKey("items") == nil)
+            XCTAssertFalse(db.schemaCache.columns(in: "items") == nil)
+            XCTAssertFalse(db.schemaCache.indexes(on: "items") == nil)
         }
     }
 }
