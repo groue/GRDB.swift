@@ -24,10 +24,6 @@ public final class DatabasePool: DatabaseWriter {
     
     var databaseSnapshotCount = LockedBox(value: 0)
     
-    #if os(iOS)
-    private weak var application: UIApplication?
-    #endif
-    
     // MARK: - Database Information
     
     /// The path to the database.
@@ -138,10 +134,16 @@ public final class DatabasePool: DatabaseWriter {
         }
         
         setupSuspension()
+        
+        // Be a nice iOS citizen, and don't consume too much memory
+        // See https://github.com/groue/GRDB.swift/#memory-management
+        #if os(iOS)
+        setupAutomaticMemoryManagement()
+        #endif
     }
     
     deinit {
-        // Undo job done in setupMemoryManagement()
+        // Undo job done in setupAutomaticMemoryManagement()
         //
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
         // Explicit unregistration is required before iOS 9 and OS X 10.11.
@@ -194,8 +196,6 @@ extension DatabasePool {
     ///
     /// This method blocks the current thread until all database accesses
     /// are completed.
-    ///
-    /// See also setupMemoryManagement(application:)
     public func releaseMemory() {
         // Release writer memory
         writer.sync { $0.releaseMemory() }
@@ -207,6 +207,12 @@ extension DatabasePool {
     
     
     #if os(iOS)
+    // swiftlint:disable:next line_length
+    @available(*, deprecated, message: "Memory management is now enabled by default. This deprecated method does nothing.")
+    public func setupMemoryManagement(in application: UIApplication) {
+        // No op.
+    }
+    
     /// Listens to UIApplicationDidEnterBackgroundNotification and
     /// UIApplicationDidReceiveMemoryWarningNotification in order to release
     /// as much memory as possible.
@@ -214,8 +220,7 @@ extension DatabasePool {
     /// - param application: The UIApplication that will start a background
     ///   task to let the database pool release its memory when the application
     ///   enters background.
-    public func setupMemoryManagement(in application: UIApplication) {
-        self.application = application
+    private func setupAutomaticMemoryManagement() {
         let center = NotificationCenter.default
         center.addObserver(
             self,
@@ -231,7 +236,7 @@ extension DatabasePool {
     
     @objc
     private func applicationDidEnterBackground(_ notification: NSNotification) {
-        guard let application = application else {
+        guard let application = notification.object as? UIApplication else {
             return
         }
         
