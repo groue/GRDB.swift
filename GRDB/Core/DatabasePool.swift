@@ -207,6 +207,7 @@ extension DatabasePool {
     
     
     #if os(iOS)
+    // swiftlint:disable:next line_length
     @available(*, deprecated, message: "Memory management is now enabled by default. This deprecated method does nothing.")
     public func setupMemoryManagement(in application: UIApplication) {
         // No op.
