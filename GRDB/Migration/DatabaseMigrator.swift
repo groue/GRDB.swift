@@ -187,11 +187,11 @@ public struct DatabaseMigrator {
     ///
     /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
     /// - throws: An eventual database error.
-    public func isMigrated(in reader: DatabaseReader) throws -> Bool {
+    public func hasCompletedMigrations(in reader: DatabaseReader) throws -> Bool {
         guard let lastMigration = migrations.last else {
             return true
         }
-        return try isMigrated(in: reader, beyond: lastMigration.identifier)
+        return try hasCompletedMigrations(in: reader, through: lastMigration.identifier)
     }
     
     /// Returns true if all migrations up to the provided target are applied,
@@ -200,7 +200,7 @@ public struct DatabaseMigrator {
     /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
     /// - parameter targetIdentifier: The identifier of a registered migration.
     /// - throws: An eventual database error.
-    public func isMigrated(in reader: DatabaseReader, beyond targetIdentifier: String) throws -> Bool {
+    public func hasCompletedMigrations(in reader: DatabaseReader, through targetIdentifier: String) throws -> Bool {
         return try reader.read { db in
             let appliedIdentifiers = try self.appliedIdentifiers(db)
             let unappliedMigrations = self.unappliedMigrations(
@@ -210,11 +210,13 @@ public struct DatabaseMigrator {
         }
     }
     
-    /// Returns the identifier of the last applied migration.
+    /// Returns the identifier of the last migration for which all predecessors
+    /// have been applied.
     ///
     /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
+    /// - returns: An eventual migration identifier.
     /// - throws: An eventual database error.
-    public func lastAppliedMigration(in reader: DatabaseReader) throws -> String? {
+    public func lastCompletedMigration(in reader: DatabaseReader) throws -> String? {
         return try reader.read { db in
             let appliedIdentifiers = try self.appliedIdentifiers(db)
             if appliedIdentifiers.isEmpty {

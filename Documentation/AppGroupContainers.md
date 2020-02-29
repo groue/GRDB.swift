@@ -88,7 +88,7 @@ Since several processes may open the database at the same time, protect the crea
             
             // Check here if the database schema is correct, for example
             // with a DatabaseMigrator.
-            if try migrator.isMigrated(in: dbPool) {
+            if try migrator.hasCompletedMigrations(in: dbPool) {
                 return dbPool
             } else {
                 return nil
