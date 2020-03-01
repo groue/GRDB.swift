@@ -1080,16 +1080,53 @@ public final class Database {
         publicStatementCache.clear()
     }
     
+    // MARK: - Erasing
+    
+    func erase() throws {
+        #if SQLITE_HAS_CODEC
+        // SQLCipher does not support the backup API:
+        // https://discuss.zetetic.net/t/using-the-sqlite-online-backup-api/2631
+        // So we'll drop all database objects one after the other.
+        
+        // Prevent foreign keys from messing with drop table statements
+        let foreignKeysEnabled = try Bool.fetchOne(self, sql: "PRAGMA foreign_keys")!
+        if foreignKeysEnabled {
+            try execute(sql: "PRAGMA foreign_keys = OFF")
+        }
+        
+        try throwingFirstError(
+            execute: {
+                // Remove all database objects, one after the other
+                try inTransaction {
+                    let sql = "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
+                    while let row = try Row.fetchOne(self, sql: sql) {
+                        let type: String = row["type"]
+                        let name: String = row["name"]
+                        try execute(sql: "DROP \(type) \(name.quotedDatabaseIdentifier)")
+                    }
+                    return .commit
+                }
+        },
+            finally: {
+                // Restore foreign keys if needed
+                if foreignKeysEnabled {
+                    try execute(sql: "PRAGMA foreign_keys = ON")
+                }
+        })
+        #else
+        try DatabaseQueue().backup(to: self)
+        #endif
+    }
+    
     // MARK: - Backup
     
-    static func backup(
-        from dbFrom: Database,
+    func backup(
         to dbDest: Database,
         afterBackupInit: (() -> Void)? = nil,
         afterBackupStep: (() -> Void)? = nil)
         throws
     {
-        guard let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", dbFrom.sqliteConnection, "main") else {
+        guard let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", sqliteConnection, "main") else {
             throw DatabaseError(resultCode: dbDest.lastErrorCode, message: dbDest.lastErrorMessage)
         }
         guard Int(bitPattern: backup) != Int(SQLITE_ERROR) else {

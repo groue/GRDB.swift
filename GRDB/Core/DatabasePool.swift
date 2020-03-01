@@ -731,9 +731,12 @@ extension DatabasePool: DatabaseReader {
         return try writer.sync(updates)
     }
     
-    /// A barrier write ensures that no database access is executed until all
-    /// previous accesses have completed, and the specified updates have been
-    /// executed.
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
+    ///
+    /// Updates are guaranteed an exclusive access to the database. They wait
+    /// until all pending writes and reads are completed. They postpone all
+    /// other writes and reads until they are completed.
     ///
     /// This method is *not* reentrant.
     ///

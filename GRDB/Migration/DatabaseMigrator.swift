@@ -136,38 +136,40 @@ public struct DatabaseMigrator {
     /// - parameter targetIdentifier: The identifier of a registered migration.
     /// - throws: An eventual error thrown by the registered migration blocks.
     public func migrate(_ writer: DatabaseWriter, upTo targetIdentifier: String) throws {
-        if eraseDatabaseOnSchemaChange {
-            // Create a temporary witness database, on disk, just in case
-            // migrations would involve a lot of data.
-            let witness = try DatabaseQueue(path: "", configuration: writer.configuration)
-            
-            // Erase database if we detect a change in the current schema.
-            let (currentIdentifier, currentSchema) = try writer.writeWithoutTransaction { db -> (String?, SchemaInfo) in
-                try setupMigrations(db)
-                let identifiers = try appliedIdentifiers(db)
-                let currentIdentifier = migrations
-                    .reversed()
-                    .first { identifiers.contains($0.identifier) }?
-                    .identifier
-                return try (currentIdentifier, db.schema())
-            }
-            
-            if let currentIdentifier = currentIdentifier {
-                let witnessSchema: SchemaInfo = try witness.writeWithoutTransaction { db in
-                    try setupMigrations(db)
-                    try runMigrations(db, upTo: currentIdentifier)
-                    return try db.schema()
+        try writer.barrierWriteWithoutTransaction { db in
+            if eraseDatabaseOnSchemaChange {
+                // Fetch information about current database state
+                var info: (lastAppliedIdentifier: String, schema: SchemaInfo)?
+                try db.inTransaction(.deferred) {
+                    let identifiers = try appliedIdentifiers(db)
+                    if let lastAppliedIdentifier = migrations
+                        .last(where: { identifiers.contains($0.identifier) })?
+                        .identifier
+                    {
+                        info = try (lastAppliedIdentifier: lastAppliedIdentifier, schema: db.schema())
+                    }
+                    return .commit
                 }
                 
-                if currentSchema != witnessSchema {
-                    try writer.erase()
+                if let info = info {
+                    // Create a temporary witness database (on disk, just in case
+                    // migrations would involve a lot of data).
+                    let witness = try DatabaseQueue(path: "", configuration: writer.configuration)
+                    
+                    // Grab schema of migrated witness database
+                    let witnessSchema: SchemaInfo = try witness.writeWithoutTransaction { db in
+                        try runMigrations(db, upTo: info.lastAppliedIdentifier)
+                        return try db.schema()
+                    }
+                    
+                    // Erase database if we detect a schema change
+                    if info.schema != witnessSchema {
+                        try db.erase()
+                    }
                 }
             }
-        }
-        
-        // Migrate to target schema
-        try writer.writeWithoutTransaction { db in
-            try setupMigrations(db)
+            
+            // Migrate to target schema
             try runMigrations(db, upTo: targetIdentifier)
         }
     }
@@ -243,10 +245,6 @@ public struct DatabaseMigrator {
         migrations.append(migration)
     }
     
-    private func setupMigrations(_ db: Database) throws {
-        try db.execute(sql: "CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
-    }
-    
     private func appliedIdentifiers(_ db: Database) throws -> Set<String> {
         let tableExists = try Bool.fetchOne(db, sql: """
             SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type='table' AND name='grdb_migrations')
@@ -277,6 +275,8 @@ public struct DatabaseMigrator {
     }
     
     private func runMigrations(_ db: Database, upTo targetIdentifier: String) throws {
+        try db.execute(sql: "CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
+        
         let appliedIdentifiers = try self.appliedIdentifiers(db)
         
         // Subsequent migration must not be applied
