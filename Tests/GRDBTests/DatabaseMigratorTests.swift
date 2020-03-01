@@ -7,6 +7,12 @@ import XCTest
 
 class DatabaseMigratorTests : GRDBTestCase {
     
+    func testEmptyMigrator() throws {
+        let migrator = DatabaseMigrator()
+        let dbQueue = try makeDatabaseQueue()
+        try migrator.migrate(dbQueue)
+    }
+    
     func testMigratorDatabaseQueue() throws {
         let dbQueue = try makeDatabaseQueue()
         
@@ -290,6 +296,15 @@ class DatabaseMigratorTests : GRDBTestCase {
 
     func testAppliedMigrations() throws {
         var migrator = DatabaseMigrator()
+        
+        // No migration
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), [])
+        }
+        
+        // One migration
+
         migrator.registerMigration("1") { db in
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
@@ -297,22 +312,167 @@ class DatabaseMigratorTests : GRDBTestCase {
                 t.column("score", .integer)
             }
         }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), [])
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1"])
+        }
+
+        // Two migrations
 
         migrator.registerMigration("2") { db in
             try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
         }
-
-        // Apply migrator
-        let dbQueue = try makeDatabaseQueue()
-        try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), [])
-
-        try migrator.migrate(dbQueue, upTo: "1")
-        try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1"])
-
-        try migrator.migrate(dbQueue, upTo: "2")
-        try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1", "2"])
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), [])
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1"])
+            try migrator.migrate(dbQueue, upTo: "2")
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1", "2"])
+        }
     }
     
+    func testHasCompletedMigrations() throws {
+        var migrator = DatabaseMigrator()
+        
+        // No migration
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue))
+        }
+        
+        // One migration
+
+        migrator.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+                t.column("score", .integer)
+            }
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertFalse(migrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+            try XCTAssertFalse(migrator.hasCompletedMigrations(in: dbQueue))
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+            try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue))
+        }
+
+        // Two migrations
+
+        migrator.registerMigration("2") { db in
+            try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertFalse(migrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+            try XCTAssertFalse(migrator.hasCompletedMigrations(in: dbQueue, through: "2"))
+            try XCTAssertFalse(migrator.hasCompletedMigrations(in: dbQueue))
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+            try XCTAssertFalse(migrator.hasCompletedMigrations(in: dbQueue, through: "2"))
+            try XCTAssertFalse(migrator.hasCompletedMigrations(in: dbQueue))
+            try migrator.migrate(dbQueue, upTo: "2")
+            try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+            try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue, through: "2"))
+            try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue))
+        }
+    }
+    
+    func testLastCompletedMigration() throws {
+        var migrator = DatabaseMigrator()
+        
+        // No migration
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertNil(migrator.lastCompletedMigration(in: dbQueue))
+        }
+        
+        // One migration
+
+        migrator.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+                t.column("score", .integer)
+            }
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertNil(migrator.lastCompletedMigration(in: dbQueue))
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertEqual(migrator.lastCompletedMigration(in: dbQueue), "1")
+        }
+
+        // Two migrations
+
+        migrator.registerMigration("2") { db in
+            try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertNil(migrator.lastCompletedMigration(in: dbQueue))
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertEqual(migrator.lastCompletedMigration(in: dbQueue), "1")
+            try migrator.migrate(dbQueue, upTo: "2")
+            try XCTAssertEqual(migrator.lastCompletedMigration(in: dbQueue), "2")
+        }
+    }
+    
+    func testMergedMigrators() throws {
+        // Migrate a database
+        var oldMigrator = DatabaseMigrator()
+        oldMigrator.registerMigration("1", migrate: { _ in })
+        oldMigrator.registerMigration("3", migrate: { _ in })
+        
+        let dbQueue = try makeDatabaseQueue()
+        try oldMigrator.migrate(dbQueue)
+        
+        try XCTAssertEqual(oldMigrator.appliedMigrations(in: dbQueue), ["1", "3"])
+        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue))
+        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue, through: "3"))
+        try XCTAssertEqual(oldMigrator.lastCompletedMigration(in: dbQueue), "3")
+        
+        // A source code merge inserts a migration between "1" and "3"
+        var newMigrator = DatabaseMigrator()
+        newMigrator.registerMigration("1", migrate: { _ in })
+        newMigrator.registerMigration("2", migrate: { _ in })
+        newMigrator.registerMigration("3", migrate: { _ in })
+        
+        try XCTAssertEqual(newMigrator.appliedMigrations(in: dbQueue), ["1", "3"])
+        try XCTAssertFalse(newMigrator.hasCompletedMigrations(in: dbQueue))
+        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+        try XCTAssertFalse(newMigrator.hasCompletedMigrations(in: dbQueue, through: "2"))
+        try XCTAssertFalse(newMigrator.hasCompletedMigrations(in: dbQueue, through: "3"))
+        try XCTAssertNil(newMigrator.lastCompletedMigration(in: dbQueue))
+        
+        // The new source code migrates the database
+        try newMigrator.migrate(dbQueue)
+        
+        try XCTAssertEqual(oldMigrator.appliedMigrations(in: dbQueue), ["1", "3"])
+        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue))
+        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue, through: "3"))
+        try XCTAssertEqual(oldMigrator.lastCompletedMigration(in: dbQueue), "3")
+        
+        try XCTAssertEqual(newMigrator.appliedMigrations(in: dbQueue), ["1", "2", "3"])
+        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue))
+        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue, through: "2"))
+        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue, through: "3"))
+        try XCTAssertEqual(newMigrator.lastCompletedMigration(in: dbQueue), "3")
+    }
+
     func testEraseDatabaseOnSchemaChange() throws {
         // 1st version of the migrator
         var migrator1 = DatabaseMigrator()

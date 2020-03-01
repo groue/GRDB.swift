@@ -4931,24 +4931,35 @@ You migrate the database up to the latest version with the `migrate(_:)` method:
 try migrator.migrate(dbQueue) // or migrator.migrate(dbPool)
 ```
 
-To migrate a database up to a specific version, use `migrate(_:upTo:)`:
+Migrate a database up to a specific version:
 
 ```swift
 try migrator.migrate(dbQueue, upTo: "v2")
-```
 
-Migrations can only run forward:
-
-```swift
+// Migrations can only run forward:
 try migrator.migrate(dbQueue, upTo: "v2")
 try migrator.migrate(dbQueue, upTo: "v1")
-// fatal error: database is already migrated beyond migration "v1"
+// ^ fatal error: database is already migrated beyond migration "v1"
 ```
 
-Check if a migration has been applied:
+Check if consecutive migrations have been applied:
 
 ```swift
-let appliedMigrations = try migrator.appliedMigrations(in: dbQueue)
+if try migrator.hasCompletedMigrations(in: dbQueue) {
+    // All migrations have been applied, up to the last one.
+}
+if try migrator.hasCompletedMigrations(in: dbQueue, through: "v2") {
+    // All migrations have been applied up to "v2", and maybe further.
+}
+if try migrator.lastCompletedMigration(in: dbQueue) == "v2" {
+    // All migrations have been applied up to "v2", and no further.
+}
+```
+
+Check which migrations have been applied:
+
+```swift
+let appliedMigrations = try migrator.appliedMigrations(in: dbQueue) // Set<String>
 if appliedMigrations.contains("v2") {
     // "v2" migration has been applied
 }
