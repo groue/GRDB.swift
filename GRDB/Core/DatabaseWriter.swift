@@ -56,7 +56,9 @@ public protocol DatabaseWriter: DatabaseReader {
     /// Synchronously executes database updates in a protected dispatch queue,
     /// outside of any transaction, and returns the result.
     ///
-    /// No concurrent write or read happens during the execution of the updates.
+    /// Updates are guaranteed an exclusive access to the database. They wait
+    /// until all pending writes and reads are completed. They postpone all
+    /// other writes and reads until they are completed.
     ///
     /// This method is *not* reentrant.
     ///
