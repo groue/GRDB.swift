@@ -117,8 +117,8 @@ public struct DatabaseMigrator {
     /// migration has not yet been applied, its block is executed in
     /// a transaction.
     ///
-    /// - parameter db: A DatabaseWriter (DatabaseQueue or DatabasePool) where
-    ///   migrations should apply.
+    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
+    ///   where migrations should apply.
     /// - throws: An eventual error thrown by the registered migration blocks.
     public func migrate(_ writer: DatabaseWriter) throws {
         guard let lastMigration = migrations.last else {
@@ -131,9 +131,9 @@ public struct DatabaseMigrator {
     /// provided target. If a migration has not yet been applied, its block is
     /// executed in a transaction.
     ///
-    /// - parameter db: A DatabaseWriter (DatabaseQueue or DatabasePool) where
-    ///   migrations should apply.
-    /// - targetIdentifier: The identifier of a registered migration.
+    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
+    ///   where migrations should apply.
+    /// - parameter targetIdentifier: The identifier of a registered migration.
     /// - throws: An eventual error thrown by the registered migration blocks.
     public func migrate(_ writer: DatabaseWriter, upTo targetIdentifier: String) throws {
         try writer.barrierWriteWithoutTransaction { db in
@@ -175,13 +175,67 @@ public struct DatabaseMigrator {
     }
     
     /// Returns the set of applied migration identifiers.
+    ///
+    /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
+    /// - parameter targetIdentifier: The identifier of a registered migration.
+    /// - throws: An eventual database error.
     public func appliedMigrations(in reader: DatabaseReader) throws -> Set<String> {
+        return try reader.read(appliedIdentifiers)
+    }
+    
+    /// Returns true if all migrations are applied.
+    ///
+    /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
+    /// - throws: An eventual database error.
+    public func hasCompletedMigrations(in reader: DatabaseReader) throws -> Bool {
+        guard let lastMigration = migrations.last else {
+            return true
+        }
+        return try hasCompletedMigrations(in: reader, through: lastMigration.identifier)
+    }
+    
+    /// Returns true if all migrations up to the provided target are applied,
+    /// and maybe further.
+    ///
+    /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
+    /// - parameter targetIdentifier: The identifier of a registered migration.
+    /// - throws: An eventual database error.
+    public func hasCompletedMigrations(in reader: DatabaseReader, through targetIdentifier: String) throws -> Bool {
         return try reader.read { db in
-            return try appliedIdentifiers(db)
+            let appliedIdentifiers = try self.appliedIdentifiers(db)
+            let unappliedMigrations = self.unappliedMigrations(
+                upTo: targetIdentifier,
+                appliedIdentifiers: appliedIdentifiers)
+            return unappliedMigrations.isEmpty
         }
     }
     
-    
+    /// Returns the identifier of the last migration for which all predecessors
+    /// have been applied.
+    ///
+    /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
+    /// - returns: An eventual migration identifier.
+    /// - throws: An eventual database error.
+    public func lastCompletedMigration(in reader: DatabaseReader) throws -> String? {
+        return try reader.read { db in
+            let appliedIdentifiers = try self.appliedIdentifiers(db)
+            if appliedIdentifiers.isEmpty {
+                return nil
+            }
+            let lastAppliedIdentifier = migrations
+                .last { appliedIdentifiers.contains($0.identifier) }!
+                .identifier
+            let unappliedMigrations = self.unappliedMigrations(
+                upTo: lastAppliedIdentifier,
+                appliedIdentifiers: appliedIdentifiers)
+            if unappliedMigrations.isEmpty {
+                return lastAppliedIdentifier
+            } else {
+                return nil
+            }
+        }
+    }
+
     // MARK: - Non public
     
     private mutating func registerMigration(_ migration: Migration) {
@@ -199,14 +253,14 @@ public struct DatabaseMigrator {
             return []
         }
         return try Set(String.fetchAll(db, sql: "SELECT identifier FROM grdb_migrations"))
+            .intersection(migrations.map { $0.identifier })
     }
     
-    private func runMigrations(_ db: Database, upTo targetIdentifier: String) throws {
-        try db.execute(sql: "CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
-        
-        var prefixMigrations: [Migration] = []
+    /// Returns unapplied migration identifier,
+    private func unappliedMigrations(upTo targetIdentifier: String, appliedIdentifiers: Set<String>) -> [Migration] {
+        var expectedMigrations: [Migration] = []
         for migration in migrations {
-            prefixMigrations.append(migration)
+            expectedMigrations.append(migration)
             if migration.identifier == targetIdentifier {
                 break
             }
@@ -214,19 +268,29 @@ public struct DatabaseMigrator {
         
         // targetIdentifier must refer to a registered migration
         GRDBPrecondition(
-            prefixMigrations.last?.identifier == targetIdentifier,
+            expectedMigrations.last?.identifier == targetIdentifier,
             "undefined migration: \(String(reflecting: targetIdentifier))")
         
-        // Subsequent migration must not be applied
+        return expectedMigrations.filter { !appliedIdentifiers.contains($0.identifier) }
+    }
+    
+    private func runMigrations(_ db: Database, upTo targetIdentifier: String) throws {
+        try db.execute(sql: "CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
+        
         let appliedIdentifiers = try self.appliedIdentifiers(db)
-        if prefixMigrations.count < migrations.count {
-            let nextIdentifier = migrations[prefixMigrations.count].identifier
-            GRDBPrecondition(
-                !appliedIdentifiers.contains(nextIdentifier),
-                "database is already migrated beyond migration \(String(reflecting: targetIdentifier))")
+        
+        // Subsequent migration must not be applied
+        if let index = migrations.firstIndex(where: { $0.identifier == targetIdentifier }),
+            migrations[(index + 1)...].contains(where: { appliedIdentifiers.contains($0.identifier) })
+        {
+            fatalError("database is already migrated beyond migration \(String(reflecting: targetIdentifier))")
         }
         
-        for migration in prefixMigrations where !appliedIdentifiers.contains(migration.identifier) {
+        let unappliedMigrations = self.unappliedMigrations(
+            upTo: targetIdentifier,
+            appliedIdentifiers: appliedIdentifiers)
+        
+        for migration in unappliedMigrations {
             try migration.run(db)
         }
     }
