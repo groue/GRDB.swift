@@ -178,9 +178,7 @@ public struct DatabaseMigrator {
     /// - parameter targetIdentifier: The identifier of a registered migration.
     /// - throws: An eventual database error.
     public func appliedMigrations(in reader: DatabaseReader) throws -> Set<String> {
-        return try reader.read { db in
-            return try appliedIdentifiers(db).intersection(migrations.map { $0.identifier })
-        }
+        return try reader.read(appliedIdentifiers)
     }
     
     /// Returns true if all migrations are applied.
@@ -257,6 +255,7 @@ public struct DatabaseMigrator {
             return []
         }
         return try Set(String.fetchAll(db, sql: "SELECT identifier FROM grdb_migrations"))
+            .intersection(migrations.map { $0.identifier })
     }
     
     /// Returns unapplied migration identifier,
