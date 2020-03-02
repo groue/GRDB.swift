@@ -22,7 +22,7 @@ public class DatabaseSnapshot: DatabaseReader {
         serializedDatabase = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: SimpleDatabaseSchemaCache(),
+            schemaCache: DatabaseSchemaCache(),
             defaultLabel: defaultLabel,
             purpose: purpose)
         

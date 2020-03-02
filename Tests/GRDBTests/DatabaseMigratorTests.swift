@@ -7,6 +7,12 @@ import XCTest
 
 class DatabaseMigratorTests : GRDBTestCase {
     
+    func testEmptyMigrator() throws {
+        let migrator = DatabaseMigrator()
+        let dbQueue = try makeDatabaseQueue()
+        try migrator.migrate(dbQueue)
+    }
+    
     func testMigratorDatabaseQueue() throws {
         let dbQueue = try makeDatabaseQueue()
         
@@ -141,13 +147,8 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
         migrator.registerMigration("foreignKeyError") { db in
             try db.execute(sql: "INSERT INTO persons (name) VALUES ('Barbara')")
-            do {
-                // triggers immediate foreign key error:
-                try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [123, "Bobby"])
-                XCTFail("Expected error")
-            } catch {
-                throw error
-            }
+            // triggers foreign key error:
+            try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [123, "Bobby"])
         }
         
         let dbQueue = try makeDatabaseQueue()
@@ -163,8 +164,6 @@ class DatabaseMigratorTests : GRDBTestCase {
             XCTAssert((error.resultCode == error.extendedResultCode) || error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
             XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
             XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
-            XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-            XCTAssertEqual(error.description.lowercased(), "sqlite error 19 with statement `insert into pets (masterid, name) values (?, ?)` arguments [123, \"bobby\"]: foreign key constraint failed")
             
             let names = try dbQueue.inDatabase { db in
                 try String.fetchAll(db, sql: "SELECT name FROM persons")
@@ -173,7 +172,65 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
     }
     
-    func testMigrationWithoutForeignKeyChecks() throws {
+    func testForeignKeyViolation() throws {
+        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+            guard #available(iOS 8.2, OSX 10.10, *) else {
+                return
+            }
+        #endif
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("createPersons") { db in
+            try db.execute(sql: "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, tmp TEXT)")
+            try db.execute(sql: "CREATE TABLE pets (masterId INTEGER NOT NULL REFERENCES persons(id), name TEXT)")
+            try db.execute(sql: "INSERT INTO persons (name) VALUES ('Arthur')")
+            let personId = db.lastInsertedRowID
+            try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, 'Bobby')", arguments:[personId])
+        }
+        migrator.registerMigration("removePersonTmpColumn") { db in
+            // Test the technique described at https://www.sqlite.org/lang_altertable.html#otheralter
+            try db.execute(sql: "CREATE TABLE new_persons (id INTEGER PRIMARY KEY, name TEXT)")
+            try db.execute(sql: "INSERT INTO new_persons SELECT id, name FROM persons")
+            try db.execute(sql: "DROP TABLE persons")
+            try db.execute(sql: "ALTER TABLE new_persons RENAME TO persons")
+        }
+        migrator.registerMigration("foreignKeyError") { db in
+            try db.execute(sql: "INSERT INTO persons (name) VALUES ('Barbara')")
+            // triggers foreign key error:
+            try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [123, "Bobby"])
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            try migrator.migrate(dbQueue)
+            XCTFail("Expected error")
+        } catch let error as DatabaseError {
+            // Migration 1 and 2 should be committed.
+            // Migration 3 should not be committed.
+            
+            XCTAssert((error.resultCode == error.extendedResultCode) || error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+            XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
+            XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
+            
+            try dbQueue.inDatabase { db in
+                // Arthur inserted (migration 1), Barbara (migration 3) not inserted.
+                var rows = try Row.fetchAll(db, sql: "SELECT * FROM persons")
+                XCTAssertEqual(rows.count, 1)
+                var row = rows.first!
+                XCTAssertEqual(row["name"] as String, "Arthur")
+                
+                // persons table has no "tmp" column (migration 2)
+                XCTAssertEqual(Array(row.columnNames), ["id", "name"])
+                
+                // Bobby inserted (migration 1), not deleted by migration 2.
+                rows = try Row.fetchAll(db, sql: "SELECT * FROM pets")
+                XCTAssertEqual(rows.count, 1)
+                row = rows.first!
+                XCTAssertEqual(row["name"] as String, "Bobby")
+            }
+        }
+    }
+
+    func testMigrationWithDeferredForeignKeyChecksDeprecated() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
             guard #available(iOS 8.2, OSX 10.10, *) else {
                 return
@@ -239,6 +296,15 @@ class DatabaseMigratorTests : GRDBTestCase {
 
     func testAppliedMigrations() throws {
         var migrator = DatabaseMigrator()
+        
+        // No migration
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), [])
+        }
+        
+        // One migration
+
         migrator.registerMigration("1") { db in
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
@@ -246,22 +312,167 @@ class DatabaseMigratorTests : GRDBTestCase {
                 t.column("score", .integer)
             }
         }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), [])
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1"])
+        }
+
+        // Two migrations
 
         migrator.registerMigration("2") { db in
             try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
         }
-
-        // Apply migrator
-        let dbQueue = try makeDatabaseQueue()
-        try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), [])
-
-        try migrator.migrate(dbQueue, upTo: "1")
-        try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1"])
-
-        try migrator.migrate(dbQueue, upTo: "2")
-        try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1", "2"])
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), [])
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1"])
+            try migrator.migrate(dbQueue, upTo: "2")
+            try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1", "2"])
+        }
     }
     
+    func testHasCompletedMigrations() throws {
+        var migrator = DatabaseMigrator()
+        
+        // No migration
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue))
+        }
+        
+        // One migration
+
+        migrator.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+                t.column("score", .integer)
+            }
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertFalse(migrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+            try XCTAssertFalse(migrator.hasCompletedMigrations(in: dbQueue))
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+            try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue))
+        }
+
+        // Two migrations
+
+        migrator.registerMigration("2") { db in
+            try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertFalse(migrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+            try XCTAssertFalse(migrator.hasCompletedMigrations(in: dbQueue, through: "2"))
+            try XCTAssertFalse(migrator.hasCompletedMigrations(in: dbQueue))
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+            try XCTAssertFalse(migrator.hasCompletedMigrations(in: dbQueue, through: "2"))
+            try XCTAssertFalse(migrator.hasCompletedMigrations(in: dbQueue))
+            try migrator.migrate(dbQueue, upTo: "2")
+            try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+            try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue, through: "2"))
+            try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue))
+        }
+    }
+    
+    func testLastCompletedMigration() throws {
+        var migrator = DatabaseMigrator()
+        
+        // No migration
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertNil(migrator.lastCompletedMigration(in: dbQueue))
+        }
+        
+        // One migration
+
+        migrator.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+                t.column("score", .integer)
+            }
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertNil(migrator.lastCompletedMigration(in: dbQueue))
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertEqual(migrator.lastCompletedMigration(in: dbQueue), "1")
+        }
+
+        // Two migrations
+
+        migrator.registerMigration("2") { db in
+            try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertNil(migrator.lastCompletedMigration(in: dbQueue))
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertEqual(migrator.lastCompletedMigration(in: dbQueue), "1")
+            try migrator.migrate(dbQueue, upTo: "2")
+            try XCTAssertEqual(migrator.lastCompletedMigration(in: dbQueue), "2")
+        }
+    }
+    
+    func testMergedMigrators() throws {
+        // Migrate a database
+        var oldMigrator = DatabaseMigrator()
+        oldMigrator.registerMigration("1", migrate: { _ in })
+        oldMigrator.registerMigration("3", migrate: { _ in })
+        
+        let dbQueue = try makeDatabaseQueue()
+        try oldMigrator.migrate(dbQueue)
+        
+        try XCTAssertEqual(oldMigrator.appliedMigrations(in: dbQueue), ["1", "3"])
+        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue))
+        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue, through: "3"))
+        try XCTAssertEqual(oldMigrator.lastCompletedMigration(in: dbQueue), "3")
+        
+        // A source code merge inserts a migration between "1" and "3"
+        var newMigrator = DatabaseMigrator()
+        newMigrator.registerMigration("1", migrate: { _ in })
+        newMigrator.registerMigration("2", migrate: { _ in })
+        newMigrator.registerMigration("3", migrate: { _ in })
+        
+        try XCTAssertEqual(newMigrator.appliedMigrations(in: dbQueue), ["1", "3"])
+        try XCTAssertFalse(newMigrator.hasCompletedMigrations(in: dbQueue))
+        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+        try XCTAssertFalse(newMigrator.hasCompletedMigrations(in: dbQueue, through: "2"))
+        try XCTAssertFalse(newMigrator.hasCompletedMigrations(in: dbQueue, through: "3"))
+        try XCTAssertNil(newMigrator.lastCompletedMigration(in: dbQueue))
+        
+        // The new source code migrates the database
+        try newMigrator.migrate(dbQueue)
+        
+        try XCTAssertEqual(oldMigrator.appliedMigrations(in: dbQueue), ["1", "3"])
+        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue))
+        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue, through: "3"))
+        try XCTAssertEqual(oldMigrator.lastCompletedMigration(in: dbQueue), "3")
+        
+        try XCTAssertEqual(newMigrator.appliedMigrations(in: dbQueue), ["1", "2", "3"])
+        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue))
+        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue, through: "1"))
+        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue, through: "2"))
+        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue, through: "3"))
+        try XCTAssertEqual(newMigrator.lastCompletedMigration(in: dbQueue), "3")
+    }
+
     func testEraseDatabaseOnSchemaChange() throws {
         // 1st version of the migrator
         var migrator1 = DatabaseMigrator()

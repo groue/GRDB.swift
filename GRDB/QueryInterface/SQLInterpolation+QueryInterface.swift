@@ -57,7 +57,16 @@ extension SQLInterpolation {
     ///     let request: SQLRequest<Int> = """
     ///         SELECT score + \(bonus) FROM player
     ///         """
-    public mutating func appendInterpolation<T: SQLExpressible>(_ expressible: T?) {
+    ///
+    /// You can also derive literal expressions from other expressions:
+    ///
+    ///     func date(_ value: SQLExpressible) -> SQLExpression {
+    ///         SQLLiteral("DATE(\(value))").sqlExpression
+    ///     }
+    ///
+    ///     // SELECT * FROM player WHERE DATE(createdAt) = '2020-02-25'
+    ///     let request = Player.filter(date(Column("createdAt")) == "2020-02-25")
+    public mutating func appendInterpolation(_ expressible: SQLExpressible?) {
         if let expressible = expressible {
             elements.append(.expression(expressible.sqlExpression))
         } else {

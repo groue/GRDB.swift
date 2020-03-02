@@ -24,10 +24,6 @@ public final class DatabasePool: DatabaseWriter {
     
     var databaseSnapshotCount = LockedBox(value: 0)
     
-    #if os(iOS)
-    private weak var application: UIApplication?
-    #endif
-    
     // MARK: - Database Information
     
     /// The path to the database.
@@ -58,7 +54,7 @@ public final class DatabasePool: DatabaseWriter {
         writer = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: SimpleDatabaseSchemaCache(),
+            schemaCache: DatabaseSchemaCache(),
             defaultLabel: "GRDB.DatabasePool",
             purpose: "writer")
         
@@ -101,7 +97,7 @@ public final class DatabasePool: DatabaseWriter {
             let reader = try SerializedDatabase(
                 path: path,
                 configuration: self.readerConfiguration,
-                schemaCache: SimpleDatabaseSchemaCache(),
+                schemaCache: DatabaseSchemaCache(),
                 defaultLabel: "GRDB.DatabasePool",
                 purpose: "reader.\(readerCount)")
             reader.sync { self.setupDatabase($0) }
@@ -138,10 +134,16 @@ public final class DatabasePool: DatabaseWriter {
         }
         
         setupSuspension()
+        
+        // Be a nice iOS citizen, and don't consume too much memory
+        // See https://github.com/groue/GRDB.swift/#memory-management
+        #if os(iOS)
+        setupAutomaticMemoryManagement()
+        #endif
     }
     
     deinit {
-        // Undo job done in setupMemoryManagement()
+        // Undo job done in setupAutomaticMemoryManagement()
         //
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
         // Explicit unregistration is required before iOS 9 and OS X 10.11.
@@ -194,8 +196,6 @@ extension DatabasePool {
     ///
     /// This method blocks the current thread until all database accesses
     /// are completed.
-    ///
-    /// See also setupMemoryManagement(application:)
     public func releaseMemory() {
         // Release writer memory
         writer.sync { $0.releaseMemory() }
@@ -207,6 +207,12 @@ extension DatabasePool {
     
     
     #if os(iOS)
+    // swiftlint:disable:next line_length
+    @available(*, deprecated, message: "Memory management is now enabled by default. This deprecated method does nothing.")
+    public func setupMemoryManagement(in application: UIApplication) {
+        // No op.
+    }
+    
     /// Listens to UIApplicationDidEnterBackgroundNotification and
     /// UIApplicationDidReceiveMemoryWarningNotification in order to release
     /// as much memory as possible.
@@ -214,8 +220,7 @@ extension DatabasePool {
     /// - param application: The UIApplication that will start a background
     ///   task to let the database pool release its memory when the application
     ///   enters background.
-    public func setupMemoryManagement(in application: UIApplication) {
-        self.application = application
+    private func setupAutomaticMemoryManagement() {
         let center = NotificationCenter.default
         center.addObserver(
             self,
@@ -231,7 +236,7 @@ extension DatabasePool {
     
     @objc
     private func applicationDidEnterBackground(_ notification: NSNotification) {
-        guard let application = application else {
+        guard let application = notification.object as? UIApplication else {
             return
         }
         
@@ -367,9 +372,8 @@ extension DatabasePool: DatabaseReader {
                 // See DatabasePoolTests.testReadMethodIsolationOfBlock().
                 try db.inTransaction(.deferred) {
                     // Reset the schema cache before running user code in snapshot isolation
-                    result = try db.withSchemaCache(SimpleDatabaseSchemaCache()) {
-                        try block(db)
-                    }
+                    db.clearSchemaCache()
+                    result = try block(db)
                     return .commit
                 }
                 return result!
@@ -415,9 +419,8 @@ extension DatabasePool: DatabaseReader {
                             try db.beginTransaction(.deferred)
                             
                             // Reset the schema cache before running user code in snapshot isolation
-                            db.withSchemaCache(SimpleDatabaseSchemaCache()) {
-                                block(.success(db))
-                            }
+                            db.clearSchemaCache()
+                            block(.success(db))
                         } catch {
                             block(.failure(error))
                         }
@@ -459,10 +462,9 @@ extension DatabasePool: DatabaseReader {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         return try readerPool.get { reader in
             try reader.sync { db in
-                // No schema cache when snapshot isolation is not established
-                return try db.withSchemaCache(EmptyDatabaseSchemaCache()) {
-                    try block(db)
-                }
+                // Reset the schema cache
+                db.clearSchemaCache()
+                return try block(db)
             }
         }
     }
@@ -500,10 +502,9 @@ extension DatabasePool: DatabaseReader {
         } else {
             return try readerPool.get { reader in
                 try reader.sync { db in
-                    // No schema cache when snapshot isolation is not established
-                    return try db.withSchemaCache(EmptyDatabaseSchemaCache()) {
-                        try block(db)
-                    }
+                    // Reset the schema cache
+                    db.clearSchemaCache()
+                    return try block(db)
                 }
             }
         }
@@ -555,11 +556,12 @@ extension DatabasePool: DatabaseReader {
                 // Release the writer queue
                 isolationSemaphore.signal()
                 
-                // Reset the schema cache before running user code in snapshot isolation
-                db.schemaCache = SimpleDatabaseSchemaCache()
-                
                 // Fetch and release the future
-                futureResult = DatabaseResult { try block(db) }
+                futureResult = DatabaseResult {
+                    // Reset the schema cache before running user code in snapshot isolation
+                    db.clearSchemaCache()
+                    return try block(db)
+                }
                 futureSemaphore.signal()
             }
         } catch {
@@ -659,10 +661,9 @@ extension DatabasePool: DatabaseReader {
                 isolationSemaphore.signal()
                 
                 // Reset the schema cache before running user code in snapshot isolation
-                db.withSchemaCache(SimpleDatabaseSchemaCache()) {
-                    // Fetch and release the future
-                    block(.success(db))
-                }
+                db.clearSchemaCache()
+
+                block(.success(db))
             }
         } catch {
             isolationSemaphore.signal()
@@ -726,9 +727,12 @@ extension DatabasePool: DatabaseReader {
         return try writer.sync(updates)
     }
     
-    /// A barrier write ensures that no database access is executed until all
-    /// previous accesses have completed, and the specified updates have been
-    /// executed.
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
+    ///
+    /// Updates are guaranteed an exclusive access to the database. They wait
+    /// until all pending writes and reads are completed. They postpone all
+    /// other writes and reads until they are completed.
     ///
     /// This method is *not* reentrant.
     ///

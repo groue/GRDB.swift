@@ -15,13 +15,13 @@
 	<key>CFBundlePackageType</key>
 	<string>FMWK</string>
 	<key>CFBundleShortVersionString</key>
-	<string>4.10.0</string>
+	<string>4.11.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2015-2019 Gwendal Roué.</string>
+	<string>Copyright © 2015-2020 Gwendal Roué.</string>
 	<key>NSPrincipalClass</key>
 	<string></string>
 </dict>

@@ -35,7 +35,7 @@ try dbQueue.inDatabase { db in
 }
 
 
-// Define the Player `Codable` that is a `FetchableRecord` and `MutablePersistableRecord`.
+// Define the Player codable record type
 struct Player: Codable, FetchableRecord, MutablePersistableRecord {
     var id: Int64
     var name: String
@@ -54,40 +54,33 @@ struct Player: Codable, FetchableRecord, MutablePersistableRecord {
     }
 }
 
-extension Player {
-    static func orderedById() -> QueryInterfaceRequest<Player> {
-        return order(Columns.id)
-    }
-}
-
-// This is just the container of our incoming JSON
-struct PlayersToSync: Codable {
-    let players: [Player]
-}
+// Make Player identifiable
+extension Player: Identifiable { }
 
 // Synchronizes the players table with a JSON payload
 func synchronizePlayers(with jsonString: String, in db: Database) throws {
+    struct SyncData: Decodable {
+        let players: [Player]
+    }
     let jsonData = jsonString.data(using: .utf8)!
-    let dataToSync = try JSONDecoder().decode(PlayersToSync.self, from: jsonData)
+    let syncData = try JSONDecoder().decode(SyncData.self, from: jsonData)
 
-    // Sort new players to sync by id:
-    let playersToSync = dataToSync.players.sorted { $0.id < $1.id }
+    // Sort players to sync by id:
+    let playersToSync = syncData.players.sorted { $0.id < $1.id }
     
     // Sort database players by id:
-    let players = try Player.orderedById().fetchAll(db)
+    let players = try Player.orderByPrimaryKey().fetchAll(db)
     
     // Now that both lists are sorted by id, we can compare them with
-    // the sortedMerge() function (see https://gist.github.com/groue/7e8510849ded36f7d770).
+    // SortedDifference (see https://github.com/groue/SortedDifference).
     //
     // We'll delete, insert or update players, depending on their presence
     // in either lists.
-    for mergeStep in sortedMerge(
+    for change in SortedDifference(
         left: players,          // Database players
-        right: playersToSync,   // PlayersToSync players (Decoded)
-        leftKey: { $0.id },     // The id of a database player
-        rightKey: { $0.id })    // The id of a PlayersToSync player
+        right: playersToSync)   // PlayersToSync players (Decoded)
     {
-        switch mergeStep {
+        switch change {
         case .left(let player):
             // Delete database player without matching JSON player:
             try player.delete(db)
@@ -138,5 +131,22 @@ do {
         // UPDATE "player" SET "score"=3000 WHERE "id"=2
         // INSERT INTO "player" ("id", "name", "score") VALUES (4,'Daniel',1500)
         try synchronizePlayers(with: jsonString2, in: db)
+    }
+}
+
+do {
+    let jsonString3 = """
+    {
+        "players": [
+            { "id": 2, "name": "Barbara", "score": 3000},
+            { "id": 3, "name": "Craig", "score": 500},
+            { "id": 4, "name": "Daniel", "score": 1500},
+        ]
+    }
+    """
+    print("---\nImport \(jsonString3)")
+    try dbQueue.inDatabase { db in
+        // SELECT * FROM player ORDER BY id
+        try synchronizePlayers(with: jsonString3, in: db)
     }
 }

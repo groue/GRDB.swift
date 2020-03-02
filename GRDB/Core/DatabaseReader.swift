@@ -278,18 +278,22 @@ extension DatabaseReader {
     /// the backup. Those writes may, or may not, be reflected in the backup,
     /// but they won't trigger any error.
     public func backup(to writer: DatabaseWriter) throws {
-        try backup(to: writer, afterBackupInit: nil, afterBackupStep: nil)
+        try writer.writeWithoutTransaction { dbDest in
+            try backup(to: dbDest)
+        }
     }
     
-    func backup(to writer: DatabaseWriter, afterBackupInit: (() -> Void)?, afterBackupStep: (() -> Void)?) throws {
+    func backup(
+        to dbDest: Database,
+        afterBackupInit: (() -> Void)? = nil,
+        afterBackupStep: (() -> Void)? = nil)
+        throws
+    {
         try read { dbFrom in
-            try writer.writeWithoutTransaction { dbDest in
-                try Database.backup(
-                    from: dbFrom,
-                    to: dbDest,
-                    afterBackupInit: afterBackupInit,
-                    afterBackupStep: afterBackupStep)
-            }
+            try dbFrom.backup(
+                to: dbDest,
+                afterBackupInit: afterBackupInit,
+                afterBackupStep: afterBackupStep)
         }
     }
 }

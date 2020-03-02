@@ -10,13 +10,6 @@ extension Database {
     
     // MARK: - Database Schema
     
-    func withSchemaCache<T>(_ schemaCache: DatabaseSchemaCache, _ block: () throws -> T) rethrows -> T {
-        var oldCache = self.schemaCache
-        defer { self.schemaCache = oldCache }
-        self.schemaCache = schemaCache
-        return try block()
-    }
-    
     /// Clears the database schema cache.
     ///
     /// You may need to clear the cache manually if the database schema is
