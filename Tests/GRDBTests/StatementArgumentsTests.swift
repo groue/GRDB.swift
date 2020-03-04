@@ -1,12 +1,12 @@
 import XCTest
 #if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
+import GRDBCustomSQLite
 #else
-    import GRDB
+import GRDB
 #endif
 
 class StatementArgumentsTests: GRDBTestCase {
-
+    
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
@@ -28,14 +28,14 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Correct number of arguments
-                try statement.validate(arguments: ["foo", 1])
+                try statement.validateArguments(["foo", 1])
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
             
             do {
                 // Missing arguments
-                try statement.validate(arguments: [])
+                try statement.validateArguments([])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -44,7 +44,7 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Two few arguments
-                try statement.validate(arguments: ["foo"])
+                try statement.validateArguments(["foo"])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -53,7 +53,7 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Two many arguments
-                try statement.validate(arguments: ["foo", 1, "bar"])
+                try statement.validateArguments(["foo", 1, "bar"])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -62,7 +62,7 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Missing arguments
-                try statement.validate(arguments: [:])
+                try statement.validateArguments([:])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -71,7 +71,7 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Unmappable arguments
-                try statement.validate(arguments: ["firstName": "foo", "age": 1])
+                try statement.validateArguments(["firstName": "foo", "age": 1])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -79,7 +79,7 @@ class StatementArgumentsTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testPositionalStatementArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -99,8 +99,8 @@ class StatementArgumentsTests: GRDBTestCase {
             XCTAssertEqual(row["age"] as Int, age)
         }
     }
-
-    func testUnsafePositionalStatementArguments() throws {
+    
+    func testCheckedPositionalStatementArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let name = "Arthur"
@@ -108,18 +108,56 @@ class StatementArgumentsTests: GRDBTestCase {
             let arguments = StatementArguments([name, age] as [DatabaseValueConvertible?])
             
             let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
-            updateStatement.unsafeSetArguments(arguments)
+            try updateStatement.setArguments(arguments)
             try updateStatement.execute()
             
             let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = ? AND age = ?")
-            selectStatement.unsafeSetArguments(arguments)
+            try selectStatement.setArguments(arguments)
+            let row = try Row.fetchOne(selectStatement)!
+            
+            XCTAssertEqual(row["firstName"] as String, name)
+            XCTAssertEqual(row["age"] as Int, age)
+            
+            do {
+                try updateStatement.setArguments([1])
+                XCTFail("Expected error")
+            } catch is DatabaseError {
+                XCTAssertEqual(updateStatement.arguments, arguments)
+            } catch {
+                XCTFail("Unexpected error: \(error)")
+            }
+            
+            do {
+                try selectStatement.setArguments([1])
+                XCTFail("Expected error")
+            } catch is DatabaseError {
+                XCTAssertEqual(selectStatement.arguments, arguments)
+            } catch {
+                XCTFail("Unexpected error: \(error)")
+            }
+        }
+    }
+    
+    func testUncheckedPositionalStatementArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let name = "Arthur"
+            let age = 42
+            let arguments = StatementArguments([name, age] as [DatabaseValueConvertible?])
+            
+            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
+            updateStatement.setUncheckedArguments(arguments)
+            try updateStatement.execute()
+            
+            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = ? AND age = ?")
+            selectStatement.setUncheckedArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
             XCTAssertEqual(row["firstName"] as String, name)
             XCTAssertEqual(row["age"] as Int, age)
         }
     }
-
+    
     func testNamedStatementArgumentsValidation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -127,28 +165,28 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Correct number of arguments
-                try statement.validate(arguments: ["foo", 1])
+                try statement.validateArguments(["foo", 1])
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
             
             do {
                 // All arguments are mapped
-                try statement.validate(arguments: ["firstName": "foo", "age": 1])
+                try statement.validateArguments(["firstName": "foo", "age": 1])
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
             
             do {
                 // All arguments are mapped
-                try statement.validate(arguments: ["firstName": "foo", "age": 1, "bar": "baz"])
+                try statement.validateArguments(["firstName": "foo", "age": 1, "bar": "baz"])
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
             
             do {
                 // Missing arguments
-                try statement.validate(arguments: [])
+                try statement.validateArguments([])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -157,7 +195,7 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Missing arguments
-                try statement.validate(arguments: ["foo"])
+                try statement.validateArguments(["foo"])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -166,7 +204,7 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Too many arguments
-                try statement.validate(arguments: ["foo", 1, "baz"])
+                try statement.validateArguments(["foo", 1, "baz"])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -175,7 +213,7 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Missing arguments
-                try statement.validate(arguments: [:])
+                try statement.validateArguments([:])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -184,7 +222,7 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Missing arguments
-                try statement.validate(arguments: ["firstName": "foo"])
+                try statement.validateArguments(["firstName": "foo"])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -192,7 +230,7 @@ class StatementArgumentsTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testNamedStatementArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -212,8 +250,8 @@ class StatementArgumentsTests: GRDBTestCase {
             XCTAssertEqual(row["age"] as Int, age)
         }
     }
-
-    func testUnsafeNamedStatementArguments() throws {
+    
+    func testCheckedNamedStatementArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let name = "Arthur"
@@ -221,18 +259,56 @@ class StatementArgumentsTests: GRDBTestCase {
             let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
             
             let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:name, :age)")
-            updateStatement.unsafeSetArguments(arguments)
+            try updateStatement.setArguments(arguments)
             try updateStatement.execute()
             
             let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND age = :age")
-            selectStatement.unsafeSetArguments(arguments)
+            try selectStatement.setArguments(arguments)
+            let row = try Row.fetchOne(selectStatement)!
+            
+            XCTAssertEqual(row["firstName"] as String, name)
+            XCTAssertEqual(row["age"] as Int, age)
+            
+            do {
+                try updateStatement.setArguments(["name": name])
+                XCTFail("Expected error")
+            } catch is DatabaseError {
+                XCTAssertEqual(updateStatement.arguments, arguments)
+            } catch {
+                XCTFail("Unexpected error: \(error)")
+            }
+            
+            do {
+                try selectStatement.setArguments(["name": name])
+                XCTFail("Expected error")
+            } catch is DatabaseError {
+                XCTAssertEqual(selectStatement.arguments, arguments)
+            } catch {
+                XCTFail("Unexpected error: \(error)")
+            }
+        }
+    }
+    
+    func testUncheckedNamedStatementArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let name = "Arthur"
+            let age = 42
+            let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
+            
+            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:name, :age)")
+            updateStatement.setUncheckedArguments(arguments)
+            try updateStatement.execute()
+            
+            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND age = :age")
+            selectStatement.setUncheckedArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
             XCTAssertEqual(row["firstName"] as String, name)
             XCTAssertEqual(row["age"] as Int, age)
         }
     }
-
+    
     func testReusedNamedStatementArgumentsValidation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -248,28 +324,28 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Correct number of arguments
-                try statement.validate(arguments: ["foo", 1])
+                try statement.validateArguments(["foo", 1])
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
             
             do {
                 // All arguments are mapped
-                try statement.validate(arguments: ["name": "foo", "age": 1])
+                try statement.validateArguments(["name": "foo", "age": 1])
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
             
             do {
                 // All arguments are mapped
-                try statement.validate(arguments: ["name": "foo", "age": 1, "bar": "baz"])
+                try statement.validateArguments(["name": "foo", "age": 1, "bar": "baz"])
             } catch {
                 XCTFail("Unexpected error: \(error)")
             }
             
             do {
                 // Missing arguments
-                try statement.validate(arguments: [])
+                try statement.validateArguments([])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -278,7 +354,7 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Missing arguments
-                try statement.validate(arguments: ["foo"])
+                try statement.validateArguments(["foo"])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -287,7 +363,7 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Too many arguments
-                try statement.validate(arguments: ["foo", 1, "baz"])
+                try statement.validateArguments(["foo", 1, "baz"])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -296,7 +372,7 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Missing arguments
-                try statement.validate(arguments: [:])
+                try statement.validateArguments([:])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -305,7 +381,7 @@ class StatementArgumentsTests: GRDBTestCase {
             
             do {
                 // Missing arguments
-                try statement.validate(arguments: ["name": "foo"])
+                try statement.validateArguments(["name": "foo"])
                 XCTFail("Expected error")
             } catch is DatabaseError {
             } catch {
@@ -313,8 +389,8 @@ class StatementArgumentsTests: GRDBTestCase {
             }
         }
     }
-
-
+    
+    
     func testReusedNamedStatementArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -334,8 +410,8 @@ class StatementArgumentsTests: GRDBTestCase {
             XCTAssertEqual(row["age"] as Int, age)
         }
     }
-
-    func testUnsafeReusedNamedStatementArguments() throws {
+    
+    func testCheckedReusedNamedStatementArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let name = "Arthur"
@@ -343,18 +419,56 @@ class StatementArgumentsTests: GRDBTestCase {
             let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
             
             let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
-            updateStatement.unsafeSetArguments(arguments)
+            try updateStatement.setArguments(arguments)
             try updateStatement.execute()
             
             let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
-            selectStatement.unsafeSetArguments(arguments)
+            try selectStatement.setArguments(arguments)
+            let row = try Row.fetchOne(selectStatement)!
+            
+            XCTAssertEqual(row["firstName"] as String, name)
+            XCTAssertEqual(row["age"] as Int, age)
+            
+            do {
+                try updateStatement.setArguments(["name": name])
+                XCTFail("Expected error")
+            } catch is DatabaseError {
+                XCTAssertEqual(updateStatement.arguments, arguments)
+            } catch {
+                XCTFail("Unexpected error: \(error)")
+            }
+            
+            do {
+                try selectStatement.setArguments(["name": name])
+                XCTFail("Expected error")
+            } catch is DatabaseError {
+                XCTAssertEqual(selectStatement.arguments, arguments)
+            } catch {
+                XCTFail("Unexpected error: \(error)")
+            }
+        }
+    }
+    
+    func testUncheckedReusedNamedStatementArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let name = "Arthur"
+            let age = 42
+            let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
+            
+            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
+            updateStatement.setUncheckedArguments(arguments)
+            try updateStatement.execute()
+            
+            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
+            selectStatement.setUncheckedArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
             XCTAssertEqual(row["firstName"] as String, name)
             XCTAssertEqual(row["age"] as Int, age)
         }
     }
-
+    
     func testMixedArguments() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -363,7 +477,7 @@ class StatementArgumentsTests: GRDBTestCase {
             XCTAssertEqual(row, ["two": 2, "foo": "foo", "one": 1, "foo2": "foo", "bar": "bar"])
         }
     }
-
+    
     func testAppendContentsOf() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -395,7 +509,7 @@ class StatementArgumentsTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testPlusOperator() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -419,7 +533,7 @@ class StatementArgumentsTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testOverflowPlusOperator() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -443,7 +557,7 @@ class StatementArgumentsTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testPlusEqualOperator() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

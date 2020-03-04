@@ -157,7 +157,7 @@ public struct SQLRequest<T>: FetchRequest {
         case .internal?:
             statement = try db.internalCachedSelectStatement(sql: sql)
         }
-        try statement.setArgumentsWithValidation(context.arguments)
+        try statement.setArguments(context.arguments)
         return PreparedRequest(statement: statement, adapter: adapter)
     }
 }

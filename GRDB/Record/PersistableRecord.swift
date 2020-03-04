@@ -859,7 +859,7 @@ final class DAO<Record: MutablePersistableRecord> {
             tableName: databaseTableName,
             insertedColumns: persistenceContainer.columns)
         let statement = try db.internalCachedUpdateStatement(sql: query.sql)
-        statement.unsafeSetArguments(StatementArguments(persistenceContainer.values))
+        statement.setUncheckedArguments(StatementArguments(persistenceContainer.values))
         return statement
     }
     
@@ -909,7 +909,7 @@ final class DAO<Record: MutablePersistableRecord> {
             updatedColumns: updatedColumns,
             conditionColumns: primaryKeyColumns)
         let statement = try db.internalCachedUpdateStatement(sql: query.sql)
-        statement.unsafeSetArguments(StatementArguments(updatedValues + primaryKeyValues))
+        statement.setUncheckedArguments(StatementArguments(updatedValues + primaryKeyValues))
         return statement
     }
     
@@ -929,7 +929,7 @@ final class DAO<Record: MutablePersistableRecord> {
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
         let statement = try db.internalCachedUpdateStatement(sql: query.sql)
-        statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
+        statement.setUncheckedArguments(StatementArguments(primaryKeyValues))
         return statement
     }
     
@@ -949,7 +949,7 @@ final class DAO<Record: MutablePersistableRecord> {
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
         let statement = try db.internalCachedSelectStatement(sql: query.sql)
-        statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
+        statement.setUncheckedArguments(StatementArguments(primaryKeyValues))
         return statement
     }
     

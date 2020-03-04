@@ -7019,8 +7019,7 @@ In such a situation, you can still avoid fatal errors by exposing and handling e
 // Untrusted arguments
 if let arguments = StatementArguments(arguments) {
     let statement = try db.makeSelectStatement(sql: sql)
-    try statement.validate(arguments: arguments)
-    statement.unsafeSetArguments(arguments)
+    try statement.setArguments(arguments)
     
     var cursor = try Row.fetchCursor(statement)
     while let row = try iterator.next() {
@@ -7981,12 +7980,12 @@ for player in players {
 }
 
 // Prepared statement
-let insertStatement = db.prepareStatement("INSERT INTO player (name, email) VALUES (?, ?)")
+let insertStatement = db.makeUpdateStatement(sql: "INSERT INTO player (name, email) VALUES (?, ?)")
 for player in players {
-    // Only use the unsafe arguments setter if you are sure that you provide
+    // Only use the unchecked arguments setter if you are sure that you provide
     // all statement arguments. A mistake can store unexpected values in
     // the database.
-    insertStatement.unsafeSetArguments([player.name, player.email])
+    insertStatement.setUncheckedArguments([player.name, player.email])
     try insertStatement.execute()
 }
 ```
