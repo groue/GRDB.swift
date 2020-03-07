@@ -1,8 +1,8 @@
 import XCTest
 #if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
+import GRDBCustomSQLite
 #else
-    import GRDB
+import GRDB
 #endif
 
 class DatabaseMigratorTests : GRDBTestCase {
@@ -51,7 +51,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             XCTAssertFalse(try db.tableExists("pets"))
         }
     }
-
+    
     func testMigratorDatabasePool() throws {
         let dbPool = try makeDatabasePool()
         
@@ -90,7 +90,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             XCTAssertFalse(try db.tableExists("pets"))
         }
     }
-
+    
     func testMigrateUpTo() throws {
         let dbQueue = try makeDatabaseQueue()
         
@@ -174,9 +174,9 @@ class DatabaseMigratorTests : GRDBTestCase {
     
     func testForeignKeyViolation() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
+        guard #available(iOS 8.2, OSX 10.10, *) else {
+            return
+        }
         #endif
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
@@ -229,12 +229,12 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
         }
     }
-
+    
     func testMigrationWithDeferredForeignKeyChecksDeprecated() throws {
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
+        guard #available(iOS 8.2, OSX 10.10, *) else {
+            return
+        }
         #endif
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
@@ -293,8 +293,8 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
         }
     }
-
-    func testAppliedMigrations() throws {
+    
+    func testAppliedMigrationsDeprecated() throws {
         var migrator = DatabaseMigrator()
         
         // No migration
@@ -304,7 +304,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
         
         // One migration
-
+        
         migrator.registerMigration("1") { db in
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
@@ -319,9 +319,9 @@ class DatabaseMigratorTests : GRDBTestCase {
             try migrator.migrate(dbQueue, upTo: "1")
             try XCTAssertEqual(migrator.appliedMigrations(in: dbQueue), ["1"])
         }
-
+        
         // Two migrations
-
+        
         migrator.registerMigration("2") { db in
             try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
         }
@@ -336,7 +336,49 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
     }
     
-    func testHasCompletedMigrations() throws {
+    func testAppliedMigrations() throws {
+        var migrator = DatabaseMigrator()
+        
+        // No migration
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(dbQueue.read(migrator.appliedMigrations), [])
+        }
+        
+        // One migration
+        
+        migrator.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+                t.column("score", .integer)
+            }
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(dbQueue.read(migrator.appliedMigrations), [])
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertEqual(dbQueue.read(migrator.appliedMigrations), ["1"])
+        }
+        
+        // Two migrations
+        
+        migrator.registerMigration("2") { db in
+            try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(dbQueue.read(migrator.appliedMigrations), [])
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertEqual(dbQueue.read(migrator.appliedMigrations), ["1"])
+            try migrator.migrate(dbQueue, upTo: "2")
+            try XCTAssertEqual(dbQueue.read(migrator.appliedMigrations), ["1", "2"])
+        }
+    }
+    
+    func testHasCompletedMigrationsDeprecated() throws {
         var migrator = DatabaseMigrator()
         
         // No migration
@@ -346,7 +388,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
         
         // One migration
-
+        
         migrator.registerMigration("1") { db in
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
@@ -363,9 +405,9 @@ class DatabaseMigratorTests : GRDBTestCase {
             try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue, through: "1"))
             try XCTAssertTrue(migrator.hasCompletedMigrations(in: dbQueue))
         }
-
+        
         // Two migrations
-
+        
         migrator.registerMigration("2") { db in
             try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
         }
@@ -386,7 +428,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
     }
     
-    func testLastCompletedMigration() throws {
+    func testLastCompletedMigrationDeprecated() throws {
         var migrator = DatabaseMigrator()
         
         // No migration
@@ -396,7 +438,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
         
         // One migration
-
+        
         migrator.registerMigration("1") { db in
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
@@ -411,9 +453,9 @@ class DatabaseMigratorTests : GRDBTestCase {
             try migrator.migrate(dbQueue, upTo: "1")
             try XCTAssertEqual(migrator.lastCompletedMigration(in: dbQueue), "1")
         }
-
+        
         // Two migrations
-
+        
         migrator.registerMigration("2") { db in
             try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
         }
@@ -428,6 +470,54 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
     }
     
+    func testCompletedMigrations() throws {
+        var migrator = DatabaseMigrator()
+        
+        // No migration
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(dbQueue.read(migrator.completedMigrations), [])
+            try XCTAssertTrue(dbQueue.read(migrator.hasCompletedMigrations))
+        }
+        
+        // One migration
+        
+        migrator.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+                t.column("score", .integer)
+            }
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(dbQueue.read(migrator.completedMigrations), [])
+            try XCTAssertFalse(dbQueue.read(migrator.hasCompletedMigrations))
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertEqual(dbQueue.read(migrator.completedMigrations), ["1"])
+            try XCTAssertTrue(dbQueue.read(migrator.hasCompletedMigrations))
+        }
+        
+        // Two migrations
+        
+        migrator.registerMigration("2") { db in
+            try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertEqual(dbQueue.read(migrator.completedMigrations), [])
+            try XCTAssertFalse(dbQueue.read(migrator.hasCompletedMigrations))
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertEqual(dbQueue.read(migrator.completedMigrations), ["1"])
+            try XCTAssertFalse(dbQueue.read(migrator.hasCompletedMigrations))
+            try migrator.migrate(dbQueue, upTo: "2")
+            try XCTAssertEqual(dbQueue.read(migrator.completedMigrations), ["1", "2"])
+            try XCTAssertTrue(dbQueue.read(migrator.hasCompletedMigrations))
+        }
+    }
+    
     func testMergedMigrators() throws {
         // Migrate a database
         var oldMigrator = DatabaseMigrator()
@@ -437,11 +527,9 @@ class DatabaseMigratorTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try oldMigrator.migrate(dbQueue)
         
-        try XCTAssertEqual(oldMigrator.appliedMigrations(in: dbQueue), ["1", "3"])
-        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue))
-        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue, through: "1"))
-        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue, through: "3"))
-        try XCTAssertEqual(oldMigrator.lastCompletedMigration(in: dbQueue), "3")
+        try XCTAssertEqual(dbQueue.read(oldMigrator.appliedMigrations), ["1", "3"])
+        try XCTAssertEqual(dbQueue.read(oldMigrator.completedMigrations), ["1", "3"])
+        try XCTAssertTrue(dbQueue.read(oldMigrator.hasCompletedMigrations))
         
         // A source code merge inserts a migration between "1" and "3"
         var newMigrator = DatabaseMigrator()
@@ -449,30 +537,22 @@ class DatabaseMigratorTests : GRDBTestCase {
         newMigrator.registerMigration("2", migrate: { _ in })
         newMigrator.registerMigration("3", migrate: { _ in })
         
-        try XCTAssertEqual(newMigrator.appliedMigrations(in: dbQueue), ["1", "3"])
-        try XCTAssertFalse(newMigrator.hasCompletedMigrations(in: dbQueue))
-        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue, through: "1"))
-        try XCTAssertFalse(newMigrator.hasCompletedMigrations(in: dbQueue, through: "2"))
-        try XCTAssertFalse(newMigrator.hasCompletedMigrations(in: dbQueue, through: "3"))
-        try XCTAssertNil(newMigrator.lastCompletedMigration(in: dbQueue))
+        try XCTAssertEqual(dbQueue.read(newMigrator.appliedMigrations), ["1", "3"])
+        try XCTAssertEqual(dbQueue.read(newMigrator.completedMigrations), ["1"])
+        try XCTAssertFalse(dbQueue.read(newMigrator.hasCompletedMigrations))
         
         // The new source code migrates the database
         try newMigrator.migrate(dbQueue)
         
-        try XCTAssertEqual(oldMigrator.appliedMigrations(in: dbQueue), ["1", "3"])
-        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue))
-        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue, through: "1"))
-        try XCTAssertTrue(oldMigrator.hasCompletedMigrations(in: dbQueue, through: "3"))
-        try XCTAssertEqual(oldMigrator.lastCompletedMigration(in: dbQueue), "3")
+        try XCTAssertEqual(dbQueue.read(oldMigrator.appliedMigrations), ["1", "3"])
+        try XCTAssertEqual(dbQueue.read(oldMigrator.completedMigrations), ["1", "3"])
+        try XCTAssertTrue(dbQueue.read(oldMigrator.hasCompletedMigrations))
         
-        try XCTAssertEqual(newMigrator.appliedMigrations(in: dbQueue), ["1", "2", "3"])
-        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue))
-        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue, through: "1"))
-        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue, through: "2"))
-        try XCTAssertTrue(newMigrator.hasCompletedMigrations(in: dbQueue, through: "3"))
-        try XCTAssertEqual(newMigrator.lastCompletedMigration(in: dbQueue), "3")
+        try XCTAssertEqual(dbQueue.read(newMigrator.appliedMigrations), ["1", "2", "3"])
+        try XCTAssertEqual(dbQueue.read(newMigrator.completedMigrations), ["1", "2", "3"])
+        try XCTAssertTrue(dbQueue.read(newMigrator.hasCompletedMigrations))
     }
-
+    
     func testEraseDatabaseOnSchemaChange() throws {
         // 1st version of the migrator
         var migrator1 = DatabaseMigrator()
@@ -508,12 +588,12 @@ class DatabaseMigratorTests : GRDBTestCase {
             XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
             XCTAssertEqual(error.message, "table player has no column named score")
         }
-        try XCTAssertEqual(migrator2.appliedMigrations(in: dbQueue), ["1"])
-
+        try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1"])
+        
         // ... unless databaase gets erased
         migrator2.eraseDatabaseOnSchemaChange = true
         try migrator2.migrate(dbQueue)
-        try XCTAssertEqual(migrator2.appliedMigrations(in: dbQueue), ["1", "2"])
+        try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1", "2"])
     }
     
     func testEraseDatabaseOnSchemaChangeWithConfiguration() throws {
@@ -557,12 +637,12 @@ class DatabaseMigratorTests : GRDBTestCase {
             XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
             XCTAssertEqual(error.message, "table player has no column named score")
         }
-        try XCTAssertEqual(migrator2.appliedMigrations(in: dbQueue), ["1"])
-
+        try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1"])
+        
         // ... unless databaase gets erased
         migrator2.eraseDatabaseOnSchemaChange = true
         try migrator2.migrate(dbQueue)
-        try XCTAssertEqual(migrator2.appliedMigrations(in: dbQueue), ["1", "2"])
+        try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1", "2"])
     }
     
     func testEraseDatabaseOnSchemaChangeDoesNotEraseDatabaseOnAddedMigration() throws {

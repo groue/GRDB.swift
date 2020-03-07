@@ -4945,22 +4945,21 @@ try migrator.migrate(dbQueue, upTo: "v1")
 Check if consecutive migrations have been applied:
 
 ```swift
-if try migrator.hasCompletedMigrations(in: dbQueue) {
+if try dbQueue.read(migrator.hasCompletedMigrations) {
     // All migrations have been applied, up to the last one.
 }
-if try migrator.hasCompletedMigrations(in: dbQueue, through: "v2") {
-    // All migrations have been applied up to "v2", and maybe further.
+if try dbQueue.read(migrator.completedMigrations).last == "v2" {
+    // All migrations up to "v2" have been applied, and no further.
 }
-if try migrator.lastCompletedMigration(in: dbQueue) == "v2" {
-    // All migrations have been applied up to "v2", and no further.
+if try dbQueue.read(migrator.completedMigrations).contains("v2") {
+    // All migrations up to "v2" have been applied, and maybe further.
 }
 ```
 
-Check which migrations have been applied:
+Check if individual migrations have been applied:
 
 ```swift
-let appliedMigrations = try migrator.appliedMigrations(in: dbQueue) // Set<String>
-if appliedMigrations.contains("v2") {
+if try dbQueue.read(migrator.appliedMigrations).contains("v2") {
     // "v2" migration has been applied
 }
 ```
