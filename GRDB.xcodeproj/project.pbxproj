@@ -199,6 +199,7 @@
 		563EF45321631E21007DAACD /* QueryInterfacePromiseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563EF45221631E21007DAACD /* QueryInterfacePromiseTests.swift */; };
 		563EF45421631E21007DAACD /* QueryInterfacePromiseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563EF45221631E21007DAACD /* QueryInterfacePromiseTests.swift */; };
 		563EF45D2163309F007DAACD /* Inflections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563EF4492161F179007DAACD /* Inflections.swift */; };
+		564390D52414FC2C00BA61E6 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AAA4DCFE230F1E0600C74B15 /* GRDB.framework */; };
 		564448831EF56B1B00DD2861 /* DatabaseAfterNextTransactionCommitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564448821EF56B1B00DD2861 /* DatabaseAfterNextTransactionCommitTests.swift */; };
 		564448871EF56B1B00DD2861 /* DatabaseAfterNextTransactionCommitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564448821EF56B1B00DD2861 /* DatabaseAfterNextTransactionCommitTests.swift */; };
 		5644DE6D20F8C32E001FFDDE /* DatabaseValueConversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5644DE6C20F8C32E001FFDDE /* DatabaseValueConversion.swift */; };
@@ -1139,7 +1140,6 @@
 		AAA4DDC9230F262000C74B15 /* MapCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 562393711DEE104400A6B01F /* MapCursorTests.swift */; };
 		AAA4DDCA230F262000C74B15 /* DatabaseSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566A8424204120B700E50BFD /* DatabaseSnapshotTests.swift */; };
 		AAA4DDCB230F262000C74B15 /* GRDBTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5623E0901B4AFACC00B20B7F /* GRDBTestCase.swift */; };
-		AAA4DDCD230F262000C74B15 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56E5D7CA1B4D3FED00430942 /* GRDB.framework */; };
 		AAA4DDCF230F262000C74B15 /* InflectionsTests.json in Resources */ = {isa = PBXBuildFile; fileRef = 569BBA4522906A8200478429 /* InflectionsTests.json */; };
 		AAA4DDD0230F262000C74B15 /* Betty.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 5687359E1CEDE16C009B9116 /* Betty.jpeg */; };
 		C96C0F2B2084A442006B2981 /* SQLiteDateParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = C96C0F242084A442006B2981 /* SQLiteDateParser.swift */; };
@@ -1150,6 +1150,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		564390D62414FC6400BA61E6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DC3773EA19C8CBB3004FCF85 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AAA4DC75230F1E0600C74B15;
+			remoteInfo = GRDBtvOS;
+		};
 		56553BDC1C3E906C00522B5C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DC3773EA19C8CBB3004FCF85 /* Project object */;
@@ -1170,13 +1177,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = DC3773F219C8CBB3004FCF85;
 			remoteInfo = GRDBOSX;
-		};
-		AAA4DD09230F262000C74B15 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = DC3773EA19C8CBB3004FCF85 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 56E5D7C91B4D3FED00430942;
-			remoteInfo = GRDBiOS;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -1585,7 +1585,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AAA4DDCD230F262000C74B15 /* GRDB.framework in Frameworks */,
+				564390D52414FC2C00BA61E6 /* GRDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1839,6 +1839,13 @@
 				563B06C12185D29F00B38F35 /* ValueObservationSchedulingTests.swift */,
 			);
 			name = ValueObservation;
+			sourceTree = "<group>";
+		};
+		564390D42414FC2C00BA61E6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		5653EABF20944B1300F46237 /* Association */ = {
@@ -2285,6 +2292,7 @@
 				DC37742D19C8CC90004FCF85 /* GRDB */,
 				DC10500F19C904DD00D8CA30 /* Tests */,
 				DC3773F419C8CBB3004FCF85 /* Products */,
+				564390D42414FC2C00BA61E6 /* Frameworks */,
 			);
 			indentWidth = 4;
 			sourceTree = "<group>";
@@ -2512,7 +2520,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				AAA4DD08230F262000C74B15 /* PBXTargetDependency */,
+				564390D72414FC6400BA61E6 /* PBXTargetDependency */,
 			);
 			name = GRDBtvOSTests;
 			productName = GRDBiOSTests;
@@ -3902,6 +3910,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		564390D72414FC6400BA61E6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AAA4DC75230F1E0600C74B15 /* GRDBtvOS */;
+			targetProxy = 564390D62414FC6400BA61E6 /* PBXContainerItemProxy */;
+		};
 		56553BDB1C3E906C00522B5C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = DC3773F219C8CBB3004FCF85 /* GRDBOSX */;
@@ -3916,11 +3929,6 @@
 			isa = PBXTargetDependency;
 			target = DC3773F219C8CBB3004FCF85 /* GRDBOSX */;
 			targetProxy = 56E5D7FF1B4D422E00430942 /* PBXContainerItemProxy */;
-		};
-		AAA4DD08230F262000C74B15 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 56E5D7C91B4D3FED00430942 /* GRDBiOS */;
-			targetProxy = AAA4DD09230F262000C74B15 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
