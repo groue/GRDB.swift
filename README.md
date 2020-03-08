@@ -13,7 +13,7 @@
 
 **Latest release**: [Branch GRDB5](https://github.com/groue/GRDB.swift/tree/GRDB5) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 3 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
 
-**Requirements**: iOS 9.0+ / macOS 10.9+ / tvOS 9.0+ / watchOS 2.0+ &bull; Swift 5.2+ / Xcode 11.4+
+**Requirements**: iOS 9.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+ &bull; Swift 5.2+ / Xcode 11.4+
 
 | Swift version | GRDB version                                                |
 | ------------- | ----------------------------------------------------------- |
