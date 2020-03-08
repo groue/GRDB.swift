@@ -1,4 +1,4 @@
-platform :macos, '10.9'
+platform :macos, '10.10'
 use_frameworks!
 
 def common

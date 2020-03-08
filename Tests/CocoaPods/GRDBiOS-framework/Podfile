@@ -1,7 +1,7 @@
 use_frameworks!
 target 'iOS'
 platform :ios, '9.0'
-supports_swift_versions '4.2'
+supports_swift_versions '5.2'
 pod 'GRDB.swift', :path => '../../..'
 
 post_install do |installer|
