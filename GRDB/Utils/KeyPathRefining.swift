@@ -20,16 +20,6 @@ extension KeyPathRefining {
         return result
     }
     
-    #if compiler(>=5.1)
-    #else
-    @inlinable
-    func with<T>(_ keyPath: WritableKeyPath<Self, T?>, _ value: T) -> Self {
-        var result = self
-        result[keyPath: keyPath] = value
-        return result
-    }
-    #endif
-    
     @inlinable
     func map<T>(_ keyPath: WritableKeyPath<Self, T>, _ transform: (T) throws -> T) rethrows -> Self {
         var result = self

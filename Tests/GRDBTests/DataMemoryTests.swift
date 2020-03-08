@@ -30,8 +30,8 @@ class DataMemoryTests: GRDBTestCase {
                     // This data should be copied:
                     let copiedData: Data = row[0]
                     XCTAssertEqual(copiedData, data)
-                    copiedData.withBaseAddress { dataPointer in
-                        XCTAssertNotEqual(dataPointer, blobPointer)
+                    copiedData.withUnsafeBytes {
+                        XCTAssertNotEqual($0.baseAddress, blobPointer)
                     }
                 }
                 
@@ -39,8 +39,8 @@ class DataMemoryTests: GRDBTestCase {
                     // This data should not be copied
                     let nonCopiedData = row.dataNoCopy(atIndex: 0)!
                     XCTAssertEqual(nonCopiedData, data)
-                    nonCopiedData.withBaseAddress { dataPointer in
-                        XCTAssertEqual(dataPointer, blobPointer)
+                    nonCopiedData.withUnsafeBytes {
+                        XCTAssertEqual($0.baseAddress, blobPointer)
                     }
                 }
             }
@@ -49,13 +49,14 @@ class DataMemoryTests: GRDBTestCase {
             let dbValue = row.first!.1 // TODO: think about exposing a (column:,databaseValue:) tuple
             switch dbValue.storage {
             case .blob(let data):
-                data.withBaseAddress { dataPointer in
+                data.withUnsafeBytes { buffer in
                     do {
                         // This data should not be copied:
                         let nonCopiedData: Data = row[0]
                         XCTAssertEqual(nonCopiedData, data)
-                        nonCopiedData.withBaseAddress { nonCopiedBytes in
-                            XCTAssertEqual(nonCopiedBytes, dataPointer)
+                        nonCopiedData.withUnsafeBytes { nonCopiedBuffer in
+                            XCTAssertEqual(nonCopiedBuffer.baseAddress, buffer.baseAddress
+                            )
                         }
                     }
                     
@@ -63,8 +64,8 @@ class DataMemoryTests: GRDBTestCase {
                         // This data should not be copied:
                         let nonCopiedData = row.dataNoCopy(atIndex: 0)!
                         XCTAssertEqual(nonCopiedData, data)
-                        nonCopiedData.withBaseAddress { nonCopiedBytes in
-                            XCTAssertEqual(nonCopiedBytes, dataPointer)
+                        nonCopiedData.withUnsafeBytes { nonCopiedBuffer in
+                            XCTAssertEqual(nonCopiedBuffer.baseAddress, buffer.baseAddress)
                         }
                     }
                 }
@@ -72,20 +73,5 @@ class DataMemoryTests: GRDBTestCase {
                 XCTFail("Not a blob")
             }
         }
-    }
-}
-
-extension Data {
-    // Helper for comparing data heap pointers, depending on the Swift version
-    fileprivate func withBaseAddress(_ body: (UnsafeRawPointer?) -> Void) {
-        #if swift(>=5.0)
-        withUnsafeBytes {
-            body($0.baseAddress)
-        }
-        #else
-        withUnsafeBytes {
-            body(UnsafeRawPointer($0))
-        }
-        #endif
     }
 }

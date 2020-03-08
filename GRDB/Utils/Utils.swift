@@ -97,8 +97,6 @@ extension DispatchQueue {
     }
 }
 
-// Has SE-0220 been removed in Xcode 10.2 beta 4?
-// #if compiler(<5.0)
 extension Sequence {
     @inlinable
     func count(where predicate: (Element) throws -> Bool) rethrows -> Int {
@@ -109,19 +107,6 @@ extension Sequence {
         return count
     }
 }
-// #endif
-
-#if !compiler(>=5.0)
-extension Character {
-    func uppercased() -> String {
-        return String(self).uppercased()
-    }
-    
-    func lowercased() -> String {
-        return String(self).lowercased()
-    }
-}
-#endif
 
 /// Makes sure the `finally` function is executed even if `execute` throws, and
 /// rethrows the eventual first thrown error.

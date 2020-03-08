@@ -111,7 +111,6 @@ class DatabaseReaderTests : GRDBTestCase {
     
     // MARK: - AsyncRead
     
-    #if compiler(>=5.0)
     func testAsyncRead() throws {
         func test(_ dbReader: DatabaseReader) throws {
             let expectation = self.expectation(description: "updates")
@@ -137,9 +136,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
     }
-    #endif
     
-    #if compiler(>=5.0)
     func testAsyncReadPreventsDatabaseModification() throws {
         func test(_ dbReader: DatabaseReader) throws {
             let expectation = self.expectation(description: "updates")
@@ -165,7 +162,6 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabasePool())
         try test(makeDatabasePool().makeSnapshot())
     }
-    #endif
     
     // MARK: - Function
     

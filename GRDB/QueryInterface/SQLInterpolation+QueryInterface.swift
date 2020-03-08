@@ -1,4 +1,3 @@
-#if swift(>=5.0)
 /// :nodoc:
 extension SQLInterpolation {
     /// Appends the table name of the record type.
@@ -159,4 +158,3 @@ extension SQLInterpolation {
         elements.append(.subQuery(request.sqlLiteral))
     }
 }
-#endif

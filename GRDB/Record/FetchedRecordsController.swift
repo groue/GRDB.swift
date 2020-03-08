@@ -574,10 +574,8 @@ private final class FetchedRecordsObserver<Record: FetchableRecord>: Transaction
 
 // MARK: - Changes
 
-private typealias FetchCompletionHandler<Record: FetchableRecord, T> = (
-    DatabaseResult<(fetchedItems: [Item<Record>],
-    fetchedAlongside: T,
-    observer: FetchedRecordsObserver<Record>)>)
+private typealias FetchCompletionHandler<Record: FetchableRecord, T> =
+    (Result<(fetchedItems: [Item<Record>], fetchedAlongside: T, observer: FetchedRecordsObserver<Record>), Error>)
     -> Void
 
 private func makeFetchFunction<Record, T>(

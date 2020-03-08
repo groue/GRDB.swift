@@ -1095,7 +1095,6 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     // MARK: - AsyncConcurrentRead
     
-    #if compiler(>=5.0)
     func testAsyncConcurrentReadOpensATransaction() throws {
         let dbPool = try makeDatabasePool()
         var isInsideTransaction: Bool? = nil
@@ -1119,9 +1118,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         XCTAssertEqual(isInsideTransaction, true)
     }
-    #endif
     
-    #if compiler(>=5.0)
     func testAsyncConcurrentReadOutsideOfTransaction() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
@@ -1161,9 +1158,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         XCTAssertEqual(count, 0)
     }
-    #endif
     
-    #if compiler(>=5.0)
     func testAsyncConcurrentReadError() throws {
         let dbPool = try makeDatabasePool()
         var readError: DatabaseError? = nil
@@ -1186,7 +1181,6 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             XCTAssertEqual(readError!.message!, "database is locked")
         }
     }
-    #endif
     
     // MARK: - Barrier
     

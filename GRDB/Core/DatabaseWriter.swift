@@ -66,7 +66,6 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - throws: The error thrown by the updates.
     func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T
     
-    #if compiler(>=5.0)
     /// Asynchronously executes database updates in a protected dispatch queue,
     /// wrapped inside a transaction.
     ///
@@ -92,7 +91,6 @@ public protocol DatabaseWriter: DatabaseReader {
     func asyncWrite<T>(
         _ updates: @escaping (Database) throws -> T,
         completion: @escaping (Database, Result<T, Error>) -> Void)
-    #endif
     
     /// Asynchronously executes database updates in a protected dispatch queue,
     /// outside of any transaction.
@@ -148,7 +146,6 @@ public protocol DatabaseWriter: DatabaseReader {
     ///     }
     func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T>
     
-    #if compiler(>=5.0)
     // Exposed for RxGRDB and GRBCombine. Naming is not stabilized.
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -186,7 +183,6 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - parameter block: A block that accesses the database.
     /// :nodoc:
     func spawnConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void)
-    #endif
 }
 
 extension DatabaseWriter {
@@ -219,7 +215,6 @@ extension DatabaseWriter {
         }
     }
     
-    #if compiler(>=5.0)
     /// Asynchronously executes database updates in a protected dispatch queue,
     /// wrapped inside a transaction.
     ///
@@ -260,7 +255,6 @@ extension DatabaseWriter {
             }
         }
     }
-    #endif
     
     // MARK: - Transaction Observers
     
@@ -542,7 +536,7 @@ public class DatabaseFuture<Value> {
         _wait = wait
     }
     
-    init(_ result: DatabaseResult<Value>) {
+    init(_ result: Result<Value, Error>) {
         _wait = result.get
     }
     
@@ -591,12 +585,10 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         return try base.read(block)
     }
     
-    #if compiler(>=5.0)
     /// :nodoc:
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         base.asyncRead(block)
     }
-    #endif
     
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
@@ -613,12 +605,10 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         return base.concurrentRead(block)
     }
     
-    #if compiler(>=5.0)
     /// :nodoc:
     public func spawnConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         base.spawnConcurrentRead(block)
     }
-    #endif
     
     // MARK: - Writing in Database
     
@@ -637,7 +627,6 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         return try base.barrierWriteWithoutTransaction(updates)
     }
     
-    #if compiler(>=5.0)
     /// :nodoc:
     public func asyncWrite<T>(
         _ updates: @escaping (Database) throws -> T,
@@ -645,7 +634,6 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     {
         base.asyncWrite(updates, completion: completion)
     }
-    #endif
     
     /// :nodoc:
     public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {

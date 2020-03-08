@@ -55,7 +55,6 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testFetchCursorWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -65,8 +64,7 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
             XCTAssertEqual(fetched.int, 42)
         }
     }
-    #endif
-
+    
     func testFetchCursorStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -166,7 +164,6 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testFetchAllWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -175,7 +172,6 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
             XCTAssertEqual(array[0].int, 42)
         }
     }
-    #endif
     
     func testFetchAllStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -315,7 +311,6 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testFetchOneWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -324,7 +319,6 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
             XCTAssertEqual(fetched!.int, 42)
         }
     }
-    #endif
     
     func testFetchOneStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -423,7 +417,6 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testOptionalFetchCursorWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -433,7 +426,6 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
             XCTAssertEqual(fetched!.int, 42)
         }
     }
-    #endif
     
     func testOptionalFetchCursorStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -536,7 +528,6 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testOptionalFetchAllWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -545,7 +536,6 @@ class DatabaseValueConvertibleFetchTests: GRDBTestCase {
             XCTAssertEqual(array[0]!.int, 42)
         }
     }
-    #endif
     
     func testOptionalFetchAllStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
