@@ -10,6 +10,30 @@ extension AnyFetchRequest {
     { preconditionFailure() }
 }
 
+extension DatabaseMigrator {
+    @available(*, unavailable, renamed: "registerMigration(_:migrate:)")
+    public mutating func registerMigrationWithDeferredForeignKeyCheck(
+        _ identifier: String,
+        migrate: @escaping (Database) throws -> Void)
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Wrap this method: reader.read(migrator.appliedMigrations) }")
+    public func appliedMigrations(in reader: DatabaseReader) throws -> Set<String>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Wrap this method: reader.read(migrator.hasCompletedMigrations) }")
+    public func hasCompletedMigrations(in reader: DatabaseReader) throws -> Bool
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Prefer reader.read(migrator.completedMigrations).contains(targetIdentifier)")
+    public func hasCompletedMigrations(in reader: DatabaseReader, through targetIdentifier: String) throws -> Bool
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Prefer reader.read(migrator.completedMigrations).last")
+    public func lastCompletedMigration(in reader: DatabaseReader) throws -> String?
+    { preconditionFailure() }
+}
+
 extension DatabasePool {
     #if os(iOS)
     @available(*, unavailable, message: "Memory management is now enabled by default. This method does nothing.")
@@ -51,6 +75,16 @@ public struct SQLExpressionLiteral: SQLExpression {
 extension SQLLiteral {
     @available(*, unavailable, message: "Use SQL interpolation instead.")
     public func mapSQL(_ transform: @escaping (String) -> String) -> SQLLiteral
+    { preconditionFailure() }
+}
+
+extension Statement {
+    @available(*, unavailable, renamed: "setUncheckedArguments(_:)")
+    public func unsafeSetArguments(_ arguments: StatementArguments)
+    { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "validateArguments(_:)")
+    public func validate(arguments: StatementArguments) throws
     { preconditionFailure() }
 }
 

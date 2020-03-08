@@ -153,27 +153,6 @@ public class Statement {
         _ = try arguments.extractBindings(forStatement: self, allowingRemainingValues: false)
     }
     
-    /// Throws a DatabaseError of code SQLITE_ERROR if arguments don't fill all
-    /// statement arguments.
-    ///
-    /// For example:
-    ///
-    ///     let statement = try db.makeUpdateArgument(sql: """
-    ///         INSERT INTO player (id, name) VALUES (?, ?)
-    ///         """)
-    ///
-    ///     // OK
-    ///     statement.validate([1, "Arthur"])
-    ///
-    ///     // Throws
-    ///     statement.validate([1])
-    ///
-    /// See also setArguments(_:)
-    @available(*, deprecated, renamed: "validateArguments(_:)")
-    public func validate(arguments: StatementArguments) throws {
-        try validateArguments(arguments)
-    }
-    
     /// Set arguments without any validation. Trades safety for performance.
     ///
     /// Only call this method if you are sure input arguments match all expected
@@ -212,34 +191,6 @@ public class Statement {
                 bind(.null, at: index)
             }
         }
-    }
-    
-    /// Set arguments without any validation. Trades safety for performance.
-    ///
-    /// Only call this method if you are sure input arguments match all expected
-    /// arguments of the statement.
-    ///
-    /// For example:
-    ///
-    ///     let statement = try db.makeUpdateArgument(sql: """
-    ///         INSERT INTO player (id, name) VALUES (?, ?)
-    ///         """)
-    ///
-    ///     // OK
-    ///     statement.unsafeSetArguments([1, "Arthur"])
-    ///
-    ///     // OK
-    ///     let arguments: StatementArguments = ... // some untrusted arguments
-    ///     try statement.validateArguments(arguments)
-    ///     statement.unsafeSetArguments(arguments)
-    ///
-    ///     // NOT OK
-    ///     statement.unsafeSetArguments([1])
-    ///
-    /// See also setArguments(_:)
-    @available(*, deprecated, renamed: "setUncheckedArguments(_:)")
-    public func unsafeSetArguments(_ arguments: StatementArguments) {
-        setUncheckedArguments(arguments)
     }
     
     /// Set the statement arguments, or throws a DatabaseError of code
