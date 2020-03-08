@@ -107,8 +107,7 @@ public protocol DatabaseReader: AnyObject {
     ///         let count = try Player.fetchCount(db)
     ///     }
     ///
-    /// Guarantee 2: Starting iOS 8.2, OSX 10.10, and with custom SQLite builds
-    /// and SQLCipher, attempts to write in the database throw a DatabaseError
+    /// Guarantee 2: attempts to write in the database throw a DatabaseError
     /// whose resultCode is `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
@@ -134,8 +133,7 @@ public protocol DatabaseReader: AnyObject {
     ///         }
     ///     }
     ///
-    /// Guarantee 2: Starting iOS 8.2, OSX 10.10, and with custom SQLite builds
-    /// and SQLCipher, attempts to write in the database throw a DatabaseError
+    /// Guarantee 2: attempts to write in the database throw a DatabaseError
     /// whose resultCode is `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.

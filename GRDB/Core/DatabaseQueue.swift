@@ -44,7 +44,7 @@ public final class DatabaseQueue: DatabaseWriter {
         // Be a nice iOS citizen, and don't consume too much memory
         // See https://github.com/groue/GRDB.swift/#memory-management
         #if os(iOS)
-        setupAutomaticMemoryManagement()
+        setupMemoryManagement()
         #endif
     }
     
@@ -65,7 +65,7 @@ public final class DatabaseQueue: DatabaseWriter {
     }
     
     deinit {
-        // Undo job done in setupAutomaticMemoryManagement()
+        // Undo job done in setupMemoryManagement()
         //
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
         // Explicit unregistration is required before iOS 9 and OS X 10.11.
@@ -85,12 +85,6 @@ extension DatabaseQueue {
     }
     
     #if os(iOS)
-    // swiftlint:disable:next line_length
-    @available(*, deprecated, message: "Memory management is now enabled by default. This deprecated method does nothing.")
-    public func setupMemoryManagement(in application: UIApplication) {
-        // No op.
-    }
-    
     /// Listens to UIApplicationDidEnterBackgroundNotification and
     /// UIApplicationDidReceiveMemoryWarningNotification in order to release
     /// as much memory as possible.
@@ -98,7 +92,7 @@ extension DatabaseQueue {
     /// - param application: The UIApplication that will start a background
     ///   task to let the database queue release its memory when the application
     ///   enters background.
-    private func setupAutomaticMemoryManagement() {
+    private func setupMemoryManagement() {
         let center = NotificationCenter.default
         center.addObserver(
             self,
@@ -139,19 +133,6 @@ extension DatabaseQueue {
     }
     #endif
 }
-
-#if SQLITE_HAS_CODEC
-extension DatabaseQueue {
-    
-    // MARK: - Encryption
-    
-    /// Changes the passphrase of an encrypted database
-    @available(*, deprecated, message: "Use Database.changePassphrase(_:) instead")
-    public func change(passphrase: String) throws {
-        try writer.sync { try $0.changePassphrase(passphrase) }
-    }
-}
-#endif
 
 extension DatabaseQueue {
     
@@ -208,9 +189,8 @@ extension DatabaseQueue {
     ///
     /// This method is *not* reentrant.
     ///
-    /// Starting SQLite 3.8.0 (iOS 8.2+, OSX 10.10+, custom SQLite builds and
-    /// SQLCipher), attempts to write in the database from this method throw a
-    /// DatabaseError of resultCode `SQLITE_READONLY`.
+    /// Attempts to write in the database from this method throw a DatabaseError
+    /// of resultCode `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
@@ -231,9 +211,8 @@ extension DatabaseQueue {
     ///         }
     ///     }
     ///
-    /// Starting SQLite 3.8.0 (iOS 8.2+, OSX 10.10+, custom SQLite builds and
-    /// SQLCipher), attempts to write in the database from this method throw a
-    /// DatabaseError of resultCode `SQLITE_READONLY`.
+    /// Attempts to write in the database from this method throw a DatabaseError
+    /// of resultCode `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {

@@ -220,9 +220,6 @@ public final class Database {
         
         #if SQLITE_HAS_CODEC
         try validateSQLCipher()
-        if let passphrase = configuration._passphrase {
-            try _usePassphrase(passphrase)
-        }
         #endif
         
         // Last step before we can start accessing the database.
@@ -426,48 +423,6 @@ public final class Database {
     }
     
     private static func closeConnection(_ sqliteConnection: SQLiteConnection) {
-        // sqlite3_close_v2 was added in SQLite 3.7.14 http://www.sqlite.org/changes.html#version_3_7_14
-        // It is available from iOS 8.2 and OS X 10.10
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        closeConnection_v2(sqliteConnection, sqlite3_close_v2)
-        #else
-        if #available(iOS 8.2, OSX 10.10, OSXApplicationExtension 10.10, *) {
-            closeConnection_v2(sqliteConnection, sqlite3_close_v2)
-        } else {
-            closeConnection_v1(sqliteConnection)
-        }
-        #endif
-    }
-    
-    private static func closeConnection_v1(_ sqliteConnection: SQLiteConnection) {
-        // https://www.sqlite.org/c3ref/close.html
-        // > If the database connection is associated with unfinalized prepared
-        // > statements or unfinished sqlite3_backup objects then
-        // > sqlite3_close() will leave the database connection open and
-        // > return SQLITE_BUSY.
-        let code = sqlite3_close(sqliteConnection)
-        if code != SQLITE_OK, let log = logError {
-            // A rare situation where GRDB doesn't fatalError on
-            // unprocessed errors.
-            let message = String(cString: sqlite3_errmsg(sqliteConnection))
-            log(ResultCode(rawValue: code), "could not close database: \(message)")
-            if code == SQLITE_BUSY {
-                // Let the user know about unfinalized statements that did
-                // prevent the connection from closing properly.
-                var stmt: SQLiteStatement? = sqlite3_next_stmt(sqliteConnection, nil)
-                while stmt != nil {
-                    log(ResultCode(rawValue: code), "unfinalized statement: \(String(cString: sqlite3_sql(stmt)))")
-                    stmt = sqlite3_next_stmt(sqliteConnection, stmt)
-                }
-            }
-        }
-    }
-    
-    private static func closeConnection_v2(
-        _ sqliteConnection: SQLiteConnection,
-        _ sqlite3_close_v2: @convention(c) (OpaquePointer?) -> Int32)
-    {
         // https://www.sqlite.org/c3ref/close.html
         // > If sqlite3_close_v2() is called with unfinalized prepared
         // > statements and/or unfinished sqlite3_backups, then the database
@@ -548,9 +503,6 @@ public final class Database {
     func beginReadOnly() throws {
         if configuration.readonly { return }
         if _readOnlyDepth == 0 {
-            // PRAGMA query_only was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-            // It is available from iOS 8.2 and OS X 10.10
-            // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
             try internalCachedUpdateStatement(sql: "PRAGMA query_only = 1").execute()
         }
         _readOnlyDepth += 1
@@ -560,9 +512,6 @@ public final class Database {
         if configuration.readonly { return }
         _readOnlyDepth -= 1
         if _readOnlyDepth == 0 {
-            // PRAGMA query_only was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-            // It is available from iOS 8.2 and OS X 10.10
-            // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
             try internalCachedUpdateStatement(sql: "PRAGMA query_only = 0").execute()
         }
     }
@@ -1178,17 +1127,6 @@ extension Database {
     ///         try db.usePassphrase("secret")
     ///     }
     public func usePassphrase(_ passphrase: String) throws {
-        // Support for the deprecated method change(passphrase:).
-        // After it has been called, the passphrase used for opening the
-        // database must be ignored.
-        if configuration._passphrase != nil {
-            return
-        }
-        try _usePassphrase(passphrase)
-    }
-    
-    /// See usePassphrase(_:)
-    private func _usePassphrase(_ passphrase: String) throws {
         let data = passphrase.data(using: .utf8)!
         let code = data.withUnsafeBytes {
             sqlite3_key(sqliteConnection, $0.baseAddress, Int32($0.count))

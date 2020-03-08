@@ -35,25 +35,14 @@ class TableDefinitionTests: GRDBTestCase {
     func testTableCreationOptions() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            if #available(iOS 8.2, OSX 10.10, *) {
-                try db.create(table: "test", temporary: true, ifNotExists: true, withoutRowID: true) { t in
-                    t.column("id", .integer).primaryKey()
-                }
-                assertEqualSQL(
-                    lastSQLQuery,
-                    ("CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
-                        "\"id\" INTEGER PRIMARY KEY" +
-                        ") WITHOUT ROWID") as String)
-            } else {
-                try db.create(table: "test", temporary: true, ifNotExists: true) { t in
-                    t.column("id", .integer).primaryKey()
-                }
-                assertEqualSQL(
-                    lastSQLQuery,
-                    ("CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
-                        "\"id\" INTEGER PRIMARY KEY" +
-                        ")") as String)
+            try db.create(table: "test", temporary: true, ifNotExists: true, withoutRowID: true) { t in
+                t.column("id", .integer).primaryKey()
             }
+            assertEqualSQL(
+                lastSQLQuery,
+                ("CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
+                    "\"id\" INTEGER PRIMARY KEY" +
+                    ") WITHOUT ROWID") as String)
         }
     }
 
@@ -568,12 +557,6 @@ class TableDefinitionTests: GRDBTestCase {
     }
     
     func testCreatePartialIndex() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "test") { t in

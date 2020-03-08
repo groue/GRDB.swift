@@ -75,20 +75,6 @@ extension AssociationAggregate: KeyPathRefining {
     ///
     /// For example:
     ///
-    ///     let aggregate = Author.books.count.aliased("numberOfBooks")
-    ///     let request = Author.annotated(with: aggregate)
-    ///     if let row = try Row.fetchOne(db, request) {
-    ///         let numberOfBooks: Int = row["numberOfBooks"]
-    ///     }
-    @available(*, deprecated, renamed: "forKey(_:)")
-    public func aliased(_ name: String) -> AssociationAggregate<RowDecoder> {
-        return forKey(name)
-    }
-    
-    /// Returns an aggregate that is selected in a column with the given name.
-    ///
-    /// For example:
-    ///
     ///     let aggregate = Author.books.count.forKey("numberOfBooks")
     ///     let request = Author.annotated(with: aggregate)
     ///     if let row = try Row.fetchOne(db, request) {
@@ -96,26 +82,6 @@ extension AssociationAggregate: KeyPathRefining {
     ///     }
     public func forKey(_ key: String) -> AssociationAggregate<RowDecoder> {
         return with(\.key, key)
-    }
-    
-    /// Returns an aggregate that is selected in a column named like the given
-    /// coding key.
-    ///
-    /// For example:
-    ///
-    ///     struct AuthorInfo: Decodable, FetchableRecord {
-    ///         var author: Author
-    ///         var numberOfBooks: Int
-    ///
-    ///         static func fetchAll(_ db: Database) throws -> [AuthorInfo] {
-    ///             let aggregate = Author.books.count.aliased(CodingKeys.numberOfBooks)
-    ///             let request = Author.annotated(with: aggregate)
-    ///             return try AuthorInfo.fetchAll(db, request)
-    ///         }
-    ///     }
-    @available(*, deprecated, renamed: "forKey(_:)")
-    public func aliased(_ key: CodingKey) -> AssociationAggregate<RowDecoder> {
-        return forKey(key)
     }
     
     /// Returns an aggregate that is selected in a column named like the given

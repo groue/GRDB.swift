@@ -39,22 +39,6 @@ extension SQLSpecificExpressible {
 
 /// :nodoc:
 extension SQLSpecificExpressible {
-    
-    /// Give the expression the given SQL name.
-    ///
-    /// For example:
-    ///
-    ///     // SELECT (width * height) AS area FROM shape
-    ///     let area = (Column("width") * Column("height")).aliased("area")
-    ///     let request = Shape.select(area)
-    ///     if let row = try Row.fetchOne(db, request) {
-    ///         let area: Int = row["area"]
-    ///     }
-    @available(*, deprecated, renamed: "forKey(_:)")
-    public func aliased(_ name: String) -> SQLSelectable {
-        return forKey(name)
-    }
-    
     /// Give the expression the given SQL name.
     ///
     /// For example:
@@ -67,29 +51,6 @@ extension SQLSpecificExpressible {
     ///     }
     public func forKey(_ key: String) -> SQLSelectable {
         return SQLAliasedExpression(sqlExpression, name: key)
-    }
-    
-    /// Give the expression the same SQL name as the coding key.
-    ///
-    /// For example:
-    ///
-    ///     struct Shape: Decodable, FetchableRecord, TableRecord {
-    ///         let width: Int
-    ///         let height: Int
-    ///         let area: Int
-    ///
-    ///         static let databaseSelection: [SQLSelectable] = [
-    ///             Column(CodingKeys.width),
-    ///             Column(CodingKeys.height),
-    ///             (Column(CodingKeys.width) * Column(CodingKeys.height)).aliased(CodingKeys.area),
-    ///         ]
-    ///     }
-    ///
-    ///     // SELECT width, height, (width * height) AS area FROM shape
-    ///     let shapes: [Shape] = try Shape.fetchAll(db)
-    @available(*, deprecated, renamed: "forKey(_:)")
-    public func aliased(_ key: CodingKey) -> SQLSelectable {
-        return forKey(key)
     }
     
     /// Give the expression the same SQL name as the coding key.

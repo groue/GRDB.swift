@@ -70,12 +70,6 @@ class FTS3PatternTests: GRDBTestCase {
     }
     
     func testFTS3PatternWithAnyToken() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let wrongInputs = ["", "*", "^", " ", "(", "()", "\"", "?!"]
         for string in wrongInputs {
             if let pattern = FTS3Pattern(matchingAnyTokenIn: string) {
@@ -106,12 +100,6 @@ class FTS3PatternTests: GRDBTestCase {
     }
     
     func testFTS3PatternWithAllTokens() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let wrongInputs = ["", "*", "^", " ", "(", "()", "\"", "?!"]
         for string in wrongInputs {
             if let pattern = FTS3Pattern(matchingAllTokensIn: string) {
@@ -142,12 +130,6 @@ class FTS3PatternTests: GRDBTestCase {
     }
     
     func testFTS3PatternWithPhrase() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let wrongInputs = ["", "*", "^", " ", "(", "()", "\"", "?!"]
         for string in wrongInputs {
             if let pattern = FTS3Pattern(matchingPhrase: string) {

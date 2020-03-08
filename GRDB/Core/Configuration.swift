@@ -111,22 +111,6 @@ public struct Configuration {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public var observesSuspensionNotifications = false
     
-    // MARK: - Encryption
-    
-    #if SQLITE_HAS_CODEC
-    // TODO: remove when the deprecated passphrase turns unavailable.
-    var _passphrase: String?
-    
-    /// The passphrase for the encrypted database.
-    ///
-    /// Default: nil
-    @available(*, deprecated, message: "Use Database.usePassphrase(_:) in Configuration.prepareDatabase instead.")
-    public var passphrase: String? {
-        get { return _passphrase }
-        set { _passphrase = newValue }
-    }
-    #endif
-    
     // MARK: - Managing SQLite Connections
     
     /// A function that is run when an SQLite connection is opened, before the
@@ -197,8 +181,8 @@ public struct Configuration {
     ///
     /// The quality of service is ignored if you supply a target queue.
     ///
-    /// Default: .default (.unspecified on macOS < 10.10)
-    public var qos: DispatchQoS
+    /// Default: .default
+    public var qos: DispatchQoS = .default
     
     /// The target queue for all database accesses.
     ///
@@ -216,14 +200,7 @@ public struct Configuration {
     // MARK: - Factory Configuration
     
     /// Creates a factory configuration
-    public init() {
-        if #available(OSX 10.10, *) {
-            qos = .default
-        } else {
-            qos = .unspecified
-        }
-    }
-    
+    public init() { }
     
     // MARK: - Not Public
     

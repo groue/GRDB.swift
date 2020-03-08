@@ -50,7 +50,6 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    @available(OSX 10.10, *) // DispatchQueue qos
     func testMainQueueObservationStartedFromAnotherQueue() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change

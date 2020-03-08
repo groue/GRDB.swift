@@ -20,7 +20,3 @@ extension ValueReducers {
         }
     }
 }
-
-/// :nodoc:
-@available(*, deprecated, renamed: "ValueReducers.Fetch")
-public typealias RawValueReducer<Value> = ValueReducers.Fetch<Value>

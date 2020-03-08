@@ -18,8 +18,6 @@ public struct SQLLiteral {
         case selectable(SQLSelectable)
         case orderingTerm(SQLOrderingTerm)
         case subQuery(SQLLiteral)
-        // TODO: remove when the deprecated SQLLiteral.mapSQL(_:) is removed.
-        case map(SQLLiteral, (String) -> String)
         
         // TODO: remove and use default case argument when compiler >= 5.1
         static func sql(_ sql: String) -> Element {
@@ -43,8 +41,6 @@ public struct SQLLiteral {
                 return orderingTerm.orderingTermSQL(&context)
             case let .subQuery(sqlLiteral):
                 return "(" + sqlLiteral.sql(&context) + ")"
-            case let .map(sqlLiteral, transform):
-                return transform(sqlLiteral.sql(&context))
             }
         }
         
@@ -61,8 +57,6 @@ public struct SQLLiteral {
             case .subQuery:
                 // subqueries are not requalified
                 return self
-            case let .map(sqlLiteral, transform):
-                return .map(sqlLiteral.qualified(with: alias), transform)
             }
         }
     }
@@ -106,12 +100,6 @@ public struct SQLLiteral {
     ///     let emails = try String.fetchAll(db, request)
     public init(_ expression: SQLExpression) {
         self.init(elements: [.expression(expression)])
-    }
-    
-    // TODO: deprecate when SQL interpolation is always available
-    /// Returns a literal whose SQL is transformed by the given closure.
-    public func mapSQL(_ transform: @escaping (String) -> String) -> SQLLiteral {
-        return SQLLiteral(elements: [.map(self, transform)])
     }
     
     func sql(_ context: inout SQLGenerationContext) -> String {
@@ -165,21 +153,21 @@ extension SQLLiteral {
 }
 
 extension SQLLiteral {
-    /// Creates an SQL literal expression.
+    /// Creates a literal SQL expression.
     ///
     ///     SQLLiteral(sql: "1 + 2").sqlExpression
     ///     SQLLiteral(sql: "? + ?", arguments: [1, 2]).sqlExpression
     ///     SQLLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2]).sqlExpression
     public var sqlExpression: SQLExpression {
-        return SQLExpressionLiteral(sqlLiteral: self)
+        return _SQLExpressionLiteral(sqlLiteral: self)
     }
     
     var sqlSelectable: SQLSelectable {
-        return SQLSelectionLiteral(sqlLiteral: self)
+        return _SQLSelectionLiteral(sqlLiteral: self)
     }
     
     var sqlOrderingTerm: SQLOrderingTerm {
-        return SQLOrderingLiteral(sqlLiteral: self)
+        return _SQLOrderingLiteral(sqlLiteral: self)
     }
 }
 
@@ -245,7 +233,7 @@ extension SQLLiteral: ExpressibleByStringInterpolation {
     }
 }
 
-// MARK: - SQLExpressionLiteral
+// MARK: - _SQLExpressionLiteral
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
@@ -257,50 +245,17 @@ extension SQLLiteral: ExpressibleByStringInterpolation {
 ///
 ///     SQLExpressionLiteral(sql: "? + ?", arguments: [1, 2])
 ///     SQLExpressionLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2])
-public struct SQLExpressionLiteral: SQLExpression {
+private struct _SQLExpressionLiteral: SQLExpression {
     private let sqlLiteral: SQLLiteral
     
-    public var sql: String { return sqlLiteral.sql }
-    
-    public var arguments: StatementArguments { return sqlLiteral.arguments }
-    
     // Prefer SQLLiteral.sqlExpression
-    fileprivate init(sqlLiteral: SQLLiteral) {
+    init(sqlLiteral: SQLLiteral) {
         self.sqlLiteral = sqlLiteral
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Creates an SQL literal expression.
-    ///
-    ///     SQLExpressionLiteral(sql: "1 + 2")
-    ///     SQLExpressionLiteral(sql: "? + ?", arguments: [1, 2])
-    ///     SQLExpressionLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2])
-    @available(*, deprecated, message: "Use SQLiteral.sqlExpression instead")
-    public init(sql: String, arguments: StatementArguments = StatementArguments()) {
-        self.init(sqlLiteral: SQLLiteral(sql: sql, arguments: arguments))
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Creates an SQL literal expression.
-    ///
-    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: "1 + 2")
-    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: "? + ?", arguments: [1, 2]))
-    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2]))
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     SQLExpressionLiteral(literal: "\(1) + \(2)")
-    @available(*, deprecated, message: "Use SQLiteral.sqlExpression instead")
-    public init(literal sqlLiteral: SQLLiteral) {
-        self.init(sqlLiteral: sqlLiteral)
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
         if wrappedInParenthesis {
             return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
@@ -309,14 +264,14 @@ public struct SQLExpressionLiteral: SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return sqlLiteral.qualified(with: alias).sqlExpression
     }
 }
 
-// MARK: - SQLSelectionLiteral
+// MARK: - _SQLSelectionLiteral
 
-private struct SQLSelectionLiteral: SQLSelectable {
+private struct _SQLSelectionLiteral: SQLSelectable {
     private let sqlLiteral: SQLLiteral
     
     // Prefer SQLLiteral.sqlSelectable
@@ -331,21 +286,24 @@ private struct SQLSelectionLiteral: SQLSelectable {
     func countedSQL(_ context: inout SQLGenerationContext) -> String {
         fatalError("""
             Selection literals can't be counted. \
-            To resolve this error, select one or several SQLExpressionLiteral instead.
+            To resolve this error, select one or several literal expressions instead. \
+            See SQLLiteral.sqlExpression.
             """)
     }
     
     func count(distinct: Bool) -> SQLCount? {
         fatalError("""
             Selection literals can't be counted. \
-            To resolve this error, select one or several SQLExpressionLiteral instead.
+            To resolve this error, select one or several literal expressions instead. \
+            See SQLLiteral.sqlExpression.
             """)
     }
     
     func columnCount(_ db: Database) throws -> Int {
         fatalError("""
             Selection literals don't known how many columns they contain. \
-            To resolve this error, select one or several SQLExpressionLiteral instead.
+            To resolve this error, select one or several literal expressions instead. \
+            See SQLLiteral.sqlExpression.
             """)
     }
     
@@ -354,9 +312,9 @@ private struct SQLSelectionLiteral: SQLSelectable {
     }
 }
 
-// MARK: - SQLOrderingLiteral
+// MARK: - _SQLOrderingLiteral
 
-private struct SQLOrderingLiteral: SQLOrderingTerm {
+private struct _SQLOrderingLiteral: SQLOrderingTerm {
     private let sqlLiteral: SQLLiteral
     
     // Prefer SQLLiteral.sqlOrderingTerm
