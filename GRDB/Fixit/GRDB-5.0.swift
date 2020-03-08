@@ -30,6 +30,24 @@ extension FetchRequest {
     { preconditionFailure() }
 }
 
+@available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
+public struct SQLExpressionLiteral: SQLExpression {
+    public var sql: String { preconditionFailure() }
+    public var arguments: StatementArguments { preconditionFailure() }
+    
+    public init(sql: String, arguments: StatementArguments = StatementArguments())
+    { preconditionFailure() }
+    
+    public init(literal sqlLiteral: SQLLiteral)
+    { preconditionFailure() }
+    
+    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String
+    { preconditionFailure() }
+    
+    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression
+    { preconditionFailure() }
+}
+
 extension SQLLiteral {
     @available(*, unavailable, message: "Use SQL interpolation instead.")
     public func mapSQL(_ transform: @escaping (String) -> String) -> SQLLiteral
