@@ -9,6 +9,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 [Next Release](#next-release)
 
 
+#### 5.x Releases
+
+- `5.0.x` Development - [GRDB5 Branch](#grdb5-branch)
+
+
 #### 4.x Releases
 
 - `4.11.x` Releases - [4.11.0](#4110)
@@ -81,6 +86,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
     migrator.lastCompletedMigration(in: dbQueue) == "v2"
     migrator.appliedMigrations(in: dbQueue)
     ```
+
+
+## GRDB5 Branch
+
+- [#719](https://github.com/groue/GRDB.swift/pull/719): Bump required Swift version to 5.2
+
 
 ## 4.11.0
 
