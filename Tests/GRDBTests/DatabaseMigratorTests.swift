@@ -159,9 +159,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             // The first migration should be committed.
             // The second migration should be rollbacked.
             
-            // SQLITE_CONSTRAINT_FOREIGNKEY was added in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
-            // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-            XCTAssert((error.resultCode == error.extendedResultCode) || error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+            XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
             XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
             XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
             
@@ -173,11 +171,6 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     func testForeignKeyViolation() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-        guard #available(iOS 8.2, OSX 10.10, *) else {
-            return
-        }
-        #endif
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
             try db.execute(sql: "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, tmp TEXT)")

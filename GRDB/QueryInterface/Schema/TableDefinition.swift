@@ -2,7 +2,6 @@ extension Database {
     
     // MARK: - Database Schema
     
-    #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Creates a database table.
     ///
     ///     try db.create(table: "place") { t in
@@ -42,88 +41,6 @@ extension Database {
         let sql = try definition.sql(self)
         try execute(sql: sql)
     }
-    #else
-    /// Creates a database table.
-    ///
-    ///     try db.create(table: "place") { t in
-    ///         t.autoIncrementedPrimaryKey("id")
-    ///         t.column("title", .text)
-    ///         t.column("favorite", .boolean).notNull().default(false)
-    ///         t.column("longitude", .double).notNull()
-    ///         t.column("latitude", .double).notNull()
-    ///     }
-    ///
-    /// See https://www.sqlite.org/lang_createtable.html and
-    /// https://www.sqlite.org/withoutrowid.html
-    ///
-    /// - parameters:
-    ///     - name: The table name.
-    ///     - temporary: If true, creates a temporary table.
-    ///     - ifNotExists: If false (the default), an error is thrown if the
-    ///       table already exists. Otherwise, the table is created unless it
-    ///       already exists.
-    ///     - withoutRowID: If true, uses WITHOUT ROWID optimization.
-    ///     - body: A closure that defines table columns and constraints.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
-    @available(OSX 10.10, *)
-    public func create(
-        table name: String,
-        temporary: Bool = false,
-        ifNotExists: Bool = false,
-        withoutRowID: Bool,
-        body: (TableDefinition) -> Void)
-        throws
-    {
-        // WITHOUT ROWID was added in SQLite 3.8.2 http://www.sqlite.org/changes.html#version_3_8_2
-        // It is available from iOS 8.2 and OS X 10.10
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        let definition = TableDefinition(
-            name: name,
-            temporary: temporary,
-            ifNotExists: ifNotExists,
-            withoutRowID: withoutRowID)
-        body(definition)
-        let sql = try definition.sql(self)
-        try execute(sql: sql)
-    }
-    
-    /// Creates a database table.
-    ///
-    ///     try db.create(table: "place") { t in
-    ///         t.autoIncrementedPrimaryKey("id")
-    ///         t.column("title", .text)
-    ///         t.column("favorite", .boolean).notNull().default(false)
-    ///         t.column("longitude", .double).notNull()
-    ///         t.column("latitude", .double).notNull()
-    ///     }
-    ///
-    /// See https://www.sqlite.org/lang_createtable.html
-    ///
-    /// - parameters:
-    ///     - name: The table name.
-    ///     - temporary: If true, creates a temporary table.
-    ///     - ifNotExists: If false (the default), an error is thrown if the
-    ///       table already exists. Otherwise, the table is created unless it
-    ///       already exists.
-    ///     - body: A closure that defines table columns and constraints.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func create(
-        table name: String,
-        temporary: Bool = false,
-        ifNotExists: Bool = false,
-        body: (TableDefinition) -> Void)
-        throws
-    {
-        let definition = TableDefinition(
-            name: name,
-            temporary: temporary,
-            ifNotExists: ifNotExists,
-            withoutRowID: false)
-        body(definition)
-        let sql = try definition.sql(self)
-        try execute(sql: sql)
-    }
-    #endif
     
     /// Renames a database table.
     ///
@@ -162,7 +79,6 @@ extension Database {
         try execute(sql: "DROP TABLE \(name.quotedDatabaseIdentifier)")
     }
     
-    #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Creates an index.
     ///
     ///     try db.create(index: "playerByEmail", on: "player", columns: ["email"])
@@ -192,9 +108,6 @@ extension Database {
         condition: SQLExpressible? = nil)
         throws
     {
-        // Partial indexes were introduced in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         let definition = IndexDefinition(
             name: name,
             table: table,
@@ -205,85 +118,6 @@ extension Database {
         let sql = definition.sql()
         try execute(sql: sql)
     }
-    #else
-    /// Creates an index.
-    ///
-    ///     try db.create(index: "playerByEmail", on: "player", columns: ["email"])
-    ///
-    /// SQLite can also index expressions (https://www.sqlite.org/expridx.html)
-    /// and use specific collations. To create such an index, use a raw SQL
-    /// query.
-    ///
-    ///     try db.execute(sql: "CREATE INDEX ...")
-    ///
-    /// See https://www.sqlite.org/lang_createindex.html
-    ///
-    /// - parameters:
-    ///     - name: The index name.
-    ///     - table: The name of the indexed table.
-    ///     - columns: The indexed columns.
-    ///     - unique: If true, creates a unique index.
-    ///     - ifNotExists: If false, no error is thrown if index already exists.
-    public func create(
-        index name: String,
-        on table: String,
-        columns: [String],
-        unique: Bool = false,
-        ifNotExists: Bool = false)
-        throws
-    {
-        // Partial indexes were introduced in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        let definition = IndexDefinition(
-            name: name,
-            table: table,
-            columns: columns,
-            unique: unique,
-            ifNotExists: ifNotExists,
-            condition: nil)
-        let sql = definition.sql()
-        try execute(sql: sql)
-    }
-    
-    /// Creates a partial index.
-    ///
-    ///     try db.create(index: "playerByEmail", on: "player", columns: ["email"], condition: Column("email") != nil)
-    ///
-    /// See https://www.sqlite.org/lang_createindex.html, and
-    /// https://www.sqlite.org/partialindex.html
-    ///
-    /// - parameters:
-    ///     - name: The index name.
-    ///     - table: The name of the indexed table.
-    ///     - columns: The indexed columns.
-    ///     - unique: If true, creates a unique index.
-    ///     - ifNotExists: If false, no error is thrown if index already exists.
-    ///     - condition: The condition that indexed rows must verify.
-    @available(OSX 10.10, *)
-    public func create(
-        index name: String,
-        on table: String,
-        columns: [String],
-        unique: Bool = false,
-        ifNotExists: Bool = false,
-        condition: SQLExpressible)
-        throws
-    {
-        // Partial indexes were introduced in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        let definition = IndexDefinition(
-            name: name,
-            table: table,
-            columns: columns,
-            unique: unique,
-            ifNotExists: ifNotExists,
-            condition: condition.sqlExpression)
-        let sql = definition.sql()
-        try execute(sql: sql)
-    }
-    #endif
     
     /// Deletes a database index.
     ///

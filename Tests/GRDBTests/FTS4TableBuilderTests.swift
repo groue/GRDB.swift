@@ -61,12 +61,6 @@ class FTS4TableBuilderTests: GRDBTestCase {
     }
 
     func testUnicode61Tokenizer() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS4()) { t in
@@ -77,12 +71,6 @@ class FTS4TableBuilderTests: GRDBTestCase {
     }
 
     func testUnicode61TokenizerDiacriticsKeep() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS4()) { t in
@@ -92,6 +80,7 @@ class FTS4TableBuilderTests: GRDBTestCase {
         }
     }
     
+    // TODO: why only custom SQLite build?
     #if GRDBCUSTOMSQLITE
     func testUnicode61TokenizerDiacriticsRemove() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -105,12 +94,6 @@ class FTS4TableBuilderTests: GRDBTestCase {
     #endif
 
     func testUnicode61TokenizerSeparators() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS4()) { t in
@@ -121,12 +104,6 @@ class FTS4TableBuilderTests: GRDBTestCase {
     }
 
     func testUnicode61TokenizerTokenCharacters() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS4()) { t in
@@ -156,12 +133,6 @@ class FTS4TableBuilderTests: GRDBTestCase {
     }
 
     func testNotIndexedColumns() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "books", using: FTS4()) { t in

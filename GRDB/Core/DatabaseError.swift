@@ -159,18 +159,7 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
 // CustomStringConvertible
 extension ResultCode {
     var errorString: String? {
-        // sqlite3_errstr was added in SQLite 3.7.15 http://www.sqlite.org/changes.html#version_3_7_15
-        // It is available from iOS 8.2 and OS X 10.10
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
         return String(cString: sqlite3_errstr(rawValue))
-        #else
-        if #available(iOS 8.2, OSX 10.10, OSXApplicationExtension 10.10, *) {
-            return String(cString: sqlite3_errstr(rawValue))
-        } else {
-            return nil
-        }
-        #endif
     }
     
     /// :nodoc:

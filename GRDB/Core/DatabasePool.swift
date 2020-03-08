@@ -365,9 +365,8 @@ extension DatabasePool: DatabaseReader {
     ///         }
     ///     }
     ///
-    /// Starting SQLite 3.8.0 (iOS 8.2+, OSX 10.10+, custom SQLite builds and
-    /// SQLCipher), attempts to write in the database from this method throw a
-    /// DatabaseError of resultCode `SQLITE_READONLY`.
+    /// Attempts to write in the database from this method throw a DatabaseError
+    /// of resultCode `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
