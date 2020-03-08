@@ -1168,7 +1168,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.select(customFunction.apply(Col.age, 1, 2))),
+            sql(dbQueue, tableRequest.select(customFunction(Col.age, 1, 2))),
             "SELECT avgOf(\"age\", 1, 2) FROM \"readers\"")
     }
 }

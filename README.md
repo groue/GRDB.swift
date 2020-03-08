@@ -1836,7 +1836,7 @@ try dbQueue.read { db in
 
 ```swift
 // SELECT reverseString("name") FROM player
-Player.select(reverseString.apply(nameColumn))
+Player.select(reverseString(nameColumn))
 ```
 
 
