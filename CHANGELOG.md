@@ -92,6 +92,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - [#719](https://github.com/groue/GRDB.swift/pull/719): Bump required Swift version to 5.2
 - [#720](https://github.com/groue/GRDB.swift/pull/720): Turn deprecated APIs into unavailable ones
+- [#721](https://github.com/groue/GRDB.swift/pull/721): SE-0249: Key Path Expressions as Functions
 
 
 ## 4.11.0
