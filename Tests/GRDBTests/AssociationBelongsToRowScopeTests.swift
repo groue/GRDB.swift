@@ -45,7 +45,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = Player.joining(required: Player.defaultTeam)
-            let (_, adapter) = try request.prepare(db, forSingleResult: false)
+            let adapter = try request.makePreparedRequest(db, forSingleResult: false).adapter
             XCTAssertNil(adapter)
         }
     }

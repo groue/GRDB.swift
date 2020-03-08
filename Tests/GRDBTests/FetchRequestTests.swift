@@ -7,33 +7,6 @@ import XCTest
 
 class FetchRequestTests: GRDBTestCase {
     
-    // TODO: remove when we remove the deprecated prepare(_:forSingleResult:) method
-    func testDeprecatedPrepareMethod() throws {
-        struct CustomRequest : FetchRequest {
-            typealias RowDecoder = Row
-            // This method is deprecated but we must support it
-            func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
-                return try (db.makeSelectStatement(sql: "SELECT * FROM table1"), nil)
-            }
-        }
-        
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            try db.create(table: "table1") { t in
-                t.column("id", .integer).primaryKey()
-            }
-            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
-            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
-            
-            let request = CustomRequest()
-            let rows = try request.fetchAll(db)
-            XCTAssertEqual(lastSQLQuery, "SELECT * FROM table1")
-            XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0], ["id": 1])
-            XCTAssertEqual(rows[1], ["id": 2])
-        }
-    }
-
     func testRequestFetchRows() throws {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row

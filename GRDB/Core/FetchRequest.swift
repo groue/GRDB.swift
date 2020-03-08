@@ -49,20 +49,6 @@ public protocol FetchRequest: DatabaseRegionConvertible {
     /// The type that tells how fetched database rows should be interpreted.
     associatedtype RowDecoder
     
-    // TODO: remove when we remove the deprecated prepare(_:forSingleResult:) method
-    /// This method is deprecated. Use
-    /// `makePreparedRequest(_:forSingleResult:)` instead.
-    ///
-    /// Returns a tuple that contains a prepared statement that is ready to be
-    /// executed, and an eventual row adapter.
-    ///
-    /// - parameter db: A database connection.
-    /// - parameter singleResult: A hint that a single result row will be
-    ///   consumed. Implementations can optionally use this to optimize the
-    ///   prepared statement.
-    /// - returns: A prepared statement and an eventual row adapter.
-    func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
-    
     /// Returns a PreparedRequest that is ready to be executed.
     ///
     /// - parameter db: A database connection.
@@ -113,21 +99,6 @@ extension FetchRequest {
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
         let request = try makePreparedRequest(db, forSingleResult: false)
         return request.statement.databaseRegion
-    }
-    
-    // Support for legacy requests which only define prepare(_:forSingleResult:)
-    // TODO: remove when we remove the deprecated prepare(_:forSingleResult:) method
-    /// :nodoc:
-    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        let (statement, adapter) = try prepare(db, forSingleResult: singleResult)
-        return PreparedRequest(statement: statement, adapter: adapter)
-    }
-    
-    // TODO: remove when we remove the deprecated prepare(_:forSingleResult:) method
-    /// :nodoc:
-    public func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
-        let request = try makePreparedRequest(db, forSingleResult: singleResult)
-        return (request.statement, request.adapter)
     }
 }
 
@@ -187,27 +158,6 @@ public struct AnyFetchRequest<T>: FetchRequest {
         _preparedRequest = request.makePreparedRequest
         _fetchCount = request.fetchCount
         _databaseRegion = request.databaseRegion
-    }
-    
-    /// Creates a request whose `prepare()` method wraps and forwards
-    /// operations the argument closure.
-    @available(*, deprecated, message: "Define your own FetchRequest type instead.")
-    public init(_ prepare: @escaping (Database, _ singleResult: Bool) throws -> (SelectStatement, RowAdapter?)) {
-        _preparedRequest = { db, singleResult in
-            let (statement, adapter) = try prepare(db, singleResult)
-            return PreparedRequest(statement: statement, adapter: adapter)
-        }
-        
-        _fetchCount = { db in
-            let (statement, _) = try prepare(db, false)
-            let sql = "SELECT COUNT(*) FROM (\(statement.sql))"
-            return try Int.fetchOne(db, sql: sql, arguments: statement.arguments)!
-        }
-        
-        _databaseRegion = { db in
-            let (statement, _) = try prepare(db, false)
-            return statement.databaseRegion
-        }
     }
     
     /// :nodoc:
