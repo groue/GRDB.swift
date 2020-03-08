@@ -3,8 +3,7 @@
 <p align="center"><strong>A toolkit for SQLite databases, with a focus on application development</strong></p>
 
 <p align="center">
-    <a href="https://developer.apple.com/swift/"><img alt="Swift 4.2" src="https://img.shields.io/badge/swift-4.2-orange.svg?style=flat"></a>
-    <a href="https://developer.apple.com/swift/"><img alt="Swift 5" src="https://img.shields.io/badge/swift-5-orange.svg?style=flat"></a>
+    <a href="https://developer.apple.com/swift/"><img alt="Swift 5.2" src="https://img.shields.io/badge/swift-5.2-orange.svg?style=flat"></a>
     <a href="https://developer.apple.com/swift/"><img alt="Platforms" src="https://img.shields.io/cocoapods/p/GRDB.swift.svg"></a>
     <a href="https://github.com/groue/GRDB.swift/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000"></a>
     <a href="https://travis-ci.org/groue/GRDB.swift"><img alt="Build Status" src="https://travis-ci.org/groue/GRDB.swift.svg?branch=master"></a>
@@ -14,12 +13,14 @@
 
 **Latest release**: [Branch GRDB5](https://github.com/groue/GRDB.swift/tree/GRDB5) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 3 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
 
-**Requirements**: iOS 9.0+ / macOS 10.9+ / tvOS 9.0+ / watchOS 2.0+ &bull; Swift 4.2+ / Xcode 10.0+
+**Requirements**: iOS 9.0+ / macOS 10.9+ / tvOS 9.0+ / watchOS 2.0+ &bull; Swift 5.2+ / Xcode 11.4+
 
 | Swift version | GRDB version                                                |
 | ------------- | ----------------------------------------------------------- |
-| **Swift 5**   | **v4.11.0**                                                  |
-| **Swift 4.2** | **v4.11.0**                                                  |
+| **Swift 5.2** | [Branch GRDB5](https://github.com/groue/GRDB.swift/tree/GRDB5) |
+| Swift 5.1     | [v4.11.0](https://github.com/groue/GRDB.swift/tree/v4.11.0) |
+| Swift 5       | [v4.11.0](https://github.com/groue/GRDB.swift/tree/v4.11.0) |
+| Swift 4.2     | [v4.11.0](https://github.com/groue/GRDB.swift/tree/v4.11.0) |
 | Swift 4.1     | [v3.7.0](https://github.com/groue/GRDB.swift/tree/v3.7.0)   |
 | Swift 4       | [v2.10.0](https://github.com/groue/GRDB.swift/tree/v2.10.0) |
 | Swift 3.2     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
