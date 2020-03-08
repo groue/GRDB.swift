@@ -55,7 +55,7 @@ public /* TODO: internal */ struct SQLAssociation {
     // All steps, from pivot to destination. Never empty.
     private(set) var steps: [SQLAssociationStep]
     var keyPath: [String] {
-        return steps.map { $0.keyName }
+        return steps.map(\.keyName)
     }
     
     var destination: SQLAssociationStep {

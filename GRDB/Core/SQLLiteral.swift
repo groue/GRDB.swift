@@ -183,9 +183,9 @@ extension Sequence where Element == SQLLiteral {
     ///     let query = components.joined(separator: " ")
     public func joined(separator: String = "") -> SQLLiteral {
         if separator.isEmpty {
-            return SQLLiteral(elements: flatMap { $0.elements })
+            return SQLLiteral(elements: flatMap(\.elements))
         } else {
-            return SQLLiteral(elements: Array(map { $0.elements }.joined(separator: CollectionOfOne(.sql(separator)))))
+            return SQLLiteral(elements: Array(map(\.elements).joined(separator: CollectionOfOne(.sql(separator)))))
         }
     }
 }
@@ -202,9 +202,9 @@ extension Collection where Element == SQLLiteral {
     ///     let query = components.joined(separator: " ")
     public func joined(separator: String = "") -> SQLLiteral {
         if separator.isEmpty {
-            return SQLLiteral(elements: flatMap { $0.elements })
+            return SQLLiteral(elements: flatMap(\.elements))
         } else {
-            return SQLLiteral(elements: Array(map { $0.elements }.joined(separator: CollectionOfOne(.sql(separator)))))
+            return SQLLiteral(elements: Array(map(\.elements).joined(separator: CollectionOfOne(.sql(separator)))))
         }
     }
 }

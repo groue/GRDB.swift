@@ -370,7 +370,7 @@ struct SQLQueryGenerator {
         
         // Grouping by some column(s) which are unique
         // SELECT * FROM player GROUP BY id
-        let columnNames = qualifiedColumns.map { $0.name }
+        let columnNames = qualifiedColumns.map(\.name)
         if try db.table(tableName, hasUniqueKey: columnNames) {
             return .unique
         }

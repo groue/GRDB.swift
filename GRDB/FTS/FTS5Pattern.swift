@@ -128,7 +128,7 @@ extension Database {
     ///     try db.makeFTS5Pattern(rawPattern: "and", forTable: "document") // OK
     ///     try db.makeFTS5Pattern(rawPattern: "AND", forTable: "document") // malformed MATCH expression: [AND]
     public func makeFTS5Pattern(rawPattern: String, forTable table: String) throws -> FTS5Pattern {
-        return try FTS5Pattern(rawPattern: rawPattern, allowedColumns: columns(in: table).map { $0.name })
+        return try FTS5Pattern(rawPattern: rawPattern, allowedColumns: columns(in: table).map(\.name))
     }
 }
 

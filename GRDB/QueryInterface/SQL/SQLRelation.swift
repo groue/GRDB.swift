@@ -220,7 +220,7 @@ extension SQLRelation: KeyPathRefining {
     }
     
     func reversed() -> SQLRelation {
-        return map(\.ordering, { $0.reversed })
+        return map(\.ordering, \.reversed)
     }
     
     func unordered() -> SQLRelation {
@@ -415,7 +415,7 @@ extension SQLRelation {
             var reversed: Element {
                 switch self {
                 case .terms(let terms):
-                    return .terms(terms.map { $0.map { $0.reversed } })
+                    return .terms(terms.map { $0.map(\.reversed) })
                 case .ordering(let ordering):
                     return .ordering(ordering.reversed)
                 }

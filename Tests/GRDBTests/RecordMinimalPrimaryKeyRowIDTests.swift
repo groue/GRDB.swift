@@ -260,7 +260,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             do {
                 let cursor = try MinimalRowID.fetchCursor(db, keys: [["id": record1.id], ["id": record2.id]])
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set([record1.id, record2.id]))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
@@ -289,7 +289,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             do {
                 let fetchedRecords = try MinimalRowID.fetchAll(db, keys: [["id": record1.id], ["id": record2.id]])
                 XCTAssertEqual(fetchedRecords.count, 2)
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set([record1.id, record2.id]))
             }
             
             do {
@@ -331,7 +331,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             do {
                 let cursor = try MinimalRowID.filter(keys: [["id": record1.id], ["id": record2.id]]).fetchCursor(db)
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set([record1.id, record2.id]))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
@@ -360,7 +360,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             do {
                 let fetchedRecords = try MinimalRowID.filter(keys: [["id": record1.id], ["id": record2.id]]).fetchAll(db)
                 XCTAssertEqual(fetchedRecords.count, 2)
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set([record1.id, record2.id]))
             }
             
             do {
@@ -416,7 +416,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 let ids = [record1.id!, record2.id!]
                 let cursor = try MinimalRowID.fetchCursor(db, keys: ids)
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
         }
@@ -440,7 +440,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 let ids = [record1.id!, record2.id!]
                 let fetchedRecords = try MinimalRowID.fetchAll(db, keys: ids)
                 XCTAssertEqual(fetchedRecords.count, 2)
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
         }
     }
@@ -486,7 +486,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 let ids = [record1.id!, record2.id!]
                 let cursor = try MinimalRowID.filter(keys: ids).fetchCursor(db)
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
         }
@@ -510,7 +510,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 let ids = [record1.id!, record2.id!]
                 let fetchedRecords = try MinimalRowID.filter(keys: ids).fetchAll(db)
                 XCTAssertEqual(fetchedRecords.count, 2)
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
         }
     }

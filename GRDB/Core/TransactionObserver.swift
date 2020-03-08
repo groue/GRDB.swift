@@ -504,7 +504,7 @@ class DatabaseObservationBroker {
     /// Remove transaction observers that have stopped observing transaction,
     /// and uninstall SQLite update hooks if there is no remaining observers.
     private func databaseDidEndTransaction() {
-        transactionObservations = transactionObservations.filter { $0.isObserving }
+        transactionObservations = transactionObservations.filter(\.isObserving)
         
         // Undo disableUntilNextTransaction(transactionObserver:)
         for observation in transactionObservations {

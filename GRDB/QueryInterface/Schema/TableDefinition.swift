@@ -397,7 +397,7 @@ public final class TableDefinition {
                 if let (columns, conflictResolution) = primaryKeyConstraint {
                     var chunks: [String] = []
                     chunks.append("PRIMARY KEY")
-                    chunks.append("(\(columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", ")))")
+                    chunks.append("(\(columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))")
                     if let conflictResolution = conflictResolution {
                         chunks.append("ON CONFLICT")
                         chunks.append(conflictResolution.rawValue)
@@ -408,7 +408,7 @@ public final class TableDefinition {
                 for (columns, conflictResolution) in uniqueKeyConstraints {
                     var chunks: [String] = []
                     chunks.append("UNIQUE")
-                    chunks.append("(\(columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", ")))")
+                    chunks.append("(\(columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))")
                     if let conflictResolution = conflictResolution {
                         chunks.append("ON CONFLICT")
                         chunks.append(conflictResolution.rawValue)
@@ -419,25 +419,25 @@ public final class TableDefinition {
                 for constraint in foreignKeyConstraints {
                     var chunks: [String] = []
                     chunks.append("FOREIGN KEY")
-                    chunks.append("(\(constraint.columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", ")))")
+                    chunks.append("(\(constraint.columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))")
                     chunks.append("REFERENCES")
                     if let destinationColumns = constraint.destinationColumns {
                         chunks.append("""
                             \(constraint.table.quotedDatabaseIdentifier)(\
-                            \(destinationColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                            \(destinationColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", "))\
                             )
                             """)
                     } else if constraint.table == name {
                         chunks.append("""
                             \(constraint.table.quotedDatabaseIdentifier)(\
-                            \(primaryKeyColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                            \(primaryKeyColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", "))\
                             )
                             """)
                     } else {
                         let primaryKey = try db.primaryKey(constraint.table)
                         chunks.append("""
                             \(constraint.table.quotedDatabaseIdentifier)(\
-                            \(primaryKey.columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                            \(primaryKey.columns.map(\.quotedDatabaseIdentifier).joined(separator: ", "))\
                             )
                             """)
                     }
@@ -906,7 +906,7 @@ public final class ColumnDefinition {
                 let primaryKeyColumns = try primaryKeyColumns ?? db.primaryKey(constraint.table).columns
                 chunks.append("""
                     \(constraint.table.quotedDatabaseIdentifier)(\
-                    \(primaryKeyColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                    \(primaryKeyColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", "))\
                     )
                     """)
             } else {
@@ -914,7 +914,7 @@ public final class ColumnDefinition {
                 let primaryKeyColumns = try db.primaryKey(constraint.table).columns
                 chunks.append("""
                     \(constraint.table.quotedDatabaseIdentifier)(\
-                    \(primaryKeyColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                    \(primaryKeyColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", "))\
                     )
                     """)
             }
@@ -972,7 +972,7 @@ private struct IndexDefinition {
         chunks.append("ON")
         chunks.append("""
             \(table.quotedDatabaseIdentifier)(\
-            \(columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+            \(columns.map(\.quotedDatabaseIdentifier).joined(separator: ", "))\
             )
             """)
         if let condition = condition {

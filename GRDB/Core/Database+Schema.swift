@@ -152,7 +152,7 @@ extension Database {
             }
         default:
             // Multi-columns primary key
-            primaryKey = .regular(pkColumns.map { $0.name })
+            primaryKey = .regular(pkColumns.map(\.name))
         }
         
         schemaCache.set(primaryKey: primaryKey, forTable: tableName)
@@ -589,12 +589,12 @@ public struct ForeignKeyInfo {
     
     /// The origin columns
     public var originColumns: [String] {
-        return mapping.map { $0.origin }
+        return mapping.map(\.origin)
     }
     
     /// The destination columns
     public var destinationColumns: [String] {
-        return mapping.map { $0.destination }
+        return mapping.map(\.destination)
     }
 }
 

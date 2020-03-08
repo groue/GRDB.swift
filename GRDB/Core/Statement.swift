@@ -679,7 +679,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
     public init<Sequence: Swift.Sequence>(_ sequence: Sequence) where Sequence.Element: DatabaseValueConvertible {
-        values = sequence.map { $0.databaseValue }
+        values = sequence.map(\.databaseValue)
     }
     
     /// Creates statement arguments from any array. The result is nil unless all
@@ -976,7 +976,7 @@ extension StatementArguments {
 extension StatementArguments {
     /// :nodoc:
     public var description: String {
-        let valuesDescriptions = values.map { $0.description }
+        let valuesDescriptions = values.map(\.description)
         let namedValuesDescriptions = namedValues.map { (key, value) -> String in
             "\(String(reflecting: key)): \(value)"
         }

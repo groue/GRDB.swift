@@ -222,7 +222,7 @@ extension MutablePersistableRecord {
         throws
         where Sequence: Swift.Sequence, Sequence.Element: ColumnExpression
     {
-        try update(db, columns: Set(columns.map { $0.name }))
+        try update(db, columns: Set(columns.map(\.name)))
     }
     
     /// Executes an UPDATE statement.
@@ -248,7 +248,7 @@ extension MutablePersistableRecord {
     public func update(_ db: Database) throws {
         let databaseTableName = type(of: self).databaseTableName
         let columns = try db.columns(in: databaseTableName)
-        try update(db, columns: Set(columns.map { $0.name }))
+        try update(db, columns: Set(columns.map(\.name)))
     }
     
     /// If the record has any difference from the other record, executes an
@@ -884,7 +884,7 @@ final class DAO<Record: MutablePersistableRecord> {
         
         var updatedColumns: [String] = try db
             .columns(in: databaseTableName)
-            .map { $0.name }
+            .map(\.name)
             .filter { lowercaseUpdatedColumns.contains($0.lowercased()) }
         
         if updatedColumns.isEmpty {
@@ -980,7 +980,7 @@ extension InsertQuery {
         if let sql = InsertQuery.sqlCache.read({ $0[self] }) {
             return sql
         }
-        let columnsSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", ")
+        let columnsSQL = insertedColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
         let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
         let sql: String
         switch onConflict {

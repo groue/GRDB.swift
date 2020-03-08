@@ -56,7 +56,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
+            XCTAssertEqual(results.map { $0.map(\.rawValue)}, [
                 [],
                 ["foo"],
                 ["foo", "bar"],
@@ -97,7 +97,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
+            XCTAssertEqual(results.map { $0.map(\.rawValue)}, [
                 nil,
                 "foo",
                 "bar",
@@ -177,7 +177,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
+            XCTAssertEqual(results.map { $0.map(\.rawValue)}, [
                 nil,
                 "foo",
                 "bar",
@@ -234,7 +234,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results.map { $0.map { $0.rawValue }}, [
+            XCTAssertEqual(results.map { $0.map(\.rawValue)}, [
                 [],
                 ["foo"],
                 ["foo", "bar"],

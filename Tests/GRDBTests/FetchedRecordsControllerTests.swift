@@ -226,7 +226,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 0)
         XCTAssertEqual(recorder.recordsOnFirstEvent.count, 1)
-        XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Arthur"])
+        XCTAssertEqual(recorder.recordsOnFirstEvent.map(\.name), ["Arthur"])
         XCTAssertEqual(recorder.changes.count, 1)
         XCTAssertEqual(recorder.changes[0].record.id, 1)
         XCTAssertEqual(recorder.changes[0].record.name, "Arthur")
@@ -248,9 +248,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
-        XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur"])
+        XCTAssertEqual(recorder.recordsBeforeChanges.map(\.name), ["Arthur"])
         XCTAssertEqual(recorder.recordsOnFirstEvent.count, 2)
-        XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Arthur", "Barbara"])
+        XCTAssertEqual(recorder.recordsOnFirstEvent.map(\.name), ["Arthur", "Barbara"])
         XCTAssertEqual(recorder.changes.count, 1)
         XCTAssertEqual(recorder.changes[0].record.id, 2)
         XCTAssertEqual(recorder.changes[0].record.name, "Barbara")
@@ -299,9 +299,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
-        XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
+        XCTAssertEqual(recorder.recordsBeforeChanges.map(\.name), ["Arthur", "Barbara"])
         XCTAssertEqual(recorder.recordsOnFirstEvent.count, 2)
-        XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Craig", "Barbara"])
+        XCTAssertEqual(recorder.recordsOnFirstEvent.map(\.name), ["Craig", "Barbara"])
         XCTAssertEqual(recorder.changes.count, 1)
         XCTAssertEqual(recorder.changes[0].record.id, 1)
         XCTAssertEqual(recorder.changes[0].record.name, "Craig")
@@ -324,9 +324,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
-        XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Craig", "Barbara"])
+        XCTAssertEqual(recorder.recordsBeforeChanges.map(\.name), ["Craig", "Barbara"])
         XCTAssertEqual(recorder.recordsOnFirstEvent.count, 2)
-        XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Craig", "Danielle"])
+        XCTAssertEqual(recorder.recordsOnFirstEvent.map(\.name), ["Craig", "Danielle"])
         XCTAssertEqual(recorder.changes.count, 1)
         XCTAssertEqual(recorder.changes[0].record.id, 2)
         XCTAssertEqual(recorder.changes[0].record.name, "Danielle")
@@ -369,9 +369,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
-        XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
+        XCTAssertEqual(recorder.recordsBeforeChanges.map(\.name), ["Arthur", "Barbara"])
         XCTAssertEqual(recorder.recordsOnFirstEvent.count, 1)
-        XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Barbara"])
+        XCTAssertEqual(recorder.recordsOnFirstEvent.map(\.name), ["Barbara"])
         XCTAssertEqual(recorder.changes.count, 1)
         XCTAssertEqual(recorder.changes[0].record.id, 1)
         XCTAssertEqual(recorder.changes[0].record.name, "Arthur")
@@ -391,7 +391,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
-        XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Barbara"])
+        XCTAssertEqual(recorder.recordsBeforeChanges.map(\.name), ["Barbara"])
         XCTAssertEqual(recorder.recordsOnFirstEvent.count, 0)
         XCTAssertEqual(recorder.changes.count, 1)
         XCTAssertEqual(recorder.changes[0].record.id, 2)
@@ -435,9 +435,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
-        XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
+        XCTAssertEqual(recorder.recordsBeforeChanges.map(\.name), ["Arthur", "Barbara"])
         XCTAssertEqual(recorder.recordsOnFirstEvent.count, 2)
-        XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Barbara", "Craig"])
+        XCTAssertEqual(recorder.recordsOnFirstEvent.map(\.name), ["Barbara", "Craig"])
         XCTAssertEqual(recorder.changes.count, 1)
         XCTAssertEqual(recorder.changes[0].record.id, 1)
         XCTAssertEqual(recorder.changes[0].record.name, "Craig")
@@ -487,10 +487,10 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
-        XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur"])
+        XCTAssertEqual(recorder.recordsBeforeChanges.map(\.name), ["Arthur"])
         XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.bookCount! }, [1])
         XCTAssertEqual(recorder.recordsOnFirstEvent.count, 1)
-        XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Arthur"])
+        XCTAssertEqual(recorder.recordsOnFirstEvent.map(\.name), ["Arthur"])
         XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.bookCount! }, [0])
         XCTAssertEqual(recorder.changes.count, 1)
         XCTAssertEqual(recorder.changes[0].record.id, 1)
@@ -662,9 +662,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
-        XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
+        XCTAssertEqual(recorder.recordsBeforeChanges.map(\.name), ["Arthur", "Barbara"])
         XCTAssertEqual(recorder.recordsOnFirstEvent.count, 2)
-        XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Barbara", "Arthur"])
+        XCTAssertEqual(recorder.recordsOnFirstEvent.map(\.name), ["Barbara", "Arthur"])
         XCTAssertEqual(recorder.changes.count, 1)
         XCTAssertEqual(recorder.changes[0].record.id, 2)
         XCTAssertEqual(recorder.changes[0].record.name, "Barbara")
@@ -683,9 +683,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
-        XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Barbara", "Arthur"])
+        XCTAssertEqual(recorder.recordsBeforeChanges.map(\.name), ["Barbara", "Arthur"])
         XCTAssertEqual(recorder.recordsOnFirstEvent.count, 1)
-        XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Craig"])
+        XCTAssertEqual(recorder.recordsOnFirstEvent.map(\.name), ["Craig"])
         XCTAssertEqual(recorder.changes.count, 2)
         XCTAssertEqual(recorder.changes[0].record.id, 2)
         XCTAssertEqual(recorder.changes[0].record.name, "Barbara")
@@ -714,9 +714,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
-        XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Craig"])
+        XCTAssertEqual(recorder.recordsBeforeChanges.map(\.name), ["Craig"])
         XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
-        XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
+        XCTAssertEqual(recorder.recordsAfterChanges.map(\.name), ["Arthur", "Barbara"])
         
         recorder.transactionExpectation = expectation(description: "expectation")
         try dbQueue.inTransaction { db in
@@ -726,9 +726,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
-        XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
+        XCTAssertEqual(recorder.recordsBeforeChanges.map(\.name), ["Arthur", "Barbara"])
         XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
-        XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
+        XCTAssertEqual(recorder.recordsAfterChanges.map(\.name), ["Arthur", "Barbara"])
         
         recorder.transactionExpectation = expectation(description: "expectation")
         try dbQueue.inTransaction { db in
@@ -738,9 +738,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 2)
-        XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur", "Barbara"])
+        XCTAssertEqual(recorder.recordsBeforeChanges.map(\.name), ["Arthur", "Barbara"])
         XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
-        XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
+        XCTAssertEqual(recorder.recordsAfterChanges.map(\.name), ["Arthur", "Barbara"])
     }
 
     func testSetCallbacksAfterUpdate() throws {
@@ -766,7 +766,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 0)
         XCTAssertEqual(recorder.recordsOnFirstEvent.count, 1)
-        XCTAssertEqual(recorder.recordsOnFirstEvent.map { $0.name }, ["Arthur"])
+        XCTAssertEqual(recorder.recordsOnFirstEvent.map(\.name), ["Arthur"])
         XCTAssertEqual(recorder.changes.count, 1)
         XCTAssertEqual(recorder.changes[0].record.id, 1)
         XCTAssertEqual(recorder.changes[0].record.name, "Arthur")
@@ -795,7 +795,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
             return .commit
         }
         waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(persons.map { $0.name }, ["Arthur"])
+        XCTAssertEqual(persons.map(\.name), ["Arthur"])
     }
 
     func testFetchAlongside() throws {
@@ -820,7 +820,7 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 0)
         XCTAssertEqual(recorder.recordsAfterChanges.count, 1)
-        XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur"])
+        XCTAssertEqual(recorder.recordsAfterChanges.map(\.name), ["Arthur"])
         XCTAssertEqual(recorder.countBeforeChanges!, 1)
         XCTAssertEqual(recorder.countAfterChanges!, 1)
         
@@ -835,9 +835,9 @@ class FetchedRecordsControllerTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
         
         XCTAssertEqual(recorder.recordsBeforeChanges.count, 1)
-        XCTAssertEqual(recorder.recordsBeforeChanges.map { $0.name }, ["Arthur"])
+        XCTAssertEqual(recorder.recordsBeforeChanges.map(\.name), ["Arthur"])
         XCTAssertEqual(recorder.recordsAfterChanges.count, 2)
-        XCTAssertEqual(recorder.recordsAfterChanges.map { $0.name }, ["Arthur", "Barbara"])
+        XCTAssertEqual(recorder.recordsAfterChanges.map(\.name), ["Arthur", "Barbara"])
         XCTAssertEqual(recorder.countBeforeChanges!, 2)
         XCTAssertEqual(recorder.countAfterChanges!, 2)
     }

@@ -144,7 +144,7 @@ class DerivableRequestTests: GRDBTestCase {
             let frenchAuthorNames = try Author.all()
                 .filter(country: "FR")
                 .fetchAll(db)
-                .map { $0.fullName }
+                .map(\.fullName)
             XCTAssertEqual(frenchAuthorNames, ["Marcel Proust"])
             
             // ... for two requests (2)
@@ -152,7 +152,7 @@ class DerivableRequestTests: GRDBTestCase {
                 .joining(required: Book.author.filter(country: "FR"))
                 .order(Column("title"))
                 .fetchAll(db)
-                .map { $0.title }
+                .map(\.title)
             XCTAssertEqual(frenchBookTitles, ["Du côté de chez Swann"])
         }
     }
@@ -166,7 +166,7 @@ class DerivableRequestTests: GRDBTestCase {
             let authorNames = try Author.all()
                 .orderByFullName()
                 .fetchAll(db)
-                .map { $0.fullName }
+                .map(\.fullName)
             XCTAssertEqual(authorNames, ["Herman Melville", "Marcel Proust"])
             XCTAssertEqual(lastSQLQuery, """
                 SELECT * FROM "author" \
@@ -179,7 +179,7 @@ class DerivableRequestTests: GRDBTestCase {
                 .orderByFullName()
                 .reversed()
                 .fetchAll(db)
-                .map { $0.fullName }
+                .map(\.fullName)
             XCTAssertEqual(reversedAuthorNames, ["Marcel Proust", "Herman Melville"])
             XCTAssertEqual(lastSQLQuery, """
                 SELECT * FROM "author" \
@@ -202,7 +202,7 @@ class DerivableRequestTests: GRDBTestCase {
                 .joining(required: Book.author.orderByFullName())
                 .orderByTitle()
                 .fetchAll(db)
-                .map { $0.title }
+                .map(\.title)
             XCTAssertEqual(bookTitles, ["Du côté de chez Swann", "Moby-Dick"])
             XCTAssertEqual(lastSQLQuery, """
                 SELECT "book".* FROM "book" \
@@ -219,7 +219,7 @@ class DerivableRequestTests: GRDBTestCase {
                 .orderByTitle()
                 .reversed()
                 .fetchAll(db)
-                .map { $0.title }
+                .map(\.title)
             XCTAssertEqual(reversedBookTitles, ["Moby-Dick", "Du côté de chez Swann"])
             XCTAssertEqual(lastSQLQuery, """
                 SELECT "book".* FROM "book" \
@@ -280,7 +280,7 @@ class DerivableRequestTests: GRDBTestCase {
                     .filter(authorCountry: "FR")
                     .order(Column("title"))
                     .fetchAll(db)
-                    .map { $0.title }
+                    .map(\.title)
                 XCTAssertEqual(frenchBookTitles, ["Du côté de chez Swann"])
                 XCTAssertEqual(lastSQLQuery, """
                     SELECT "book".* \
@@ -296,7 +296,7 @@ class DerivableRequestTests: GRDBTestCase {
                     .joining(required: Author.books.filter(authorCountry: "FR"))
                     .order(Column("firstName"))
                     .fetchAll(db)
-                    .map { $0.fullName }
+                    .map(\.fullName)
                 XCTAssertEqual(frenchAuthorFullNames, ["Marcel Proust"])
                 XCTAssertEqual(lastSQLQuery, """
                     SELECT "author1".* \
@@ -318,7 +318,7 @@ class DerivableRequestTests: GRDBTestCase {
                 let title = try Book.all()
                     .filter(id: 2)
                     .fetchOne(db)
-                    .map { $0.title }
+                    .map(\.title)
                 XCTAssertEqual(title, "Du côté de chez Swann")
                 XCTAssertEqual(lastSQLQuery, """
                     SELECT * FROM "book" WHERE "id" = 2
@@ -327,7 +327,7 @@ class DerivableRequestTests: GRDBTestCase {
                 let fullName = try Author
                     .joining(required: Author.books.filter(id: 2))
                     .fetchOne(db)
-                    .map { $0.fullName }
+                    .map(\.fullName)
                 XCTAssertEqual(fullName, "Marcel Proust")
                 XCTAssertEqual(lastSQLQuery, """
                     SELECT "author".* FROM "author" \
@@ -342,7 +342,7 @@ class DerivableRequestTests: GRDBTestCase {
                 let title = try Book.all()
                     .matchingFts4(FTS3Pattern(rawPattern: "moby dick"))
                     .fetchOne(db)
-                    .map { $0.title }
+                    .map(\.title)
                 XCTAssertEqual(title, "Moby-Dick")
                 XCTAssert(sqlQueries.contains("""
                     SELECT "book".* FROM "book" \
@@ -354,7 +354,7 @@ class DerivableRequestTests: GRDBTestCase {
                 let fullName = try Author
                     .joining(required: Author.books.matchingFts4(FTS3Pattern(rawPattern: "moby dick")))
                     .fetchOne(db)
-                    .map { $0.fullName }
+                    .map(\.fullName)
                 XCTAssertEqual(fullName, "Herman Melville")
                 XCTAssert(sqlQueries.contains("""
                     SELECT "author".* FROM "author" \
@@ -371,7 +371,7 @@ class DerivableRequestTests: GRDBTestCase {
                 let title = try Book.all()
                     .matchingFts5(FTS3Pattern(rawPattern: "cote swann"))
                     .fetchOne(db)
-                    .map { $0.title }
+                    .map(\.title)
                 XCTAssertEqual(title, "Du côté de chez Swann")
                 XCTAssert(sqlQueries.contains("""
                     SELECT "book".* FROM "book" \
@@ -383,7 +383,7 @@ class DerivableRequestTests: GRDBTestCase {
                 let fullName = try Author
                     .joining(required: Author.books.matchingFts5(FTS3Pattern(rawPattern: "cote swann")))
                     .fetchOne(db)
-                    .map { $0.fullName }
+                    .map(\.fullName)
                 XCTAssertEqual(fullName, "Marcel Proust")
                 XCTAssert(sqlQueries.contains("""
                     SELECT "author".* FROM "author" \
@@ -399,7 +399,7 @@ class DerivableRequestTests: GRDBTestCase {
                 let titles = try Book.all()
                     .orderById()
                     .fetchAll(db)
-                    .map { $0.title }
+                    .map(\.title)
                 XCTAssertEqual(titles, ["Moby-Dick", "Du côté de chez Swann"])
                 XCTAssertEqual(lastSQLQuery, """
                     SELECT * FROM "book" ORDER BY "id"
@@ -408,7 +408,7 @@ class DerivableRequestTests: GRDBTestCase {
                 let fullNames = try Author
                     .joining(required: Author.books.orderById())
                     .fetchAll(db)
-                    .map { $0.fullName }
+                    .map(\.fullName)
                 XCTAssertEqual(fullNames, ["Herman Melville", "Marcel Proust"])
                 XCTAssertEqual(lastSQLQuery, """
                     SELECT "author".* FROM "author" \

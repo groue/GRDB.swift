@@ -148,8 +148,8 @@ class FetchableRecordTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             func test(_ array: [Fetched]) {
-                XCTAssertEqual(array.map { $0.firstName }, ["Arthur", "Barbara"])
-                XCTAssertEqual(array.map { $0.lastName }, ["Martin", "Gourde"])
+                XCTAssertEqual(array.map(\.firstName), ["Arthur", "Barbara"])
+                XCTAssertEqual(array.map(\.lastName), ["Martin", "Gourde"])
             }
             do {
                 let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
