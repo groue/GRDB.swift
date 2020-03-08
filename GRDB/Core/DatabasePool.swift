@@ -135,12 +135,12 @@ public final class DatabasePool: DatabaseWriter {
         // Be a nice iOS citizen, and don't consume too much memory
         // See https://github.com/groue/GRDB.swift/#memory-management
         #if os(iOS)
-        setupAutomaticMemoryManagement()
+        setupMemoryManagement()
         #endif
     }
     
     deinit {
-        // Undo job done in setupAutomaticMemoryManagement()
+        // Undo job done in setupMemoryManagement()
         //
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
         // Explicit unregistration is required before iOS 9 and OS X 10.11.
@@ -202,14 +202,7 @@ extension DatabasePool {
         }
     }
     
-    
     #if os(iOS)
-    // swiftlint:disable:next line_length
-    @available(*, deprecated, message: "Memory management is now enabled by default. This deprecated method does nothing.")
-    public func setupMemoryManagement(in application: UIApplication) {
-        // No op.
-    }
-    
     /// Listens to UIApplicationDidEnterBackgroundNotification and
     /// UIApplicationDidReceiveMemoryWarningNotification in order to release
     /// as much memory as possible.
@@ -217,7 +210,7 @@ extension DatabasePool {
     /// - param application: The UIApplication that will start a background
     ///   task to let the database pool release its memory when the application
     ///   enters background.
-    private func setupAutomaticMemoryManagement() {
+    private func setupMemoryManagement() {
         let center = NotificationCenter.default
         center.addObserver(
             self,
