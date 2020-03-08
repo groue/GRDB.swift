@@ -1,11 +1,10 @@
 // MARK: - Custom Functions
 
 extension DatabaseFunction {
-    // TODO: rename call (https://forums.swift.org/t/se-0253-callable-values-of-user-defined-nominal-types/24177)
     /// Returns an SQL expression that applies the function.
     ///
     /// See https://github.com/groue/GRDB.swift/#sql-functions
-    public func apply(_ arguments: SQLExpressible...) -> SQLExpression {
+    public func callAsFunction(_ arguments: SQLExpressible...) -> SQLExpression {
         return SQLExpressionFunction(SQLFunctionName(name), arguments: arguments.map(\.sqlExpression))
     }
 }
@@ -156,7 +155,7 @@ extension SQLSpecificExpressible {
     ///     let request = Player.select(nameColumn.capitalized)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public var capitalized: SQLExpression {
-        return DatabaseFunction.capitalize.apply(sqlExpression)
+        return DatabaseFunction.capitalize(sqlExpression)
     }
     
     /// Returns an SQL expression that applies the Swift's built-in
@@ -166,7 +165,7 @@ extension SQLSpecificExpressible {
     ///     let request = Player.select(nameColumn.lowercased())
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public var lowercased: SQLExpression {
-        return DatabaseFunction.lowercase.apply(sqlExpression)
+        return DatabaseFunction.lowercase(sqlExpression)
     }
     
     /// Returns an SQL expression that applies the Swift's built-in
@@ -176,7 +175,7 @@ extension SQLSpecificExpressible {
     ///     let request = Player.select(nameColumn.uppercased())
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public var uppercased: SQLExpression {
-        return DatabaseFunction.uppercase.apply(sqlExpression)
+        return DatabaseFunction.uppercase(sqlExpression)
     }
 }
 
@@ -190,7 +189,7 @@ extension SQLSpecificExpressible {
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedCapitalized: SQLExpression {
-        return DatabaseFunction.localizedCapitalize.apply(sqlExpression)
+        return DatabaseFunction.localizedCapitalize(sqlExpression)
     }
     
     /// Returns an SQL expression that applies the Swift's built-in
@@ -201,7 +200,7 @@ extension SQLSpecificExpressible {
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedLowercased: SQLExpression {
-        return DatabaseFunction.localizedLowercase.apply(sqlExpression)
+        return DatabaseFunction.localizedLowercase(sqlExpression)
     }
     
     /// Returns an SQL expression that applies the Swift's built-in
@@ -212,6 +211,6 @@ extension SQLSpecificExpressible {
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedUppercased: SQLExpression {
-        return DatabaseFunction.localizedUppercase.apply(sqlExpression)
+        return DatabaseFunction.localizedUppercase(sqlExpression)
     }
 }

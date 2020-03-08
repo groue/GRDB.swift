@@ -20,6 +20,12 @@ extension AssociationAggregate {
     { preconditionFailure() }
 }
 
+extension DatabaseFunction {
+    @available(*, unavailable, renamed: "callAsFunction(_:)")
+    public func apply(_ arguments: SQLExpressible...) -> SQLExpression
+    { preconditionFailure() }
+}
+
 extension DatabaseMigrator {
     @available(*, unavailable, renamed: "registerMigration(_:migrate:)")
     public mutating func registerMigrationWithDeferredForeignKeyCheck(
