@@ -200,15 +200,9 @@ public struct FTS5: VirtualTableModule {
         guard let data = try! Data.fetchOne(db, sql: "SELECT fts5()") else {
             fatalError("FTS5 is not available")
         }
-        #if swift(>=5.0)
         return data.withUnsafeBytes {
             $0.bindMemory(to: UnsafePointer<fts5_api>.self).first!
         }
-        #else
-        return data.withUnsafeBytes {
-            $0.pointee
-        }
-        #endif
     }
     
     // Technique given by Jordan Rose:
@@ -221,7 +215,6 @@ public struct FTS5: VirtualTableModule {
         _ sqlite3_bind_pointer: @convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?, UnsafePointer<Int8>?, (@convention(c) (UnsafeMutableRawPointer?) -> Void)?) -> Int32)
         -> UnsafePointer<fts5_api>
     {
-        let sqliteConnection = db.sqliteConnection
         var statement: SQLiteStatement? = nil
         var api: UnsafePointer<fts5_api>? = nil
         let type: StaticString = "fts5_api_ptr"

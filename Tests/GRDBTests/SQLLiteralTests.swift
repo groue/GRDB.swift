@@ -140,7 +140,6 @@ class SQLLiteralTests: GRDBTestCase {
     }
 }
 
-#if swift(>=5.0)
 extension SQLLiteralTests {
     func testLiteralInitializer() {
         let query = SQLLiteral("""
@@ -503,4 +502,3 @@ extension SQLLiteralTests {
         }
     }
 }
-#endif

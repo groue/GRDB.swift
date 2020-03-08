@@ -368,7 +368,6 @@ class UpdateStatementTests : GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testExecuteSQLLiteralWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
@@ -381,5 +380,4 @@ class UpdateStatementTests : GRDBTestCase {
             XCTAssertEqual(value, 3)
         }
     }
-    #endif
 }

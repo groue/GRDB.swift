@@ -284,15 +284,9 @@ public class Statement {
         case .string(let string):
             code = sqlite3_bind_text(sqliteStatement, index, string, -1, SQLITE_TRANSIENT)
         case .blob(let data):
-            #if swift(>=5.0)
             code = data.withUnsafeBytes {
                 sqlite3_bind_blob(sqliteStatement, index, $0.baseAddress, Int32($0.count), SQLITE_TRANSIENT)
             }
-            #else
-            code = data.withUnsafeBytes {
-                sqlite3_bind_blob(sqliteStatement, index, $0, Int32(data.count), SQLITE_TRANSIENT)
-            }
-            #endif
         }
         
         // It looks like sqlite3_bind_xxx() functions do not access the file system.

@@ -51,11 +51,9 @@ private func cast(_ value: SQLExpressible, as type: Database.ColumnType) -> SQLE
         .sqlExpression
 }
 
-#if swift(>=5.0)
 private func castInterpolated<T: SQLExpressible>(_ value: T, as type: Database.ColumnType) -> SQLExpression {
     return SQLLiteral("CAST(\(value) AS \(sql: type.rawValue))").sqlExpression
 }
-#endif
 
 
 class QueryInterfaceExtensibilityTests: GRDBTestCase {
@@ -160,7 +158,6 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testCastInterpolated() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -191,5 +188,4 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
             }
         }
     }
-    #endif
 }

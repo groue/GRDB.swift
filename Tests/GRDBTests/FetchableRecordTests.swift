@@ -58,7 +58,6 @@ class FetchableRecordTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testFetchCursorWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -71,7 +70,6 @@ class FetchableRecordTests: GRDBTestCase {
             XCTAssertEqual(fetched.lastName, "O'Brien")
         }
     }
-    #endif
     
     func testFetchCursorStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -173,7 +171,6 @@ class FetchableRecordTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testFetchAllWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -185,7 +182,6 @@ class FetchableRecordTests: GRDBTestCase {
             XCTAssertEqual(array[0].lastName, "O'Brien")
         }
     }
-    #endif
     
     func testFetchAllStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -304,7 +300,6 @@ class FetchableRecordTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testFetchOneWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -316,7 +311,6 @@ class FetchableRecordTests: GRDBTestCase {
             XCTAssertEqual(fetched!.lastName, "O'Brien")
         }
     }
-    #endif
     
     func testFetchOneStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()

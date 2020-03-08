@@ -50,7 +50,6 @@ class RowFetchTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testFetchCursorWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -60,7 +59,6 @@ class RowFetchTests: GRDBTestCase {
             XCTAssertEqual(row[0], "O'Brien")
         }
     }
-    #endif
     
     func testFetchCursorStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -162,7 +160,6 @@ class RowFetchTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testFetchAllWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -171,8 +168,7 @@ class RowFetchTests: GRDBTestCase {
             XCTAssertEqual(rows[0][0], "O'Brien")
         }
     }
-    #endif
-
+    
     func testFetchAllStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
@@ -290,7 +286,6 @@ class RowFetchTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testFetchOneWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -299,8 +294,7 @@ class RowFetchTests: GRDBTestCase {
             XCTAssertEqual(row![0], "O'Brien")
         }
     }
-    #endif
-
+    
     func testFetchOneStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)

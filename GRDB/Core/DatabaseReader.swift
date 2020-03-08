@@ -116,7 +116,6 @@ public protocol DatabaseReader: AnyObject {
     ///   happen while establishing the read access to the database.
     func read<T>(_ block: (Database) throws -> T) throws -> T
     
-    #if compiler(>=5.0)
     /// Asynchronously executes a read-only block that takes a
     /// database connection.
     ///
@@ -141,7 +140,6 @@ public protocol DatabaseReader: AnyObject {
     ///
     /// - parameter block: A block that accesses the database.
     func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void)
-    #endif
     
     /// Synchronously executes a read-only block that takes a database
     /// connection, and returns its result.
@@ -329,12 +327,10 @@ public final class AnyDatabaseReader: DatabaseReader {
         return try base.read(block)
     }
     
-    #if compiler(>=5.0)
     /// :nodoc:
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         base.asyncRead(block)
     }
-    #endif
     
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {

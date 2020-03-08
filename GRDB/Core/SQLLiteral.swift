@@ -223,7 +223,6 @@ extension Collection where Element == SQLLiteral {
 
 // MARK: - ExpressibleByStringInterpolation
 
-#if swift(>=5.0)
 extension SQLLiteral: ExpressibleByStringInterpolation {
     /// :nodoc
     public init(unicodeScalarLiteral: String) {
@@ -245,7 +244,6 @@ extension SQLLiteral: ExpressibleByStringInterpolation {
         self.init(elements: sqlInterpolation.elements)
     }
 }
-#endif
 
 // MARK: - SQLExpressionLiteral
 

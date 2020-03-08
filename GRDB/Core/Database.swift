@@ -1190,15 +1190,9 @@ extension Database {
     /// See usePassphrase(_:)
     private func _usePassphrase(_ passphrase: String) throws {
         let data = passphrase.data(using: .utf8)!
-        #if swift(>=5.0)
         let code = data.withUnsafeBytes {
             sqlite3_key(sqliteConnection, $0.baseAddress, Int32($0.count))
         }
-        #else
-        let code = data.withUnsafeBytes {
-            sqlite3_key(sqliteConnection, $0, Int32(data.count))
-        }
-        #endif
         guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
@@ -1217,15 +1211,9 @@ extension Database {
         // > https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/
         // swiftlint:disable:previous line_length
         let data = passphrase.data(using: .utf8)!
-        #if swift(>=5.0)
         let code = data.withUnsafeBytes {
             sqlite3_rekey(sqliteConnection, $0.baseAddress, Int32($0.count))
         }
-        #else
-        let code = data.withUnsafeBytes {
-            sqlite3_rekey(sqliteConnection, $0, Int32(data.count))
-        }
-        #endif
         guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: lastErrorMessage)
         }

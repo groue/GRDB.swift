@@ -381,7 +381,6 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    #if compiler(>=5.0)
     /// Asynchronously executes a read-only block in a protected dispatch queue.
     ///
     ///     let players = try dbQueue.asyncRead { result in
@@ -430,7 +429,6 @@ extension DatabasePool: DatabaseReader {
                 }
         }
     }
-    #endif
     
     /// Synchronously executes a read-only block in a protected dispatch queue,
     /// and returns its result.
@@ -513,66 +511,13 @@ extension DatabasePool: DatabaseReader {
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
         // The semaphore that blocks until futureResult is defined:
         let futureSemaphore = DispatchSemaphore(value: 0)
-        var futureResult: DatabaseResult<T>? = nil
+        var futureResult: Result<T, Error>? = nil
         
-        #if compiler(>=5.0)
         asyncConcurrentRead { db in
             // Fetch and release the future
-            futureResult = DatabaseResult { try block(db.get()) }
+            futureResult = Result { try block(db.get()) }
             futureSemaphore.signal()
         }
-        #else
-        // Check that we're on the writer queue...
-        writer.execute { db in
-            // ... and that no transaction is opened.
-            GRDBPrecondition(!db.isInsideTransaction, """
-                must not be called from inside a transaction. \
-                If this error is raised from a DatabasePool.write block, use \
-                DatabasePool.writeWithoutTransaction instead (and use \
-                transactions when needed).
-                """)
-        }
-        
-        // The semaphore that blocks the writing dispatch queue until snapshot
-        // isolation has been established:
-        let isolationSemaphore = DispatchSemaphore(value: 0)
-        
-        do {
-            let (reader, releaseReader) = try readerPool.get()
-            reader.async { db in
-                defer {
-                    try? db.commit() // Ignore commit error
-                    releaseReader()
-                }
-                do {
-                    try db.beginSnapshotTransaction()
-                } catch {
-                    futureResult = .failure(error)
-                    isolationSemaphore.signal()
-                    futureSemaphore.signal()
-                    return
-                }
-                
-                // Release the writer queue
-                isolationSemaphore.signal()
-                
-                // Fetch and release the future
-                futureResult = DatabaseResult {
-                    // Reset the schema cache before running user code in snapshot isolation
-                    db.clearSchemaCache()
-                    return try block(db)
-                }
-                futureSemaphore.signal()
-            }
-        } catch {
-            futureResult = .failure(error)
-            isolationSemaphore.signal()
-            futureSemaphore.signal()
-        }
-        
-        // Block the writer queue until snapshot isolation success or error
-        _ = isolationSemaphore.wait(timeout: .distantFuture)
-        #endif
         
         return DatabaseFuture {
             // Block the future until results are fetched
@@ -581,16 +526,13 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    #if compiler(>=5.0)
     /// Performs the same job as asyncConcurrentRead.
     ///
     /// :nodoc:
     public func spawnConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         asyncConcurrentRead(block)
     }
-    #endif
     
-    #if compiler(>=5.0)
     /// Asynchronously executes a read-only block in a protected dispatch queue.
     ///
     /// This method must be called from a writing dispatch queue, outside of any
@@ -673,7 +615,6 @@ extension DatabasePool: DatabaseReader {
         // Block the writer queue until snapshot isolation success or error
         _ = isolationSemaphore.wait(timeout: .distantFuture)
     }
-    #endif
     
     /// Invalidates open read-only SQLite connections.
     ///

@@ -68,7 +68,6 @@ extension DatabaseSnapshot {
         return try serializedDatabase.sync(block)
     }
     
-    #if compiler(>=5.0)
     /// Asynchronously executes a read-only block in a protected dispatch queue.
     ///
     ///     let players = try snapshot.asyncRead { result in
@@ -84,7 +83,6 @@ extension DatabaseSnapshot {
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         serializedDatabase.async { block(.success($0)) }
     }
-    #endif
     
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) rethrows -> T {

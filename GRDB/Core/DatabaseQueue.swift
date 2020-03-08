@@ -220,7 +220,6 @@ extension DatabaseQueue {
         }
     }
     
-    #if compiler(>=5.0)
     /// Asynchronously executes a read-only block in a protected dispatch queue.
     ///
     ///     let players = try dbQueue.asyncRead { result in
@@ -252,7 +251,6 @@ extension DatabaseQueue {
             try? db.endReadOnly()
         }
     }
-    #endif
     
     /// Synchronously executes a block in a protected dispatch queue, and
     /// returns its result.
@@ -289,7 +287,7 @@ extension DatabaseQueue {
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
         // DatabaseQueue can't perform parallel reads.
         // Perform a blocking read instead.
-        return DatabaseFuture(DatabaseResult {
+        return DatabaseFuture(Result {
             // Check that we're on the writer queue...
             try writer.execute { db in
                 // ... and that no transaction is opened.
@@ -301,7 +299,6 @@ extension DatabaseQueue {
         })
     }
     
-    #if compiler(>=5.0)
     /// Performs the same job as asyncConcurrentRead.
     ///
     /// :nodoc:
@@ -324,7 +321,6 @@ extension DatabaseQueue {
             try? db.endReadOnly()
         }
     }
-    #endif
     
     // MARK: - Writing in Database
     
