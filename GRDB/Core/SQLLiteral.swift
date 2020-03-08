@@ -18,8 +18,6 @@ public struct SQLLiteral {
         case selectable(SQLSelectable)
         case orderingTerm(SQLOrderingTerm)
         case subQuery(SQLLiteral)
-        // TODO: remove when the deprecated SQLLiteral.mapSQL(_:) is removed.
-        case map(SQLLiteral, (String) -> String)
         
         // TODO: remove and use default case argument when compiler >= 5.1
         static func sql(_ sql: String) -> Element {
@@ -43,8 +41,6 @@ public struct SQLLiteral {
                 return orderingTerm.orderingTermSQL(&context)
             case let .subQuery(sqlLiteral):
                 return "(" + sqlLiteral.sql(&context) + ")"
-            case let .map(sqlLiteral, transform):
-                return transform(sqlLiteral.sql(&context))
             }
         }
         
@@ -61,8 +57,6 @@ public struct SQLLiteral {
             case .subQuery:
                 // subqueries are not requalified
                 return self
-            case let .map(sqlLiteral, transform):
-                return .map(sqlLiteral.qualified(with: alias), transform)
             }
         }
     }
@@ -106,12 +100,6 @@ public struct SQLLiteral {
     ///     let emails = try String.fetchAll(db, request)
     public init(_ expression: SQLExpression) {
         self.init(elements: [.expression(expression)])
-    }
-    
-    // TODO: deprecate when SQL interpolation is always available
-    /// Returns a literal whose SQL is transformed by the given closure.
-    public func mapSQL(_ transform: @escaping (String) -> String) -> SQLLiteral {
-        return SQLLiteral(elements: [.map(self, transform)])
     }
     
     func sql(_ context: inout SQLGenerationContext) -> String {

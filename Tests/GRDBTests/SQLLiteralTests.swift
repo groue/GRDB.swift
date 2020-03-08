@@ -129,8 +129,8 @@ class SQLLiteralTests: GRDBTestCase {
             }
             
             do {
-                // Test mapSQL plus qualification
-                let literal = SQLLiteral(Column("name")).mapSQL { sql in "\(sql) || 'foo'" }
+                // Test qualification of interpolated literal
+                let literal: SQLLiteral = "\(Column("name")) || 'foo'"
                 let request = Player.aliased(TableAlias(name: "p")).select(literal.sqlExpression)
                 try assertEqualSQL(db, request, """
                     SELECT "p"."name" || 'foo' FROM "player" "p"
