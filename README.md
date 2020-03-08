@@ -115,7 +115,7 @@ try dbQueue.write { db in
           latitude DOUBLE NOT NULL,
           longitude DOUBLE NOT NULL)
         """)
-
+    
     try db.execute(sql: """
         INSERT INTO place (title, favorite, latitude, longitude)
         VALUES (?, ?, ?, ?)
@@ -123,7 +123,6 @@ try dbQueue.write { db in
     
     let parisId = db.lastInsertedRowID
     
-    // Swift 5 only
     try db.execute(literal: """
         INSERT INTO place (title, favorite, latitude, longitude)
         VALUES (\("Madrid"), \(true), \(40.41678), \(-3.70379))
@@ -622,14 +621,12 @@ try dbQueue.write { db in
 
 The `?` and colon-prefixed keys like `:score` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [StatementArguments](http://groue.github.io/GRDB.swift/docs/4.11/Structs/StatementArguments.html) for a detailed documentation of SQLite arguments.
 
-In Swift 5, you can embed query arguments right into your SQL queries, with the `literal` argument label, as in the example below. See [SQL Interpolation] for more details.
+You can also embed query arguments right into your SQL queries, with the `literal` argument label, as in the example below. See [SQL Interpolation] for more details.
 
 ```swift
-// Swift 5
 try dbQueue.write { db in
     try db.execute(literal: """
-        INSERT INTO player (name, score)
-        VALUES (\("O'Brien"), \(550))
+        INSERT INTO player (name, score) VALUES (\("O'Brien"), \(550))
         """)
 }
 ```
@@ -643,10 +640,6 @@ let name = textField.text
 try db.execute(
     sql: "UPDATE player SET name = '\(name)' WHERE id = \(id)")
 
-// CORRECT: use SQL Interpolation (Swift 5)
-try db.execute(
-    literal: "UPDATE player SET name = \(name) WHERE id = \(id)")
-
 // CORRECT: use arguments dictionary
 try db.execute(
     sql: "UPDATE player SET name = :name WHERE id = :id",
@@ -656,6 +649,10 @@ try db.execute(
 try db.execute(
     sql: "UPDATE player SET name = ? WHERE id = ?",
     arguments: [name, id])
+
+// CORRECT: use SQL Interpolation
+try db.execute(
+    literal: "UPDATE player SET name = \(name) WHERE id = \(id)")
 ```
 
 **Join multiple statements with a semicolon**:
@@ -666,7 +663,6 @@ try db.execute(sql: """
     INSERT INTO player (name, score) VALUES (?, ?);
     """, arguments: ["Arthur", 750, "Barbara", 1000])
 
-// Swift 5
 try db.execute(literal: """
     INSERT INTO player (name, score) VALUES (\("Arthur"), \(750));
     INSERT INTO player (name, score) VALUES (\("Barbara"), \(1000));
@@ -4828,10 +4824,9 @@ let request = Player.all()
     try Player.filter(color: .red).fetchAll(db)
     ```
     
-    In Swift 5, you can build SQLRequest with [SQL Interpolation]:
+    SQLRequest supports [SQL Interpolation]:
     
     ```swift
-    // Swift 5
     extension Player {
         static func filter(color: Color) -> SQLRequest<Player> {
             return "SELECT * FROM player WHERE color = \(color)"
@@ -4922,7 +4917,8 @@ migrator.registerMigration("v2") { db in
 
 **Each migration runs in a separate transaction.** Should one throw an error, its transaction is rollbacked, subsequent migrations do not run, and the error is eventually thrown by `migrator.migrate(dbQueue)`.
 
-**Migrations run with deferred foreign key checks,** starting SQLite 3.7.16+ (iOS 9.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+ / [custom SQLite build] / [SQLCipher](#encryption)). This means that eventual foreign key violations are only checked at the end of the migration (and they make the migration fail).
+**Migrations run with deferred foreign key checks,** starting SQLite 3.7.16+ (iOS 9.0+ / 
++ / tvOS 9.0+ / watchOS 2.0+ / [custom SQLite build] / [SQLCipher](#encryption)). This means that eventual foreign key violations are only checked at the end of the migration (and they make the migration fail).
 
 **The memory of applied migrations is stored in the database itself** (in a reserved table).
 
@@ -5013,8 +5009,6 @@ migrator.registerMigration("AddNotNullCheckOnName") { db in
     try db.rename(table: "new_player", to: "player")
 }
 ```
-
-> :point_up: **Note**: This technique requires SQLite 3.7.16+ (iOS 9.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+ / [custom SQLite build] / [SQLCipher](#encryption)).
 
 
 ## Joined Queries Support
@@ -7583,8 +7577,6 @@ When you use a [database queue](#database-queues) or a [database snapshot](#data
 
 When you use a [database pool](#database-pools), reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#databasepool-configuration).
 
-> :point_up: **Note**: because it uses the standard `Result` type, `asyncRead` is only available with a Swift 5+ compiler, starting Xcode 10.2.
-
 
 #### `asyncWrite`
     
@@ -7624,8 +7616,6 @@ writer.asyncWrite({ (db: Database) -> Int in
 ```
 
 The scheduled asynchronous transaction has to wait for any eventual concurrent database write to complete before it can start.
-
-> :point_up: **Note**: because it uses the standard `Result` type, `asyncWrite` is only available with a Swift 5+ compiler, starting Xcode 10.2.
 
 
 #### `asyncWriteWithoutTransaction`
@@ -7684,8 +7674,6 @@ try writer.asyncWriteWithoutTransaction { db in
     }
 }
 ```
-
-> :point_up: **Note**: because it uses the standard `Result` type, `asyncWriteWithoutTransaction` is only available with a Swift 5+ compiler, starting Xcode 10.2.
 
 
 ### Unsafe Concurrency APIs
