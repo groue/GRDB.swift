@@ -15,9 +15,6 @@ import UIKit
 public final class DatabasePool: DatabaseWriter {
     private let writer: SerializedDatabase
     private var readerPool: Pool<SerializedDatabase>!
-    // TODO: remove when the deprecated change(passphrase:) method turns unavailable.
-    private var readerConfiguration: Configuration
-    
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     private var tokenizerRegistrations: [(Database) -> Void] = []
@@ -59,7 +56,7 @@ public final class DatabasePool: DatabaseWriter {
             purpose: "writer")
         
         // Readers
-        readerConfiguration = configuration
+        var readerConfiguration = configuration
         readerConfiguration.readonly = true
         
         // Readers use deferred transactions by default.
@@ -96,7 +93,7 @@ public final class DatabasePool: DatabaseWriter {
             readerCount += 1 // protected by pool (TODO: documented this protection behavior)
             let reader = try SerializedDatabase(
                 path: path,
-                configuration: self.readerConfiguration,
+                configuration: readerConfiguration,
                 schemaCache: DatabaseSchemaCache(),
                 defaultLabel: "GRDB.DatabasePool",
                 purpose: "reader.\(readerCount)")
@@ -261,23 +258,6 @@ extension DatabasePool {
     }
     #endif
 }
-
-#if SQLITE_HAS_CODEC
-extension DatabasePool {
-    
-    // MARK: - Encryption
-    
-    /// Changes the passphrase of an encrypted database
-    @available(*, deprecated, message: "Use Database.changePassphrase(_:) instead")
-    public func change(passphrase: String) throws {
-        try readerPool.barrier {
-            try writer.sync { try $0.changePassphrase(passphrase) }
-            readerPool.removeAll()
-            readerConfiguration._passphrase = passphrase
-        }
-    }
-}
-#endif
 
 extension DatabasePool: DatabaseReader {
     

@@ -140,19 +140,6 @@ extension DatabaseQueue {
     #endif
 }
 
-#if SQLITE_HAS_CODEC
-extension DatabaseQueue {
-    
-    // MARK: - Encryption
-    
-    /// Changes the passphrase of an encrypted database
-    @available(*, deprecated, message: "Use Database.changePassphrase(_:) instead")
-    public func change(passphrase: String) throws {
-        try writer.sync { try $0.changePassphrase(passphrase) }
-    }
-}
-#endif
-
 extension DatabaseQueue {
     
     // MARK: - Interrupting Database Operations

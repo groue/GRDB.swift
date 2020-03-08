@@ -220,9 +220,6 @@ public final class Database {
         
         #if SQLITE_HAS_CODEC
         try validateSQLCipher()
-        if let passphrase = configuration._passphrase {
-            try _usePassphrase(passphrase)
-        }
         #endif
         
         // Last step before we can start accessing the database.
@@ -1178,17 +1175,6 @@ extension Database {
     ///         try db.usePassphrase("secret")
     ///     }
     public func usePassphrase(_ passphrase: String) throws {
-        // Support for the deprecated method change(passphrase:).
-        // After it has been called, the passphrase used for opening the
-        // database must be ignored.
-        if configuration._passphrase != nil {
-            return
-        }
-        try _usePassphrase(passphrase)
-    }
-    
-    /// See usePassphrase(_:)
-    private func _usePassphrase(_ passphrase: String) throws {
         let data = passphrase.data(using: .utf8)!
         let code = data.withUnsafeBytes {
             sqlite3_key(sqliteConnection, $0.baseAddress, Int32($0.count))
