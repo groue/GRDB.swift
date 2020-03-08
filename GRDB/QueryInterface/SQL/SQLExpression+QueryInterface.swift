@@ -1,16 +1,6 @@
 // MARK: - SQLExpression
 
 extension SQLExpression {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Converts an expression to an SQLLiteral
-    ///
-    /// :nodoc:
-    @available(*, deprecated, message: "Use SQLLiteral initializer instead")
-    public var sqlLiteral: SQLLiteral {
-        return SQLLiteral(self)
-    }
-    
     /// The expression as a quoted SQL literal (not public in order to avoid abuses)
     ///
     ///     "foo'bar".databaseValue.quotedSQL() // "'foo''bar'""
@@ -242,9 +232,6 @@ public struct SQLAssociativeBinaryOperator: Hashable {
         self.strictlyAssociative = strictlyAssociative
     }
 }
-
-@available(*, deprecated, renamed: "SQLAssociativeBinaryOperator")
-typealias SQLLogicalBinaryOperator = SQLAssociativeBinaryOperator
 
 /// SQLExpressionBinary is an expression made of two expressions joined with a
 /// binary operator.

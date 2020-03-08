@@ -10,6 +10,16 @@ extension AnyFetchRequest {
     { preconditionFailure() }
 }
 
+extension AssociationAggregate {
+    @available(*, unavailable, renamed: "forKey(_:)")
+    public func aliased(_ name: String) -> AssociationAggregate<RowDecoder>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "forKey(_:)")
+    public func aliased(_ key: CodingKey) -> AssociationAggregate<RowDecoder>
+    { preconditionFailure() }
+}
+
 extension DatabaseMigrator {
     @available(*, unavailable, renamed: "registerMigration(_:migrate:)")
     public mutating func registerMigrationWithDeferredForeignKeyCheck(
@@ -54,6 +64,12 @@ extension FetchRequest {
     { preconditionFailure() }
 }
 
+extension SQLExpression {
+    @available(*, unavailable, message: "Use SQLLiteral initializer instead")
+    public var sqlLiteral: SQLLiteral
+    { preconditionFailure() }
+}
+
 @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
 public struct SQLExpressionLiteral: SQLExpression {
     public var sql: String { preconditionFailure() }
@@ -75,6 +91,19 @@ public struct SQLExpressionLiteral: SQLExpression {
 extension SQLLiteral {
     @available(*, unavailable, message: "Use SQL interpolation instead.")
     public func mapSQL(_ transform: @escaping (String) -> String) -> SQLLiteral
+    { preconditionFailure() }
+}
+
+@available(*, unavailable, renamed: "SQLAssociativeBinaryOperator")
+typealias SQLLogicalBinaryOperator = SQLAssociativeBinaryOperator
+
+extension SQLSpecificExpressible {
+    @available(*, unavailable, renamed: "forKey(_:)")
+    public func aliased(_ name: String) -> SQLSelectable
+    { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "forKey(_:)")
+    public func aliased(_ key: CodingKey) -> SQLSelectable
     { preconditionFailure() }
 }
 
