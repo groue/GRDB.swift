@@ -6,27 +6,25 @@ import XCTest
 #endif
 
 private class FetchableParent : DatabaseValueConvertible, CustomStringConvertible {
-    var databaseValue: DatabaseValue {
-        return "Parent".databaseValue
-    }
+    var databaseValue: DatabaseValue { "Parent".databaseValue }
     
     class func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
-        return self.init()
+        self.init()
     }
     
     required init() {
     }
     
-    var description: String { return "Parent" }
+    var description: String { "Parent" }
 }
 
 private class FetchableChild : FetchableParent {
     /// Returns a value that can be stored in the database.
     override var databaseValue: DatabaseValue {
-        return "Child".databaseValue
+        "Child".databaseValue
     }
     
-    override var description: String { return "Child" }
+    override var description: String { "Child" }
 }
 
 class DatabaseValueConvertibleSubclassTests: GRDBTestCase {

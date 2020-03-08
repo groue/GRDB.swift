@@ -28,13 +28,13 @@ extension ColumnExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        return name.quotedDatabaseIdentifier
+        name.quotedDatabaseIdentifier
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return QualifiedColumn(name, alias: alias)
+        QualifiedColumn(name, alias: alias)
     }
 }
 
@@ -94,7 +94,5 @@ struct QualifiedColumn: ColumnExpression {
 ///         }
 ///     }
 extension ColumnExpression where Self: RawRepresentable, Self.RawValue == String {
-    public var name: String {
-        return rawValue
-    }
+    public var name: String { rawValue }
 }

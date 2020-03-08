@@ -32,7 +32,7 @@ public class Statement {
     }
     
     var isReadonly: Bool {
-        return sqlite3_stmt_readonly(sqliteStatement) != 0
+        sqlite3_stmt_readonly(sqliteStatement) != 0
     }
     
     unowned let database: Database
@@ -124,7 +124,7 @@ public class Statement {
     
     /// The statement arguments.
     public var arguments: StatementArguments {
-        get { return _arguments }
+        get { _arguments }
         set {
             // Force arguments validity: it is a programmer error to provide
             // arguments that do not match the statement.
@@ -367,7 +367,7 @@ public final class SelectStatement: Statement {
     
     /// The number of columns in the resulting rows.
     public var columnCount: Int {
-        return Int(sqlite3_column_count(self.sqliteStatement))
+        Int(sqlite3_column_count(self.sqliteStatement))
     }
     
     /// The column names, ordered from left to right.
@@ -386,14 +386,14 @@ public final class SelectStatement: Statement {
     /// Returns the index of the leftmost column named `name`, in a
     /// case-insensitive way.
     public func index(ofColumn name: String) -> Int? {
-        return columnIndexes[name.lowercased()]
+        columnIndexes[name.lowercased()]
     }
     
     /// Creates a cursor over the statement which does not produce any
     /// value. Each call to the next() cursor method calls the sqlite3_step()
     /// C function.
     func makeCursor(arguments: StatementArguments? = nil) throws -> StatementCursor {
-        return try StatementCursor(statement: self, arguments: arguments)
+        try StatementCursor(statement: self, arguments: arguments)
     }
     
     /// Utility function for cursors
@@ -648,7 +648,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     private(set) var namedValues: [String: DatabaseValue] = [:]
     
     public var isEmpty: Bool {
-        return values.isEmpty && namedValues.isEmpty
+        values.isEmpty && namedValues.isEmpty
     }
     
     

@@ -92,7 +92,7 @@ extension Cursor {
     /// Returns a Boolean value indicating whether the cursor contains
     /// an element.
     public func isEmpty() throws -> Bool {
-        return try next() == nil
+        try next() == nil
     }
     
     /// Returns a Boolean value indicating whether the cursor contains an
@@ -123,12 +123,12 @@ extension Cursor {
     ///     // Prints: "0: foo"
     ///     // Prints: "1: bar"
     public func enumerated() -> EnumeratedCursor<Self> {
-        return EnumeratedCursor(self)
+        EnumeratedCursor(self)
     }
     
     /// Returns the elements of the cursor that satisfy the given predicate.
     public func filter(_ isIncluded: @escaping (Element) throws -> Bool) -> FilterCursor<Self> {
-        return FilterCursor(self, isIncluded)
+        FilterCursor(self, isIncluded)
     }
     
     /// Returns the first element of the cursor that satisfies the given
@@ -158,7 +158,7 @@ extension Cursor {
     ///   `false` otherwise. Once `predicate` returns `false` it will not be
     ///   called again.
     public func drop(while predicate: @escaping (Element) throws -> Bool) -> DropWhileCursor<Self> {
-        return DropWhileCursor(self, predicate: predicate)
+        DropWhileCursor(self, predicate: predicate)
     }
     
     /// Returns a cursor containing all but the given number of initial
@@ -178,7 +178,7 @@ extension Cursor {
     /// - Returns: A cursor starting after the specified number of
     ///   elements.
     public func dropFirst(_ n: Int) -> DropFirstCursor<Self> {
-        return DropFirstCursor(self, limit: n)
+        DropFirstCursor(self, limit: n)
     }
     
     /// Returns a cursor containing all but the first element of the cursor.
@@ -193,7 +193,7 @@ extension Cursor {
     ///
     /// - Returns: A cursor starting after the first element of the cursor.
     public func dropFirst() -> DropFirstCursor<Self> {
-        return dropFirst(1)
+        dropFirst(1)
     }
     
     /// Returns an array containing all but the given number of final
@@ -243,7 +243,7 @@ extension Cursor {
     ///
     /// - Returns: An array leaving off the last element of the cursor.
     public func dropLast() throws -> [Element] {
-        return try dropLast(1)
+        try dropLast(1)
     }
     
     /// Returns a cursor over the concatenated results of mapping transform
@@ -274,7 +274,7 @@ extension Cursor {
     /// Returns a cursor over the results of the transform function applied to
     /// this cursor's elements.
     public func map<T>(_ transform: @escaping (Element) throws -> T) -> MapCursor<Self, T> {
-        return MapCursor(self, transform)
+        MapCursor(self, transform)
     }
     
     /// Returns the maximum element in the cursor, using the given predicate as
@@ -334,7 +334,7 @@ extension Cursor {
     /// - Returns: A cursor starting at the beginning of this cursor
     ///   with at most `maxLength` elements.
     public func prefix(_ maxLength: Int) -> PrefixCursor<Self> {
-        return PrefixCursor(self, maxLength: maxLength)
+        PrefixCursor(self, maxLength: maxLength)
     }
     
     /// Returns a cursor of the initial consecutive elements that satisfy
@@ -345,7 +345,7 @@ extension Cursor {
     ///   `false` otherwise. Once `predicate` returns `false` it will not be
     ///   called again.
     public func prefix(while predicate: @escaping (Element) throws -> Bool) -> PrefixWhileCursor<Self> {
-        return PrefixWhileCursor(self, predicate: predicate)
+        PrefixWhileCursor(self, predicate: predicate)
     }
     
     /// Returns the result of calling the given combining closure with each
@@ -448,7 +448,7 @@ extension Cursor where Element: Comparable {
     ///   `areInIncreasingOrder`. If the cursor has no elements, returns
     ///   `nil`.
     public func max() throws -> Element? {
-        return try max(by: <)
+        try max(by: <)
     }
     
     /// Returns the minimum element in the cursor.
@@ -460,7 +460,7 @@ extension Cursor where Element: Comparable {
     ///   `areInIncreasingOrder`. If the cursor has no elements, returns
     ///   `nil`.
     public func min() throws -> Element? {
-        return try min(by: <)
+        try min(by: <)
     }
 }
 
@@ -469,7 +469,7 @@ extension Cursor where Element: Comparable {
 extension Cursor where Element: Cursor {
     /// Returns the elements of this cursor of cursors, concatenated.
     public func joined() -> FlattenCursor<Self> {
-        return FlattenCursor(self)
+        FlattenCursor(self)
     }
 }
 
@@ -478,7 +478,7 @@ extension Cursor where Element: Cursor {
 extension Cursor where Element: Sequence {
     /// Returns the elements of this cursor of sequences, concatenated.
     public func joined() -> FlattenCursor<MapCursor<Self, AnyCursor<Element.Element>>> {
-        return flatMap { $0 }
+        flatMap { $0 }
     }
 }
 
@@ -545,7 +545,7 @@ public final class AnyCursor<Element>: Cursor {
     /// element exists.
     /// :nodoc:
     public func next() throws -> Element? {
-        return try element()
+        try element()
     }
 }
 

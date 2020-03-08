@@ -184,25 +184,25 @@ extension Player: Decodable, FetchableRecord, TableRecord {
     
     /// The player with a given id
     static func filter(id: Int64) -> SQLRequest<Player> {
-        return "SELECT * FROM \(self) WHERE \(CodingKeys.id) = \(id)"
+        "SELECT * FROM \(self) WHERE \(CodingKeys.id) = \(id)"
     }
     
     /// All players with the given ids
     static func filter(ids: [Int64]) -> SQLRequest<Player> {
-        return "SELECT * FROM \(self) WHERE \(CodingKeys.id) IN \(ids)"
+        "SELECT * FROM \(self) WHERE \(CodingKeys.id) IN \(ids)"
     }
     
     /// The maximum score
     static func maximumScore() -> SQLRequest<Int> {
-        return "SELECT MAX(\(CodingKeys.score)) FROM \(self)"
+        "SELECT MAX(\(CodingKeys.score)) FROM \(self)"
     }
     
     /// All players whose score is the maximum score
     static func leaders() -> SQLRequest<Player> {
-        return """
-            SELECT * FROM \(self)
-            WHERE \(CodingKeys.score) = \(maximumScore())
-            """
+        """
+        SELECT * FROM \(self)
+        WHERE \(CodingKeys.score) = \(maximumScore())
+        """
     }
     
     /// A complex request
@@ -247,7 +247,7 @@ Let's breakdown each one of those methods.
     extension Player: Decodable, FetchableRecord, TableRecord {
         /// The player with a given id
         static func filter(id: Int64) -> SQLRequest<Player> {
-            return "SELECT * FROM \(self) WHERE \(CodingKeys.id) = \(id)"
+            "SELECT * FROM \(self) WHERE \(CodingKeys.id) = \(id)"
         }
     }
     ```
@@ -271,7 +271,7 @@ Let's breakdown each one of those methods.
     extension Player: Decodable, FetchableRecord, TableRecord {
         /// All players with the given ids
         static func filter(ids: [Int64]) -> SQLRequest<Player> {
-            return "SELECT * FROM \(self) WHERE \(CodingKeys.id) IN \(ids)"
+            "SELECT * FROM \(self) WHERE \(CodingKeys.id) IN \(ids)"
         }
     }
     ```
@@ -293,7 +293,7 @@ Let's breakdown each one of those methods.
     extension Player: Decodable, FetchableRecord, TableRecord {
         /// The maximum score
         static func maximumScore() -> SQLRequest<Int> {
-            return "SELECT MAX(\(CodingKeys.score)) FROM \(self)"
+            "SELECT MAX(\(CodingKeys.score)) FROM \(self)"
         }
     }
     ```
@@ -315,10 +315,10 @@ Let's breakdown each one of those methods.
     extension Player: Decodable, FetchableRecord, TableRecord {
         /// All players whose score is the maximum score
         static func leaders() -> SQLRequest<Player> {
-            return """
-                SELECT * FROM \(self)
-                WHERE \(CodingKeys.score) = \(maximumScore())
-                """
+            """
+            SELECT * FROM \(self)
+            WHERE \(CodingKeys.score) = \(maximumScore())
+            """
         }
     }
     ```

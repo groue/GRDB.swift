@@ -197,7 +197,7 @@ extension DerivableRequest where RowDecoder == Author {
     
     /// Returns a request for all authors from a country
     func filter(country: String) -> Self {
-        return filter(Author.Columns.country == country)
+        filter(Author.Columns.country == country)
     }
 }
 ```
@@ -249,7 +249,7 @@ Not *every requests* can be expressed on `DerivableRequest`. For example, [Assoc
 extension QueryInterfaceRequest where RowDecoder == Author {
     /// Returns a request for all authors with at least one book
     func havingBooks() -> QueryInterfaceRequest<Author> {
-        return having(Author.books.isEmpty == false)
+        having(Author.books.isEmpty == false)
     }
 }
 ```
@@ -388,14 +388,14 @@ A last extension on your record types will further help navigation from records 
 extension Author {
     /// The request for the author's books
     var books: QueryInterfaceRequest<Book> {
-        return request(for: Author.books)
+        request(for: Author.books)
     }
 }
 
 extension Book {
     /// The request for the author of the book
     var author: QueryInterfaceRequest<Author> {
-        return request(for: Book.author)
+        request(for: Book.author)
     }
 }
 ```
@@ -530,19 +530,19 @@ class ImprovedLibraryManager {
     }
     
     func author(id: Int64) throws -> Author? {
-        return try dbQueue.read { db in
+        try dbQueue.read { db in
             try Author.fetchOne(db, key: id)
         }
     }
     
     func book(id: Int64) throws -> Book? {
-        return try dbQueue.read { db in
+        try dbQueue.read { db in
             try Book.fetchOne(db, key: id)
         }
     }
     
     func books(writtenBy author: Author) throws -> [Book] {
-        return try dbQueue.read { db in
+        try dbQueue.read { db in
             try author.books.fetchAll(db)
         }
     }
@@ -593,7 +593,7 @@ extension LibraryManager {
     }
     
     func authorList() throws -> [AuthorListItem] {
-        return try dbQueue.read { db in
+        try dbQueue.read { db in
             let request = Author
                 .annotated(with: Author.books.count)
                 .orderByName()
@@ -610,7 +610,7 @@ extension LibraryManager {
     }
     
     func bookInfo(bookId: Int64) throws -> BookInfo? {
-        return try dbQueue.read { db in
+        try dbQueue.read { db in
             guard let book = try Book.fetchOne(db, key: bookId) else {
                 return nil
             }
@@ -630,7 +630,7 @@ extension LibraryManager {
     }
     
     func authorInfo(authorId: Int64) throws -> AuthorInfo? {
-        return try dbQueue.read { db in
+        try dbQueue.read { db in
             guard let author = try Author.fetchOne(db, key: authorId) else {
                 return nil
             }

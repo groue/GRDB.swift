@@ -78,12 +78,12 @@ public struct AnyValueReducer<Fetched, Value>: ValueReducer {
     
     /// :nodoc:
     public func fetch(_ db: Database) throws -> Fetched {
-        return try _fetch(db)
+        try _fetch(db)
     }
     
     /// :nodoc:
     public func value(_ fetched: Fetched) -> Value? {
-        return _value(fetched)
+        _value(fetched)
     }
 }
 

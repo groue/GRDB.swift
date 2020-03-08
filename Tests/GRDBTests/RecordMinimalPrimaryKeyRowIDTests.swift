@@ -22,7 +22,7 @@ class MinimalRowID : Record {
     // Record
     
     override class var databaseTableName: String {
-        return "minimalRowIDs"
+        "minimalRowIDs"
     }
     
     required init(row: Row) {

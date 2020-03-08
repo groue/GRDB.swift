@@ -15,7 +15,7 @@ extension ValueReducer {
     /// Returns a reducer which outputs the results of calling the given
     /// transformation which each element emitted by this reducer.
     public func map<T>(_ transform: @escaping (Value) -> T) -> ValueReducers.Map<Self, T> {
-        return ValueReducers.Map(self, transform)
+        ValueReducers.Map(self, transform)
     }
 }
 
@@ -38,7 +38,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> Base.Fetched {
-            return try base.fetch(db)
+            try base.fetch(db)
         }
         
         public mutating func value(_ fetched: Base.Fetched) -> Value? {

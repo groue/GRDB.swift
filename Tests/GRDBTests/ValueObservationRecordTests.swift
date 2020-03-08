@@ -20,9 +20,7 @@ private struct Player: TableRecord, FetchableRecord {
         self.name = row["name"]
     }
     
-    var row: Row {
-        return ["id": id, "name": name]
-    }
+    var row: Row { ["id": id, "name": name] }
 }
 
 class ValueObservationRecordTests: GRDBTestCase {

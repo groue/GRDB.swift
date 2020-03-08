@@ -6,7 +6,7 @@
 /// :nodoc:
 public struct SQLGenerationContext {
     var arguments: StatementArguments {
-        return _arguments ?? StatementArguments()
+        _arguments ?? StatementArguments()
     }
     private var _arguments: StatementArguments?
     private var resolvedNames: [TableAlias: String]
@@ -32,7 +32,7 @@ public struct SQLGenerationContext {
     
     /// Used for SQLQueryGenerator
     static func queryContext(aliases: [TableAlias]) -> SQLGenerationContext {
-        return SQLGenerationContext(
+        SQLGenerationContext(
             _arguments: [],
             resolvedNames: aliases.resolvedNames,
             qualifierNeeded: aliases.count > 1)
@@ -70,7 +70,7 @@ public struct SQLGenerationContext {
     
     /// WHERE <resolvedName> MATCH pattern
     func resolvedName(for alias: TableAlias) -> String {
-        return resolvedNames[alias] ?? alias.identityName
+        resolvedNames[alias] ?? alias.identityName
     }
     
     /// FROM tableName <alias>
@@ -149,12 +149,12 @@ public class TableAlias: Hashable {
     
     // exposed to SQLGenerationContext
     fileprivate var identityName: String {
-        return userName ?? tableName
+        userName ?? tableName
     }
     
     // exposed to SQLGenerationContext
     fileprivate var hasUserName: Bool {
-        return userName != nil
+        userName != nil
     }
     
     var tableName: String {
@@ -283,7 +283,7 @@ public class TableAlias: Hashable {
     
     /// :nodoc:
     public static func == (lhs: TableAlias, rhs: TableAlias) -> Bool {
-        return ObjectIdentifier(lhs.root) == ObjectIdentifier(rhs.root)
+        ObjectIdentifier(lhs.root) == ObjectIdentifier(rhs.root)
     }
 }
 

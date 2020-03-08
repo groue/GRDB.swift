@@ -553,7 +553,7 @@ extension TableRecord {
     ///     // FROM player LEFT JOIN book ...
     ///     var request = Player.annotated(with: Player.books.count)
     public static func annotated(with aggregates: AssociationAggregate<Self>...) -> QueryInterfaceRequest<Self> {
-        return all().annotated(with: aggregates)
+        all().annotated(with: aggregates)
     }
     
     /// Creates a request with *aggregates* appended to the selection.
@@ -562,7 +562,7 @@ extension TableRecord {
     ///     // FROM player LEFT JOIN book ...
     ///     var request = Player.annotated(with: [Player.books.count])
     public static func annotated(with aggregates: [AssociationAggregate<Self>]) -> QueryInterfaceRequest<Self> {
-        return all().annotated(with: aggregates)
+        all().annotated(with: aggregates)
     }
     
     /// Creates a request with the provided aggregate *predicate*.
@@ -577,6 +577,6 @@ extension TableRecord {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public static func having(_ predicate: AssociationAggregate<Self>) -> QueryInterfaceRequest<Self> {
-        return all().having(predicate)
+        all().having(predicate)
     }
 }

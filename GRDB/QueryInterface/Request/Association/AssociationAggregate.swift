@@ -81,7 +81,7 @@ extension AssociationAggregate: KeyPathRefining {
     ///         let numberOfBooks: Int = row["numberOfBooks"]
     ///     }
     public func forKey(_ key: String) -> AssociationAggregate<RowDecoder> {
-        return with(\.key, key)
+        with(\.key, key)
     }
     
     /// Returns an aggregate that is selected in a column named like the given
@@ -100,7 +100,7 @@ extension AssociationAggregate: KeyPathRefining {
     ///         }
     ///     }
     public func forKey(_ key: CodingKey) -> AssociationAggregate<RowDecoder> {
-        return forKey(key.stringValue)
+        forKey(key.stringValue)
     }
 }
 
@@ -112,7 +112,7 @@ extension AssociationAggregate: KeyPathRefining {
 ///
 ///     Author.having(!Author.books.isEmpty)
 public prefix func ! <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
-    return AssociationAggregate { request in
+    AssociationAggregate { request in
         let (request, expression) = aggregate.prepare(request)
         return (request: request, expression: !expression)
     }
@@ -262,7 +262,7 @@ public func == <RowDecoder>(
 ///
 ///     Author.having(Author.books.isEmpty == false)
 public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) -> AssociationAggregate<RowDecoder> {
-    return AssociationAggregate { request in
+    AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression == rhs)
     }
@@ -274,7 +274,7 @@ public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) ->
 ///
 ///     Author.having(false == Author.books.isEmpty)
 public func == <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
-    return AssociationAggregate { request in
+    AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs == expression)
     }
@@ -335,7 +335,7 @@ public func != <RowDecoder>(
 ///
 ///     Author.having(Author.books.isEmpty != true)
 public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) -> AssociationAggregate<RowDecoder> {
-    return AssociationAggregate { request in
+    AssociationAggregate { request in
         let (request, expression) = lhs.prepare(request)
         return (request: request, expression: expression != rhs)
     }
@@ -347,7 +347,7 @@ public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) ->
 ///
 ///     Author.having(true != Author.books.isEmpty)
 public func != <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
-    return AssociationAggregate { request in
+    AssociationAggregate { request in
         let (request, expression) = rhs.prepare(request)
         return (request: request, expression: lhs != expression)
     }
@@ -657,7 +657,7 @@ public func >= <RowDecoder>(
 ///
 ///     Author.annotated(with: -Author.books.count)
 public prefix func - <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
-    return AssociationAggregate { request in
+    AssociationAggregate { request in
         let (request, expression) = aggregate.prepare(request)
         return (request: request, expression:-expression)
     }

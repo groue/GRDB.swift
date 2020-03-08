@@ -22,7 +22,7 @@ private class UserCursor<T> : Cursor {
 
 extension UserCursor {
     // Test presence of the Element associated type
-    static var elementType: Element.Type { return Element.self }
+    static var elementType: Element.Type { Element.self }
 }
 
 // MARK: - DatabaseAggregate
@@ -146,7 +146,7 @@ private class UserTableRecord2 : TableRecord {
 // MARK: - TransactionObserver
 
 private class UserTransactionObserver : TransactionObserver {
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return false }
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
     func databaseDidChange(with event: DatabaseEvent) { }
     func databaseDidCommit(_ db: Database) { }
     func databaseDidRollback(_ db: Database) { }

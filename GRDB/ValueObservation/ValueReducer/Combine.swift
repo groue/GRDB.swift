@@ -18,7 +18,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> Fetched {
-            return try (
+            try (
                 r1.fetch(db),
                 r2.fetch(db))
         }
@@ -101,7 +101,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> Fetched {
-            return try (
+            try (
                 r1.fetch(db),
                 r2.fetch(db),
                 r3.fetch(db))
@@ -205,7 +205,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> Fetched {
-            return try (
+            try (
                 r1.fetch(db),
                 r2.fetch(db),
                 r3.fetch(db),
@@ -326,7 +326,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> Fetched {
-            return try (
+            try (
                 r1.fetch(db),
                 r2.fetch(db),
                 r3.fetch(db),
@@ -464,7 +464,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> Fetched {
-            return try (
+            try (
                 r1.fetch(db),
                 r2.fetch(db),
                 r3.fetch(db),
@@ -591,7 +591,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> Fetched {
-            return try (
+            try (
                 r1.fetch(db),
                 r2.fetch(db),
                 r3.fetch(db),
@@ -733,7 +733,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> Fetched {
-            return try (
+            try (
                 r1.fetch(db),
                 r2.fetch(db),
                 r3.fetch(db),

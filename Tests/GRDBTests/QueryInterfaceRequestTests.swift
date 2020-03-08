@@ -512,7 +512,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         _ = Reader.all().select(literal: SQLLiteral(sql: "name")) as QueryInterfaceRequest<String>
         
         func makeRequest() -> QueryInterfaceRequest<String> {
-            return Reader.select(Col.name)
+            Reader.select(Col.name)
         }
         
         // Those should be, without any ambiguuity, requests of Reader.

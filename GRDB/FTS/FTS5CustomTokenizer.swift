@@ -39,7 +39,7 @@ extension FTS5CustomTokenizer {
     ///         t.tokenizer = tokenizer
     ///     }
     public static func tokenizerDescriptor(arguments: [String] = []) -> FTS5TokenizerDescriptor {
-        return FTS5TokenizerDescriptor(components: [name] + arguments)
+        FTS5TokenizerDescriptor(components: [name] + arguments)
     }
 }
 

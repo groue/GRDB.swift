@@ -18,7 +18,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     ///     var request = Player.all()
     ///     request = request.annotated(with: Player.books.count)
     public func annotated(with aggregates: AssociationAggregate<RowDecoder>...) -> QueryInterfaceRequest {
-        return annotated(with: aggregates)
+        annotated(with: aggregates)
     }
     
     /// Creates a request which appends *aggregates* to the current selection.
@@ -28,7 +28,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     ///     var request = Player.all()
     ///     request = request.annotated(with: [Player.books.count])
     public func annotated(with aggregates: [AssociationAggregate<RowDecoder>]) -> QueryInterfaceRequest {
-        return aggregates.reduce(self) { request, aggregate in
+        aggregates.reduce(self) { request, aggregate in
             request.annotated(with: aggregate)
         }
     }

@@ -21,7 +21,7 @@ extension Data: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(storage: .blob(self))
+        DatabaseValue(storage: .blob(self))
     }
     
     /// Returns a Data initialized from *dbValue*, if it contains

@@ -15,9 +15,7 @@ import XCTest
 private struct Name: DatabaseValueConvertible {
     var rawValue: String
     
-    var databaseValue: DatabaseValue {
-        return rawValue.databaseValue
-    }
+    var databaseValue: DatabaseValue { rawValue.databaseValue }
     
     static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Name? {
         guard let rawValue = String.fromDatabaseValue(dbValue) else {

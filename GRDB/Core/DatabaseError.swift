@@ -20,12 +20,10 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     ///     let resultCode = .SQLITE_CONSTRAINT_FOREIGNKEY
     ///     resultCode.primaryResultCode == .SQLITE_CONSTRAINT // true
     public var primaryResultCode: ResultCode {
-        return ResultCode(rawValue: rawValue & 0xFF)
+        ResultCode(rawValue: rawValue & 0xFF)
     }
     
-    var isPrimary: Bool {
-        return self == primaryResultCode
-    }
+    var isPrimary: Bool { self == primaryResultCode }
     
     /// Returns true if the code on the left matches the code on the right.
     ///
@@ -159,7 +157,7 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
 // CustomStringConvertible
 extension ResultCode {
     var errorString: String? {
-        return String(cString: sqlite3_errstr(rawValue))
+        String(cString: sqlite3_errstr(rawValue))
     }
     
     /// :nodoc:
@@ -190,7 +188,7 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     ///
     /// See also `extendedResultCode`.
     public var resultCode: ResultCode {
-        return extendedResultCode.primaryResultCode
+        extendedResultCode.primaryResultCode
     }
     
     /// The SQLite extended error code (see
@@ -281,19 +279,13 @@ extension DatabaseError {
     
     /// NSError bridging: the domain of the error.
     /// :nodoc:
-    public static var errorDomain: String {
-        return "GRDB.DatabaseError"
-    }
+    public static var errorDomain: String { "GRDB.DatabaseError" }
     
     /// NSError bridging: the error code within the given domain.
     /// :nodoc:
-    public var errorCode: Int {
-        return Int(extendedResultCode.rawValue)
-    }
+    public var errorCode: Int { Int(extendedResultCode.rawValue) }
     
     /// NSError bridging: the user-info dictionary.
     /// :nodoc:
-    public var errorUserInfo: [String: Any] {
-        return [NSLocalizedDescriptionKey: description]
-    }
+    public var errorUserInfo: [String: Any] { [NSLocalizedDescriptionKey: description] }
 }

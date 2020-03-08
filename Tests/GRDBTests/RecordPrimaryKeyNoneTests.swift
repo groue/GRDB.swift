@@ -29,7 +29,7 @@ private class Item : Record {
     // Record
     
     override class var databaseTableName: String {
-        return "items"
+        "items"
     }
     
     required init(row: Row) {

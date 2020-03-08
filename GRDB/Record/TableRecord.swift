@@ -89,12 +89,12 @@ extension TableRecord {
     /// - HTTPRequest -> "httpRequest"
     /// - TOEFL -> "toefl"
     public static var databaseTableName: String {
-        return defaultDatabaseTableName
+        defaultDatabaseTableName
     }
     
     /// Default value: `[AllColumns()]`.
     public static var databaseSelection: [SQLSelectable] {
-        return [AllColumns()]
+        [AllColumns()]
     }
 }
 
@@ -106,7 +106,7 @@ extension TableRecord {
     ///
     /// - parameter db: A database connection.
     public static func fetchCount(_ db: Database) throws -> Int {
-        return try all().fetchCount(db)
+        try all().fetchCount(db)
     }
 }
 

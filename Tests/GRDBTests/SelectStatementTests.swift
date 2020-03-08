@@ -187,7 +187,7 @@ class SelectStatementTests : GRDBTestCase {
                 }
                 
                 func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-                    return region.isModified(byEventsOfKind: eventKind)
+                    region.isModified(byEventsOfKind: eventKind)
                 }
                 
                 func databaseDidChange(with event: DatabaseEvent) {

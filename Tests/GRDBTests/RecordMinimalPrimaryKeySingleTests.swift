@@ -22,7 +22,7 @@ class MinimalSingle: Record {
     // Record
     
     override class var databaseTableName: String {
-        return "minimalSingles"
+        "minimalSingles"
     }
     
     required init(row: Row) {

@@ -286,7 +286,7 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
             }
             
             override class var databaseTableName: String {
-                return "myRecord"
+                "myRecord"
             }
             
             enum Columns: String, ColumnExpression {

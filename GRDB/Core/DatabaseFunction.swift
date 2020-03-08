@@ -14,11 +14,11 @@ public final class DatabaseFunction: Hashable {
         let nArg: Int32 // -1 for variadic functions
     }
     
-    public var name: String { return identity.name }
+    public var name: String { identity.name }
     private let identity: Identity
     let pure: Bool
     private let kind: Kind
-    private var eTextRep: Int32 { return (SQLITE_UTF8 | (pure ? SQLITE_DETERMINISTIC : 0)) }
+    private var eTextRep: Int32 { (SQLITE_UTF8 | (pure ? SQLITE_DETERMINISTIC : 0)) }
     
     /// Returns an SQL function.
     ///
@@ -343,7 +343,7 @@ extension DatabaseFunction {
     /// Two functions are equal if they share the same name and arity.
     /// :nodoc:
     public static func == (lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
-        return lhs.identity == rhs.identity
+        lhs.identity == rhs.identity
     }
 }
 

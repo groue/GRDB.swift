@@ -29,7 +29,7 @@ class InflectionsTests: GRDBTestCase {
     
     func testStartIndexOfLastWord() {
         func lastWord(_ string: String) -> String {
-            return String(string.suffix(from: Inflections.startIndexOfLastWord(string)))
+            String(string.suffix(from: Inflections.startIndexOfLastWord(string)))
         }
         XCTAssertEqual(lastWord(""), "")
         XCTAssertEqual(lastWord(" "), " ")
@@ -265,7 +265,7 @@ struct InflectionTestCases: Decodable {
     
     struct AnyCodingKey: CodingKey {
         var stringValue: String
-        var intValue: Int? { return nil }
+        var intValue: Int? { nil }
         
         init?(stringValue: String) {
             self.stringValue = stringValue

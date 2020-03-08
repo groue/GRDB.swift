@@ -190,7 +190,7 @@ public struct DatabaseMigrator {
     /// - parameter db: A database connection.
     /// - throws: An eventual database error.
     public func hasCompletedMigrations(_ db: Database) throws -> Bool {
-        return try completedMigrations(db).last == migrations.last?.identifier
+        try completedMigrations(db).last == migrations.last?.identifier
     }
         
     // MARK: - Non public

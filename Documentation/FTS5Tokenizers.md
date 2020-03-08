@@ -313,7 +313,7 @@ final class SynonymsTokenizer : FTS5WrapperTokenizer {
     }
     
     func synonyms(for token: String) -> Set<String>? {
-        return synonyms.first { $0.contains(token) }
+        synonyms.first { $0.contains(token) }
     }
     
     func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {

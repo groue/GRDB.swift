@@ -32,11 +32,11 @@ private class Person : Record {
     // Record
     
     override static var databaseSelection: [SQLSelectable] {
-        return [AllColumns(), Column.rowID]
+        [AllColumns(), Column.rowID]
     }
     
     override class var databaseTableName: String {
-        return "persons"
+        "persons"
     }
     
     required init(row: Row) {

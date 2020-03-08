@@ -89,11 +89,11 @@ public struct LayoutedColumnMapping {
     }
     
     func baseColumnIndex(atMappingIndex index: Int) -> Int {
-        return layoutColumns[index].0
+        layoutColumns[index].0
     }
     
     func columnName(atMappingIndex index: Int) -> String {
-        return layoutColumns[index].1
+        layoutColumns[index].1
     }
 }
 
@@ -104,16 +104,12 @@ extension LayoutedColumnMapping: LayoutedRowAdapter {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns self.
-    public var mapping: LayoutedColumnMapping {
-        return self
-    }
+    public var mapping: LayoutedColumnMapping { self }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns the empty dictionary.
-    public var scopes: [String: LayoutedRowAdapter] {
-        return [:]
-    }
+    public var scopes: [String: LayoutedRowAdapter] { [:] }
 }
 
 /// :nodoc:
@@ -175,13 +171,13 @@ extension SelectStatement: RowLayout {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public var layoutColumns: [(Int, String)] {
-        return Array(columnNames.enumerated())
+        Array(columnNames.enumerated())
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func layoutIndex(ofColumn name: String) -> Int? {
-        return index(ofColumn: name)
+        index(ofColumn: name)
     }
 }
 
@@ -247,7 +243,7 @@ extension RowAdapter {
 
 extension RowAdapter {
     func baseColumnIndex(atIndex index: Int, layout: RowLayout) throws -> Int {
-        return try layoutedAdapter(from: layout).mapping.baseColumnIndex(atMappingIndex: index)
+        try layoutedAdapter(from: layout).mapping.baseColumnIndex(atMappingIndex: index)
     }
 }
 
@@ -259,7 +255,7 @@ public struct EmptyRowAdapter: RowAdapter {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
-        return LayoutedColumnMapping(layoutColumns: [])
+        LayoutedColumnMapping(layoutColumns: [])
     }
 }
 
@@ -325,7 +321,7 @@ public struct SuffixRowAdapter: RowAdapter {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
-        return LayoutedColumnMapping(layoutColumns: layout.layoutColumns.suffix(from: index))
+        LayoutedColumnMapping(layoutColumns: layout.layoutColumns.suffix(from: index))
     }
 }
 
@@ -355,7 +351,7 @@ public struct RangeRowAdapter: RowAdapter {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
-        return LayoutedColumnMapping(layoutColumns: layout.layoutColumns[range])
+        LayoutedColumnMapping(layoutColumns: layout.layoutColumns[range])
     }
 }
 
@@ -454,7 +450,7 @@ struct ChainedAdapter: RowAdapter {
     let second: RowAdapter
     
     func layoutedAdapter(from layout: RowLayout) throws -> LayoutedRowAdapter {
-        return try second.layoutedAdapter(from: first.layoutedAdapter(from: layout).mapping)
+        try second.layoutedAdapter(from: first.layoutedAdapter(from: layout).mapping)
     }
 }
 
@@ -484,16 +480,12 @@ struct AdaptedRowImpl: RowImpl {
         self.mapping = adapter.mapping
     }
     
-    var count: Int {
-        return mapping.layoutColumns.count
-    }
+    var count: Int { mapping.layoutColumns.count }
     
-    var isFetched: Bool {
-        return base.isFetched
-    }
+    var isFetched: Bool { base.isFetched }
     
     func scopes(prefetchedRows: Row.PrefetchedRowsView) -> Row.ScopesView {
-        return Row.ScopesView(row: base, scopes: adapter.scopes, prefetchedRows: prefetchedRows)
+        Row.ScopesView(row: base, scopes: adapter.scopes, prefetchedRows: prefetchedRows)
     }
     
     func hasNull(atUncheckedIndex index: Int) -> Bool {
@@ -528,15 +520,15 @@ struct AdaptedRowImpl: RowImpl {
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {
-        return mapping.columnName(atMappingIndex: index)
+        mapping.columnName(atMappingIndex: index)
     }
     
     func index(ofColumn name: String) -> Int? {
-        return mapping.layoutIndex(ofColumn: name)
+        mapping.layoutIndex(ofColumn: name)
     }
     
     func copiedRow(_ row: Row) -> Row {
-        return Row(base: base.copy(), adapter: adapter)
+        Row(base: base.copy(), adapter: adapter)
     }
     
     func unscopedRow(_ row: Row) -> Row {
@@ -545,6 +537,6 @@ struct AdaptedRowImpl: RowImpl {
     }
     
     func unadaptedRow(_ row: Row) -> Row {
-        return base.unadapted
+        base.unadapted
     }
 }

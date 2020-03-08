@@ -28,7 +28,7 @@ extension Database {
     
     /// Returns whether a table exists.
     public func tableExists(_ name: String) throws -> Bool {
-        return try exists(type: .table, name: name)
+        try exists(type: .table, name: name)
     }
     
     /// Returns whether a table is an internal SQLite table.
@@ -50,17 +50,17 @@ extension Database {
     ///
     /// Those are tables whose name begins with "grdb_".
     public func isGRDBInternalTable(_ tableName: String) -> Bool {
-        return tableName.starts(with: "grdb_")
+        tableName.starts(with: "grdb_")
     }
     
     /// Returns whether a view exists.
     public func viewExists(_ name: String) throws -> Bool {
-        return try exists(type: .view, name: name)
+        try exists(type: .view, name: name)
     }
     
     /// Returns whether a trigger exists.
     public func triggerExists(_ name: String) throws -> Bool {
-        return try exists(type: .trigger, name: name)
+        try exists(type: .trigger, name: name)
     }
     
     private func exists(type: SchemaObjectType, name: String) throws -> Bool {
@@ -531,7 +531,7 @@ public struct PrimaryKeyInfo {
     private let impl: Impl
     
     static func rowID(_ column: String) -> PrimaryKeyInfo {
-        return PrimaryKeyInfo(impl: .rowID(column))
+        PrimaryKeyInfo(impl: .rowID(column))
     }
     
     static func regular(_ columns: [String]) -> PrimaryKeyInfo {
@@ -589,12 +589,12 @@ public struct ForeignKeyInfo {
     
     /// The origin columns
     public var originColumns: [String] {
-        return mapping.map(\.origin)
+        mapping.map(\.origin)
     }
     
     /// The destination columns
     public var destinationColumns: [String] {
-        return mapping.map(\.destination)
+        mapping.map(\.destination)
     }
 }
 
@@ -618,7 +618,7 @@ struct SchemaInfo: Equatable {
     
     /// All names for a given type
     func names(ofType type: SchemaObjectType) -> Set<String> {
-        return objects.reduce(into: []) { (set, key) in
+        objects.reduce(into: []) { (set, key) in
             if key.type == type.rawValue {
                 set.insert(key.name)
             }

@@ -12,12 +12,12 @@ public final class DatabaseQueue: DatabaseWriter {
     
     /// The database configuration
     public var configuration: Configuration {
-        return writer.configuration
+        writer.configuration
     }
     
     /// The path to the database file; it is ":memory:" for in-memory databases.
     public var path: String {
-        return writer.path
+        writer.path
     }
     
     // MARK: - Initializers
@@ -195,7 +195,7 @@ extension DatabaseQueue {
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
     public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try writer.sync { db in
+        try writer.sync { db in
             try db.readOnly { try block(db) }
         }
     }
@@ -245,7 +245,7 @@ extension DatabaseQueue {
     ///
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try writer.sync(block)
+        try writer.sync(block)
     }
     
     /// Synchronously executes a block in a protected dispatch queue, and
@@ -260,7 +260,7 @@ extension DatabaseQueue {
     ///
     /// :nodoc:
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try writer.reentrantSync(block)
+        try writer.reentrantSync(block)
     }
     
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
@@ -351,7 +351,7 @@ extension DatabaseQueue {
     /// - parameter updates: The updates to the database.
     /// - throws: The error thrown by the updates.
     public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try writer.sync(updates)
+        try writer.sync(updates)
     }
     
     /// Synchronously executes database updates in a protected dispatch queue,
@@ -365,7 +365,7 @@ extension DatabaseQueue {
     /// - parameter updates: The updates to the database.
     /// - throws: The error thrown by the updates.
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try writer.sync(updates)
+        try writer.sync(updates)
     }
     
     /// Synchronously executes database updates in a protected dispatch queue,
@@ -381,7 +381,7 @@ extension DatabaseQueue {
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
     public func inDatabase<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try writer.sync(updates)
+        try writer.sync(updates)
     }
     
     /// Synchronously executes database updates in a protected dispatch queue, and
@@ -395,7 +395,7 @@ extension DatabaseQueue {
     /// This method is reentrant. It is unsafe because it fosters dangerous
     /// concurrency practices.
     public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try writer.reentrantSync(updates)
+        try writer.reentrantSync(updates)
     }
     
     /// Asynchronously executes database updates in a protected dispatch queue,

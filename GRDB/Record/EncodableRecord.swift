@@ -121,7 +121,7 @@ public protocol EncodableRecord {
 
 extension EncodableRecord {
     public static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] {
-        return [:]
+        [:]
     }
     
     public static func databaseJSONEncoder(for column: String) -> JSONEncoder {
@@ -137,18 +137,18 @@ extension EncodableRecord {
     }
     
     public static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy {
-        return .deferredToDate
+        .deferredToDate
     }
     
     public static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy {
-        return .deferredToUUID
+        .deferredToUUID
     }
 }
 
 extension EncodableRecord {
     /// A dictionary whose keys are the columns encoded in the `encode(to:)` method.
     public var databaseDictionary: [String: DatabaseValue] {
-        return Dictionary(PersistenceContainer(self).storage).mapValues { $0?.databaseValue ?? .null }
+        Dictionary(PersistenceContainer(self).storage).mapValues { $0?.databaseValue ?? .null }
     }
 }
 
@@ -159,7 +159,7 @@ extension EncodableRecord {
     /// Returns a boolean indicating whether this record and the other record
     /// have the same database representation.
     public func databaseEquals(_ record: Self) -> Bool {
-        return PersistenceContainer(self).changesIterator(from: PersistenceContainer(record)).next() == nil
+        PersistenceContainer(self).changesIterator(from: PersistenceContainer(record)).next() == nil
     }
     
     /// A dictionary of values changed from the other record.
@@ -203,7 +203,7 @@ public struct PersistenceContainer {
     /// is considered undefined behavior.
     @inlinable
     public subscript(_ column: String) -> DatabaseValueConvertible? {
-        get { return storage[column] ?? nil }
+        get { storage[column] ?? nil }
         set { storage.updateValue(newValue, forKey: column) }
     }
     
@@ -214,7 +214,7 @@ public struct PersistenceContainer {
     /// is considered undefined behavior.
     @inlinable
     public subscript<Column: ColumnExpression>(_ column: Column) -> DatabaseValueConvertible? {
-        get { return self[column.name] }
+        get { self[column.name] }
         set { self[column.name] = newValue }
     }
     
@@ -233,14 +233,10 @@ public struct PersistenceContainer {
     }
     
     /// Columns stored in the container, ordered like values.
-    var columns: [String] {
-        return Array(storage.keys)
-    }
+    var columns: [String] { Array(storage.keys) }
     
     /// Values stored in the container, ordered like columns.
-    var values: [DatabaseValueConvertible?] {
-        return Array(storage.values)
-    }
+    var values: [DatabaseValueConvertible?] { Array(storage.values) }
     
     /// Accesses the value associated with the given column, in a
     /// case-insensitive fashion.
@@ -281,13 +277,11 @@ public struct PersistenceContainer {
         return nil
     }
     
-    var isEmpty: Bool {
-        return storage.isEmpty
-    }
+    var isEmpty: Bool { storage.isEmpty }
     
     /// An iterator over the (column, value) pairs
     func makeIterator() -> IndexingIterator<OrderedDictionary<String, DatabaseValueConvertible?>> {
-        return storage.makeIterator()
+        storage.makeIterator()
     }
     
     func changesIterator(from container: PersistenceContainer) -> AnyIterator<(String, DatabaseValue)> {

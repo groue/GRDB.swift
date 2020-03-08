@@ -16,9 +16,7 @@ private class Observer : TransactionObserver {
     }
 #endif
     
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return true
-    }
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
     
     func databaseDidChange(with event: DatabaseEvent) {
         events.append(event.copy())
@@ -38,7 +36,7 @@ private class Observer : TransactionObserver {
 class TransactionObserverSavepointsTests: GRDBTestCase {
     
     private func match(event: DatabaseEvent, kind: DatabaseEvent.Kind, tableName: String, rowId: Int64) -> Bool {
-        return (event.tableName == tableName) && (event.rowID == rowId) && (event.kind == kind)
+        (event.tableName == tableName) && (event.rowID == rowId) && (event.kind == kind)
     }
     
 #if SQLITE_ENABLE_PREUPDATE_HOOK

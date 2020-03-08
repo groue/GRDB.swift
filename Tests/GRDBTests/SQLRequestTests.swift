@@ -136,27 +136,27 @@ class SQLRequestTests: GRDBTestCase {
             var name: String
             
             static func filter(id: Int64) -> SQLRequest<Player> {
-                return """
-                    SELECT *
-                    FROM \(self)
-                    WHERE \(CodingKeys.id) = \(id)
-                    """
+                """
+                SELECT *
+                FROM \(self)
+                WHERE \(CodingKeys.id) = \(id)
+                """
             }
 
             static func filter(ids: [Int64]) -> SQLRequest<Player> {
-                return """
-                    SELECT *
-                    FROM \(self)
-                    WHERE \(CodingKeys.id) IN \(ids)
-                    """
+                """
+                SELECT *
+                FROM \(self)
+                WHERE \(CodingKeys.id) IN \(ids)
+                """
             }
 
             static func filter<S>(excludedIds: S) -> SQLRequest<Player> where S: Sequence, S.Element == Int64 {
-                return """
-                    SELECT *
-                    FROM \(self)
-                    WHERE \(CodingKeys.id) NOT IN \(excludedIds)
-                    """
+                """
+                SELECT *
+                FROM \(self)
+                WHERE \(CodingKeys.id) NOT IN \(excludedIds)
+                """
             }
             
             // The test pass if this method compiles.

@@ -308,7 +308,7 @@ public final class AnyDatabaseReader: DatabaseReader {
     
     /// :nodoc:
     public var configuration: Configuration {
-        return base.configuration
+        base.configuration
     }
     
     // MARK: - Interrupting Database Operations
@@ -322,7 +322,7 @@ public final class AnyDatabaseReader: DatabaseReader {
     
     /// :nodoc:
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.read(block)
+        try base.read(block)
     }
     
     /// :nodoc:
@@ -332,12 +332,12 @@ public final class AnyDatabaseReader: DatabaseReader {
     
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.unsafeRead(block)
+        try base.unsafeRead(block)
     }
     
     /// :nodoc:
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.unsafeReentrantRead(block)
+        try base.unsafeReentrantRead(block)
     }
     
     // MARK: - Functions

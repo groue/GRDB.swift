@@ -32,10 +32,10 @@ class RowDecoder {
 private struct _RowDecoder<R: FetchableRecord>: Decoder {
     var row: Row
     var codingPath: [CodingKey]
-    var userInfo: [CodingUserInfoKey: Any] { return R.databaseDecodingUserInfo }
+    var userInfo: [CodingUserInfoKey: Any] { R.databaseDecodingUserInfo }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
-        return KeyedDecodingContainer(KeyedContainer<Key>(decoder: self))
+        KeyedDecodingContainer(KeyedContainer<Key>(decoder: self))
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
@@ -73,7 +73,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
     
     class KeyedContainer<Key: CodingKey>: KeyedDecodingContainerProtocol {
         let decoder: _RowDecoder
-        var codingPath: [CodingKey] { return decoder.codingPath }
+        var codingPath: [CodingKey] { decoder.codingPath }
         var decodedRootKey: CodingKey?
         
         init(decoder: _RowDecoder) {
@@ -99,20 +99,20 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         }
         
         // swiftlint:disable comma
-        func decode(_ type: Bool.Type,   forKey key: Key) throws -> Bool   { return decoder.row[key.stringValue] }
-        func decode(_ type: Int.Type,    forKey key: Key) throws -> Int    { return decoder.row[key.stringValue] }
-        func decode(_ type: Int8.Type,   forKey key: Key) throws -> Int8   { return decoder.row[key.stringValue] }
-        func decode(_ type: Int16.Type,  forKey key: Key) throws -> Int16  { return decoder.row[key.stringValue] }
-        func decode(_ type: Int32.Type,  forKey key: Key) throws -> Int32  { return decoder.row[key.stringValue] }
-        func decode(_ type: Int64.Type,  forKey key: Key) throws -> Int64  { return decoder.row[key.stringValue] }
-        func decode(_ type: UInt.Type,   forKey key: Key) throws -> UInt   { return decoder.row[key.stringValue] }
-        func decode(_ type: UInt8.Type,  forKey key: Key) throws -> UInt8  { return decoder.row[key.stringValue] }
-        func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 { return decoder.row[key.stringValue] }
-        func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 { return decoder.row[key.stringValue] }
-        func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 { return decoder.row[key.stringValue] }
-        func decode(_ type: Float.Type,  forKey key: Key) throws -> Float  { return decoder.row[key.stringValue] }
-        func decode(_ type: Double.Type, forKey key: Key) throws -> Double { return decoder.row[key.stringValue] }
-        func decode(_ type: String.Type, forKey key: Key) throws -> String { return decoder.row[key.stringValue] }
+        func decode(_ type: Bool.Type,   forKey key: Key) throws -> Bool   { decoder.row[key.stringValue] }
+        func decode(_ type: Int.Type,    forKey key: Key) throws -> Int    { decoder.row[key.stringValue] }
+        func decode(_ type: Int8.Type,   forKey key: Key) throws -> Int8   { decoder.row[key.stringValue] }
+        func decode(_ type: Int16.Type,  forKey key: Key) throws -> Int16  { decoder.row[key.stringValue] }
+        func decode(_ type: Int32.Type,  forKey key: Key) throws -> Int32  { decoder.row[key.stringValue] }
+        func decode(_ type: Int64.Type,  forKey key: Key) throws -> Int64  { decoder.row[key.stringValue] }
+        func decode(_ type: UInt.Type,   forKey key: Key) throws -> UInt   { decoder.row[key.stringValue] }
+        func decode(_ type: UInt8.Type,  forKey key: Key) throws -> UInt8  { decoder.row[key.stringValue] }
+        func decode(_ type: UInt16.Type, forKey key: Key) throws -> UInt16 { decoder.row[key.stringValue] }
+        func decode(_ type: UInt32.Type, forKey key: Key) throws -> UInt32 { decoder.row[key.stringValue] }
+        func decode(_ type: UInt64.Type, forKey key: Key) throws -> UInt64 { decoder.row[key.stringValue] }
+        func decode(_ type: Float.Type,  forKey key: Key) throws -> Float  { decoder.row[key.stringValue] }
+        func decode(_ type: Double.Type, forKey key: Key) throws -> Double { decoder.row[key.stringValue] }
+        func decode(_ type: String.Type, forKey key: Key) throws -> String { decoder.row[key.stringValue] }
         // swiftlint:enable comma
         
         func decodeIfPresent<T>(_ type: T.Type, forKey key: Key) throws -> T? where T: Decodable {
@@ -303,7 +303,7 @@ private struct PrefetchedRowsDecoder<R: FetchableRecord>: Decoder {
     var rows: [Row]
     var codingPath: [CodingKey]
     var currentIndex: Int
-    var userInfo: [CodingUserInfoKey: Any] { return R.databaseDecodingUserInfo }
+    var userInfo: [CodingUserInfoKey: Any] { R.databaseDecodingUserInfo }
     
     init(rows: [Row], codingPath: [CodingKey]) {
         self.rows = rows
@@ -315,9 +315,7 @@ private struct PrefetchedRowsDecoder<R: FetchableRecord>: Decoder {
         fatalError("keyed decoding from prefetched rows is not supported")
     }
     
-    func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        return self
-    }
+    func unkeyedContainer() throws -> UnkeyedDecodingContainer { self }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
         fatalError("single value decoding from prefetched rows is not supported")
@@ -325,17 +323,11 @@ private struct PrefetchedRowsDecoder<R: FetchableRecord>: Decoder {
 }
 
 extension PrefetchedRowsDecoder: UnkeyedDecodingContainer {
-    var count: Int? {
-        return rows.count
-    }
+    var count: Int? { rows.count }
     
-    var isAtEnd: Bool {
-        return currentIndex >= rows.count
-    }
+    var isAtEnd: Bool { currentIndex >= rows.count }
     
-    mutating func decodeNil() throws -> Bool {
-        return false
-    }
+    mutating func decodeNil() throws -> Bool { false }
     
     mutating func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         defer { currentIndex += 1 }
@@ -366,7 +358,7 @@ private struct ColumnDecoder<R: FetchableRecord>: Decoder {
     var row: Row
     var columnIndex: Int
     var codingPath: [CodingKey]
-    var userInfo: [CodingUserInfoKey: Any] { return R.databaseDecodingUserInfo }
+    var userInfo: [CodingUserInfoKey: Any] { R.databaseDecodingUserInfo }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
         // We need to switch to JSON decoding
@@ -378,30 +370,28 @@ private struct ColumnDecoder<R: FetchableRecord>: Decoder {
         throw JSONRequiredError()
     }
     
-    func singleValueContainer() throws -> SingleValueDecodingContainer {
-        return self
-    }
+    func singleValueContainer() throws -> SingleValueDecodingContainer { self }
 }
 
 extension ColumnDecoder: SingleValueDecodingContainer {
     func decodeNil() -> Bool {
-        return row.hasNull(atIndex: columnIndex)
+        row.hasNull(atIndex: columnIndex)
     }
     
-    func decode(_ type: Bool.Type  ) throws -> Bool   { return row[columnIndex] }
-    func decode(_ type: Int.Type   ) throws -> Int    { return row[columnIndex] }
-    func decode(_ type: Int8.Type  ) throws -> Int8   { return row[columnIndex] }
-    func decode(_ type: Int16.Type ) throws -> Int16  { return row[columnIndex] }
-    func decode(_ type: Int32.Type ) throws -> Int32  { return row[columnIndex] }
-    func decode(_ type: Int64.Type ) throws -> Int64  { return row[columnIndex] }
-    func decode(_ type: UInt.Type  ) throws -> UInt   { return row[columnIndex] }
-    func decode(_ type: UInt8.Type ) throws -> UInt8  { return row[columnIndex] }
-    func decode(_ type: UInt16.Type) throws -> UInt16 { return row[columnIndex] }
-    func decode(_ type: UInt32.Type) throws -> UInt32 { return row[columnIndex] }
-    func decode(_ type: UInt64.Type) throws -> UInt64 { return row[columnIndex] }
-    func decode(_ type: Float.Type ) throws -> Float  { return row[columnIndex] }
-    func decode(_ type: Double.Type) throws -> Double { return row[columnIndex] }
-    func decode(_ type: String.Type) throws -> String { return row[columnIndex] }
+    func decode(_ type: Bool.Type  ) throws -> Bool   { row[columnIndex] }
+    func decode(_ type: Int.Type   ) throws -> Int    { row[columnIndex] }
+    func decode(_ type: Int8.Type  ) throws -> Int8   { row[columnIndex] }
+    func decode(_ type: Int16.Type ) throws -> Int16  { row[columnIndex] }
+    func decode(_ type: Int32.Type ) throws -> Int32  { row[columnIndex] }
+    func decode(_ type: Int64.Type ) throws -> Int64  { row[columnIndex] }
+    func decode(_ type: UInt.Type  ) throws -> UInt   { row[columnIndex] }
+    func decode(_ type: UInt8.Type ) throws -> UInt8  { row[columnIndex] }
+    func decode(_ type: UInt16.Type) throws -> UInt16 { row[columnIndex] }
+    func decode(_ type: UInt32.Type) throws -> UInt32 { row[columnIndex] }
+    func decode(_ type: UInt64.Type) throws -> UInt64 { row[columnIndex] }
+    func decode(_ type: Float.Type ) throws -> Float  { row[columnIndex] }
+    func decode(_ type: Double.Type) throws -> Double { row[columnIndex] }
+    func decode(_ type: String.Type) throws -> String { row[columnIndex] }
     
     func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         // Prefer DatabaseValueConvertible decoding over Decodable.

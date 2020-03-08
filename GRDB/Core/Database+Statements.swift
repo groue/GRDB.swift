@@ -21,7 +21,7 @@ extension Database {
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func makeSelectStatement(sql: String) throws -> SelectStatement {
-        return try makeSelectStatement(sql: sql, prepFlags: 0)
+        try makeSelectStatement(sql: sql, prepFlags: 0)
     }
     
     /// Returns a new prepared statement that can be reused.
@@ -36,7 +36,7 @@ extension Database {
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeSelectStatement(sql: String, prepFlags: Int32) throws -> SelectStatement {
-        return try SelectStatement.prepare(self, sql: sql, prepFlags: prepFlags)
+        try SelectStatement.prepare(self, sql: sql, prepFlags: prepFlags)
     }
     
     /// Returns a prepared statement that can be reused.
@@ -52,12 +52,12 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func cachedSelectStatement(sql: String) throws -> SelectStatement {
-        return try publicStatementCache.selectStatement(sql)
+        try publicStatementCache.selectStatement(sql)
     }
     
     /// Returns a cached statement that does not conflict with user's cached statements.
     func internalCachedSelectStatement(sql: String) throws -> SelectStatement {
-        return try internalStatementCache.selectStatement(sql)
+        try internalStatementCache.selectStatement(sql)
     }
     
     /// Returns a new prepared statement that can be reused.
@@ -70,7 +70,7 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func makeUpdateStatement(sql: String) throws -> UpdateStatement {
-        return try makeUpdateStatement(sql: sql, prepFlags: 0)
+        try makeUpdateStatement(sql: sql, prepFlags: 0)
     }
     
     /// Returns a new prepared statement that can be reused.
@@ -85,7 +85,7 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeUpdateStatement(sql: String, prepFlags: Int32) throws -> UpdateStatement {
-        return try UpdateStatement.prepare(self, sql: sql, prepFlags: prepFlags)
+        try UpdateStatement.prepare(self, sql: sql, prepFlags: prepFlags)
     }
     
     /// Returns a prepared statement that can be reused.
@@ -101,12 +101,12 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
-        return try publicStatementCache.updateStatement(sql)
+        try publicStatementCache.updateStatement(sql)
     }
     
     /// Returns a cached statement that does not conflict with user's cached statements.
     func internalCachedUpdateStatement(sql: String) throws -> UpdateStatement {
-        return try internalStatementCache.updateStatement(sql)
+        try internalStatementCache.updateStatement(sql)
     }
     
     /// Executes one or several SQL statements, separated by semi-colons.

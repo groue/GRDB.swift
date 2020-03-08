@@ -75,7 +75,7 @@ extension FetchRequest {
     
     /// Returns an adapted request.
     public func adapted(_ adapter: @escaping (Database) throws -> RowAdapter) -> AdaptedFetchRequest<Self> {
-        return AdaptedFetchRequest(self, adapter)
+        AdaptedFetchRequest(self, adapter)
     }
     
     /// Returns the number of rows fetched by the request.
@@ -131,12 +131,12 @@ public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
     
     /// :nodoc:
     public func fetchCount(_ db: Database) throws -> Int {
-        return try base.fetchCount(db)
+        try base.fetchCount(db)
     }
     
     /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        return try base.databaseRegion(db)
+        try base.databaseRegion(db)
     }
 }
 
@@ -162,16 +162,16 @@ public struct AnyFetchRequest<T>: FetchRequest {
     
     /// :nodoc:
     public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        return try _preparedRequest(db, singleResult)
+        try _preparedRequest(db, singleResult)
     }
     
     /// :nodoc:
     public func fetchCount(_ db: Database) throws -> Int {
-        return try _fetchCount(db)
+        try _fetchCount(db)
     }
     
     /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        return try _databaseRegion(db)
+        try _databaseRegion(db)
     }
 }

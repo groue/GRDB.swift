@@ -21,11 +21,11 @@ struct ValueConversionContext: KeyPathRefining {
     private var column: Column?
     
     func atColumn(_ columnIndex: Int) -> ValueConversionContext {
-        return with(\.column, .columnIndex(columnIndex))
+        with(\.column, .columnIndex(columnIndex))
     }
     
     func atColumn(_ columnName: String) -> ValueConversionContext {
-        return with(\.column, .columnName(columnName))
+        with(\.column, .columnName(columnName))
     }
     
     var columnIndex: Int? {
@@ -224,7 +224,7 @@ extension DatabaseValueConvertible {
     
     @usableFromInline
     static func decode(from row: Row, atUncheckedIndex index: Int) -> Self {
-        return decode(
+        decode(
             from: row.impl.databaseValue(atUncheckedIndex: index),
             conversionContext: ValueConversionContext(row).atColumn(index))
     }
@@ -258,7 +258,7 @@ extension DatabaseValueConvertible {
     
     @usableFromInline
     static func decodeIfPresent(from row: Row, atUncheckedIndex index: Int) -> Self? {
-        return decodeIfPresent(
+        decodeIfPresent(
             from: row.impl.databaseValue(atUncheckedIndex: index),
             conversionContext: ValueConversionContext(row).atColumn(index))
     }

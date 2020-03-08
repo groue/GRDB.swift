@@ -63,7 +63,7 @@ final class Pool<T> {
     /// Returns a tuple (element, release)
     /// Client must call release(), only once, after the element has been used.
     func get() throws -> (element: T, release: () -> Void) {
-        return try barrierQueue.sync {
+        try barrierQueue.sync {
             itemsSemaphore.wait()
             itemsGroup.enter()
             do {
@@ -126,7 +126,7 @@ final class Pool<T> {
     /// Blocks until no element is used, and runs the `barrier` function before
     /// any other element is dequeued.
     func barrier<T>(execute barrier: () throws -> T) rethrows -> T {
-        return try barrierQueue.sync(flags: [.barrier]) {
+        try barrierQueue.sync(flags: [.barrier]) {
             itemsGroup.wait()
             return try barrier()
         }

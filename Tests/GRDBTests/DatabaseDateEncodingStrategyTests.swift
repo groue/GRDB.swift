@@ -51,12 +51,12 @@ private enum StrategyCustom: StrategyProvider {
 }
 
 private struct RecordWithDate<Strategy: StrategyProvider>: PersistableRecord, Encodable {
-    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { return Strategy.strategy }
+    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { Strategy.strategy }
     var date: Date
 }
 
 private struct RecordWithOptionalDate<Strategy: StrategyProvider>: PersistableRecord, Encodable {
-    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { return Strategy.strategy }
+    static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { Strategy.strategy }
     var date: Date?
 }
 

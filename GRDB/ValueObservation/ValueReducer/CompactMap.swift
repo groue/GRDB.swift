@@ -15,7 +15,7 @@ extension ValueReducer {
     /// Returns a reducer which outputs the non-nil results of calling the given
     /// transformation which each element emitted by this reducer.
     public func compactMap<T>(_ transform: @escaping (Value) -> T?) -> ValueReducers.CompactMap<Self, T> {
-        return ValueReducers.CompactMap(self, transform)
+        ValueReducers.CompactMap(self, transform)
     }
 }
 
@@ -35,7 +35,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> Base.Fetched {
-            return try base.fetch(db)
+            try base.fetch(db)
         }
         
         public mutating func value(_ fetched: Base.Fetched) -> Value? {

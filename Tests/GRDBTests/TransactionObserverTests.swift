@@ -51,7 +51,7 @@ private class Observer : TransactionObserver {
     #endif
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return observesBlock(eventKind)
+        observesBlock(eventKind)
     }
     
     func databaseDidChange(with event: DatabaseEvent) {
@@ -140,7 +140,7 @@ class TransactionObserverTests: GRDBTestCase {
     }
     
     private func match(event: DatabaseEvent, kind: DatabaseEvent.Kind, tableName: String, rowId: Int64) -> Bool {
-        return (event.tableName == tableName) && (event.rowID == rowId) && (event.kind == kind)
+        (event.tableName == tableName) && (event.rowID == rowId) && (event.kind == kind)
     }
     
     #if SQLITE_ENABLE_PREUPDATE_HOOK
@@ -1645,14 +1645,10 @@ class TransactionObserverTests: GRDBTestCase {
             
             #if SQLITE_ENABLE_PREUPDATE_HOOK
             var willChangeCount: Int = 0
-            func databaseWillChange(with event: DatabasePreUpdateEvent) {
-                willChangeCount += 1
-            }
+            func databaseWillChange(with event: DatabasePreUpdateEvent) { willChangeCount += 1 }
             #endif
             
-            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-                return true
-            }
+            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
             
             func databaseDidChange(with event: DatabaseEvent) {
                 didChangeCount += 1
@@ -1661,17 +1657,9 @@ class TransactionObserverTests: GRDBTestCase {
                 }
             }
             
-            func databaseWillCommit() throws {
-                willCommitCount += 1
-            }
-            
-            func databaseDidCommit(_ db: Database) {
-                didCommitCount += 1
-            }
-            
-            func databaseDidRollback(_ db: Database) {
-                didRollbackCount += 1
-            }
+            func databaseWillCommit() throws { willCommitCount += 1 }
+            func databaseDidCommit(_ db: Database) { didCommitCount += 1 }
+            func databaseDidRollback(_ db: Database) { didRollbackCount += 1 }
         }
         
         let observer = Observer()

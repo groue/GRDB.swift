@@ -25,7 +25,7 @@ extension FetchableRecord where Self: TableRecord {
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database) throws -> RecordCursor<Self> {
-        return try all().fetchCursor(db)
+        try all().fetchCursor(db)
     }
     
     /// An array of all records fetched from the database.
@@ -40,7 +40,7 @@ extension FetchableRecord where Self: TableRecord {
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database) throws -> [Self] {
-        return try all().fetchAll(db)
+        try all().fetchAll(db)
     }
     
     /// The first found record.
@@ -55,7 +55,7 @@ extension FetchableRecord where Self: TableRecord {
     /// - parameter db: A database connection.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database) throws -> Self? {
-        return try all().fetchOne(db)
+        try all().fetchOne(db)
     }
 }
 

@@ -13,9 +13,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     @usableFromInline /* private(set) */ var keys: [Key]
     @usableFromInline /* private(set) */ var dictionary: [Key: Value]
     
-    var values: [Value] {
-        return keys.map { dictionary[$0]! }
-    }
+    var values: [Value] { keys.map { dictionary[$0]! } }
     
     private init(keys: [Key], dictionary: [Key: Value]) {
         assert(Set(keys) == Set(dictionary.keys))
@@ -39,7 +37,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     /// Returns the value associated with key, or nil.
     @usableFromInline
     subscript(_ key: Key) -> Value? {
-        get { return dictionary[key] }
+        get { dictionary[key] }
         set {
             if let value = newValue {
                 updateValue(value, forKey: key)
@@ -52,7 +50,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     /// Returns the value associated with key, or the default value.
     @inlinable
     subscript(_ key: Key, default defaultValue: Value) -> Value {
-        get { return dictionary[key] ?? defaultValue }
+        get { dictionary[key] ?? defaultValue }
         set { self[key] = newValue }
     }
     
@@ -98,7 +96,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     /// Returns a new ordered dictionary containing the keys of this dictionary
     /// with the values transformed by the given closure.
     func mapValues<T>(_ transform: (Value) throws -> T) rethrows -> OrderedDictionary<Key, T> {
-        return try reduce(into: .init()) { dict, pair in
+        try reduce(into: .init()) { dict, pair in
             let value = try transform(pair.value)
             dict.appendValue(value, forKey: pair.key)
         }
@@ -108,7 +106,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     /// that have non-nil values as the result of transformation by the
     /// given closure.
     func compactMapValues<T>(_ transform: (Value) throws -> T?) rethrows -> OrderedDictionary<Key, T> {
-        return try reduce(into: .init()) { dict, pair in
+        try reduce(into: .init()) { dict, pair in
             if let value = try transform(pair.value) {
                 dict.appendValue(value, forKey: pair.key)
             }
@@ -126,18 +124,11 @@ extension OrderedDictionary: Collection {
     @usableFromInline
     typealias Index = Int
     
-    @usableFromInline var startIndex: Int {
-        return 0
-    }
-    
-    @usableFromInline var endIndex: Int {
-        return keys.count
-    }
+    @usableFromInline var startIndex: Int { 0 }
+    @usableFromInline var endIndex: Int { keys.count }
     
     @usableFromInline
-    func index(after i: Int) -> Int {
-        return i + 1
-    }
+    func index(after i: Int) -> Int { i + 1 }
     
     @usableFromInline
     subscript(position: Int) -> (key: Key, value: Value) {
@@ -157,7 +148,7 @@ extension OrderedDictionary: ExpressibleByDictionaryLiteral {
 extension OrderedDictionary: Equatable where Value: Equatable {
     @usableFromInline
     static func == (lhs: OrderedDictionary, rhs: OrderedDictionary) -> Bool {
-        return (lhs.keys == rhs.keys) && (lhs.dictionary == rhs.dictionary)
+        (lhs.keys == rhs.keys) && (lhs.dictionary == rhs.dictionary)
     }
 }
 

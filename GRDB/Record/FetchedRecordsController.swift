@@ -541,7 +541,7 @@ private final class FetchedRecordsObserver<Record: FetchableRecord>: Transaction
     }
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return region.isModified(byEventsOfKind: eventKind)
+        region.isModified(byEventsOfKind: eventKind)
     }
     
     /// Part of the TransactionObserverType protocol
@@ -1076,6 +1076,6 @@ private final class Item<T: FetchableRecord>: FetchableRecord, Equatable {
     }
     
     static func ==<T> (lhs: Item<T>, rhs: Item<T>) -> Bool {
-        return lhs.row == rhs.row
+        lhs.row == rhs.row
     }
 }

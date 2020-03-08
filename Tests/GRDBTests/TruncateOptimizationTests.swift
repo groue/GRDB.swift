@@ -37,9 +37,7 @@ class TruncateOptimizationTests: GRDBTestCase {
             self.notify = notify
         }
         
-        func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-            return true
-        }
+        func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
         
         func databaseDidChange(with event: DatabaseEvent) {
             if case .delete = event.kind {
@@ -60,7 +58,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     }
     
     class UniversalObserver : TransactionObserver {
-        func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return true }
+        func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
         func databaseDidChange(with event: DatabaseEvent) { }
         func databaseDidCommit(_ db: Database) { }
         func databaseDidRollback(_ db: Database) { }

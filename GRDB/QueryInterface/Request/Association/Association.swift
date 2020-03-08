@@ -46,33 +46,33 @@ public protocol Association: DerivableRequest {
 extension Association {
     /// :nodoc:
     public func _including(all association: SQLAssociation) -> Self {
-        return mapDestinationRelation { $0._including(all: association) }
+        mapDestinationRelation { $0._including(all: association) }
     }
     
     /// :nodoc:
     public func _including(optional association: SQLAssociation) -> Self {
-        return mapDestinationRelation { $0._including(optional: association) }
+        mapDestinationRelation { $0._including(optional: association) }
     }
     
     /// :nodoc:
     public func _including(required association: SQLAssociation) -> Self {
-        return mapDestinationRelation { $0._including(required: association) }
+        mapDestinationRelation { $0._including(required: association) }
     }
     
     /// :nodoc:
     public func _joining(optional association: SQLAssociation) -> Self {
-        return mapDestinationRelation { $0._joining(optional: association) }
+        mapDestinationRelation { $0._joining(optional: association) }
     }
     
     /// :nodoc:
     public func _joining(required association: SQLAssociation) -> Self {
-        return mapDestinationRelation { $0._joining(required: association) }
+        mapDestinationRelation { $0._joining(required: association) }
     }
 }
 
 extension Association {
     private func mapDestinationRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self {
-        return .init(sqlAssociation: sqlAssociation.map(\.destination.relation, transform))
+        .init(sqlAssociation: sqlAssociation.map(\.destination.relation, transform))
     }
 }
 
@@ -102,9 +102,7 @@ extension Association {
     ///     for row in Row.fetchAll(db, request) {
     ///         let team: Team = row["custom"]
     ///     }
-    var key: SQLAssociationKey {
-        return sqlAssociation.destination.key
-    }
+    var key: SQLAssociationKey { sqlAssociation.destination.key }
     
     /// Creates an association which selects *selection*.
     ///
@@ -128,7 +126,7 @@ extension Association {
     ///         .select([Column("color")])
     ///     var request = Player.including(required: association)
     public func select(_ selection: [SQLSelectable]) -> Self {
-        return mapDestinationRelation { $0.select(selection) }
+        mapDestinationRelation { $0.select(selection) }
     }
     
     /// Creates an association which appends *selection*.
@@ -145,7 +143,7 @@ extension Association {
     ///         .annotated(with: [Column("name")])
     ///     var request = Player.including(required: association)
     public func annotated(with selection: [SQLSelectable]) -> Self {
-        return mapDestinationRelation { $0.annotated(with: selection) }
+        mapDestinationRelation { $0.annotated(with: selection) }
     }
     
     /// Creates an association with the provided *predicate promise* added to
@@ -161,7 +159,7 @@ extension Association {
     ///     let association = Player.team.filter { db in true }
     ///     var request = Player.including(required: association)
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        return mapDestinationRelation { $0.filter(predicate) }
+        mapDestinationRelation { $0.filter(predicate) }
     }
     
     /// Creates an association with the provided *orderings promise*.
@@ -189,7 +187,7 @@ extension Association {
     ///         .order{ _ in [Column("name")] }
     ///     var request = Player.including(required: association)
     public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
-        return mapDestinationRelation { $0.order(orderings) }
+        mapDestinationRelation { $0.order(orderings) }
     }
     
     /// Creates an association that reverses applied orderings.
@@ -213,7 +211,7 @@ extension Association {
     ///     let association = Player.team.reversed()
     ///     var request = Player.including(required: association)
     public func reversed() -> Self {
-        return mapDestinationRelation { $0.reversed() }
+        mapDestinationRelation { $0.reversed() }
     }
     
     /// Creates an association without any ordering.
@@ -228,7 +226,7 @@ extension Association {
     ///     let association = Player.team.order(Column("name")).unordered()
     ///     var request = Player.including(required: association)
     public func unordered() -> Self {
-        return mapDestinationRelation { $0.unordered() }
+        mapDestinationRelation { $0.unordered() }
     }
     
     /// Creates an association with the given key.
@@ -254,7 +252,7 @@ extension Association {
     ///     let playerInfos = PlayerInfo.all().fetchAll(db)
     ///     print(playerInfos.first?.team)
     public func forKey(_ codingKey: CodingKey) -> Self {
-        return forKey(codingKey.stringValue)
+        forKey(codingKey.stringValue)
     }
     
     /// Creates an association that allows you to define expressions that target
@@ -286,14 +284,14 @@ extension Association {
     ///         .including(required: Player.team.aliased(teamAlias))
     ///         .filter(sql: "custom.color = ?", arguments: ["red"])
     public func aliased(_ alias: TableAlias) -> Self {
-        return mapDestinationRelation { $0.qualified(with: alias) }
+        mapDestinationRelation { $0.qualified(with: alias) }
     }
 }
 
 // TableRequest
 extension Association {
     /// :nodoc:
-    public var databaseTableName: String { return RowDecoder.databaseTableName }
+    public var databaseTableName: String { RowDecoder.databaseTableName }
 }
 
 // MARK: - AssociationToOne
@@ -326,7 +324,7 @@ extension AssociationToMany {
 
 extension AssociationToMany {
     private func makeAggregate(_ expression: SQLExpression) -> AssociationAggregate<OriginRowDecoder> {
-        return AssociationAggregate { request in
+        AssociationAggregate { request in
             let tableAlias = TableAlias()
             let request = request
                 .joining(optional: self.aliased(tableAlias))
@@ -352,7 +350,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.count() > 10).fetchAll(db)
     public var count: AssociationAggregate<OriginRowDecoder> {
-        return makeAggregate(SQLExpressionCountDistinct(Column.rowID))
+        makeAggregate(SQLExpressionCountDistinct(Column.rowID))
             .forKey("\(key.singularizedName)Count")
     }
     
@@ -372,7 +370,7 @@ extension AssociationToMany {
     ///     let teams: [Team] = try Team.having(!Team.players.isEmpty())
     ///     let teams: [Team] = try Team.having(Team.players.isEmpty() == false)
     public var isEmpty: AssociationAggregate<OriginRowDecoder> {
-        return makeAggregate(SQLExpressionIsEmpty(SQLExpressionCountDistinct(Column.rowID)))
+        makeAggregate(SQLExpressionIsEmpty(SQLExpressionCountDistinct(Column.rowID)))
             .forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
     }
     

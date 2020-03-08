@@ -55,7 +55,7 @@ public struct FTS5: VirtualTableModule {
     
     /// Don't use this method.
     public func makeTableDefinition() -> FTS5TableDefinition {
-        return FTS5TableDefinition()
+        FTS5TableDefinition()
     }
     
     /// Don't use this method.

@@ -59,13 +59,13 @@ extension SQLExpressible where Self: SQLOrderingTerm {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public var reversed: SQLOrderingTerm {
-        return SQLOrdering.desc(sqlExpression)
+        SQLOrdering.desc(sqlExpression)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func orderingTermSQL(_ context: inout SQLGenerationContext) -> String {
-        return sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+        sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
     }
 }
 
@@ -76,24 +76,24 @@ extension SQLExpressible where Self: SQLSelectable {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
-        return sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+        sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func countedSQL(_ context: inout SQLGenerationContext) -> String {
-        return sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+        sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func count(distinct: Bool) -> SQLCount? {
-        return sqlExpression.count(distinct: distinct)
+        sqlExpression.count(distinct: distinct)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func columnCount(_ db: Database) throws -> Int {
-        return 1
+        1
     }
 }
